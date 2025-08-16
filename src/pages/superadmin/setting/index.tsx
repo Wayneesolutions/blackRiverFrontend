@@ -1,21 +1,10 @@
 import React, { useState } from 'react';
 import { 
   Settings, 
-  Shield, 
-  Database,
   Mail,
-  Globe,
-  Server,
   Save,
-  RefreshCw,
   Eye,
-  EyeOff,
-  Monitor,
-  HardDrive,
-  Wifi,
-  Activity,
-  AlertTriangle,
-  CheckCircle
+  EyeOff
 } from 'lucide-react';
 
 const SystemSettings = () => {
