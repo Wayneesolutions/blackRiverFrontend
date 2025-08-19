@@ -4,7 +4,7 @@ import DispatchHeader from "./Header";
 
 const Layout = () => {
     return (
-        <div className="flex flex-col min-h-screen bg-[#FFF6F6] pb-16">
+        <div className="flex flex-col min-h-screen bg-[#eeeeee] pb-16">
             <div className="flex flex-1">
                 <DispatchSidebar />
                 <div className="flex flex-col flex-1 pl-5">

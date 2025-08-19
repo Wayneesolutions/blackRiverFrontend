@@ -19,7 +19,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="p-4 bg-[#FFF7F7] min-h-screen">
+    <div className="p-4  min-h-screen">
       {/* Date */}
       <p className="text-sm mb-2">
         Today : {today}
