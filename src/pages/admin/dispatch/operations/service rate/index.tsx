@@ -3,6 +3,8 @@ import NewService from "./NewService"; // ⬅️ create this component like your
 
 const ServicePage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [filtersOpen, setFiltersOpen] = useState(false);
+
 
     const today = new Date().toLocaleDateString("en-GB", {
         day: "2-digit",
@@ -36,15 +38,26 @@ const ServicePage = () => {
             <div className="relative z-10 flex-1 p-4">
                 {/* Header Row */}
                 <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm font-medium text-gray-700 bg-white bg-opacity-70 backdrop-blur-sm px-3 py-1 rounded-lg">
-                        Today: {today}
-                    </p>
-                    <button
-                        onClick={() => setSidebarOpen(true)}
-                        className="bg-blue-500 hover:bg-blue-600 !text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm border border-blue-400"
-                    >
-                        + New Service
-                    </button>
+                    {/* Left side heading */}
+                    <h2 className="text-xl font-bold text-gray-800 bg-white bg-opacity-70 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
+                        Service Rate
+                    </h2>
+
+                    {/* Right side actions */}
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setFiltersOpen(true)}
+                            className="bg-white hover:bg-gray-100 text-gray-700 font-medium px-5 py-2 rounded-lg shadow border border-gray-300 transition-all duration-200 backdrop-blur-sm"
+                        >
+                            Filters
+                        </button>
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="bg-blue-500 hover:bg-blue-600 !text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm border border-blue-400"
+                        >
+                            + New Load
+                        </button>
+                    </div>
                 </div>
 
                 {/* Table */}
@@ -113,6 +126,37 @@ const ServicePage = () => {
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
+            <div
+                className={`fixed top-0 right-0 h-full max-w-md w-full bg-white bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${filtersOpen ? "translate-x-0" : "translate-x-full"
+                    }`}
+            >
+                <div className="p-6">
+                    <h3 className="text-lg font-bold mb-4">Filters</h3>
+                    {/* Example filters */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700">Status</label>
+                        <select className="w-full mt-1 border rounded-lg p-2">
+                            <option>All</option>
+                            <option>In Transit</option>
+                            <option>Delivered</option>
+                        </select>
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700">Customer</label>
+                        <input
+                            type="text"
+                            className="w-full mt-1 border rounded-lg p-2"
+                            placeholder="Enter customer"
+                        />
+                    </div>
+                    <button
+                        className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600"
+                        onClick={() => setFiltersOpen(false)}
+                    >
+                        Apply
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };

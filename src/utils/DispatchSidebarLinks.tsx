@@ -7,6 +7,7 @@ import {
   MdErrorOutline,
   MdPayment,
   MdNotificationsActive,
+  MdLocalShipping 
 } from "react-icons/md";
 import { FaTruckMoving, FaUsers, FaMapMarkerAlt } from "react-icons/fa";
 import { RiOilLine } from "react-icons/ri";
@@ -45,6 +46,11 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
         key: "/admin/dispatch/operations/service-rates",
         icon: <MdBuild />,
         label: "Service Rates",
+      },
+      {
+        key: "/admin/dispatch/operations/dispatch",
+        icon: <MdLocalShipping  />,
+        label: "Dispatch",
       },
       {
         key: "/admin/dispatch/operations/scheduler",
