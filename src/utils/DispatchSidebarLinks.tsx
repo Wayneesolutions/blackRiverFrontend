@@ -20,110 +20,113 @@ type DispatchSidebarLinks = {
   icon: React.ReactNode;
   label: string;
   children?: DispatchSidebarLinks[];
+  action?: "open-new-load";
 };
 
 export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
+
   {
-    key: "/admin/new-load",
+    key: "open-new-load",
+    action: "open-new-load",
     icon: <IoIosSend />,
-    label: "New Load",
+    label: "New Load"
   },
   {
-    key: "/admin/operations",
+    key: "/admin/dispatch/operations",
     icon: <MdMiscellaneousServices />,
     label: "Operations",
     children: [
       {
-        key: "/admin/operations/dashboard",
+        key: "/admin/dispatch/operations/dashboard",
         icon: <MdDashboard />,
         label: "Dashboard",
       },
       {
-        key: "/admin/operations/service-rates",
+        key: "/admin/dispatch/operations/service-rates",
         icon: <MdBuild />,
         label: "Service Rates",
       },
       {
-        key: "/admin/operations/scheduler",
+        key: "/admin/dispatch/operations/scheduler",
         icon: <MdEventNote />,
         label: "Scheduler",
       },
       {
-        key: "/admin/operations/order-config",
+        key: "/admin/dispatch/operations/order-config",
         icon: <AiOutlineUserSwitch />,
         label: "Order Config",
       },
     ],
   },
   {
-    key: "/admin/resources",
+    key: "/admin/dispatch/resources",
     icon: <FaUsers />,
     label: "Resources",
     children: [
       {
-        key: "/admin/resources/drivers",
+        key: "/admin/dispatch/resources/drivers",
         icon: <FaTruckMoving />,
         label: "Drivers",
       },
       {
-        key: "/admin/resources/vehicles",
+        key: "/admin/dispatch/resources/vehicles",
         icon: <TbTruckDelivery />,
         label: "Vehicles",
       },
       {
-        key: "/admin/resources/fleets",
+        key: "/admin/dispatch/resources/fleets",
         icon: <FaUsers />,
         label: "Fleets",
       },
       {
-        key: "/admin/resources/vendors",
+        key: "/admin/dispatch/resources/vendors",
         icon: <MdContacts />,
         label: "Vendors",
       },
       {
-        key: "/admin/resources/contacts",
+        key: "/admin/dispatch/resources/contacts",
         icon: <MdContacts />,
         label: "Contacts",
       },
       {
-        key: "/admin/resources/places",
+        key: "/admin/dispatch/resources/places",
         icon: <FaMapMarkerAlt />,
         label: "Places",
       },
       {
-        key: "/admin/resources/fuel-reports",
+        key: "/admin/dispatch/resources/fuel-reports",
         icon: <RiOilLine />,
         label: "Fuel Reports",
       },
       {
-        key: "/admin/resources/issues",
+        key: "/admin/dispatch/resources/issues",
         icon: <MdErrorOutline />,
         label: "Issues",
       },
     ],
   },
   {
-    key: "/admin/settings",
+    key: "/admin/dispatch/settings",
     icon: <MdBuild />,
     label: "Settings",
     children: [
       {
-        key: "/admin/settings/navigator-app",
+        key: "/admin/dispatch/settings/navigator-app",
         icon: <IoIosSend />,
         label: "Navigator App",
       },
       {
-        key: "/admin/settings/payments",
+        key: "/admin/dispatch/settings/payments",
         icon: <MdPayment />,
         label: "Payments",
       },
       {
-        key: "/admin/settings/notifications",
+        key: "/admin/dispatch/settings/notifications",
         icon: <MdNotificationsActive />,
         label: "Notifications",
       },
       {
-        key: "/admin/settings/routing",
+        key: "/admin/dispatch/settings/routing",
         icon: <GiPathDistance />,
         label: "Routing",
       },

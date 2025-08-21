@@ -3,8 +3,9 @@ import { Suspense, lazy } from "react";
 import Layout from "../../components/dispatch/Layout";
 import Loading from "../../components/common/Loading";
 
-const DispatchDashboard = lazy(() => import("../../pages/admin/dispatch/index"));
-
+const DispatchDashboard = lazy(() => import("../../pages/admin/dispatch/operations/index"));
+const ServiceRate = lazy(() => import("../../pages/admin/dispatch/operations/service rate/index"))
+const Scheduler = lazy(() => import("../../pages/admin/dispatch/operations/schedular/index"))
 
 function DispatchRoutes() {
   return (
@@ -13,17 +14,10 @@ function DispatchRoutes() {
         <Route element={<Layout />}>
           {/* Dashboard route - handles both /admin/dispatch and /admin/dispatch/dashboard */}
           <Route index element={<DispatchDashboard />} />
-          <Route path="dashboard" element={<DispatchDashboard />} />
-          
-          {/* Other dispatch routes */}
-          {/* <Route path="goods" element={<DispatchGoods />} />
-          <Route path="cargo" element={<DispatchCargo />} />
-          <Route path="team" element={<DispatchTeam />} />
-          <Route path="locate" element={<DispatchLocate />} />
-          <Route path="drivers" element={<DispatchDrivers />} />
-          <Route path="totaldispatch" element={<DispatchTotal />} />
-          <Route path="invoice" element={<DispatchInvoice />} />
-          <Route path="doc" element={<DispatchDoc />} /> */}
+          <Route path="operations/dashboard" element={<DispatchDashboard />} />
+          <Route path="operations/service-rates" element={<ServiceRate />} />
+          <Route path="operations/scheduler" element={<Scheduler />} />
+
         </Route>
       </Routes>
     </Suspense>
