@@ -424,39 +424,12 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                 </div>
             </div>
 
-            {/* Full Screen Edit Item Modal - Positioned outside sidebar */}
+            {/* Full Screen Edit Item Modal - Fixed positioning */}
             {editingItem && (
-                <div
-                    className="fixed inset-0 flex items-center justify-center p-4"
-                    style={{
-                        zIndex: 50,
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0
-                    }}
-                >
-                    <div
-                        className="bg-white rounded-lg overflow-hidden flex flex-col shadow-2xl"
-                        style={{
-                            width: '90vw',
-                            maxWidth: '1000px',
-                            height: '90vh',
-                            maxHeight: '800px',
-                            position: 'relative',
-                            zIndex: 51
-                        }}
-                    >
+                <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[200]">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
                         {/* Header */}
-                        <div
-                            className="flex items-center justify-between p-4 border-b flex-shrink-0"
-                            style={{
-                                backgroundColor: 'white',
-                                borderBottomColor: '#e5e7eb'
-                            }}
-                        >
+                        <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center">
                                     <Package className="w-5 h-5 text-white" />
@@ -472,15 +445,9 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                         </div>
 
                         {/* Scrollable Content */}
-                        <div
-                            className="flex-1 overflow-y-auto p-6 space-y-6"
-                            style={{ backgroundColor: 'white' }}
-                        >
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
                             {/* Image Upload Section */}
-                            <div
-                                className="border rounded-lg p-4"
-                                style={{ backgroundColor: 'white', borderColor: '#e5e7eb' }}
-                            >
+                            <div className="border border-gray-200 rounded-lg p-4">
                                 <h4 className="text-sm font-medium mb-4 flex items-center gap-2 text-gray-700">
                                     <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                                     Product Image
@@ -495,10 +462,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                                 className="w-32 h-32 object-cover rounded-lg border border-gray-300"
                                             />
                                         ) : (
-                                            <div
-                                                className="w-32 h-32 rounded-lg border border-gray-300 flex items-center justify-center"
-                                                style={{ backgroundColor: '#f9fafb' }}
-                                            >
+                                            <div className="w-32 h-32 rounded-lg border border-gray-300 flex items-center justify-center bg-gray-50">
                                                 <Package className="w-16 h-16 text-gray-400" />
                                             </div>
                                         )}
@@ -520,7 +484,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                                 const randomImage = dummyImages[Math.floor(Math.random() * dummyImages.length)];
                                                 setEditingItem({ ...editingItem, image: randomImage });
                                             }}
-                                            className="flex items-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 !text-white rounded transition-colors !mb-4"
+                                            className="flex items-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 !text-white rounded transition-colors"
                                         >
                                             <Camera size={16} />
                                             Use Sample Image
@@ -539,10 +503,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                             </div>
 
                             {/* Details Section */}
-                            <div
-                                className="border rounded-lg p-4"
-                                style={{ backgroundColor: 'white', borderColor: '#e5e7eb' }}
-                            >
+                            <div className="border border-gray-200 rounded-lg p-4">
                                 <h4 className="text-sm font-medium mb-4 flex items-center gap-2 text-gray-700">
                                     <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                                     Details
@@ -553,7 +514,6 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                         <label className="block text-xs mb-1 text-gray-500">Name</label>
                                         <input
                                             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                            style={{ backgroundColor: 'white' }}
                                             placeholder="Item name"
                                             value={editingItem.name}
                                             onChange={(e) =>
@@ -564,8 +524,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                     <div>
                                         <label className="block text-xs mb-1 text-gray-500">Internal ID</label>
                                         <input
-                                            className="w-full p-2 border border-gray-300 rounded text-gray-900"
-                                            style={{ backgroundColor: '#f9fafb' }}
+                                            className="w-full p-2 border border-gray-300 rounded text-gray-900 bg-gray-50"
                                             placeholder="Auto-generated"
                                             readOnly
                                         />
@@ -576,7 +535,6 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                     <label className="block text-xs mb-1 text-gray-500">SKU</label>
                                     <input
                                         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                        style={{ backgroundColor: 'white' }}
                                         placeholder="SKU"
                                         value={editingItem.sku}
                                         onChange={(e) =>
@@ -590,7 +548,6 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                     <textarea
                                         rows={3}
                                         className="w-full p-2 border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                        style={{ backgroundColor: 'white' }}
                                         placeholder="Item description"
                                         value={editingItem.description}
                                         onChange={(e) =>
@@ -601,10 +558,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                             </div>
 
                             {/* Pricing & Value Section */}
-                            <div
-                                className="border rounded-lg p-4"
-                                style={{ backgroundColor: 'white', borderColor: '#e5e7eb' }}
-                            >
+                            <div className="border border-gray-200 rounded-lg p-4">
                                 <h4 className="text-sm font-medium mb-4 flex items-center gap-2 text-gray-700">
                                     <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                                     Pricing & Value
@@ -616,89 +570,6 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                         <input
                                             type="number"
                                             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                            style={{ backgroundColor: 'white' }}
-                                            placeholder="0.00"
-                                            value={editingItem.price}
-                                            onChange={(e) =>
-                                                setEditingItem({ ...editingItem, price: e.target.value })
-                                            }
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs mb-1 text-gray-500">Sale Price</label>
-                                        <input
-                                            type="number"
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                            style={{ backgroundColor: 'white' }}
-                                            placeholder="0.00"
-                                            value={editingItem.salePrice}
-                                            onChange={(e) =>
-                                                setEditingItem({ ...editingItem, salePrice: e.target.value })
-                                            }
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 mt-4">
-                                    <div>
-                                        <label className="block text-xs mb-1 text-gray-500">Cost</label>
-                                        <input
-                                            type="number"
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                            style={{ backgroundColor: 'white' }}
-                                            placeholder="0.00"
-                                            value={editingItem.cost}
-                                            onChange={(e) =>
-                                                setEditingItem({ ...editingItem, cost: e.target.value })
-                                            }
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs mb-1 text-gray-500">Discount Value</label>
-                                        <input
-                                            type="number"
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                            style={{ backgroundColor: 'white' }}
-                                            placeholder="0.00"
-                                            value={editingItem.discountValue}
-                                            onChange={(e) =>
-                                                setEditingItem({ ...editingItem, discountValue: e.target.value })
-                                            }
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Measurements & Weight Section */}
-                            <div
-                                className="border rounded-lg p-4"
-                                style={{ backgroundColor: 'white', borderColor: '#e5e7eb' }}
-                            >
-                                <h4 className="text-sm font-medium mb-4 flex items-center gap-2 text-gray-700">
-                                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                    Measurements & Weight
-                                </h4>
-
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-xs mb-1 text-gray-500">Length</label>
-                                        <input
-                                            type="number"
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                            style={{ backgroundColor: 'white' }}
-                                            placeholder="0"
-                                            value={editingItem.length}
-                                            onChange={(e) =>
-                                                setEditingItem({ ...editingItem, length: e.target.value })
-                                            }
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs mb-1 text-gray-500">Width</label>
-                                        <input
-                                            type="number"
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                            style={{ backgroundColor: 'white' }}
                                             placeholder="0"
                                             value={editingItem.width}
                                             onChange={(e) =>
@@ -711,7 +582,6 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                         <input
                                             type="number"
                                             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                            style={{ backgroundColor: 'white' }}
                                             placeholder="0"
                                             value={editingItem.height}
                                             onChange={(e) =>
@@ -726,7 +596,6 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                     <input
                                         type="number"
                                         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                        style={{ backgroundColor: 'white' }}
                                         placeholder="0"
                                         value={editingItem.weight}
                                         onChange={(e) =>
@@ -738,13 +607,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                         </div>
 
                         {/* Footer */}
-                        <div
-                            className="flex gap-3 justify-end p-4 border-t flex-shrink-0"
-                            style={{
-                                backgroundColor: 'white',
-                                borderTopColor: '#e5e7eb'
-                            }}
-                        >
+                        <div className="flex gap-3 justify-end p-4 border-t border-gray-200 bg-white flex-shrink-0">
                             <button
                                 onClick={() => setEditingItem(null)}
                                 className="px-6 py-2 font-semibold rounded shadow transition-colors bg-gray-300 hover:bg-gray-400 text-gray-700"
