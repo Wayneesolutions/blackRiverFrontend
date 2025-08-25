@@ -7,7 +7,7 @@ import {
   MdErrorOutline,
   MdPayment,
   MdNotificationsActive,
-  MdLocalShipping 
+  MdLocalShipping
 } from "react-icons/md";
 import { FaTruckMoving, FaUsers, FaMapMarkerAlt } from "react-icons/fa";
 import { RiOilLine } from "react-icons/ri";
@@ -49,7 +49,7 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
       },
       {
         key: "/admin/dispatch/operations/dispatch",
-        icon: <MdLocalShipping  />,
+        icon: <MdLocalShipping />,
         label: "Dispatch",
       },
       {
@@ -119,7 +119,7 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
       {
         key: "/admin/dispatch/settings/navigator-app",
         icon: <IoIosSend />,
-        label: "Navigator App",
+        label: "FleetGo Navigator",
       },
       {
         key: "/admin/dispatch/settings/payments",

@@ -18,14 +18,17 @@ const Places = lazy(() => import("../../pages/admin/dispatch/resources/places/in
 const FuelReports = lazy(() => import("../../pages/admin/dispatch/resources/fuel-reports/index"))
 const Issues = lazy(() => import("../../pages/admin/dispatch/resources/issues/index"))
 
-
+const NavigatorApp = lazy(() => import("../../pages/admin/dispatch/settings/navigatorApp/index"))
+const Invoices = lazy(() => import("../../pages/admin/dispatch/settings/payments/index"))
+const Notifications = lazy(() => import("../../pages/admin/dispatch/settings/notifications/index"))
+const Routing = lazy(() => import("../../pages/admin/dispatch/settings/routing/index"))
 
 function DispatchRoutes() {
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
         <Route element={<Layout />}>
-          {/* Dashboard route - handles both /admin/dispatch and /admin/dispatch/dashboard */}
+
           <Route index element={<DispatchDashboard />} />
           <Route path="operations/dashboard" element={<DispatchDashboard />} />
           <Route path="operations/service-rates" element={<ServiceRate />} />
@@ -41,6 +44,11 @@ function DispatchRoutes() {
           <Route path="resources/places" element={<Places />} />
           <Route path="resources/fuel-reports" element={<FuelReports />} />
           <Route path="resources/issues" element={<Issues />} />
+
+          <Route path="settings/navigator-app" element={<NavigatorApp />} />
+          <Route path="settings/payments" element={<Invoices />} />
+          <Route path="settings/notifications" element={<Notifications />} />
+          <Route path="settings/routing" element={<Routing />} />
 
         </Route>
       </Routes>
