@@ -11,7 +11,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
-  const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
+  const [, setHoveredMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Toggle expand/collapse for parent menus
@@ -41,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
   return (
     <>
-      <aside className={`${isCollapsed ? 'w-20' : 'w-64'} h-full flex flex-col transition-all duration-300 ease-in-out relative z-10`}>
+      <aside className={`${isCollapsed ? 'w-20' : 'w-64'} h-screen flex flex-col transition-all duration-300 ease-in-out relative z-10`}>
         {/* Logo & status - fixed at top */}
         <div className="flex-shrink-0 flex justify-between items-center bg-white shadow-lg rounded-lg px-4 py-3 m-3 mb-4 z-10 relative">
           <div className="flex items-center">
@@ -64,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
         </div>
 
         {/* Menu with independent scroll */}
-        <div className="flex-1 mx-3 mb-3 bg-white shadow-lg rounded-lg flex flex-col relative">
+        <div className="flex-1 mx-3 mb-3 bg-white shadow-lg rounded-lg flex flex-col relative overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
             <ul className="space-y-1 p-3 relative">
               {DispatchSidebarLinks.map((link) => (

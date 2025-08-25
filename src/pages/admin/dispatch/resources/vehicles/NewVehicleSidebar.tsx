@@ -27,7 +27,7 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({ isOpen, onClose }) => {
     const [selectedAvatar, setSelectedAvatar] = useState('');
     const [openAvatar, setOpenAvatar] = useState(true);
     const [openDetails, setOpenDetails] = useState(true);
-    
+
     const vehicleAvatars = [
         { id: 'generic_male_driver', name: 'Generic Male Driver', selected: false },
         { id: '2_door_truck', name: '2 Door Truck', selected: true },
@@ -301,7 +301,7 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({ isOpen, onClose }) => {
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         {/* Display uploaded images */}
                                         {formData.vehicleImages.length > 0 && (
                                             <div className="mt-3 grid grid-cols-2 gap-2">
@@ -354,7 +354,7 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({ isOpen, onClose }) => {
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         {/* Display uploaded documents */}
                                         {formData.documentImages.length > 0 && (
                                             <div className="mt-3 space-y-2">

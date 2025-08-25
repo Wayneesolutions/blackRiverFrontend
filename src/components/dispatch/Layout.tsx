@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { Outlet } from "react-router-dom";
 import DispatchSidebar from "./Sidebar";
 import DispatchHeader from "./Header";
@@ -13,7 +13,7 @@ const Layout = () => {
     return (
         <div className="flex h-screen bg-[#eeeeee]">
             {/* Sidebar with independent scroll */}
-            <div className="flex-shrink-0 h-full overflow-hidden">
+            <div className="flex-shrink-0 h-screen overflow-hidden">
                 <DispatchSidebar 
                     isCollapsed={isSidebarCollapsed} 
                     onToggle={toggleSidebar} 

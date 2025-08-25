@@ -8,8 +8,17 @@ const ServiceRate = lazy(() => import("../../pages/admin/dispatch/operations/ser
 const Dispatch = lazy(() => import("../../pages/admin/dispatch/operations/dispatch/index"))
 const Scheduler = lazy(() => import("../../pages/admin/dispatch/operations/schedular/index"))
 const OrderConfig = lazy(() => import("../../pages/admin/dispatch/operations/orderConfig/index"))
+
 const DriversPage = lazy(() => import("../../pages/admin/dispatch/resources/drivers"))
 const Vehicle = lazy(() => import("../../pages/admin/dispatch/resources/vehicles/index"))
+const Fleets = lazy(() => import("../../pages/admin/dispatch/resources/fleet/index"))
+const Vendors = lazy(() => import("../../pages/admin/dispatch/resources/vendors/index"))
+const Contacts = lazy(() => import("../../pages/admin/dispatch/resources/contacts/index"))
+const Places = lazy(() => import("../../pages/admin/dispatch/resources/places/index"))
+const FuelReports = lazy(() => import("../../pages/admin/dispatch/resources/fuel-reports/index"))
+const Issues = lazy(() => import("../../pages/admin/dispatch/resources/issues/index"))
+
+
 
 function DispatchRoutes() {
   return (
@@ -25,7 +34,14 @@ function DispatchRoutes() {
           <Route path="operations/order-config" element={<OrderConfig />} />
 
           <Route path="resources/drivers" element={<DriversPage />} />
-           <Route path="resources/vehicles" element={<Vehicle />} />
+          <Route path="resources/vehicles" element={<Vehicle />} />
+          <Route path="resources/fleets" element={<Fleets />} />
+          <Route path="resources/vendors" element={<Vendors />} />
+          <Route path="resources/contacts" element={<Contacts />} />
+          <Route path="resources/places" element={<Places />} />
+          <Route path="resources/fuel-reports" element={<FuelReports />} />
+          <Route path="resources/issues" element={<Issues />} />
+
         </Route>
       </Routes>
     </Suspense>
