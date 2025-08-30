@@ -11,13 +11,14 @@ const Invoice = lazy(() => import("../pages/admin/dashboard/invoice/index"));
 const Setting = lazy(() => import("../pages/admin/dashboard/setting/index"));
 
 const DispatchRoutes = lazy(() => import("./AdminFeatures/DispatchRoutes"));
-
+const GpsVehicleRoutes = lazy(() => import("./AdminFeatures/GpsVehicleRoutes"))
 function AdminRoute() {
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
         {/* Feature Routes - These should come BEFORE the Layout routes */}
         <Route path="dispatch/*" element={<DispatchRoutes />} />
+        <Route path="gpsvehicle/*" element={<GpsVehicleRoutes/>}/>
         {/* Add other feature routes here when ready */}
         {/* 
          <Route path="gps/*" element={<GPSRoutes />} />

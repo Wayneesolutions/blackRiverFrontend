@@ -20,7 +20,7 @@ const features = [
         title: "GPS Tracking and Vehicle Telematics",
         description: "Real-time fleet tracking with vehicle performance monitoring and driver behavior analytics.",
         icon: GPSIcon,
-        route: "/admin/gps",
+        route: "/admin/gpsvehicle",
 
     },
     {
