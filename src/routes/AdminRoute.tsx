@@ -20,7 +20,7 @@ function AdminRoute() {
         <Route path="dispatch/*" element={<DispatchRoutes />} />
         {/* Add other feature routes here when ready */}
         {/* 
-        <Route path="gps/*" element={<GPSRoutes />} />
+         <Route path="gps/*" element={<GPSRoutes />} />
         <Route path="driver/*" element={<DriverRoutes />} />
         <Route path="maintenance/*" element={<MaintenanceRoutes />} />
         <Route path="compliance/*" element={<ComplianceRoutes />} />
