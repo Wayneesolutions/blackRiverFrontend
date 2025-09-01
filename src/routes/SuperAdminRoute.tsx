@@ -3,7 +3,7 @@ import { Suspense, lazy } from "react";
 import App from "../components/superadmin/Layout";
 import Loading from "../components/common/Loading";
 
-
+const Login = lazy(() => import("../pages/superadmin/auth/Login"))
 
 const Dashboard = lazy(() => import("../pages/superadmin/dashboard/index"));
 const Viewalladmins = lazy(() => import("../pages/superadmin/adminAccount/ViewAllAccounts"))
@@ -17,8 +17,10 @@ function SuperAdminRoute() {
         <Suspense fallback={
             <Loading />
         }>
-            <Routes>
 
+
+            <Routes>
+                <Route path="login" element={<Login />} />
                 <Route element={<App />}>
                     {/* <Route index element={<Dashboard />} /> */}
                     <Route path="dashboard" element={<Dashboard />} />

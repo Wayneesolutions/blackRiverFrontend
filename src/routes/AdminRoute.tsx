@@ -3,6 +3,10 @@ import { Suspense, lazy } from "react";
 import Layout from "../components/admin/Layout";
 import Loading from "../components/common/Loading";
 
+
+const Register = lazy(() => import("../pages/admin/auth/Register"));
+const Login = lazy(() => import("../pages/admin/auth/Login"));
+
 const Dashboard = lazy(() => import("../pages/admin/dashboard/index"));
 const Profile = lazy(() => import("../pages/admin/dashboard/Profile/index"));
 const Slots = lazy(() => import("../pages/admin/dashboard/slot/index"));
@@ -18,7 +22,7 @@ function AdminRoute() {
       <Routes>
         {/* Feature Routes - These should come BEFORE the Layout routes */}
         <Route path="dispatch/*" element={<DispatchRoutes />} />
-        <Route path="gpsvehicle/*" element={<GpsVehicleRoutes/>}/>
+        <Route path="gpsvehicle/*" element={<GpsVehicleRoutes />} />
         {/* Add other feature routes here when ready */}
         {/* 
          <Route path="gps/*" element={<GPSRoutes />} />
@@ -27,7 +31,8 @@ function AdminRoute() {
         <Route path="compliance/*" element={<ComplianceRoutes />} />
         <Route path="billing/*" element={<BillingRoutes />} />
         */}
-        
+        <Route path="register" element={<Register />} />
+        <Route path="login" element={<Login />} />
         {/* Main Admin Layout Routes */}
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
