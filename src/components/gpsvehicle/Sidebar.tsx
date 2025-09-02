@@ -1,14 +1,16 @@
-import React,{useState} from 'react'
+import React, { useState } from 'react'
 import { GpsSidebarLinks } from '../../utils/GpsSidebarlinks'
 import { NavLink } from "react-router-dom";
 import { FaChevronDown, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
+import Logo from "../../assets/FleetGo.png"
+
 interface SidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
 }
 
-const  Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) =>{
-const [openMenus, setOpenMenus] = useState<string[]>([]);
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
+  const [openMenus, setOpenMenus] = useState<string[]>([]);
   const [, setHoveredMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -24,7 +26,7 @@ const [openMenus, setOpenMenus] = useState<string[]>([]);
     if (linkKey === "/admin/gpsvehicle") {
       return (
         pathname === "/admin/gpsvehicle" ||
-        pathname === "/admin/gpsvehicle/operations/dashboard"
+        pathname === "/admin/gpsvehicle/dashboard"
       );
     }
     return isActive;
@@ -44,10 +46,14 @@ const [openMenus, setOpenMenus] = useState<string[]>([]);
         <div className="flex-shrink-0 flex justify-between items-center bg-white shadow-lg rounded-lg px-4 py-3 m-3 mb-4 z-10 relative">
           <div className="flex items-center">
             {!isCollapsed && (
-              <div>
-                <div className="font-semibold text-gray-800">Logistics</div>
-                <div className="text-green-500 text-xs font-medium">Active</div>
+
+              <div className="flex items-center space-x-2">
+                <img src={Logo} alt="FleetGo Logo" className="w-20 h-auto" />
+                <div>
+                  <div className="text-green-500 text-xs font-medium">Active</div>
+                </div>
               </div>
+
             )}
             {isCollapsed && (
               <div className="text-lg font-bold text-gray-800">L</div>

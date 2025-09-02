@@ -1,20 +1,23 @@
 import {
   MdDashboard,
-  MdMiscellaneousServices
-//   MdEventNote,
-//   MdBuild,
-//   MdContacts,
-//   MdErrorOutline,
-//   MdPayment,
-//   MdNotificationsActive,
-//   MdLocalShipping
+  MdMiscellaneousServices,
+  MdOutlineMap,
+  MdOutlinePeople,
+  MdOutlineMessage,
+  MdNotificationsActive,
+  MdVideoLibrary,
+  MdOutlineReport,
+  MdOutlineRule,
+  MdOutlineSupport,
+  MdSettings,
+  MdOutlineSecurity,
+  MdOutlineBuild,
+  MdOutlineEco,
+  MdOutlineAssignment,
 } from "react-icons/md";
-// import { FaTruckMoving, FaUsers, FaMapMarkerAlt } from "react-icons/fa";
-// import { RiOilLine } from "react-icons/ri";
-// import { GiPathDistance } from "react-icons/gi";
-// import { AiOutlineUserSwitch } from "react-icons/ai";
-// import { TbTruckDelivery } from "react-icons/tb";
-// import { IoIosSend } from "react-icons/io";
+import { FaTruck, FaCogs } from "react-icons/fa";
+import { GiProgression } from "react-icons/gi";
+import { RiFileListLine } from "react-icons/ri";
 
 type DispatchSidebarLinks = {
   key: string;
@@ -25,192 +28,166 @@ type DispatchSidebarLinks = {
 };
 
 export const GpsSidebarLinks: DispatchSidebarLinks[] = [
-
-//   {
-//     key: "open-new-load",
-//     action: "open-new-load",
-//     icon: <IoIosSend />,
-//     label: "New Load"
-//   },
   {
     key: "/admin/gpsvehicle",
-    icon: <MdMiscellaneousServices />,
+    icon: <MdDashboard />,
     label: "Dashboard",
   },
   {
     key: "/admin/gpsvehicle/assets",
-    icon: <MdMiscellaneousServices />,
+    icon: <FaTruck />,
     label: "Assets",
   },
   {
     key: "/admin/gpsvehicle/loadmap",
-    icon: <MdMiscellaneousServices />,
+    icon: <MdOutlineMap />,
     label: "Loadmap",
   },
   {
     key: "/admin/gpsvehicle/productivity",
-    icon: <MdMiscellaneousServices />,
+    icon: <GiProgression />,
     label: "Productivity",
     children: [
       {
-        key: "/admin/gpsvehicle/productivity/sample",
+        key: "/admin/gpsvehicle/triphistory",
         icon: <MdDashboard />,
-        label: "Dashboard",
+        label: "Trip History",
       },
-      
     ],
   },
   {
     key: "/admin/gpsvehicle/compilance",
-    icon: <MdMiscellaneousServices />,
-    label: "Compilance",
+    icon: <MdOutlineSecurity />,
+    label: "Compliance",
     children: [
       {
         key: "/admin/gpsvehicle/productivity/compilance",
-        icon: <MdDashboard />,
-        label: "Compilence",
+        icon: <RiFileListLine />,
+        label: "Compliance Reports",
       },
-      
     ],
   },
   {
     key: "/admin/gpsvehicle/safety",
-    icon: <MdMiscellaneousServices />,
+    icon: <MdOutlineSecurity />,
     label: "Safety",
     children: [
       {
         key: "/admin/gpsvehicle/safety/safety",
         icon: <MdDashboard />,
-        label: "safety",
+        label: "Safety Dashboard",
       },
-      
     ],
   },
-  
   {
-    key: "/admin/gpsvehicle/safety",
-    icon: <MdMiscellaneousServices />,
-    label: "Maintanance",
+    key: "/admin/gpsvehicle/maintenance",
+    icon: <MdOutlineBuild />,
+    label: "Maintenance",
     children: [
       {
-        key: "/admin/gpsvehicle/safety/safety",
-        icon: <MdDashboard />,
-        label: "safety",
+        key: "/admin/gpsvehicle/maintenance/logs",
+        icon: <RiFileListLine />,
+        label: "Logs",
       },
-      
     ],
   },
-  
   {
-    key: "/admin/gpsvehicle/safety",
-    icon: <MdMiscellaneousServices />,
+    key: "/admin/gpsvehicle/sustainability",
+    icon: <MdOutlineEco />,
     label: "Sustainability",
     children: [
       {
-        key: "/admin/gpsvehicle/safety/safety",
+        key: "/admin/gpsvehicle/sustainability/overview",
         icon: <MdDashboard />,
-        label: "safety",
+        label: "Overview",
       },
-      
     ],
   },
   {
-    key: "/admin/gpsvehicle/safety",
-    icon: <MdMiscellaneousServices />,
+    key: "/admin/gpsvehicle/people",
+    icon: <MdOutlinePeople />,
     label: "People",
     children: [
       {
-        key: "/admin/gpsvehicle/safety/safety",
+        key: "/admin/gpsvehicle/people/staff",
         icon: <MdDashboard />,
-        label: "safety",
+        label: "Staff",
       },
-      
     ],
   },
   {
     key: "/admin/gpsvehicle/messages",
-    icon: <MdMiscellaneousServices />,
+    icon: <MdOutlineMessage />,
     label: "Messages",
   },
   {
     key: "/admin/gpsvehicle/notifications",
-    icon: <MdMiscellaneousServices />,
+    icon: <MdNotificationsActive />,
     label: "Notifications",
   },
   {
     key: "/admin/gpsvehicle/videorecordings",
-    icon: <MdMiscellaneousServices />,
+    icon: <MdVideoLibrary />,
     label: "Video Recordings",
   },
-
   {
     key: "/admin/gpsvehicle/reports",
-    icon: <MdMiscellaneousServices />,
+    icon: <MdOutlineReport />,
     label: "Reports",
     children: [
       {
-        key: "/admin/gpsvehicle/safety/safety",
-        icon: <MdDashboard />,
-        label: "safety",
+        key: "/admin/gpsvehicle/reports/safety",
+        icon: <RiFileListLine />,
+        label: "Safety Reports",
       },
-      
     ],
   },
   {
     key: "/admin/gpsvehicle/groups&rules",
-    icon: <MdMiscellaneousServices />,
+    icon: <MdOutlineRule />,
     label: "Groups & Rules",
     children: [
       {
-        key: "/admin/gpsvehicle/safety/safety",
+        key: "/admin/gpsvehicle/groups&rules/manage",
         icon: <MdDashboard />,
-        label: "safety",
+        label: "Manage Rules",
       },
-      
     ],
-    
   },
   {
     key: "/admin/gpsvehicle/add-in-management",
-    icon: <MdMiscellaneousServices />,
+    icon: <FaCogs />,
     label: "Add in Management",
     children: [
       {
-        key: "/admin/gpsvehicle/safety/safety",
+        key: "/admin/gpsvehicle/add-in-management/settings",
         icon: <MdDashboard />,
-        label: "safety",
+        label: "Settings",
       },
-      
     ],
   },
-
   {
     key: "/admin/gpsvehicle/support",
-    icon: <MdMiscellaneousServices />,
+    icon: <MdOutlineSupport />,
     label: "Support",
     children: [
       {
-        key: "/admin/gpsvehicle/safety/safety",
+        key: "/admin/gpsvehicle/support/help",
         icon: <MdDashboard />,
-        label: "safety",
+        label: "Help Desk",
       },
-      
     ],
   },
-
   {
     key: "/admin/gpsvehicle/system",
-    icon: <MdMiscellaneousServices />,
+    icon: <MdSettings />,
     label: "System",
     children: [
       {
-        key: "/admin/gpsvehicle/safety/safety",
+        key: "/admin/gpsvehicle/system/config",
         icon: <MdDashboard />,
-        label: "safety",
+        label: "Configuration",
       },
-      
     ],
   },
-  
-  
 ];
