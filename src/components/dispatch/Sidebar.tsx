@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { DispatchSidebarLinks } from "../../utils/DispatchSidebarLinks";
 import { FaChevronDown, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
 import NewLoad from "../../pages/admin/dispatch/NewLoad";
+import Logo from "../../assets/FleetGo.png"
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -46,9 +47,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
         <div className="flex-shrink-0 flex justify-between items-center bg-white shadow-lg rounded-lg px-4 py-3 m-3 mb-4 z-10 relative">
           <div className="flex items-center">
             {!isCollapsed && (
-              <div>
-                <div className="font-semibold text-gray-800">Logistics</div>
-                <div className="text-green-500 text-xs font-medium">Active</div>
+              <div className="flex items-center space-x-2">
+                <img src={Logo} alt="FleetGo Logo" className="w-20 h-auto" />
+                <div>
+                  <div className="text-green-500 text-xs font-medium">Active</div>
+                </div>
               </div>
             )}
             {isCollapsed && (
