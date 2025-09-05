@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Plus, Trash, Package, Edit3, Upload, Camera } from "lucide-react";
+import { createLoad, listCustomer, listDriver, listVehicle } from "../../../axios/adminApi";
 
 interface NewLoadProps {
     onClose: () => void;
@@ -59,6 +60,22 @@ const Toggle = ({
 };
 
 const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
+    // API data states
+    const [customers, setCustomers] = useState<any[]>([]);
+    const [drivers, setDrivers] = useState<any[]>([]);
+    const [vehicles, setVehicles] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    // Form data states
+    const [orderType, setOrderType] = useState("");
+    const [selectedCustomer, setSelectedCustomer] = useState("");
+    const [selectedFacilitator, setSelectedFacilitator] = useState("");
+    const [selectedDriver, setSelectedDriver] = useState("");
+    const [selectedVehicle, setSelectedVehicle] = useState("");
+    const [selectPickup, setSelectPickup] = useState("");
+    const [selectDropoff, setSelectDropoff] = useState("");
+    const [selectReturn, setSelectReturn] = useState("");
+
     // State for toggles and options
     const [isAdhoc, setIsAdhoc] = useState(false);
     const [adhocDistance, setAdhocDistance] = useState("");
@@ -72,7 +89,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
     // State for waypoints and items
     const [waypoints, setWaypoints] = useState<
-        { id: number; waypoint: string; customer: string; type: "pickup" | "dropoff" }[]
+        { id: number; address: string; customer: string; type: "pickup" | "dropoff" }[]
     >([]);
     const [items, setItems] = useState<{
         id: number;
@@ -99,16 +116,44 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
         "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=300&fit=crop"
     ];
 
+    // Load API data on component mount
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const [customerRes, driverRes, vehicleRes] = await Promise.all([
+                    listCustomer(),
+                    listDriver(),
+                    listVehicle()
+                ]);
+                
+                setCustomers(customerRes.data || []);
+                setDrivers(driverRes.data || []);
+                setVehicles(vehicleRes.data.vehicles || []);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
     // Waypoint functions
     const addWaypoint = () => {
         setWaypoints([
             ...waypoints,
-            { id: Date.now(), waypoint: "", customer: "", type: "dropoff" },
+            { id: Date.now(), address: "", customer: "", type: "dropoff" },
         ]);
     };
 
     const removeWaypoint = (id: number) => {
         setWaypoints(waypoints.filter((w) => w.id !== id));
+    };
+
+    const updateWaypoint = (id: number, field: string, value: any) => {
+        setWaypoints(waypoints.map(w => w.id === id ? { ...w, [field]: value } : w));
     };
 
     const updateWaypointType = (id: number, type: "pickup" | "dropoff") => {
@@ -158,6 +203,79 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
         }
     };
 
+    // Handle form submission
+    const handleSaveLoad = async () => {
+        setLoading(true);
+        try {
+            const loadData = {
+                details: JSON.stringify({
+                    orderType,
+                    internalId: `LOAD_${Date.now()}`,
+                    customer: selectedCustomer || null,
+                    facilator: selectedFacilitator || null,
+                    driver: selectedDriver || null,
+                    vehicle: selectedVehicle || null,
+                    adHoc: isAdhoc ? parseFloat(adhocDistance) || null : null,
+                    addMisc,
+                    dispatchImmediately,
+                    requiredProof: requireProof ? proofType : null
+                }),
+                route: JSON.stringify(multipleDropoffs ? {
+                    multipleDropOffs: true,
+                    wayPoints: waypoints.map(wp => ({
+                        address: wp.address,
+                        customer: wp.customer || null,
+                        dropOff: wp.type === "dropoff",
+                        pickup: wp.type === "pickup"
+                    })),
+                    selectReturn
+                } : {
+                    multipleDropOffs: false,
+                    selectPickup,
+                    selectDropOff: selectDropoff,
+                    selectReturn
+                }),
+                payloads: JSON.stringify(items.map(item => ({
+                    itemName: item.name,
+                    sku: item.sku,
+                    itemImageUrl: item.image,
+                    internalId: `ITEM_${item.id}`,
+                    description: item.description,
+                    priceAndValues: {
+                        price: parseFloat(item.price) || 0,
+                        salePrice: parseFloat(item.salePrice) || 0,
+                        cost: parseFloat(item.cost) || 0,
+                        discountValue: parseFloat(item.discountValue) || 0
+                    },
+                    measurementAndWeight: {
+                        length: parseFloat(item.length) || 0,
+                        width: parseFloat(item.width) || 0,
+                        height: parseFloat(item.height) || 0,
+                        weight: parseFloat(item.weight) || 0
+                    }
+                }))),
+                services: JSON.stringify({
+                    applyServiceRate
+                }),
+                notes,
+                status: "pending"
+            };
+
+            const response = await createLoad(loadData);
+            if (response.success) {
+                alert("Load created successfully!");
+                onClose();
+            } else {
+                alert("Error creating load: " + response.message);
+            }
+        } catch (error) {
+            console.error("Error creating load:", error);
+            alert("Error creating load. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <>
             <div className="h-full flex flex-col bg-white">
@@ -177,8 +295,15 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                     {/* Details Section */}
                     <Section title="Details">
                         <div className="grid grid-cols-2 gap-4">
-                            <select className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option>Select Order Type</option>
+                            <select 
+                                value={orderType}
+                                onChange={(e) => setOrderType(e.target.value)}
+                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">Select Order Type</option>
+                                <option value="standard">Standard</option>
+                                <option value="express">Express</option>
+                                <option value="overnight">Overnight</option>
                             </select>
                             <input
                                 className="p-2 border border-gray-300 rounded w-full"
@@ -186,17 +311,51 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                 value="Internal ID"
                                 readOnly
                             />
-                            <select className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option>Select Customer</option>
+                            <select 
+                                value={selectedCustomer}
+                                onChange={(e) => setSelectedCustomer(e.target.value)}
+                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={loading}
+                            >
+                                <option value="">Select Customer</option>
+                                {customers.map((customer) => (
+                                    <option key={customer._id} value={customer._id}>
+                                        {customer.name}
+                                    </option>
+                                ))}
                             </select>
-                            <select className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option>Select Facilitator</option>
+                            <select 
+                                value={selectedFacilitator}
+                                onChange={(e) => setSelectedFacilitator(e.target.value)}
+                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">Select Facilitator</option>
                             </select>
-                            <select className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option>Select Driver</option>
+                            <select 
+                                value={selectedDriver}
+                                onChange={(e) => setSelectedDriver(e.target.value)}
+                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={loading}
+                            >
+                                <option value="">Select Driver</option>
+                                {drivers.map((driver) => (
+                                    <option key={driver._id} value={driver._id}>
+                                        {driver.name}
+                                    </option>
+                                ))}
                             </select>
-                            <select className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option>Select Vehicle</option>
+                            <select 
+                                value={selectedVehicle}
+                                onChange={(e) => setSelectedVehicle(e.target.value)}
+                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={loading}
+                            >
+                                <option value="">Select Vehicle</option>
+                                {vehicles?.map((vehicle) => (
+                                    <option key={vehicle._id} value={vehicle._id}>
+                                        {vehicle.internalId}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -249,15 +408,27 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
                         {!multipleDropoffs ? (
                             <div className="space-y-3">
-                                <select className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4">
-                                    <option>Select Pickup</option>
-                                </select>
-                                <select className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4">
-                                    <option>Select Dropoff</option>
-                                </select>
-                                <select className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4">
-                                    <option>Select Return</option>
-                                </select>
+                                <input
+                                    type="text"
+                                    placeholder="Enter Pickup Address"
+                                    value={selectPickup}
+                                    onChange={(e) => setSelectPickup(e.target.value)}
+                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Enter Dropoff Address"
+                                    value={selectDropoff}
+                                    onChange={(e) => setSelectDropoff(e.target.value)}
+                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Enter Return Address"
+                                    value={selectReturn}
+                                    onChange={(e) => setSelectReturn(e.target.value)}
+                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
+                                />
                             </div>
                         ) : (
                             <div className="space-y-3">
@@ -283,11 +454,25 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
                                         <div className="space-y-3">
                                             <h4 className="font-semibold text-gray-700">Waypoint {index + 1}</h4>
-                                            <select className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4">
-                                                <option>Select Address</option>
-                                            </select>
-                                            <select className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4">
-                                                <option>Select Customer</option>
+                                            <input
+                                                type="text"
+                                                placeholder="Enter Address"
+                                                value={wp.address}
+                                                onChange={(e) => updateWaypoint(wp.id, 'address', e.target.value)}
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
+                                            />
+                                            <select 
+                                                value={wp.customer}
+                                                onChange={(e) => updateWaypoint(wp.id, 'customer', e.target.value)}
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
+                                                disabled={loading}
+                                            >
+                                                <option value="">Select Customer</option>
+                                                {customers.map((customer) => (
+                                                    <option key={customer._id} value={customer._id}>
+                                                        {customer.name}
+                                                    </option>
+                                                ))}
                                             </select>
                                             <div className="flex gap-4">
                                                 <label className="flex items-center gap-2">
@@ -411,8 +596,12 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                 {/* Fixed Footer */}
                 <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0">
                     <div className="flex gap-3">
-                        <button className="flex-1 bg-green-500 hover:bg-green-600 !text-white font-semibold px-6 py-3 rounded shadow transition-colors">
-                            Save Load
+                        <button 
+                            onClick={handleSaveLoad}
+                            disabled={loading}
+                            className="flex-1 bg-green-500 hover:bg-green-600 !text-white font-semibold px-6 py-3 rounded shadow transition-colors disabled:opacity-50"
+                        >
+                            {loading ? "Saving..." : "Save Load"}
                         </button>
                         <button
                             onClick={onClose}
@@ -525,7 +714,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                         <label className="block text-xs mb-1 text-gray-500">Internal ID</label>
                                         <input
                                             className="w-full p-2 border border-gray-300 rounded text-gray-900 bg-gray-50"
-                                            placeholder="Auto-generated"
+                                            value={`ITEM_${editingItem.id}`}
                                             readOnly
                                         />
                                     </div>
@@ -571,6 +760,77 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                             type="number"
                                             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                                             placeholder="0"
+                                            value={editingItem.price}
+                                            onChange={(e) =>
+                                                setEditingItem({ ...editingItem, price: e.target.value })
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs mb-1 text-gray-500">Sale Price</label>
+                                        <input
+                                            type="number"
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                                            placeholder="0"
+                                            value={editingItem.salePrice}
+                                            onChange={(e) =>
+                                                setEditingItem({ ...editingItem, salePrice: e.target.value })
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs mb-1 text-gray-500">Cost</label>
+                                        <input
+                                            type="number"
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                                            placeholder="0"
+                                            value={editingItem.cost}
+                                            onChange={(e) =>
+                                                setEditingItem({ ...editingItem, cost: e.target.value })
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs mb-1 text-gray-500">Discount Value</label>
+                                        <input
+                                            type="number"
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                                            placeholder="0"
+                                            value={editingItem.discountValue}
+                                            onChange={(e) =>
+                                                setEditingItem({ ...editingItem, discountValue: e.target.value })
+                                            }
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Measurements Section */}
+                            <div className="border border-gray-200 rounded-lg p-4">
+                                <h4 className="text-sm font-medium mb-4 flex items-center gap-2 text-gray-700">
+                                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                    Measurements & Weight
+                                </h4>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs mb-1 text-gray-500">Length</label>
+                                        <input
+                                            type="number"
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                                            placeholder="0"
+                                            value={editingItem.length}
+                                            onChange={(e) =>
+                                                setEditingItem({ ...editingItem, length: e.target.value })
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs mb-1 text-gray-500">Width</label>
+                                        <input
+                                            type="number"
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                                            placeholder="0"
                                             value={editingItem.width}
                                             onChange={(e) =>
                                                 setEditingItem({ ...editingItem, width: e.target.value })
@@ -589,19 +849,18 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                             }
                                         />
                                     </div>
-                                </div>
-
-                                <div className="mt-4">
-                                    <label className="block text-xs mb-1 text-gray-500">Weight</label>
-                                    <input
-                                        type="number"
-                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                        placeholder="0"
-                                        value={editingItem.weight}
-                                        onChange={(e) =>
-                                            setEditingItem({ ...editingItem, weight: e.target.value })
-                                        }
-                                    />
+                                    <div>
+                                        <label className="block text-xs mb-1 text-gray-500">Weight</label>
+                                        <input
+                                            type="number"
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                                            placeholder="0"
+                                            value={editingItem.weight}
+                                            onChange={(e) =>
+                                                setEditingItem({ ...editingItem, weight: e.target.value })
+                                            }
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>

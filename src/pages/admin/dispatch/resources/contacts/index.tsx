@@ -1,25 +1,90 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Search, MoreVertical, Building2, Filter } from "lucide-react";
 import NewContactSidebar from "./NewContactSidebar";
 import NewCustomerSidebar from "./NewCustomerSidebar";
+import { listContact, deleteContact, searchContact } from '../../../../../axios/adminApi'
+import { createCustomer, updateCustomer, deleteCustomer, searchCustomer, listCustomer } from '../../../../../axios/adminApi'
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"contacts" | "customers">("contacts");
+  const [activeTab, setActiveTab] = useState("contacts");
+  const [contacts, setContacts] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Dummy Contacts Data
-  const contacts = [
-    { id: "CNT-001", internalId: "INT-2001", name: "Alice Johnson", email: "alice.johnson@example.com", phone: "+1 555-1234", address: "45 Market St, San Francisco, CA", createdAt: "2024-02-05" },
-    { id: "CNT-002", internalId: "INT-2002", name: "Bob Williams", email: "bob.williams@example.com", phone: "+44 7700 900123", address: "78 High St, London, UK", createdAt: "2024-02-08" },
-    { id: "CNT-003", internalId: "INT-2003", name: "Clara Smith", email: "clara.smith@example.com", phone: "+65 8123 4567", address: "12 Orchard Rd, Singapore", createdAt: "2024-02-10" },
-  ];
+  // Fetch contacts and customers on mount
+  useEffect(() => {
+    fetchContacts();
+    fetchCustomers();
+  }, []);
 
-  // Dummy Customers Data
-  const customers = [
-    { id: "CUS-101", internalId: "INT-3001", name: "Acme Corp", email: "contact@acmecorp.com", phone: "+1 212-555-7890", address: "500 Madison Ave, New York, NY", createdAt: "2024-01-25" },
-    { id: "CUS-102", internalId: "INT-3002", name: "Global Freight Ltd", email: "support@globalfreight.com", phone: "+49 30 123456", address: "Unter den Linden 1, Berlin, Germany", createdAt: "2024-02-02" },
-    { id: "CUS-103", internalId: "INT-3003", name: "Oceanic Traders", email: "sales@oceanictraders.com", phone: "+91 98765 43210", address: "Marine Drive, Mumbai, India", createdAt: "2024-02-12" },
-  ];
+  const fetchContacts = async () => {
+    try {
+      const res = await listContact();
+      if (res?.success) {
+        setContacts(res.data);
+      }
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const res = await listCustomer();
+      if (res?.success) {
+        setCustomers(res.data);
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      if (activeTab === "contacts") {
+        await deleteContact(id);
+        fetchContacts();
+      } else {
+        await deleteCustomer(id);
+        fetchCustomers();
+      }
+    } catch (error) {
+      console.error('Error deleting:', error);
+    }
+  };
+
+  const handleSearch = async (e) => {
+    setSearchQuery(e.target.value);
+    try {
+      if (e.target.value.trim() !== "") {
+        if (activeTab === "contacts") {
+          const res = await searchContact(e.target.value);
+          setContacts(res.data);
+        } else {
+          const res = await searchCustomer(e.target.value);
+          setCustomers(res.data);
+        }
+      } else {
+        if (activeTab === "contacts") {
+          fetchContacts();
+        } else {
+          fetchCustomers();
+        }
+      }
+    } catch (error) {
+      console.error('Error searching:', error);
+    }
+  };
+
+  const handleSidebarClose = () => {
+    setIsSidebarOpen(false);
+    if (activeTab === "contacts") {
+      fetchContacts();
+    } else {
+      fetchCustomers();
+    }
+  };
 
   const tableData = activeTab === "contacts" ? contacts : customers;
 
@@ -33,13 +98,21 @@ const Index = () => {
             <div className="flex space-x-4">
               <button
                 onClick={() => setActiveTab("contacts")}
-                className={`pb-2 px-2 text-sm font-medium ${activeTab === "contacts" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+                className={`pb-2 px-2 text-sm font-medium ${
+                  activeTab === "contacts"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
               >
                 Contacts
               </button>
               <button
                 onClick={() => setActiveTab("customers")}
-                className={`pb-2 px-2 text-sm font-medium ${activeTab === "customers" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+                className={`pb-2 px-2 text-sm font-medium ${
+                  activeTab === "customers"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
               >
                 Customers
               </button>
@@ -52,6 +125,8 @@ const Index = () => {
                 type="text"
                 placeholder={`Search ${activeTab === "contacts" ? "Contacts" : "Customers"}`}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={searchQuery}
+                onChange={handleSearch}
               />
             </div>
           </div>
@@ -79,52 +154,52 @@ const Index = () => {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Internal ID</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {activeTab === "contacts" ? "Address" : "Title"}
+                  </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {tableData.map((row) => (
-                  <tr key={row.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Building2 className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{row.name}</div>
-                        </div>
-                      </div>
+                  <tr key={row._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">{row.name}</td>
+                    <td className="px-6 py-4">{row.email}</td>
+                    <td className="px-6 py-4">{row.phone}</td>
+                    <td className="px-6 py-4">
+                      {activeTab === "contacts" 
+                        ? row.address 
+                        : row.title || (row.placeDetails?.name && `${row.placeDetails.name}, ${row.placeDetails.city || ''}`)
+                      }
                     </td>
-                    <td className="px-6 py-4 text-sm font-mono text-gray-500">{row.id}</td>
-                    <td className="px-6 py-4 text-sm font-mono text-gray-500">{row.internalId}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{row.email}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{row.phone}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{row.address}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{row.createdAt}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <MoreVertical className="w-4 h-4" />
+                    <td className="px-6 py-4">{new Date(row.createdAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => handleDelete(row._id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Delete
                       </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {tableData.length === 0 && (
+              <p className="text-center py-6 text-gray-500">No records found</p>
+            )}
           </div>
         </div>
       </div>
 
       {/* Conditional Sidebar */}
       {activeTab === "contacts" ? (
-        <NewContactSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <NewContactSidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
       ) : (
-        <NewCustomerSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <NewCustomerSidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
       )}
     </div>
   );

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import type { FC } from "react";
-import NewPlacesSidebar from "../places/NewPlacesSidebar"
+import NewPlacesSidebar from "../places/NewPlacesSidebar";
+import { createCustomer } from '../../../../../axios/adminApi';
 
 interface NewCustomerSidebarProps {
     isOpen: boolean;
@@ -14,16 +15,34 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
         email: '',
         phone: '',
         title: '',
-        address: '',
         internalId: '',
         userAccount: '',
         selectedUserName: '',
         selectedUserEmail: '',
-        selectedUserPhone: ''
+        selectedUserPhone: '',
+        // Place details for address
+        placeDetails: {
+            name: '',
+            street1: '',
+            street2: '',
+            neighbourHood: '',
+            building: '',
+            streetAccessCode: '',
+            postalCode: '',
+            city: '',
+            state: '',
+            country: '',
+            cordinates: {
+                longitude: '',
+                latitude: ''
+            },
+            phone: ''
+        }
     });
 
     const [openDetails, setOpenDetails] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [collapsedSections, setCollapsedSections] = useState({
         userAccount: false
     });
@@ -67,9 +86,80 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
         }));
     };
 
-    const handleSubmit = () => {
-        console.log('Form submitted:', formData);
-        onClose();
+    const handlePlaceSelect = (placeData: any) => {
+        setFormData(prev => ({
+            ...prev,
+            placeDetails: {
+                ...prev.placeDetails,
+                ...placeData
+            }
+        }));
+        setIsSidebarOpen(false);
+    };
+
+    const handleSubmit = async () => {
+        try {
+            setIsLoading(true);
+            
+            // Prepare data according to your customer model
+            const customerData = {
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                title: formData.title,
+                internalId: formData.internalId,
+                placeDetails: formData.placeDetails.name ? formData.placeDetails : undefined
+            };
+
+            // Remove empty placeDetails if no address was selected
+            if (!customerData.placeDetails?.name) {
+                delete customerData.placeDetails;
+            }
+
+            const response = await createCustomer(customerData);
+            
+            if (response?.success) {
+                console.log('Customer created successfully:', response);
+                // Reset form
+                setFormData({
+                    name: '',
+                    email: '',
+                    phone: '',
+                    title: '',
+                    internalId: '',
+                    userAccount: '',
+                    selectedUserName: '',
+                    selectedUserEmail: '',
+                    selectedUserPhone: '',
+                    placeDetails: {
+                        name: '',
+                        street1: '',
+                        street2: '',
+                        neighbourHood: '',
+                        building: '',
+                        streetAccessCode: '',
+                        postalCode: '',
+                        city: '',
+                        state: '',
+                        country: '',
+                        cordinates: {
+                            longitude: '',
+                            latitude: ''
+                        },
+                        phone: ''
+                    }
+                });
+                onClose();
+            } else {
+                console.error('Error creating customer:', response);
+                alert('Error creating customer. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error creating customer:', error);
+            alert('Error creating customer. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     if (!isOpen) return null;
@@ -98,7 +188,6 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                         <div className="flex items-center justify-between mb-3 bg-gray-100 p-3 rounded-md">
                             <h3 className="text-sm font-medium text-gray-900">User Account</h3>
                             <div className="flex items-center space-x-2">
-
                                 <button onClick={() => toggleSection('userAccount')}>
                                     {collapsedSections.userAccount ?
                                         <ChevronUp className="w-4 h-4 text-gray-400" /> :
@@ -187,7 +276,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Name
+                                            Name *
                                         </label>
                                         <input
                                             type="text"
@@ -196,6 +285,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                                             onChange={handleInputChange}
                                             placeholder="Name"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            required
                                         />
                                     </div>
                                     <div>
@@ -243,7 +333,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                                     </div>
                                 </div>
 
-                                {/* Internal Id & Address */}
+                                {/* Internal Id */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -261,6 +351,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                                     <div></div>
                                 </div>
 
+                                {/* Address */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Address
@@ -268,11 +359,13 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                                     <div className="flex items-center space-x-2">
                                         <input
                                             type="text"
-                                            name="address"
-                                            value={formData.address}
-                                            onChange={handleInputChange}
+                                            value={formData.placeDetails.name ? 
+                                                `${formData.placeDetails.name}, ${formData.placeDetails.city || ''}` : 
+                                                ''
+                                            }
                                             placeholder="Select Address"
-                                            className="flex-1 px-3 py-2 !mr-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="flex-1 px-3 py-2 !mr-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                                            readOnly
                                         />
                                         <button
                                             type="button"
@@ -288,6 +381,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                                 <NewPlacesSidebar
                                     isOpen={isSidebarOpen}
                                     onClose={() => setIsSidebarOpen(false)}
+                                    onPlaceSelect={handlePlaceSelect}
                                 />
                             </div>
                         )}
@@ -301,15 +395,17 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                             type="button"
                             onClick={onClose}
                             className="px-4 py-2 border border-gray-300 !mr-3 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                            disabled={isLoading}
                         >
                             Cancel
                         </button>
                         <button
                             type="button"
                             onClick={handleSubmit}
-                            className="px-4 py-2 bg-blue-600 !text-white rounded-md hover:bg-blue-700 transition-colors"
+                            className="px-4 py-2 bg-blue-600 !text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+                            disabled={isLoading || !formData.name.trim()}
                         >
-                            Create Customer
+                            {isLoading ? 'Creating...' : 'Create Customer'}
                         </button>
                     </div>
                 </div>
