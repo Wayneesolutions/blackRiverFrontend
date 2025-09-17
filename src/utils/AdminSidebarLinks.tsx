@@ -1,6 +1,9 @@
 import {
     MdDashboard,
-    MdSettings
+    MdSettings,
+    MdBusiness,
+    MdApi,
+    MdPeople
 } from "react-icons/md";
 import { BsPersonVcard } from "react-icons/bs";
 import { RiBillLine, RiBarChart2Fill } from "react-icons/ri";
@@ -43,5 +46,24 @@ export const AdminSidebarLinks: AdminSidebarLink[] = [
         key: "/admin/systemsetting",
         icon: <MdSettings />,
         label: "Settings",
+        children: [
+            {
+                key: "/admin/users",
+                icon: <MdPeople />,
+                label: "User Management",
+            },
+            {
+                key: "/admin/company",
+                icon: <MdBusiness />,
+                label: "Company Settings",
+            },
+            {
+                key: "/admin/integrations",
+                icon: <MdApi />,
+                label: "API's",
+            }
+
+
+        ],
     },
 ];

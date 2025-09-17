@@ -282,3 +282,28 @@ export const listLoad = async () =>{
   }
 }
 
+export const createUsers = async (data:any) =>{
+    try {
+
+    const res: AxiosResponse = await adminApi.post(`hr/user`,data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    console.log(error);
+
+    return (error as Error).response?.data;
+  }
+}
+
+export const getUsers = async (role:any) =>{
+    try {
+
+    const res: AxiosResponse = await adminApi.patch(`hr/user?role=${role}`,data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    console.log(error);
+
+    return (error as Error).response?.data;
+  }
+}

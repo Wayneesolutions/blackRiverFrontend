@@ -12,7 +12,10 @@ const Profile = lazy(() => import("../pages/admin/dashboard/Profile/index"));
 const Slots = lazy(() => import("../pages/admin/dashboard/slot/index"));
 const Member = lazy(() => import("../pages/admin/dashboard/member/index"));
 const Invoice = lazy(() => import("../pages/admin/dashboard/invoice/index"));
-const Setting = lazy(() => import("../pages/admin/dashboard/setting/index"));
+
+const Integrations = lazy(() => import("../pages/admin/dashboard/setting/Api"))
+const UserManage = lazy(() => import("../pages/admin/dashboard/setting/Users"));
+const CompanyManage = lazy(() => import("../pages/admin/dashboard/setting/Company"))
 
 const DispatchRoutes = lazy(() => import("./AdminFeatures/DispatchRoutes"));
 const GpsVehicleRoutes = lazy(() => import("./AdminFeatures/GpsVehicleRoutes"))
@@ -40,7 +43,10 @@ function AdminRoute() {
           <Route path="member" element={<Member />} />
           <Route path="slots" element={<Slots />} />
           <Route path="invoice" element={<Invoice />} />
-          <Route path="systemsetting" element={<Setting />} />
+
+          <Route path="users" element={<UserManage />} />
+          <Route path="company" element={<CompanyManage />} />
+          <Route path="integrations" element={<Integrations />} />
         </Route>
       </Routes>
     </Suspense>
