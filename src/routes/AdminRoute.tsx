@@ -20,6 +20,8 @@ const CompanyManage = lazy(() => import("../pages/admin/dashboard/setting/Compan
 
 const DispatchRoutes = lazy(() => import("./AdminFeatures/DispatchRoutes"));
 const GpsVehicleRoutes = lazy(() => import("./AdminFeatures/GpsVehicleRoutes"))
+const DriverManagement = lazy(() => import("./AdminFeatures/DriverManagementRoutes"))
+
 function AdminRoute() {
   return (
     <Suspense fallback={<Loading />}>
@@ -27,6 +29,7 @@ function AdminRoute() {
         {/* Feature Routes - These should come BEFORE the Layout routes */}
         <Route path="dispatch/*" element={<DispatchRoutes />} />
         <Route path="gpsvehicle/*" element={<GpsVehicleRoutes />} />
+        <Route path="driverManagement/*" element={<DriverManagement />} />
         {/* Add other feature routes here when ready */}
         {/* 
          <Route path="gps/*" element={<GPSRoutes />} />

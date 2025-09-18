@@ -28,7 +28,7 @@ const features = [
         title: "Driver Management",
         description: "Simplify scheduling, communication, and performance monitoring to keep your team organized.",
         icon: DriverIcon,
-        route: "/admin/driver",
+        route: "/admin/driverManagement",
 
     },
     {
