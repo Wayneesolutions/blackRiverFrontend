@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, X, Users as UsersIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, X, Users as UsersIcon, Filter, Search } from 'lucide-react';
+import { Select, Tag } from "antd";
 
 interface User {
   id: string;
@@ -13,11 +14,13 @@ interface User {
   city: string;
   address: string;
   policies: string;
+  status: 'active' | 'inactive';
+  createdAt: string;
 }
 
 type Role = "admin" | "superadmin" | "driver" | "dispatcher" | "hr";
 
-// Static data
+// Static data with status added
 const staticUsers: User[] = [
   {
     id: '1',
@@ -30,7 +33,9 @@ const staticUsers: User[] = [
     state: 'Maharashtra',
     city: 'Mumbai',
     address: '123 Business District, Mumbai, Maharashtra',
-    policies: 'Full system access with administrative privileges'
+    policies: 'Full system access with administrative privileges',
+    status: 'active',
+    createdAt: '2024-01-15'
   },
   {
     id: '2',
@@ -43,7 +48,9 @@ const staticUsers: User[] = [
     state: 'Karnataka',
     city: 'Bangalore',
     address: '456 Tech Park, Bangalore, Karnataka',
-    policies: 'HR management and employee relations'
+    policies: 'HR management and employee relations',
+    status: 'active',
+    createdAt: '2024-01-16'
   },
   {
     id: '3',
@@ -56,7 +63,9 @@ const staticUsers: User[] = [
     state: 'Tamil Nadu',
     city: 'Chennai',
     address: '789 Transport Hub, Chennai, Tamil Nadu',
-    policies: 'Vehicle operation and safety compliance'
+    policies: 'Vehicle operation and safety compliance',
+    status: 'inactive',
+    createdAt: '2024-01-17'
   },
   {
     id: '4',
@@ -69,7 +78,9 @@ const staticUsers: User[] = [
     state: 'West Bengal',
     city: 'Kolkata',
     address: '321 Logistics Center, Kolkata, West Bengal',
-    policies: 'Route planning and fleet coordination'
+    policies: 'Route planning and fleet coordination',
+    status: 'active',
+    createdAt: '2024-01-18'
   },
   {
     id: '5',
@@ -82,7 +93,9 @@ const staticUsers: User[] = [
     state: 'Delhi',
     city: 'New Delhi',
     address: '555 Corporate Tower, New Delhi, Delhi',
-    policies: 'Ultimate system control and configuration'
+    policies: 'Ultimate system control and configuration',
+    status: 'active',
+    createdAt: '2024-01-19'
   },
   {
     id: '6',
@@ -95,13 +108,18 @@ const staticUsers: User[] = [
     state: 'Gujarat',
     city: 'Ahmedabad',
     address: '777 Business Plaza, Ahmedabad, Gujarat',
-    policies: 'Recruitment and employee development'
+    policies: 'Recruitment and employee development',
+    status: 'inactive',
+    createdAt: '2024-01-20'
   }
 ];
 
 const Users = () => {
   const [users, setUsers] = useState<User[]>(staticUsers);
-  const [activeTab, setActiveTab] = useState<Role>('admin');
+  const [filteredUsers, setFilteredUsers] = useState<User[]>(staticUsers);
+  const [selectedRole, setSelectedRole] = useState<Role | 'all'>('all');
+  const [selectedStatus, setSelectedStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -120,11 +138,35 @@ const Users = () => {
     state: '',
     city: '',
     address: '',
-    policies: ''
+    policies: '',
+    status: 'active' as 'active' | 'inactive'
   });
 
-  // Filter users based on active tab
-  const filteredUsers = users.filter(user => user.role === activeTab);
+  // Filter users based on role, status, and search query
+  useEffect(() => {
+    let filtered = users;
+
+    // Filter by role
+    if (selectedRole !== 'all') {
+      filtered = filtered.filter(user => user.role === selectedRole);
+    }
+
+    // Filter by status
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(user => user.status === selectedStatus);
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(user =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.phone.includes(searchQuery)
+      );
+    }
+
+    setFilteredUsers(filtered);
+  }, [users, selectedRole, selectedStatus, searchQuery]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -139,25 +181,23 @@ const Users = () => {
     setLoading(true);
 
     try {
-      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       if (isEditing && selectedUser) {
-        // Update user
-        setUsers(prev => prev.map(user => 
-          user.id === selectedUser.id 
+        setUsers(prev => prev.map(user =>
+          user.id === selectedUser.id
             ? { ...user, ...formData, id: selectedUser.id }
             : user
         ));
       } else {
-        // Create new user
         const newUser: User = {
           ...formData,
-          id: Date.now().toString()
+          id: Date.now().toString(),
+          createdAt: new Date().toISOString().split('T')[0]
         };
         setUsers(prev => [...prev, newUser]);
       }
-      
+
       resetForm();
       setShowCreateModal(false);
     } catch (error) {
@@ -178,7 +218,8 @@ const Users = () => {
       state: '',
       city: '',
       address: '',
-      policies: ''
+      policies: '',
+      status: 'active'
     });
     setIsEditing(false);
     setSelectedUser(null);
@@ -202,6 +243,15 @@ const Users = () => {
     }
   };
 
+  const handleStatusToggle = async (userId: string, currentStatus: 'active' | 'inactive') => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    setUsers(prev => prev.map(user =>
+      user.id === userId
+        ? { ...user, status: newStatus }
+        : user
+    ));
+  };
+
   const getRoleColor = (role: Role) => {
     const colors: Record<Role, string> = {
       admin: "bg-blue-50 text-blue-700 border-blue-200",
@@ -213,8 +263,10 @@ const Users = () => {
     return colors[role] || "bg-gray-50 text-gray-700 border-gray-200";
   };
 
-  const getRoleIcon = (role: Role) => {
-    return <UsersIcon size={16} className="mr-1" />;
+  const getStatusColor = (status: 'active' | 'inactive') => {
+    return status === 'active'
+      ? "bg-green-50 text-green-700 border-green-200"
+      : "bg-red-50 text-red-700 border-red-200";
   };
 
   const getUserCountByRole = (role: Role) => {
@@ -223,7 +275,7 @@ const Users = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="px-4 py-8">
+      <div className="px-2 py-8">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -244,110 +296,194 @@ const Users = () => {
           </div>
         </div>
 
-        {/* Role Tabs */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6" aria-label="Tabs">
-              {roleOptions.map((role) => {
-                const userCount = getUserCountByRole(role);
-                return (
-                  <button
-                    key={role}
-                    onClick={() => setActiveTab(role)}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm capitalize transition-all duration-200 flex items-center gap-2 ${
-                      activeTab === role
-                        ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg px-4 -mb-px'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                  
-                    <span className="font-semibold">{role}</span>
-                    <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                      activeTab === role 
-                        ? 'bg-blue-100 text-blue-600' 
-                        : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {userCount}
-                    </span>
-                  </button>
-                );
-              })}
-            </nav>
+        {/* Filters and Search */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Search Users</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Search by name, email, or phone"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Role</label>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Select
+                  value={selectedRole}
+                  onChange={(value) => setSelectedRole(value as Role | "all")}
+                  className="w-full"
+                >
+                  <Select.Option value="all">All Roles</Select.Option>
+                  {roleOptions.map((role) => (
+                    <Select.Option key={role} value={role}>
+                      <span className="capitalize">{role}</span> ({getUserCountByRole(role)})
+                    </Select.Option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
+              <div className="relative">
+
+
+                <Select
+                  value={selectedStatus}
+                  onChange={(value) =>
+                    setSelectedStatus(value as "all" | "active" | "inactive")
+                  }
+                  className="w-full"
+                >
+                  <Select.Option value="all">All Status</Select.Option>
+
+                  <Select.Option value="active">
+                    <Tag color="green" className="mr-1">
+                      Active
+                    </Tag>
+                    ({users.filter((u) => u.status === "active").length})
+                  </Select.Option>
+
+                  <Select.Option value="inactive">
+                    <Tag color="red" className="mr-1">
+                      Inactive
+                    </Tag>
+                    ({users.filter((u) => u.status === "inactive").length})
+                  </Select.Option>
+                </Select>
+
+              </div>
+
+            </div>
+
+            <div className="flex items-end">
+              <div className="text-sm text-gray-600">
+                <div className="font-medium">Total Users: {users.length}</div>
+                <div className="text-gray-500">Showing: {filteredUsers.length}</div>
+              </div>
+            </div>
           </div>
+        </div>
 
-          {/* Users Content */}
-          <div className="p-6">
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <p className="mt-2 text-gray-500">Loading users...</p>
-              </div>
-            ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-12">
-                <UsersIcon size={48} className="mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
-                <p className="text-gray-500">No users with the role "{activeTab}" have been created yet.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredUsers.map((user) => (
-                  <div key={user.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">{user.name}</h3>
-                        <p className="text-sm text-gray-500 mb-2">{user.email}</p>
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border capitalize ${getRoleColor(user.role)}`}>
-                          {user.role}
+        {/* Users Table */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <table className="min-w-full table-fixed divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="w-60 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                  <th className="w-36 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                  <th className="w-44 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                  <th className="w-24 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="w-24 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                  <th className="w-32 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <p className="mt-2 text-gray-500">Loading users...</p>
+                    </td>
+                  </tr>
+                ) : filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center">
+                      <UsersIcon size={48} className="mx-auto text-gray-400 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+                      <p className="text-gray-500">
+                        {searchQuery || selectedRole !== 'all' || selectedStatus !== 'all'
+                          ? "No users match your current filters."
+                          : "No users have been created yet."}
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-4">
+                        <div className="w-full overflow-hidden">
+                          <div className="text-sm font-medium text-gray-900 truncate">{user.name}</div>
+                          <div className="text-sm text-gray-500 truncate">{user.email}</div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-4">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border capitalize ${getRoleColor(user.role)}`}>
+                          {user.role === 'superadmin' ? 'super' : user.role}
                         </span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <span className="font-medium">Phone:</span>
-                        <span className="ml-2">{user.phone}</span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <span className="font-medium">Location:</span>
-                        <span className="ml-2">{user.city}, {user.country}</span>
-                      </div>
-                    </div>
+                      </td>
+                      <td className="px-3 py-4 text-sm text-gray-900">
+                        <div className="truncate">{user.phone}</div>
+                      </td>
+                      <td className="px-3 py-4 text-sm text-gray-900">
+                        <div className="truncate">{user.city}, {user.state}</div>
+                      </td>
+                      <td className="px-3 py-4">
+                        <button
+                          onClick={() => handleStatusToggle(user.id, user.status)}
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border capitalize cursor-pointer hover:opacity-80 transition-opacity ${getStatusColor(user.status)}`}
+                        >
+                          {user.status}
+                        </button>
+                      </td>
+                      <td className="px-3 py-4 text-sm text-gray-900">
+                        <div className="truncate">
+                          {new Date(user.createdAt).toLocaleDateString("en-US", {
+                            month: "2-digit",
+                            day: "2-digit",
+                            year: "2-digit",
+                          })}
+                        </div>
+                      </td>
 
-                    <div className="flex justify-end space-x-2 pt-4 border-t border-gray-100">
-                      <button
-                        onClick={() => handleView(user)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="View Details"
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleEdit(user)}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="Edit User"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete User"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                      <td className="px-3 py-4 text-center">
+                        <div className="flex justify-center space-x-1">
+                          <button
+                            onClick={() => handleView(user)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                            title="View Details"
+                          >
+                            <Eye size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(user)}
+                            className="p-1.5 text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                            title="Edit User"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(user.id)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                            title="Delete User"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
       {/* Create/Edit Modal */}
       {showCreateModal && (
-        <div className=" flex items-center justify-center p-4
-        fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
@@ -365,166 +501,182 @@ const Users = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter full name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter email address"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      
-                    />
-                  </div>
-
-                  {!isEditing && (
+              <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
                       <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
+                        type="text"
+                        name="name"
+                        value={formData.name}
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Enter password"
+                        placeholder="Enter full name"
                       />
                     </div>
-                  )}
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Role</label>
-                    <select
-                      name="role"
-                      value={formData.role}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    >
-                      {roleOptions.map((role) => (
-                        <option key={role} value={role} className="capitalize">
-                          {role}
-                        </option>
-                      ))}
-                    </select>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter email address"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+
+                    {!isEditing && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                        <input
+                          type="password"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          placeholder="Enter password"
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Role</label>
+                      <select
+                        name="role"
+                        value={formData.role}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      >
+                        {roleOptions.map((role) => (
+                          <option key={role} value={role} className="capitalize">
+                            {role}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                      <select
+                        name="status"
+                        value={formData.status}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
+                      <input
+                        type="text"
+                        name="country"
+                        value={formData.country}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter country"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter state"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter city"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Address</label>
+                      <textarea
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        required
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                        placeholder="Enter full address"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Policies</label>
+                      <textarea
+                        name="policies"
+                        value={formData.policies}
+                        onChange={handleInputChange}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                        placeholder="Enter user policies"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
-                    <input
-                      type="text"
-                      name="country"
-                      value={formData.country}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter country"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
-                    <input
-                      type="text"
-                      name="state"
-                      value={formData.state}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter state"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter city"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Address</label>
-                    <textarea
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      required
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                      placeholder="Enter full address"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Policies</label>
-                    <textarea
-                      name="policies"
-                      value={formData.policies}
-                      onChange={handleInputChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                      placeholder="Enter user policies"
-                    />
-                  </div>
+                <div className="flex justify-end space-x-4 pt-6 mt-6 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      resetForm();
+                    }}
+                    className="px-6 py-3 text-gray-700 bg-gray-100 !mr-4 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !text-white rounded-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Saving...' : isEditing ? 'Update User' : 'Create User'}
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex justify-end space-x-4 pt-6 mt-6 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    resetForm();
-                  }}
-                  className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !ml-4 !text-white rounded-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Saving...' : isEditing ? 'Update User' : 'Create User'}
-                </button>
-              </div>
+              </form>
             </div>
           </div>
         </div>
@@ -532,7 +684,7 @@ const Users = () => {
 
       {/* View Modal */}
       {showViewModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-lg w-full shadow-2xl">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
@@ -548,9 +700,14 @@ const Users = () => {
               <div className="space-y-4">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="font-semibold text-gray-900 text-lg mb-2">{selectedUser.name}</h3>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border capitalize ${getRoleColor(selectedUser.role)}`}>
-                    {selectedUser.role}
-                  </span>
+                  <div className="flex gap-2">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border capitalize ${getRoleColor(selectedUser.role)}`}>
+                      {selectedUser.role}
+                    </span>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border capitalize ${getStatusColor(selectedUser.status)}`}>
+                      {selectedUser.status}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
@@ -573,6 +730,10 @@ const Users = () => {
                   <div>
                     <span className="font-semibold text-gray-700">Policies:</span>
                     <p className="mt-1 text-gray-900">{selectedUser.policies}</p>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-700">Created:</span>
+                    <span className="ml-2 text-gray-900">{new Date(selectedUser.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>
