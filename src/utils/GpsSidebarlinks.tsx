@@ -1,6 +1,5 @@
 import {
   MdDashboard,
-  MdMiscellaneousServices,
   MdOutlineMap,
   MdOutlinePeople,
   MdOutlineMessage,
@@ -13,9 +12,8 @@ import {
   MdOutlineSecurity,
   MdOutlineBuild,
   MdOutlineEco,
-  MdOutlineAssignment,
 } from "react-icons/md";
-import { FaTruck, FaCogs } from "react-icons/fa";
+import { FaTruck, FaCogs, FaUserTie } from "react-icons/fa";
 import { GiProgression } from "react-icons/gi";
 import { RiFileListLine } from "react-icons/ri";
 
@@ -34,9 +32,19 @@ export const GpsSidebarLinks: DispatchSidebarLinks[] = [
     label: "Dashboard",
   },
   {
-    key: "/admin/gpsvehicle/assets",
+    key: "/admin/gpsvehicle/livetracking",
+    icon: <MdOutlineMap />,
+    label: "Live Tracking",
+  },
+  {
+    key: "/admin/gpsvehicle/vehicles",
     icon: <FaTruck />,
-    label: "Assets",
+    label: "Vehicles",
+  },
+  {
+    key: "/admin/gpsvehicle/drivers",
+    icon: <FaUserTie />,
+    label: "Drivers",
   },
   {
     key: "/admin/gpsvehicle/loadmap",
