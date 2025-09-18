@@ -1,96 +1,198 @@
-// components/admin/Sidebar.tsx
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { AdminSidebarLinks } from "../../utils/AdminSidebarLinks";
-import { FaChevronDown } from "react-icons/fa";
-import Logo from "../../assets/FleetGo.png";
+import { FaChevronDown, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
+import NewLoad from "../../pages/admin/dispatch/NewLoad";
+import Logo from "../../assets/FleetGo.png"
 
-const Sidebar: React.FC = () => {
-    const [openKeys, setOpenKeys] = useState<string[]>([]);
+interface SidebarProps {
+  isCollapsed: boolean;
+  onToggle: () => void;
+}
 
-    const toggleMenu = (key: string) => {
-        setOpenKeys((prev) =>
-            prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-        );
-    };
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
+  const [openMenus, setOpenMenus] = useState<string[]>([]);
+  const [, setHoveredMenu] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    return (
-        <aside className="w-58 p-3 flex flex-col">
-            {/* Logo & status */}
-            <div className="flex justify-between items-center bg-white shadow-lg rounded-lg px-4 py-3 mb-4">
-                <div className="flex items-center space-x-2">
-                    <img src={Logo} alt="FleetGo Logo" className="w-20 h-auto" />
-                    <div className="text-green-500 text-xs font-medium">Active</div>
-                </div>
-                <FaChevronDown className="text-gray-500 cursor-pointer" />
-            </div>
-
-            {/* Menu */}
-            <nav className="flex-1">
-                <ul className="bg-white shadow-lg rounded-lg space-y-2 p-2">
-                    {AdminSidebarLinks.map((link) => (
-  <li key={link.key}>
-    {link.children ? (
-      // Parent with submenu toggle
-      <div
-        className="flex items-center justify-between cursor-pointer px-3 py-2 rounded-md hover:bg-[#F2F1FF]"
-        onClick={() => toggleMenu(link.key)}
-      >
-        <div className="flex items-center gap-3">
-          <span className="text-xl">{link.icon}</span>
-          <span>{link.label}</span>
-        </div>
-        <FaChevronDown
-          className={`transition-transform duration-200 ${
-            openKeys.includes(link.key) ? "rotate-180" : ""
-          }`}
-        />
-      </div>
-    ) : (
-      // Normal NavLink for direct routes
-      <NavLink
-        to={link.key}
-        className={({ isActive }) =>
-          `flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 ${
-            isActive
-              ? "bg-purple-50 text-purple-700"
-              : "text-gray-700 hover:bg-[#F2F1FF]"
-          }`
-        }
-      >
-        <span className="text-xl">{link.icon}</span>
-        <span>{link.label}</span>
-      </NavLink>
-    )}
-
-    {/* Submenu */}
-    {link.children && openKeys.includes(link.key) && (
-      <ul className="ml-8 mt-1 space-y-1">
-        {link.children.map((child) => (
-          <li key={child.key}>
-            <NavLink
-              to={child.key}
-              className={({ isActive }) =>
-                `block px-3 py-2 text-sm rounded-md transition-all duration-200 ${
-                  isActive
-                    ? "bg-purple-50 text-purple-700"
-                    : "text-gray-700 hover:bg-[#F2F1FF]"
-                }`
-              }
-            >
-              {child.label}
-            </NavLink>
-          </li>
-        ))}
-      </ul>
-    )}
-  </li>
-))}
-
-                </ul>
-            </nav>
-        </aside>
+  // Toggle expand/collapse for parent menus
+  const toggleMenu = (key: string) => {
+    setOpenMenus((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
+  };
+
+  // Helper function to check if route is active
+  const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
+    if (linkKey === "/admin/") {
+      return (
+        pathname === "/admin/" ||
+        pathname === "/admin/dashboard"
+      );
+    }
+    return isActive;
+  };
+
+  // Handle link click: either navigate or open drawer
+  const handleClick = (link: any) => {
+    if (link.action === "open-new-load") {
+      setSidebarOpen(true); // 👈 open drawer
+    }
+  };
+
+  return (
+    <>
+      <aside className={`${isCollapsed ? 'w-20' : 'w-64'} h-screen flex flex-col transition-all duration-300 ease-in-out relative z-10`}>
+        {/* Logo & status - fixed at top */}
+        <div className="flex-shrink-0 flex justify-between items-center bg-white shadow-lg rounded-lg px-4 py-3 m-3 mb-4 z-10 relative">
+          <div className="flex items-center">
+            {!isCollapsed && (
+              <div className="flex items-center space-x-2">
+                <img src={Logo} alt="FleetGo Logo" className="w-20 h-auto" />
+               
+              </div>
+            )}
+            {isCollapsed && (
+              <div className="text-lg font-bold text-gray-800">L</div>
+            )}
+          </div>
+          <button
+            onClick={onToggle}
+            className="text-gray-500 hover:text-gray-700 cursor-pointer transition-colors p-1 rounded-md hover:bg-gray-100"
+          >
+            {isCollapsed ? <FaBars size={16} /> : <FaTimes size={16} />}
+          </button>
+        </div>
+
+        {/* Menu with independent scroll */}
+        <div className="flex-1 mx-3 mb-3 bg-white shadow-lg rounded-lg flex flex-col relative overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+            <ul className="space-y-1 p-3 relative">
+              {AdminSidebarLinks.map((link) => (
+                <li key={link.key || link.label} className="relative">
+                  {link.children ? (
+                    // --- PARENT MENU (same as before) ---
+                    <>
+                      {/* Parent Menu Item */}
+                      <button
+                        onClick={() => !isCollapsed && toggleMenu(link.key)}
+                        onMouseEnter={() => isCollapsed && setHoveredMenu(link.key)}
+                        onMouseLeave={() => isCollapsed && setHoveredMenu(null)}
+                        data-menu-key={link.key}
+                        className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} w-full px-3 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-[#F2F1FF] hover:text-purple-700 transition-all duration-200 group`}
+                        title={isCollapsed ? link.label : ''}
+                      >
+                        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
+                          <span className={`${isCollapsed ? 'text-2xl' : 'text-xl'} transition-all duration-200 group-hover:scale-110`}>
+                            {link.icon}
+                          </span>
+                          {!isCollapsed && <span className="font-medium">{link.label}</span>}
+                        </div>
+                        {!isCollapsed && (
+                          <span className="transition-transform duration-200">
+                            {openMenus.includes(link.key) ? (
+                              <FaChevronDown className="text-gray-400 text-xs" />
+                            ) : (
+                              <FaChevronRight className="text-gray-400 text-xs" />
+                            )}
+                          </span>
+                        )}
+                      </button>
+
+                      {/* Expanded children (unchanged) */}
+                      {!isCollapsed && openMenus.includes(link.key) && (
+                        <ul className="ml-6 mt-2 space-y-1 border-l-2 border-purple-100 pl-4">
+                          {link.children.map((child) => (
+                            <li key={child.key}>
+                              <NavLink
+                                to={child.key}
+                                className={({ isActive }) => {
+                                  const pathname = window.location.pathname;
+                                  const activeState = isActiveLink(
+                                    child.key,
+                                    isActive,
+                                    pathname
+                                  );
+                                  return `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+                                  transition-all duration-200 ease-in-out group
+                                  ${activeState
+                                      ? "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border-l-4 border-purple-500"
+                                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+                                    }`;
+                                }}
+                              >
+                                <span className="text-base group-hover:scale-110 transition-transform duration-200">
+                                  {child.icon}
+                                </span>
+                                <span>{child.label}</span>
+                              </NavLink>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
+                  ) : link.action ? (
+                    // --- SPECIAL ACTION (open drawer) ---
+                    <button
+                      onClick={() => handleClick(link)}
+                      className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-lg text-sm font-medium
+                      transition-all duration-200 ease-in-out group text-gray-700 hover:bg-[#F2F1FF] hover:text-purple-700`}
+                      title={isCollapsed ? link.label : ''}
+                    >
+                      <span className={`${isCollapsed ? 'text-2xl' : 'text-xl'} transition-all duration-200 group-hover:scale-110`}>
+                        {link.icon}
+                      </span>
+                      {!isCollapsed && <span className="font-medium">{link.label}</span>}
+                    </button>
+                  ) : (
+                    // --- NORMAL LINK (same as before) ---
+                    <NavLink
+                      to={link.key}
+                      className={({ isActive }) => {
+                        const pathname = window.location.pathname;
+                        const activeState = isActiveLink(
+                          link.key,
+                          isActive,
+                          pathname
+                        );
+                        return `flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-lg text-sm font-medium
+                        transition-all duration-200 ease-in-out group
+                        ${activeState
+                            ? "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 shadow-md"
+                            : "text-gray-700 hover:bg-[#F2F1FF] hover:text-purple-700"
+                          }`;
+                      }}
+                      title={isCollapsed ? link.label : ''}
+                    >
+                      <span className={`${isCollapsed ? 'text-2xl' : 'text-xl'} transition-all duration-200 group-hover:scale-110`}>
+                        {link.icon}
+                      </span>
+                      {!isCollapsed && <span className="font-medium">{link.label}</span>}
+                    </NavLink>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <div className="h-4"></div>
+          </div>
+        </div>
+      </aside>
+
+      {/* --- Drawer for New Load --- */}
+      <div
+        className={`fixed top-0 right-0 h-full max-w-lg w-full sm:w-[42rem] bg-white bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 border-opacity-50 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+      >
+        <NewLoad onClose={() => setSidebarOpen(false)} />
+      </div>
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm transition-all duration-500"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+    </>
+  );
 };
 
 export default Sidebar;

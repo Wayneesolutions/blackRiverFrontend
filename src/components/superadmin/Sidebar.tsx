@@ -14,9 +14,7 @@ const Sidebar: React.FC = () => {
                 <div className="flex items-center">
                     <div className="flex items-center space-x-2">
                         <img src={Logo} alt="FleetGo Logo" className="w-20 h-auto" />
-                        <div>
-                            <div className="text-green-500 text-xs font-medium">Active</div>
-                        </div>
+                       
                     </div>
                 </div>
 
