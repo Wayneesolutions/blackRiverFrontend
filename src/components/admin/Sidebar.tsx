@@ -29,46 +29,64 @@ const Sidebar: React.FC = () => {
             <nav className="flex-1">
                 <ul className="bg-white shadow-lg rounded-lg space-y-2 p-2">
                     {AdminSidebarLinks.map((link) => (
-                        <li key={link.key}>
-                            {/* Parent Link */}
-                            <div
-                                className="flex items-center justify-between cursor-pointer px-3 py-2 rounded-md hover:bg-[#F2F1FF]"
-                                onClick={() => link.children && toggleMenu(link.key)}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <span className="text-xl">{link.icon}</span>
-                                    <span>{link.label}</span>
-                                </div>
-                                {link.children && (
-                                    <FaChevronDown
-                                        className={`transition-transform duration-200 ${openKeys.includes(link.key) ? "rotate-180" : ""
-                                            }`}
-                                    />
-                                )}
-                            </div>
+  <li key={link.key}>
+    {link.children ? (
+      // Parent with submenu toggle
+      <div
+        className="flex items-center justify-between cursor-pointer px-3 py-2 rounded-md hover:bg-[#F2F1FF]"
+        onClick={() => toggleMenu(link.key)}
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-xl">{link.icon}</span>
+          <span>{link.label}</span>
+        </div>
+        <FaChevronDown
+          className={`transition-transform duration-200 ${
+            openKeys.includes(link.key) ? "rotate-180" : ""
+          }`}
+        />
+      </div>
+    ) : (
+      // Normal NavLink for direct routes
+      <NavLink
+        to={link.key}
+        className={({ isActive }) =>
+          `flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 ${
+            isActive
+              ? "bg-purple-50 text-purple-700"
+              : "text-gray-700 hover:bg-[#F2F1FF]"
+          }`
+        }
+      >
+        <span className="text-xl">{link.icon}</span>
+        <span>{link.label}</span>
+      </NavLink>
+    )}
 
-                            {/* Submenu */}
-                            {link.children && openKeys.includes(link.key) && (
-                                <ul className="ml-8 mt-1 space-y-1">
-                                    {link.children.map((child) => (
-                                        <li key={child.key}>
-                                            <NavLink
-                                                to={child.key}
-                                                className={({ isActive }) =>
-                                                    `block px-3 py-2 text-sm rounded-md transition-all duration-200 ${isActive
-                                                        ? "bg-purple-50 text-purple-700"
-                                                        : "text-gray-700 hover:bg-[#F2F1FF]"
-                                                    }`
-                                                }
-                                            >
-                                                {child.label}
-                                            </NavLink>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </li>
-                    ))}
+    {/* Submenu */}
+    {link.children && openKeys.includes(link.key) && (
+      <ul className="ml-8 mt-1 space-y-1">
+        {link.children.map((child) => (
+          <li key={child.key}>
+            <NavLink
+              to={child.key}
+              className={({ isActive }) =>
+                `block px-3 py-2 text-sm rounded-md transition-all duration-200 ${
+                  isActive
+                    ? "bg-purple-50 text-purple-700"
+                    : "text-gray-700 hover:bg-[#F2F1FF]"
+                }`
+              }
+            >
+              {child.label}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    )}
+  </li>
+))}
+
                 </ul>
             </nav>
         </aside>

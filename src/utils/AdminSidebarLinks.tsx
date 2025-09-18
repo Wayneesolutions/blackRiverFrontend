@@ -18,47 +18,47 @@ type AdminSidebarLink = {
 
 export const AdminSidebarLinks: AdminSidebarLink[] = [
     {
-        key: "/admin/dashboard",
+        key: "dashboard",
         icon: <MdDashboard />,
         label: "Home",
     },
     {
-        key: "/admin/profile",
+        key: "quick-stats",
         icon: <BsPersonVcard />,
-        label: "Profile",
+        label: "Quick Stats",
     },
     {
-        key: "/admin/member",
+        key: "member",
         icon: <HiOutlineUsers />,
         label: "Member",
     },
     {
-        key: "/admin/slots",
+        key: "slots",
         icon: <RiBarChart2Fill />,
         label: "Slots",
     },
     {
-        key: "/admin/invoice",
+        key: "invoice",
         icon: <RiBillLine />,
         label: "Invoices",
     },
     {
-        key: "/admin/systemsetting",
+        key: "systemsetting",
         icon: <MdSettings />,
         label: "Settings",
         children: [
             {
-                key: "/admin/users",
+                key: "users",
                 icon: <MdPeople />,
                 label: "User Management",
             },
             {
-                key: "/admin/company",
+                key: "company",
                 icon: <MdBusiness />,
                 label: "Company Settings",
             },
             {
-                key: "/admin/integrations",
+                key: "integrations",
                 icon: <MdApi />,
                 label: "API's",
             }
