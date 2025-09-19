@@ -23,6 +23,7 @@ const GpsVehicleRoutes = lazy(() => import("./AdminFeatures/GpsVehicleRoutes"))
 const DriverManagement = lazy(() => import("./AdminFeatures/DriverManagementRoutes"))
 const ComplianceRoute = lazy(() => import('./AdminFeatures/CompilanceRoute'))
 const FleetMaintainRoute = lazy(() => import("./AdminFeatures/FleetMaintainRoutes"))
+const AccountsRoute = lazy(() => import("./AdminFeatures/AccountsRoutes"))
 
 function AdminRoute() {
   return (
@@ -33,7 +34,7 @@ function AdminRoute() {
         <Route path="gpsvehicle/*" element={<GpsVehicleRoutes />} />
         <Route path="driverManagement/*" element={<DriverManagement />} />
         <Route path="compliance/*" element={<ComplianceRoute />} />
-
+        <Route path="accounts/*" element={<AccountsRoute />} />
         <Route path="fleetmaintenance/*" element={<FleetMaintainRoute />} />
         {/* Add other feature routes here when ready */}
         {/* 

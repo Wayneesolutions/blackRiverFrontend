@@ -50,7 +50,7 @@ const features = [
         title: "Accounts",
         description: "Integrated business functions for managing human resources, driver payroll, and service billing.",
         icon: BillingIcon,
-        route: "/admin/billing",
+        route: "/admin/accounts",
     },
 ];
 
