@@ -33,9 +33,15 @@ export const FleetMaintainSidebarlinks: FleetMaintainSidebarlinks[] = [
         label: "Spare Parts Inventory",
     },
     {
-        key: "/admin/fleetmaintenance/cost-reports",
+        key: "/admin/fleetmaintenance/truks",
+        icon: <GiGearHammer />,
+        label: "Trucks",
+    },
+
+    {
+        key: "/admin/fleetmaintenance/trailers",
         icon: <HiDocumentReport />,
-        label: "Cost Reports",
+        label: "Trailers",
     },
  
 ];
