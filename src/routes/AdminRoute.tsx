@@ -9,7 +9,7 @@ const Login = lazy(() => import("../pages/admin/auth/Login"));
 
 const Dashboard = lazy(() => import("../pages/admin/dashboard/index"));
 // const Profile = lazy(() => import("../pages/admin/dashboard/Profile/index"));
-const QuickStats = lazy(()=> import("../pages/admin/dashboard/quckstats/QuickStats"))
+const QuickStats = lazy(() => import("../pages/admin/dashboard/quckstats/QuickStats"))
 const Slots = lazy(() => import("../pages/admin/dashboard/slot/index"));
 const Member = lazy(() => import("../pages/admin/dashboard/member/index"));
 const Invoice = lazy(() => import("../pages/admin/dashboard/invoice/index"));
@@ -44,6 +44,7 @@ function AdminRoute() {
         {/* Main Admin Layout Routes */}
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="quick-stats" element={<QuickStats />} />
           <Route path="member" element={<Member />} />
           <Route path="slots" element={<Slots />} />
