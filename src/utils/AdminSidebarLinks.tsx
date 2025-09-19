@@ -6,8 +6,7 @@ import {
     MdPeople
 } from "react-icons/md";
 import { BsPersonVcard } from "react-icons/bs";
-import { RiBillLine, RiBarChart2Fill } from "react-icons/ri";
-import { HiOutlineUsers } from "react-icons/hi2";
+import { RiBillLine } from "react-icons/ri";
 
 type AdminSidebarLink = {
     key: string;
@@ -27,16 +26,16 @@ export const AdminSidebarLinks: AdminSidebarLink[] = [
         icon: <BsPersonVcard />,
         label: "Quick Stats",
     },
-    {
-        key: "member",
-        icon: <HiOutlineUsers />,
-        label: "Member",
-    },
-    {
-        key: "slots",
-        icon: <RiBarChart2Fill />,
-        label: "Slots",
-    },
+    // {
+    //     key: "member",
+    //     icon: <HiOutlineUsers />,
+    //     label: "Member",
+    // },
+    // {
+    //     key: "slots",
+    //     icon: <RiBarChart2Fill />,
+    //     label: "Slots",
+    // },
     {
         key: "invoice",
         icon: <RiBillLine />,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 
 // Example invoices data (replace with API call)
 const sampleInvoices = [
