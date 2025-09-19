@@ -10,7 +10,8 @@ const WorkOrder = lazy(() => import("../../pages/admin/fleetMaintenance/workOrde
 const Schedule = lazy(() => import("../../pages/admin/fleetMaintenance/scheduling/index"))
 const SpareParts = lazy(() => import("../../pages/admin/fleetMaintenance/sparePart/index"))
 const CostReports = lazy(() => import("../../pages/admin/fleetMaintenance/costReport/index"))
-
+const Trucks = lazy(()=>import('../../pages/admin/fleetMaintenance/trucks/Trucks'))
+const Trailers = lazy(()=>import('../../pages/admin/fleetMaintenance/trailers/Trailers'))
 
 function FleetMaintainRoutes() {
     return (
@@ -22,7 +23,8 @@ function FleetMaintainRoutes() {
                     <Route path="/schedule" element={<Schedule />} />
                     <Route path="/spare-parts" element={<SpareParts />} />
                     <Route path="/cost-reports" element={<CostReports />} />
-                   
+                    <Route path="/truks" element={<Trucks />} />
+                    <Route path="/trailers" element={<Trailers />} />
                 </Route>
             </Routes>
         </Suspense>
