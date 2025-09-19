@@ -21,7 +21,9 @@ const CompanyManage = lazy(() => import("../pages/admin/dashboard/setting/Compan
 const DispatchRoutes = lazy(() => import("./AdminFeatures/DispatchRoutes"));
 const GpsVehicleRoutes = lazy(() => import("./AdminFeatures/GpsVehicleRoutes"))
 const DriverManagement = lazy(() => import("./AdminFeatures/DriverManagementRoutes"))
-const ComplianceRoute = lazy(()=>import('./AdminFeatures/CompilanceRoute'))
+const ComplianceRoute = lazy(() => import('./AdminFeatures/CompilanceRoute'))
+const FleetMaintainRoute = lazy(() => import("./AdminFeatures/FleetMaintainRoutes"))
+
 function AdminRoute() {
   return (
     <Suspense fallback={<Loading />}>
@@ -31,6 +33,8 @@ function AdminRoute() {
         <Route path="gpsvehicle/*" element={<GpsVehicleRoutes />} />
         <Route path="driverManagement/*" element={<DriverManagement />} />
         <Route path="compliance/*" element={<ComplianceRoute />} />
+
+        <Route path="fleetmaintenance/*" element={<FleetMaintainRoute />} />
         {/* Add other feature routes here when ready */}
         {/* 
          <Route path="gps/*" element={<GPSRoutes />} />
