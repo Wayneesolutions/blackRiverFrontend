@@ -504,7 +504,7 @@ const ProfessionalFleetTracker: React.FC = () => {
                         )}
                         <button
                             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                            className="text-white p-2 hover:bg-blue-500 rounded-lg transition-colors"
+                            className="!text-white p-2 hover:bg-blue-500 rounded-lg transition-colors"
                         >
                             {sidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <X className="w-5 h-5" />}
                         </button>
