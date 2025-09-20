@@ -35,7 +35,20 @@ export const GpsSidebarLinks: DispatchSidebarLinks[] = [
     key: "/admin/gpsvehicle/livetracking",
     icon: <MdOutlineMap />,
     label: "Live Tracking",
+    children: [
+      {
+        key: "/admin/gpsvehicle/livetracking/truck",
+        icon: <FaTruck />,
+        label: "Truck Tracking",
+      },
+      {
+        key: "/admin/gpsvehicle/livetracking/trailer",
+        icon: <FaCogs />, // or another trailer-specific icon if you want
+        label: "Trailer Tracking",
+      },
+    ],
   },
+
   {
     key: "/admin/gpsvehicle/vehicles",
     icon: <FaTruck />,
