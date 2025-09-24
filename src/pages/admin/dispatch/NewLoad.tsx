@@ -1,73 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { X, Plus, Trash, Package, Edit3, Upload, Camera } from "lucide-react";
-import { createLoad, listCustomer, listDriver, listVehicle } from "../../../axios/adminApi";
+import { createLoad, listVehicle, listCustomer, listFaciliator, listDriver } from "../../../axios/api/distapcher";
+import { Section } from './settings/Section';
+import { Toggle } from './settings/Section';
 
 interface NewLoadProps {
     onClose: () => void;
 }
-
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
-    title,
-    children,
-}) => {
-    const [open, setOpen] = useState(true);
-    return (
-        <div className="border border-gray-300 rounded-lg overflow-hidden">
-            {/* Section Header */}
-            <button
-                onClick={() => setOpen(!open)}
-                className="w-full flex justify-between items-center px-4 py-2 text-gray-700 font-medium hover:bg-gray-200 transition-colors"
-                style={{ backgroundColor: '#f3f4f6' }}
-            >
-                {title}
-                <span className="text-lg">{open ? "−" : "+"}</span>
-            </button>
-            {/* Section Body */}
-            {open && <div className="p-4 space-y-4" style={{ backgroundColor: 'white' }}>{children}</div>}
-        </div>
-    );
-};
-
-const Toggle = ({
-    label,
-    checked,
-    onChange
-}: {
-    label: string;
-    checked: boolean;
-    onChange: (checked: boolean) => void;
-}) => {
-    return (
-        <label className="flex items-center gap-2 cursor-pointer">
-            <input
-                type="checkbox"
-                checked={checked}
-                onChange={(e) => onChange(e.target.checked)}
-                className="hidden"
-            />
-            <span
-                className={`w-10 h-6 flex items-center rounded-full p-1 transition-colors ${checked ? "bg-green-500" : "bg-gray-300"
-                    }`}
-            >
-                <span
-                    className={`bg-white w-4 h-4 rounded-full shadow transform transition-transform ${checked ? "translate-x-4" : "translate-x-0"
-                        }`}
-                />
-            </span>
-            <span className="text-gray-700">{label}</span>
-        </label>
-    );
-};
 
 const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
     // API data states
     const [customers, setCustomers] = useState<any[]>([]);
     const [drivers, setDrivers] = useState<any[]>([]);
     const [vehicles, setVehicles] = useState<any[]>([]);
+    const [facilator, setFaciliator] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
     // Form data states
     const [orderType, setOrderType] = useState("");
+    const [internalId, setInternalId] = useState("");
     const [selectedCustomer, setSelectedCustomer] = useState("");
     const [selectedFacilitator, setSelectedFacilitator] = useState("");
     const [selectedDriver, setSelectedDriver] = useState("");
@@ -108,6 +59,9 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
     }[]>([]);
     const [editingItem, setEditingItem] = useState<any>(null);
 
+    // State for documents
+    const [documents, setDocuments] = useState<File[]>([]);
+
     // Dummy images for demonstration
     const dummyImages = [
         "https://images.unsplash.com/photo-1586864387789-628af9feed72?w=400&h=300&fit=crop",
@@ -121,15 +75,15 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const [customerRes, driverRes, vehicleRes] = await Promise.all([
-                    listCustomer(),
-                    listDriver(),
-                    listVehicle()
-                ]);
-                
-                setCustomers(customerRes.data || []);
-                setDrivers(driverRes.data || []);
-                setVehicles(vehicleRes.data.vehicles || []);
+                const lc = await listCustomer();
+                const ld = await listDriver();
+                const lv = await listVehicle();
+                const lf = await listFaciliator();
+
+                setCustomers(lc.data || []);
+                setDrivers(ld.data || []);
+                setVehicles(lv.data || []);
+                setFaciliator(lf.data || []);
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {
@@ -203,65 +157,83 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
         }
     };
 
+    // Handle document selection
+    const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setDocuments(Array.from(e.target.files));
+        }
+    };
+
     // Handle form submission
     const handleSaveLoad = async () => {
         setLoading(true);
         try {
-            const loadData = {
-                details: JSON.stringify({
-                    orderType,
-                    internalId: `LOAD_${Date.now()}`,
-                    customer: selectedCustomer || null,
-                    facilator: selectedFacilitator || null,
-                    driver: selectedDriver || null,
-                    vehicle: selectedVehicle || null,
-                    adHoc: isAdhoc ? parseFloat(adhocDistance) || null : null,
-                    addMisc,
-                    dispatchImmediately,
-                    requiredProof: requireProof ? proofType : null
-                }),
-                route: JSON.stringify(multipleDropoffs ? {
-                    multipleDropOffs: true,
-                    wayPoints: waypoints.map(wp => ({
-                        address: wp.address,
-                        customer: wp.customer || null,
-                        dropOff: wp.type === "dropoff",
-                        pickup: wp.type === "pickup"
-                    })),
-                    selectReturn
-                } : {
-                    multipleDropOffs: false,
-                    selectPickup,
-                    selectDropOff: selectDropoff,
-                    selectReturn
-                }),
-                payloads: JSON.stringify(items.map(item => ({
-                    itemName: item.name,
-                    sku: item.sku,
-                    itemImageUrl: item.image,
-                    internalId: `ITEM_${item.id}`,
-                    description: item.description,
-                    priceAndValues: {
-                        price: parseFloat(item.price) || 0,
-                        salePrice: parseFloat(item.salePrice) || 0,
-                        cost: parseFloat(item.cost) || 0,
-                        discountValue: parseFloat(item.discountValue) || 0
-                    },
-                    measurementAndWeight: {
-                        length: parseFloat(item.length) || 0,
-                        width: parseFloat(item.width) || 0,
-                        height: parseFloat(item.height) || 0,
-                        weight: parseFloat(item.weight) || 0
-                    }
-                }))),
-                services: JSON.stringify({
-                    applyServiceRate
-                }),
-                notes,
-                status: "pending"
+            const detailsData = {
+                orderType,
+                internalId: internalId || `LOAD_${Date.now()}`,
+                customer: selectedCustomer || null,
+                facilator: selectedFacilitator || null,
+                driver: selectedDriver || null,
+                vehicle: selectedVehicle || null,
+                adHoc: isAdhoc ? parseFloat(adhocDistance) || null : null,
+                addMisc,
+                dispatchImmediately,
+                requiredProof: requireProof ? proofType : null
             };
 
-            const response = await createLoad(loadData);
+            const routeData = multipleDropoffs ? {
+                multipleDropOffs: true,
+                wayPoints: waypoints.map(wp => ({
+                    address: wp.address,
+                    customer: wp.customer || null,
+                    dropOff: wp.type === "dropoff",
+                    pickup: wp.type === "pickup"
+                })),
+                selectReturn
+            } : {
+                multipleDropOffs: false,
+                selectPickup,
+                selectDropOff: selectDropoff,
+                selectReturn
+            };
+
+            const payloadsData = items.map(item => ({
+                itemName: item.name,
+                sku: item.sku,
+                itemImageUrl: item.image,
+                internalId: `ITEM_${item.id}`,
+                description: item.description,
+                priceAndValues: {
+                    price: parseFloat(item.price) || 0,
+                    salePrice: parseFloat(item.salePrice) || 0,
+                    cost: parseFloat(item.cost) || 0,
+                    discountValue: parseFloat(item.discountValue) || 0
+                },
+                measurementAndWeight: {
+                    length: parseFloat(item.length) || 0,
+                    width: parseFloat(item.width) || 0,
+                    height: parseFloat(item.height) || 0,
+                    weight: parseFloat(item.weight) || 0
+                }
+            }));
+
+            const servicesData = {
+                applyServiceRate
+            };
+
+            const formData = new FormData();
+            formData.append('details', JSON.stringify(detailsData));
+            formData.append('route', JSON.stringify(routeData));
+            formData.append('payloads', JSON.stringify(payloadsData));
+            formData.append('services', JSON.stringify(servicesData));
+            formData.append('notes', notes);
+            formData.append('status', "pending");
+
+            documents.forEach((file) => {
+                formData.append('documents', file);
+            });
+
+            const response = await createLoad(formData);
             if (response.success) {
                 alert("Load created successfully!");
                 onClose();
@@ -306,10 +278,10 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                 <option value="overnight">Overnight</option>
                             </select>
                             <input
-                                className="p-2 border border-gray-300 rounded w-full"
-                                style={{ backgroundColor: '#f9fafb' }}
-                                value="Internal ID"
-                                readOnly
+                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter Internal ID"
+                                value={internalId}
+                                onChange={(e) => setInternalId(e.target.value)}
                             />
                             <select 
                                 value={selectedCustomer}
@@ -318,7 +290,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                 disabled={loading}
                             >
                                 <option value="">Select Customer</option>
-                                {customers.map((customer) => (
+                                {customers?.map((customer) => (
                                     <option key={customer._id} value={customer._id}>
                                         {customer.name}
                                     </option>
@@ -330,6 +302,11 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                 className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">Select Facilitator</option>
+                                {facilator?.map((facilator) => (
+                                    <option key={facilator._id} value={facilator._id}>
+                                        {facilator.name}
+                                    </option>
+                                ))}
                             </select>
                             <select 
                                 value={selectedDriver}
@@ -351,7 +328,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                 disabled={loading}
                             >
                                 <option value="">Select Vehicle</option>
-                                {vehicles?.map((vehicle) => (
+                                {vehicles.length && vehicles?.map((vehicle) => (
                                     <option key={vehicle._id} value={vehicle._id}>
                                         {vehicle.internalId}
                                     </option>
@@ -586,9 +563,29 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                             <p className="mb-3 text-gray-600">
                                 Drag and drop files into this dropzone. Upload Documents & Files
                             </p>
-                            <button className="px-6 py-2 bg-blue-500 hover:bg-blue-600 !text-white rounded transition-colors">
+                            <input
+                                type="file"
+                                multiple
+                                onChange={handleDocumentUpload}
+                                className="hidden"
+                                id="file-upload"
+                            />
+                            <button 
+                                onClick={() => document.getElementById('file-upload')?.click()}
+                                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 !text-white rounded transition-colors"
+                            >
                                 or select files to upload
                             </button>
+                            {documents.length > 0 && (
+                                <div className="mt-4">
+                                    <p className="text-sm text-gray-600">Selected files:</p>
+                                    <ul className="list-disc list-inside text-sm text-gray-500">
+                                        {documents.map((file, index) => (
+                                            <li key={index}>{file.name}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
                     </Section>
                 </div>

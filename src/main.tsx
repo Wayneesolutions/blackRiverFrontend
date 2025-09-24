@@ -4,15 +4,15 @@ import './index.css'
 import "antd/dist/reset.css";
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
-// import { Provider } from "react-redux";
-// import { store } from "./redux/store.tsx";
+import { Provider } from "react-redux";
+import { store } from "./redux/store.tsx";
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {/* <Provider store={store}> */}
+    <Provider store={store}>
     <ConfigProvider>
       <App />
     </ConfigProvider>
-    {/* </Provider> */}
+    </Provider>
   </StrictMode>,
 )

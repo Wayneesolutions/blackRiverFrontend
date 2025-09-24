@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { Building, Mail, Phone, MapPin, Bell, Upload, Save, Edit, Check, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Building, Mail, Phone, MapPin, Bell, Upload, Save, Edit, Check, X, AlertCircle } from 'lucide-react';
+import { getCompany } from '../../../../axios/api/admin';
+import { updateCompany } from '../../../../axios/api/admin';
 
 interface CompanyInfo {
   companyName: string;
@@ -7,7 +9,7 @@ interface CompanyInfo {
   address: string;
   contactEmail: string;
   contactPhone: string;
-  logo: string;
+  logoUrl?: string;
 }
 
 interface NotificationPreferences {
@@ -19,15 +21,17 @@ interface NotificationPreferences {
 const Company = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   
-  // Static company data
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-    companyName: 'TechCorp Solutions',
-    companyCode: 'TECH001',
-    address: '123 Business Park, Electronic City, Bangalore, Karnataka 560100, India',
-    contactEmail: 'contact@techcorp.com',
-    contactPhone: '+91-9876543210',
-    logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=200&fit=crop&crop=center'
+    companyName: '',
+    companyCode: '',
+    address: '',
+    contactEmail: '',
+    contactPhone: '',
+    logoUrl: ''
   });
 
   const [notifications, setNotifications] = useState<NotificationPreferences>({
@@ -37,6 +41,60 @@ const Company = () => {
   });
 
   const [editForm, setEditForm] = useState<CompanyInfo>(companyInfo);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+
+  // Fetch company data on component mount
+  useEffect(() => {
+    fetchCompanyData();
+  }, []);
+
+  const fetchCompanyData = async () => {
+    setFetchLoading(true);
+    setError('');
+    
+    try {
+      const response = await getCompany();
+      
+      if (response?.success && response?.data) {
+        const data = response.data;
+        
+        const companyData: CompanyInfo = {
+          companyName: data.companyName || '',
+          companyCode: data.companyCode || '',
+          address: data.address || '',
+          contactEmail: data.contactEmail || '',
+          contactPhone: data.contactPhone || '',
+          logoUrl: data.logoUrl || ''
+        };
+        
+        setCompanyInfo(companyData);
+        setEditForm(companyData);
+        
+        // Handle notification preferences
+        if (data.notificationPreferences) {
+          setNotifications({
+            sms: data.notificationPreferences.sms || false,
+            email: data.notificationPreferences.email || false,
+            appAlerts: data.notificationPreferences.appAlerts || false
+          });
+        }
+        
+        // Set preview URL for logo
+        if (data.logoUrl) {
+          setPreviewUrl(data.logoUrl);
+        }
+      } else {
+        // No company data found, keep default empty state
+        console.log('No company data found or response failed');
+      }
+    } catch (error) {
+      console.error('Error fetching company data:', error);
+      setError('Failed to load company data. Please try again.');
+    } finally {
+      setFetchLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -55,13 +113,53 @@ const Company = () => {
 
   const handleSave = async () => {
     setLoading(true);
+    setError('');
+    setSuccess('');
+    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setCompanyInfo(editForm);
-      setIsEditing(false);
+      // Create FormData for file upload
+      const formData = new FormData();
+      
+      // Add company info fields
+      Object.keys(editForm).forEach(key => {
+        if (editForm[key] && key !== 'logoUrl') {
+          formData.append(key, editForm[key]);
+        }
+      });
+      
+      // Add notification preferences
+      formData.append('notificationPreferences', JSON.stringify(notifications));
+      
+      // Add logo file if selected
+      if (selectedFile) {
+        formData.append('logo', selectedFile);
+      }
+      
+      const response = await updateCompany(formData);
+      
+      if (response?.success) {
+        setSuccess('Company settings updated successfully!');
+        setCompanyInfo(editForm);
+        setIsEditing(false);
+        setSelectedFile(null);
+        
+        // Update logo URL if returned in response
+        if (response.data?.logoUrl) {
+          setCompanyInfo(prev => ({
+            ...prev,
+            logoUrl: response.data.logoUrl
+          }));
+          setPreviewUrl(response.data.logoUrl);
+        }
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        setError(response?.message || 'Failed to update company settings. Please try again.');
+      }
     } catch (error) {
       console.error('Error saving company info:', error);
+      setError('Failed to update company settings. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -69,27 +167,69 @@ const Company = () => {
 
   const handleCancel = () => {
     setEditForm(companyInfo);
+    setSelectedFile(null);
+    setPreviewUrl(companyInfo.logoUrl || '');
     setIsEditing(false);
+    setError('');
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file.');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('File size should be less than 5MB.');
+        return;
+      }
+      
+      setSelectedFile(file);
+      setError('');
+      
+      // Create preview URL
       const reader = new FileReader();
       reader.onload = (event) => {
         const result = event.target?.result as string;
-        setEditForm(prev => ({
-          ...prev,
-          logo: result
-        }));
+        setPreviewUrl(result);
       };
       reader.readAsDataURL(file);
     }
   };
 
+  if (fetchLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading company settings...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <div className="px-2 py-8">
+        {/* Success/Error Messages */}
+        {success && (
+          <div className="fixed top-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
+            <Check className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm font-medium">{success}</span>
+          </div>
+        )}
+        
+        {error && (
+          <div className="fixed top-6 right-6 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm font-medium">{error}</span>
+          </div>
+        )}
+
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -102,7 +242,8 @@ const Company = () => {
                 <>
                   <button
                     onClick={handleCancel}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2"
+                    disabled={loading}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
                   >
                     <X size={16} />
                     Cancel
@@ -154,7 +295,7 @@ const Company = () => {
                 <div className="relative group">
                   <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 bg-gray-100">
                     <img
-                      src={isEditing ? editForm.logo : companyInfo.logo}
+                      src={previewUrl || companyInfo.logoUrl || 'https://via.placeholder.com/200x200/3B82F6/FFFFFF?text=LOGO'}
                       alt="Company Logo"
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -176,6 +317,9 @@ const Company = () => {
                   )}
                 </div>
                 <p className="text-sm text-gray-500 mt-2">Company Logo</p>
+                {selectedFile && (
+                  <p className="text-xs text-green-600 mt-1">New logo selected: {selectedFile.name}</p>
+                )}
               </div>
 
               {/* Company Details */}
@@ -189,10 +333,11 @@ const Company = () => {
                       value={editForm.companyName}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Enter company name"
                     />
                   ) : (
                     <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900 font-medium">{companyInfo.companyName}</p>
+                      <p className="text-gray-900 font-medium">{companyInfo.companyName || 'Not set'}</p>
                     </div>
                   )}
                 </div>
@@ -206,10 +351,11 @@ const Company = () => {
                       value={editForm.companyCode}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Enter company code"
                     />
                   ) : (
                     <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900 font-medium">{companyInfo.companyCode}</p>
+                      <p className="text-gray-900 font-medium">{companyInfo.companyCode || 'Not set'}</p>
                     </div>
                   )}
                 </div>
@@ -226,10 +372,11 @@ const Company = () => {
                       onChange={handleInputChange}
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                      placeholder="Enter company address"
                     />
                   ) : (
                     <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900">{companyInfo.address}</p>
+                      <p className="text-gray-900">{companyInfo.address || 'Not set'}</p>
                     </div>
                   )}
                 </div>
@@ -246,10 +393,11 @@ const Company = () => {
                       value={editForm.contactEmail}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Enter contact email"
                     />
                   ) : (
                     <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900">{companyInfo.contactEmail}</p>
+                      <p className="text-gray-900">{companyInfo.contactEmail || 'Not set'}</p>
                     </div>
                   )}
                 </div>
@@ -266,10 +414,11 @@ const Company = () => {
                       value={editForm.contactPhone}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Enter contact phone"
                     />
                   ) : (
                     <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900">{companyInfo.contactPhone}</p>
+                      <p className="text-gray-900">{companyInfo.contactPhone || 'Not set'}</p>
                     </div>
                   )}
                 </div>
@@ -306,9 +455,10 @@ const Company = () => {
                       type="checkbox"
                       checked={notifications.sms}
                       onChange={() => handleNotificationChange('sms')}
+                      disabled={!isEditing}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
                   </label>
                 </div>
 
@@ -328,9 +478,10 @@ const Company = () => {
                       type="checkbox"
                       checked={notifications.email}
                       onChange={() => handleNotificationChange('email')}
+                      disabled={!isEditing}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                    <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600 ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
                   </label>
                 </div>
 
@@ -350,9 +501,10 @@ const Company = () => {
                       type="checkbox"
                       checked={notifications.appAlerts}
                       onChange={() => handleNotificationChange('appAlerts')}
+                      disabled={!isEditing}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600 ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
                   </label>
                 </div>
               </div>
@@ -391,8 +543,23 @@ const Company = () => {
           </div>
         </div>
 
-  
       </div>
+      
+      <style>{`
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };

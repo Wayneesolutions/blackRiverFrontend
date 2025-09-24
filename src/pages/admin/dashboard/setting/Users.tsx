@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, X, Users as UsersIcon, Filter, Search } from 'lucide-react';
-import { Select, Tag } from "antd";
+import { Select, Tag, message } from "antd";
+import { listUsers, createUser, deleteUser, updateUserStatus } from '../../../../axios/api/admin';
 
 interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   phone: string;
-  password: string;
+  password?: string;
   role: Role;
   country: string;
   state: string;
@@ -20,103 +21,9 @@ interface User {
 
 type Role = "admin" | "superadmin" | "driver" | "dispatcher" | "hr";
 
-// Static data with status added
-const staticUsers: User[] = [
-  {
-    id: '1',
-    name: 'John Admin',
-    email: 'admin@company.com',
-    phone: '+91-9876543210',
-    password: '********',
-    role: 'admin',
-    country: 'India',
-    state: 'Maharashtra',
-    city: 'Mumbai',
-    address: '123 Business District, Mumbai, Maharashtra',
-    policies: 'Full system access with administrative privileges',
-    status: 'active',
-    createdAt: '2024-01-15'
-  },
-  {
-    id: '2',
-    name: 'Sarah Johnson',
-    email: 'sarah.hr@company.com',
-    phone: '+91-9876543211',
-    password: '********',
-    role: 'hr',
-    country: 'India',
-    state: 'Karnataka',
-    city: 'Bangalore',
-    address: '456 Tech Park, Bangalore, Karnataka',
-    policies: 'HR management and employee relations',
-    status: 'active',
-    createdAt: '2024-01-16'
-  },
-  {
-    id: '3',
-    name: 'Mike Driver',
-    email: 'mike.d@company.com',
-    phone: '+91-9876543212',
-    password: '********',
-    role: 'driver',
-    country: 'India',
-    state: 'Tamil Nadu',
-    city: 'Chennai',
-    address: '789 Transport Hub, Chennai, Tamil Nadu',
-    policies: 'Vehicle operation and safety compliance',
-    status: 'inactive',
-    createdAt: '2024-01-17'
-  },
-  {
-    id: '4',
-    name: 'Lisa Dispatcher',
-    email: 'lisa.dispatch@company.com',
-    phone: '+91-9876543213',
-    password: '********',
-    role: 'dispatcher',
-    country: 'India',
-    state: 'West Bengal',
-    city: 'Kolkata',
-    address: '321 Logistics Center, Kolkata, West Bengal',
-    policies: 'Route planning and fleet coordination',
-    status: 'active',
-    createdAt: '2024-01-18'
-  },
-  {
-    id: '5',
-    name: 'David Super',
-    email: 'super.admin@company.com',
-    phone: '+91-9876543214',
-    password: '********',
-    role: 'superadmin',
-    country: 'India',
-    state: 'Delhi',
-    city: 'New Delhi',
-    address: '555 Corporate Tower, New Delhi, Delhi',
-    policies: 'Ultimate system control and configuration',
-    status: 'active',
-    createdAt: '2024-01-19'
-  },
-  {
-    id: '6',
-    name: 'Emma Wilson',
-    email: 'emma.hr@company.com',
-    phone: '+91-9876543215',
-    password: '********',
-    role: 'hr',
-    country: 'India',
-    state: 'Gujarat',
-    city: 'Ahmedabad',
-    address: '777 Business Plaza, Ahmedabad, Gujarat',
-    policies: 'Recruitment and employee development',
-    status: 'inactive',
-    createdAt: '2024-01-20'
-  }
-];
-
 const Users = () => {
-  const [users, setUsers] = useState<User[]>(staticUsers);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>(staticUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [selectedRole, setSelectedRole] = useState<Role | 'all'>('all');
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -124,7 +31,7 @@ const Users = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const roleOptions: Role[] = ['admin', 'superadmin', 'driver', 'dispatcher', 'hr'];
 
@@ -141,6 +48,28 @@ const Users = () => {
     policies: '',
     status: 'active' as 'active' | 'inactive'
   });
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await listUsers();
+      if (response && response.success) {
+        setUsers(response.data);
+      } else {
+        console.error(response?.message || 'Error fetching users');
+        message.error(response?.message || 'Error fetching users');
+      }
+    } catch (error) {
+      console.error(error);
+      message.error('Failed to fetch users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   // Filter users based on role, status, and search query
   useEffect(() => {
@@ -181,27 +110,30 @@ const Users = () => {
     setLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       if (isEditing && selectedUser) {
+        // Mock edit - replace with actual update API if available
         setUsers(prev => prev.map(user =>
-          user.id === selectedUser.id
-            ? { ...user, ...formData, id: selectedUser.id }
+          user._id === selectedUser._id
+            ? { ...user, ...formData, _id: selectedUser._id }
             : user
         ));
+        message.success('User updated successfully');
       } else {
-        const newUser: User = {
-          ...formData,
-          id: Date.now().toString(),
-          createdAt: new Date().toISOString().split('T')[0]
-        };
-        setUsers(prev => [...prev, newUser]);
+        const response = await createUser(formData);
+        if (response && response.success) {
+          message.success(response.message || 'User created successfully');
+          await fetchUsers(); // Refresh list after creation
+        } else {
+          console.error(response?.message || 'Error creating user');
+          message.error(response?.message || 'Error creating user');
+        }
       }
 
       resetForm();
       setShowCreateModal(false);
     } catch (error) {
       console.error('Error saving user:', error);
+      message.error('Failed to save user');
     } finally {
       setLoading(false);
     }
@@ -239,17 +171,47 @@ const Users = () => {
 
   const handleDelete = async (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(prev => prev.filter(user => user.id !== userId));
+      setLoading(true);
+      try {
+        const response = await deleteUser(userId);
+        if (response && response.success) {
+          message.success(response.message || 'User deleted successfully');
+          await fetchUsers(); // Refresh list after deletion
+        } else {
+          console.error(response?.message || 'Error deleting user');
+          message.error(response?.message || 'Error deleting user');
+        }
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        message.error('Failed to delete user');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const handleStatusToggle = async (userId: string, currentStatus: 'active' | 'inactive') => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    setUsers(prev => prev.map(user =>
-      user.id === userId
-        ? { ...user, status: newStatus }
-        : user
-    ));
+    setLoading(true);
+    try {
+      const response = await updateUserStatus(userId, newStatus);
+      if (response && response.success) {
+        setUsers(prev => prev.map(user =>
+          user._id === userId
+            ? { ...user, status: newStatus }
+            : user
+        ));
+        message.success(response.message || `User status updated to ${newStatus}`);
+      } else {
+        console.error(response?.message || 'Error updating user status');
+        message.error(response?.message || 'Error updating user status');
+      }
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      message.error('Failed to update user status');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getRoleColor = (role: Role) => {
@@ -335,8 +297,6 @@ const Users = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
               <div className="relative">
-
-
                 <Select
                   value={selectedStatus}
                   onChange={(value) =>
@@ -345,14 +305,12 @@ const Users = () => {
                   className="w-full"
                 >
                   <Select.Option value="all">All Status</Select.Option>
-
                   <Select.Option value="active">
                     <Tag color="green" className="mr-1">
                       Active
                     </Tag>
                     ({users.filter((u) => u.status === "active").length})
                   </Select.Option>
-
                   <Select.Option value="inactive">
                     <Tag color="red" className="mr-1">
                       Inactive
@@ -360,9 +318,7 @@ const Users = () => {
                     ({users.filter((u) => u.status === "inactive").length})
                   </Select.Option>
                 </Select>
-
               </div>
-
             </div>
 
             <div className="flex items-end">
@@ -411,7 +367,7 @@ const Users = () => {
                   </tr>
                 ) : (
                   filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={user._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-4">
                         <div className="w-full overflow-hidden">
                           <div className="text-sm font-medium text-gray-900 truncate">{user.name}</div>
@@ -431,7 +387,7 @@ const Users = () => {
                       </td>
                       <td className="px-3 py-4">
                         <button
-                          onClick={() => handleStatusToggle(user.id, user.status)}
+                          onClick={() => handleStatusToggle(user._id, user.status)}
                           className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border capitalize cursor-pointer hover:opacity-80 transition-opacity ${getStatusColor(user.status)}`}
                         >
                           {user.status}
@@ -446,7 +402,6 @@ const Users = () => {
                           })}
                         </div>
                       </td>
-
                       <td className="px-3 py-4 text-center">
                         <div className="flex justify-center space-x-1">
                           <button
@@ -464,7 +419,7 @@ const Users = () => {
                             <Edit size={14} />
                           </button>
                           <button
-                            onClick={() => handleDelete(user.id)}
+                            onClick={() => handleDelete(user._id)}
                             className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
                             title="Delete User"
                           >
