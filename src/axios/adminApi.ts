@@ -258,18 +258,7 @@ export const updateDriverStatus = async (id) =>{
 
 
 
-export const listLoad = async () =>{
-    try {
 
-    const res: AxiosResponse = await adminApi.get(`admin/load`);
-    console.log('==res ', res)
-    return res.data;
-  } catch (error) {
-    console.log(error);
-
-    return (error as Error).response?.data;
-  }
-}
 
 export const createUsers = async (data:any) =>{
     try {

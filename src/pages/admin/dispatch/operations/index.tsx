@@ -2,63 +2,15 @@ import React, { useState, useEffect } from "react";
 import type { ReactElement } from "react";
 import { Truck, MapPin, Clock, CheckCircle, Play, Package, Calendar, TrendingUp, ChevronRight } from "lucide-react";
 import NewLoad from "../NewLoad";
-import { listLoad } from "../../../../axios/adminApi";
-
-
-interface TabButtonProps {
-  id: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  active: boolean;
-  onClick: (id: string) => void;
-}
-
-
+import { listLoad } from "../../../../axios/api/distapcher"; 
+import type { TabButtonProps,
+  ProfessionalCircularProgressProps,StockChartProps ,
+  ProfessionalUtilizationGaugeProps,
+CandlestickBarChartProps,
+AnimatedCounterProps,Route,Load} from "./helpers";
+import DriversTable from "./DriversTable";
 // Define allowed statuses
 type Status = "pending" | "started" | "enroute" | "arrived" | "reached" | "completed";
-
-interface ProfessionalCircularProgressProps {
-  percentage: number;
-  size?: number;
-  strokeWidth?: number;
-  color?: string;
-  backgroundColor?: string;
-  children?: React.ReactNode;
-  delay?: number;
-}
-interface StockChartProps {
-  data: number[];
-  height?: number;
-  color?: string;
-  label?: string;
-}
-
-interface ProfessionalUtilizationGaugeProps {
-  activeCount: number;
-  totalCount: number;
-  type?: string;   // default "Truck"
-  color?: string;  // default "#10b981"
-}
-
-// Define the shape of one bar
-interface CandlestickBar {
-  value: number;
-  label: string;
-  color: string;
-}
-
-// Props interface
-interface CandlestickBarChartProps {
-  data: CandlestickBar[];
-  height?: number;
-}
-
-interface AnimatedCounterProps {
-  value: number | string; // allow raw numbers or formatted strings
-  duration?: number;
-  prefix?: string;
-  suffix?: string;
-}
 
 
 const Index = () => {
@@ -97,121 +49,8 @@ const Index = () => {
     'completed': <Package className="w-4 h-4" />
   };
 
-  const loadsData = [
-    {
-      drivers: ["Sunny", "Sandy"],
-      orderNumber: "1258969",
-      orderBy: "Riya Enterprises",
-      pickupLocation: "Winnipeg, MB",
-      deliveryLocation: "Tauranga, NZ",
-      status: "started",
-      route: "Trans-Pacific",
-      estimatedTime: "72 hrs",
-      distance: "12,450 km",
-      tags: "International, High Value",
-      image: "truck-1.jpg"
-    },
-    {
-      drivers: ["Mike Johnson"],
-      orderNumber: "1259001",
-      orderBy: "Global Logistics Inc",
-      pickupLocation: "Toronto, ON",
-      deliveryLocation: "Vancouver, BC",
-      status: "enroute",
-      route: "Trans-Canada Highway",
-      estimatedTime: "28 hrs",
-      distance: "4,400 km",
-      tags: "Express, Fragile",
-      image: "truck-2.jpg"
-    },
-    {
-      drivers: ["Sarah Wilson", "Tom Brown"],
-      orderNumber: "1259002",
-      orderBy: "Northern Supply Co",
-      pickupLocation: "Calgary, AB",
-      deliveryLocation: "Edmonton, AB",
-      status: "arrived",
-      route: "Highway 2",
-      estimatedTime: "3 hrs",
-      distance: "300 km",
-      tags: "Local, Same Day",
-      image: "truck-3.jpg"
-    },
-    {
-      drivers: ["Alex Turner"],
-      orderNumber: "1259003",
-      orderBy: "Maritime Shipping",
-      pickupLocation: "Halifax, NS",
-      deliveryLocation: "Montreal, QC",
-      status: "reached",
-      route: "Trans-Canada Highway",
-      estimatedTime: "12 hrs",
-      distance: "1,200 km",
-      tags: "Standard",
-      image: "truck-4.jpg"
-    },
-    {
-      drivers: ["Lisa Chen", "David Kim"],
-      orderNumber: "1259004",
-      orderBy: "Western Distributors",
-      pickupLocation: "Seattle, WA",
-      deliveryLocation: "Los Angeles, CA",
-      status: "pending",
-      route: "I-5 South",
-      estimatedTime: "18 hrs",
-      distance: "1,800 km",
-      tags: "Cross-border, Perishable",
-      image: "truck-5.jpg"
-    }
-  ];
 
-  const driversData = [
-    {
-      name: "Sunny",
-      partner: "Sandy",
-      status: "started",
-      currentLocation: "Winnipeg, MB",
-      nextDestination: "Vancouver, BC",
-      hoursWorked: "6/14",
-      lastUpdate: "2 mins ago"
-    },
-    {
-      name: "Mike Johnson",
-      partner: null,
-      status: "enroute",
-      currentLocation: "Thunder Bay, ON",
-      nextDestination: "Vancouver, BC",
-      hoursWorked: "8/14",
-      lastUpdate: "15 mins ago"
-    },
-    {
-      name: "Sarah Wilson",
-      partner: "Tom Brown",
-      status: "arrived",
-      currentLocation: "Edmonton, AB",
-      nextDestination: "Calgary, AB",
-      hoursWorked: "2/14",
-      lastUpdate: "1 min ago"
-    },
-    {
-      name: "Alex Turner",
-      partner: null,
-      status: "reached",
-      currentLocation: "Montreal, QC",
-      nextDestination: "Ottawa, ON",
-      hoursWorked: "10/14",
-      lastUpdate: "5 mins ago"
-    },
-    {
-      name: "Lisa Chen",
-      partner: "David Kim",
-      status: "pending",
-      currentLocation: "Seattle, WA",
-      nextDestination: "Portland, OR",
-      hoursWorked: "0/14",
-      lastUpdate: "30 mins ago"
-    }
-  ];
+  
 
   const routesData = [
     {
@@ -222,30 +61,7 @@ const Index = () => {
       efficiency: "92%",
       status: "active"
     },
-    {
-      route: "Trans-Canada Highway",
-      activeLoads: 2,
-      totalDistance: "7,200 km",
-      avgTime: "48 hrs",
-      efficiency: "88%",
-      status: "active"
-    },
-    {
-      route: "Highway 2 (AB)",
-      activeLoads: 1,
-      totalDistance: "300 km",
-      avgTime: "3 hrs",
-      efficiency: "95%",
-      status: "completed"
-    },
-    {
-      route: "I-5 South",
-      activeLoads: 1,
-      totalDistance: "1,800 km",
-      avgTime: "18 hrs",
-      efficiency: "85%",
-      status: "pending"
-    }
+    
   ];
 
   interface StatusBadgeProps {
@@ -930,8 +746,25 @@ const Index = () => {
       </div>
     )
   }
-  // ==============================================
-  const renderLoadsTable = () => (
+  const RenderLoadsTable: React.FC = () => {
+  const [loadsData, setLoadsData] = useState<Load[]>([]);
+
+  useEffect(() => {
+    const fetchLoads = async () => {
+      try {
+        const res = await listLoad();
+        if (res.success) {
+          setLoadsData(res.data);
+        }
+      } catch (error) {
+        console.error("Error fetching loads:", error);
+      }
+    };
+
+    fetchLoads();
+  }, []);
+
+  return (
     <div className="bg-white bg-opacity-95 backdrop-blur-lg rounded-xl border border-white border-opacity-50 shadow-xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
@@ -942,131 +775,102 @@ const Index = () => {
               <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">Order #</th>
               <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">Customer</th>
               <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">Route</th>
-              <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">Distance</th>
               <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">ETA</th>
               <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">Status</th>
-              <th className="px-4 py-4">Tags</th>
+              <th className="px-4 py-4">Notes</th>
             </tr>
           </thead>
-          <tbody>
-            {loadsData.map((row, idx) => (
-              <tr key={idx} className="hover:bg-blue-50 hover:bg-opacity-50 transition-colors duration-200 border-b border-gray-100 border-opacity-50">
-                <td className="px-4 py-4 border-r border-gray-100 border-opacity-50">
-                  <ImagePlaceholder image={row.image} alt="Truck" />
-                </td>
-                <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 align-top">
-                  {row.drivers.map((driver, i) => (
-                    <div key={i} className="text-gray-800 font-medium flex items-center gap-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      {driver}
-                    </div>
-                  ))}
-                </td>
-                <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 font-mono text-blue-600 font-semibold">
-                  {row.orderNumber}
-                </td>
-                <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 text-gray-800 font-medium">
-                  {row.orderBy}
-                </td>
-                <td className="px-4 py-4 border-r border-gray-100 border-opacity-50">
-                  <div className="text-gray-700 font-medium">{row.route}</div>
-                  <div className="text-xs text-gray-500">{row.pickupLocation} → {row.deliveryLocation}</div>
-                </td>
-                <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
-                  {row.distance}
-                </td>
-                <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
-                  {row.estimatedTime}
-                </td>
-                <td className="px-4 py-4 border-r border-gray-100 border-opacity-50">
-                  <StatusBadge status={row.status as Status} />
 
-                </td>
-                <td className="px-4 py-4 text-xs">
-                  {row.tags ? (
-                    <div className="flex flex-wrap gap-1">
-                      {row.tags.split(', ').map((tag, i) => (
-                        <span key={i} className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-gray-500 italic">No tags</span>
-                  )}
+          <tbody>
+            {loadsData.length > 0 ? (
+              loadsData.map((row, idx) => (
+                <tr
+                  key={idx}
+                  className="hover:bg-blue-50 hover:bg-opacity-50 transition-colors duration-200 border-b border-gray-100 border-opacity-50"
+                >
+                  {/* Image */}
+                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50">
+                    <ImagePlaceholder image={""} alt="Truck" />
+                  </td>
+
+                  {/* Driver */}
+                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 align-top">
+                    {row.driverName? (
+                      <div className="text-gray-800 font-medium">
+                        {row.driverName} 
+                      </div>
+                    ) : (
+                      <span className="text-gray-500 italic">Unassigned</span>
+                    )}
+                  </td>
+
+                  {/* Order ID */}
+                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 font-mono text-blue-600 font-semibold">
+                    {row._id}
+                  </td>
+
+                  {/* Customer */}
+                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 text-gray-800 font-medium">
+                    {row.customerName ? (
+                      <>
+                        {row.customerName} 
+                      </>
+                    ) : (
+                      <span className="text-gray-500 italic">Unknown</span>
+                    )}
+                  </td>
+
+                  {/* Route */}
+                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50">
+                    {row.route?.multipleDropOffs ? (
+                      <div className="flex flex-col gap-1">
+                        {row.route.wayPoints.map((wp, i) => (
+                          <div key={i} className="text-xs text-gray-700 flex items-center gap-1">
+                            <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                            {wp.address.place || "Unknown"}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="text-gray-700 font-medium">
+                          {row.route?.selectPickup?.place || "Pickup N/A"}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {row.route?.selectPickup?.place || "N/A"} →{" "}
+                          {row.route?.selectDropOff?.place || "N/A"}
+                        </div>
+                      </div>
+                    )}
+                  </td>
+
+                  {/* ETA */}
+                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
+                    {new Date(row.assignedAt).toLocaleString()}
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50">
+                    <StatusBadge status={row.status as any} />
+                  </td>
+
+                  {/* Notes */}
+                  <td className="px-4 py-4 text-xs">{row.notes || "No notes"}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={8} className="text-center py-6 text-gray-500">
+                  No loads available
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
     </div>
   );
-
-  const renderDriversTable = () => (
-    <div className="bg-white bg-opacity-95 backdrop-blur-lg rounded-xl border border-white border-opacity-50 shadow-xl overflow-hidden">
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr className="bg-gray-50 bg-opacity-80 backdrop-blur-sm text-left font-semibold text-gray-700">
-            <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Driver</th>
-            <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Partner</th>
-            <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Status</th>
-            <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Current Location</th>
-            <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Next Destination</th>
-            <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Hours Worked</th>
-            <th className="px-6 py-4">Last Update</th>
-          </tr>
-        </thead>
-        <tbody>
-          {driversData.map((driver, idx) => (
-            <tr key={idx} className="hover:bg-blue-50 hover:bg-opacity-50 transition-colors duration-200 border-b border-gray-100 border-opacity-50">
-              <td className="px-6 py-4 border-r border-gray-100 border-opacity-50">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                    {driver.name.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <span className="font-medium text-gray-800">{driver.name}</span>
-                </div>
-              </td>
-              <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
-                {driver.partner || <span className="text-gray-400 italic">Solo</span>}
-              </td>
-              <td className="px-6 py-4 border-r border-gray-100 border-opacity-50">
-                <StatusBadge status={driver.status as Status} />
-
-              </td>
-              <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4 text-gray-400" />
-                  {driver.currentLocation}
-                </div>
-              </td>
-              <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
-                {driver.nextDestination}
-              </td>
-              <td className="px-6 py-4 border-r border-gray-100 border-opacity-50">
-                <div className="flex items-center gap-2">
-                  <div className="w-20 bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-1000 ease-out"
-                      style={{
-                        width: animationTrigger ? `${(parseInt(driver.hoursWorked) / 14) * 100}%` : '0%',
-                        transitionDelay: `${idx * 100}ms`
-                      }}
-                    ></div>
-                  </div>
-                  <span className="text-xs text-gray-600">{driver.hoursWorked}</span>
-                </div>
-              </td>
-              <td className="px-6 py-4 text-gray-500 text-xs">
-                {driver.lastUpdate}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+};
 
   const renderRoutesTable = () => (
     <div className="bg-white bg-opacity-95 backdrop-blur-lg rounded-xl border border-white border-opacity-50 shadow-xl overflow-hidden">
@@ -1226,8 +1030,9 @@ const Index = () => {
 
         {/* Content based on active tab */}
         <div className="transform transition-all duration-500 ease-out">
-          {activeTab === 'loads' && renderLoadsTable()}
-          {activeTab === 'drivers' && renderDriversTable()}
+          {activeTab === 'loads' && <RenderLoadsTable />
+}
+          {activeTab === 'drivers' && <DriversTable/>}
           {activeTab === 'routes' && renderRoutesTable()}
         </div>
       </div>
