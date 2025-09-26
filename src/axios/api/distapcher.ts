@@ -8,6 +8,132 @@ interface Error {
     }
   }
 }
+
+export const listCustomer = async () =>{
+    try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/customer`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+
+export const deleteCustomer = async (id:string) =>{
+    try {
+    const res: AxiosResponse = await apiClient.delete(`dispatcher/customer/${id}`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const updateCustomer = async (id:string,data) =>{
+    try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/customer/${id}`,data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const createtCustomer = async (data) =>{
+    try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/customer`,data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const deleteContact = async (id:string) =>{
+    try {
+    const res: AxiosResponse = await apiClient.delete(`dispatcher/contact/${id}`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+export const updateContact = async (id:string,data) =>{
+    try {
+    const res: AxiosResponse = await apiClient.put(`dispatcher/contact/${id}`,data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+export const listContact = async () =>{
+    try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/contact`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+export const createContact = async (data) =>{
+    try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/contact`,data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const updateStatusVendor = async (id,status) =>{
+    try {
+    const res: AxiosResponse = await apiClient.patch(`dispatcher/vendor/${id}/status`,status);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const listVendor = async () =>{
+    try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/vendor`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+export const deleteVendor = async (id:string) =>{
+    try {
+    const res: AxiosResponse = await apiClient.delete(`dispatcher/vendor/${id}`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+export const updateVendor = async (id:string,data) =>{
+    try {
+    const res: AxiosResponse = await apiClient.put(`dispatcher/vendor/${id}`,data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+export const createVendor = async (data) =>{
+    try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/vendor`,data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
 export const deleteFleet = async (id:string) =>{
     try {
     const res: AxiosResponse = await apiClient.delete(`dispatcher/fleet/${id}`);
@@ -175,18 +301,7 @@ export const listDriver = async () =>{
 
 
 
-export const listCustomer = async () =>{
-    try {
 
-    const res: AxiosResponse = await apiClient.get(`dispatcher/customer`);
-    console.log('==res ', res)
-    return res.data;
-  } catch (error) {
-    console.log(error);
-
-    return (error as Error).response?.data;
-  }
-}
 
 export const listFaciliator = async () =>{
     try {

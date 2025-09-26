@@ -234,51 +234,60 @@ const Index = () => {
                           {new Date(fleet.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500 relative">
-                          <button
-                            onClick={() =>
-                              setOpenMenu(openMenu === fleet._id ? null : fleet._id)
-                            }
-                            className="p-1 rounded hover:bg-gray-100"
-                          >
-                            <MoreVertical className="w-5 h-5 text-gray-600" />
-                          </button>
+  <div className="relative inline-block text-left">
+    <button
+      onClick={() =>
+        setOpenMenu(openMenu === fleet._id ? null : fleet._id)
+      }
+      className="p-1 rounded hover:bg-gray-100"
+    >
+      <MoreVertical className="w-5 h-5 text-gray-600" />
+    </button>
 
-                          {openMenu === fleet._id && (
-                            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
-                              <button
-                                onClick={() => {
-                                  setEditFleet(fleet);
-                                  setEditModalOpen(true);
-                                  setOpenMenu(null);
-                                }}
-                                className="flex items-center gap-2 px-4 py-2 w-full text-left hover:bg-gray-50"
-                              >
-                                <Edit className="w-4 h-4 text-blue-600" />
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleDelete(fleet._id);
-                                  setOpenMenu(null);
-                                }}
-                                className="flex items-center gap-2 px-4 py-2 w-full text-left hover:bg-gray-50"
-                              >
-                                <Trash2 className="w-4 h-4 text-red-600" />
-                                Delete
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleStatusUpdate(fleet._id);
-                                  setOpenMenu(null);
-                                }}
-                                className="flex items-center gap-2 px-4 py-2 w-full text-left hover:bg-gray-50"
-                              >
-                                <RefreshCw className="w-4 h-4 text-green-600" />
-                                Update Status
-                              </button>
-                            </div>
-                          )}
-                        </td>
+    {openMenu === fleet._id && (
+      <div
+        className="absolute right-0 mt-2 w-40 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+      >
+        <div className="py-1">
+          <button
+            onClick={() => {
+              setEditFleet(fleet);
+              setEditModalOpen(true);
+              setOpenMenu(null);
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+          >
+            <Edit className="w-4 h-4 text-blue-600" />
+            Edit
+          </button>
+
+          <button
+            onClick={() => {
+              handleDelete(fleet._id);
+              setOpenMenu(null);
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+          >
+            <Trash2 className="w-4 h-4 text-red-600" />
+            Delete
+          </button>
+
+          <button
+            onClick={() => {
+              handleStatusUpdate(fleet._id);
+              setOpenMenu(null);
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+          >
+            <RefreshCw className="w-4 h-4 text-green-600" />
+            Update Status
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+</td>
+
                       </tr>
                     ))
                   ) : (

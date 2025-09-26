@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Plus, Search, MoreVertical, MapPin, Filter } from "lucide-react";
 import NewPlacesSidebar from "./NewPlacesSidebar";
-
+import { listPlace,deletePlace,updateStatusPlace,updatePlace } from "../../../../../axios/api/dispatcher.places";
 const Index = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
