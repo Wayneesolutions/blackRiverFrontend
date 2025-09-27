@@ -9,6 +9,16 @@ interface Error {
   }
 }
 
+export const createFuelReport = async (data) =>{
+    try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/fuel-report`,data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
 export const createPlace = async (data) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/place`,data);

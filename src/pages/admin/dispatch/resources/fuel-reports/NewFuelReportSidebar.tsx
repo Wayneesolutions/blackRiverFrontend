@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { X } from 'lucide-react';
 import type { FC } from "react";
+import { useDrivers } from '../../../../../customHooks/useDrivers';
+import { useVehicles } from '../../../../../customHooks/useVehicles';
+import { createFuelReport } from '../../../../../axios/api/dispatcher.places';
 
 interface NewFuelReportSidebarProps {
     isOpen: boolean;
@@ -16,15 +19,16 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
         cost: '',
         volume: '',
         volumeUnit: '',
-        status: 'Active',
-        latitude: '',
-        longitude: '',
+        status: 'pending',
+        address: '',
     });
 
-
     const [openDetails, setOpenDetails] = useState(true);
+    const [loadingSubmit, setLoadingSubmit] = useState(false);
 
-
+    // Fetch drivers and vehicles
+    const { drivers, loading: loadingDrivers } = useDrivers();
+    const { vehicles, loading: loadingVehicles } = useVehicles();
 
     const handleInputChange = (e: any) => {
         const { name, value } = e.target;
@@ -34,10 +38,17 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
         }));
     };
 
-
-    const handleSubmit = () => {
-        console.log('Form submitted:', formData);
-        onClose();
+    const handleSubmit = async () => {
+        try {
+            setLoadingSubmit(true);
+            const response = await createFuelReport(formData);
+            console.log('Fuel report created:', response);
+            setLoadingSubmit(false);
+            onClose();
+        } catch (error) {
+            console.error('Error creating fuel report:', error);
+            setLoadingSubmit(false);
+        }
     };
 
     if (!isOpen) return null;
@@ -69,8 +80,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
                         >
                             <h3 className="text-lg font-medium text-gray-900">New Fuel report</h3>
                             <svg
-                                className={`w-5 h-5 text-gray-500 transform transition-transform ${openDetails ? "rotate-180" : ""
-                                    }`}
+                                className={`w-5 h-5 text-gray-500 transform transition-transform ${openDetails ? "rotate-180" : ""}`}
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
@@ -87,9 +97,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
                                 {/* Reporter & Driver */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Reporter
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Reporter</label>
                                         <select
                                             name="reporter"
                                             value={formData.reporter}
@@ -102,10 +110,9 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
                                             <option value="bob">Bob Smith</option>
                                         </select>
                                     </div>
+
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Driver
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Driver</label>
                                         <select
                                             name="driver"
                                             value={formData.driver}
@@ -113,9 +120,15 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Select Driver</option>
-                                            <option value="john">John Doe</option>
-                                            <option value="jane">Jane Smith</option>
-                                            <option value="mike">Mike Johnson</option>
+                                            {loadingDrivers ? (
+                                                <option>Loading drivers...</option>
+                                            ) : (
+                                                drivers?.map(driver => (
+                                                    <option key={driver._id} value={driver._id}>
+                                                        {driver.name}
+                                                    </option>
+                                                ))
+                                            )}
                                         </select>
                                     </div>
                                 </div>
@@ -123,9 +136,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
                                 {/* Vehicle & Status */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Vehicle
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle</label>
                                         <select
                                             name="vehicle"
                                             value={formData.vehicle}
@@ -133,24 +144,28 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Select Vehicle</option>
-                                            <option value="truck-alpha">Truck Alpha</option>
-                                            <option value="van-beta">Van Beta</option>
-                                            <option value="car-gamma">Car Gamma</option>
+                                            {loadingVehicles ? (
+                                                <option>Loading vehicles...</option>
+                                            ) : (
+                                                vehicles?.map(vehicle => (
+                                                    <option key={vehicle._id} value={vehicle._id}>
+                                                        {vehicle.plateNumber} - {vehicle.internalId} - {vehicle.vinNumber}
+                                                    </option>
+                                                ))
+                                            )}
                                         </select>
                                     </div>
+
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Status
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                                         <select
                                             name="status"
                                             value={formData.status}
                                             onChange={handleInputChange}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
-                                            <option value="">Select fuel-report status</option>
-                                            <option value="approved">Approved</option>
                                             <option value="pending">Pending</option>
+                                            <option value="approved">Approved</option>
                                             <option value="rejected">Rejected</option>
                                         </select>
                                     </div>
@@ -159,9 +174,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
                                 {/* Odometer & Cost */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Odometer
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Odometer</label>
                                         <input
                                             type="number"
                                             name="odometer"
@@ -171,14 +184,11 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
+
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Cost
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Cost</label>
                                         <div className="flex">
-                                            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                                                SG$
-                                            </span>
+                                            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">SG$</span>
                                             <input
                                                 type="number"
                                                 name="cost"
@@ -193,9 +203,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
 
                                 {/* Volume */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Volume
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Volume</label>
                                     <div className="flex">
                                         <input
                                             type="number"
@@ -223,58 +231,21 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
                                     </div>
                                 </div>
 
-                                {/* Coordinates */}
+                                {/* Address */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Coordinates
-                                    </label>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <input
-                                            type="number"
-                                            name="latitude"
-                                            value={formData.latitude}
-                                            onChange={handleInputChange}
-                                            placeholder="Latitude"
-                                            step="any"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                        <input
-                                            type="number"
-                                            name="longitude"
-                                            value={formData.longitude}
-                                            onChange={handleInputChange}
-                                            placeholder="Longitude"
-                                            step="any"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                    <button
-                                        type="button"
-                                        className="mt-2 text-blue-600 text-sm hover:text-blue-700 flex items-center"
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-4 w-4 mr-1"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M17.657 16.657L13.414 12.414A4 4 0 1112 8a4 4 0 011.414 7.657l4.243 4.243z"
-                                            />
-                                        </svg>
-                                        Select from map
-                                    </button>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                                    <input
+                                        type="text"
+                                        name="address"
+                                        value={formData.address}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter address"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
                                 </div>
                             </div>
-
                         )}
                     </div>
-
-
                 </div>
 
                 {/* Fixed Footer */}
@@ -290,9 +261,10 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
                         <button
                             type="button"
                             onClick={handleSubmit}
-                            className="px-4 py-2 bg-blue-600 !text-white rounded-md hover:bg-blue-700 transition-colors"
+                            disabled={loadingSubmit}
+                            className="px-4 py-2 bg-blue-600 !text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
                         >
-                            Create Fuel Report
+                            {loadingSubmit ? 'Creating...' : 'Create Fuel Report'}
                         </button>
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-import  { AxiosResponse } from "axios";
+import type { AxiosResponse } from "axios";
 import apiClient from "../apiClient";
 
 interface Error {
@@ -8,6 +8,17 @@ interface Error {
     }
   }
 }
+
+
+export const compilancsummary = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/compilance-summary');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
 
 export const createUser = async (data) => {
   try {
