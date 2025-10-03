@@ -1,256 +1,430 @@
-import React, { useState } from "react";
-import { FaCar, FaPlus, FaEdit, FaTrash, FaFileUpload } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { FaCar, FaPlus, FaEdit, FaTrash, FaFileUpload, FaFileAlt, FaTimes } from "react-icons/fa";
+import {
+  getVehicleDocument,
+  createVehicleDocument,
+  updateVehicleDocument,
+  deleteVehicleDocument
+} from "../../../../axios/api/compilance.vehicledoc";
+import { useVehicles } from "../../../../customHooks/useVehicles";
 
 function VehicleDocument() {
-  // Dummy vehicles (simulate schema fields)
-  const [vehicles] = useState([
-    {
-      _id: "1",
-      internalId: "V001",
-      plateNumber: "AB12CD3456",
-      vinNumber: "1HGCM82633A123456",
-      make: "Volvo",
-      model: "FH16",
-      year: 2022,
-      status: "moving",
-      driver: "John Doe",
-      fuelLevel: 60,
-      odometer: 34000,
-      engineOn: true,
-      currentLocation: {
-        address: "NH-44, Bangalore",
-        latitude: "12.9716",
-        longitude: "77.5946",
-      },
-      documents: [
-        {
-          _id: "d1",
-          documentType: "insurance",
-          documentNumber: "INS12345",
-          status: "completed",
-          expiryDate: "2025-01-10",
-        },
-        {
-          _id: "d2",
-          documentType: "permit",
-          documentNumber: "PRM56789",
-          status: "expiring-soon",
-          expiryDate: "2024-12-01",
-        },
-      ],
-    },
-    {
-      _id: "2",
-      internalId: "V002",
-      plateNumber: "XY34EF7890",
-      vinNumber: "2HGCM82633A654321",
-      make: "Tata",
-      model: "Prima",
-      year: 2021,
-      status: "idle",
-      driver: "Jane Smith",
-      fuelLevel: 45,
-      odometer: 28000,
-      engineOn: false,
-      currentLocation: {
-        address: "Hyderabad Ring Road",
-        latitude: "17.3850",
-        longitude: "78.4867",
-      },
-      documents: [],
-    },
-  ]);
-
-  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const { vehicles } = useVehicles();
+  
+  const [vehicleDocuments, setVehicleDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showDocModal, setShowDocModal] = useState(false);
-  const [editingDoc, setEditingDoc] = useState<any>(null);
+  const [editingDoc, setEditingDoc] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [formData, setFormData] = useState({
+    vehicleId: "",
+    documentType: "insurance",
+    documentNumber: "",
+    expiryDate: "",
+    issuedAt: ""
+  });
+
+  const fetchAllDocuments = async () => {
+    setLoading(true);
+    try {
+      const res = await getVehicleDocument();
+      if (res?.success) {
+        setVehicleDocuments(res.documentsByVehicle || []);
+      }
+    } catch (err) {
+      console.error("Error fetching documents:", err);
+      setVehicleDocuments([]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAllDocuments();
+  }, []);
 
   const handleAddDocument = () => {
     setEditingDoc(null);
+    setSelectedFile(null);
+    setFormData({
+      vehicleId: "",
+      documentType: "insurance",
+      documentNumber: "",
+      expiryDate: "",
+      issuedAt: ""
+    });
     setShowDocModal(true);
   };
 
-  const handleEditDocument = (doc: any) => {
+  const handleEditDocument = (doc, vehicleId) => {
     setEditingDoc(doc);
+    setSelectedFile(null);
+    setFormData({
+      vehicleId: vehicleId,
+      documentType: doc.documentType || "insurance",
+      documentNumber: doc.documentNumber || "",
+      expiryDate: doc.expiryDate ? doc.expiryDate.split('T')[0] : "",
+      issuedAt: doc.issuedAt ? doc.issuedAt.split('T')[0] : ""
+    });
     setShowDocModal(true);
   };
 
-  // Vehicle list UI
-  const VehicleList = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {vehicles.map((vehicle) => (
-        <div
-          key={vehicle._id}
-          className="bg-white shadow-md rounded-xl p-5 cursor-pointer hover:shadow-lg transition-all"
-          onClick={() => setSelectedVehicle(vehicle)}
-        >
-          <div className="flex items-center gap-4">
-            <div className="p-4 bg-blue-100 rounded-full text-blue-600">
-              <FaCar size={24} />
-            </div>
-            <div>
-              <h3 className="font-bold text-lg text-gray-800">
-                {vehicle.make} {vehicle.model} ({vehicle.year})
-              </h3>
-              <p className="text-sm text-gray-500">
-                Plate: {vehicle.plateNumber} | Driver: {vehicle.driver}
-              </p>
-              <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
-                {vehicle.status}
-              </span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  const handleDeleteDocument = async (docId) => {
+    if (!window.confirm("Are you sure you want to delete this document?")) return;
 
-  // Vehicle details + documents
-  const VehicleDetails = () => (
-    <div className="bg-white shadow-md rounded-xl p-6">
-      <button
-        className="mb-4 text-sm text-blue-600 hover:underline"
-        onClick={() => setSelectedVehicle(null)}
-      >
-        ← Back to Vehicles
-      </button>
+    try {
+      const res = await deleteVehicleDocument(docId);
+      if (res?.success) {
+        alert(res.message || "Document deleted successfully");
+        fetchAllDocuments();
+      } else {
+        alert(res?.message || "Failed to delete document");
+      }
+    } catch (err) {
+      alert(err?.message || "Error deleting document");
+    }
+  };
 
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">
-        {selectedVehicle.make} {selectedVehicle.model} ({selectedVehicle.year})
-      </h2>
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
 
-      {/* Vehicle Info */}
-      <div className="grid grid-cols-2 gap-4 text-sm mb-6">
-        <p><strong>Plate:</strong> {selectedVehicle.plateNumber}</p>
-        <p><strong>VIN:</strong> {selectedVehicle.vinNumber}</p>
-        <p><strong>Driver:</strong> {selectedVehicle.driver}</p>
-        <p><strong>Status:</strong> {selectedVehicle.status}</p>
-        <p><strong>Fuel Level:</strong> {selectedVehicle.fuelLevel}%</p>
-        <p><strong>Odometer:</strong> {selectedVehicle.odometer} km</p>
-        <p><strong>Engine:</strong> {selectedVehicle.engineOn ? "On" : "Off"}</p>
-        <p><strong>Location:</strong> {selectedVehicle.currentLocation.address}</p>
-      </div>
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
-      {/* Documents */}
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-semibold">Documents</h3>
-        <button
-          onClick={handleAddDocument}
-          className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <FaPlus /> Add Document
-        </button>
-      </div>
+  const handleSubmitDocument = async () => {
+    if (!formData.vehicleId || !formData.documentNumber || !formData.expiryDate || !formData.issuedAt) {
+      alert("Please fill all required fields");
+      return;
+    }
 
-      {selectedVehicle.documents.length === 0 ? (
-        <p className="text-gray-500">No documents available.</p>
-      ) : (
-        <div className="space-y-3">
-          {selectedVehicle.documents.map((doc: any) => (
-            <div
-              key={doc._id}
-              className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
-            >
-              <div>
-                <p className="font-medium capitalize">{doc.documentType}</p>
-                <p className="text-xs text-gray-500">
-                  Number: {doc.documentNumber} | Expiry: {doc.expiryDate}
-                </p>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    doc.status === "completed"
-                      ? "bg-green-100 text-green-600"
-                      : doc.status === "expired"
-                      ? "bg-red-100 text-red-600"
-                      : "bg-yellow-100 text-yellow-600"
-                  }`}
-                >
-                  {doc.status}
-                </span>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  className="text-blue-600 hover:text-blue-800"
-                  onClick={() => handleEditDocument(doc)}
-                >
-                  <FaEdit />
-                </button>
-                <button className="text-red-600 hover:text-red-800">
-                  <FaTrash />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+    setSubmitting(true);
 
-  // Add/Update Document Modal
+    const data = new FormData();
+    data.append("vehicleId", formData.vehicleId);
+    data.append("documentType", formData.documentType);
+    data.append("documentNumber", formData.documentNumber);
+    data.append("expiryDate", formData.expiryDate);
+    data.append("issuedAt", formData.issuedAt);
+
+    if (selectedFile) {
+      data.append("document", selectedFile);
+    }
+
+    try {
+      let res;
+      if (editingDoc) {
+        res = await updateVehicleDocument(editingDoc._id, data);
+      } else {
+        res = await createVehicleDocument(data);
+      }
+
+      if (res?.success) {
+        alert(res.message || `Document ${editingDoc ? "updated" : "created"} successfully`);
+        setShowDocModal(false);
+        fetchAllDocuments();
+      } else {
+        alert(res?.message || `Failed to ${editingDoc ? "update" : "create"} document`);
+      }
+    } catch (err) {
+      alert(err?.message || "Error submitting document");
+    }
+
+    setSubmitting(false);
+  };
+
+  const getStatusBadgeColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "completed":
+        return "bg-green-100 text-green-700 border border-green-200";
+      case "expired":
+        return "bg-red-100 text-red-700 border border-red-200";
+      case "expiring-soon":
+        return "bg-yellow-100 text-yellow-700 border border-yellow-200";
+      default:
+        return "bg-gray-100 text-gray-700 border border-gray-200";
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
   const DocumentModal = () => (
-    <div className="fixed inset-0  bg-opacity-50 bg-white flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
-        <h3 className="text-lg font-bold mb-4">
-          {editingDoc ? "Update Document" : "Add Document"}
-        </h3>
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+        {/* Modal Header */}
+        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl">
+          <h3 className="text-xl font-bold text-gray-800">
+            {editingDoc ? "Update Document" : "Add New Document"}
+          </h3>
+          <button
+            onClick={() => setShowDocModal(false)}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            disabled={submitting}
+          >
+            <FaTimes className="text-gray-500" size={20} />
+          </button>
+        </div>
 
-        <form className="space-y-4">
+        {/* Modal Body */}
+        <div className="p-6 space-y-5">
           <div>
-            <label className="block text-sm font-medium">Document Type</label>
-            <select className="w-full border rounded-lg p-2 defaultValue={editingDoc?.documentType}">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Select Vehicle <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="vehicleId"
+              className="w-full border border-gray-300 rounded-lg p-3 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              value={formData.vehicleId}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">-- Choose a Vehicle --</option>
+              {vehicles.map((vehicle) => (
+                <option key={vehicle._id} value={vehicle._id}>
+                  {vehicle.make} {vehicle.model} ({vehicle.year}) - {vehicle.plateNumber}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Document Type <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="documentType"
+              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              value={formData.documentType}
+              onChange={handleInputChange}
+            >
               <option value="insurance">Insurance</option>
               <option value="permit">Permit</option>
               <option value="fitness">Fitness</option>
               <option value="pollution">Pollution</option>
             </select>
           </div>
+
           <div>
-            <label className="block text-sm font-medium">Document Number</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Document Number <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
-              className="w-full border rounded-lg p-2"
-              defaultValue={editingDoc?.documentNumber || ""}
+              name="documentNumber"
+              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              value={formData.documentNumber}
+              onChange={handleInputChange}
+              placeholder="Enter document number"
+              required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium">Expiry Date</label>
-            <input
-              type="date"
-              className="w-full border rounded-lg p-2"
-              defaultValue={editingDoc?.expiryDate || ""}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Upload Document</label>
-            <div className="flex items-center gap-2">
-              <input type="file" className="border rounded-lg p-2 w-full" />
-              <FaFileUpload className="text-gray-500" />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Issued Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                name="issuedAt"
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                value={formData.issuedAt}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Expiry Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                name="expiryDate"
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                value={formData.expiryDate}
+                onChange={handleInputChange}
+                required
+              />
             </div>
           </div>
-          <div className="flex justify-end gap-3 pt-3">
-            <button
-              type="button"
-              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
-              onClick={() => setShowDocModal(false)}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              {editingDoc ? "Update" : "Add"}
-            </button>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Upload Document
+            </label>
+            <div className="relative">
+              <input
+                type="file"
+                className="w-full border border-gray-300 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all"
+                onChange={handleFileChange}
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              />
+            </div>
+            {selectedFile && (
+              <p className="text-sm text-green-600 mt-2 flex items-center gap-2">
+                <FaFileUpload /> Selected: {selectedFile.name}
+              </p>
+            )}
           </div>
-        </form>
+        </div>
+
+        {/* Modal Footer */}
+        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+          <button
+            type="button"
+            className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+            onClick={() => setShowDocModal(false)}
+            disabled={submitting}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed font-medium transition-colors shadow-md"
+            onClick={handleSubmitDocument}
+            disabled={submitting}
+          >
+            {submitting ? "Saving..." : editingDoc ? "Update Document" : "Add Document"}
+          </button>
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Vehicle Documents</h1>
-      {!selectedVehicle ? <VehicleList /> : <VehicleDetails />}
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">Vehicle Documents</h1>
+        <button
+          onClick={handleAddDocument}
+          className="flex items-center gap-2 px-5 py-3 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all font-medium"
+        >
+          <FaPlus /> Add New Document
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-16">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500 text-lg">Loading vehicles and documents...</p>
+        </div>
+      ) : vehicleDocuments.length === 0 ? (
+        <div className="bg-white shadow-lg rounded-2xl p-16 text-center text-gray-500">
+          <FaCar size={64} className="mx-auto mb-4 text-gray-300" />
+          <p className="text-xl font-semibold">No vehicles with documents found</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {vehicleDocuments.map((item) => (
+            <div key={item._id} className="bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-200">
+              {/* Vehicle Header */}
+              <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 p-6 text-white">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-white text-black bg-opacity-20 rounded-xl backdrop-blur-sm">
+                    <FaCar size={28} />
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-bold">
+                      {item.vehicle?.make} {item.vehicle?.model}
+                    </h2>
+                    <p className="text-sm opacity-90 mt-1">
+                      {item.vehicle?.year} • Plate: {item.vehicle?.plateNumber}
+                    </p>
+                  </div>
+                  <span className="px-4 py-1.5 text-black bg-white bg-opacity-20 rounded-full text-sm font-semibold capitalize backdrop-blur-sm">
+                    {item.vehicle?.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Documents List */}
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2 text-lg">
+                    <FaFileAlt className="text-blue-600" />
+                    Documents ({item.documents?.length || 0})
+                  </h3>
+                </div>
+
+                {!item.documents || item.documents.length === 0 ? (
+                  <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl">
+                    <FaFileAlt size={40} className="mx-auto mb-3 opacity-30" />
+                    <p className="text-sm font-medium">No documents available</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {item.documents.map((doc) => (
+                      <div
+                        key={doc._id}
+                        className="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all bg-gradient-to-r from-white to-gray-50"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-50 rounded-lg">
+                              <FaFileAlt className="text-blue-600" size={18} />
+                            </div>
+                            <div>
+                              <span className="font-bold !text-gray-800 capitalize block text-lg">
+                                {doc.documentType}
+                              </span>
+                              {doc.status && (
+                                <span className={`text-xs px-3 py-1 rounded-full font-semibold inline-block mt-1 ${getStatusBadgeColor(doc.status)}`}>
+                                  {doc.status}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              className="p-2.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-blue-200"
+                              onClick={() => handleEditDocument(doc, item.vehicle._id)}
+                              title="Edit Document"
+                            >
+                              <FaEdit size={16} />
+                            </button>
+                            <button
+                              className="p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-all border border-red-200"
+                              onClick={() => handleDeleteDocument(doc._id)}
+                              title="Delete Document"
+                            >
+                              <FaTrash size={16} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1.5 ml-12">
+                          <p className="flex items-center gap-2">
+                            <span className="font-semibold text-gray-700">Number:</span>
+                            <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">{doc.documentNumber}</span>
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <span className="font-semibold text-gray-700">Issued:</span>
+                            <span>{formatDate(doc.issuedAt)}</span>
+                            <span className="text-gray-400">•</span>
+                            <span className="font-semibold text-gray-700">Expiry:</span>
+                            <span>{formatDate(doc.expiryDate)}</span>
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {showDocModal && <DocumentModal />}
     </div>
   );
