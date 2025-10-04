@@ -1,74 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Download, Edit, Trash2, Eye } from 'lucide-react';
+import { createExpense, listExpenses, updateExpense, deleteExpense } from "../../../../axios/api/account.expense";
+import { getEmployees } from "../../../../axios/api/account.payroll";
 
 const ExpensesPage = () => {
   const [activeTab, setActiveTab] = useState('list');
   const [filterType, setFilterType] = useState('all');
-  const [expenses, setExpenses] = useState([
-    {
-      _id: '1',
-      userId: { _id: 'user1', name: 'John Doe', role: 'Driver' },
-      type: 'fuel',
-      amount: 2500,
-      description: 'Fuel for route Mumbai-Delhi',
-      receiptUrl: '/receipts/fuel-receipt-1.jpg',
-      date: new Date('2024-09-15'),
-      createdAt: new Date('2024-09-15'),
-      updatedAt: new Date('2024-09-15')
-    },
-    {
-      _id: '2',
-      userId: { _id: 'user2', name: 'Mike Wilson', role: 'Driver' },
-      type: 'toll',
-      amount: 800,
-      description: 'Highway toll charges',
-      receiptUrl: '/receipts/toll-receipt-1.jpg',
-      date: new Date('2024-09-14'),
-      createdAt: new Date('2024-09-14'),
-      updatedAt: new Date('2024-09-14')
-    },
-    {
-      _id: '3',
-      userId: { _id: 'user3', name: 'Sarah Johnson', role: 'Manager' },
-      type: 'reimbursement',
-      amount: 1200,
-      description: 'Travel accommodation',
-      receiptUrl: null,
-      date: new Date('2024-09-13'),
-      createdAt: new Date('2024-09-13'),
-      updatedAt: new Date('2024-09-13')
-    },
-    {
-      _id: '4',
-      userId: { _id: 'user1', name: 'John Doe', role: 'Driver' },
-      type: 'fuel',
-      amount: 3200,
-      description: 'Fuel for route Delhi-Bangalore',
-      receiptUrl: '/receipts/fuel-receipt-2.jpg',
-      date: new Date('2024-09-12'),
-      createdAt: new Date('2024-09-12'),
-      updatedAt: new Date('2024-09-12')
-    },
-    {
-      _id: '5',
-      userId: { _id: 'user4', name: 'David Brown', role: 'Driver' },
-      type: 'toll',
-      amount: 650,
-      description: 'Express highway toll',
-      receiptUrl: '/receipts/toll-receipt-2.jpg',
-      date: new Date('2024-09-11'),
-      createdAt: new Date('2024-09-11'),
-      updatedAt: new Date('2024-09-11')
-    }
-  ]);
+  const [expenses, setExpenses] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [editingExpense, setEditingExpense] = useState(null);
 
   const [formData, setFormData] = useState({
-    type: 'fuel',
+    userId: '',
+    type: '',
     amount: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
     receiptFile: null
   });
+
+  // Fetch expenses on component mount
+  useEffect(() => {
+    fetchExpenses();
+    fetchEmployees();
+  }, []);
+
+  const fetchExpenses = async () => {
+    setLoading(true);
+    try {
+      const response = await listExpenses();
+      if (response && response.data) {
+        setExpenses(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await getEmployees();
+      if (response && response.data) {
+        setEmployees(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
@@ -79,24 +60,92 @@ const ExpensesPage = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    const newExpense = {
-      _id: Date.now().toString(),
-      userId: { _id: 'current-user', name: 'Current User', role: 'Driver' },
-      type: formData.type,
-      amount: parseFloat(formData.amount),
-      description: formData.description,
-      receiptUrl: formData.receiptFile ? `/receipts/${formData.receiptFile.name}` : null,
-      date: new Date(formData.date),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('userId', formData.userId);
+      formDataToSend.append('type', formData.type);
+      formDataToSend.append('amount', formData.amount);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('date', formData.date);
+      
+      if (formData.receiptFile) {
+        formDataToSend.append('file', formData.receiptFile);
+      }
 
-    setExpenses(prev => [newExpense, ...prev]);
+      if (editingExpense) {
+        const response = await updateExpense(editingExpense._id, formDataToSend);
+        if (response && response.success) {
+          alert('Expense updated successfully!');
+          setEditingExpense(null);
+        }
+      } else {
+        const response = await createExpense(formDataToSend);
+        if (response && response.success) {
+          alert('Expense created successfully!');
+        }
+      }
+
+      // Reset form and refresh list
+      setFormData({
+        userId: '',
+        type: '',
+        amount: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+        receiptFile: null
+      });
+      setActiveTab('list');
+      fetchExpenses();
+    } catch (error) {
+      console.error('Error submitting expense:', error);
+      alert('Failed to save expense. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (expense) => {
+    setEditingExpense(expense);
     setFormData({
-      type: 'fuel',
+      userId: expense.userId?._id || expense.userId,
+      type: expense.type,
+      amount: expense.amount,
+      description: expense.description || '',
+      date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      receiptFile: null
+    });
+    setActiveTab('create');
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this expense?')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await deleteExpense(id);
+      if (response && response.success) {
+        alert('Expense deleted successfully!');
+        fetchExpenses();
+      }
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      alert('Failed to delete expense. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingExpense(null);
+    setFormData({
+      userId: '',
+      type: '',
       amount: '',
       description: '',
       date: new Date().toISOString().split('T')[0],
@@ -106,31 +155,57 @@ const ExpensesPage = () => {
   };
 
   const getTypeColor = (type) => {
-    switch (type) {
-      case 'fuel': return 'bg-blue-100 text-blue-800';
-      case 'toll': return 'bg-green-100 text-green-800';
-      case 'reimbursement': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+    const typeMap = {
+      'Fuel Expense (Fuel)': 'bg-blue-100 text-blue-800',
+      'Tractor Fuel (Fuel)': 'bg-blue-100 text-blue-800',
+      'Trailer Fuel (Fuel)': 'bg-blue-100 text-blue-800',
+      'Reefer Fuel (Fuel)': 'bg-blue-100 text-blue-800',
+      'DEF Pump (Fuel)': 'bg-blue-100 text-blue-800',
+      'Maintenance': 'bg-green-100 text-green-800',
+      'Truck Repair': 'bg-green-100 text-green-800',
+      'Trailer Repair': 'bg-green-100 text-green-800',
+      'Cash': 'bg-purple-100 text-purple-800',
+      'Cash Advance': 'bg-purple-100 text-purple-800',
+    };
+    return typeMap[type] || 'bg-gray-100 text-gray-800';
   };
 
   const getTypeIcon = (type) => {
-    switch (type) {
-      case 'fuel': return '⛽';
-      case 'toll': return '🛣️';
-      case 'reimbursement': return '💰';
-      default: return '📄';
-    }
+    if (type && type.includes('Fuel')) return '⛽';
+    if (type && type.includes('Repair')) return '🔧';
+    if (type && type.includes('Cash')) return '💰';
+    return '📄';
   };
 
   const filteredExpenses = expenses.filter(expense =>
     filterType === 'all' || expense.type === filterType
   );
 
-  const totalAmount = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const totalAmount = filteredExpenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+
+  const expenseTypes = [
+    'Additives',
+    'Cash',
+    'Cash Advance',
+    'DEF Pump (Fuel)',
+    'DEF',
+    'Fuel Expense (Fuel)',
+    'Maintenance',
+    'Misc',
+    'Reefer Fuel (Fuel)',
+    'Scales',
+    'Tire Change & Rotation',
+    'Tractor Fuel (Fuel)',
+    'Trailer Fuel (Fuel)',
+    'Trailer Repair',
+    'Trailer Service',
+    'Truck and Trailer Parts',
+    'Truck Repair',
+    'Truck Service'
+  ];
 
   return (
-    <div className="min-h-screen  p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -140,8 +215,19 @@ const ExpensesPage = () => {
               <p className="text-gray-600 mt-2">Track and manage all expenses</p>
             </div>
             <button
-              onClick={() => setActiveTab('create')}
-              className="bg-blue-600 !text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+              onClick={() => {
+                setEditingExpense(null);
+                setFormData({
+                  userId: '',
+                  type: '',
+                  amount: '',
+                  description: '',
+                  date: new Date().toISOString().split('T')[0],
+                  receiptFile: null
+                });
+                setActiveTab('create');
+              }}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
             >
               <Plus size={20} />
               Add Expense
@@ -168,7 +254,7 @@ const ExpensesPage = () => {
               <div>
                 <p className="text-gray-600 text-sm">Fuel Expenses</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ₹{expenses.filter(e => e.type === 'fuel').reduce((sum, e) => sum + e.amount, 0).toLocaleString()}
+                  ₹{expenses.filter(e => e.type && e.type.includes('Fuel')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-blue-100 p-3 rounded-full">
@@ -180,13 +266,13 @@ const ExpensesPage = () => {
           <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Toll Expenses</p>
+                <p className="text-gray-600 text-sm">Maintenance</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ₹{expenses.filter(e => e.type === 'toll').reduce((sum, e) => sum + e.amount, 0).toLocaleString()}
+                  ₹{expenses.filter(e => e.type && (e.type.includes('Repair') || e.type.includes('Maintenance'))).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-green-100 p-3 rounded-full">
-                <span className="text-2xl">🛣️</span>
+                <span className="text-2xl">🔧</span>
               </div>
             </div>
           </div>
@@ -194,9 +280,9 @@ const ExpensesPage = () => {
           <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Reimbursements</p>
+                <p className="text-gray-600 text-sm">Cash Expenses</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ₹{expenses.filter(e => e.type === 'reimbursement').reduce((sum, e) => sum + e.amount, 0).toLocaleString()}
+                  ₹{expenses.filter(e => e.type && e.type.includes('Cash')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-purple-100 p-3 rounded-full">
@@ -226,7 +312,7 @@ const ExpensesPage = () => {
                   : 'text-gray-500 hover:text-gray-700'
                   }`}
               >
-                Add Expense
+                {editingExpense ? 'Edit Expense' : 'Add Expense'}
               </button>
             </div>
           </div>
@@ -245,9 +331,9 @@ const ExpensesPage = () => {
                         className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="all">All Types</option>
-                        <option value="fuel">Fuel</option>
-                        <option value="toll">Toll</option>
-                        <option value="reimbursement">Reimbursement</option>
+                        {expenseTypes.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -259,74 +345,111 @@ const ExpensesPage = () => {
                 </div>
 
                 {/* Expense List */}
-                <div className="space-y-4">
-                  {filteredExpenses.map((expense) => (
-                    <div key={expense._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="text-2xl">{getTypeIcon(expense.type)}</div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(expense.type)}`}>
-                                {expense.type.charAt(0).toUpperCase() + expense.type.slice(1)}
-                              </span>
-                              <span className="text-lg font-semibold text-gray-900">
-                                ₹{expense.amount.toLocaleString()}
-                              </span>
-                            </div>
-                            <p className="text-gray-600 text-sm mb-1">{expense.description}</p>
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
-                              <span className="flex items-center gap-1">
-                                <User size={12} />
-                                {expense.userId.name} ({expense.userId.role})
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Calendar size={12} />
-                                {expense.date.toLocaleDateString()}
-                              </span>
-                              {expense.receiptUrl && (
-                                <span className="flex items-center gap-1">
-                                  <Receipt size={12} />
-                                  Receipt Available
+                {loading ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Loading expenses...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredExpenses.map((expense) => (
+                      <div key={expense._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="text-2xl">{getTypeIcon(expense.type)}</div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(expense.type)}`}>
+                                  {expense.type}
                                 </span>
-                              )}
+                                <span className="text-lg font-semibold text-gray-900">
+                                  ₹{(expense.amount || 0).toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-gray-600 text-sm mb-1">{expense.description || 'No description'}</p>
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span className="flex items-center gap-1">
+                                  <User size={12} />
+                                  {expense.userId?.name || 'Unknown User'}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Calendar size={12} />
+                                  {expense.date ? new Date(expense.date).toLocaleDateString() : 'No date'}
+                                </span>
+                                {expense.receiptUrl && (
+                                  <span className="flex items-center gap-1">
+                                    <Receipt size={12} />
+                                    Receipt Available
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="flex items-center gap-2">
-                          {expense.receiptUrl && (
-                            <button className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                              <Eye size={16} />
+                          <div className="flex items-center gap-2">
+                            {expense.receiptUrl && (
+                              <button 
+                                onClick={() => window.open(expense.receiptUrl, '_blank')}
+                                className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              >
+                                <Eye size={16} />
+                              </button>
+                            )}
+                            <button 
+                              onClick={() => handleEdit(expense)}
+                              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            >
+                              <Edit size={16} />
                             </button>
-                          )}
-                          <button className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
-                            <Edit size={16} />
-                          </button>
-                          <button className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                            <Trash2 size={16} />
-                          </button>
+                            <button 
+                              onClick={() => handleDelete(expense._id)}
+                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
 
-                  {filteredExpenses.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-                      <p>No expenses found for the selected filter.</p>
-                    </div>
-                  )}
-                </div>
+                    {filteredExpenses.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <FileText size={48} className="mx-auto mb-4 text-gray-300" />
+                        <p>No expenses found for the selected filter.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'create' && (
               <div className="max-w-2xl">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Add New Expense</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                  {editingExpense ? 'Edit Expense' : 'Add New Expense'}
+                </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Employee *
+                      </label>
+                      <select
+                        name="userId"
+                        value={formData.userId}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">Select Employee</option>
+                        {employees.map(emp => (
+                          <option key={emp._id} value={emp._id}>
+                            {emp.name} - {emp.role || emp.position || 'Employee'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Expense Type *
@@ -338,28 +461,15 @@ const ExpensesPage = () => {
                         required
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="">Select</option>
-                        <option value="Additives">Additives</option>
-                        <option value="Cash">Cash</option>
-                        <option value="Cash Advance">Cash Advance</option>
-                        <option value="DEF Pump (Fuel)">D.E.F. Pump (Fuel)</option>
-                        <option value="DEF">DEF</option>
-                        <option value="Fuel Expense (Fuel)">Fuel Expense (Fuel)</option>
-                        <option value="Maintenance">Maintenance</option>
-                        <option value="Misc">Misc</option>
-                        <option value="Reefer Fuel (Fuel)">Reefer Fuel (Fuel)</option>
-                        <option value="Scales">Scales</option>
-                        <option value="Tire Change & Rotation">TIRE CHANGE & ROTATION</option>
-                        <option value="Tractor Fuel (Fuel)">Tractor Fuel (Fuel)</option>
-                        <option value="Trailer Fuel (Fuel)">Trailer Fuel (Fuel)</option>
-                        <option value="Trailer Repair">TRAILER REPAIR</option>
-                        <option value="Trailer Service">TRAILER SERVICE</option>
-                        <option value="Truck and Trailer Parts">TRUCK AND TRAILER PARTS</option>
-                        <option value="Truck Repair">TRUCK REPAIR</option>
-                        <option value="Truck Service">TRUCK SERVICE</option>
+                        <option value="">Select Type</option>
+                        {expenseTypes.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
                       </select>
                     </div>
+                  </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Amount (₹) *
@@ -376,20 +486,20 @@ const ExpensesPage = () => {
                         placeholder="Enter amount"
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date *
-                    </label>
-                    <input
-                      type="date"
-                      name="date"
-                      value={formData.date}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Date *
+                      </label>
+                      <input
+                        type="date"
+                        name="date"
+                        value={formData.date}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -436,15 +546,17 @@ const ExpensesPage = () => {
                   <div className="flex items-center gap-4 pt-4">
                     <button
                       type="submit"
-                      className="bg-blue-600 !text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+                      disabled={loading}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
                       <Plus size={16} />
-                      Add Expense
+                      {loading ? 'Saving...' : editingExpense ? 'Update Expense' : 'Add Expense'}
                     </button>
                     <button
                       type="button"
-                      onClick={() => setActiveTab('list')}
-                      className="text-gray-600 hover:text-gray-900 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      onClick={handleCancel}
+                      disabled={loading}
+                      className="text-gray-600 hover:text-gray-900 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
