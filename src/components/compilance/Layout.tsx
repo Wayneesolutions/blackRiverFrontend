@@ -33,10 +33,7 @@ const Layout = () => {
                 </main>
             </div>
             
-            {/* Footer fixed at bottom */}
-            <footer className="bg-[#9793E4] text-center text-white py-4 text-md fixed bottom-0 left-0 w-full z-50">
-                Dispatch Module - Logistics All rights reserved
-            </footer>
+          
         </div>
     );
 };

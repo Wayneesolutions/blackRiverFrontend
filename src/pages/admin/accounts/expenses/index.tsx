@@ -81,7 +81,7 @@ const ExpensesPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const newExpense = {
       _id: Date.now().toString(),
       userId: { _id: 'current-user', name: 'Current User', role: 'Driver' },
@@ -123,7 +123,7 @@ const ExpensesPage = () => {
     }
   };
 
-  const filteredExpenses = expenses.filter(expense => 
+  const filteredExpenses = expenses.filter(expense =>
     filterType === 'all' || expense.type === filterType
   );
 
@@ -162,7 +162,7 @@ const ExpensesPage = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
@@ -212,21 +212,19 @@ const ExpensesPage = () => {
             <div className="flex">
               <button
                 onClick={() => setActiveTab('list')}
-                className={`px-6 py-4 text-sm font-medium ${
-                  activeTab === 'list'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
+                className={`px-6 py-4 text-sm font-medium ${activeTab === 'list'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
               >
                 Expense List
               </button>
               <button
                 onClick={() => setActiveTab('create')}
-                className={`px-6 py-4 text-sm font-medium ${
-                  activeTab === 'create'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
+                className={`px-6 py-4 text-sm font-medium ${activeTab === 'create'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
               >
                 Add Expense
               </button>
@@ -326,7 +324,7 @@ const ExpensesPage = () => {
             {activeTab === 'create' && (
               <div className="max-w-2xl">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Add New Expense</h2>
-                
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -340,9 +338,25 @@ const ExpensesPage = () => {
                         required
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="fuel">Fuel</option>
-                        <option value="toll">Toll</option>
-                        <option value="reimbursement">Reimbursement</option>
+                        <option value="">Select</option>
+                        <option value="Additives">Additives</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Cash Advance">Cash Advance</option>
+                        <option value="DEF Pump (Fuel)">D.E.F. Pump (Fuel)</option>
+                        <option value="DEF">DEF</option>
+                        <option value="Fuel Expense (Fuel)">Fuel Expense (Fuel)</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Misc">Misc</option>
+                        <option value="Reefer Fuel (Fuel)">Reefer Fuel (Fuel)</option>
+                        <option value="Scales">Scales</option>
+                        <option value="Tire Change & Rotation">TIRE CHANGE & ROTATION</option>
+                        <option value="Tractor Fuel (Fuel)">Tractor Fuel (Fuel)</option>
+                        <option value="Trailer Fuel (Fuel)">Trailer Fuel (Fuel)</option>
+                        <option value="Trailer Repair">TRAILER REPAIR</option>
+                        <option value="Trailer Service">TRAILER SERVICE</option>
+                        <option value="Truck and Trailer Parts">TRUCK AND TRAILER PARTS</option>
+                        <option value="Truck Repair">TRUCK REPAIR</option>
+                        <option value="Truck Service">TRUCK SERVICE</option>
                       </select>
                     </div>
 
