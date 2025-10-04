@@ -15,7 +15,8 @@ export const getVehicleDocument = async (data: any) => {
         console.log("==res ", res);
         return res.data;
     } catch (error: any) {
-        return error.response?.data;
+        const err = error as Error;
+        return err.response?.data;
     }
 };
 
@@ -26,7 +27,8 @@ export const createVehicleDocument = async (data: any) => {
         console.log("==res ", res);
         return res.data;
     } catch (error: any) {
-        return error.response?.data;
+        const err = error as Error;
+        return err.response?.data;
     }
 };
 
@@ -37,7 +39,8 @@ export const updateVehicleDocument = async (id: string, data: any) => {
         console.log("==update res ", res);
         return res.data;
     } catch (error: any) {
-        return error.response?.data;
+        const err = error as Error;
+        return err.response?.data;
     }
 };
 
@@ -48,6 +51,7 @@ export const deleteVehicleDocument = async (id: string) => {
         console.log("==delete res ", res);
         return res.data;
     } catch (error: any) {
-        return error.response?.data;
+        const err = error as Error;
+        return err.response?.data;
     }
 };

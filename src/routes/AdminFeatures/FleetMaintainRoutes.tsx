@@ -23,7 +23,7 @@ function FleetMaintainRoutes() {
                     <Route path="/schedule" element={<Schedule />} />
                     <Route path="/spare-parts" element={<SpareParts />} />
                     <Route path="/cost-reports" element={<CostReports />} />
-                    <Route path="/truks" element={<Trucks />} />
+                    <Route path="/trucks" element={<Trucks />} />
                     <Route path="/trailers" element={<Trailers />} />
                 </Route>
             </Routes>

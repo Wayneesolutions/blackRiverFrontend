@@ -16,7 +16,8 @@ export const getAllDriverDocuments = async () => {
         console.log("==getAllDriverDocuments res ", res);
         return res.data;
     } catch (error: any) {
-        return error.response?.data;
+        const err = error as Error;
+        return err.response?.data;
     }
 };
 
@@ -27,7 +28,8 @@ export const getDriverDocumentsById = async (driverId: string) => {
         console.log("==getDriverDocumentsById res ", res);
         return res.data;
     } catch (error: any) {
-        return error.response?.data;
+        const err = error as Error;
+        return err.response?.data;
     }
 };
 
@@ -40,7 +42,8 @@ export const createDriverDocument = async (driverId: string, data: FormData) => 
         console.log("==createDriverDocument res ", res);
         return res.data;
     } catch (error: any) {
-        return error.response?.data;
+        const err = error as Error;
+        return err.response?.data;
     }
 };
 
@@ -53,7 +56,8 @@ export const updateDriverDocument = async (id: string, data: FormData) => {
         console.log("==updateDriverDocument res ", res);
         return res.data;
     } catch (error: any) {
-        return error.response?.data;
+        const err = error as Error;
+        return err.response?.data;
     }
 };
 
@@ -64,6 +68,7 @@ export const deleteDriverDocument = async (id: string) => {
         console.log("==deleteDriverDocument res ", res);
         return res.data;
     } catch (error: any) {
-        return error.response?.data;
+        const err = error as Error;
+        return err.response?.data;
     }
 };
