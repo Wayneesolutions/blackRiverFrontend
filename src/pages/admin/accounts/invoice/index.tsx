@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Eye, Edit, Download, Filter, Calendar, DollarSign, Users, TrendingUp, Truck, Fuel, Wrench, MapPin, Trash2 } from 'lucide-react';
+import { FileText, Plus, Eye, Edit, Download, Filter, Calendar, DollarSign, Users, TrendingUp, Truck, Fuel, Wrench, MapPin, Trash2, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { createInvoice, listInvoices, getInvoiceById, updateInvoice, deleteInvoice, listLoad } from "../../../../axios/api/account.invoices";
 
 interface Invoice {
@@ -36,6 +36,12 @@ interface Load {
 type TabType = 'list' | 'view' | 'edit' | 'create';
 type StatusFilter = 'all' | 'paid' | 'pending';
 
+interface Notification {
+    id: number;
+    type: 'success' | 'error';
+    message: string;
+}
+
 const InvoiceManagement: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabType>('list');
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
@@ -43,11 +49,21 @@ const InvoiceManagement: React.FC = () => {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loads, setLoads] = useState<Load[]>([]);
     const [loading, setLoading] = useState(false);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [deleteModal, setDeleteModal] = useState<{ show: boolean; invoiceId: string | null }>({ show: false, invoiceId: null });
 
     useEffect(() => {
         fetchInvoices();
         fetchLoads();
     }, []);
+
+    const showNotification = (type: 'success' | 'error', message: string) => {
+        const id = Date.now();
+        setNotifications(prev => [...prev, { id, type, message }]);
+        setTimeout(() => {
+            setNotifications(prev => prev.filter(n => n.id !== id));
+        }, 5000);
+    };
 
     const fetchInvoices = async () => {
         setLoading(true);
@@ -108,6 +124,84 @@ const InvoiceManagement: React.FC = () => {
     };
 
     const stats = calculateStats();
+
+    const NotificationContainer: React.FC = () => (
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+            {notifications.map((notification) => (
+                <div
+                    key={notification.id}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${
+                        notification.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                    }`}
+                >
+                    {notification.type === 'success' ? (
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                        <AlertCircle className="h-5 w-5 text-red-600" />
+                    )}
+                    <p className={`text-sm font-medium ${notification.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>
+                        {notification.message}
+                    </p>
+                    <button
+                        onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
+                        className="ml-2"
+                    >
+                        <X className={`h-4 w-4 ${notification.type === 'success' ? 'text-green-600' : 'text-red-600'}`} />
+                    </button>
+                </div>
+            ))}
+        </div>
+    );
+
+    const DeleteConfirmationModal: React.FC = () => {
+        if (!deleteModal.show) return null;
+
+        const handleConfirmDelete = async () => {
+            if (!deleteModal.invoiceId) return;
+
+            try {
+                await deleteInvoice(deleteModal.invoiceId);
+                showNotification('success', 'Invoice deleted successfully');
+                fetchInvoices();
+            } catch (error) {
+                showNotification('error', 'Failed to delete invoice');
+            } finally {
+                setDeleteModal({ show: false, invoiceId: null });
+            }
+        };
+
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                    <div className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="bg-red-100 p-3 rounded-full">
+                                <Trash2 className="h-6 w-6 text-red-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900">Delete Invoice</h3>
+                        </div>
+                        <p className="text-gray-600 mb-6">
+                            Are you sure you want to delete this invoice? This action cannot be undone.
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setDeleteModal({ show: false, invoiceId: null })}
+                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     const DashboardOverview: React.FC = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -265,17 +359,7 @@ const InvoiceManagement: React.FC = () => {
                                                 <Edit className="h-4 w-4" />
                                             </button>
                                             <button
-                                                onClick={async () => {
-                                                    if (window.confirm('Are you sure you want to delete this invoice?')) {
-                                                        try {
-                                                            await deleteInvoice(invoice._id);
-                                                            alert('Invoice deleted successfully');
-                                                            fetchInvoices();
-                                                        } catch (error) {
-                                                            alert('Failed to delete invoice');
-                                                        }
-                                                    }
-                                                }}
+                                                onClick={() => setDeleteModal({ show: true, invoiceId: invoice._id })}
                                                 className="text-red-600 hover:text-red-800 transition-colors"
                                                 title="Delete Invoice"
                                             >
@@ -406,15 +490,15 @@ const InvoiceManagement: React.FC = () => {
 
                 const response = await updateInvoice(editForm._id, updateData);
                 if (response && response.success) {
-                    alert('Invoice updated successfully');
+                    showNotification('success', 'Invoice updated successfully');
                     await fetchInvoices();
                     setSelectedInvoice(editForm);
                     setActiveTab('view');
                 } else {
-                    alert('Failed to update invoice');
+                    showNotification('error', 'Failed to update invoice');
                 }
             } catch (error) {
-                alert('Failed to update invoice');
+                showNotification('error', 'Failed to update invoice');
             } finally {
                 setLoading(false);
             }
@@ -588,7 +672,7 @@ const InvoiceManagement: React.FC = () => {
 
         const handleCreate = async () => {
             if (!newInvoice.clientName || !newInvoice.amount || !newInvoice.dueDate) {
-                alert('Please fill in all required fields: Client Name, Amount, and Due Date');
+                showNotification('error', 'Please fill in all required fields: Client Name, Amount, and Due Date');
                 return;
             }
 
@@ -596,7 +680,7 @@ const InvoiceManagement: React.FC = () => {
             try {
                 const response = await createInvoice(newInvoice);
                 if (response && response.success) {
-                    alert('Invoice created successfully');
+                    showNotification('success', 'Invoice created successfully');
                     await fetchInvoices();
                     setActiveTab('list');
                     setNewInvoice({
@@ -610,11 +694,11 @@ const InvoiceManagement: React.FC = () => {
                         notes: ''
                     });
                 } else {
-                    alert(response?.message || 'Failed to create invoice');
+                    showNotification('error', response?.message || 'Failed to create invoice');
                 }
             } catch (error) {
                 console.error('Create invoice error:', error);
-                alert('Failed to create invoice');
+                showNotification('error', 'Failed to create invoice');
             } finally {
                 setLoading(false);
             }
@@ -635,7 +719,7 @@ const InvoiceManagement: React.FC = () => {
                             <button
                                 onClick={handleCreate}
                                 disabled={loading}
-                                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 disabled:bg-gray-400"
+                                className="bg-green-600 !text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 disabled:bg-gray-400"
                             >
                                 <Plus className="h-4 w-4" />
                                 {loading ? 'Creating...' : 'Create Invoice'}
@@ -788,7 +872,9 @@ const InvoiceManagement: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen  p-6">
+            <NotificationContainer />
+            <DeleteConfirmationModal />
             <div className="max-w-7xl mx-auto">
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -800,7 +886,7 @@ const InvoiceManagement: React.FC = () => {
                             <div className="mt-4 sm:mt-0">
                                 <button
                                     onClick={() => setActiveTab('create')}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                    className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
                                 >
                                     <Plus className="h-4 w-4" />
                                     New Invoice

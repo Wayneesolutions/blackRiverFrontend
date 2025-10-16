@@ -254,7 +254,7 @@ const PayrollManagement = () => {
     const avgSalary = payrollData.length > 0 ? totalPayroll / payrollData.length : 0;
 
     return (
-        <div className="min-h-screen p-6 bg-gray-50">
+        <div className="min-h-screen p-6">
             <div className="max-w-7xl mx-auto">
                 {notification && (
                     <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${
