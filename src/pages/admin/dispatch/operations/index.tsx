@@ -943,7 +943,7 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
+    <div className="min-h-screen  flex flex-col relative overflow-hidden bg-gray-50 px-2">
       {/* Enhanced Animated Background Pattern */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0">

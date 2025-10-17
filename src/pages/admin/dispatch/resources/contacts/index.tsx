@@ -192,7 +192,7 @@ const Index = () => {
           </button>
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2"
+            className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2"
           >
             <Plus className="w-4 h-4" />
             <span>{activeTab === "contacts" ? "Create Contact" : "Create Customer"}</span>

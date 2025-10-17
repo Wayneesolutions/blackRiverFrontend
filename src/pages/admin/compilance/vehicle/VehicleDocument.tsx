@@ -451,7 +451,7 @@ function VehicleDocument() {
   );
 
   return (
-    <div className="p-6  min-h-screen">
+    <div className="p-6  min-h-screen bg-gray-50">
       {/* Notifications Container */}
       <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">
         {notifications.map(notification => (

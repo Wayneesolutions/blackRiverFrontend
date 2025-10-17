@@ -2,6 +2,7 @@ import React from 'react'
 import DispatchIcon from "../../../assets/images/delivery_truck_speed.png"
 import GPSIcon from "../../../assets/images/share_location.png"
 import DriverIcon from "../../../assets/images/car.png"
+import EmployeeIcon from "../../../assets/images/inactive_order.png"
 import MaintenanceIcon from "../../../assets/images/inactive_order.png"
 import ComplianceIcon from "../../../assets/images/checkmark.png"
 import BillingIcon from "../../../assets/images/punch_clock.png"
@@ -21,15 +22,20 @@ const features = [
         description: "Real-time fleet tracking with vehicle performance monitoring and driver behavior analytics.",
         icon: GPSIcon,
         route: "/admin/gpsvehicle",
-
     },
     {
         id: "driver",
-        title: "Human Resources",
-        description: "Simplify scheduling, communication, and performance monitoring to keep your team organized.",
+        title: "Human Resources (Drivers)",
+        description: "Simplify scheduling, communication, and performance monitoring to keep your driver team organized.",
         icon: DriverIcon,
         route: "/admin/driverManagement",
-
+    },
+    {
+        id: "employee",
+        title: "Employee Management",
+        description: "Manage employee profiles, documents, and performance with centralized access and tracking tools.",
+        icon: EmployeeIcon,
+        route: "/admin/employeeManagement",
     },
     {
         id: "maintenance",
@@ -55,7 +61,6 @@ const features = [
 ];
 
 const Index = () => {
-
     const navigate = useNavigate();
 
     const handleFeatureClick = (route: string) => {
@@ -63,7 +68,7 @@ const Index = () => {
     };
 
     return (
-        <div className="min-h-screen py-6 px-2  lg:px-2">
+        <div className="min-h-screen bg-gray-50 py-6 px-6">
             <div className="max-w-7xl mx-auto">
                 {/* Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-18">
@@ -74,9 +79,8 @@ const Index = () => {
                             style={{
                                 background:
                                     "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)",
-
                             }}
-                                 onClick={() => handleFeatureClick(feature.route)}
+                            onClick={() => handleFeatureClick(feature.route)}
                         >
                             <h3 className="text-xl font-bold text-gray-900 mb-4 leading-tight">
                                 {feature.title}
@@ -101,7 +105,6 @@ const Index = () => {
                             {/* Subtle accent border */}
                             <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-200 group-hover:ring-blue-300 transition-all duration-300"></div>
                         </div>
-
                     ))}
                 </div>
             </div>

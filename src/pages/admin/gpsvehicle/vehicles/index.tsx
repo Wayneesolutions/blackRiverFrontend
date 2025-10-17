@@ -406,7 +406,7 @@ const VehicleList = () => {
     };
 
     return (
-        <div className="min-h-screen p-4">
+        <div className="min-h-screen p-4 bg-gray-50 px-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">

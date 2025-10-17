@@ -53,7 +53,7 @@ const Dashboard = () => {
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
     return (
-      <div className="relative flex items-center justify-center">
+      <div className="relative flex items-center justify-center ">
         <svg
           height={radius * 2}
           width={radius * 2}
@@ -94,7 +94,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-gray-50 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Watching Report */}

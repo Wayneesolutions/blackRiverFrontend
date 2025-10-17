@@ -48,7 +48,7 @@ const Index = () => {
     ];
 
     return (
-        <div className="min-h-screen flex flex-col relative">
+        <div className="min-h-screen flex flex-col relative bg-gray-50 px-4">
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-opacity-40 backdrop-blur-sm pointer-events-none"></div>
             <div

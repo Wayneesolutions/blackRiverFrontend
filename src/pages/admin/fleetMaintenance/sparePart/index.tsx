@@ -427,7 +427,7 @@ const SparePartsInventory = () => {
                                 newPartRef.current = { partName: '', stockQty: '' };
                                 setShowAddModal(true);
                             }}
-                            className="inline-flex items-center gap-2 px-5 py-3 bg-[#9793E4] text-white rounded-lg hover:bg-[#8783D4] transition-all font-medium shadow-md"
+                            className="inline-flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] transition-all font-medium shadow-md"
                         >
                             <FaPlus />
                             Add First Spare Part

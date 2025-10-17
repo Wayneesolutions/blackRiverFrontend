@@ -213,8 +213,8 @@ const Company = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="px-2 py-8">
+    <div className="min-h-screen bg-gray-50 px-6">
+      <div className="py-8">
         {/* Success/Error Messages */}
         {success && (
           <div className="fixed top-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">

@@ -236,8 +236,8 @@ const Users = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="px-2 py-8">
+    <div className="min-h-screen bg-gray-50 px-6">
+      <div className="py-8">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

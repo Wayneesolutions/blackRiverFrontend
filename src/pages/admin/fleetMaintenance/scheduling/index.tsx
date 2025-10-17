@@ -408,7 +408,7 @@ const MaintenanceSchedule = () => {
                         <h1 className="text-3xl font-bold text-gray-900">Fleet Maintenance Schedule</h1>
                         <button
                             onClick={() => setShowScheduleForm(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                            className="bg-blue-600 hover:bg-blue-700 !text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                         >
                             <Plus size={20} />
                             Schedule Service
@@ -513,7 +513,7 @@ const MaintenanceSchedule = () => {
                                         key={filter}
                                         onClick={() => setSelectedFilter(filter)}
                                         className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${selectedFilter === filter
-                                            ? 'bg-blue-600 text-white'
+                                            ? 'bg-blue-600 !text-white'
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
@@ -759,7 +759,7 @@ const MaintenanceSchedule = () => {
                                     </button>
                                     <button
                                         type="submit"
-                                        className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                                        className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 !text-white rounded-lg transition-colors font-medium"
                                     >
                                         Schedule Service
                                     </button>
