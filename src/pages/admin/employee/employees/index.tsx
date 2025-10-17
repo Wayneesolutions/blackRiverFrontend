@@ -1,8 +1,20 @@
 import React, { useState } from 'react';
-import { Search, Filter, Download, Eye, Edit, Trash2, Plus } from 'lucide-react';
+import { Search, Filter, Download, Eye, Edit, Trash2, Plus, X, User, Mail, AlertCircle } from 'lucide-react';
 
 const EmployeesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    role: '',
+    department: '',
+    email: '',
+    phone: '',
+    address: '',
+    emergencyContact: '',
+    emergencyPhone: '',
+    joinDate: ''
+  });
 
   const employees = [
     {
@@ -85,6 +97,9 @@ const EmployeesPage = () => {
     }
   ];
 
+  const roles = ['Fleet Manager', 'Dispatcher', 'Safety Officer', 'Operations Staff', 'Maintenance Crew', 'Administrative'];
+  const departments = ['Operations', 'Dispatch', 'Compliance', 'Maintenance', 'HR', 'Finance'];
+
   const filteredEmployees = employees.filter(emp => 
     emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     emp.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -92,13 +107,39 @@ const EmployeesPage = () => {
     emp.department.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = () => {
+    console.log('New Employee:', formData);
+    setShowAddModal(false);
+    setFormData({
+      name: '',
+      role: '',
+      department: '',
+      email: '',
+      phone: '',
+      address: '',
+      emergencyContact: '',
+      emergencyPhone: '',
+      joinDate: ''
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      {/* Header with Search and Filters */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-gray-800">All Employees</h2>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2 bg-blue-500 !text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+          >
             <Plus className="w-4 h-4" />
             <span>Add Employee</span>
           </button>
@@ -126,11 +167,9 @@ const EmployeesPage = () => {
         </div>
       </div>
 
-      {/* Employee Cards Grid */}
       <div className="grid grid-cols-2 gap-6">
         {filteredEmployees.map((employee) => (
           <div key={employee.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-            {/* Card Header */}
             <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -152,7 +191,6 @@ const EmployeesPage = () => {
               </div>
             </div>
 
-            {/* Card Body */}
             <div className="p-6">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
@@ -203,7 +241,6 @@ const EmployeesPage = () => {
               </div>
             </div>
 
-            {/* Card Footer */}
             <div className="px-6 pb-4 flex items-center space-x-2">
               <button className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium flex items-center justify-center space-x-1">
                 <Eye className="w-4 h-4" />
@@ -220,6 +257,204 @@ const EmployeesPage = () => {
           </div>
         ))}
       </div>
+
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Add New Employee</h2>
+                  <p className="text-blue-100 text-sm">Fill in the employee details below</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <User className="w-5 h-5 text-blue-500" />
+                  <span>Personal Information</span>
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Enter full name"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Role <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="role"
+                      value={formData.role}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select role</option>
+                      {roles.map(role => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Department <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="department"
+                      value={formData.department}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select department</option>
+                      {departments.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Join Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="joinDate"
+                      value={formData.joinDate}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <Mail className="w-5 h-5 text-blue-500" />
+                  <span>Contact Information</span>
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="employee@logistiq.com"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="+1 234-567-8900"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Address <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      placeholder="Enter complete address"
+                      rows="2"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <span>Emergency Contact</span>
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Contact Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="emergencyContact"
+                      value={formData.emergencyContact}
+                      onChange={handleInputChange}
+                      placeholder="Emergency contact name"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Contact Phone <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="emergencyPhone"
+                      value={formData.emergencyPhone}
+                      onChange={handleInputChange}
+                      placeholder="+1 234-567-8900"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+         
+            </div>
+
+            <div className="bg-gray-50 px-6 py-4 flex items-center justify-end space-x-3 border-t border-gray-200">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all font-medium shadow-md hover:shadow-lg"
+              >
+                Add Employee
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
