@@ -2,8 +2,11 @@ import axios, { AxiosResponse, AxiosError } from 'axios'
 
 const adminBaseUrl = import.meta.env.VITE_APP_BASE_URL
 
+// Debug: Log the base URL to console
+console.log('Admin API VITE_APP_BASE_URL:', adminBaseUrl);
+
 export const adminApi = axios.create({
-  baseURL: adminBaseUrl
+  baseURL: adminBaseUrl || 'http://localhost:3000/api/v1'
 })
 interface Error {
   response?: {

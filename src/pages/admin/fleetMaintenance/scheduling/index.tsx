@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, AlertTriangle, Truck, Wrench, CheckCircle, Search, Bell, Plus, X, FileText } from 'lucide-react';
+import { Calendar, Clock, AlertTriangle, Truck, Wrench, CheckCircle, Search, Bell, Plus, X, FileText, Edit, Trash2 } from 'lucide-react';
 import { getMaintenanceSchedule, getMaintenanceCostReport } from "../../../../axios/api/fleet.maintenance"
+import { 
+    createVehicleService, 
+    updateVehicleService, 
+    updateServiceStatus, 
+    deleteVehicleService, 
+    listVehicleServices,
+    type VehicleServiceData,
+    type UpdateServiceData,
+    type ServiceFilters,
+    type VehicleServiceResponse 
+} from "../../../../axios/api/vehicleService"
 
 // Type Definitions
 interface UpcomingService {
@@ -91,6 +102,13 @@ const MaintenanceSchedule = () => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [costReport, setCostReport] = useState<CostReportItem[]>([]);
     const [selectedYear] = useState<number>(new Date().getFullYear());
+    
+    // Vehicle Service State
+    const [vehicleServices, setVehicleServices] = useState<VehicleServiceResponse[]>([]);
+    const [showServiceModal, setShowServiceModal] = useState<boolean>(false);
+    const [editingService, setEditingService] = useState<VehicleServiceResponse | null>(null);
+    const [serviceFilters, setServiceFilters] = useState<ServiceFilters>({});
+    const [servicesLoading, setServicesLoading] = useState<boolean>(false);
 
     const [scheduleForm, setScheduleForm] = useState({
         vehicle: '',
@@ -109,7 +127,13 @@ const MaintenanceSchedule = () => {
     // Fetch data on component mount
     useEffect(() => {
         fetchMaintenanceData();
+        fetchVehicleServices();
     }, []);
+
+    // Fetch vehicle services when filters change
+    useEffect(() => {
+        fetchVehicleServices();
+    }, [serviceFilters]);
 
     useEffect(() => {
         if (selectedYear) {
@@ -140,6 +164,187 @@ const MaintenanceSchedule = () => {
         } catch (error) {
             console.error('Error fetching cost report:', error);
         }
+    };
+
+    // ✅ VEHICLE SERVICE API FUNCTIONS
+    const fetchVehicleServices = async () => {
+        setServicesLoading(true);
+        try {
+            console.log('🔄 Fetching vehicle services with filters:', serviceFilters);
+            const response = await listVehicleServices(serviceFilters);
+            if (response?.success) {
+                console.log('✅ Vehicle services fetched successfully:', response.data?.length || 0, 'services');
+                setVehicleServices(response.data || []);
+            } else {
+                console.error('❌ Failed to fetch vehicle services:', response?.message);
+            }
+        } catch (error) {
+            console.error('❌ Error fetching vehicle services:', error);
+        } finally {
+            setServicesLoading(false);
+        }
+    };
+
+    const createService = async (serviceData: VehicleServiceData) => {
+        try {
+            const response = await createVehicleService(serviceData);
+            if (response?.success) {
+                console.log('Service created successfully:', response);
+                fetchVehicleServices(); // Refresh the list
+                return response;
+            } else {
+                console.error('Failed to create service:', response?.message);
+                return response;
+            }
+        } catch (error) {
+            console.error('Error creating service:', error);
+            return null;
+        }
+    };
+
+    const updateService = async (serviceId: string, updateData: UpdateServiceData) => {
+        try {
+            const response = await updateVehicleService(serviceId, updateData);
+            if (response?.success) {
+                console.log('Service updated successfully:', response);
+                fetchVehicleServices(); // Refresh the list
+                return response;
+            } else {
+                console.error('Failed to update service:', response?.message);
+                return response;
+            }
+        } catch (error) {
+            console.error('Error updating service:', error);
+            return null;
+        }
+    };
+
+    const updateServiceStatusAPI = async (serviceId: string, status: 'pending' | 'in-progress' | 'completed') => {
+        try {
+            const response = await updateServiceStatus(serviceId, status);
+            if (response?.success) {
+                console.log('Service status updated successfully:', response);
+                fetchVehicleServices(); // Refresh the list
+                return response;
+            } else {
+                console.error('Failed to update service status:', response?.message);
+                return response;
+            }
+        } catch (error) {
+            console.error('Error updating service status:', error);
+            return null;
+        }
+    };
+
+    const deleteService = async (serviceId: string) => {
+        try {
+            const response = await deleteVehicleService(serviceId);
+            if (response?.success) {
+                console.log('Service deleted successfully:', response);
+                fetchVehicleServices(); // Refresh the list
+                return response;
+            } else {
+                console.error('Failed to delete service:', response?.message);
+                return response;
+            }
+        } catch (error) {
+            console.error('Error deleting service:', error);
+            return null;
+        }
+    };
+
+    // ✅ SERVICE FORM HANDLERS
+    const handleCreateService = async () => {
+        if (!scheduleForm.vehicle || !scheduleForm.serviceType || !scheduleForm.dueDate || !scheduleForm.assignedMechanic) {
+            console.error('Please fill in all required fields');
+            alert('Please fill in all required fields: Vehicle, Service Type, Due Date, and Assigned Mechanic');
+            return;
+        }
+
+        // Convert service type to correct format (with hyphens)
+        const serviceTypeMap: { [key: string]: string } = {
+            'oil_change': 'oil-change',
+            'tire_rotation': 'tire-rotation', 
+            'bike_inspection': 'bike-inspection',
+            'general_maintenance': 'general-maintenance',
+            'other': 'other'
+        };
+
+        const validServiceType = serviceTypeMap[scheduleForm.serviceType] || scheduleForm.serviceType;
+
+        const serviceData: VehicleServiceData = {
+            vehicleId: scheduleForm.vehicle,
+            serviceType: validServiceType as any,
+            priority: scheduleForm.priority as any,
+            dueDate: scheduleForm.dueDate,
+            dueMileage: parseInt(scheduleForm.dueMileage) || 0,
+            assignedMechanic: scheduleForm.assignedMechanic, // This should be an ObjectId string
+            description: scheduleForm.description
+        };
+
+        console.log('Creating service with data:', serviceData);
+
+        const result = await createService(serviceData);
+        if (result?.success) {
+            setShowScheduleForm(false);
+            // Reset form
+            setScheduleForm({
+                vehicle: '',
+                serviceType: '',
+                priority: 'medium',
+                dueDate: '',
+                dueMileage: '',
+                assignedMechanic: '',
+                estimatedCost: '',
+                estimatedTime: '',
+                description: '',
+                recurringService: false,
+                recurringInterval: ''
+            });
+        } else {
+            console.error('Failed to create service:', result?.message);
+            alert(`Failed to create service: ${result?.message || 'Unknown error'}`);
+        }
+    };
+
+    const handleUpdateService = async (serviceId: string) => {
+        const updateData: UpdateServiceData = {
+            vehicleId: scheduleForm.vehicle,
+            serviceType: scheduleForm.serviceType as any,
+            priority: scheduleForm.priority as any,
+            dueDate: scheduleForm.dueDate,
+            dueMileage: parseInt(scheduleForm.dueMileage) || 0,
+            assignedMechanic: scheduleForm.assignedMechanic,
+            description: scheduleForm.description
+        };
+
+        const result = await updateService(serviceId, updateData);
+        if (result?.success) {
+            setShowScheduleForm(false);
+            setEditingService(null);
+        }
+    };
+
+    const handleEditService = (service: VehicleServiceResponse) => {
+        setEditingService(service);
+        setScheduleForm({
+            vehicle: service.vehicleId._id,
+            serviceType: service.serviceType,
+            priority: service.priority,
+            dueDate: service.dueDate.split('T')[0],
+            dueMileage: service.dueMileage.toString(),
+            assignedMechanic: service.assignedMechanic._id,
+            estimatedCost: '',
+            estimatedTime: '',
+            description: service.description,
+            recurringService: false,
+            recurringInterval: ''
+        });
+        setShowScheduleForm(true);
+    };
+
+    const handleStatusChange = async (serviceId: string, newStatus: 'pending' | 'in-progress' | 'completed') => {
+        await updateServiceStatusAPI(serviceId, newStatus);
     };
 
     const mechanics = [
@@ -291,24 +496,17 @@ const MaintenanceSchedule = () => {
         setScheduleForm(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
         console.log('New service scheduled:', scheduleForm);
-        // TODO: Add API call to create new service
-        setShowScheduleForm(false);
-        setScheduleForm({
-            vehicle: '',
-            serviceType: '',
-            priority: 'medium',
-            dueDate: '',
-            dueMileage: '',
-            assignedMechanic: '',
-            estimatedCost: '',
-            estimatedTime: '',
-            description: '',
-            recurringService: false,
-            recurringInterval: ''
-        });
+        
+        if (editingService) {
+            // Update existing service
+            await handleUpdateService(editingService._id);
+        } else {
+            // Create new service
+            await handleCreateService();
+        }
     };
 
     const filteredServices = upcomingServices.filter((service: Service) => {
@@ -406,13 +604,6 @@ const MaintenanceSchedule = () => {
                 <div className="mb-8">
                     <div className="flex justify-between items-center mb-4">
                         <h1 className="text-3xl font-bold text-gray-900">Fleet Maintenance Schedule</h1>
-                        <button
-                            onClick={() => setShowScheduleForm(true)}
-                            className="bg-blue-600 hover:bg-blue-700 !text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                        >
-                            <Plus size={20} />
-                            Schedule Service
-                        </button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -478,13 +669,11 @@ const MaintenanceSchedule = () => {
                             <div className="space-y-3">
                                 {alerts.slice(0, 3).map((alert: Alert) => (
                                     <div key={alert.id} className={`p-4 rounded-lg border-l-4 ${alert.type === 'critical' ? 'bg-red-50 border-red-500' :
-                                        alert.type === 'warning' ? 'bg-yellow-50 border-yellow-500' : 'bg-blue-50 border-blue-500'
-                                        }`}>
+                                        alert.type === 'warning' ? 'bg-yellow-50 border-yellow-500' : 'bg-blue-50 border-blue-500'}`}>
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <p className={`font-medium ${alert.type === 'critical' ? 'text-red-800' :
-                                                    alert.type === 'warning' ? 'text-yellow-800' : 'text-blue-800'
-                                                    }`}>
+                                                    alert.type === 'warning' ? 'text-yellow-800' : 'text-blue-800'}`}>
                                                     {alert.message}
                                                 </p>
                                                 <p className="text-sm text-gray-600 mt-1">Vehicle: {alert.vehicle}</p>
@@ -504,111 +693,7 @@ const MaintenanceSchedule = () => {
                     </div>
                 )}
 
-                <div className="bg-white rounded-lg shadow-sm mb-6">
-                    <div className="p-6">
-                        <div className="flex flex-col md:flex-row gap-4 justify-between">
-                            <div className="flex gap-2 flex-wrap">
-                                {['all', 'overdue', 'in-progress', 'scheduled', 'upcoming'].map((filter: string) => (
-                                    <button
-                                        key={filter}
-                                        onClick={() => setSelectedFilter(filter)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${selectedFilter === filter
-                                            ? 'bg-blue-600 !text-white'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`}
-                                    >
-                                        {filter === 'all' ? 'All Services' : filter.replace('-', ' ')}
-                                    </button>
-                                ))}
-                            </div>
 
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                                <input
-                                    type="text"
-                                    placeholder="Search vehicles or services..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-sm">
-                    <div className="p-6 border-b border-gray-200">
-                        <h2 className="text-xl font-semibold text-gray-900">Upcoming Services ({filteredServices.length})</h2>
-                    </div>
-
-                    {filteredServices.length === 0 ? (
-                        <div className="p-12 text-center">
-                            <Wrench className="mx-auto mb-4 text-gray-400" size={48} />
-                            <p className="text-gray-600">No maintenance services scheduled</p>
-                            <p className="text-sm text-gray-500 mt-2">Add upcoming services to your vehicles to see them here</p>
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Type</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mileage</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredServices.map((service: Service) => (
-                                        <tr key={service.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <Truck className="text-gray-400 mr-3" size={20} />
-                                                    <div>
-                                                        <div className="text-sm font-medium text-gray-900">{service.vehicle}</div>
-                                                        <div className="text-sm text-gray-500">{service.vehicleType}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">{service.service}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <Calendar className="text-gray-400 mr-2" size={16} />
-                                                    <span className="text-sm text-gray-900">{service.dueDate}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    {service.currentKm}km / {service.dueKm}km
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                                    <div
-                                                        className="bg-blue-600 h-2 rounded-full"
-                                                        style={{ width: `${Math.min((parseInt(service.currentKm) / parseInt(service.dueKm)) * 100, 100)}%` }}
-                                                    ></div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${getPriorityColor(service.priority)}`}>
-                                                    {service.priority}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${getStatusColor(service.status)}`}>
-                                                    {service.status.replace('-', ' ')}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
 
                 {/* Cost Report Summary */}
                 {costReport.length > 0 && (
@@ -707,8 +792,7 @@ const MaintenanceSchedule = () => {
                                         value={scheduleForm.dueDate}
                                         onChange={(e) => handleFormChange('dueDate', e.target.value)}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    />
+                                        required />
                                 </div>
 
                                 <div>
@@ -718,8 +802,7 @@ const MaintenanceSchedule = () => {
                                         value={scheduleForm.dueMileage}
                                         onChange={(e) => handleFormChange('dueMileage', e.target.value)}
                                         placeholder="e.g., 50000"
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                 </div>
 
                                 <div>
@@ -745,8 +828,7 @@ const MaintenanceSchedule = () => {
                                         onChange={(e) => handleFormChange('description', e.target.value)}
                                         rows={3}
                                         placeholder="Describe any specific requirements or issues..."
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                    />
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
                                 </div>
 
                                 <div className="flex gap-3 pt-4">
@@ -769,6 +851,247 @@ const MaintenanceSchedule = () => {
                     </div>
                 </div>
             )}
+
+            {/* ✅ VEHICLE SERVICES SECTION WITH FILTERS */}
+            <div className="bg-white rounded-lg shadow-sm mb-6">
+                <div className="p-6 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Wrench className="text-blue-500" size={20} />
+                            <h2 className="text-xl font-semibold text-gray-900">Vehicle Services</h2>
+                            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                {vehicleServices.length} services
+                            </span>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={fetchVehicleServices}
+                                disabled={servicesLoading}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+                            >
+                                <Search size={16} />
+                                Refresh
+                            </button>
+                            <button
+                                onClick={() => setShowScheduleForm(true)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                            >
+                                <Plus size={16} />
+                                Add Service
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Filters */}
+                <div className="p-6 border-b border-gray-200">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Status Filter</label>
+                            <select
+                                value={serviceFilters.status || ''}
+                                onChange={(e) => setServiceFilters({ ...serviceFilters, status: e.target.value as any || undefined })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Priority Filter</label>
+                            <select
+                                value={serviceFilters.priority || ''}
+                                onChange={(e) => setServiceFilters({ ...serviceFilters, priority: e.target.value as any || undefined })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">All Priorities</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
+                            <select
+                                value={serviceFilters.serviceType || ''}
+                                onChange={(e) => setServiceFilters({ ...serviceFilters, serviceType: e.target.value as any || undefined })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">All Types</option>
+                                <option value="oil-change">Oil Change</option>
+                                <option value="tire-rotation">Tire Rotation</option>
+                                <option value="bike-inspection">Bike Inspection</option>
+                                <option value="general-maintenance">General Maintenance</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Filter</label>
+                            <select
+                                value={serviceFilters.vehicleId || ''}
+                                onChange={(e) => setServiceFilters({ ...serviceFilters, vehicleId: e.target.value || undefined })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">All Vehicles</option>
+                                {vehicles.map((vehicle: Vehicle) => (
+                                    <option key={vehicle._id} value={vehicle._id}>
+                                        {vehicle.plateNumber}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Mechanic Filter</label>
+                            <select
+                                value={serviceFilters.mechanic || ''}
+                                onChange={(e) => setServiceFilters({ ...serviceFilters, mechanic: e.target.value || undefined })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">All Mechanics</option>
+                                {mechanics.map((mechanic: any) => (
+                                    <option key={mechanic.id} value={mechanic.name}>
+                                        {mechanic.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex items-end">
+                            <button
+                                onClick={() => setServiceFilters({})}
+                                className="w-full px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                            >
+                                Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Vehicle Services Table */}
+                <div className="overflow-x-auto">
+                    {servicesLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <span className="ml-2 text-gray-600">Loading vehicle services...</span>
+                        </div>
+                    ) : vehicleServices.length === 0 ? (
+                        <div className="text-center py-8">
+                            <Wrench className="mx-auto h-12 w-12 text-gray-400" />
+                            <h3 className="mt-2 text-sm font-medium text-gray-900">No vehicle services found</h3>
+                            <p className="mt-1 text-sm text-gray-500">
+                                {Object.keys(serviceFilters).length > 0
+                                    ? "Try adjusting your filters or create a new service."
+                                    : "Get started by creating a new vehicle service."}
+                            </p>
+                            <div className="mt-6">
+                                <button
+                                    onClick={() => setShowScheduleForm(true)}
+                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                >
+                                    <Plus size={16} className="mr-2" />
+                                    Create Service
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Type</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Mechanic</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {vehicleServices.map((service: VehicleServiceResponse) => (
+                                    <tr key={service._id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <Truck className="text-gray-400 mr-3" size={20} />
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {service.vehicleId.vehicleNumber}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500">{service.vehicleId.model}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {service.serviceType.replace('-', ' ').toUpperCase()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${service.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                                                    service.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                                                        service.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-green-100 text-green-800'}`}>
+                                                {service.priority.toUpperCase()}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${service.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                        service.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-yellow-100 text-yellow-800'}`}>
+                                                    {service.status.replace('-', ' ').toUpperCase()}
+                                                </span>
+                                                {service.status !== 'completed' && (
+                                                    <select
+                                                        value={service.status}
+                                                        onChange={(e) => handleStatusChange(service._id, e.target.value as any)}
+                                                        className="text-xs border border-gray-300 rounded px-2 py-1"
+                                                    >
+                                                        <option value="pending">Pending</option>
+                                                        <option value="in-progress">In Progress</option>
+                                                        <option value="completed">Completed</option>
+                                                    </select>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {new Date(service.dueDate).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {typeof service.assignedMechanic === 'string' 
+                                                ? service.assignedMechanic 
+                                                : `${service.assignedMechanic.first_name} ${service.assignedMechanic.last_name}`
+                                            }
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => handleEditService(service)}
+                                                    className="text-blue-600 hover:text-blue-900"
+                                                    title="Edit Service"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => deleteService(service._id)}
+                                                    className="text-red-600 hover:text-red-900"
+                                                    title="Delete Service"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            </div>
 
             <AlertDetailsModal
                 alert={showAlertDetails}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     MapPin,
     Truck,
@@ -22,6 +22,8 @@ import {
     Lock,
     Unlock
 } from 'lucide-react';
+import { getSocket, disconnectSocket } from "../../../../socket/socketClient";
+import { listTrailers } from '../../../../axios/api/trailerTracking';
 
 // Type definitions
 interface Location {
@@ -71,21 +73,36 @@ interface MaintenanceInfo {
 
 interface Trailer {
     _id: string;
-    serialNumber: string;
-    registrationNumber: string;
+    trailer: string;
+    plateNumber: string;
     type: 'dry_van' | 'refrigerated' | 'flatbed' | 'tanker' | 'container';
     capacity: string;
-    status: 'in_transit' | 'loading' | 'idle' | 'maintenance' | 'available';
+    status: 'moving' | 'idle' | 'stopped' | 'maintenance';
+    operationStatus: 'in_transit' | 'loading' | 'idle' | 'maintenance' | 'available';
     isAttached: boolean;
-    attachedVehicle?: AttachedVehicle;
-    currentLocation: Location;
+    attachedVehicle?: {
+        _id: string;
+        plateNumber: string;
+        make: string;
+        model: string;
+        driver?: {
+            _id: string;
+            name: string;
+        };
+    };
+    currentLocation: {
+        address: string;
+        longitude: string | number;
+        latitude: string | number;
+        updatedAt: string | Date;
+    };
     route: RoutePoint[];
     destination?: Location;
     cargoDetails: CargoDetails;
     sensors: TrailerSensors;
     maintenance: MaintenanceInfo;
     speed: number;
-    lastMovement: Date;
+    internalId?: string; // For Geotab integration
 }
 
 declare global {
@@ -96,6 +113,7 @@ declare global {
 }
 
 const ProfessionalTrailerTracker: React.FC = () => {
+    const [trailers, setTrailers] = useState<Trailer[]>([]);
     const [selectedTrailer, setSelectedTrailer] = useState<Trailer | null>(null);
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -105,9 +123,73 @@ const ProfessionalTrailerTracker: React.FC = () => {
     const [markers, setMarkers] = useState<any[]>([]);
     const [directionsRenderers, setDirectionsRenderers] = useState<any[]>([]);
     const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
 
-    // Mock trailer data
-    const trailers: Trailer[] = [
+    const socket = useMemo(() => getSocket(), []);
+
+    // Fetch trailers from backend
+    useEffect(() => {
+        const fetchTrailers = async () => {
+            try {
+                setLoading(true);
+                const res = await listTrailers();
+                if (res.success) {
+                    const data = res.data || [];
+                    const formatted = data.map((t: any) => ({
+                        ...t,
+                        currentLocation: {
+                            ...t.currentLocation,
+                            latitude: Number(t.currentLocation.latitude),
+                            longitude: Number(t.currentLocation.longitude),
+                        },
+                    }));
+                    setTrailers(formatted);
+                    if (formatted.length > 0) handleTrailerClick(formatted[0]);
+                }
+            } catch (err) {
+                console.error("Error fetching trailers:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTrailers();
+    }, []);
+
+    // Handle trailer selection and socket connection
+    const handleTrailerClick = useCallback((trailer: Trailer) => {
+        setSelectedTrailer(trailer);
+
+        // Leave previous trailer updates
+        socket.emit("leaveTrailer");
+
+        // Join new trailer updates if trailer has internalId for Geotab
+        if (trailer.internalId) {
+            socket.emit("joinTrailer", trailer.internalId);
+        }
+
+        // Listen for trailer updates
+        socket.off("trailerLocation");
+        socket.on("trailerLocation", (data) => {
+            setTrailers((prev) =>
+                prev.map((t) => (t._id === data._id ? { ...t, ...data } : t))
+            );
+
+            if (trailer._id === data._id) {
+                setSelectedTrailer({ ...trailer, ...data });
+            }
+        });
+    }, [socket]);
+
+    // Cleanup socket connection
+    useEffect(() => {
+        return () => {
+            socket.emit("leaveTrailer");
+            socket.off("trailerLocation");
+        };
+    }, [socket]);
+
+    // Mock trailer data (fallback)
+    const mockTrailers: Trailer[] = [
         {
             _id: '1',
             serialNumber: 'TR-2024-001',
@@ -404,11 +486,11 @@ const ProfessionalTrailerTracker: React.FC = () => {
                         lng: trailer.currentLocation.longitude
                     },
                     map: map,
-                    title: `${trailer.registrationNumber} - ${trailer.status}`,
+                    title: `${trailer.plateNumber} - ${trailer.operationStatus || trailer.status}`,
                     icon: {
                         path: 'M2 6h20v12H2z M6 4v2 M18 4v2 M2 10h20 M6 18v2 M18 18v2',
                         scale: 1.2,
-                        fillColor: getMarkerColor(trailer.status),
+                        fillColor: getMarkerColor(trailer.operationStatus || trailer.status),
                         fillOpacity: 1,
                         strokeColor: '#ffffff',
                         strokeWeight: 2,
@@ -425,7 +507,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                 newMarkers.push(marker);
 
                 // Add route using Directions API if destination exists
-                if (trailer.destination && showRoutes && trailer.status === 'in_transit') {
+                if (trailer.destination && showRoutes && (trailer.operationStatus === 'in_transit' || trailer.status === 'moving')) {
                     const directionsService = new window.google.maps.DirectionsService();
                     const directionsRenderer = new window.google.maps.DirectionsRenderer({
                         suppressMarkers: true,
@@ -490,33 +572,39 @@ const ProfessionalTrailerTracker: React.FC = () => {
 
     const getStatusColor = (status: string): string => {
         switch (status) {
-            case 'in_transit': return 'text-green-700 bg-green-100';
+            case 'in_transit':
+            case 'moving': return 'text-green-700 bg-green-100';
             case 'loading': return 'text-blue-700 bg-blue-100';
             case 'idle': return 'text-yellow-700 bg-yellow-100';
             case 'maintenance': return 'text-red-700 bg-red-100';
-            case 'available': return 'text-purple-700 bg-purple-100';
+            case 'available':
+            case 'stopped': return 'text-purple-700 bg-purple-100';
             default: return 'text-gray-700 bg-gray-100';
         }
     };
 
     const getMarkerColor = (status: string): string => {
         switch (status) {
-            case 'in_transit': return '#22c55e';
+            case 'in_transit':
+            case 'moving': return '#22c55e';
             case 'loading': return '#3b82f6';
             case 'idle': return '#eab308';
             case 'maintenance': return '#ef4444';
-            case 'available': return '#8b5cf6';
+            case 'available':
+            case 'stopped': return '#8b5cf6';
             default: return '#6b7280';
         }
     };
 
     const getStatusIcon = (status: string): React.ReactNode => {
         switch (status) {
-            case 'in_transit': return <Navigation className="w-3 h-3" />;
+            case 'in_transit':
+            case 'moving': return <Navigation className="w-3 h-3" />;
             case 'loading': return <Package className="w-3 h-3" />;
             case 'idle': return <Clock className="w-3 h-3" />;
             case 'maintenance': return <AlertTriangle className="w-3 h-3" />;
-            case 'available': return <Circle className="w-3 h-3" />;
+            case 'available':
+            case 'stopped': return <Circle className="w-3 h-3" />;
             default: return <Circle className="w-3 h-3" />;
         }
     };
@@ -530,9 +618,9 @@ const ProfessionalTrailerTracker: React.FC = () => {
     };
 
     const filteredTrailers = trailers.filter(trailer => {
-        const matchesStatus = filterStatus === 'all' || trailer.status === filterStatus;
-        const matchesSearch = trailer.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            trailer.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        const matchesStatus = filterStatus === 'all' || trailer.operationStatus === filterStatus || trailer.status === filterStatus;
+        const matchesSearch = trailer.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            trailer.trailer.toLowerCase().includes(searchTerm.toLowerCase()) ||
             trailer.type.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesStatus && matchesSearch;
     });
@@ -611,8 +699,19 @@ const ProfessionalTrailerTracker: React.FC = () => {
 
                         {/* Trailer List */}
                         <div className="flex-1 overflow-y-auto">
-                            <div className="divide-y divide-gray-100">
-                                {filteredTrailers.map((trailer) => (
+                            {loading ? (
+                                <div className="flex items-center justify-center h-32">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-gray-100">
+                                    {filteredTrailers.length === 0 ? (
+                                        <div className="p-8 text-center text-gray-500">
+                                            <Truck className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                                            <p>No trailers found</p>
+                                        </div>
+                                    ) : (
+                                        filteredTrailers.map((trailer) => (
                                     <div
                                         key={trailer._id}
                                         className={`p-4 hover:bg-gray-50 cursor-pointer transition-all ${selectedTrailer?._id === trailer._id ? 'bg-orange-50 border-l-4 border-l-orange-500' : ''}`}
@@ -635,11 +734,11 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between">
                                                     <h3 className="text-sm font-semibold text-gray-900">
-                                                        {trailer.registrationNumber}
+                                                        {trailer.plateNumber}
                                                     </h3>
-                                                    <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trailer.status)}`}>
-                                                        {getStatusIcon(trailer.status)}
-                                                        <span className="capitalize">{trailer.status.replace('_', ' ')}</span>
+                                                    <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trailer.operationStatus || trailer.status)}`}>
+                                                        {getStatusIcon(trailer.operationStatus || trailer.status)}
+                                                        <span className="capitalize">{(trailer.operationStatus || trailer.status).replace('_', ' ')}</span>
                                                     </span>
                                                 </div>
 
@@ -681,13 +780,18 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                                     <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
                                                         <span className="font-medium text-blue-700">Attached to: </span>
                                                         <span className="text-blue-600">{trailer.attachedVehicle.plateNumber}</span>
+                                                        {trailer.attachedVehicle.driver && (
+                                                            <span className="text-blue-600 ml-1">• {trailer.attachedVehicle.driver.name}</span>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </>
                 )}
@@ -705,7 +809,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                         {getTrailerTypeIcon(selectedTrailer.type)}
                                     </div>
                                     <div>
-                                        <div className="font-semibold text-sm text-gray-900">{selectedTrailer.registrationNumber}</div>
+                                        <div className="font-semibold text-sm text-gray-900">{selectedTrailer.plateNumber}</div>
                                         <div className="text-xs text-gray-600">{selectedTrailer.type.replace('_', ' ').toUpperCase()}</div>
                                     </div>
                                     <button
@@ -828,14 +932,16 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <span className="text-sm text-gray-600">Capacity</span>
-                                            <span className="text-sm font-medium">{selectedTrailer.cargoDetails.capacity} kg</span>
+                                            <span className="text-sm font-medium">{selectedTrailer.cargoDetails.capacity || selectedTrailer.capacity}</span>
                                         </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                                            <div 
-                                                className="bg-orange-600 h-2 rounded-full" 
-                                                style={{width: `${(selectedTrailer.cargoDetails.weight / selectedTrailer.cargoDetails.capacity) * 100}%`}}
-                                            ></div>
-                                        </div>
+                                        {selectedTrailer.cargoDetails.capacity && (
+                                            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                                <div 
+                                                    className="bg-orange-600 h-2 rounded-full" 
+                                                    style={{width: `${(selectedTrailer.cargoDetails.weight / selectedTrailer.cargoDetails.capacity) * 100}%`}}
+                                                ></div>
+                                            </div>
+                                        )}
                                         <div className="text-xs text-gray-500">{selectedTrailer.cargoDetails.description}</div>
                                     </div>
                                 </div>
@@ -886,10 +992,10 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                                 <span className="text-sm text-blue-600">Vehicle</span>
                                                 <span className="text-sm font-medium">{selectedTrailer.attachedVehicle.make} {selectedTrailer.attachedVehicle.model}</span>
                                             </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-sm text-blue-600">Driver</span>
-                                                <span className="text-sm font-medium">{selectedTrailer.attachedVehicle.driverName}</span>
-                                            </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-sm text-blue-600">Driver</span>
+                                            <span className="text-sm font-medium">{selectedTrailer.attachedVehicle.driver?.name || 'N/A'}</span>
+                                        </div>
                                         </div>
                                     </div>
                                 )}
@@ -918,14 +1024,16 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                                 {selectedTrailer.maintenance.brakeCondition}
                                             </span>
                                         </div>
-                                        <div className="text-xs text-gray-500">
-                                            Next service: {selectedTrailer.maintenance.nextService.toLocaleDateString()}
-                                        </div>
+                                        {selectedTrailer.maintenance.nextService && (
+                                            <div className="text-xs text-gray-500">
+                                                Next service: {new Date(selectedTrailer.maintenance.nextService).toLocaleDateString()}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
                                 {/* Maintenance Issues */}
-                                {selectedTrailer.maintenance.issues.length > 0 && (
+                                {selectedTrailer.maintenance.issues && selectedTrailer.maintenance.issues.length > 0 && (
                                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                                         <div className="flex items-center space-x-2 mb-2">
                                             <AlertTriangle className="w-4 h-4 text-red-600" />

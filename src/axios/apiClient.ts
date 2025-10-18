@@ -4,9 +4,12 @@ import { message } from "antd";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL
 
+// Debug: Log the base URL to console
+console.log('VITE_APP_BASE_URL:', baseUrl);
+
 // Create instance
 const apiClient = axios.create({
-  baseURL: baseUrl // Base URL for all requests
+  baseURL: baseUrl // Base URL for all requests with fallback
 });
 
 // Request interceptor - Add token or any header
