@@ -20,7 +20,7 @@ interface Driver {
 
 interface Document {
   _id: string;
-  documentType: 'license' | 'medical' | 'authorization' | 'training';
+  documentType: 'Driver License' | 'Medical Certificate' | 'Work Authorization' | 'Driver Abstract' | 'Background Check' | 'Drug & Alcohol Test' | 'Training Certificate' | 'Insurance Policy' | 'Company Policy';
   documentNumber: string;
   expiryDate: string;
   issuedAt: string;
@@ -34,7 +34,7 @@ interface DriverDocument {
 }
 
 interface FormData {
-  documentType: 'license' | 'medical' | 'authorization' | 'training';
+  documentType: 'Driver License' | 'Medical Certificate' | 'Work Authorization' | 'Driver Abstract' | 'Background Check' | 'Drug & Alcohol Test' | 'Training Certificate' | 'Insurance Policy' | 'Company Policy';
   documentNumber: string;
   expiryDate: string;
   issuedAt: string;
@@ -107,7 +107,7 @@ function DriverDocument() {
     docId: null
   });
   const [formData, setFormData] = useState<FormData>({
-    documentType: "license",
+    documentType: "Driver License",
     documentNumber: "",
     expiryDate: "",
     issuedAt: ""
@@ -154,7 +154,7 @@ function DriverDocument() {
     setEditingDoc(null);
     setSelectedFile(null);
     setFormData({
-      documentType: "license",
+      documentType: "Driver License",
       documentNumber: "",
       expiryDate: "",
       issuedAt: ""
@@ -166,7 +166,7 @@ function DriverDocument() {
     setEditingDoc(doc);
     setSelectedFile(null);
     setFormData({
-      documentType: doc.documentType || "license",
+      documentType: doc.documentType || "Driver License",
       documentNumber: doc.documentNumber || "",
       expiryDate: doc.expiryDate ? doc.expiryDate.split('T')[0] : "",
       issuedAt: doc.issuedAt ? doc.issuedAt.split('T')[0] : ""

@@ -126,12 +126,20 @@ function VehicleDocument() {
   const fetchAllDocuments = async () => {
     setLoading(true);
     try {
+      console.log('🔄 Fetching vehicle documents...');
       const res = await getVehicleDocument();
+      console.log('📡 Vehicle documents API response:', res);
+      
       if (res?.success) {
+        console.log('✅ Documents loaded successfully:', res.documentsByVehicle?.length || 0, 'vehicles with documents');
         setVehicleDocuments(res.documentsByVehicle || []);
+      } else {
+        console.error('❌ Failed to load documents:', res?.message);
+        addNotification('error', res?.message || 'Failed to fetch documents');
+        setVehicleDocuments([]);
       }
     } catch (err: any) {
-      console.error("Error fetching documents:", err);
+      console.error("❌ Error fetching documents:", err);
       addNotification('error', err?.message || 'Failed to fetch documents');
       setVehicleDocuments([]);
     }

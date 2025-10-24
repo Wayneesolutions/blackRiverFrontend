@@ -6,7 +6,6 @@ import {
   DollarSign,
   AlertTriangle,
   CheckCircle,
-  Clock,
   TrendingUp,
   Loader2
 } from 'lucide-react';
@@ -40,7 +39,13 @@ const Dashboard = () => {
     pendingMaintenance: 0,
     completedThisMonth: 0,
     totalCosts: 0,
-    overdueMaintenance: 0
+    overdueMaintenance: 0,
+    totalTrailers: 0,
+    trailersInTransit: 0,
+    trailersAvailable: 0,
+    trailersMaintenance: 0,
+    trailersAttached: 0,
+    trailersUnattached: 0
   });
   const [recentWorkOrders, setRecentWorkOrders] = useState<WorkOrder[]>([]);
   const [upcomingMaintenance, setUpcomingMaintenance] = useState<MaintenanceItem[]>([]);
@@ -64,7 +69,13 @@ const Dashboard = () => {
         setDashboardStats(prev => ({
           ...prev,
           totalVehicles: statsRes.data.totalVehicles || 0,
-          activeWorkOrders: statsRes.data.activeWorkOrders || 0
+          activeWorkOrders: statsRes.data.activeWorkOrders || 0,
+          totalTrailers: statsRes.data.totalTrailers || 0,
+          trailersInTransit: statsRes.data.trailersInTransit || 0,
+          trailersAvailable: statsRes.data.trailersAvailable || 0,
+          trailersMaintenance: statsRes.data.trailersMaintenance || 0,
+          trailersAttached: statsRes.data.trailersAttached || 0,
+          trailersUnattached: statsRes.data.trailersUnattached || 0
         }));
       }
 
@@ -190,6 +201,15 @@ const Dashboard = () => {
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">Total Trailers</h3>
+            <Truck className="h-6 w-6 text-purple-600" />
+          </div>
+          <div className="text-3xl font-bold text-gray-900">{dashboardStats.totalTrailers}</div>
+          <p className="text-sm text-gray-500 mt-1">Fleet trailers</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Active Work Orders</h3>
             <Wrench className="h-6 w-6 text-orange-600" />
           </div>
@@ -199,20 +219,50 @@ const Dashboard = () => {
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Pending Maintenance</h3>
-            <Clock className="h-6 w-6 text-yellow-600" />
-          </div>
-          <div className="text-3xl font-bold text-gray-900">{dashboardStats.pendingMaintenance}</div>
-          <p className="text-sm text-gray-500 mt-1">Scheduled services</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Monthly Costs</h3>
             <DollarSign className="h-6 w-6 text-green-600" />
           </div>
           <div className="text-3xl font-bold text-gray-900">${dashboardStats.totalCosts.toLocaleString()}</div>
           <p className="text-sm text-gray-500 mt-1">This month's expenses</p>
+        </div>
+      </div>
+
+      {/* Trailer Status Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">Available Trailers</h3>
+            <CheckCircle className="h-6 w-6 text-green-600" />
+          </div>
+          <div className="text-3xl font-bold text-gray-900">{dashboardStats.trailersAvailable}</div>
+          <p className="text-sm text-gray-500 mt-1">Ready for assignment</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">In Transit</h3>
+            <Truck className="h-6 w-6 text-blue-600" />
+          </div>
+          <div className="text-3xl font-bold text-gray-900">{dashboardStats.trailersInTransit}</div>
+          <p className="text-sm text-gray-500 mt-1">Currently moving</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">Attached Trailers</h3>
+            <Truck className="h-6 w-6 text-indigo-600" />
+          </div>
+          <div className="text-3xl font-bold text-gray-900">{dashboardStats.trailersAttached}</div>
+          <p className="text-sm text-gray-500 mt-1">Connected to vehicles</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">Maintenance</h3>
+            <Wrench className="h-6 w-6 text-red-600" />
+          </div>
+          <div className="text-3xl font-bold text-gray-900">{dashboardStats.trailersMaintenance}</div>
+          <p className="text-sm text-gray-500 mt-1">Under repair</p>
         </div>
       </div>
 

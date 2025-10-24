@@ -21,7 +21,7 @@ export const listFuelReport = async () =>{
   }
 }
 
-export const updateFuelReport = async (id:string,data) =>{
+export const updateFuelReport = async (id:string, data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.put(`dispatcher/fuel-report/${id}`,data);
     console.log('==res ', res)
@@ -40,7 +40,7 @@ export const deleteFuelReport = async (id:string) =>{
   }
 }
 
-export const updateStatusFuelReport = async (id:string,status) =>{
+export const updateStatusFuelReport = async (id:string, status: any) =>{
     try {
     const res: AxiosResponse = await apiClient.patch(`dispatcher/fuel-report/${id}/status`,status);
     console.log('==res ', res)

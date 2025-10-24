@@ -1,11 +1,9 @@
-import React from 'react'
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Layout from "../../components/gpsvehicle/Layout";
 import Loading from "../../components/common/Loading";
 const GpsDashboard = lazy(() => import("../../pages/admin/gpsvehicle/Dashboard"));
 const Assets = lazy(() => import("../../pages/admin/gpsvehicle/assets/index"))
-const LoadMap = lazy(() => import("../../pages/admin/gpsvehicle/loadMap/index"))
 const TripHistory = lazy(() => import("../../pages/admin/gpsvehicle/productivity/TripHistory"))
 
 
@@ -24,7 +22,6 @@ function GpsVehicleRoutes() {
           {/* <Route path="gpsvechile" element={<GpsDashboard />} /> */}
 
           <Route path="/assets" element={<Assets />} />
-          <Route path="/loadmap" element={<LoadMap />} />
           <Route path="/vehicles" element={<Vehicles />} />
           <Route path="/drivers" element={<Drivers />} />
           <Route path="/livetracking/truck" element={<LiveTracking />} />

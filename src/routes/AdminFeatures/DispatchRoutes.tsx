@@ -11,6 +11,7 @@ const OrderConfig = lazy(() => import("../../pages/admin/dispatch/operations/ord
 
 const DriversPage = lazy(() => import("../../pages/admin/dispatch/resources/drivers"))
 const Vehicle = lazy(() => import("../../pages/admin/dispatch/resources/vehicles/index"))
+const Trailers = lazy(() => import("../../pages/admin/dispatch/resources/trailers/index"))
 const Fleets = lazy(() => import("../../pages/admin/dispatch/resources/fleet/index"))
 const Vendors = lazy(() => import("../../pages/admin/dispatch/resources/vendors/index"))
 const Contacts = lazy(() => import("../../pages/admin/dispatch/resources/contacts/index"))
@@ -38,6 +39,7 @@ function DispatchRoutes() {
 
           <Route path="resources/drivers" element={<DriversPage />} />
           <Route path="resources/vehicles" element={<Vehicle />} />
+          <Route path="resources/trailers" element={<Trailers />} />
           <Route path="resources/fleets" element={<Fleets />} />
           <Route path="resources/vendors" element={<Vendors />} />
           <Route path="resources/contacts" element={<Contacts />} />

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Calendar, Clock, AlertTriangle, Truck, Wrench, CheckCircle, Search, Bell, Plus, X, FileText, Edit, Trash2 } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Clock, AlertTriangle, Truck, Wrench, CheckCircle, Search, Bell, Plus, X, FileText, Edit, Trash2 } from 'lucide-react';
 import { getMaintenanceSchedule, getMaintenanceCostReport } from "../../../../axios/api/fleet.maintenance"
 import { 
     createVehicleService, 
@@ -328,12 +328,12 @@ const MaintenanceSchedule = () => {
     const handleEditService = (service: VehicleServiceResponse) => {
         setEditingService(service);
         setScheduleForm({
-            vehicle: service.vehicleId._id,
+            vehicle: service.vehicleId?._id || '',
             serviceType: service.serviceType,
             priority: service.priority,
             dueDate: service.dueDate.split('T')[0],
             dueMileage: service.dueMileage.toString(),
-            assignedMechanic: service.assignedMechanic._id,
+            assignedMechanic: service.assignedMechanic?._id || '',
             estimatedCost: '',
             estimatedTime: '',
             description: service.description,
@@ -460,17 +460,32 @@ const MaintenanceSchedule = () => {
         });
     });
 
-    // Calculate stats
-    const stats = {
-        overdue: upcomingServices.filter((s: Service) => s.status === 'overdue').length,
-        dueThisWeek: upcomingServices.filter((s: Service) => {
-            if (!s.dueDate || s.dueDate === 'Not set') return false;
-            const daysUntil = Math.ceil((new Date(s.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-            return daysUntil >= 0 && daysUntil <= 7;
-        }).length,
-        inProgress: upcomingServices.filter((s: Service) => s.status === 'in-progress').length,
-        scheduled: upcomingServices.filter((s: Service) => s.status === 'scheduled').length
-    };
+    // Calculate stats from actual vehicle services data
+    const stats = useMemo(() => {
+        console.log('📊 Calculating stats for', vehicleServices.length, 'services');
+        
+        const overdue = vehicleServices.filter((service: VehicleServiceResponse) => {
+            if (!service.dueDate) return false;
+            const dueDate = new Date(service.dueDate);
+            const today = new Date();
+            return dueDate < today && service.status !== 'completed';
+        }).length;
+
+        const dueThisWeek = vehicleServices.filter((service: VehicleServiceResponse) => {
+            if (!service.dueDate) return false;
+            const dueDate = new Date(service.dueDate);
+            const today = new Date();
+            const daysUntil = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            return daysUntil >= 0 && daysUntil <= 7 && service.status !== 'completed';
+        }).length;
+
+        const inProgress = vehicleServices.filter((service: VehicleServiceResponse) => service.status === 'in-progress').length;
+        const scheduled = vehicleServices.filter((service: VehicleServiceResponse) => service.status === 'pending').length;
+
+        console.log('📊 Stats calculated:', { overdue, dueThisWeek, inProgress, scheduled });
+        
+        return { overdue, dueThisWeek, inProgress, scheduled };
+    }, [vehicleServices]);
 
     const getPriorityColor = (priority: string): string => {
         switch (priority) {
@@ -1021,9 +1036,9 @@ const MaintenanceSchedule = () => {
                                                 <Truck className="text-gray-400 mr-3" size={20} />
                                                 <div>
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        {service.vehicleId.vehicleNumber}
+                                                        {service.vehicleId?.vehicleNumber || 'N/A'}
                                                     </div>
-                                                    <div className="text-sm text-gray-500">{service.vehicleId.model}</div>
+                                                    <div className="text-sm text-gray-500">{service.vehicleId?.model || 'N/A'}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -1064,7 +1079,9 @@ const MaintenanceSchedule = () => {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {typeof service.assignedMechanic === 'string' 
                                                 ? service.assignedMechanic 
-                                                : `${service.assignedMechanic.first_name} ${service.assignedMechanic.last_name}`
+                                                : service.assignedMechanic 
+                                                    ? `${service.assignedMechanic.first_name} ${service.assignedMechanic.last_name}`
+                                                    : 'N/A'
                                             }
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

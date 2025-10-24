@@ -12,7 +12,6 @@ import {
 import { FaTruckMoving, FaUsers, FaMapMarkerAlt } from "react-icons/fa";
 import { RiOilLine } from "react-icons/ri";
 import { GiPathDistance } from "react-icons/gi";
-import { AiOutlineUserSwitch } from "react-icons/ai";
 import { TbTruckDelivery } from "react-icons/tb";
 import { IoIosSend } from "react-icons/io";
 
@@ -57,11 +56,6 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
         icon: <MdEventNote />,
         label: "Scheduler",
       },
-      {
-        key: "/admin/dispatch/operations/order-config",
-        icon: <AiOutlineUserSwitch />,
-        label: "Order Config",
-      },
     ],
   },
   {
@@ -78,6 +72,11 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
         key: "/admin/dispatch/resources/vehicles",
         icon: <TbTruckDelivery />,
         label: "Vehicles",
+      },
+      {
+        key: "/admin/dispatch/resources/trailers",
+        icon: <TbTruckDelivery />,
+        label: "Trailers",
       },
       {
         key: "/admin/dispatch/resources/fleets",

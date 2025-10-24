@@ -30,7 +30,7 @@ export const deleteCustomer = async (id:string) =>{
   }
 }
 
-export const updateCustomer = async (id:string,data) =>{
+export const updateCustomer = async (id:string, data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/customer/${id}`,data);
     console.log('==res ', res)
@@ -40,7 +40,7 @@ export const updateCustomer = async (id:string,data) =>{
   }
 }
 
-export const createtCustomer = async (data) =>{
+export const createtCustomer = async (data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/customer`,data);
     console.log('==res ', res)
@@ -59,7 +59,7 @@ export const deleteContact = async (id:string) =>{
     return (error as Error).response?.data;
   }
 }
-export const updateContact = async (id:string,data) =>{
+export const updateContact = async (id:string, data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.put(`dispatcher/contact/${id}`,data);
     console.log('==res ', res)
@@ -77,7 +77,7 @@ export const listContact = async () =>{
     return (error as Error).response?.data;
   }
 }
-export const createContact = async (data) =>{
+export const createContact = async (data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/contact`,data);
     console.log('==res ', res)
@@ -87,7 +87,7 @@ export const createContact = async (data) =>{
   }
 }
 
-export const updateStatusVendor = async (id,status) =>{
+export const updateStatusVendor = async (id: string, status: any) =>{
     try {
     const res: AxiosResponse = await apiClient.patch(`dispatcher/vendor/${id}/status`,status);
     console.log('==res ', res)
@@ -115,7 +115,7 @@ export const deleteVendor = async (id:string) =>{
     return (error as Error).response?.data;
   }
 }
-export const updateVendor = async (id:string,data) =>{
+export const updateVendor = async (id:string, data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.put(`dispatcher/vendor/${id}`,data);
     console.log('==res ', res)
@@ -124,7 +124,7 @@ export const updateVendor = async (id:string,data) =>{
     return (error as Error).response?.data;
   }
 }
-export const createVendor = async (data) =>{
+export const createVendor = async (data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/vendor`,data);
     console.log('==res ', res)
@@ -152,7 +152,7 @@ export const updateStatusFleet = async (id:string) =>{
     return (error as Error).response?.data;
   }
 }
-export const updateFleet = async (id:string,data) =>{
+export const updateFleet = async (id:string, data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.put(`dispatcher/fleet/${id}`,data);
     console.log('==res ', res)
@@ -171,7 +171,7 @@ export const listFleet = async () =>{
     return (error as Error).response?.data;
   }
 }
-export const createFleet = async (data) =>{
+export const createFleet = async (data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/fleet`,data);
     console.log('==res ', res)
@@ -183,6 +183,76 @@ export const createFleet = async (data) =>{
 export const listTrailers = async () =>{
     try {
     const res: AxiosResponse = await apiClient.get(`dispatcher/trailer`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const createTrailer = async (data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/trailer`, data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const updateTrailer = async (id: string, data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`dispatcher/trailer/${id}`, data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const deleteTrailer = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`dispatcher/trailer/${id}`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const getTrailerById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/trailer/${id}`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const searchTrailers = async (query: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/trailer/search?q=${query}`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const getTrailerStats = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/trailer/stats`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const updateTrailerStatus = async (id: string, status: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.patch(`dispatcher/trailer/${id}/status`, { status });
     console.log('==res ', res)
     return res.data;
   } catch (error) {
@@ -213,7 +283,7 @@ export const listVehicle = async () =>{
   }
 }
 
-export const createVehicle = async (data) =>{
+export const createVehicle = async (data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/vehicle`,data);
     console.log('==res ', res)
@@ -231,7 +301,7 @@ export const deleteServiceRate = async (id:string) =>{
     return (error as Error).response?.data;
   }
 }
-export const updateServiceRate = async (id:string,data) =>{
+export const updateServiceRate = async (id:string, data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.put(`dispatcher/service-rate/${id}`,data);
     console.log('==res ', res)
@@ -249,7 +319,7 @@ export const listServiceRate = async () =>{
     return (error as Error).response?.data;
   }
 }
-export const createServiceRate = async (data) =>{
+export const createServiceRate = async (data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/service-rate`,data);
     console.log('==res ', res)
@@ -271,7 +341,7 @@ export const listLoad = async () =>{
     return (error as Error).response?.data;
   }
 }
-export const createLoad = async (data) =>{
+export const createLoad = async (data: any) =>{
     try {
     console.log('==res ', data)
     const res: AxiosResponse = await apiClient.post(`dispatcher/load`,data);
@@ -280,6 +350,28 @@ export const createLoad = async (data) =>{
   } catch (error) {
     console.log(error);
 
+    return (error as Error).response?.data;
+  }
+}
+
+export const updateLoad = async (id: string, data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`dispatcher/load/${id}`, data);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const deleteLoad = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`dispatcher/load/${id}`);
+    console.log('==res ', res)
+    return res.data;
+  } catch (error) {
+    console.log(error);
     return (error as Error).response?.data;
   }
 }
@@ -312,6 +404,67 @@ export const listFaciliator = async () =>{
   } catch (error) {
     console.log(error);
 
+    return (error as Error).response?.data;
+  }
+}
+
+// Issue CRUD APIs
+export const createIssue = async (data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/issue`, data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const updateIssue = async (id: string, data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`dispatcher/issue/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const deleteIssue = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`dispatcher/issue/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const getIssueById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/issue/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const listIssues = async (page: number = 1, limit: number = 10) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/issue?page=${page}&limit=${limit}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const searchIssues = async (keyword: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/issue/search?keyword=${keyword}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
     return (error as Error).response?.data;
   }
 }

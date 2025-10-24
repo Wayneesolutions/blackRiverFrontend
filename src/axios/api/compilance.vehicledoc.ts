@@ -9,12 +9,14 @@ interface Error {
     }
 }
 
-export const getVehicleDocument = async (data: any) => {
+export const getVehicleDocument = async () => {
     try {
-        const res: AxiosResponse = await apiClient.get(`hr/vehicle-document`, data);
-        console.log("==res ", res);
+        console.log('🚀 FRONTEND: Fetching vehicle documents from hr/vehicle-document');
+        const res: AxiosResponse = await apiClient.get(`hr/vehicle-document`);
+        console.log("📡 FRONTEND: Vehicle documents response:", res.data);
         return res.data;
     } catch (error: any) {
+        console.error("❌ FRONTEND: Vehicle documents error:", error);
         const err = error as Error;
         return err.response?.data;
     }

@@ -1,18 +1,42 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { listTrailers } from "../../../../axios/api/fleet.maintenance";
 
 interface Trailer {
   _id: string;
   trailer: string;
+  internalId?: string;
   plateNumber: string;
   type: string;
-  ownerShip: string;
-  lastDispatch: string;
-  lastDropLocation: string;
+  capacity: string;
+  ownerShip?: string;
+  lastDispatch?: string;
+  lastDropLocation?: string;
   note?: string;
   operationStatus: string;
-  loadStatus: string;
-  compilance: string;
+  loadStatus?: string;
+  compilance?: string;
+  status?: string;
+  isAttached?: boolean;
+  attachedVehicle?: {
+    _id: string;
+    plateNumber: string;
+    make: string;
+    model: string;
+    driver?: {
+      name: string;
+    };
+  };
+  currentLocation?: {
+    address?: string;
+    latitude?: string;
+    longitude?: string;
+    updatedAt?: string;
+  };
+  speed?: number;
+  cargoDetails?: {
+    cargoType?: string;
+    weight?: number;
+  };
 }
 
 function Trailers() {
@@ -28,17 +52,21 @@ function Trailers() {
   const fetchTrailers = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Fetching trailers...');
       const response = await listTrailers();
+      console.log('📡 Trailers API response:', response);
       
-      if (response?.success && response.dataa) {
-        setTrailers(response.dataa);
+      if (response?.success && response.data) {
+        console.log('✅ Trailers loaded successfully:', response.data.length, 'trailers');
+        setTrailers(response.data);
         setError(null);
       } else {
+        console.error('❌ Failed to load trailers:', response?.message);
         setError(response?.message || "Failed to load trailers");
       }
     } catch (err: any) {
+      console.error('❌ Error fetching trailers:', err);
       setError(err?.message || "An error occurred while fetching trailers");
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -92,12 +120,11 @@ function Trailers() {
               <th className="p-4">Trailer ID</th>
               <th className="p-4">Plate Number</th>
               <th className="p-4">Type</th>
-              <th className="p-4">Ownership</th>
-              <th className="p-4">Last Dispatch</th>
-              <th className="p-4">Last Drop Location</th>
+              <th className="p-4">Capacity</th>
               <th className="p-4">Operation Status</th>
-              <th className="p-4">Load Status</th>
-              <th className="p-4">Compliance</th>
+              <th className="p-4">Attached Vehicle</th>
+              <th className="p-4">Location</th>
+              <th className="p-4">Speed</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -105,40 +132,53 @@ function Trailers() {
               <tr key={trailer._id} className="hover:bg-gray-50 transition-colors">
                 <td className="p-4 font-medium text-gray-800">{trailer.trailer}</td>
                 <td className="p-4 text-gray-600">{trailer.plateNumber}</td>
-                <td className="p-4 text-gray-600">{trailer.type}</td>
-                <td className="p-4 text-gray-600">{trailer.ownerShip}</td>
-                <td className="p-4 text-gray-600">{trailer.lastDispatch}</td>
-                <td className="p-4 text-gray-600">{trailer.lastDropLocation}</td>
+                <td className="p-4 text-gray-600 capitalize">{trailer.type?.replace('_', ' ')}</td>
+                <td className="p-4 text-gray-600">{trailer.capacity || 'N/A'}</td>
                 <td className="p-4">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
-                      trailer.operationStatus === "active"
+                      trailer.operationStatus === "available"
                         ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {trailer.operationStatus}
-                  </span>
-                </td>
-                <td className="p-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
-                      trailer.loadStatus === "loaded"
+                        : trailer.operationStatus === "in_transit"
                         ? "bg-blue-100 text-blue-700"
+                        : trailer.operationStatus === "maintenance"
+                        ? "bg-red-100 text-red-700"
                         : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
-                    {trailer.loadStatus}
+                    {trailer.operationStatus?.replace('_', ' ')}
                   </span>
                 </td>
-                <td className="p-4 text-gray-600">{trailer.compilance}</td>
+                <td className="p-4 text-gray-600">
+                  {trailer.isAttached && trailer.attachedVehicle ? (
+                    <div>
+                      <div className="font-medium">{trailer.attachedVehicle.plateNumber}</div>
+                      <div className="text-xs text-gray-500">
+                        {trailer.attachedVehicle.make} {trailer.attachedVehicle.model}
+                      </div>
+                      {trailer.attachedVehicle.driver && (
+                        <div className="text-xs text-gray-500">
+                          Driver: {trailer.attachedVehicle.driver.name}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">Not attached</span>
+                  )}
+                </td>
+                <td className="p-4 text-gray-600">
+                  {trailer.currentLocation?.address || 'N/A'}
+                </td>
+                <td className="p-4 text-gray-600">
+                  {trailer.speed ? `${trailer.speed} km/h` : 'N/A'}
+                </td>
               </tr>
             ))}
 
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={8}
                   className="p-6 text-center text-gray-500 italic"
                 >
                   No trailers found

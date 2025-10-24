@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Plus, Trash, Package, Edit3, Upload, Camera } from "lucide-react";
-import { createLoad, listVehicle, listCustomer, listFaciliator, listDriver } from "../../../axios/api/distapcher";
+import { createLoad, listCustomer, listFaciliator, listDriver } from "../../../axios/api/distapcher";
+import { useVehicles } from "../../../customHooks/useVehicles";
 import { Section } from './settings/Section';
 import { Toggle } from './settings/Section';
 
@@ -8,11 +9,17 @@ interface NewLoadProps {
     onClose: () => void;
 }
 
+
 const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
+    // Use custom hook for vehicles
+    const { vehicles, loading: vehiclesLoading, error: vehiclesError } = useVehicles();
+    
+    // Debug vehicles data
+    console.log('Vehicles from hook:', { vehicles, vehiclesLoading, vehiclesError });
+    
     // API data states
     const [customers, setCustomers] = useState<any[]>([]);
     const [drivers, setDrivers] = useState<any[]>([]);
-    const [vehicles, setVehicles] = useState<any[]>([]);
     const [facilator, setFaciliator] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -56,6 +63,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
         height: string;
         weight: string;
         image: string;
+        internalId: string;
     }[]>([]);
     const [editingItem, setEditingItem] = useState<any>(null);
 
@@ -77,12 +85,10 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
             try {
                 const lc = await listCustomer();
                 const ld = await listDriver();
-                const lv = await listVehicle();
                 const lf = await listFaciliator();
 
                 setCustomers(lc.data || []);
                 setDrivers(ld.data || []);
-                setVehicles(lv.data || []);
                 setFaciliator(lf.data || []);
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -93,6 +99,11 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
         fetchData();
     }, []);
+
+    // Debug documents state changes
+    useEffect(() => {
+        console.log('Documents state changed:', documents);
+    }, [documents]);
 
     // Waypoint functions
     const addWaypoint = () => {
@@ -130,12 +141,17 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
             width: "",
             height: "",
             weight: "",
-            image: randomImage
+            image: randomImage,
+            internalId: `ITEM_${Date.now()}`
         }]);
     };
 
     const removeItem = (id: number) => {
         setItems(items.filter((i) => i.id !== id));
+    };
+
+    const updateItem = (id: number, field: string, value: string) => {
+        setItems(items.map((i) => (i.id === id ? { ...i, [field]: value } : i)));
     };
 
     const saveItem = (updatedItem: any) => {
@@ -159,13 +175,85 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
     // Handle document selection
     const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setDocuments(Array.from(e.target.files));
+        if (e.target.files && e.target.files.length > 0) {
+            const newFiles = Array.from(e.target.files);
+            console.log('Selected files:', newFiles);
+            console.log('Current documents before update:', documents);
+            
+            // Simple state update
+            setDocuments(prevDocuments => {
+                const updated = [...prevDocuments, ...newFiles];
+                console.log('Updated documents:', updated);
+                return updated;
+            });
         }
+        // Clear the input so the same file can be selected again
+        e.target.value = '';
+    };
+
+    // Remove document by index
+    const removeDocument = (index: number) => {
+        setDocuments(documents.filter((_, i) => i !== index));
+    };
+
+    // Handle drag and drop
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+            setDocuments(prevDocuments => {
+                const updated = [...prevDocuments, ...files];
+                console.log('Files dropped, updated documents:', updated);
+                return updated;
+            });
+        }
+    };
+
+    // Form validation
+    const validateForm = () => {
+        const errors = [];
+        
+        if (!orderType) errors.push("Order type is required");
+        if (!selectedCustomer) errors.push("Customer is required");
+        if (!selectedDriver) errors.push("Driver is required");
+        if (!selectedVehicle) errors.push("Vehicle is required");
+        
+        if (!multipleDropoffs) {
+            if (!selectPickup) errors.push("Pickup address is required");
+            if (!selectDropoff) errors.push("Dropoff address is required");
+        } else {
+            if (waypoints.length === 0) errors.push("At least one waypoint is required");
+            waypoints.forEach((wp, index) => {
+                if (!wp.address) errors.push(`Waypoint ${index + 1} address is required`);
+            });
+        }
+        
+        if (items.length === 0) errors.push("At least one item is required");
+        items.forEach((item, index) => {
+            if (!item.name) errors.push(`Item ${index + 1} name is required`);
+            if (!item.sku) errors.push(`Item ${index + 1} SKU is required`);
+            if (!item.internalId) errors.push(`Item ${index + 1} internal ID is required`);
+        });
+        
+        return errors;
     };
 
     // Handle form submission
     const handleSaveLoad = async () => {
+        // Validate form
+        const validationErrors = validateForm();
+        if (validationErrors.length > 0) {
+            alert("Please fix the following errors:\n" + validationErrors.join("\n"));
+            return;
+        }
+
         setLoading(true);
         try {
             const detailsData = {
@@ -201,7 +289,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                 itemName: item.name,
                 sku: item.sku,
                 itemImageUrl: item.image,
-                internalId: `ITEM_${item.id}`,
+                internalId: item.internalId,
                 description: item.description,
                 priceAndValues: {
                     price: parseFloat(item.price) || 0,
@@ -270,9 +358,12 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                             <select 
                                 value={orderType}
                                 onChange={(e) => setOrderType(e.target.value)}
-                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${
+                                    !orderType ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                                }`}
+                                required
                             >
-                                <option value="">Select Order Type</option>
+                                <option value="">Select Order Type *</option>
                                 <option value="standard">Standard</option>
                                 <option value="express">Express</option>
                                 <option value="overnight">Overnight</option>
@@ -286,10 +377,13 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                             <select 
                                 value={selectedCustomer}
                                 onChange={(e) => setSelectedCustomer(e.target.value)}
-                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${
+                                    !selectedCustomer ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                                }`}
                                 disabled={loading}
+                                required
                             >
-                                <option value="">Select Customer</option>
+                                <option value="">Select Customer *</option>
                                 {customers?.map((customer) => (
                                     <option key={customer._id} value={customer._id}>
                                         {customer.name}
@@ -311,10 +405,13 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                             <select 
                                 value={selectedDriver}
                                 onChange={(e) => setSelectedDriver(e.target.value)}
-                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${
+                                    !selectedDriver ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                                }`}
                                 disabled={loading}
+                                required
                             >
-                                <option value="">Select Driver</option>
+                                <option value="">Select Driver *</option>
                                 {drivers.map((driver) => (
                                     <option key={driver._id} value={driver._id}>
                                         {driver.name}
@@ -324,13 +421,18 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                             <select 
                                 value={selectedVehicle}
                                 onChange={(e) => setSelectedVehicle(e.target.value)}
-                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                disabled={loading}
+                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${
+                                    !selectedVehicle ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                                }`}
+                                disabled={loading || vehiclesLoading}
+                                required
                             >
-                                <option value="">Select Vehicle</option>
-                                {vehicles.length && vehicles?.map((vehicle) => (
+                                <option value="">Select Vehicle *</option>
+                                {vehiclesError && <option disabled>Error loading vehicles</option>}
+                                {vehiclesLoading && <option disabled>Loading vehicles...</option>}
+                                {vehicles.length > 0 && vehicles.map((vehicle) => (
                                     <option key={vehicle._id} value={vehicle._id}>
-                                        {vehicle.internalId}
+                                        {vehicle.internalId} - {vehicle.make} {vehicle.model} ({vehicle.plateNumber})
                                     </option>
                                 ))}
                             </select>
@@ -495,12 +597,6 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                         className="border border-gray-300 rounded-lg p-4 relative"
                                         style={{ backgroundColor: '#f9fafb' }}
                                     >
-                                        <button
-                                            onClick={() => removeItem(item.id)}
-                                            className="absolute top-2 right-2 p-1 hover:bg-red-100 rounded z-10"
-                                        >
-                                            <X className="text-red-500 w-4 h-4" />
-                                        </button>
 
                                         <div className="flex justify-center mb-3">
                                             {item.image ? (
@@ -515,25 +611,49 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <input
-                                                className="w-full p-2 border border-gray-300 rounded bg-white !mb-4"
-                                                placeholder="Item Name"
-                                                value={item.name}
-                                                readOnly
-                                            />
-                                            <input
-                                                className="w-full p-2 border border-gray-300 rounded bg-white !mb-4"
-                                                placeholder="SKU"
-                                                value={item.sku}
-                                                readOnly
-                                            />
-                                            <button
-                                                onClick={() => setEditingItem(item)}
-                                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-300 rounded w-full justify-center transition-colors mt-2"
-                                                style={{ backgroundColor: '#e5e7eb' }}
-                                            >
-                                                <Edit3 size={14} /> Edit Item
-                                            </button>
+                                            <div>
+                                                <label className="block text-xs mb-1 text-gray-600 font-medium">Item Name *</label>
+                                                <input
+                                                    className="w-full p-2 border border-gray-300 rounded bg-white !mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Enter item name"
+                                                    value={item.name}
+                                                    onChange={(e) => updateItem(item.id, 'name', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs mb-1 text-gray-600 font-medium">SKU *</label>
+                                                <input
+                                                    className="w-full p-2 border border-gray-300 rounded bg-white !mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Enter SKU"
+                                                    value={item.sku}
+                                                    onChange={(e) => updateItem(item.id, 'sku', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs mb-1 text-gray-600 font-medium">Internal ID</label>
+                                                <input
+                                                    className="w-full p-2 border border-gray-300 rounded bg-white !mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Enter internal ID"
+                                                    value={item.internalId}
+                                                    onChange={(e) => updateItem(item.id, 'internalId', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setEditingItem(item)}
+                                                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-300 rounded flex-1 justify-center transition-colors"
+                                                    style={{ backgroundColor: '#e5e7eb' }}
+                                                >
+                                                    <Edit3 size={14} /> Advanced Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => removeItem(item.id)}
+                                                    className="flex items-center gap-2 px-3 py-2 hover:bg-red-100 rounded transition-colors"
+                                                    style={{ backgroundColor: '#fee2e2' }}
+                                                >
+                                                    <Trash size={14} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -559,31 +679,94 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
                     {/* Documents */}
                     <Section title="Documents & Files">
-                        <div className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50 hover:bg-blue-100 transition-colors">
-                            <p className="mb-3 text-gray-600">
-                                Drag and drop files into this dropzone. Upload Documents & Files
-                            </p>
-                            <input
-                                type="file"
-                                multiple
-                                onChange={handleDocumentUpload}
-                                className="hidden"
-                                id="file-upload"
-                            />
-                            <button 
-                                onClick={() => document.getElementById('file-upload')?.click()}
-                                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 !text-white rounded transition-colors"
-                            >
-                                or select files to upload
-                            </button>
+                        {/* Debug info */}
+                        <div className="mb-2 text-xs text-gray-500">
+                            Documents: {documents.length} file{documents.length !== 1 ? 's' : ''} selected
+                        </div>
+                        <div 
+                            className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50 hover:bg-blue-100 transition-colors"
+                            onDragOver={handleDragOver}
+                            onDrop={handleDrop}
+                        >
+                            {documents.length === 0 ? (
+                                <div>
+                                    <p className="mb-3 text-gray-600">
+                                        Drag and drop files into this dropzone. Upload Documents & Files
+                                    </p>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        onChange={handleDocumentUpload}
+                                        className="hidden"
+                                        id="file-upload"
+                                    />
+                                    <button 
+                                        onClick={() => document.getElementById('file-upload')?.click()}
+                                        className="px-6 py-2 bg-blue-500 hover:bg-blue-600 !text-white rounded transition-colors"
+                                    >
+                                        Select files to upload
+                                    </button>
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className="flex items-center justify-center gap-3 mb-4">
+                                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                            <Upload className="w-5 h-5 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-900">
+                                                {documents.length} file{documents.length > 1 ? 's' : ''} selected
+                                            </p>
+                                            <p className="text-xs text-gray-500">Ready to upload</p>
+                                        </div>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        onChange={handleDocumentUpload}
+                                        className="hidden"
+                                        id="file-upload"
+                                    />
+                                    <button 
+                                        onClick={() => document.getElementById('file-upload')?.click()}
+                                        className="px-4 py-2 bg-gray-500 hover:bg-gray-600 !text-white rounded transition-colors mr-2"
+                                    >
+                                        Add More Files
+                                    </button>
+                                    <button 
+                                        onClick={() => setDocuments([])}
+                                        className="px-4 py-2 bg-red-500 hover:bg-red-600 !text-white rounded transition-colors"
+                                    >
+                                        Clear All
+                                    </button>
+                                </div>
+                            )}
                             {documents.length > 0 && (
-                                <div className="mt-4">
-                                    <p className="text-sm text-gray-600">Selected files:</p>
-                                    <ul className="list-disc list-inside text-sm text-gray-500">
+                                <div className="mt-6">
+                                    <div className="space-y-2">
                                         {documents.map((file, index) => (
-                                            <li key={index}>{file.name}</li>
+                                            <div key={index} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                        <Upload className="w-4 h-4 text-blue-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeDocument(index)}
+                                                    className="p-1 hover:bg-red-100 rounded-lg transition-colors"
+                                                    title="Remove file"
+                                                >
+                                                    <X className="w-4 h-4 text-red-500" />
+                                                </button>
+                                            </div>
                                         ))}
-                                    </ul>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -710,9 +893,12 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                     <div>
                                         <label className="block text-xs mb-1 text-gray-500">Internal ID</label>
                                         <input
-                                            className="w-full p-2 border border-gray-300 rounded text-gray-900 bg-gray-50"
-                                            value={`ITEM_${editingItem.id}`}
-                                            readOnly
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                                            placeholder="Enter internal ID"
+                                            value={editingItem.internalId}
+                                            onChange={(e) =>
+                                                setEditingItem({ ...editingItem, internalId: e.target.value })
+                                            }
                                         />
                                     </div>
                                 </div>
