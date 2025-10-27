@@ -17,6 +17,7 @@ const Invoice = lazy(() => import("../pages/admin/dashboard/invoice/index"));
 const Integrations = lazy(() => import("../pages/admin/dashboard/setting/Api"))
 const UserManage = lazy(() => import("../pages/admin/dashboard/setting/Users"));
 const CompanyManage = lazy(() => import("../pages/admin/dashboard/setting/Company"))
+const CompanyDocuments = lazy(() => import("../pages/admin/dashboard/documents/index"));
 
 const DispatchRoutes = lazy(() => import("./AdminFeatures/DispatchRoutes"));
 const GpsVehicleRoutes = lazy(() => import("./AdminFeatures/GpsVehicleRoutes"))
@@ -58,6 +59,7 @@ function AdminRoute() {
           <Route path="users" element={<UserManage />} />
           <Route path="company" element={<CompanyManage />} />
           <Route path="integrations" element={<Integrations />} />
+          <Route path="company-documents" element={<CompanyDocuments />} />
         </Route>
       </Routes>
     </Suspense>
