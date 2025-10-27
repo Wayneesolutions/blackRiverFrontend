@@ -24,9 +24,7 @@ const Header = () => {
 
             {/* Right section: Icons */}
             <div className="flex items-center gap-4 ml-4">
-                <FaExpand className="cursor-pointer" />
                 <FaBell className="cursor-pointer" />
-                <FaCommentDots className="cursor-pointer" />
                 <FaUserCircle className="cursor-pointer" />
             </div>
         </header>

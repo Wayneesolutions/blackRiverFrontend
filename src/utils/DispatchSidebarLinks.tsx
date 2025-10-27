@@ -2,17 +2,24 @@ import {
   MdDashboard,
   MdMiscellaneousServices,
   MdEventNote,
-  MdBuild,
+  MdSettings,
   MdContacts,
   MdErrorOutline,
   MdPayment,
   MdNotificationsActive,
-  MdLocalShipping
+  MdLocalShipping,
+  MdOutlineMap,
 } from "react-icons/md";
-import { FaTruckMoving, FaUsers, FaMapMarkerAlt } from "react-icons/fa";
+import {
+  FaTruckMoving,
+  FaUsers,
+  FaMapMarkerAlt,
+  FaTrailer,
+  FaUserTie,
+} from "react-icons/fa";
 import { RiOilLine } from "react-icons/ri";
 import { GiPathDistance } from "react-icons/gi";
-import { TbTruckDelivery } from "react-icons/tb";
+import { TbTruckDelivery, TbReportAnalytics } from "react-icons/tb";
 import { IoIosSend } from "react-icons/io";
 
 type DispatchSidebarLinks = {
@@ -24,12 +31,11 @@ type DispatchSidebarLinks = {
 };
 
 export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
-
   {
     key: "open-new-load",
     action: "open-new-load",
     icon: <IoIosSend />,
-    label: "New Load"
+    label: "New Load",
   },
   {
     key: "/admin/dispatch/operations",
@@ -43,7 +49,7 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
       },
       {
         key: "/admin/dispatch/operations/service-rates",
-        icon: <MdBuild />,
+        icon: <TbReportAnalytics />,
         label: "Service Rates",
       },
       {
@@ -75,17 +81,17 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
       },
       {
         key: "/admin/dispatch/resources/trailers",
-        icon: <TbTruckDelivery />,
+        icon: <FaTrailer />,
         label: "Trailers",
       },
       {
         key: "/admin/dispatch/resources/fleets",
-        icon: <FaUsers />,
+        icon: <FaUserTie />,
         label: "Fleets",
       },
       {
         key: "/admin/dispatch/resources/vendors",
-        icon: <MdContacts />,
+        icon: <FaUserTie />,
         label: "Vendors",
       },
       {
@@ -95,7 +101,7 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
       },
       {
         key: "/admin/dispatch/resources/places",
-        icon: <FaMapMarkerAlt />,
+        icon: <MdOutlineMap />,
         label: "Places",
       },
       {
@@ -112,7 +118,7 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
   },
   {
     key: "/admin/dispatch/settings",
-    icon: <MdBuild />,
+    icon: <MdSettings />,
     label: "Settings",
     children: [
       {
