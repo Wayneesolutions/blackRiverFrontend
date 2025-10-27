@@ -28,14 +28,7 @@ const features = [
         title: "Human Resources (Drivers)",
         description: "Simplify scheduling, communication, and performance monitoring to keep your driver team organized.",
         icon: DriverIcon,
-        route: "/admin/driverManagement",
-    },
-    {
-        id: "employee",
-        title: "Employee Management",
-        description: "Manage employee profiles, documents, and performance with centralized access and tracking tools.",
-        icon: EmployeeIcon,
-        route: "/admin/employeeManagement",
+        route: "/admin/Management",
     },
     {
         id: "maintenance",

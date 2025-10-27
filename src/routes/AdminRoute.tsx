@@ -20,11 +20,10 @@ const CompanyManage = lazy(() => import("../pages/admin/dashboard/setting/Compan
 
 const DispatchRoutes = lazy(() => import("./AdminFeatures/DispatchRoutes"));
 const GpsVehicleRoutes = lazy(() => import("./AdminFeatures/GpsVehicleRoutes"))
-const DriverManagement = lazy(() => import("./AdminFeatures/DriverManagementRoutes"))
+const DriverManagement = lazy(() => import("./AdminFeatures/HRManagementRoutes"))
 const ComplianceRoute = lazy(() => import('./AdminFeatures/CompilanceRoute'))
 const FleetMaintainRoute = lazy(() => import("./AdminFeatures/FleetMaintainRoutes"))
 const AccountsRoute = lazy(() => import("./AdminFeatures/AccountsRoutes"))
-const EmployeeRoute = lazy(() => import("./AdminFeatures/EmployeeRoute"))
 
 function AdminRoute() {
   return (
@@ -33,11 +32,10 @@ function AdminRoute() {
         {/* Feature Routes - These should come BEFORE the Layout routes */}
         <Route path="dispatch/*" element={<DispatchRoutes />} />
         <Route path="gpsvehicle/*" element={<GpsVehicleRoutes />} />
-        <Route path="driverManagement/*" element={<DriverManagement />} />
+        <Route path="Management/*" element={<DriverManagement />} />
         <Route path="compliance/*" element={<ComplianceRoute />} />
         <Route path="accounts/*" element={<AccountsRoute />} />
         <Route path="fleetmaintenance/*" element={<FleetMaintainRoute />} />
-         <Route path="employeeManagement/*" element={<EmployeeRoute />} />
         {/* Add other feature routes here when ready */}
         {/* 
          <Route path="gps/*" element={<GPSRoutes />} />
