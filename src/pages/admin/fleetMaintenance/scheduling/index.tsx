@@ -882,14 +882,14 @@ const MaintenanceSchedule = () => {
                             <button
                                 onClick={fetchVehicleServices}
                                 disabled={servicesLoading}
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+                                className="bg-gray-600 hover:bg-gray-700 !text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
                             >
                                 <Search size={16} />
                                 Refresh
                             </button>
                             <button
                                 onClick={() => setShowScheduleForm(true)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                                className="bg-blue-600 hover:bg-blue-700 !text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                             >
                                 <Plus size={16} />
                                 Add Service
@@ -981,7 +981,7 @@ const MaintenanceSchedule = () => {
                         <div className="flex items-end">
                             <button
                                 onClick={() => setServiceFilters({})}
-                                className="w-full px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                                className="w-full px-4 py-2 bg-gray-500 hover:bg-gray-600 !text-white rounded-lg transition-colors"
                             >
                                 Clear Filters
                             </button>
@@ -1008,7 +1008,7 @@ const MaintenanceSchedule = () => {
                             <div className="mt-6">
                                 <button
                                     onClick={() => setShowScheduleForm(true)}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md !text-white bg-blue-600 hover:bg-blue-700"
                                 >
                                     <Plus size={16} className="mr-2" />
                                     Create Service

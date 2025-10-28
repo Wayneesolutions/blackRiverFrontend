@@ -8,6 +8,39 @@ interface Employee {
     role: string;
 }
 
+interface Trip {
+    _id: string;
+    tripId: string;
+    driverId: string;
+    driverName: string;
+    startLocation: string;
+    endLocation: string;
+    startAddress: string;
+    endAddress: string;
+    startDate: string;
+    endDate: string;
+    startTime: string;
+    endTime: string;
+    totalMiles: number;
+    ratePerMile: number;
+    calculatedPrice: number;
+    status: 'completed' | 'in-progress' | 'cancelled';
+    vehicleId: string;
+    vehicleInfo: string;
+    cargoType: string;
+    cargoWeight: number;
+    fuelCost: number;
+    tolls: number;
+    selected?: boolean;
+}
+
+interface DriverPayrollData {
+    totalTrips: number;
+    totalMiles: number;
+    totalEarnings: number;
+    trips: Trip[];
+}
+
 interface Payroll {
     _id: string;
     userId: {
@@ -33,6 +66,10 @@ interface PayrollFormData {
     payDate: string;
     startDate: string;
     endDate: string;
+    // Driver-specific fields
+    ratePerMile?: string;
+    totalMiles?: string;
+    tripEarnings?: string;
 }
 
 interface Notification {
@@ -49,7 +86,11 @@ const PayrollManagement = () => {
     const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [payrollData, setPayrollData] = useState<Payroll[]>([]);
+    const [driverTrips, setDriverTrips] = useState<Trip[]>([]);
+    const [driverPayrollData, setDriverPayrollData] = useState<DriverPayrollData | null>(null);
+    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
     const [loading, setLoading] = useState(false);
+    const [loadingTrips, setLoadingTrips] = useState(false);
     const [notification, setNotification] = useState<Notification | null>(null);
 
     const [formData, setFormData] = useState<PayrollFormData>({
@@ -59,7 +100,10 @@ const PayrollManagement = () => {
         deductions: '0',
         payDate: '',
         startDate: '',
-        endDate: ''
+        endDate: '',
+        ratePerMile: '0.50',
+        totalMiles: '0',
+        tripEarnings: '0'
     });
 
     const showNotification = (type: 'success' | 'error', message: string) => {
@@ -94,6 +138,171 @@ const PayrollManagement = () => {
         }
     };
 
+    // Mock function to fetch driver trips - replace with actual API call
+    const fetchDriverTrips = async (driverId: string) => {
+        setLoadingTrips(true);
+        try {
+            // Mock data - replace with actual API call
+            const mockTrips: Trip[] = [
+                {
+                    _id: '1',
+                    tripId: 'TRP-001',
+                    driverId: driverId,
+                    driverName: selectedEmployee?.name || 'Driver',
+                    startLocation: 'Toronto, ON',
+                    endLocation: 'Montreal, QC',
+                    startAddress: '1234 Bay Street, Toronto, ON M5G 1M5',
+                    endAddress: '5678 Saint-Catherine Street, Montreal, QC H3B 1A1',
+                    startDate: '2024-01-15',
+                    endDate: '2024-01-16',
+                    startTime: '08:00',
+                    endTime: '14:30',
+                    totalMiles: 350,
+                    ratePerMile: 0.50,
+                    calculatedPrice: 175.00,
+                    status: 'completed',
+                    vehicleId: 'V001',
+                    vehicleInfo: 'Freightliner Cascadia - ABC123',
+                    cargoType: 'General Freight',
+                    cargoWeight: 25000,
+                    fuelCost: 45.50,
+                    tolls: 12.75,
+                    selected: false
+                },
+                {
+                    _id: '2',
+                    tripId: 'TRP-002',
+                    driverId: driverId,
+                    driverName: selectedEmployee?.name || 'Driver',
+                    startLocation: 'Montreal, QC',
+                    endLocation: 'Ottawa, ON',
+                    startAddress: '5678 Saint-Catherine Street, Montreal, QC H3B 1A1',
+                    endAddress: '9012 Bank Street, Ottawa, ON K1A 0A6',
+                    startDate: '2024-01-18',
+                    endDate: '2024-01-19',
+                    startTime: '06:30',
+                    endTime: '11:45',
+                    totalMiles: 120,
+                    ratePerMile: 0.50,
+                    calculatedPrice: 60.00,
+                    status: 'completed',
+                    vehicleId: 'V001',
+                    vehicleInfo: 'Freightliner Cascadia - ABC123',
+                    cargoType: 'Electronics',
+                    cargoWeight: 15000,
+                    fuelCost: 18.20,
+                    tolls: 8.50,
+                    selected: false
+                },
+                {
+                    _id: '3',
+                    tripId: 'TRP-003',
+                    driverId: driverId,
+                    driverName: selectedEmployee?.name || 'Driver',
+                    startLocation: 'Ottawa, ON',
+                    endLocation: 'Toronto, ON',
+                    startAddress: '9012 Bank Street, Ottawa, ON K1A 0A6',
+                    endAddress: '1234 Bay Street, Toronto, ON M5G 1M5',
+                    startDate: '2024-01-22',
+                    endDate: '2024-01-23',
+                    startTime: '09:15',
+                    endTime: '16:20',
+                    totalMiles: 280,
+                    ratePerMile: 0.50,
+                    calculatedPrice: 140.00,
+                    status: 'completed',
+                    vehicleId: 'V001',
+                    vehicleInfo: 'Freightliner Cascadia - ABC123',
+                    cargoType: 'Automotive Parts',
+                    cargoWeight: 18000,
+                    fuelCost: 36.40,
+                    tolls: 15.25,
+                    selected: false
+                },
+                {
+                    _id: '4',
+                    tripId: 'TRP-004',
+                    driverId: driverId,
+                    driverName: selectedEmployee?.name || 'Driver',
+                    startLocation: 'Toronto, ON',
+                    endLocation: 'Windsor, ON',
+                    startAddress: '1234 Bay Street, Toronto, ON M5G 1M5',
+                    endAddress: '3456 Ouellette Avenue, Windsor, ON N9A 1A1',
+                    startDate: '2024-01-25',
+                    endDate: '2024-01-26',
+                    startTime: '07:45',
+                    endTime: '13:15',
+                    totalMiles: 230,
+                    ratePerMile: 0.50,
+                    calculatedPrice: 115.00,
+                    status: 'completed',
+                    vehicleId: 'V001',
+                    vehicleInfo: 'Freightliner Cascadia - ABC123',
+                    cargoType: 'Food Products',
+                    cargoWeight: 12000,
+                    fuelCost: 29.90,
+                    tolls: 6.75,
+                    selected: false
+                },
+                {
+                    _id: '5',
+                    tripId: 'TRP-005',
+                    driverId: driverId,
+                    driverName: selectedEmployee?.name || 'Driver',
+                    startLocation: 'Windsor, ON',
+                    endLocation: 'Hamilton, ON',
+                    startAddress: '3456 Ouellette Avenue, Windsor, ON N9A 1A1',
+                    endAddress: '7890 Main Street East, Hamilton, ON L8H 1A1',
+                    startDate: '2024-01-28',
+                    endDate: '2024-01-29',
+                    startTime: '10:30',
+                    endTime: '15:45',
+                    totalMiles: 180,
+                    ratePerMile: 0.50,
+                    calculatedPrice: 90.00,
+                    status: 'completed',
+                    vehicleId: 'V001',
+                    vehicleInfo: 'Freightliner Cascadia - ABC123',
+                    cargoType: 'Construction Materials',
+                    cargoWeight: 22000,
+                    fuelCost: 23.40,
+                    tolls: 4.50,
+                    selected: false
+                }
+            ];
+
+            // Filter trips by date range - for demo purposes, show all trips regardless of date
+            const filteredTrips = mockTrips; // Remove date filtering for now to ensure trips show
+
+            setDriverTrips(filteredTrips);
+
+            // Calculate payroll data
+            const totalTrips = filteredTrips.length;
+            const totalMiles = filteredTrips.reduce((sum, trip) => sum + trip.totalMiles, 0);
+            const totalEarnings = filteredTrips.reduce((sum, trip) => sum + trip.calculatedPrice, 0);
+
+            setDriverPayrollData({
+                totalTrips,
+                totalMiles,
+                totalEarnings,
+                trips: filteredTrips
+            });
+
+            // Update form data with calculated values
+            setFormData(prev => ({
+                ...prev,
+                totalMiles: totalMiles.toString(),
+                tripEarnings: totalEarnings.toString(),
+                baseSalary: totalEarnings.toString() // For drivers, base salary = trip earnings
+            }));
+
+        } catch (error) {
+            showNotification('error', 'Error fetching driver trips');
+        } finally {
+            setLoadingTrips(false);
+        }
+    };
+
     useEffect(() => {
         fetchEmployees();
         fetchPayrolls();
@@ -101,10 +310,146 @@ const PayrollManagement = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        
+        if (name === 'userId') {
+            // Check if it's a static driver option
+            const isDriver = value.startsWith('driver-');
+            const driverName = isDriver ? value.split('-')[1] : null;
+            
+            if (isDriver) {
+                // Create a mock employee object for static drivers
+                const mockDriver: Employee = {
+                    _id: value,
+                    name: driverName === '1' ? 'John Smith' : 
+                          driverName === '2' ? 'Sarah Johnson' :
+                          driverName === '3' ? 'Michael Brown' :
+                          driverName === '4' ? 'Emily Davis' :
+                          driverName === '5' ? 'David Wilson' : 'Driver',
+                    role: 'Driver'
+                };
+                setSelectedEmployee(mockDriver);
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: value
+                }));
+                
+                // Auto-fetch trips for driver with default date range (current month)
+                const today = new Date();
+                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                
+                const startDate = firstDay.toISOString().split('T')[0];
+                const endDate = lastDay.toISOString().split('T')[0];
+                
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: value,
+                    startDate,
+                    endDate
+                }));
+                
+                // Fetch trips immediately
+                fetchDriverTrips(value);
+                
+                // Also set some initial trip data for immediate display
+                const initialTrips: Trip[] = [
+                    {
+                        _id: '1',
+                        tripId: 'TRP-001',
+                        driverId: value,
+                        driverName: mockDriver.name,
+                        startLocation: 'Toronto, ON',
+                        endLocation: 'Montreal, QC',
+                        startAddress: '1234 Bay Street, Toronto, ON M5G 1M5',
+                        endAddress: '5678 Saint-Catherine Street, Montreal, QC H3B 1A1',
+                        startDate: '2024-01-15',
+                        endDate: '2024-01-16',
+                        startTime: '08:00',
+                        endTime: '14:30',
+                        totalMiles: 350,
+                        ratePerMile: 0.50,
+                        calculatedPrice: 175.00,
+                        status: 'completed',
+                        vehicleId: 'V001',
+                        vehicleInfo: 'Freightliner Cascadia - ABC123',
+                        cargoType: 'General Freight',
+                        cargoWeight: 25000,
+                        fuelCost: 45.50,
+                        tolls: 12.75,
+                        selected: false
+                    }
+                ];
+                setDriverTrips(initialTrips);
+            } else {
+                // Handle regular employees
+                const selectedEmp = employees.find(emp => emp._id === value);
+                setSelectedEmployee(selectedEmp || null);
+                
+                // Reset driver-specific data when changing to non-driver employee
+                if (selectedEmp?.role.toLowerCase() !== 'driver') {
+                    setDriverTrips([]);
+                    setDriverPayrollData(null);
+                    setFormData(prev => ({
+                        ...prev,
+                        [name]: value,
+                        baseSalary: '',
+                        totalMiles: '0',
+                        tripEarnings: '0'
+                    }));
+                } else {
+                    setFormData(prev => ({
+                        ...prev,
+                        [name]: value
+                    }));
+                }
+            }
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+    };
+
+    // Handle date range changes for driver trip fetching
+    const handleDateRangeChange = (startDate: string, endDate: string) => {
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            startDate,
+            endDate
         }));
+
+        // If selected employee is a driver and we have both dates, fetch trips
+        if (selectedEmployee?.role.toLowerCase() === 'driver' && startDate && endDate) {
+            fetchDriverTrips(selectedEmployee._id);
+        }
+    };
+
+    // Handle trip selection
+    const toggleTripSelection = (tripId: string) => {
+        setDriverTrips(prev => prev.map(trip => 
+            trip._id === tripId ? { ...trip, selected: !trip.selected } : trip
+        ));
+    };
+
+    const selectAllTrips = () => {
+        setDriverTrips(prev => prev.map(trip => ({ ...trip, selected: true })));
+    };
+
+    const deselectAllTrips = () => {
+        setDriverTrips(prev => prev.map(trip => ({ ...trip, selected: false })));
+    };
+
+    // Calculate selected trips totals
+    const getSelectedTripsTotals = () => {
+        const selectedTrips = driverTrips.filter(trip => trip.selected);
+        return {
+            count: selectedTrips.length,
+            totalMiles: selectedTrips.reduce((sum, trip) => sum + trip.totalMiles, 0),
+            totalEarnings: selectedTrips.reduce((sum, trip) => sum + trip.calculatedPrice, 0),
+            totalFuelCost: selectedTrips.reduce((sum, trip) => sum + trip.fuelCost, 0),
+            totalTolls: selectedTrips.reduce((sum, trip) => sum + trip.tolls, 0)
+        };
     };
 
     const handleCreate = async () => {
@@ -236,8 +581,14 @@ const PayrollManagement = () => {
             deductions: '0',
             payDate: '',
             startDate: '',
-            endDate: ''
+            endDate: '',
+            ratePerMile: '0.50',
+            totalMiles: '0',
+            tripEarnings: '0'
         });
+        setSelectedEmployee(null);
+        setDriverTrips([]);
+        setDriverPayrollData(null);
     };
 
     const filteredPayrolls = payrollData.filter(payroll => {
@@ -463,7 +814,7 @@ const PayrollManagement = () => {
 
                 {(showCreateModal || showEditModal) && (
                     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center overflow-auto p-4">
-                        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
                             <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${showCreateModal ? 'bg-blue-100' : 'bg-green-100'}`}>
@@ -503,11 +854,24 @@ const PayrollManagement = () => {
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                                     >
                                         <option value="">Select Employee</option>
-                                        {employees.map((emp) => (
-                                            <option key={emp._id} value={emp._id}>
-                                                {emp.name} - {emp.role}
-                                            </option>
-                                        ))}
+                                        
+                                        {/* Static Driver Options */}
+                                        <optgroup label="Drivers">
+                                            <option value="driver-1">John Smith - Driver</option>
+                                            <option value="driver-2">Sarah Johnson - Driver</option>
+                                            <option value="driver-3">Michael Brown - Driver</option>
+                                            <option value="driver-4">Emily Davis - Driver</option>
+                                            <option value="driver-5">David Wilson - Driver</option>
+                                        </optgroup>
+                                        
+                                        {/* Other Employees */}
+                                        <optgroup label="Other Employees">
+                                            {employees.filter(emp => emp.role.toLowerCase() !== 'driver').map((emp) => (
+                                                <option key={emp._id} value={emp._id}>
+                                                    {emp.name} - {emp.role}
+                                                </option>
+                                            ))}
+                                        </optgroup>
                                     </select>
                                 </div>
 
@@ -584,7 +948,7 @@ const PayrollManagement = () => {
                                                 type="date"
                                                 name="startDate"
                                                 value={formData.startDate}
-                                                onChange={handleInputChange}
+                                                onChange={(e) => handleDateRangeChange(e.target.value, formData.endDate)}
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                                             />
                                         </div>
@@ -596,7 +960,7 @@ const PayrollManagement = () => {
                                                 type="date"
                                                 name="endDate"
                                                 value={formData.endDate}
-                                                onChange={handleInputChange}
+                                                onChange={(e) => handleDateRangeChange(formData.startDate, e.target.value)}
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                                             />
                                         </div>
@@ -616,11 +980,242 @@ const PayrollManagement = () => {
                                     />
                                 </div>
 
+                                {/* Driver-specific Trip Information */}
+                                {selectedEmployee?.role.toLowerCase() === 'driver' && (
+                                    <div className="space-y-4">
+                                        {/* Driver Info Header */}
+                                        <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg">
+                                            <h4 className="text-lg font-bold flex items-center gap-2">
+                                                <Users size={20} />
+                                                Driver: {selectedEmployee.name}
+                                            </h4>
+                                            <p className="text-green-100 text-sm mt-1">
+                                                Trip data automatically loaded for current month. Adjust dates below to see different periods.
+                                            </p>
+                                        </div>
+
+                                        {/* Debug Info - Remove this in production */}
+                                        <div className="bg-yellow-50 p-2 rounded text-xs text-yellow-800">
+                                            Debug: Driver selected: {selectedEmployee?.name} | Trips loaded: {driverTrips.length} | Loading: {loadingTrips ? 'Yes' : 'No'}
+                                        </div>
+
+                                        {/* Driver Trip Summary */}
+                                        {driverPayrollData && (
+                                            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                                <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                                                    <TrendingUp size={16} />
+                                                    Trip Summary
+                                                </h5>
+                                                <div className="grid grid-cols-3 gap-4">
+                                                    <div className="text-center">
+                                                        <div className="text-2xl font-bold text-green-600">{driverPayrollData.totalTrips}</div>
+                                                        <div className="text-xs text-gray-600">Total Trips</div>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <div className="text-2xl font-bold text-green-600">{driverPayrollData.totalMiles.toLocaleString()}</div>
+                                                        <div className="text-xs text-gray-600">Total Miles</div>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <div className="text-2xl font-bold text-green-600">${driverPayrollData.totalEarnings.toFixed(2)}</div>
+                                                        <div className="text-xs text-gray-600">Trip Earnings</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Simple Route Display - Fallback */}
+                                        {driverTrips.length > 0 && (
+                                            <div className="bg-white border border-gray-200 rounded-lg p-4">
+                                                <h6 className="text-sm font-medium text-gray-700 mb-3">Quick Route Overview</h6>
+                                                <div className="space-y-2">
+                                                    {driverTrips.slice(0, 3).map((trip) => (
+                                                        <div key={trip._id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                                            <div>
+                                                                <span className="font-medium">{trip.tripId}: </span>
+                                                                <span className="text-gray-600">{trip.startLocation} → {trip.endLocation}</span>
+                                                            </div>
+                                                            <div className="text-sm text-green-600 font-medium">
+                                                                {trip.totalMiles} miles - ${trip.calculatedPrice.toFixed(2)}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Trip Details Table */}
+                                        {driverTrips.length > 0 && (
+                                            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                                                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                                                    <h5 className="text-sm font-medium text-gray-700">Trip Details</h5>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={selectAllTrips}
+                                                            className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                                                        >
+                                                            Select All
+                                                        </button>
+                                                        <button
+                                                            onClick={deselectAllTrips}
+                                                            className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                                                        >
+                                                            Deselect All
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full">
+                                                        <thead className="bg-gray-50">
+                                                            <tr>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Select</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trip ID</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Route Details</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cargo Info</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Miles</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rate</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Earnings</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Costs</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-gray-200">
+                                                            {driverTrips.map((trip) => (
+                                                                <tr key={trip._id} className={`hover:bg-gray-50 ${trip.selected ? 'bg-blue-50' : ''}`}>
+                                                                    <td className="px-3 py-2">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={trip.selected || false}
+                                                                            onChange={() => toggleTripSelection(trip._id)}
+                                                                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                                                        />
+                                                                    </td>
+                                                                    <td className="px-3 py-2 text-sm font-medium text-gray-900">{trip.tripId}</td>
+                                                                    <td className="px-3 py-2 text-sm text-gray-600">
+                                                                        <div className="space-y-1">
+                                                                            <div className="font-medium text-gray-900">
+                                                                                {trip.startLocation} → {trip.endLocation}
+                                                                            </div>
+                                                                            <div className="text-xs text-gray-500">
+                                                                                <div>From: {trip.startAddress}</div>
+                                                                                <div>To: {trip.endAddress}</div>
+                                                                            </div>
+                                                                            <div className="text-xs text-blue-600">
+                                                                                Vehicle: {trip.vehicleInfo}
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-3 py-2 text-sm text-gray-600">
+                                                                        <div className="space-y-1">
+                                                                            <div className="font-medium">
+                                                                                {new Date(trip.startDate).toLocaleDateString()}
+                                                                            </div>
+                                                                            <div className="text-xs text-gray-500">
+                                                                                Start: {trip.startTime}
+                                                                            </div>
+                                                                            <div className="text-xs text-gray-500">
+                                                                                End: {trip.endTime}
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-3 py-2 text-sm text-gray-600">
+                                                                        <div className="space-y-1">
+                                                                            <div className="font-medium">{trip.cargoType}</div>
+                                                                            <div className="text-xs text-gray-500">
+                                                                                Weight: {trip.cargoWeight.toLocaleString()} lbs
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-3 py-2 text-sm text-gray-900 font-medium">{trip.totalMiles}</td>
+                                                                    <td className="px-3 py-2 text-sm text-gray-600">${trip.ratePerMile}/mile</td>
+                                                                    <td className="px-3 py-2 text-sm font-bold text-green-600">${trip.calculatedPrice.toFixed(2)}</td>
+                                                                    <td className="px-3 py-2 text-sm text-gray-600">
+                                                                        <div className="space-y-1">
+                                                                            <div className="text-xs">Fuel: ${trip.fuelCost.toFixed(2)}</div>
+                                                                            <div className="text-xs">Tolls: ${trip.tolls.toFixed(2)}</div>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                        <tfoot className="bg-gray-50">
+                                                            <tr>
+                                                                <td colSpan={5} className="px-3 py-2 text-sm font-medium text-gray-900 text-right">Selected Total:</td>
+                                                                <td className="px-3 py-2 text-sm font-bold text-gray-900">
+                                                                    {getSelectedTripsTotals().totalMiles}
+                                                                </td>
+                                                                <td className="px-3 py-2 text-sm text-gray-600">-</td>
+                                                                <td className="px-3 py-2 text-sm font-bold text-green-600">
+                                                                    ${getSelectedTripsTotals().totalEarnings.toFixed(2)}
+                                                                </td>
+                                                                <td className="px-3 py-2 text-sm text-gray-600">
+                                                                    <div className="space-y-1">
+                                                                        <div className="text-xs">Fuel: ${getSelectedTripsTotals().totalFuelCost.toFixed(2)}</div>
+                                                                        <div className="text-xs">Tolls: ${getSelectedTripsTotals().totalTolls.toFixed(2)}</div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
+                                                
+                                                {/* Selected Trips Summary */}
+                                                {getSelectedTripsTotals().count > 0 && (
+                                                    <div className="bg-blue-50 p-4 border-t border-blue-200">
+                                                        <h6 className="text-sm font-medium text-blue-800 mb-2">Selected Trips Summary</h6>
+                                                        <div className="grid grid-cols-4 gap-4 text-sm">
+                                                            <div>
+                                                                <span className="text-blue-600 font-medium">Selected Trips:</span>
+                                                                <span className="ml-1 text-blue-800 font-bold">{getSelectedTripsTotals().count}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-blue-600 font-medium">Total Miles:</span>
+                                                                <span className="ml-1 text-blue-800 font-bold">{getSelectedTripsTotals().totalMiles.toLocaleString()}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-blue-600 font-medium">Total Earnings:</span>
+                                                                <span className="ml-1 text-blue-800 font-bold">${getSelectedTripsTotals().totalEarnings.toFixed(2)}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-blue-600 font-medium">Total Costs:</span>
+                                                                <span className="ml-1 text-blue-800 font-bold">${(getSelectedTripsTotals().totalFuelCost + getSelectedTripsTotals().totalTolls).toFixed(2)}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Loading State */}
+                                        {loadingTrips && (
+                                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
+                                                <div className="text-sm text-blue-600">Loading trip data...</div>
+                                            </div>
+                                        )}
+
+                                        {/* No Trips Message */}
+                                        {!loadingTrips && driverTrips.length === 0 && formData.startDate && formData.endDate && (
+                                            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-center">
+                                                <div className="text-sm text-yellow-600">No trips found for the selected date range.</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
                                 {formData.baseSalary && (
-                                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                    <div className={`p-4 rounded-lg border ${
+                                        selectedEmployee?.role.toLowerCase() === 'driver' 
+                                            ? 'bg-green-50 border-green-200' 
+                                            : 'bg-blue-50 border-blue-200'
+                                    }`}>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-sm font-medium text-gray-700">Total Salary:</span>
-                                            <span className="text-xl font-bold text-blue-600">
+                                            <span className="text-sm font-medium text-gray-700">
+                                                {selectedEmployee?.role.toLowerCase() === 'driver' ? 'Total Driver Pay:' : 'Total Salary:'}
+                                            </span>
+                                            <span className={`text-xl font-bold ${
+                                                selectedEmployee?.role.toLowerCase() === 'driver' 
+                                                    ? 'text-green-600' 
+                                                    : 'text-blue-600'
+                                            }`}>
                                                 ${(
                                                     parseFloat(formData.baseSalary || '0') + 
                                                     parseFloat(formData.bonus || '0') - 
@@ -628,6 +1223,11 @@ const PayrollManagement = () => {
                                                 ).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </span>
                                         </div>
+                                        {selectedEmployee?.role.toLowerCase() === 'driver' && driverPayrollData && (
+                                            <div className="mt-2 text-xs text-gray-600">
+                                                Based on {driverPayrollData.totalTrips} trips • {driverPayrollData.totalMiles.toLocaleString()} miles
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

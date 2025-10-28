@@ -1,4 +1,4 @@
-import { MdDashboard } from "react-icons/md"; // Dashboard
+import { MdDashboard, MdReceipt } from "react-icons/md"; // Dashboard, Invoices
 import { FaClipboardList, FaTruck, FaTrailer } from "react-icons/fa"; // Work Orders, Fleet
 import { RiCalendarScheduleFill } from "react-icons/ri"; // Maintenance Schedule
 import { GiGearHammer } from "react-icons/gi"; // Spare Parts Inventory
@@ -30,6 +30,11 @@ export const FleetMaintainSidebarlinks: FleetMaintainSidebarlinks[] = [
         key: "/admin/fleetmaintenance/spare-parts",
         icon: <GiGearHammer />,
         label: "Spare Parts Inventory",
+    },
+    {
+        key: "/admin/fleetmaintenance/invoices",
+        icon: <MdReceipt />,
+        label: "Invoices",
     },
     {
         key: "/admin/fleetmaintenance/trucks",

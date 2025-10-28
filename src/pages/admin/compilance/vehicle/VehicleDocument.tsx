@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FaCar, FaPlus, FaEdit, FaTrash, FaFileUpload, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationCircle, FaInfoCircle } from "react-icons/fa";
+import { FaCar, FaPlus, FaEdit, FaTrash, FaFileUpload, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaEye, FaDownload, FaTruck, FaTrailer } from "react-icons/fa";
 import {
   getVehicleDocument,
   createVehicleDocument,
@@ -25,6 +25,16 @@ interface Document {
   expiryDate: string;
   issuedAt: string;
   status?: string;
+  files?: DocumentFile[];
+}
+
+interface DocumentFile {
+  _id: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  uploadedAt: string;
+  fileType: string;
 }
 
 interface VehicleDocument {
@@ -106,6 +116,8 @@ function VehicleDocument() {
     show: false,
     docId: null
   });
+  const [showViewModal, setShowViewModal] = useState<boolean>(false);
+  const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
   const [formData, setFormData] = useState<FormData>({
     vehicleId: "",
     documentType: "insurance",
@@ -178,6 +190,11 @@ function VehicleDocument() {
 
   const handleDeleteDocument = async (docId: string) => {
     setDeleteConfirmation({ show: true, docId });
+  };
+
+  const handleViewDocument = (doc: Document) => {
+    setViewingDoc(doc);
+    setShowViewModal(true);
   };
 
   const confirmDelete = async () => {
@@ -273,6 +290,17 @@ function VehicleDocument() {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  const getVehicleTypeIcon = (vehicleType: string) => {
+    switch (vehicleType?.toLowerCase()) {
+      case 'truck':
+        return <FaTruck className="text-blue-600" size={20} />;
+      case 'trailer':
+        return <FaTrailer className="text-green-600" size={20} />;
+      default:
+        return <FaCar className="text-gray-600" size={20} />;
+    }
   };
 
   const DocumentModal = () => (
@@ -419,6 +447,125 @@ function VehicleDocument() {
     </div>
   );
 
+  const ViewDocumentModal = () => (
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl relative max-h-[90vh] overflow-y-auto">
+        {/* Modal Header */}
+        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl">
+          <h3 className="text-xl font-bold text-gray-800">
+            Document Details: {viewingDoc?.documentType?.toUpperCase()}
+          </h3>
+          <button
+            onClick={() => setShowViewModal(false)}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <FaTimes className="text-gray-500" size={20} />
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <div className="p-6 space-y-6">
+          {/* Document Information */}
+          <div className="bg-gray-50 rounded-xl p-6">
+            <h4 className="text-lg font-bold text-gray-800 mb-4">Document Information</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Document Number</label>
+                <p className="text-lg font-semibold text-gray-800">{viewingDoc?.documentNumber}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Document Type</label>
+                <p className="text-lg font-semibold text-gray-800 capitalize">{viewingDoc?.documentType}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Issued Date</label>
+                <p className="text-lg font-semibold text-gray-800">{formatDate(viewingDoc?.issuedAt || '')}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Expiry Date</label>
+                <p className="text-lg font-semibold text-gray-800">{formatDate(viewingDoc?.expiryDate || '')}</p>
+              </div>
+            </div>
+            {viewingDoc?.status && (
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-600 mb-1">Status</label>
+                <span className={`text-sm px-3 py-1 rounded-full font-semibold ${getStatusBadgeColor(viewingDoc.status)}`}>
+                  {viewingDoc.status}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Document Files */}
+          <div>
+            <h4 className="text-lg font-bold text-gray-800 mb-4">Uploaded Files</h4>
+            {viewingDoc?.files && viewingDoc.files.length > 0 ? (
+              <div className="space-y-3">
+                {viewingDoc.files.map((file) => (
+                  <div key={file._id} className="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all bg-white">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-[#9793E4]/10 rounded-lg">
+                          <FaFileAlt className="text-[#9793E4]" size={18} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-800">{file.fileName}</p>
+                          <p className="text-sm text-gray-500">
+                            {(file.fileSize / 1024 / 1024).toFixed(2)} MB • {file.fileType.toUpperCase()}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            Uploaded: {formatDate(file.uploadedAt)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          className="p-2.5 text-[#9793E4] hover:bg-[#9793E4]/10 rounded-lg transition-all border border-[#9793E4]/30"
+                          onClick={() => window.open(file.fileUrl, '_blank')}
+                          title="View File"
+                        >
+                          <FaEye size={16} />
+                        </button>
+                        <button
+                          className="p-2.5 text-green-600 hover:bg-green-50 rounded-lg transition-all border border-green-200"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = file.fileUrl;
+                            link.download = file.fileName;
+                            link.click();
+                          }}
+                          title="Download File"
+                        >
+                          <FaDownload size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl">
+                <FaFileAlt size={40} className="mx-auto mb-3 opacity-30" />
+                <p className="text-sm font-medium">No files uploaded for this document</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Modal Footer */}
+        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+          <button
+            type="button"
+            className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+            onClick={() => setShowViewModal(false)}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const DeleteConfirmationModal = () => (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative">
@@ -499,7 +646,7 @@ function VehicleDocument() {
               <div className="bg-gradient-to-r from-[#9793E4] via-[#8783D4] to-[#7773C4] p-6 text-white">
                 <div className="flex items-center gap-4">
                   <div className="p-4 bg-white text-black bg-opacity-20 rounded-xl backdrop-blur-sm">
-                    <FaCar size={28} />
+                    {getVehicleTypeIcon(item.vehicle?.status || 'car')}
                   </div>
                   <div className="flex-1">
                     <h2 className="text-2xl font-bold">
@@ -554,6 +701,13 @@ function VehicleDocument() {
                           </div>
                           <div className="flex gap-2">
                             <button
+                              className="p-2.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-blue-200"
+                              onClick={() => handleViewDocument(doc)}
+                              title="View Document"
+                            >
+                              <FaEye size={16} />
+                            </button>
+                            <button
                               className="p-2.5 text-[#9793E4] hover:bg-[#9793E4]/10 rounded-lg transition-all border border-[#9793E4]/30"
                               onClick={() => handleEditDocument(doc, item.vehicle._id)}
                               title="Edit Document"
@@ -593,6 +747,7 @@ function VehicleDocument() {
       )}
 
       {showDocModal && <DocumentModal />}
+      {showViewModal && <ViewDocumentModal />}
       {deleteConfirmation.show && <DeleteConfirmationModal />}
 
       <style>{`

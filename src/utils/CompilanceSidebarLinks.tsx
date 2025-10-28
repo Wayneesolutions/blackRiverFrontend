@@ -7,6 +7,7 @@ import {
 } from "react-icons/md";
 import { BsPersonVcard } from "react-icons/bs";
 import { RiBillLine } from "react-icons/ri";
+import { FaClipboardCheck, FaChartBar } from "react-icons/fa";
 
 type CompilanceSidebarLink = {
     key: string;
@@ -45,5 +46,15 @@ export const CompilanceSidebarLinks: CompilanceSidebarLink[] = [
         key: "hos-eld",
         icon: <RiBillLine />,
         label: "HOST & ELD",
+    },
+    {
+        key: "cvsa-inspection",
+        icon: <FaClipboardCheck />,
+        label: "CVSA Inspection",
+    },
+    {
+        key: "monthly-report",
+        icon: <FaChartBar />,
+        label: "Monthly Report",
     },
 ];

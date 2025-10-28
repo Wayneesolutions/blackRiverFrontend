@@ -20,19 +20,14 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     label: "Home",
   },
   {
-    key: "/admin/Management/drivers",
-    icon: <FaCar />,
-    label: "Drivers",
+    key: "/admin/Management/employeelist",
+    icon: <FaUsers />,
+    label: "Employees",
   },
   {
     key: "/admin/Management/scheduling",
     icon: <RiCalendarScheduleFill />,
     label: "Scheduling",
-  },
-  {
-    key: "/admin/Management/employeelist",
-    icon: <FaUsers />,
-    label: "Employee List",
   },
   {
     key: "/admin/Management/documents",
