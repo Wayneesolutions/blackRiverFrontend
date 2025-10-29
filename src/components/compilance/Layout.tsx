@@ -2,9 +2,12 @@ import  { useState } from "react";
 import { Outlet } from "react-router-dom";
 import CompilanceSidebar from "./Sidebar";
 import CompilanceHeader from "./Header";
+import ExpiringDocumentsPopup from "../common/ExpiringDocumentsPopup";
+import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
 
 const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const { showExpiringPopup, handleClosePopup, handleViewDocuments } = useExpiringDocuments();
 
     const toggleSidebar = () => {
         setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -33,7 +36,14 @@ const Layout = () => {
                 </main>
             </div>
             
-          
+            {/* Global Expiring Documents Popup */}
+            <ExpiringDocumentsPopup
+                isOpen={showExpiringPopup}
+                onClose={handleClosePopup}
+                onViewDocuments={handleViewDocuments}
+                daysThreshold={30}
+                showOnlyOnce={false}
+            />
         </div>
     );
 };

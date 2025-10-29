@@ -72,3 +72,15 @@ export const deleteDriverDocument = async (id: string) => {
         return err.response?.data;
     }
 };
+
+// Get expiring driver documents
+export const getExpiringDriverDocuments = async (days: number = 30) => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`hr/driver-document-expiring?days=${days}`);
+        console.log("==getExpiringDriverDocuments res ", res);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};

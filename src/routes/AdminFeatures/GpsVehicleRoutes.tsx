@@ -7,7 +7,7 @@ const Assets = lazy(() => import("../../pages/admin/gpsvehicle/assets/index"))
 const TripHistory = lazy(() => import("../../pages/admin/gpsvehicle/productivity/TripHistory"))
 
 
-const LiveTracking = lazy(() => import("../../pages/admin/gpsvehicle/livetracking/index"))
+const LiveTracking = lazy(() => import("../../pages/admin/gpsvehicle/livetracking/TruckTracker"))
 const Vehicles = lazy(() => import("../../pages/admin/gpsvehicle/vehicles/index"))
 const Drivers = lazy(() => import("../../pages/admin/gpsvehicle/drivers/index"))
 const LiveTrackingTrailer = lazy(() => import("../../pages/admin/gpsvehicle/livetracking/TrailerTracker"))

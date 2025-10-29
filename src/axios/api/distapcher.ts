@@ -356,11 +356,13 @@ export const createLoad = async (data: any) =>{
 
 export const updateLoad = async (id: string, data: any) => {
   try {
+    console.log('🔍 updateLoad API called with:', { id, data });
     const res: AxiosResponse = await apiClient.put(`dispatcher/load/${id}`, data);
-    console.log('==res ', res)
+    console.log('🔍 updateLoad API response:', res);
+    console.log('🔍 updateLoad API response data:', res.data);
     return res.data;
   } catch (error) {
-    console.log(error);
+    console.error('❌ updateLoad API error:', error);
     return (error as Error).response?.data;
   }
 }

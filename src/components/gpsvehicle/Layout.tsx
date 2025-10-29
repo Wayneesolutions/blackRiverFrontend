@@ -3,9 +3,12 @@ import  { useState } from "react";
 import { Outlet } from "react-router-dom";
 import GpsHeader from './Header'
 import GpsSidebar from './Sidebar'
+import ExpiringDocumentsPopup from "../common/ExpiringDocumentsPopup";
+import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
 
 function Layout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { showExpiringPopup, handleClosePopup, handleViewDocuments } = useExpiringDocuments();
 
     const toggleSidebar = () => {
         setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -34,7 +37,14 @@ function Layout() {
                 </main>
             </div>
             
-       
+            {/* Global Expiring Documents Popup */}
+            <ExpiringDocumentsPopup
+                isOpen={showExpiringPopup}
+                onClose={handleClosePopup}
+                onViewDocuments={handleViewDocuments}
+                daysThreshold={30}
+                showOnlyOnce={false}
+            />
         </div>
     );
 }

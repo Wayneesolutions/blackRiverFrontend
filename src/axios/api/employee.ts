@@ -92,10 +92,13 @@ export const bulkDeleteEmployees = async (ids: string[]) => {
 // Get employee statistics
 export const getEmployeeStats = async () => {
   try {
+    console.log('🔍 Making API call to employee/stats');
     const res: AxiosResponse = await apiClient.get('employee/stats');
+    console.log('🔍 Employee stats API response:', res.data);
     return res.data;
   } catch (error) {
-    console.log(error);
+    console.error('❌ Employee stats API error:', error);
+    console.error('❌ Error response:', (error as any).response?.data);
     return (error as any).response?.data;
   }
 };

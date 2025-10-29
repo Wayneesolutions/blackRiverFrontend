@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Eye, Edit, Download, Filter, Calendar, DollarSign, Users, TrendingUp, Truck, Fuel, Wrench, MapPin, Trash2, X, CheckCircle, AlertCircle } from 'lucide-react';
-import { createInvoice, listInvoices, getInvoiceById, updateInvoice, deleteInvoice, listLoad } from "../../../../axios/api/account.invoices";
+import { FileText, Plus, Eye, Edit, Download, Filter, Calendar, DollarSign, Users, TrendingUp, Truck, Fuel, Wrench, MapPin, Trash2, X, CheckCircle, AlertCircle, CreditCard } from 'lucide-react';
+import { createInvoice, listInvoices, getInvoiceById, updateInvoice, deleteInvoice, listLoad, createPaymentSession } from "../../../../axios/api/account.invoices";
 
 interface Invoice {
     _id: string;
     clientName: string;
     clientEmail: string;
-    clientCompany: string;
     loadId: string;
     amount: number;
     currency: string;
@@ -21,15 +20,37 @@ interface Invoice {
 }
 
 interface Load {
-    _id: string;
+    _id?: string;
+    orderId?: string;
     loadNumber?: string;
     pickupLocation?: string;
     deliveryLocation?: string;
+    driverName?: string;
+    customerName?: string;
+    customerEmail?: string;
     customer?: {
         name?: string;
         email?: string;
         company?: string;
     };
+    route?: {
+        selectPickup?: {
+            place?: string;
+            longitude?: string;
+            latitude?: string;
+        };
+        selectDropOff?: {
+            place?: string;
+            longitude?: string;
+            latitude?: string;
+        };
+        multipleDropOffs?: boolean;
+        selectReturn?: string;
+        wayPoints?: any[];
+    };
+    status?: string;
+    notes?: string;
+    assignedAt?: string;
     [key: string]: any;
 }
 
@@ -53,6 +74,19 @@ const InvoiceManagement: React.FC = () => {
     const [deleteModal, setDeleteModal] = useState<{ show: boolean; invoiceId: string | null }>({ show: false, invoiceId: null });
 
     useEffect(() => {
+        // Check authentication state
+        const userInfo = localStorage.getItem('userInfo');
+        const token = localStorage.getItem('token');
+        console.log('🔐 User Info from localStorage:', userInfo);
+        console.log('🔑 Token from localStorage:', token);
+        
+        if (!token || !userInfo) {
+            console.log('❌ User not authenticated - redirecting to login');
+            showNotification('error', 'Please log in to access this page');
+            // You might want to redirect to login page here
+            return;
+        }
+        
         fetchInvoices();
         fetchLoads();
     }, []);
@@ -63,6 +97,23 @@ const InvoiceManagement: React.FC = () => {
         setTimeout(() => {
             setNotifications(prev => prev.filter(n => n.id !== id));
         }, 5000);
+    };
+
+    const handleCreatePaymentLink = async (invoice: Invoice) => {
+        try {
+            const response = await createPaymentSession(invoice._id);
+            if (response && response.success && response.url) {
+                // Copy the payment URL to clipboard
+                const paymentUrl = `${window.location.origin}/invoice/${invoice._id}`;
+                await navigator.clipboard.writeText(paymentUrl);
+                showNotification('success', 'Payment link copied to clipboard!');
+            } else {
+                showNotification('error', response?.message || 'Failed to create payment link');
+            }
+        } catch (error) {
+            console.error('Error creating payment link:', error);
+            showNotification('error', 'Failed to create payment link');
+        }
     };
 
     const fetchInvoices = async () => {
@@ -81,12 +132,39 @@ const InvoiceManagement: React.FC = () => {
 
     const fetchLoads = async () => {
         try {
+            console.log('🔍 Starting to fetch loads...');
             const response = await listLoad();
+            console.log('📡 Load API Response:', response);
+            console.log('📡 Response type:', typeof response);
+            console.log('📡 Response keys:', response ? Object.keys(response) : 'null');
+            
+            // Handle different response structures
+            let loadData = null;
             if (response && response.data) {
-                setLoads(response.data);
+                loadData = response.data;
+                console.log('✅ Found data in response.data:', loadData);
+            } else if (response && Array.isArray(response)) {
+                loadData = response;
+                console.log('✅ Response is array:', loadData);
+            } else if (response && response.success && response.data) {
+                loadData = response.data;
+                console.log('✅ Found data in response.success.data:', loadData);
+            } else {
+                console.log('❌ No data found in response structure');
+            }
+            
+            if (loadData && Array.isArray(loadData)) {
+                console.log('✅ Setting loads with data:', loadData);
+                console.log('✅ Number of loads:', loadData.length);
+                setLoads(loadData);
+            } else {
+                console.log('❌ No valid load data found in response:', response);
+                setLoads([]);
             }
         } catch (error) {
-            console.error('Error fetching loads:', error);
+            console.error('❌ Error fetching loads:', error);
+            console.error('❌ Error details:', error);
+            setLoads([]);
         }
     };
 
@@ -300,7 +378,6 @@ const InvoiceManagement: React.FC = () => {
                             <tr>
                                 <th className="text-left py-3 px-6 font-medium text-gray-500">Invoice ID</th>
                                 <th className="text-left py-3 px-6 font-medium text-gray-500">Client</th>
-                                <th className="text-left py-3 px-6 font-medium text-gray-500">Company</th>
                                 <th className="text-left py-3 px-6 font-medium text-gray-500">Amount</th>
                                 <th className="text-left py-3 px-6 font-medium text-gray-500">Due Date</th>
                                 <th className="text-left py-3 px-6 font-medium text-gray-500">Status</th>
@@ -321,9 +398,6 @@ const InvoiceManagement: React.FC = () => {
                                             <div className="font-medium text-gray-900">{invoice.clientName}</div>
                                             <div className="text-sm text-gray-500">{invoice.clientEmail}</div>
                                         </div>
-                                    </td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">
-                                        {invoice.clientCompany || '-'}
                                     </td>
                                     <td className="py-4 px-6">
                                         <span className="font-medium text-gray-900">{formatCurrency(Number(invoice.amount))}</span>
@@ -358,6 +432,15 @@ const InvoiceManagement: React.FC = () => {
                                             >
                                                 <Edit className="h-4 w-4" />
                                             </button>
+                                            {invoice.status === 'pending' && (
+                                                <button
+                                                    onClick={() => handleCreatePaymentLink(invoice)}
+                                                    className="text-green-600 hover:text-green-800 transition-colors"
+                                                    title="Create Payment Link"
+                                                >
+                                                    <CreditCard className="h-4 w-4" />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => setDeleteModal({ show: true, invoiceId: invoice._id })}
                                                 className="text-red-600 hover:text-red-800 transition-colors"
@@ -406,10 +489,6 @@ const InvoiceManagement: React.FC = () => {
                                     <label className="text-sm font-medium text-gray-500">Client</label>
                                     <p className="font-medium">{selectedInvoice.clientName}</p>
                                     <p className="text-sm text-gray-600">{selectedInvoice.clientEmail}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">Company</label>
-                                    <p className="font-medium">{selectedInvoice.clientCompany || '-'}</p>
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">Amount</label>
@@ -478,7 +557,6 @@ const InvoiceManagement: React.FC = () => {
                 const updateData = {
                     clientName: editForm.clientName,
                     clientEmail: editForm.clientEmail,
-                    clientCompany: editForm.clientCompany,
                     loadId: editForm.loadId,
                     amount: editForm.amount.toString(),
                     currency: editForm.currency,
@@ -550,15 +628,6 @@ const InvoiceManagement: React.FC = () => {
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Client Company</label>
-                                <input
-                                    type="text"
-                                    value={editForm.clientCompany}
-                                    onChange={(e) => handleInputChange('clientCompany', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
-                            </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
@@ -637,7 +706,6 @@ const InvoiceManagement: React.FC = () => {
         const [newInvoice, setNewInvoice] = useState({
             clientName: '',
             clientEmail: '',
-            clientCompany: '',
             loadId: '',
             amount: '',
             currency: 'USD',
@@ -653,16 +721,28 @@ const InvoiceManagement: React.FC = () => {
         };
 
         const handleLoadSelect = (loadId: string) => {
-            const selectedLoad = loads.find(load => load._id === loadId);
-            if (selectedLoad && selectedLoad.customer) {
+            console.log('Selected load ID:', loadId);
+            const selectedLoad = loads.find(load => (load._id || load.orderId) === loadId);
+            console.log('Selected load data:', selectedLoad);
+            
+            if (selectedLoad) {
+                const customerName = selectedLoad.customerName || selectedLoad.customer?.name || '';
+                const customerEmail = selectedLoad.customerEmail || selectedLoad.customer?.email || '';
+                
+                console.log('Auto-filling customer details:', {
+                    customerName,
+                    customerEmail
+                });
+                
                 setNewInvoice(prev => ({
                     ...prev,
                     loadId: loadId,
-                    clientName: selectedLoad.customer?.name || prev.clientName,
-                    clientEmail: selectedLoad.customer?.email || prev.clientEmail,
-                    clientCompany: selectedLoad.customer?.company || prev.clientCompany,
+                    clientName: customerName,
+                    clientEmail: customerEmail,
+                    // Don't auto-fill company - let user enter manually if needed
                 }));
             } else {
+                console.log('No load found with ID:', loadId);
                 setNewInvoice(prev => ({
                     ...prev,
                     loadId: loadId
@@ -686,7 +766,6 @@ const InvoiceManagement: React.FC = () => {
                     setNewInvoice({
                         clientName: '',
                         clientEmail: '',
-                        clientCompany: '',
                         loadId: '',
                         amount: '',
                         currency: 'USD',
@@ -739,58 +818,103 @@ const InvoiceManagement: React.FC = () => {
                                     value={newInvoice.loadId}
                                     onChange={(e) => handleLoadSelect(e.target.value)}
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    disabled={loading}
                                 >
-                                    <option value="">Select a load...</option>
-                                    {loads.map((load) => (
-                                        <option key={load._id || load.id || Math.random()} value={load._id || load.id || ''}>
-                                            {load.loadNumber
-                                                ? load.loadNumber
-                                                : (load._id || load.id)
-                                                    ? (load._id || load.id).slice(-8)
-                                                    : 'Unknown Load'}{" "}
-                                            - {load.pickupLocation || "N/A"} → {load.deliveryLocation || "N/A"}
-                                        </option>
-                                    ))}
+                                    <option value="">
+                                        {loading ? "Loading loads..." : loads.length === 0 ? "No loads available - Check console for details" : "Select a load..."}
+                                    </option>
+                                    {loads.map((load) => {
+                                        const loadId = load._id || load.orderId || Math.random().toString();
+                                        const loadNumber = load.loadNumber || load.orderId?.slice(-8) || 'Unknown Load';
+                                        const pickupLocation = load.pickupLocation || load.route?.selectPickup?.place || "N/A";
+                                        const deliveryLocation = load.deliveryLocation || load.route?.selectDropOff?.place || "N/A";
+                                        
+                                        return (
+                                            <option key={loadId} value={loadId}>
+                                                {loadNumber} - {pickupLocation} → {deliveryLocation}
+                                                {load.customerName && ` (${load.customerName})`}
+                                                {load.customerEmail && ` [Email: ${load.customerEmail}]`}
+                                                {load.driverName && ` [Driver: ${load.driverName}]`}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
 
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Selecting a load will auto-fill customer details if available
-                                </p>
+                                <div className="flex items-center justify-between mt-1">
+                                    <p className="text-xs text-gray-500">
+                                        Selecting a load will auto-fill customer details if available
+                                        {loads.length > 0 && ` (${loads.length} loads available)`}
+                                    </p>
+                                    {newInvoice.loadId && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setNewInvoice(prev => ({
+                                                    ...prev,
+                                                    loadId: '',
+                                                    clientName: '',
+                                                    clientEmail: ''
+                                                }));
+                                            }}
+                                            className="text-xs text-red-600 hover:text-red-800 underline"
+                                        >
+                                            Clear Selection
+                                        </button>
+                                    )}
+                                </div>
+                                {newInvoice.loadId && !newInvoice.clientName && (
+                                    <p className="text-xs text-amber-600 mt-1">
+                                        ⚠️ Selected load has no customer name - please fill manually
+                                    </p>
+                                )}
+                                {newInvoice.loadId && newInvoice.clientName && !newInvoice.clientEmail && (
+                                    <p className="text-xs text-blue-600 mt-1">
+                                        ℹ️ Customer name found, but no email available - please add email manually if needed
+                                    </p>
+                                )}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Client Name *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Client Name *
+                                    {newInvoice.loadId && newInvoice.clientName && (
+                                        <span className="text-xs text-green-600 ml-2">✓ Auto-filled from load</span>
+                                    )}
+                                </label>
                                 <input
                                     type="text"
                                     value={newInvoice.clientName}
                                     onChange={(e) => handleInputChange('clientName', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className={`w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                        newInvoice.loadId && newInvoice.clientName 
+                                            ? 'border-green-300 bg-green-50' 
+                                            : 'border-gray-300'
+                                    }`}
                                     placeholder="Enter client name"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Client Email</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Client Email
+                                    {newInvoice.loadId && newInvoice.clientEmail && (
+                                        <span className="text-xs text-green-600 ml-2">✓ Auto-filled from load</span>
+                                    )}
+                                </label>
                                 <input
                                     type="email"
                                     value={newInvoice.clientEmail}
                                     onChange={(e) => handleInputChange('clientEmail', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className={`w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                        newInvoice.loadId && newInvoice.clientEmail 
+                                            ? 'border-green-300 bg-green-50' 
+                                            : 'border-gray-300'
+                                    }`}
                                     placeholder="client@example.com"
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Client Company</label>
-                                <input
-                                    type="text"
-                                    value={newInvoice.clientCompany}
-                                    onChange={(e) => handleInputChange('clientCompany', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Company name"
-                                />
-                            </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>

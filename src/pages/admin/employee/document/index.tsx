@@ -48,6 +48,7 @@ const EmployeeDocumentsPage = () => {
     fetchData();
   }, [currentPage, selectedEmployee]);
 
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -65,10 +66,6 @@ const EmployeeDocumentsPage = () => {
         getAllEmployees()
       ]);
 
-      console.log('Documents response:', documentsResponse);
-      console.log('Stats response:', statsResponse);
-      console.log('Employees response:', employeesResponse);
-      
       setEmployeeDocuments(documentsResponse.data || []);
       setDocumentStats(statsResponse.data);
       setEmployees(employeesResponse.data || []);
@@ -152,6 +149,7 @@ const EmployeeDocumentsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
         <div className="flex items-center justify-between mb-4">
@@ -485,6 +483,7 @@ const EmployeeDocumentsPage = () => {
           editingDocument={editingDocument}
         />
       )}
+
     </div>
   );
 };

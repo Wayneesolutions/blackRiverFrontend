@@ -15,7 +15,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<"success" | "error">("success");
@@ -42,7 +41,7 @@ export default function LoginPage() {
   // Store token in localStorage (or you can use a context/state management)
   const storeToken = (token: string, userData: UserInfo) => {
     localStorage.setItem("token", token);
-    dispatch(setUserCredentials({ userData }))
+    dispatch(setUserCredentials({ userData }));
   };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -84,9 +83,8 @@ export default function LoginPage() {
         return
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      setSuccess(false);
       setAlertType("error");
       
       // Handle different types of errors

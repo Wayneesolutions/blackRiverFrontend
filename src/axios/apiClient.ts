@@ -2,7 +2,7 @@
 import axios from "axios";
 import { message } from "antd";
 
-const baseUrl = import.meta.env.VITE_APP_BASE_URL
+const baseUrl = import.meta.env.VITE_APP_BASE_URL || 'http://localhost:3000'
 
 // Debug: Log the base URL to console
 console.log('VITE_APP_BASE_URL:', baseUrl);

@@ -222,7 +222,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
         
         if (!orderType) errors.push("Order type is required");
         if (!selectedCustomer) errors.push("Customer is required");
-        if (!selectedDriver) errors.push("Driver is required");
+        // Driver is now optional - can be assigned later
         if (!selectedVehicle) errors.push("Vehicle is required");
         
         if (!multipleDropoffs) {
@@ -405,13 +405,10 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                             <select 
                                 value={selectedDriver}
                                 onChange={(e) => setSelectedDriver(e.target.value)}
-                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${
-                                    !selectedDriver ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-                                }`}
+                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 disabled={loading}
-                                required
                             >
-                                <option value="">Select Driver *</option>
+                                <option value="">Select Driver (Optional)</option>
                                 {drivers.map((driver) => (
                                     <option key={driver._id} value={driver._id}>
                                         {driver.name}

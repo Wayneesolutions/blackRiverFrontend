@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { Truck, Users, Package, Wrench, FileText, AlertTriangle, Calendar, Clock, RefreshCw } from "lucide-react";
 import { quickStats, loadsPerMonth, revenueTrend, fuelEfficiency, recentAlerts } from "../../../../axios/api/main.dashboard";
+import ExpiringDocumentsPopup from "../../../../components/common/ExpiringDocumentsPopup";
 
 const COLORS = ["#3b82f6", "#10b981"];
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -86,11 +87,23 @@ export default function QuickStatsUI() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showExpiringPopup, setShowExpiringPopup] = useState(false);
   const [alertError, setAlertError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  // Check for expiring documents and show popup
+  useEffect(() => {
+    if (alerts.expiringDocs && alerts.expiringDocs.length > 0) {
+      // Show popup after a short delay to let the page load
+      const timer = setTimeout(() => {
+        setShowExpiringPopup(true);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [alerts.expiringDocs]);
 
   const fetchDashboardData = async () => {
     try {
@@ -538,6 +551,18 @@ export default function QuickStatsUI() {
           </button>
         </Card>
       </div>
+
+      {/* Expiring Documents Popup */}
+      <ExpiringDocumentsPopup
+        isOpen={showExpiringPopup}
+        onClose={() => setShowExpiringPopup(false)}
+        onViewDocuments={() => {
+          // Navigate to employee documents page
+          window.location.href = '/admin/employee/documents';
+        }}
+        daysThreshold={30}
+        showOnlyOnce={true}
+      />
     </div>
   );
 }

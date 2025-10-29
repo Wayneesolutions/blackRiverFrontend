@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import type { ReactElement } from "react";
 import { Truck, MapPin, Clock, CheckCircle, Play, Package, Calendar, TrendingUp, ChevronRight } from "lucide-react";
 import NewLoad from "../NewLoad";
-import { listLoad } from "../../../../axios/api/distapcher"; 
+import { listLoad, listDriver, updateLoad } from "../../../../axios/api/distapcher"; 
 import type { TabButtonProps,
   ProfessionalCircularProgressProps,StockChartProps ,
   ProfessionalUtilizationGaugeProps,
 CandlestickBarChartProps,
-AnimatedCounterProps,Route,Load} from "./helpers";
+AnimatedCounterProps,Load} from "./helpers";
 import DriversTable from "./DriversTable";
 // Define allowed statuses
 type Status = "pending" | "started" | "enroute" | "arrived" | "reached" | "completed";
@@ -17,7 +17,33 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('loads');
   const [animationTrigger, setAnimationTrigger] = useState(false);
+  
+  // Driver assignment inline state - now load-specific
+  const [assigningLoads, setAssigningLoads] = useState<{[loadId: string]: boolean}>({});
+  const [availableDrivers, setAvailableDrivers] = useState<{[loadId: string]: any[]}>({});
+  const [selectedDrivers, setSelectedDrivers] = useState<{[loadId: string]: string}>({});
+  const [isAssigningDriver, setIsAssigningDriver] = useState<{[loadId: string]: boolean}>({});
+  const [isLoadingDrivers, setIsLoadingDrivers] = useState<{[loadId: string]: boolean}>({});
+  
+  // Loads data state
+  const [loadsData, setLoadsData] = useState<Load[]>([]);
 
+  // Fetch loads function - memoized to prevent unnecessary re-renders
+  const fetchLoads = useCallback(async () => {
+    try {
+      const res = await listLoad();
+      if (res.success) {
+        setLoadsData(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching loads:", error);
+    }
+  }, []);
+
+  // Fetch loads on component mount
+  useEffect(() => {
+    fetchLoads();
+  }, []);
 
   const today = new Date().toLocaleDateString("en-GB", {
     day: "2-digit",
@@ -76,6 +102,95 @@ const Index = () => {
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
+
+  // Driver assignment functions - memoized to prevent unnecessary re-renders
+  const handleAssignDriver = useCallback(async (loadId: string) => {
+    // Set this specific load to assigning mode
+    setAssigningLoads(prev => ({ ...prev, [loadId]: true }));
+    setSelectedDrivers(prev => ({ ...prev, [loadId]: "" }));
+    
+    // Always fetch drivers fresh for each load to ensure isolation
+    // Set loading state for this specific load
+    setIsLoadingDrivers(prev => ({ ...prev, [loadId]: true }));
+    
+    try {
+      const driversRes = await listDriver();
+      if (driversRes && driversRes.success) {
+        // Store drivers ONLY for this specific load
+        setAvailableDrivers(prev => ({ 
+          ...prev, 
+          [loadId]: driversRes.data || [] 
+        }));
+      } else {
+        alert('Failed to load drivers. Please try again.');
+      }
+    } catch (error) {
+      alert('Error loading drivers: ' + (error as any).message);
+    } finally {
+      // Clear loading state for this specific load
+      setIsLoadingDrivers(prev => ({ ...prev, [loadId]: false }));
+    }
+  }, []);
+
+  const handleConfirmAssignment = useCallback(async (loadId: string) => {
+    const selectedDriverId = selectedDrivers[loadId];
+    
+    if (!loadId || !selectedDriverId) {
+      return;
+    }
+    
+    // Check if this is a real MongoDB ObjectId or our temporary index-based ID
+    const isRealObjectId = /^[0-9a-fA-F]{24}$/.test(loadId);
+    if (!isRealObjectId) {
+      alert('Error: Invalid load ID. Please refresh the page and try again.');
+      return;
+    }
+    
+    // Set loading state for this specific load
+    setIsAssigningDriver(prev => ({ ...prev, [loadId]: true }));
+    
+    try {
+      const updateData = {
+        details: {
+          driver: selectedDriverId
+        }
+      };
+      
+      const response = await updateLoad(loadId, updateData);
+      
+      if (response.success) {
+        alert('Driver assigned successfully!');
+        // Update the loads data without page reload
+        await fetchLoads();
+        // Clear assignment state
+        setAssigningLoads(prev => ({ ...prev, [loadId]: false }));
+        setSelectedDrivers(prev => ({ ...prev, [loadId]: "" }));
+        setAvailableDrivers(prev => {
+          const newState = { ...prev };
+          delete newState[loadId];
+          return newState;
+        });
+      } else {
+        alert('Failed to assign driver: ' + (response.message || 'Unknown error'));
+      }
+    } catch (error) {
+      alert('Error assigning driver: ' + (error as any).message);
+    } finally {
+      // Clear loading state for this specific load
+      setIsAssigningDriver(prev => ({ ...prev, [loadId]: false }));
+    }
+  }, [selectedDrivers, fetchLoads]);
+
+  const handleCancelAssignment = useCallback((loadId: string) => {
+    setAssigningLoads(prev => ({ ...prev, [loadId]: false }));
+    setSelectedDrivers(prev => ({ ...prev, [loadId]: "" }));
+    // Clear the drivers data for this load to ensure complete isolation
+    setAvailableDrivers(prev => {
+      const newState = { ...prev };
+      delete newState[loadId];
+      return newState;
+    });
+  }, []);
 
   // Props type for ImagePlaceholder
   interface ImagePlaceholderProps {
@@ -747,22 +862,6 @@ const Index = () => {
     )
   }
   const RenderLoadsTable: React.FC = () => {
-  const [loadsData, setLoadsData] = useState<Load[]>([]);
-
-  useEffect(() => {
-    const fetchLoads = async () => {
-      try {
-        const res = await listLoad();
-        if (res.success) {
-          setLoadsData(res.data);
-        }
-      } catch (error) {
-        console.error("Error fetching loads:", error);
-      }
-    };
-
-    fetchLoads();
-  }, []);
 
   return (
     <div className="bg-white bg-opacity-95 backdrop-blur-lg rounded-xl border border-white border-opacity-50 shadow-xl overflow-hidden">
@@ -783,7 +882,12 @@ const Index = () => {
 
           <tbody>
             {loadsData.length > 0 ? (
-              loadsData.map((row, idx) => (
+              loadsData.map((row, idx) => {
+                // Use orderId as the primary ID since it contains the MongoDB ObjectId
+                const rowAny = row as any;
+                const realId = rowAny.orderId || row._id || rowAny.id || rowAny.loadId || rowAny.load_id || rowAny.__id;
+                const loadId = realId || `load-${idx}`;
+                return (
                 <tr
                   key={idx}
                   className="hover:bg-blue-50 hover:bg-opacity-50 transition-colors duration-200 border-b border-gray-100 border-opacity-50"
@@ -794,13 +898,85 @@ const Index = () => {
                   </td>
 
                   {/* Driver */}
-                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 align-top">
+                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 align-top w-64 min-w-64 max-w-64">
                     {row.driverName? (
-                      <div className="text-gray-800 font-medium">
-                        {row.driverName} 
+                      <div className="text-gray-800 font-medium w-full">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span>{row.driverName}</span>
+                        </div>
+                      </div>
+                    ) : assigningLoads[loadId] ? (
+                      <div className="flex flex-col gap-2 w-full">
+                        <span className="text-gray-600 text-sm font-medium">Assign Driver:</span>
+                        <span className="text-xs text-gray-500">Load ID: {loadId}</span>
+                        
+                        {/* Show loading state while fetching drivers */}
+                        {isLoadingDrivers[loadId] ? (
+                          <div className="flex items-center justify-center py-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                            <span className="ml-2 text-sm text-gray-600">Loading drivers...</span>
+                          </div>
+                        ) : (
+                          <div>
+                            <span className="text-xs text-gray-500 mb-1 block">
+                              Drivers for this load: {(availableDrivers[loadId] || []).length}
+                            </span>
+                            <select
+                              value={selectedDrivers[loadId] || ""}
+                              onChange={(e) => setSelectedDrivers(prev => ({ ...prev, [loadId]: e.target.value }))}
+                              className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              disabled={isAssigningDriver[loadId]}
+                            >
+                              <option value="">Choose a driver...</option>
+                              {(availableDrivers[loadId] || []).map((driver) => (
+                                <option key={driver._id} value={driver._id}>
+                                  {driver.name} - {driver.email}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                        
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleConfirmAssignment(loadId);
+                            }}
+                            disabled={!selectedDrivers[loadId] || isAssigningDriver[loadId] || isLoadingDrivers[loadId]}
+                            className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-1"
+                          >
+                            {isAssigningDriver[loadId] && (
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                            )}
+                            {isAssigningDriver[loadId] ? 'Assigning...' : 'Assign'}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCancelAssignment(loadId);
+                            }}
+                            disabled={isAssigningDriver[loadId] || isLoadingDrivers[loadId]}
+                            className="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white text-xs rounded transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       </div>
                     ) : (
-                      <span className="text-gray-500 italic">Unassigned</span>
+                      <div className="flex flex-col gap-2 w-full">
+                        <span className="text-gray-500 italic text-sm">Unassigned</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAssignDriver(loadId);
+                          }}
+                          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded transition-colors w-full"
+                        >
+                          Assign Driver
+                        </button>
+                      </div>
                     )}
                   </td>
 
@@ -857,7 +1033,8 @@ const Index = () => {
                   {/* Notes */}
                   <td className="px-4 py-4 text-xs">{row.notes || "No notes"}</td>
                 </tr>
-              ))
+                );
+              })
             ) : (
               <tr>
                 <td colSpan={8} className="text-center py-6 text-gray-500">
@@ -944,6 +1121,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen  flex flex-col relative overflow-hidden bg-gray-50 px-2">
+      
+      
       {/* Enhanced Animated Background Pattern */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0">
@@ -1076,6 +1255,7 @@ const Index = () => {
           animation: pulse 1s ease-in-out infinite;
         }
       `}</style>
+
     </div>
   );
 };

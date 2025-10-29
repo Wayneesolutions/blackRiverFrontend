@@ -8,7 +8,7 @@ export interface UserInfo{
 }
 
 interface InitialState{
-    userInfo : UserInfo | null;
+    userInfo : {userData: UserInfo} | null;
 }
 const userInfoFromLocalStorage = localStorage.getItem("userInfo");
 
