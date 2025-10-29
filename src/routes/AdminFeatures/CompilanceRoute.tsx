@@ -9,6 +9,8 @@ const DriverDocumenet = lazy(()=>import('../../pages/admin/compilance/driver/Dri
 const HosAndEld = lazy(()=>import('../../pages/admin/compilance/host/HosAndEld'))
 const CvsaInspection = lazy(()=>import('../../pages/admin/compilance/cvsa/CvsaInspection'))
 const MonthlyReport = lazy(()=>import('../../pages/admin/compilance/reports/MonthlyReport'))
+const Tickets = lazy(()=>import('../../pages/admin/compilance/tickets/Tickets'))
+const FuelReports = lazy(()=>import('../../pages/admin/dispatch/resources/fuel-reports/index'))
 function CompilanceRoute() {
   return (
     <Suspense fallback={<Loading />}>
@@ -22,6 +24,8 @@ function CompilanceRoute() {
           <Route path="hos-eld" element={<HosAndEld />} />
           <Route path="cvsa-inspection" element={<CvsaInspection />} />
           <Route path="monthly-report" element={<MonthlyReport />} />
+          <Route path="tickets" element={<Tickets />} />
+          <Route path="fuel-reports" element={<FuelReports />} />
           
         </Route>
       </Routes>

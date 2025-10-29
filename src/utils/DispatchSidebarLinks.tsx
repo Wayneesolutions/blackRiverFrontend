@@ -16,6 +16,8 @@ import {
   FaMapMarkerAlt,
   FaTrailer,
   FaUserTie,
+  FaTruck,
+  FaClipboardCheck,
 } from "react-icons/fa";
 import { RiOilLine } from "react-icons/ri";
 import { GiPathDistance } from "react-icons/gi";
@@ -55,7 +57,17 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
       {
         key: "/admin/dispatch/operations/dispatch",
         icon: <MdLocalShipping />,
-        label: "Dispatch",
+        label: "Available Dispatch",
+      },
+      {
+        key: "/admin/dispatch/operations/all-dispatch",
+        icon: <FaTruck />,
+        label: "All Dispatch",
+      },
+      {
+        key: "/admin/dispatch/operations/delivery",
+        icon: <FaClipboardCheck />,
+        label: "Delivery",
       },
       {
         key: "/admin/dispatch/operations/scheduler",
@@ -103,16 +115,6 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
         key: "/admin/dispatch/resources/places",
         icon: <MdOutlineMap />,
         label: "Places",
-      },
-      {
-        key: "/admin/dispatch/resources/fuel-reports",
-        icon: <RiOilLine />,
-        label: "Fuel Reports",
-      },
-      {
-        key: "/admin/dispatch/resources/issues",
-        icon: <MdErrorOutline />,
-        label: "Issues",
       },
     ],
   },

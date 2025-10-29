@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   FaChartBar, 
   FaChartPie, 
-  FaCalendarAlt, 
   FaCheckCircle, 
   FaTimesCircle, 
   FaExclamationTriangle, 
   FaBan,
   FaDownload,
-  FaFilter,
   FaFlag,
   FaFlagUsa,
   FaTruck,
@@ -48,7 +46,7 @@ const generateMockData = (): MonthlyStats[] => {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
   
-  return months.map((month, index) => {
+  return months.map((month) => {
     const baseCount = Math.floor(Math.random() * 50) + 20; // 20-70 inspections per month
     const passRate = 0.6 + Math.random() * 0.3; // 60-90% pass rate
     
@@ -69,7 +67,7 @@ const generateMockData = (): MonthlyStats[] => {
 };
 
 const MonthlyReport: React.FC = () => {
-  const [monthlyData, setMonthlyData] = useState<MonthlyStats[]>(generateMockData());
+  const [monthlyData] = useState<MonthlyStats[]>(generateMockData());
   const [selectedMonth, setSelectedMonth] = useState<string>('December');
   const [selectedCountry, setSelectedCountry] = useState<'all' | 'canada' | 'usa'>('all');
   const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
@@ -147,10 +145,9 @@ const MonthlyReport: React.FC = () => {
       datasets: [{
         label: `Total Inspections (${selectedCountry.toUpperCase()})`,
         data: filteredData.map(d => d.totalInspections),
-        backgroundColor: '#9793E4',
-        borderColor: '#8783D4',
-        borderWidth: 2,
-        fill: false
+        backgroundColor: ['#9793E4'],
+        borderColor: ['#8783D4'],
+        borderWidth: 2
       }]
     };
   };
@@ -243,29 +240,70 @@ const MonthlyReport: React.FC = () => {
   };
 
   const renderLineChart = (data: ChartData, title: string) => {
+    const values = data.datasets[0]?.data || [];
+    const labels = data.labels || [];
+    const maxValue = Math.max(...values, 10);
+    const width = 800;
+    const height = 300;
+    const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    const xStep = chartWidth / Math.max(labels.length - 1, 1);
+    const yScale = (v: number) => chartHeight - (v / maxValue) * chartHeight;
+
+    const points = values.map((v, i) => ({ x: padding.left + i * xStep, y: padding.top + yScale(v) }));
+    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ');
+
+    const gridLines = Array.from({ length: 5 }).map((_, i) => {
+      const y = padding.top + (i * chartHeight) / 4;
+      const value = Math.round(maxValue - (i * maxValue) / 4);
+      return { y, value };
+    });
+
     return (
       <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">{title}</h3>
-        <div className="h-64 flex items-end justify-between gap-2">
-          {data.datasets[0]?.data.map((value, index) => {
-            const maxValue = Math.max(...data.datasets[0]?.data || [0]);
-            const height = (value / maxValue) * 100;
-            
-            return (
-              <div key={index} className="flex flex-col items-center gap-2 flex-1">
-                <div className="text-xs text-gray-600 font-medium">{value}</div>
-                <div
-                  className="w-full rounded-t transition-all duration-500"
-                  style={{
-                    height: `${height}%`,
-                    backgroundColor: data.datasets[0].backgroundColor[0]
-                  }}
-                ></div>
-                <div className="text-xs text-gray-500 text-center">{data.labels[index]}</div>
-              </div>
-            );
-          })}
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: data.datasets[0]?.backgroundColor[0] }}></span>
+              <span className="text-gray-600">{data.datasets[0]?.label}</span>
+            </div>
+          </div>
         </div>
+        <svg width="100%" viewBox={`0 0 ${width} ${height}`}> 
+          {/* Axes */}
+          <line x1={padding.left} y1={padding.top} x2={padding.left} y2={height - padding.bottom} stroke="#E5E7EB" />
+          <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="#E5E7EB" />
+
+          {/* Gridlines and Y labels */}
+          {gridLines.map((g, idx) => (
+            <g key={idx}>
+              <line x1={padding.left} y1={g.y} x2={width - padding.right} y2={g.y} stroke="#F3F4F6" />
+              <text x={padding.left - 10} y={g.y + 4} fontSize="10" fill="#6B7280" textAnchor="end">{g.value}</text>
+            </g>
+          ))}
+
+          {/* Line path */}
+          <path d={pathD} fill="none" stroke={data.datasets[0]?.borderColor[0] || '#6366F1'} strokeWidth={2} />
+
+          {/* Area under curve */}
+          {points.length > 1 && (
+            <path d={`${pathD} L ${points[points.length - 1].x},${height - padding.bottom} L ${points[0].x},${height - padding.bottom} Z`} fill={(data.datasets[0]?.backgroundColor[0] as string) || '#A5B4FC'} opacity={0.15} />
+          )}
+
+          {/* Points */}
+          {points.map((p, i) => (
+            <g key={i}>
+              <circle cx={p.x} cy={p.y} r={3} fill={data.datasets[0]?.borderColor[0] || '#6366F1'} />
+              {/* X labels */}
+              <text x={p.x} y={height - padding.bottom + 15} fontSize="10" fill="#6B7280" textAnchor="middle">{labels[i]}</text>
+              {/* Value labels */}
+              <text x={p.x} y={p.y - 8} fontSize="10" fill="#111827" textAnchor="middle">{values[i]}</text>
+            </g>
+          ))}
+        </svg>
       </div>
     );
   };

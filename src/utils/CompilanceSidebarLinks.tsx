@@ -1,13 +1,10 @@
 import {
     MdDashboard,
-    MdSettings,
-    MdBusiness,
-    MdApi,
-    MdPeople
 } from "react-icons/md";
 import { BsPersonVcard } from "react-icons/bs";
 import { RiBillLine } from "react-icons/ri";
-import { FaClipboardCheck, FaChartBar } from "react-icons/fa";
+import { FaClipboardCheck, FaChartBar, FaTicketAlt } from "react-icons/fa";
+import { RiOilLine } from "react-icons/ri";
 
 type CompilanceSidebarLink = {
     key: string;
@@ -56,5 +53,15 @@ export const CompilanceSidebarLinks: CompilanceSidebarLink[] = [
         key: "monthly-report",
         icon: <FaChartBar />,
         label: "Monthly Report",
+    },
+    {
+        key: "tickets",
+        icon: <FaTicketAlt />,
+        label: "Tickets (Fines & Penalties)",
+    },
+    {
+        key: "fuel-reports",
+        icon: <RiOilLine />,
+        label: "Fuel Reports",
     },
 ];

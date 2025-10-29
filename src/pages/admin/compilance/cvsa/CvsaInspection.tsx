@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaClipboardCheck, 
-  FaMapMarkerAlt, 
-  FaCalendarAlt, 
-  FaCheckCircle, 
-  FaTimesCircle, 
-  FaExclamationTriangle, 
+import {
+  FaClipboardCheck,
+  FaMapMarkerAlt,
+  FaCalendarAlt,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaExclamationTriangle,
   FaBan,
   FaEdit,
   FaTrash,
@@ -145,13 +145,27 @@ const mockInspections: Inspection[] = [
 ];
 
 const CvsaInspection: React.FC = () => {
-  const [inspections] = useState<Inspection[]>(mockInspections);
+  const [inspections, setInspections] = useState<Inspection[]>(mockInspections);
   const [filteredInspections, setFilteredInspections] = useState<Inspection[]>(mockInspections);
   const [activeTab, setActiveTab] = useState<'canada' | 'usa'>('canada');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showViewModal, setShowViewModal] = useState<boolean>(false);
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [inspectionToDelete, setInspectionToDelete] = useState<Inspection | null>(null);
+  const [inspectionForm, setInspectionForm] = useState<Partial<Inspection>>({
+    country: 'canada',
+    date: '',
+    location: '',
+    status: 'pass',
+    vehicleInfo: '',
+    driverName: '',
+    inspectorName: '',
+    notes: ''
+  });
   const [stats, setStats] = useState<InspectionStats>({
     total: 0,
     pass: 0,
@@ -253,6 +267,98 @@ const CvsaInspection: React.FC = () => {
     setShowViewModal(true);
   };
 
+  const resetForm = () => {
+    setInspectionForm({
+      country: 'canada',
+      date: '',
+      location: '',
+      status: 'pass',
+      vehicleInfo: '',
+      driverName: '',
+      inspectorName: '',
+      notes: ''
+    });
+  };
+
+  const handleAddInspection = () => {
+    resetForm();
+    setShowAddModal(true);
+  };
+
+  const handleEditInspection = (inspection: Inspection) => {
+    setSelectedInspection(inspection);
+    setInspectionForm({
+      ...inspection
+    });
+    setShowEditModal(true);
+  };
+
+  const handleDeleteInspection = (inspection: Inspection) => {
+    setInspectionToDelete(inspection);
+    setShowDeleteModal(true);
+  };
+
+  const validateForm = () => {
+    return (
+      !!inspectionForm.country &&
+      !!inspectionForm.date &&
+      !!inspectionForm.location &&
+      !!inspectionForm.status &&
+      !!inspectionForm.vehicleInfo &&
+      !!inspectionForm.driverName &&
+      !!inspectionForm.inspectorName
+    );
+  };
+
+  const saveNewInspection = () => {
+    if (!validateForm()) return;
+    const newInspection: Inspection = {
+      _id: String(Date.now()),
+      inspectionId: `CVSA-${new Date().getFullYear()}-${String(inspections.length + 1).padStart(3, '0')}`,
+      country: inspectionForm.country as 'canada' | 'usa',
+      date: inspectionForm.date as string,
+      location: inspectionForm.location as string,
+      status: inspectionForm.status as Inspection['status'],
+      vehicleId: 'VNEW',
+      vehicleInfo: inspectionForm.vehicleInfo as string,
+      driverId: 'DNEW',
+      driverName: inspectionForm.driverName as string,
+      inspectorName: inspectionForm.inspectorName as string,
+      violations: [],
+      notes: inspectionForm.notes || '',
+      createdAt: new Date().toISOString()
+    };
+    setInspections(prev => [newInspection, ...prev]);
+    setShowAddModal(false);
+    resetForm();
+  };
+
+  const updateInspection = () => {
+    if (!selectedInspection) return;
+    if (!validateForm()) return;
+    setInspections(prev => prev.map(i => i._id === selectedInspection._id ? {
+      ...i,
+      country: inspectionForm.country as 'canada' | 'usa',
+      date: inspectionForm.date as string,
+      location: inspectionForm.location as string,
+      status: inspectionForm.status as Inspection['status'],
+      vehicleInfo: inspectionForm.vehicleInfo as string,
+      driverName: inspectionForm.driverName as string,
+      inspectorName: inspectionForm.inspectorName as string,
+      notes: inspectionForm.notes || ''
+    } : i));
+    setShowEditModal(false);
+    setSelectedInspection(null);
+    resetForm();
+  };
+
+  const confirmDelete = () => {
+    if (!inspectionToDelete) return;
+    setInspections(prev => prev.filter(i => i._id !== inspectionToDelete._id));
+    setShowDeleteModal(false);
+    setInspectionToDelete(null);
+  };
+
   const StatCard = ({ title, value, color, icon }: { title: string; value: number; color: string; icon: React.ReactNode }) => (
     <div className={`${color} p-4 rounded-xl border-2`}>
       <div className="flex items-center justify-between">
@@ -275,6 +381,12 @@ const CvsaInspection: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-800">CVSA Inspection Management</h1>
           <p className="text-gray-600 mt-1">Commercial Vehicle Safety Alliance inspections</p>
         </div>
+        <button
+          onClick={handleAddInspection}
+          className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] shadow-lg hover:shadow-xl transition-all font-medium"
+        >
+          + Add Inspection
+        </button>
       </div>
 
       {/* Country Tabs */}
@@ -284,22 +396,20 @@ const CvsaInspection: React.FC = () => {
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setActiveTab('canada')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${
-                activeTab === 'canada'
-                  ? 'bg-white text-[#9793E4] shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${activeTab === 'canada'
+                ? 'bg-white text-[#9793E4] shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+                }`}
             >
               <FaFlag className="text-red-600" size={16} />
               Canada
             </button>
             <button
               onClick={() => setActiveTab('usa')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${
-                activeTab === 'usa'
-                  ? 'bg-white text-[#9793E4] shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${activeTab === 'usa'
+                ? 'bg-white text-[#9793E4] shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+                }`}
             >
               <FaFlagUsa className="text-blue-600" size={16} />
               USA
@@ -381,7 +491,7 @@ const CvsaInspection: React.FC = () => {
             {activeTab.toUpperCase()} Inspections ({filteredInspections.length})
           </h3>
         </div>
-        
+
         {filteredInspections.length === 0 ? (
           <div className="text-center py-16">
             <FaClipboardCheck size={64} className="mx-auto mb-4 text-gray-300" />
@@ -460,12 +570,14 @@ const CvsaInspection: React.FC = () => {
                           <FaEye size={16} />
                         </button>
                         <button
+                          onClick={() => handleEditInspection(inspection)}
                           className="text-[#9793E4] hover:text-[#8783D4] p-2 hover:bg-purple-50 rounded-lg transition-colors"
                           title="Edit Inspection"
                         >
                           <FaEdit size={16} />
                         </button>
                         <button
+                          onClick={() => handleDeleteInspection(inspection)}
                           className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete Inspection"
                         >
@@ -593,6 +705,206 @@ const CvsaInspection: React.FC = () => {
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Inspection Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-800">Add Inspection</h3>
+                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <FaTimesCircle className="text-gray-500" size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Country <span className="text-red-500">*</span></label>
+                  <select
+                    value={inspectionForm.country}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, country: e.target.value as 'canada' | 'usa' }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="canada">Canada</option>
+                    <option value="usa">USA</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
+                  <input
+                    type="date"
+                    value={inspectionForm.date || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Enter inspection location"
+                    value={inspectionForm.location || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, location: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
+                  <select
+                    value={inspectionForm.status}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, status: e.target.value as Inspection['status'] }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="pass">Pass</option>
+                    <option value="fail">Fail</option>
+                    <option value="warning">Warning</option>
+                    <option value="out-of-service">Out of Service</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Inspector <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Inspector name"
+                    value={inspectionForm.inspectorName || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectorName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Driver <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Driver name"
+                    value={inspectionForm.driverName || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, driverName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Vehicle info"
+                    value={inspectionForm.vehicleInfo || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, vehicleInfo: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                  <textarea
+                    placeholder="Additional notes"
+                    value={inspectionForm.notes || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, notes: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+              <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+              <button onClick={saveNewInspection} className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors disabled:opacity-60" disabled={!validateForm()}>Save Inspection</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Inspection Modal */}
+      {showEditModal && selectedInspection && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-800">Edit Inspection: {selectedInspection.inspectionId}</h3>
+                <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <FaTimesCircle className="text-gray-500" size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Country <span className="text-red-500">*</span></label>
+                  <select
+                    value={inspectionForm.country}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, country: e.target.value as 'canada' | 'usa' }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="canada">Canada</option>
+                    <option value="usa">USA</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
+                  <input type="date" value={inspectionForm.date || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, date: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
+                  <input type="text" value={inspectionForm.location || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, location: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
+                  <select value={inspectionForm.status} onChange={(e) => setInspectionForm(prev => ({ ...prev, status: e.target.value as Inspection['status'] }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent">
+                    <option value="pass">Pass</option>
+                    <option value="fail">Fail</option>
+                    <option value="warning">Warning</option>
+                    <option value="out-of-service">Out of Service</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Inspector <span className="text-red-500">*</span></label>
+                  <input type="text" value={inspectionForm.inspectorName || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectorName: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Driver <span className="text-red-500">*</span></label>
+                  <input type="text" value={inspectionForm.driverName || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, driverName: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle <span className="text-red-500">*</span></label>
+                  <input type="text" value={inspectionForm.vehicleInfo || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, vehicleInfo: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                  <textarea value={inspectionForm.notes || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, notes: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" rows={3} />
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+              <button onClick={() => setShowEditModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+              <button onClick={updateInspection} className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors disabled:opacity-60" disabled={!validateForm()}>Update Inspection</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && inspectionToDelete && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-red-100 rounded-full">
+                  <FaTimesCircle className="text-red-600" size={24} />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800">Delete Inspection</h3>
+              </div>
+              <p className="text-gray-600 mb-6">Are you sure you want to delete inspection <span className="font-semibold">{inspectionToDelete.inspectionId}</span>? This action cannot be undone.</p>
+              <div className="flex justify-end gap-3">
+                <button onClick={() => { setShowDeleteModal(false); setInspectionToDelete(null); }} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors">Cancel</button>
+                <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 font-medium transition-colors">Delete</button>
+              </div>
             </div>
           </div>
         </div>

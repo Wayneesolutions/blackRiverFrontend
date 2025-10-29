@@ -161,7 +161,7 @@ const SparePartsInventory = () => {
   const [showInvoiceModal, setShowInvoiceModal] = useState<boolean>(false);
   const [showSupplierModal, setShowSupplierModal] = useState<boolean>(false);
   const [showInvoiceDetailsModal, setShowInvoiceDetailsModal] = useState<boolean>(false);
-  const [selectedPart, setSelectedPart] = useState<SparePart | null>(null);
+    const [selectedPart, setSelectedPart] = useState<SparePart | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
     const [spareParts, setSpareParts] = useState<SparePart[]>([]);
     const [workOrders] = useState<WorkOrder[]>([]);
@@ -792,7 +792,7 @@ const SparePartsInventory = () => {
 
     // invoices tab removed; single invoices page is the source of truth
 
-    return (
+                            return (
         <div className="p-6 min-h-screen bg-gray-50">
             {/* Notifications Container */}
             <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">
@@ -808,13 +808,13 @@ const SparePartsInventory = () => {
             {/* Header */}
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <div className="flex justify-between items-center">
-                    <div>
+                                        <div>
                         <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
                             <FaBox className="text-[#9793E4]" />
                             Fleet Parts Management
                         </h1>
                         <p className="text-gray-600 mt-2">Comprehensive spare parts inventory and invoice management</p>
-                    </div>
+                                            </div>
                     <div className="flex gap-3">
                         <button
                             onClick={() => setShowSupplierModal(true)}
@@ -829,7 +829,7 @@ const SparePartsInventory = () => {
                         >
                             <FaPlus /> Add New Part
                         </button>
-                    </div>
+                                            </div>
                 </div>
             </div>
 
@@ -856,19 +856,19 @@ const SparePartsInventory = () => {
                                         required
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Part Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        defaultValue={newPartRef.current.partName}
-                                        onChange={(e) => newPartRef.current.partName = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Enter part name"
-                                        required
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Part Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    defaultValue={newPartRef.current.partName}
+                                    onChange={(e) => newPartRef.current.partName = e.target.value}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Enter part name"
+                                    required
+                                />
+                            </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
@@ -920,20 +920,20 @@ const SparePartsInventory = () => {
                             </div>
 
                             <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Stock Quantity <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        defaultValue={newPartRef.current.stockQty}
-                                        onChange={(e) => newPartRef.current.stockQty = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Stock Quantity <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    defaultValue={newPartRef.current.stockQty}
+                                    onChange={(e) => newPartRef.current.stockQty = e.target.value}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="0"
-                                        min="0"
-                                        required
-                                    />
-                                </div>
+                                    min="0"
+                                    required
+                                />
+                            </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Min Stock Level
@@ -1431,7 +1431,7 @@ const SparePartsInventory = () => {
                                 <div className="border border-gray-200 rounded-xl p-4">
                                     <div className="text-sm text-gray-600">Part Number</div>
                                     <div className="text-lg font-bold text-gray-900">{selectedPart.partNumber}</div>
-                                </div>
+                                    </div>
                                 <div className="border border-gray-200 rounded-xl p-4">
                                     <div className="text-sm text-gray-600">Category</div>
                                     <div className="text-lg font-bold text-gray-900">{selectedPart.category}</div>
@@ -1442,7 +1442,7 @@ const SparePartsInventory = () => {
                                 <div className="border border-gray-200 rounded-xl p-4">
                                     <div className="text-sm text-gray-600">Buying Price</div>
                                     <div className="text-lg font-bold text-gray-900">${selectedPart.buyingPrice.toFixed(2)}</div>
-                                </div>
+                                    </div>
                                 <div className="border border-gray-200 rounded-xl p-4">
                                     <div className="text-sm text-gray-600">Selling Price</div>
                                     <div className="text-lg font-bold text-gray-900">${selectedPart.sellingPrice.toFixed(2)}</div>

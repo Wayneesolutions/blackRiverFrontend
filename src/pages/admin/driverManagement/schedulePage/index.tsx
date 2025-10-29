@@ -546,7 +546,7 @@ const DriverScheduleCalendar = () => {
                             <div className="flex items-center justify-between mb-1">
                               <span className="font-medium truncate">{shift.driverName}</span>
                               <div className="flex items-center gap-1">
-                                <Truck className="w-3 h-3" />
+                              <Truck className="w-3 h-3" />
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -630,7 +630,7 @@ const DriverScheduleCalendar = () => {
                             <div className="flex items-center justify-between mb-2">
                               <span className="font-medium text-sm truncate">{shift.driverName}</span>
                               <div className="flex items-center gap-1">
-                                <Truck className="w-4 h-4" />
+                              <Truck className="w-4 h-4" />
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -694,8 +694,8 @@ const DriverScheduleCalendar = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(shift.status)}`}>
-                            {shift.status}
+                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(shift.status)}`}>
+                          {shift.status}
                           </div>
                           <button
                             onClick={(e) => {
@@ -841,7 +841,7 @@ const DriverScheduleCalendar = () => {
                     <X className="w-6 h-6" />
                   </button>
                 </div>
-              </div>
+                </div>
 
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-2 gap-4">
@@ -857,7 +857,7 @@ const DriverScheduleCalendar = () => {
                         <option key={driver.id} value={driver.id}>{driver.name}</option>
                       ))}
                     </select>
-                  </div>
+                              </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Vehicle *</label>
@@ -871,8 +871,8 @@ const DriverScheduleCalendar = () => {
                         <option key={vehicle.id} value={vehicle.id}>{vehicle.name}</option>
                       ))}
                     </select>
-                  </div>
-                </div>
+                            </div>
+                              </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1029,9 +1029,9 @@ const DriverScheduleCalendar = () => {
                         <option key={driver.id} value={driver.id}>{driver.name}</option>
                       ))}
                     </select>
-                  </div>
+                </div>
 
-                  <div>
+                    <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Vehicle *</label>
                     <select
                       value={shiftForm.vehicleId}
@@ -1043,8 +1043,8 @@ const DriverScheduleCalendar = () => {
                         <option key={vehicle.id} value={vehicle.id}>{vehicle.name}</option>
                       ))}
                     </select>
-                  </div>
-                </div>
+                      </div>
+                    </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1065,8 +1065,8 @@ const DriverScheduleCalendar = () => {
                       onChange={(e) => setShiftForm({ ...shiftForm, endTime: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                  </div>
                 </div>
+              </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
