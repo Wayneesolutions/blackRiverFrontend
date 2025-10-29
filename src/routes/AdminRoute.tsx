@@ -17,14 +17,14 @@ const Invoice = lazy(() => import("../pages/admin/dashboard/invoice/index"));
 const Integrations = lazy(() => import("../pages/admin/dashboard/setting/Api"))
 const UserManage = lazy(() => import("../pages/admin/dashboard/setting/Users"));
 const CompanyManage = lazy(() => import("../pages/admin/dashboard/setting/Company"))
+const CompanyDocuments = lazy(() => import("../pages/admin/dashboard/documents/index"));
 
 const DispatchRoutes = lazy(() => import("./AdminFeatures/DispatchRoutes"));
 const GpsVehicleRoutes = lazy(() => import("./AdminFeatures/GpsVehicleRoutes"))
-const DriverManagement = lazy(() => import("./AdminFeatures/DriverManagementRoutes"))
+const DriverManagement = lazy(() => import("./AdminFeatures/HRManagementRoutes"))
 const ComplianceRoute = lazy(() => import('./AdminFeatures/CompilanceRoute'))
 const FleetMaintainRoute = lazy(() => import("./AdminFeatures/FleetMaintainRoutes"))
 const AccountsRoute = lazy(() => import("./AdminFeatures/AccountsRoutes"))
-const EmployeeRoute = lazy(() => import("./AdminFeatures/EmployeeRoute"))
 
 function AdminRoute() {
   return (
@@ -33,11 +33,10 @@ function AdminRoute() {
         {/* Feature Routes - These should come BEFORE the Layout routes */}
         <Route path="dispatch/*" element={<DispatchRoutes />} />
         <Route path="gpsvehicle/*" element={<GpsVehicleRoutes />} />
-        <Route path="driverManagement/*" element={<DriverManagement />} />
+        <Route path="Management/*" element={<DriverManagement />} />
         <Route path="compliance/*" element={<ComplianceRoute />} />
         <Route path="accounts/*" element={<AccountsRoute />} />
         <Route path="fleetmaintenance/*" element={<FleetMaintainRoute />} />
-         <Route path="employeeManagement/*" element={<EmployeeRoute />} />
         {/* Add other feature routes here when ready */}
         {/* 
          <Route path="gps/*" element={<GPSRoutes />} />
@@ -60,6 +59,7 @@ function AdminRoute() {
           <Route path="users" element={<UserManage />} />
           <Route path="company" element={<CompanyManage />} />
           <Route path="integrations" element={<Integrations />} />
+          <Route path="company-documents" element={<CompanyDocuments />} />
         </Route>
       </Routes>
     </Suspense>

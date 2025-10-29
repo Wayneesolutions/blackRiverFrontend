@@ -1,0 +1,2208 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Search, 
+  Filter, 
+  Download, 
+  Edit, 
+  Trash2, 
+  Plus, 
+  X, 
+  User, 
+  Mail, 
+  AlertCircle,
+  Truck,
+  FileText,
+  CreditCard,
+  Eye,
+  Save,
+  RefreshCw
+} from 'lucide-react';
+import { 
+  getAllEmployees, 
+  createEmployee, 
+  updateEmployee, 
+  deleteEmployee, 
+  updateEmployeeStatus
+} from '../../../../axios/api/employee';
+
+interface Employee {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  country: string;
+  role: string;
+  status: 'active' | 'inactive';
+  joinDate: string;
+  internalId: string;
+  location: {
+    address: string;
+    latitude: string;
+    longitude: string;
+  };
+  state: string;
+  city: string;
+  policies: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Driver-specific interfaces
+interface DriverFormData {
+  // Basic Information
+  firstName: string;
+  lastName: string;
+  incorporation: string;
+  employeeCode: string;
+  firstLineAddress: string;
+  secondLineAddress: string;
+  country: string;
+  state: string;
+  city: string;
+  postalCode: string;
+  
+  // Employment & Contact
+  fleet: string;
+  citizenship: string;
+  paymentMethod: string;
+  account: string;
+  wsib: boolean;
+  wsibAccountNo: string;
+  expiryDate: string;
+  remark: string;
+  gstNo: string;
+  profileImage: string;
+  company: boolean;
+  cell1: string;
+  cell2: string;
+  phone: string;
+  extension: string;
+  fax: string;
+  gender: string;
+  email: string;
+  dateOfBirth: string;
+  hireDate: string;
+  termDate: string;
+  csa: boolean;
+  fastCardNo: string;
+  fastCardExpiry: string;
+  medicalRequired: boolean;
+  
+  // Driver License Details
+  documentNo: string;
+  issuingAuthority: string;
+  issuingCountry: string;
+  issuingState: string;
+  issueDate: string;
+  licenseExpiryDate: string;
+  syncToQB: boolean;
+  
+  // Travel Document
+  travelDocumentType: string;
+  travelDocument: string;
+  travelIssuingAuthority: string;
+  travelIssueDate: string;
+  travelExpiryDate: string;
+  
+  // Payment Profile - Default Charges
+  defaultChargeName: string;
+  defaultCurrency: string;
+  chargesAppliedOn: string;
+  defaultMode: string;
+  defaultAmount: number;
+  defaultRemarks: string;
+  
+  // Payment Profile - Payment Profile
+  defaultPayrollType: string;
+  paymentCurrency: string;
+  mileRate: number;
+  mileRateTeam: number;
+  emptyMileRate: number;
+  emptyMileRateTeam: number;
+  hourlyRate: number;
+  weightRate: number;
+  percentageRate: number;
+  localTaxNo: string;
+  federalTaxNo: string;
+  sinNo: string;
+  craAccountNo: string;
+  fedTaxExempt: boolean;
+  provTaxExempt: boolean;
+  cppQppExempt: boolean;
+  eiExempt: boolean;
+  qpipExempt: boolean;
+  payPeriod: string;
+  vacationPay: string;
+  ltl: boolean;
+  onSettlements: boolean;
+  settlementCurrencyByOrder: boolean;
+  isDefault: boolean;
+}
+
+const EmployeesPage = () => {
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [activeTab, setActiveTab] = useState('basic');
+  const [showDriverPanel, setShowDriverPanel] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    country: '',
+    role: '',
+    state: '',
+    city: '',
+    address: '',
+    joinDate: '',
+    internalId: '',
+    policies: '',
+    password: ''
+  });
+
+  const [driverFormData, setDriverFormData] = useState<DriverFormData>({
+    // Basic Information
+    firstName: '',
+    lastName: '',
+    incorporation: '',
+    employeeCode: '',
+    firstLineAddress: '',
+    secondLineAddress: '',
+    country: '',
+    state: '',
+    city: '',
+    postalCode: '',
+    
+    // Employment & Contact
+    fleet: '',
+    citizenship: '',
+    paymentMethod: '',
+    account: '',
+    wsib: false,
+    wsibAccountNo: '',
+    expiryDate: '',
+    remark: '',
+    gstNo: '',
+    profileImage: '',
+    company: false,
+    cell1: '',
+    cell2: '',
+    phone: '',
+    extension: '',
+    fax: '',
+    gender: '',
+    email: '',
+    dateOfBirth: '',
+    hireDate: '',
+    termDate: '',
+    csa: false,
+    fastCardNo: '',
+    fastCardExpiry: '',
+    medicalRequired: false,
+    
+    // Driver License Details
+    documentNo: '',
+    issuingAuthority: '',
+    issuingCountry: '',
+    issuingState: '',
+    issueDate: '',
+    licenseExpiryDate: '',
+    syncToQB: false,
+    
+    // Travel Document
+    travelDocumentType: '',
+    travelDocument: '',
+    travelIssuingAuthority: '',
+    travelIssueDate: '',
+    travelExpiryDate: '',
+    
+    // Payment Profile - Default Charges
+    defaultChargeName: '',
+    defaultCurrency: '',
+    chargesAppliedOn: '',
+    defaultMode: '',
+    defaultAmount: 0,
+    defaultRemarks: '',
+    
+    // Payment Profile - Payment Profile
+    defaultPayrollType: '',
+    paymentCurrency: '',
+    mileRate: 0,
+    mileRateTeam: 0,
+    emptyMileRate: 0,
+    emptyMileRateTeam: 0,
+    hourlyRate: 0,
+    weightRate: 0,
+    percentageRate: 0,
+    localTaxNo: '',
+    federalTaxNo: '',
+    sinNo: '',
+    craAccountNo: '',
+    fedTaxExempt: false,
+    provTaxExempt: false,
+    cppQppExempt: false,
+    eiExempt: false,
+    qpipExempt: false,
+    payPeriod: '',
+    vacationPay: '',
+    ltl: false,
+    onSettlements: false,
+    settlementCurrencyByOrder: false,
+    isDefault: false
+  });
+
+  // Available roles including driver
+  const roles = [
+    'employee', 'dispatcher', 'hr', 'contact', 'customer', 'reporter',
+    'fleetmanager', 'safetyofficer', 'operationsstaff', 'maintenancecrew', 'administrative', 'driver'
+  ];
+
+  // Travel document types
+  const travelDocumentTypes = [
+    'Birth Certificate',
+    'Certificate of Naturalization',
+    'Citizenship Document Number (Citizenship Card)',
+    'DHS Re-entry Permit',
+    'DHS Refugee Travel Document',
+    'Enhanced Driver\'s Licence (EDI) ID',
+    'FAST Card',
+    'Laser Visa Border Crossing Card',
+    'Military ID Document',
+    'Native American Indian / INAC',
+    'NEXUS Card (effective June 2009)',
+    'Other Travel Document ID',
+    'Passport',
+    'Permanent Resident Card (1998–2003) C1',
+    'Permanent Resident Card C2',
+    'Secure Electronic Network for Travelers Rapid Inspection (SENTRI) Card',
+    'U.S. Alien Registration Card A1',
+    'U.S. Alien Registration Card A2',
+    'U.S. Merchant Mariner Document ID',
+    'U.S. Passport Card',
+    'Visa Immigrant',
+    'Visa Non-Immigrant'
+  ];
+
+  // Fetch employees data
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true);
+      const response = await getAllEmployees(1, 100, searchQuery);
+      if (response.success) {
+        setEmployees(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Search employees
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchEmployees();
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setDriverFormData(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: name === 'internalId' ? value.toUpperCase() : value
+      }));
+    }
+  };
+
+  const handleDriverInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setDriverFormData(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+    } else if (type === 'number') {
+      setDriverFormData(prev => ({
+        ...prev,
+        [name]: parseFloat(value) || 0
+      }));
+    } else {
+      setDriverFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      country: '',
+      role: '',
+      state: '',
+      city: '',
+      address: '',
+      joinDate: '',
+      internalId: '',
+      policies: '',
+      password: ''
+    });
+    setDriverFormData({
+      firstName: '',
+      lastName: '',
+      incorporation: '',
+      employeeCode: '',
+      firstLineAddress: '',
+      secondLineAddress: '',
+      country: '',
+      state: '',
+      city: '',
+      postalCode: '',
+      fleet: '',
+      citizenship: '',
+      paymentMethod: '',
+      account: '',
+      wsib: false,
+      wsibAccountNo: '',
+      expiryDate: '',
+      remark: '',
+      gstNo: '',
+      profileImage: '',
+      company: false,
+      cell1: '',
+      cell2: '',
+      phone: '',
+      extension: '',
+      fax: '',
+      gender: '',
+      email: '',
+      dateOfBirth: '',
+      hireDate: '',
+      termDate: '',
+      csa: false,
+      fastCardNo: '',
+      fastCardExpiry: '',
+      medicalRequired: false,
+      documentNo: '',
+      issuingAuthority: '',
+      issuingCountry: '',
+      issuingState: '',
+      issueDate: '',
+      licenseExpiryDate: '',
+      syncToQB: false,
+      travelDocumentType: '',
+      travelDocument: '',
+      travelIssuingAuthority: '',
+      travelIssueDate: '',
+      travelExpiryDate: '',
+      defaultChargeName: '',
+      defaultCurrency: '',
+      chargesAppliedOn: '',
+      defaultMode: '',
+      defaultAmount: 0,
+      defaultRemarks: '',
+      defaultPayrollType: '',
+      paymentCurrency: '',
+      mileRate: 0,
+      mileRateTeam: 0,
+      emptyMileRate: 0,
+      emptyMileRateTeam: 0,
+      hourlyRate: 0,
+      weightRate: 0,
+      percentageRate: 0,
+      localTaxNo: '',
+      federalTaxNo: '',
+      sinNo: '',
+      craAccountNo: '',
+      fedTaxExempt: false,
+      provTaxExempt: false,
+      cppQppExempt: false,
+      eiExempt: false,
+      qpipExempt: false,
+      payPeriod: '',
+      vacationPay: '',
+      ltl: false,
+      onSettlements: false,
+      settlementCurrencyByOrder: false,
+      isDefault: false
+    });
+    setEditingEmployee(null);
+    setActiveTab('basic');
+    setShowDriverPanel(false);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      // Prepare data for submission
+      const submitData = { ...formData };
+      
+      // If driver role is selected, include driver-specific data
+      if (formData.role === 'driver') {
+        Object.assign(submitData, driverFormData);
+      }
+      
+      // Remove empty password for updates
+      if (editingEmployee && !submitData.password) {
+        const { password, ...dataWithoutPassword } = submitData;
+        Object.assign(submitData, dataWithoutPassword);
+      }
+      
+      if (editingEmployee) {
+        // Update existing employee
+        const response = await updateEmployee(editingEmployee._id, submitData);
+        if (response.success) {
+          fetchEmployees();
+          setShowAddModal(false);
+          resetForm();
+        }
+      } else {
+        // Create new employee
+        const response = await createEmployee(submitData);
+        if (response.success) {
+          fetchEmployees();
+          setShowAddModal(false);
+          resetForm();
+        }
+      }
+    } catch (error) {
+      console.error('Error saving employee:', error);
+    }
+  };
+
+  const handleEdit = (employee: Employee) => {
+    setEditingEmployee(employee);
+    setFormData({
+      name: employee.name,
+      email: employee.email,
+      phone: employee.phone,
+      country: employee.country,
+      role: employee.role,
+      state: employee.state,
+      city: employee.city,
+      address: employee.location?.address || '',
+      joinDate: employee.joinDate,
+      internalId: employee.internalId,
+      policies: employee.policies,
+      password: ''
+    });
+    
+    // Show driver panel if role is driver
+    if (employee.role === 'driver') {
+      setShowDriverPanel(true);
+    }
+    
+    setShowAddModal(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this employee?')) {
+      try {
+        const response = await deleteEmployee(id);
+        if (response.success) {
+          fetchEmployees();
+        }
+      } catch (error) {
+        console.error('Error deleting employee:', error);
+      }
+    }
+  };
+
+  const handleStatusToggle = async (employee: Employee) => {
+    try {
+      const newStatus = employee.status === 'active' ? 'inactive' : 'active';
+      const response = await updateEmployeeStatus(employee._id, newStatus);
+      if (response.success) {
+        fetchEmployees();
+      }
+    } catch (error) {
+      console.error('Error updating employee status:', error);
+    }
+  };
+
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const role = e.target.value;
+    setFormData(prev => ({ ...prev, role }));
+    setShowDriverPanel(role === 'driver');
+    setActiveTab('basic');
+  };
+
+  const renderBasicInformationTab = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            First Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="firstName"
+            value={driverFormData.firstName}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Last Name
+          </label>
+          <input
+            type="text"
+            name="lastName"
+            value={driverFormData.lastName}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Incorporation
+          </label>
+          <div className="flex">
+            <select
+              name="incorporation"
+              value={driverFormData.incorporation}
+              onChange={handleDriverInputChange}
+              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select Incorporation</option>
+              <option value="Corporation">Corporation</option>
+              <option value="Partnership">Partnership</option>
+              <option value="Sole Proprietorship">Sole Proprietorship</option>
+            </select>
+            <button
+              type="button"
+              className="px-3 py-2.5 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 transition-colors"
+            >
+              +
+            </button>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Employee Code
+          </label>
+          <input
+            type="text"
+            name="employeeCode"
+            value={driverFormData.employeeCode}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          First Line of Address <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          name="firstLineAddress"
+          value={driverFormData.firstLineAddress}
+          onChange={handleDriverInputChange}
+          placeholder="Street address with autocomplete"
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Second Line of Address
+        </label>
+        <input
+          type="text"
+          name="secondLineAddress"
+          value={driverFormData.secondLineAddress}
+          onChange={handleDriverInputChange}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Country <span className="text-red-500">*</span>
+          </label>
+          <select
+            name="country"
+            value={driverFormData.country}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Country</option>
+            <option value="Canada">Canada</option>
+            <option value="United States">United States</option>
+            <option value="Mexico">Mexico</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            State / Province <span className="text-red-500">*</span>
+          </label>
+          <select
+            name="state"
+            value={driverFormData.state}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select State/Province</option>
+            <option value="Ontario">Ontario</option>
+            <option value="Quebec">Quebec</option>
+            <option value="British Columbia">British Columbia</option>
+            <option value="Alberta">Alberta</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            City <span className="text-red-500">*</span>
+          </label>
+          <div className="flex">
+            <select
+              name="city"
+              value={driverFormData.city}
+              onChange={handleDriverInputChange}
+              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select City</option>
+              <option value="Toronto">Toronto</option>
+              <option value="Montreal">Montreal</option>
+              <option value="Vancouver">Vancouver</option>
+              <option value="Calgary">Calgary</option>
+            </select>
+            <button
+              type="button"
+              className="px-3 py-2.5 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 transition-colors"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Postal / Zip Code <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          name="postalCode"
+          value={driverFormData.postalCode}
+          onChange={handleDriverInputChange}
+          placeholder="00000"
+          pattern="[0-9]{5}"
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+    </div>
+  );
+
+  const renderEmploymentContactTab = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Fleet
+          </label>
+          <div className="flex">
+            <select
+              name="fleet"
+              value={driverFormData.fleet}
+              onChange={handleDriverInputChange}
+              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select Fleet</option>
+              <option value="Fleet A">Fleet A</option>
+              <option value="Fleet B">Fleet B</option>
+              <option value="Fleet C">Fleet C</option>
+            </select>
+            <button
+              type="button"
+              className="px-3 py-2.5 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 transition-colors"
+            >
+              +
+            </button>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Citizenship
+          </label>
+          <select
+            name="citizenship"
+            value={driverFormData.citizenship}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Citizenship</option>
+            <option value="Canadian">Canadian</option>
+            <option value="US Citizen">US Citizen</option>
+            <option value="Permanent Resident">Permanent Resident</option>
+            <option value="Work Permit">Work Permit</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Payment Method
+          </label>
+          <select
+            name="paymentMethod"
+            value={driverFormData.paymentMethod}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Payment Method</option>
+            <option value="Direct Deposit">Direct Deposit</option>
+            <option value="Check">Check</option>
+            <option value="Wire Transfer">Wire Transfer</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Account
+          </label>
+          <div className="flex">
+            <select
+              name="account"
+              value={driverFormData.account}
+              onChange={handleDriverInputChange}
+              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select Account</option>
+              <option value="Account A">Account A</option>
+              <option value="Account B">Account B</option>
+            </select>
+            <button
+              type="button"
+              className="px-3 py-2.5 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 transition-colors"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex items-center space-x-3">
+          <input
+            type="checkbox"
+            name="wsib"
+            checked={driverFormData.wsib}
+            onChange={handleDriverInputChange}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <label className="text-sm font-medium text-gray-700">WSIB</label>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            WSIB Account No
+          </label>
+          <input
+            type="text"
+            name="wsibAccountNo"
+            value={driverFormData.wsibAccountNo}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Expiry Date
+          </label>
+          <input
+            type="date"
+            name="expiryDate"
+            value={driverFormData.expiryDate}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            GST No
+          </label>
+          <input
+            type="text"
+            name="gstNo"
+            value={driverFormData.gstNo}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Remark
+        </label>
+        <textarea
+          name="remark"
+          value={driverFormData.remark}
+          onChange={handleDriverInputChange}
+          rows={3}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex items-center space-x-3">
+          <input
+            type="checkbox"
+            name="company"
+            checked={driverFormData.company}
+            onChange={handleDriverInputChange}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <label className="text-sm font-medium text-gray-700">Company (Black River Logistics Ltd)</label>
+        </div>
+        <div className="flex items-center space-x-3">
+          <input
+            type="checkbox"
+            name="medicalRequired"
+            checked={driverFormData.medicalRequired}
+            onChange={handleDriverInputChange}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <label className="text-sm font-medium text-gray-700">Medical Required</label>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Cell 1 <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="tel"
+            name="cell1"
+            value={driverFormData.cell1}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Cell 2
+          </label>
+          <input
+            type="tel"
+            name="cell2"
+            value={driverFormData.cell2}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Phone #
+          </label>
+          <input
+            type="tel"
+            name="phone"
+            value={driverFormData.phone}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Extn. #
+          </label>
+          <input
+            type="text"
+            name="extension"
+            value={driverFormData.extension}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Fax #
+          </label>
+          <input
+            type="tel"
+            name="fax"
+            value={driverFormData.fax}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Gender
+          </label>
+          <select
+            name="gender"
+            value={driverFormData.gender}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Email ID
+          </label>
+          <input
+            type="email"
+            name="email"
+            value={driverFormData.email}
+            onChange={handleDriverInputChange}
+            placeholder="Multiple entries separated by commas"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Date of Birth
+          </label>
+          <input
+            type="date"
+            name="dateOfBirth"
+            value={driverFormData.dateOfBirth}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Hire Date
+          </label>
+          <input
+            type="date"
+            name="hireDate"
+            value={driverFormData.hireDate}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Term. Date
+          </label>
+          <input
+            type="date"
+            name="termDate"
+            value={driverFormData.termDate}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex items-center space-x-3">
+          <input
+            type="checkbox"
+            name="csa"
+            checked={driverFormData.csa}
+            onChange={handleDriverInputChange}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <label className="text-sm font-medium text-gray-700">CSA</label>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Fast Card #
+          </label>
+          <input
+            type="text"
+            name="fastCardNo"
+            value={driverFormData.fastCardNo}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Fast Card Expiry
+        </label>
+        <input
+          type="date"
+          name="fastCardExpiry"
+          value={driverFormData.fastCardExpiry}
+          onChange={handleDriverInputChange}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Profile Image Upload
+          </label>
+          <div className="flex items-center space-x-2">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              id="profileImage"
+            />
+            <label
+              htmlFor="profileImage"
+              className="px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 cursor-pointer transition-colors"
+            >
+              Choose File
+            </label>
+            <button
+              type="button"
+              className="px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <input
+            type="checkbox"
+            name="profileImage"
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <label className="text-sm font-medium text-gray-700">Delete Profile Image</label>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderDriverLicenseTab = () => (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Document No. <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          name="documentNo"
+          value={driverFormData.documentNo}
+          onChange={handleDriverInputChange}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Issuing Authority
+        </label>
+        <input
+          type="text"
+          name="issuingAuthority"
+          value={driverFormData.issuingAuthority}
+          onChange={handleDriverInputChange}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Issuing Country
+          </label>
+          <select
+            name="issuingCountry"
+            value={driverFormData.issuingCountry}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Country</option>
+            <option value="Canada">Canada</option>
+            <option value="United States">United States</option>
+            <option value="Mexico">Mexico</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Issuing State / Province
+          </label>
+          <select
+            name="issuingState"
+            value={driverFormData.issuingState}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select State/Province</option>
+            <option value="Ontario">Ontario</option>
+            <option value="Quebec">Quebec</option>
+            <option value="British Columbia">British Columbia</option>
+            <option value="Alberta">Alberta</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Issue Date <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            name="issueDate"
+            value={driverFormData.issueDate}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Expiry Date <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            name="licenseExpiryDate"
+            value={driverFormData.licenseExpiryDate}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-3">
+        <input
+          type="checkbox"
+          name="syncToQB"
+          checked={driverFormData.syncToQB}
+          onChange={handleDriverInputChange}
+          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+        />
+        <label className="text-sm font-medium text-gray-700">Sync to QB</label>
+      </div>
+    </div>
+  );
+
+  const renderTravelDocumentTab = () => (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Document Type <span className="text-red-500">*</span>
+        </label>
+        <select
+          name="travelDocumentType"
+          value={driverFormData.travelDocumentType}
+          onChange={handleDriverInputChange}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">Select Document Type</option>
+          {travelDocumentTypes.map((type) => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Document <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          name="travelDocument"
+          value={driverFormData.travelDocument}
+          onChange={handleDriverInputChange}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Issuing Authority
+        </label>
+        <input
+          type="text"
+          name="travelIssuingAuthority"
+          value={driverFormData.travelIssuingAuthority}
+          onChange={handleDriverInputChange}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Issue Date <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            name="travelIssueDate"
+            value={driverFormData.travelIssueDate}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Expiry Date <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            name="travelExpiryDate"
+            value={driverFormData.travelExpiryDate}
+            onChange={handleDriverInputChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderPaymentProfileTab = () => (
+    <div className="space-y-8">
+      {/* Default Charges Tab */}
+      <div>
+        <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+          <CreditCard className="w-5 h-5 text-blue-500" />
+          <span>Default Charges</span>
+        </h4>
+        <div className="bg-gray-50 p-6 rounded-lg space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="defaultChargeName"
+                value={driverFormData.defaultChargeName}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Name</option>
+                <option value="Advance Payment">Advance Payment</option>
+                <option value="Personal Expense">Personal Expense</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Currency <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="defaultCurrency"
+                value={driverFormData.defaultCurrency}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Currency</option>
+                <option value="CAD">CAD - Canadian Dollar</option>
+                <option value="USD">USD - United States Dollar</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Charges Applied On <span className="text-red-500">*</span>
+            </label>
+            <div className="flex space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="chargesAppliedOn"
+                  value="Settlements"
+                  checked={driverFormData.chargesAppliedOn === 'Settlements'}
+                  onChange={handleDriverInputChange}
+                  className="mr-2"
+                />
+                Settlements
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="chargesAppliedOn"
+                  value="Payment"
+                  checked={driverFormData.chargesAppliedOn === 'Payment'}
+                  onChange={handleDriverInputChange}
+                  className="mr-2"
+                />
+                Payment
+              </label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Mode <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="defaultMode"
+                value={driverFormData.defaultMode}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Mode</option>
+                <option value="Flat">Flat</option>
+                <option value="Percentage">Percentage(%)</option>
+                <option value="Miles Rate">Miles Rate</option>
+                <option value="Hours Rate">Hours Rate</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Amount <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="defaultAmount"
+                value={driverFormData.defaultAmount}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Remarks
+            </label>
+            <textarea
+              name="defaultRemarks"
+              value={driverFormData.defaultRemarks}
+              onChange={handleDriverInputChange}
+              rows={3}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            />
+          </div>
+
+       
+        </div>
+      </div>
+
+      {/* Payment Profile Tab */}
+      <div>
+        <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+          <CreditCard className="w-5 h-5 text-blue-500" />
+          <span>Payment Profile</span>
+        </h4>
+        <div className="bg-gray-50 p-6 rounded-lg space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Default Payroll Type <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="defaultPayrollType"
+                value={driverFormData.defaultPayrollType}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Payroll Type</option>
+                <option value="Owner Operator">Owner Operator</option>
+                <option value="Company Driver">Company Driver</option>
+                <option value="Team Driver">Team Driver</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Currency <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="paymentCurrency"
+                value={driverFormData.paymentCurrency}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Currency</option>
+                <option value="CAD">CAD - Canadian Dollar</option>
+                <option value="USD">USD - United States Dollar</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Mile Rate (Solo)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                name="mileRate"
+                value={driverFormData.mileRate}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Mile Rate (Team)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                name="mileRateTeam"
+                value={driverFormData.mileRateTeam}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Empty Mile Rate
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                name="emptyMileRate"
+                value={driverFormData.emptyMileRate}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Empty Mile Rate (Team)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                name="emptyMileRateTeam"
+                value={driverFormData.emptyMileRateTeam}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Hourly Rate
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                name="hourlyRate"
+                value={driverFormData.hourlyRate}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Weight Rate
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                name="weightRate"
+                value={driverFormData.weightRate}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Percentage Rate
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                name="percentageRate"
+                value={driverFormData.percentageRate}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Local Tax #
+              </label>
+              <input
+                type="text"
+                name="localTaxNo"
+                value={driverFormData.localTaxNo}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Federal Tax #
+              </label>
+              <input
+                type="text"
+                name="federalTaxNo"
+                value={driverFormData.federalTaxNo}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                SIN No.
+              </label>
+              <input
+                type="text"
+                name="sinNo"
+                value={driverFormData.sinNo}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                CRA (Payroll Account Number)
+              </label>
+              <input
+                type="text"
+                name="craAccountNo"
+                value={driverFormData.craAccountNo}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Exemptions</label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="fedTaxExempt"
+                    checked={driverFormData.fedTaxExempt}
+                    onChange={handleDriverInputChange}
+                    className="mr-2"
+                  />
+                  Fed Tax
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="provTaxExempt"
+                    checked={driverFormData.provTaxExempt}
+                    onChange={handleDriverInputChange}
+                    className="mr-2"
+                  />
+                  Prov Tax
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="cppQppExempt"
+                    checked={driverFormData.cppQppExempt}
+                    onChange={handleDriverInputChange}
+                    className="mr-2"
+                  />
+                  CPP/QPP
+                </label>
+              </div>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="eiExempt"
+                    checked={driverFormData.eiExempt}
+                    onChange={handleDriverInputChange}
+                    className="mr-2"
+                  />
+                  EI
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="qpipExempt"
+                    checked={driverFormData.qpipExempt}
+                    onChange={handleDriverInputChange}
+                    className="mr-2"
+                  />
+                  QPIP
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pay Period
+              </label>
+              <select
+                name="payPeriod"
+                value={driverFormData.payPeriod}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Pay Period</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Bi-weekly">Bi-weekly</option>
+                <option value="Monthly">Monthly</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Vacation Pay
+              </label>
+              <select
+                name="vacationPay"
+                value={driverFormData.vacationPay}
+                onChange={handleDriverInputChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Vacation Pay</option>
+                <option value="4%">4%</option>
+                <option value="6%">6%</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="ltl"
+                  checked={driverFormData.ltl}
+                  onChange={handleDriverInputChange}
+                  className="mr-2"
+                />
+                LTL
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="onSettlements"
+                  checked={driverFormData.onSettlements}
+                  onChange={handleDriverInputChange}
+                  className="mr-2"
+                />
+                On Settlements
+              </label>
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="settlementCurrencyByOrder"
+                  checked={driverFormData.settlementCurrencyByOrder}
+                  onChange={handleDriverInputChange}
+                  className="mr-2"
+                />
+                Settlement Currency By Order
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="isDefault"
+                  checked={driverFormData.isDefault}
+                  onChange={handleDriverInputChange}
+                  className="mr-2"
+                />
+                Is Default
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-800">All Employees ({employees.length})</h2>
+          <button 
+            onClick={() => {
+              resetForm();
+              setShowAddModal(true);
+            }}
+            className="px-4 py-2 bg-blue-500 !text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Employee</span>
+          </button>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search by name, ID, role, or department..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
+            <Filter className="w-4 h-4" />
+            <span>Filter</span>
+          </button>
+          <button className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
+            <Download className="w-4 h-4" />
+            <span>Export</span>
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="grid grid-cols-2 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+              <div className="bg-gray-200 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+                    <div>
+                      <div className="h-4 bg-gray-300 rounded w-32 mb-2"></div>
+                      <div className="h-3 bg-gray-300 rounded w-20"></div>
+                    </div>
+                  </div>
+                  <div className="h-6 bg-gray-300 rounded-full w-16"></div>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="space-y-3">
+                  <div className="h-3 bg-gray-200 rounded w-full"></div>
+                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-6">
+          {employees.map((employee) => (
+            <div key={employee._id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold text-lg">
+                      {employee.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <h3 className="text-white font-semibold">{employee.name}</h3>
+                      <p className="text-blue-100 text-sm">{employee.internalId}</p>
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    employee.status === 'active' 
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {employee.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Role</p>
+                    <p className="text-sm font-medium text-gray-800 capitalize">{employee.role}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Country</p>
+                    <p className="text-sm font-medium text-gray-800">{employee.country}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Email</p>
+                    <p className="text-sm font-medium text-blue-600">{employee.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Phone</p>
+                    <p className="text-sm font-medium text-gray-800">{employee.phone}</p>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <p className="text-xs text-gray-500 mb-1">Address</p>
+                  <p className="text-sm text-gray-700">{employee.location?.address || 'No address provided'}</p>
+                </div>
+
+                <div className="mb-4">
+                  <p className="text-xs text-gray-500 mb-1">Location</p>
+                  <p className="text-sm text-gray-700">{employee.city}, {employee.state}</p>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Join Date</p>
+                    <p className="text-sm font-medium text-gray-800">
+                      {new Date(employee.joinDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Employee ID</p>
+                    <p className="text-sm font-medium text-gray-800">{employee.internalId}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-6 pb-4 flex items-center space-x-2">
+                <button 
+                  onClick={() => handleStatusToggle(employee)}
+                  className={`flex-1 px-4 py-2 rounded-lg transition-colors text-sm font-medium flex items-center justify-center space-x-1 ${
+                    employee.status === 'active' 
+                      ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100' 
+                      : 'bg-green-50 text-green-600 hover:bg-green-100'
+                  }`}
+                >
+                  <span>{employee.status === 'active' ? 'Deactivate' : 'Activate'}</span>
+                </button>
+                <button 
+                  onClick={() => handleEdit(employee)}
+                  className="flex-1 px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium flex items-center justify-center space-x-1">
+                  <Edit className="w-4 h-4" />
+                  <span>Edit</span>
+                </button>
+                <button 
+                  onClick={() => handleDelete(employee._id)}
+                  className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">
+                    {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
+                  </h2>
+                  <p className="text-blue-100 text-sm">Fill in the employee details below</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+              {/* Basic Employee Information */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <User className="w-5 h-5 text-blue-500" />
+                  <span>Basic Information</span>
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Enter full name"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Role <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="role"
+                      value={formData.role}
+                      onChange={handleRoleChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select role</option>
+                      {roles.map(role => (
+                        <option key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Internal ID <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="internalId"
+                      value={formData.internalId}
+                      onChange={handleInputChange}
+                      placeholder="EMP-001"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Country <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="country"
+                      value={formData.country}
+                      onChange={handleInputChange}
+                      placeholder="United States"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Join Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="joinDate"
+                      value={formData.joinDate}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Password {!editingEmployee && <span className="text-red-500">*</span>}
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder={editingEmployee ? "Leave empty to keep current password" : "Leave empty for default password"}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {editingEmployee && (
+                      <p className="text-xs text-gray-500 mt-1">Leave empty to keep the current password unchanged</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Driver-specific panel */}
+              {showDriverPanel && (
+                <div className="mb-6">
+                  <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 rounded-lg mb-6">
+                    <div className="flex items-center space-x-3">
+                      <Truck className="w-6 h-6 text-white" />
+                      <h3 className="text-lg font-semibold text-white">Driver Information</h3>
+                    </div>
+                  </div>
+
+                  {/* Driver Tabs */}
+                  <div className="mb-6">
+                    <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+                      {[
+                        { id: 'basic', label: 'Basic Information', icon: User },
+                        { id: 'employment', label: 'Employment & Contact', icon: Mail },
+                        { id: 'license', label: 'Driver License', icon: FileText },
+                        { id: 'travel', label: 'Travel Document', icon: FileText },
+                        { id: 'payment', label: 'Payment Profile', icon: CreditCard }
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveTab(tab.id)}
+                          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
+                            activeTab === tab.id
+                              ? 'bg-white text-gray-900 shadow-sm'
+                              : 'text-gray-600 hover:text-gray-900'
+                          }`}
+                        >
+                          <tab.icon className="w-4 h-4" />
+                          <span>{tab.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tab Content */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    {activeTab === 'basic' && renderBasicInformationTab()}
+                    {activeTab === 'employment' && renderEmploymentContactTab()}
+                    {activeTab === 'license' && renderDriverLicenseTab()}
+                    {activeTab === 'travel' && renderTravelDocumentTab()}
+                    {activeTab === 'payment' && renderPaymentProfileTab()}
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Information */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <Mail className="w-5 h-5 text-blue-500" />
+                  <span>Contact Information</span>
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="employee@company.com"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="+1 234-567-8900"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      State <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleInputChange}
+                      placeholder="California"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      City <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      placeholder="Los Angeles"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Address <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      placeholder="Enter complete address"
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <AlertCircle className="w-5 h-5 text-blue-500" />
+                  <span>Additional Information</span>
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Policies
+                    </label>
+                    <textarea
+                      name="policies"
+                      value={formData.policies}
+                      onChange={handleInputChange}
+                      placeholder="Enter company policies or additional notes"
+                      rows={3}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 px-6 py-4 flex items-center justify-end space-x-3 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetForm();
+                }}
+                className="px-6 py-2.5 border border-gray-300 !mr-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-500 !text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all font-medium shadow-md hover:shadow-lg"
+              >
+                {editingEmployee ? 'Update Employee' : 'Add Employee'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default EmployeesPage;

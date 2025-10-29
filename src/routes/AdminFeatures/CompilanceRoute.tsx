@@ -7,6 +7,10 @@ const CompilanceDashboard = lazy(()=>import('../../pages/admin/compilance/Dashbo
 const VehicleDocument = lazy(()=>import('../../pages/admin/compilance/vehicle/VehicleDocument'))
 const DriverDocumenet = lazy(()=>import('../../pages/admin/compilance/driver/DriverDocumenet'))
 const HosAndEld = lazy(()=>import('../../pages/admin/compilance/host/HosAndEld'))
+const CvsaInspection = lazy(()=>import('../../pages/admin/compilance/cvsa/CvsaInspection'))
+const MonthlyReport = lazy(()=>import('../../pages/admin/compilance/reports/MonthlyReport'))
+const Tickets = lazy(()=>import('../../pages/admin/compilance/tickets/Tickets'))
+const FuelReports = lazy(()=>import('../../pages/admin/dispatch/resources/fuel-reports/index'))
 function CompilanceRoute() {
   return (
     <Suspense fallback={<Loading />}>
@@ -18,6 +22,10 @@ function CompilanceRoute() {
           <Route path="vehicle-documents" element={<VehicleDocument />} />
           <Route path="driver-documents" element={<DriverDocumenet />} />
           <Route path="hos-eld" element={<HosAndEld />} />
+          <Route path="cvsa-inspection" element={<CvsaInspection />} />
+          <Route path="monthly-report" element={<MonthlyReport />} />
+          <Route path="tickets" element={<Tickets />} />
+          <Route path="fuel-reports" element={<FuelReports />} />
           
         </Route>
       </Routes>

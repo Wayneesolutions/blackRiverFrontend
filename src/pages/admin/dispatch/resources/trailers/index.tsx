@@ -405,7 +405,7 @@ const TrailersTable = () => {
                                         <p className="mt-1 text-sm text-gray-500">
                                             Get started by creating a new trailer.
                                         </p>
-                                        <div className="mt-6">
+                                        <div className="mt-6 flex justify-center">
                                             <button
                                                 onClick={() => setIsSidebarOpen(true)}
                                                 className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2 mx-auto"

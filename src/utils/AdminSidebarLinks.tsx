@@ -7,6 +7,7 @@ import {
 } from "react-icons/md";
 import { BsPersonVcard } from "react-icons/bs";
 import { RiBillLine } from "react-icons/ri";
+import { RiFoldersLine } from "react-icons/ri";
 
 type AdminSidebarLink = {
     key: string;
@@ -40,6 +41,11 @@ export const AdminSidebarLinks: AdminSidebarLink[] = [
         key: "invoice",
         icon: <RiBillLine />,
         label: "Invoices",
+    },
+    {
+        key: "company-documents",
+        icon: <RiFoldersLine />,
+        label: "Company Documents",
     },
     {
         key: "systemsetting",

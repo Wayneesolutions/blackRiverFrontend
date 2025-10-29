@@ -51,50 +51,8 @@ const Header = () => {
 
             {/* Right section: Icons */}
             <div className="flex items-center gap-4 ml-4">
-                <FaExpand className="cursor-pointer" />
                 <FaBell className="cursor-pointer" />
-                <FaCommentDots className="cursor-pointer" />
-                
-                {/* User Dropdown */}
-                <div className="relative" ref={dropdownRef}>
-                    <FaUserCircle 
-                        className="cursor-pointer hover:text-blue-600 transition-colors" 
-                        onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                    />
-                    
-                    {isUserDropdownOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
-                            <div className="py-1">
-                                {/* User Info */}
-                                <div className="px-4 py-2 border-b border-gray-100">
-                                    <p className="text-sm font-medium text-gray-900">{userInfo?.name || 'User'}</p>
-                                    <p className="text-xs text-gray-500">{userInfo?.email || ''}</p>
-                                </div>
-                                
-                                {/* Profile Option */}
-                                <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                                    <FaUser className="mr-3 text-gray-400" />
-                                    Profile
-                                </button>
-                                
-                                {/* Settings Option */}
-                                <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                                    <FaCog className="mr-3 text-gray-400" />
-                                    Settings
-                                </button>
-                                
-                                {/* Logout Option */}
-                                <button 
-                                    onClick={handleLogout}
-                                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                                >
-                                    <FaSignOutAlt className="mr-3 text-red-500" />
-                                    Logout
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <FaUserCircle className="cursor-pointer" />
             </div>
         </header>
     );

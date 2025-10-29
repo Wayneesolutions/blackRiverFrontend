@@ -162,7 +162,7 @@ const EmployeeDocumentsPage = () => {
           <div className="flex items-center space-x-3">
             <button 
               onClick={() => setShowUploadModal(true)}
-              className="px-4 py-2 bg-blue-500 !text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-blue-500 !mr-4 !text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
             >
               <Upload className="w-4 h-4" />
               <span>Upload Document</span>
@@ -203,13 +203,6 @@ const EmployeeDocumentsPage = () => {
               </option>
             ))}
           </select>
-          <button 
-            onClick={handleSearch}
-            className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2"
-          >
-            <Search className="w-4 h-4" />
-            <span>Search</span>
-          </button>
         </div>
       </div>
 
@@ -299,7 +292,7 @@ const EmployeeDocumentsPage = () => {
               </p>
               <button 
                 onClick={() => setShowUploadModal(true)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="px-4 py-2 bg-blue-500 !text-white rounded-lg hover:bg-blue-600 transition-colors"
               >
                 Upload Document
               </button>
@@ -596,11 +589,11 @@ const UploadDocumentModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
       <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800">
+            <h2 className="text-xl font-bold !text-gray-800">
               {editingDocument ? 'Edit Document' : 'Upload Document'}
             </h2>
             <button
@@ -736,14 +729,14 @@ const UploadDocumentModal = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 !mr-4 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                className="px-4 py-2 bg-blue-500 !text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
               >
                 {loading ? 'Saving...' : editingDocument ? 'Update Document' : 'Upload Document'}
               </button>
