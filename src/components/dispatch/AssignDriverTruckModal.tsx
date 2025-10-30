@@ -230,7 +230,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({ load, o
           <button
             onClick={handleAssign}
             disabled={!selectedDriver || !selectedTruck}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-6 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <FaCheck /> Confirm Assignment
           </button>

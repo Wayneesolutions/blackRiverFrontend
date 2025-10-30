@@ -333,7 +333,7 @@ const Delivery = () => {
                             setSelectedLoad(load);
                             setShowDocumentModal(true);
                           }}
-                          className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 flex items-center gap-1"
+                          className="px-3 py-1.5 bg-blue-600 !text-white text-sm rounded-lg hover:bg-blue-700 flex items-center gap-1"
                         >
                           <FaUpload size={12} /> Documents
                         </button>
@@ -343,7 +343,7 @@ const Delivery = () => {
                               setSelectedLoad(load);
                               setShowPaymentModal(true);
                             }}
-                            className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
+                            className="px-3 py-1.5 bg-green-600 !text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
                           >
                             <FaCheck size={12} /> Mark Paid
                           </button>
@@ -545,7 +545,7 @@ const Delivery = () => {
                   setShowDocumentModal(false);
                   setSelectedLoad(null);
                 }}
-                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium"
+                className="px-6 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 font-medium"
               >
                 Close
               </button>
@@ -618,7 +618,7 @@ const Delivery = () => {
               </button>
               <button
                 onClick={() => handleMarkPaid(selectedLoad._id)}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="px-6 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700"
               >
                 Confirm Payment
               </button>
