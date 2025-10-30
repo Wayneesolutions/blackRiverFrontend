@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { listCompanyDocuments, uploadCompanyDocument, deleteCompanyDocument } from '../../../../axios/api/companyDocuments';
 import {
   FolderOpen,
   FileText,
@@ -45,6 +46,33 @@ const DocumentManagement: React.FC = () => {
     category: 'hr',
     description: ''
   });
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewDoc, setViewDoc] = useState<Document | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; id: string | null; name?: string }>({ open: false, id: null });
+
+  const getExtension = (doc: Document) => {
+    if (doc.type) return doc.type.toLowerCase();
+    try {
+      const url = new URL(doc.url);
+      const ext = url.pathname.split('.').pop() || '';
+      return ext.toLowerCase();
+    } catch {
+      return '';
+    }
+  };
+
+  const getViewerUrl = (doc: Document) => {
+    const ext = getExtension(doc);
+    const encoded = encodeURIComponent(doc.url);
+    // Images and PDFs are handled natively outside this function
+    // Office formats via Microsoft viewer
+    const officeExts = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+    if (officeExts.includes(ext)) {
+      return `https://view.officeapps.live.com/op/embed.aspx?src=${encoded}`;
+    }
+    // Fallback to Google viewer for other common docs (txt, csv, etc.)
+    return `https://docs.google.com/gview?url=${encoded}&embedded=true`;
+  };
 
   // Sample categories
   const categories = [
@@ -57,59 +85,51 @@ const DocumentManagement: React.FC = () => {
     { id: 'other', name: 'Other', icon: Folder, count: 0 }
   ];
 
-  // Mock data for demonstration
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setDocuments([
-        {
-          _id: '1',
-          name: 'Employee Handbook 2024',
-          category: 'hr',
-          type: 'pdf',
-          size: 2048576,
-          uploadedBy: 'John Doe',
-          uploadDate: '2024-01-15',
-          url: '#',
-          description: 'Complete employee handbook with all company policies'
-        },
-        {
-          _id: '2',
-          name: 'Safety Protocol Manual',
-          category: 'safety',
-          type: 'pdf',
-          size: 1536000,
-          uploadedBy: 'Jane Smith',
-          uploadDate: '2024-01-20',
-          url: '#',
-          description: 'Fleet safety protocols and procedures'
-        },
-        {
-          _id: '3',
-          name: 'Offer Letter Template',
-          category: 'offer',
-          type: 'doc',
-          size: 51200,
-          uploadedBy: 'Admin',
-          uploadDate: '2024-02-01',
-          url: '#',
-          description: 'Standard offer letter template for new hires'
-        },
-        {
-          _id: '4',
-          name: 'Compliance Checklist',
-          category: 'legal',
-          type: 'xlsx',
-          size: 25600,
-          uploadedBy: 'Legal Team',
-          uploadDate: '2024-02-10',
-          url: '#',
-          description: 'Monthly compliance verification checklist'
-        }
-      ]);
+  const fetchDocuments = async () => {
+    setLoading(true);
+    try {
+      const res = await listCompanyDocuments({
+        category: selectedCategory,
+        search: searchQuery,
+      });
+      if (res?.success) {
+        setDocuments(res.data || []);
+      } else {
+        setDocuments([]);
+      }
+    } catch (e) {
+      setDocuments([]);
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocuments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory]);
+
+  const handleView = (doc: Document) => {
+    setViewDoc(doc);
+    setShowViewModal(true);
+  };
+
+  const handleDownload = async (doc: Document) => {
+    try {
+      // Attempt to open in new tab; if blocked or cross-origin restricted, fallback to fetch+download
+      if (doc.url) {
+        const a = document.createElement('a');
+        a.href = doc.url;
+        a.download = doc.name || 'document';
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    } catch (e) {
+      console.error('Download failed', e);
+    }
+  };
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -147,22 +167,17 @@ const DocumentManagement: React.FC = () => {
 
     setUploading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const newDoc: Document = {
-        _id: Date.now().toString(),
+      const res = await uploadCompanyDocument({
         name: uploadForm.name || selectedFile.name,
         category: uploadForm.category,
-        type: selectedFile.name.split('.').pop() || 'file',
-        size: selectedFile.size,
-        uploadedBy: 'Current User',
-        uploadDate: new Date().toISOString().split('T')[0],
-        url: '#',
-        description: uploadForm.description
-      };
-
-      setDocuments([...documents, newDoc]);
+        description: uploadForm.description,
+        file: selectedFile,
+      });
+      if (res?.success) {
+        await fetchDocuments();
+      } else {
+        alert(res?.message || 'Failed to upload');
+      }
       setUploadDialog(false);
       setSelectedFile(null);
       setUploadForm({ name: '', category: 'hr', description: '' });
@@ -174,9 +189,22 @@ const DocumentManagement: React.FC = () => {
     }
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this document?')) {
-      setDocuments(documents.filter(doc => doc._id !== id));
+  const handleAskDelete = (doc: Document) => {
+    setConfirmDelete({ open: true, id: doc._id, name: doc.name });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete.id) return;
+    try {
+      const res = await deleteCompanyDocument(confirmDelete.id);
+      if (res?.success) {
+        setConfirmDelete({ open: false, id: null });
+        await fetchDocuments();
+      } else {
+        alert(res?.message || 'Delete failed');
+      }
+    } catch (e) {
+      alert('Delete failed');
     }
   };
 
@@ -295,15 +323,15 @@ const DocumentManagement: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-                      <button className="flex-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center gap-1 text-sm font-medium">
+                      <button onClick={() => handleView(doc)} className="flex-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center gap-1 text-sm font-medium">
                         <Eye size={16} />
                         View
                       </button>
-                      <button className="px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
+                      <button onClick={() => handleDownload(doc)} className="px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
                         <Download size={16} />
                       </button>
                       <button
-                        onClick={() => handleDelete(doc._id)}
+                        onClick={() => handleAskDelete(doc)}
                         className="px-3 py-1.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
                       >
                         <Trash2 size={16} />
@@ -438,6 +466,59 @@ const DocumentManagement: React.FC = () => {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Modal */}
+      {showViewModal && viewDoc && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">{viewDoc.name}</h3>
+                <p className="text-xs text-gray-500 mt-1 uppercase">{viewDoc.type}</p>
+              </div>
+              <button onClick={() => setShowViewModal(false)} className="text-gray-400 hover:text-gray-600">
+                <XCircle size={22} />
+              </button>
+            </div>
+            <div className="p-4 overflow-auto bg-gray-50">
+              {(() => {
+                const ext = getExtension(viewDoc);
+                if (ext === 'pdf') {
+                  return <iframe title="preview" src={viewDoc.url} className="w-full h-[70vh] border rounded-lg"></iframe>;
+                }
+                if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
+                  return <img src={viewDoc.url} alt={viewDoc.name} className="max-h-[70vh] w-auto mx-auto rounded-lg border" />;
+                }
+                // Use online viewers for other types
+                const viewerSrc = getViewerUrl(viewDoc);
+                return (
+                  <iframe
+                    title="preview"
+                    src={viewerSrc}
+                    className="w-full h-[70vh] border rounded-lg bg-white"
+                  />
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation */}
+      {confirmDelete.open && (
+        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-[120] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Delete document?</h3>
+              <p className="text-sm text-gray-600 mt-2">This action cannot be undone. You are about to delete <span className="font-medium text-gray-900">{confirmDelete.name}</span>.</p>
+            </div>
+            <div className="p-4 flex items-center justify-end gap-3">
+              <button onClick={() => setConfirmDelete({ open: false, id: null })} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium">Cancel</button>
+              <button onClick={handleConfirmDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">Delete</button>
             </div>
           </div>
         </div>

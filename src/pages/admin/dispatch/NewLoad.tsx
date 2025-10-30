@@ -267,11 +267,6 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
         
         if (!orderType) errors.push("Order type is required");
         if (!selectedCustomer) errors.push("Customer is required");
-<<<<<<< HEAD
-        // Driver is now optional - can be assigned later
-        if (!selectedVehicle) errors.push("Vehicle is required");
-=======
->>>>>>> 9560b3ba289a36be142392fa1d15c4ad96c54f26
         
         if (!multipleDropoffs) {
             if (!selectPickup) errors.push("Pickup address is required");

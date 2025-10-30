@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   CheckCircle,
   XCircle,
@@ -11,13 +11,16 @@ import {
   Clock as ClockIcon
 } from 'lucide-react';
 
+import { listAttendance as apiListAttendance, upsertAttendance as apiUpsertAttendance, deleteAttendance as apiDeleteAttendance } from '../../../../axios/api/attendance';
+import { getAllEmployees as apiGetEmployees } from '../../../../axios/api/employee';
+
 interface AttendanceRecord {
-  id: string;
-  employeeName: string;
+  _id?: string;
+  employee: { _id: string; name: string } | string;
   date: string;
-  checkIn: string;
-  checkOut: string;
-  hours: string;
+  checkIn?: string;
+  checkOut?: string;
+  totalHours?: number;
   status: 'present' | 'absent' | 'late' | 'leave';
 }
 
@@ -27,74 +30,47 @@ const AttendanceTracking = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  // Sample employees data
-  const employees = [
-    { id: 1, name: 'John Smith', department: 'Engineering', position: 'Senior Developer' },
-    { id: 2, name: 'Sarah Johnson', department: 'Marketing', position: 'Marketing Manager' },
-    { id: 3, name: 'Michael Brown', department: 'Sales', position: 'Sales Executive' },
-    { id: 4, name: 'Emily Davis', department: 'HR', position: 'HR Specialist' }
-  ];
+  const [employees, setEmployees] = useState<{_id: string; name: string}[]>([]);
 
-  // Attendance records
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([
-    {
-      id: '1',
-      employeeName: 'John Smith',
-      date: '2025-01-15',
-      checkIn: '09:00',
-      checkOut: '17:30',
-      hours: '8.5',
-      status: 'present'
-    },
-    {
-      id: '2',
-      employeeName: 'Sarah Johnson',
-      date: '2025-01-15',
-      checkIn: '09:15',
-      checkOut: '17:45',
-      hours: '8.5',
-      status: 'late'
-    },
-    {
-      id: '3',
-      employeeName: 'Michael Brown',
-      date: '2025-01-15',
-      checkIn: '--',
-      checkOut: '--',
-      hours: '0',
-      status: 'absent'
-    },
-    {
-      id: '4',
-      employeeName: 'John Smith',
-      date: '2025-01-14',
-      checkIn: '08:45',
-      checkOut: '17:15',
-      hours: '8.5',
-      status: 'present'
-    },
-    {
-      id: '5',
-      employeeName: 'Emily Davis',
-      date: '2025-01-15',
-      checkIn: '--',
-      checkOut: '--',
-      hours: '0',
-      status: 'leave'
-    }
-  ]);
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
 
   const [attendanceForm, setAttendanceForm] = useState({
-    employeeName: '',
+    employeeId: '',
     date: new Date().toISOString().split('T')[0],
     checkIn: '',
     checkOut: '',
     status: 'present' as 'present' | 'absent' | 'late' | 'leave'
   });
 
+  const fetchEmployees = async () => {
+    try {
+      const res = await apiGetEmployees(1, 100);
+      if (res?.success) {
+        const list = Array.isArray(res.data) ? res.data : (res.data?.employees || []);
+        setEmployees((list || []).map((u:any)=>({_id:u._id,name:u.name})));
+      }
+    } catch {}
+  };
+
+  const fetchAttendance = async () => {
+    const now = new Date();
+    try {
+      const res = await apiListAttendance({ month: now.getMonth()+1, year: now.getFullYear() });
+      if (res?.success) setAttendanceRecords(res.data || []);
+    } catch {}
+  };
+
+  useEffect(() => {
+    fetchEmployees();
+    fetchAttendance();
+  }, []);
+
   // Calculate stats
-  const today = new Date().toISOString().split('T')[0];
-  const todayRecords = attendanceRecords.filter(r => r.date === today);
+  const today = new Date().toDateString();
+  const todayRecords = attendanceRecords.filter(r => {
+    const d = r.date ? new Date(r.date).toDateString() : '';
+    return d === today;
+  });
   const presentToday = todayRecords.filter(r => r.status === 'present').length;
   const absentToday = todayRecords.filter(r => r.status === 'absent').length;
   const lateToday = todayRecords.filter(r => r.status === 'late').length;
@@ -108,38 +84,31 @@ const AttendanceTracking = () => {
     return (totalMinutes / 60).toFixed(1);
   };
 
-  const handleAddAttendance = () => {
-    if (!attendanceForm.employeeName || !attendanceForm.date) {
+  const handleAddAttendance = async () => {
+    if (!attendanceForm.employeeId || !attendanceForm.date) {
       alert('Please fill employee name and date');
       return;
     }
 
     // Calculate hours
-    const hours = attendanceForm.status === 'absent' || attendanceForm.status === 'leave'
-      ? '0'
-      : calculateHours(attendanceForm.checkIn, attendanceForm.checkOut);
-
-    if (editingRecord) {
-      // Update existing record
-      setAttendanceRecords(attendanceRecords.map(r =>
-        r.id === editingRecord.id
-          ? { ...attendanceForm, id: editingRecord.id, hours }
-          : r
-      ));
-      setEditingRecord(null);
-    } else {
-      // Add new record
-      const newRecord: AttendanceRecord = {
-        id: Date.now().toString(),
-        ...attendanceForm,
-        hours
-      };
-      setAttendanceRecords([newRecord, ...attendanceRecords]);
-    }
+    try {
+      const payload = {
+        employee: attendanceForm.employeeId,
+        date: attendanceForm.date,
+        checkIn: attendanceForm.status === 'absent' || attendanceForm.status === 'leave' ? undefined : attendanceForm.checkIn,
+        checkOut: attendanceForm.status === 'absent' || attendanceForm.status === 'leave' ? undefined : attendanceForm.checkOut,
+        status: attendanceForm.status,
+      } as any;
+      const res = await apiUpsertAttendance(payload);
+      if (res?.success) {
+        await fetchAttendance();
+        setEditingRecord(null);
+      }
+    } catch (e) {}
 
     // Reset form
     setAttendanceForm({
-      employeeName: '',
+      employeeId: '',
       date: new Date().toISOString().split('T')[0],
       checkIn: '',
       checkOut: '',
@@ -151,19 +120,20 @@ const AttendanceTracking = () => {
   const handleEdit = (record: AttendanceRecord) => {
     setEditingRecord(record);
     setAttendanceForm({
-      employeeName: record.employeeName,
-      date: record.date,
-      checkIn: record.checkIn,
-      checkOut: record.checkOut,
+      employeeId: typeof record.employee === 'string' ? record.employee : (record.employee?._id || ''),
+      date: (record.date || '').slice(0,10),
+      checkIn: record.checkIn || '',
+      checkOut: record.checkOut || '',
       status: record.status
     });
     setShowAddModal(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this attendance record?')) {
-      setAttendanceRecords(attendanceRecords.filter(r => r.id !== id));
-    }
+  const handleDelete = async (id?: string) => {
+    if (!id) return;
+    if (!window.confirm('Are you sure you want to delete this attendance record?')) return;
+    const res = await apiDeleteAttendance(id);
+    if (res?.success) await fetchAttendance();
   };
 
   const getStatusBadge = (status: string) => {
@@ -177,7 +147,8 @@ const AttendanceTracking = () => {
   };
 
   const filteredRecords = attendanceRecords.filter(record => {
-    const matchesSearch = record.employeeName.toLowerCase().includes(searchQuery.toLowerCase());
+    const name = (typeof record.employee === 'string' ? (employees.find(e=>e._id===record.employee)?.name || '') : (record.employee as any)?.name || '');
+    const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || record.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -301,22 +272,22 @@ const AttendanceTracking = () => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredRecords.length > 0 ? (
-                  filteredRecords.map((record) => (
-                    <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                  filteredRecords.map((record, idx) => (
+                    <tr key={record._id || idx} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                            {record.employeeName.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                            {((typeof record.employee === 'string' ? employees.find(e=>e._id===record.employee)?.name : (record.employee as any)?.name) || '').split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </div>
-                          <span className="font-medium text-gray-900">{record.employeeName}</span>
+                          <span className="font-medium text-gray-900">{typeof record.employee === 'string' ? (employees.find(e=>e._id===record.employee)?.name || '') : (record.employee as any)?.name}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {new Date(record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.checkIn}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.checkOut}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{record.hours}h</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.checkIn || '--'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.checkOut || '--'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{(record.totalHours || 0).toFixed(1)}h</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(record.status)}`}>
                           {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
@@ -331,7 +302,7 @@ const AttendanceTracking = () => {
                             <Edit size={16} />
                           </button>
                           <button
-                            onClick={() => handleDelete(record.id)}
+                            onClick={() => handleDelete(record._id)}
                             className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
                           >
                             <Trash2 size={16} />
@@ -377,7 +348,7 @@ const AttendanceTracking = () => {
                     setShowAddModal(false);
                     setEditingRecord(null);
                     setAttendanceForm({
-                      employeeName: '',
+                      employeeId: '',
                       date: new Date().toISOString().split('T')[0],
                       checkIn: '',
                       checkOut: '',
@@ -395,13 +366,13 @@ const AttendanceTracking = () => {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Employee Name</label>
                 <select
-                  value={attendanceForm.employeeName}
-                  onChange={(e) => setAttendanceForm({ ...attendanceForm, employeeName: e.target.value })}
+                  value={attendanceForm.employeeId}
+                  onChange={(e) => setAttendanceForm({ ...attendanceForm, employeeId: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Employee</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.name}>{emp.name}</option>
+                  {employees.map((emp) => (
+                    <option key={emp._id} value={emp._id}>{emp.name}</option>
                   ))}
                 </select>
               </div>
@@ -473,7 +444,7 @@ const AttendanceTracking = () => {
                     setShowAddModal(false);
                     setEditingRecord(null);
                     setAttendanceForm({
-                      employeeName: '',
+                      employeeId: '',
                       date: new Date().toISOString().split('T')[0],
                       checkIn: '',
                       checkOut: '',

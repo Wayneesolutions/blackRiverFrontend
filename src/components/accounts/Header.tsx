@@ -66,10 +66,9 @@ function Header() {
               <div className="py-1">
                 {/* User Info */}
                 <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{userInfo?.name || 'User'}</p>
-                  <p className="text-xs text-gray-500">{userInfo?.email || ''}</p>
+                  <p className="text-sm font-medium text-gray-900">{userInfo?.userData?.name || 'User'}</p>
+                  <p className="text-xs text-gray-500">{userInfo?.userData?.email || ''}</p>
                 </div>
-<<<<<<< HEAD
                 
                 {/* Profile Option */}
                 <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
@@ -97,15 +96,6 @@ function Header() {
         </div>
       </div>
     </header>
-=======
-    
-                {/* Right section: Icons */}
-                <div className="flex items-center gap-4 ml-4">
-                    <FaBell className="cursor-pointer" />
-                    <FaUserCircle className="cursor-pointer" />
-                </div>
-            </header>
->>>>>>> 74ad69ddfa5b8eb40cd68694e4229f1c25017ff5
   )
 }
 
