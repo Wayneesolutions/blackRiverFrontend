@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { 
+import {
   FaTruck, FaUpload, FaCalendarAlt, FaMapMarkerAlt, FaEye
 } from 'react-icons/fa';
 import NewLoad from "../../NewLoad";
@@ -39,7 +39,7 @@ interface Load {
 }
 
 const Index = () => {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loads, setLoads] = useState<Load[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLoad, setSelectedLoad] = useState<Load | null>(null);
@@ -207,10 +207,10 @@ const Index = () => {
 
   const formatDate = (date: string) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
@@ -222,31 +222,31 @@ const Index = () => {
     );
   }
 
-    return (
+  return (
     <div className="min-h-screen bg-gray-50 p-6">
-                {/* Header */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Available Dispatch</h1>
           <p className="text-gray-600 mt-1">Manage planned loads - All new loads appear here with status "Planned"</p>
         </div>
-                        <button
-                            onClick={() => setSidebarOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg font-medium"
-                        >
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 shadow-lg font-medium"
+        >
           <FaUpload /> + New Load
-                        </button>
-                    </div>
+        </button>
+      </div>
 
       {/* Step Tracker */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Dispatch Workflow</h3>
         <StepTracker currentStep="planned" />
-                </div>
+      </div>
 
       {/* Loads Table */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                        <div className="overflow-x-auto">
+        <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -283,8 +283,8 @@ const Index = () => {
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Actions
                 </th>
-                                    </tr>
-                                </thead>
+              </tr>
+            </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loads.length === 0 ? (
                 <tr>
@@ -316,8 +316,8 @@ const Index = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-green-600 font-bold">
                         {formatCurrency(load.amount || load.rate || 0)}
-                                                </span>
-                                            </td>
+                      </span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(load.status)}
                     </td>
@@ -362,18 +362,18 @@ const Index = () => {
                           e.stopPropagation();
                           handleLoadClick(load);
                         }}
-                        className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 flex items-center gap-1"
+                        className="px-3 py-1.5 bg-blue-600 !text-white text-sm rounded-lg hover:bg-blue-700 flex items-center gap-1"
                       >
                         <FaEye size={12} /> View Details
                       </button>
                     </td>
-                                        </tr>
+                  </tr>
                 ))
               )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* Load Details Modal */}
       {showDetailsModal && selectedLoad && (
@@ -470,7 +470,7 @@ const Index = () => {
                   <FaMapMarkerAlt className="text-green-500" />
                   <span>{selectedLoad.route?.selectDropOff?.place || 'N/A'}</span>
                 </div>
-                </div>
+              </div>
             </div>
 
             <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-xl">
@@ -479,7 +479,7 @@ const Index = () => {
                   setShowDetailsModal(false);
                   setSelectedLoad(null);
                 }}
-                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium"
+                className="px-6 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 font-medium"
               >
                 Close
               </button>
@@ -490,22 +490,21 @@ const Index = () => {
 
       {/* New Load Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full max-w-lg w-full sm:w-[42rem] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${
-          sidebarOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full max-w-lg w-full sm:w-[42rem] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <NewLoad onClose={handleLoadAdded} />
-            </div>
+      </div>
 
-            {/* Overlay */}
-            {sidebarOpen && (
-                <div
-                    className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm transition-all duration-500"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
-        </div>
-    );
+      {/* Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm transition-all duration-500"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+    </div>
+  );
 };
 
 export default Index;
