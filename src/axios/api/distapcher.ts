@@ -367,6 +367,21 @@ export const updateLoad = async (id: string, data: any) => {
   }
 }
 
+export const assignDriverTruck = async (loadId: string, driverId: string, vehicleId: string, trailerId?: string, planDate?: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/load/${loadId}/assign`, {
+      driverId,
+      vehicleId,
+      trailerId,
+      planDate
+    });
+    return res.data;
+  } catch (error) {
+    console.error('❌ assignDriverTruck API error:', error);
+    return (error as Error).response?.data;
+  }
+}
+
 export const deleteLoad = async (id: string) => {
   try {
     const res: AxiosResponse = await apiClient.delete(`dispatcher/load/${id}`);

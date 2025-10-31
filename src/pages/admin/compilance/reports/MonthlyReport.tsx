@@ -12,6 +12,7 @@ import {
   FaTruck,
   FaUser
 } from 'react-icons/fa';
+import { getCvsaMonthlyReport } from '../../../../axios/api/admin';
 
 // Types
 interface MonthlyStats {
@@ -39,40 +40,45 @@ interface ChartData {
   }[];
 }
 
-// Mock data for the last 12 months
-const generateMockData = (): MonthlyStats[] => {
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  
-  return months.map((month) => {
-    const baseCount = Math.floor(Math.random() * 50) + 20; // 20-70 inspections per month
-    const passRate = 0.6 + Math.random() * 0.3; // 60-90% pass rate
-    
-    return {
-      month,
-      year: 2024,
-      totalInspections: baseCount,
-      passCount: Math.floor(baseCount * passRate),
-      failCount: Math.floor(baseCount * (1 - passRate) * 0.6),
-      warningCount: Math.floor(baseCount * (1 - passRate) * 0.3),
-      outOfServiceCount: Math.floor(baseCount * (1 - passRate) * 0.1),
-      canadaInspections: Math.floor(baseCount * (0.4 + Math.random() * 0.2)),
-      usaInspections: Math.floor(baseCount * (0.4 + Math.random() * 0.2)),
-      vehiclesInspected: Math.floor(baseCount * 0.8),
-      driversInspected: Math.floor(baseCount * 0.9)
-    };
-  });
-};
 
 const MonthlyReport: React.FC = () => {
-  const [monthlyData] = useState<MonthlyStats[]>(generateMockData());
-  const [selectedMonth, setSelectedMonth] = useState<string>('December');
+  const [monthlyData, setMonthlyData] = useState<MonthlyStats[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [selectedCountry, setSelectedCountry] = useState<'all' | 'canada' | 'usa'>('all');
   const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
   const [currentMonthData, setCurrentMonthData] = useState<MonthlyStats | null>(null);
 
+  // Fetch monthly report data
+  useEffect(() => {
+    const fetchMonthlyReport = async () => {
+      setLoading(true);
+      try {
+        const countryFilter = selectedCountry === 'all' ? undefined : selectedCountry;
+        const res = await getCvsaMonthlyReport(selectedYear, countryFilter);
+        
+        if (res?.success && res?.data?.monthlyData) {
+          setMonthlyData(res.data.monthlyData);
+          // Set selected month to current month if not set or if selected month doesn't exist in new data
+          const currentSelectedMonth = selectedMonth;
+          if (!currentSelectedMonth || !res.data.monthlyData.find(d => d.month === currentSelectedMonth)) {
+            const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
+            const monthExists = res.data.monthlyData.find(d => d.month === currentMonthName);
+            setSelectedMonth(monthExists ? currentMonthName : (res.data.monthlyData[res.data.monthlyData.length - 1]?.month || ''));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching monthly report:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMonthlyReport();
+  }, [selectedYear, selectedCountry]);
+
+  // Update current month data when selection changes
   useEffect(() => {
     const data = monthlyData.find(d => d.month === selectedMonth);
     setCurrentMonthData(data || null);
@@ -156,6 +162,17 @@ const MonthlyReport: React.FC = () => {
   const renderPieChart = (data: ChartData, title: string) => {
     const total = data.datasets[0]?.data.reduce((sum, value) => sum + value, 0) || 0;
     
+    if (total === 0) {
+      return (
+        <div className="bg-white rounded-xl p-6 shadow-lg">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">{title}</h3>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-gray-500">No data available</p>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="bg-white rounded-xl p-6 shadow-lg">
         <h3 className="text-lg font-bold text-gray-800 mb-4">{title}</h3>
@@ -207,6 +224,18 @@ const MonthlyReport: React.FC = () => {
 
   const renderBarChart = (data: ChartData, title: string) => {
     const maxValue = Math.max(...data.datasets[0]?.data || [0]);
+    const total = data.datasets[0]?.data.reduce((sum, value) => sum + value, 0) || 0;
+    
+    if (total === 0) {
+      return (
+        <div className="bg-white rounded-xl p-6 shadow-lg">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">{title}</h3>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-gray-500">No data available</p>
+          </div>
+        </div>
+      );
+    }
     
     return (
       <div className="bg-white rounded-xl p-6 shadow-lg">
@@ -348,13 +377,32 @@ const MonthlyReport: React.FC = () => {
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Select Year</label>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+            >
+              {Array.from({ length: 5 }, (_, i) => {
+                const year = new Date().getFullYear() - i;
+                return (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">Select Month</label>
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+              disabled={loading || monthlyData.length === 0}
             >
+              <option value="">Select a month</option>
               {monthlyData.map((month) => (
                 <option key={month.month} value={month.month}>
                   {month.month} {month.year}
@@ -429,8 +477,16 @@ const MonthlyReport: React.FC = () => {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-16">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9793E4] mx-auto mb-4"></div>
+          <p className="text-xl font-semibold text-gray-500">Loading monthly report...</p>
+        </div>
+      )}
+
       {/* Monthly Stats Cards */}
-      {currentMonthData && (
+      {!loading && currentMonthData && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <StatCard
             title="Total Inspections"
@@ -464,27 +520,33 @@ const MonthlyReport: React.FC = () => {
       )}
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Status Chart */}
-        {chartType === 'pie' 
-          ? renderPieChart(getStatusChartData(), 'Inspection Status Distribution')
-          : renderBarChart(getStatusChartData(), 'Inspection Status Distribution')
-        }
+      {!loading && (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Status Chart */}
+            {currentMonthData && (chartType === 'pie' 
+              ? renderPieChart(getStatusChartData(), 'Inspection Status Distribution')
+              : renderBarChart(getStatusChartData(), 'Inspection Status Distribution')
+            )}
 
-        {/* Country Chart */}
-        {chartType === 'pie'
-          ? renderPieChart(getCountryChartData(), 'Inspections by Country')
-          : renderBarChart(getCountryChartData(), 'Inspections by Country')
-        }
-      </div>
+            {/* Country Chart */}
+            {currentMonthData && (chartType === 'pie'
+              ? renderPieChart(getCountryChartData(), 'Inspections by Country')
+              : renderBarChart(getCountryChartData(), 'Inspections by Country')
+            )}
+          </div>
 
-      {/* Monthly Trend Chart */}
-      <div className="mb-6">
-        {renderLineChart(getMonthlyTrendData(), 'Monthly Inspection Trends')}
-      </div>
+          {/* Monthly Trend Chart */}
+          {monthlyData.length > 0 && (
+            <div className="mb-6">
+              {renderLineChart(getMonthlyTrendData(), 'Monthly Inspection Trends')}
+            </div>
+          )}
+        </>
+      )}
 
       {/* Detailed Breakdown */}
-      {currentMonthData && (
+      {!loading && currentMonthData && (
         <div className="bg-white rounded-xl shadow-lg p-6">
           <h3 className="text-xl font-bold text-gray-800 mb-6">Detailed Breakdown - {selectedMonth} {currentMonthData.year}</h3>
           

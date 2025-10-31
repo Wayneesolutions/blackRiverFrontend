@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { 
   Search, 
   Filter, 
@@ -13,9 +15,7 @@ import {
   Truck,
   FileText,
   CreditCard,
-  Eye,
-  Save,
-  RefreshCw
+  Eye
 } from 'lucide-react';
 import { 
   getAllEmployees, 
@@ -45,20 +45,71 @@ interface Employee {
   policies: string;
   createdAt: string;
   updatedAt: string;
+  details?: {
+    incorporation?: string;
+    employeeCode?: string;
+    postalCode?: string;
+    fleet?: string;
+    citizenship?: string;
+    paymentMethod?: string;
+    account?: string;
+    wsib?: boolean;
+    wsibAccountNo?: string;
+    expiryDate?: string | Date;
+    remark?: string;
+    gstNo?: string;
+    profileImage?: string;
+    companyFlag?: boolean;
+    cell1?: string;
+    cell2?: string;
+    extension?: string;
+    fax?: string;
+    gender?: string;
+    dateOfBirth?: string | Date;
+    hireDate?: string | Date;
+    termDate?: string | Date;
+    csa?: boolean;
+    fastCardNo?: string;
+    fastCardExpiry?: string | Date;
+    medicalRequired?: boolean;
+    defaultChargeName?: string;
+    defaultCurrency?: string;
+    chargesAppliedOn?: string;
+    defaultMode?: string;
+    defaultAmount?: number;
+    defaultRemarks?: string;
+    defaultPayrollType?: string;
+    paymentCurrency?: string;
+    mileRate?: number;
+    mileRateTeam?: number;
+    emptyMileRate?: number;
+    emptyMileRateTeam?: number;
+    hourlyRate?: number;
+    weightRate?: number;
+    percentageRate?: number;
+    localTaxNo?: string;
+    federalTaxNo?: string;
+    sinNo?: string;
+    craAccountNo?: string;
+    fedTaxExempt?: boolean;
+    provTaxExempt?: boolean;
+    cppQppExempt?: boolean;
+    eiExempt?: boolean;
+    qpipExempt?: boolean;
+    payPeriod?: string;
+    vacationPay?: string;
+    ltl?: boolean;
+    onSettlements?: boolean;
+    settlementCurrencyByOrder?: boolean;
+    isDefault?: boolean;
+  };
 }
 
 // Driver-specific interfaces
 interface DriverFormData {
   // Basic Information
-  firstName: string;
-  lastName: string;
   incorporation: string;
   employeeCode: string;
-  firstLineAddress: string;
-  secondLineAddress: string;
-  country: string;
-  state: string;
-  city: string;
   postalCode: string;
   
   // Employment & Contact
@@ -75,34 +126,16 @@ interface DriverFormData {
   company: boolean;
   cell1: string;
   cell2: string;
-  phone: string;
   extension: string;
   fax: string;
   gender: string;
-  email: string;
   dateOfBirth: string;
-  hireDate: string;
   termDate: string;
   csa: boolean;
   fastCardNo: string;
   fastCardExpiry: string;
   medicalRequired: boolean;
   
-  // Driver License Details
-  documentNo: string;
-  issuingAuthority: string;
-  issuingCountry: string;
-  issuingState: string;
-  issueDate: string;
-  licenseExpiryDate: string;
-  syncToQB: boolean;
-  
-  // Travel Document
-  travelDocumentType: string;
-  travelDocument: string;
-  travelIssuingAuthority: string;
-  travelIssueDate: string;
-  travelExpiryDate: string;
   
   // Payment Profile - Default Charges
   defaultChargeName: string;
@@ -139,7 +172,53 @@ interface DriverFormData {
   isDefault: boolean;
 }
 
+type NotificationType = 'success' | 'error' | 'info';
+
+interface Notification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+// Notification Component
+const Notification = ({ notification, onClose }: { notification: Notification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-[#9793E4]" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-[#9793E4]/10 border-[#9793E4]/30'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
+
 const EmployeesPage = () => {
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -147,6 +226,10 @@ const EmployeesPage = () => {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [activeTab, setActiveTab] = useState('basic');
   const [showDriverPanel, setShowDriverPanel] = useState(false);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -165,15 +248,8 @@ const EmployeesPage = () => {
 
   const [driverFormData, setDriverFormData] = useState<DriverFormData>({
     // Basic Information
-    firstName: '',
-    lastName: '',
     incorporation: '',
     employeeCode: '',
-    firstLineAddress: '',
-    secondLineAddress: '',
-    country: '',
-    state: '',
-    city: '',
     postalCode: '',
     
     // Employment & Contact
@@ -190,34 +266,15 @@ const EmployeesPage = () => {
     company: false,
     cell1: '',
     cell2: '',
-    phone: '',
     extension: '',
     fax: '',
     gender: '',
-    email: '',
     dateOfBirth: '',
-    hireDate: '',
     termDate: '',
     csa: false,
     fastCardNo: '',
     fastCardExpiry: '',
     medicalRequired: false,
-    
-    // Driver License Details
-    documentNo: '',
-    issuingAuthority: '',
-    issuingCountry: '',
-    issuingState: '',
-    issueDate: '',
-    licenseExpiryDate: '',
-    syncToQB: false,
-    
-    // Travel Document
-    travelDocumentType: '',
-    travelDocument: '',
-    travelIssuingAuthority: '',
-    travelIssueDate: '',
-    travelExpiryDate: '',
     
     // Payment Profile - Default Charges
     defaultChargeName: '',
@@ -260,58 +317,45 @@ const EmployeesPage = () => {
     'fleetmanager', 'safetyofficer', 'operationsstaff', 'maintenancecrew', 'administrative', 'driver'
   ];
 
-  // Travel document types
-  const travelDocumentTypes = [
-    'Birth Certificate',
-    'Certificate of Naturalization',
-    'Citizenship Document Number (Citizenship Card)',
-    'DHS Re-entry Permit',
-    'DHS Refugee Travel Document',
-    'Enhanced Driver\'s Licence (EDI) ID',
-    'FAST Card',
-    'Laser Visa Border Crossing Card',
-    'Military ID Document',
-    'Native American Indian / INAC',
-    'NEXUS Card (effective June 2009)',
-    'Other Travel Document ID',
-    'Passport',
-    'Permanent Resident Card (1998–2003) C1',
-    'Permanent Resident Card C2',
-    'Secure Electronic Network for Travelers Rapid Inspection (SENTRI) Card',
-    'U.S. Alien Registration Card A1',
-    'U.S. Alien Registration Card A2',
-    'U.S. Merchant Mariner Document ID',
-    'U.S. Passport Card',
-    'Visa Immigrant',
-    'Visa Non-Immigrant'
-  ];
 
   // Fetch employees data
   useEffect(() => {
     fetchEmployees();
   }, []);
 
+  const addNotification = (type: NotificationType, message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const response = await getAllEmployees(1, 100, searchQuery);
+      const response = await getAllEmployees(1, 100, searchQuery, selectedRole || undefined, selectedStatus || undefined);
       if (response.success) {
         setEmployees(response.data || []);
+      } else {
+        addNotification('error', response?.message || 'Failed to fetch employees');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching employees:', error);
+      addNotification('error', error?.message || 'Failed to fetch employees');
     } finally {
       setLoading(false);
     }
   };
 
-  // Search employees
+  // Search employees and apply filters
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchEmployees();
     }, 500);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, selectedRole, selectedStatus]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -368,15 +412,8 @@ const EmployeesPage = () => {
       password: ''
     });
     setDriverFormData({
-      firstName: '',
-      lastName: '',
       incorporation: '',
       employeeCode: '',
-      firstLineAddress: '',
-      secondLineAddress: '',
-      country: '',
-      state: '',
-      city: '',
       postalCode: '',
       fleet: '',
       citizenship: '',
@@ -391,30 +428,15 @@ const EmployeesPage = () => {
       company: false,
       cell1: '',
       cell2: '',
-      phone: '',
       extension: '',
       fax: '',
       gender: '',
-      email: '',
       dateOfBirth: '',
-      hireDate: '',
       termDate: '',
       csa: false,
       fastCardNo: '',
       fastCardExpiry: '',
       medicalRequired: false,
-      documentNo: '',
-      issuingAuthority: '',
-      issuingCountry: '',
-      issuingState: '',
-      issueDate: '',
-      licenseExpiryDate: '',
-      syncToQB: false,
-      travelDocumentType: '',
-      travelDocument: '',
-      travelIssuingAuthority: '',
-      travelIssueDate: '',
-      travelExpiryDate: '',
       defaultChargeName: '',
       defaultCurrency: '',
       chargesAppliedOn: '',
@@ -454,11 +476,48 @@ const EmployeesPage = () => {
   const handleSubmit = async () => {
     try {
       // Prepare data for submission
-      const submitData = { ...formData };
+      const submitData: any = { ...formData };
       
-      // If driver role is selected, include driver-specific data
+      // If driver role is selected, include all driver-specific data
       if (formData.role === 'driver') {
+        // Preserve the company ObjectId from basic form if it exists
+        const companyObjectId = submitData.company;
+        
+        // Extract company checkbox value before assigning (it's a boolean, not ObjectId)
+        const companyFlagValue = driverFormData.company;
+        
+        // Add all driver form data (excluding duplicates that are in basic form)
         Object.assign(submitData, driverFormData);
+        
+        // Restore the company ObjectId if it was set in basic form (driverFormData.company is boolean)
+        if (companyObjectId && typeof companyObjectId === 'string') {
+          submitData.company = companyObjectId;
+        } else {
+          // Remove the boolean 'company' field if it exists (to avoid conflict with company ObjectId)
+          delete submitData.company;
+        }
+        
+        // Map company checkbox to companyFlag (avoid conflict with company ObjectId)
+        submitData.companyFlag = companyFlagValue;
+        
+        // Use cell1 or cell2 as additional contact if phone not provided in basic form
+        // But don't override basic phone - cell1/cell2 are additional contacts
+        
+        // Handle date conversions - ensure they're in the correct format
+        if (driverFormData.expiryDate) submitData.expiryDate = driverFormData.expiryDate;
+        if (driverFormData.dateOfBirth) submitData.dateOfBirth = driverFormData.dateOfBirth;
+        if (driverFormData.termDate) submitData.termDate = driverFormData.termDate;
+        if (driverFormData.fastCardExpiry) submitData.fastCardExpiry = driverFormData.fastCardExpiry;
+        
+        // Use joinDate for hireDate (joinDate from basic form is used as hireDate for drivers)
+        if (submitData.joinDate) {
+          submitData.hireDate = submitData.joinDate;
+        }
+        
+        // Map employeeCode to details if different from internalId
+        if (driverFormData.employeeCode && driverFormData.employeeCode !== submitData.internalId) {
+          // Keep employeeCode in details
+        }
       }
       
       // Remove empty password for updates
@@ -471,21 +530,32 @@ const EmployeesPage = () => {
         // Update existing employee
         const response = await updateEmployee(editingEmployee._id, submitData);
         if (response.success) {
+          addNotification('success', response.message || 'Employee updated successfully');
           fetchEmployees();
           setShowAddModal(false);
           resetForm();
+        } else {
+          // Show error message from response
+          const errorMessage = response?.message || response?.error?.message || response?.errors?.map((e: any) => e.msg).join(', ') || 'Failed to update employee';
+          addNotification('error', errorMessage);
         }
       } else {
         // Create new employee
         const response = await createEmployee(submitData);
         if (response.success) {
+          addNotification('success', response.message || 'Employee created successfully');
           fetchEmployees();
           setShowAddModal(false);
           resetForm();
+        } else {
+          // Show error message from response
+          const errorMessage = response?.message || response?.error?.message || response?.errors?.map((e: any) => e.msg).join(', ') || 'Failed to create employee';
+          addNotification('error', errorMessage);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving employee:', error);
+      addNotification('error', error?.message || 'An unexpected error occurred');
     }
   };
 
@@ -506,9 +576,69 @@ const EmployeesPage = () => {
       password: ''
     });
     
-    // Show driver panel if role is driver
+    // Show driver panel and populate driver fields if role is driver
     if (employee.role === 'driver') {
       setShowDriverPanel(true);
+      
+      // Populate driver form data from employee details
+      const details = (employee as any).details || {};
+      setDriverFormData({
+        incorporation: details.incorporation || '',
+        employeeCode: details.employeeCode || employee.internalId || '',
+        postalCode: details.postalCode || '',
+        fleet: details.fleet || '',
+        citizenship: details.citizenship || '',
+        paymentMethod: details.paymentMethod || '',
+        account: details.account || '',
+        wsib: details.wsib || false,
+        wsibAccountNo: details.wsibAccountNo || '',
+        expiryDate: details.expiryDate ? new Date(details.expiryDate).toISOString().split('T')[0] : '',
+        remark: details.remark || '',
+        gstNo: details.gstNo || '',
+        profileImage: details.profileImage || '',
+        company: details.companyFlag || false,
+        cell1: details.cell1 || '',
+        cell2: details.cell2 || '',
+        extension: details.extension || '',
+        fax: details.fax || '',
+        gender: details.gender || '',
+        dateOfBirth: details.dateOfBirth ? new Date(details.dateOfBirth).toISOString().split('T')[0] : '',
+        termDate: details.termDate ? new Date(details.termDate).toISOString().split('T')[0] : '',
+        csa: details.csa || false,
+        fastCardNo: details.fastCardNo || '',
+        fastCardExpiry: details.fastCardExpiry ? new Date(details.fastCardExpiry).toISOString().split('T')[0] : '',
+        medicalRequired: details.medicalRequired || false,
+        defaultChargeName: details.defaultChargeName || '',
+        defaultCurrency: details.defaultCurrency || '',
+        chargesAppliedOn: details.chargesAppliedOn || '',
+        defaultMode: details.defaultMode || '',
+        defaultAmount: details.defaultAmount || 0,
+        defaultRemarks: details.defaultRemarks || '',
+        defaultPayrollType: details.defaultPayrollType || '',
+        paymentCurrency: details.paymentCurrency || '',
+        mileRate: details.mileRate || 0,
+        mileRateTeam: details.mileRateTeam || 0,
+        emptyMileRate: details.emptyMileRate || 0,
+        emptyMileRateTeam: details.emptyMileRateTeam || 0,
+        hourlyRate: details.hourlyRate || 0,
+        weightRate: details.weightRate || 0,
+        percentageRate: details.percentageRate || 0,
+        localTaxNo: details.localTaxNo || '',
+        federalTaxNo: details.federalTaxNo || '',
+        sinNo: details.sinNo || '',
+        craAccountNo: details.craAccountNo || '',
+        fedTaxExempt: details.fedTaxExempt || false,
+        provTaxExempt: details.provTaxExempt || false,
+        cppQppExempt: details.cppQppExempt || false,
+        eiExempt: details.eiExempt || false,
+        qpipExempt: details.qpipExempt || false,
+        payPeriod: details.payPeriod || '',
+        vacationPay: details.vacationPay || '',
+        ltl: details.ltl || false,
+        onSettlements: details.onSettlements || false,
+        settlementCurrencyByOrder: details.settlementCurrencyByOrder || false,
+        isDefault: details.isDefault || false
+      });
     }
     
     setShowAddModal(true);
@@ -519,10 +649,15 @@ const EmployeesPage = () => {
       try {
         const response = await deleteEmployee(id);
         if (response.success) {
+          addNotification('success', response.message || 'Employee deleted successfully');
           fetchEmployees();
+        } else {
+          const errorMessage = response?.message || response?.error?.message || 'Failed to delete employee';
+          addNotification('error', errorMessage);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error deleting employee:', error);
+        addNotification('error', error?.message || 'An unexpected error occurred while deleting employee');
       }
     }
   };
@@ -532,10 +667,15 @@ const EmployeesPage = () => {
       const newStatus = employee.status === 'active' ? 'inactive' : 'active';
       const response = await updateEmployeeStatus(employee._id, newStatus);
       if (response.success) {
+        addNotification('success', response.message || `Employee ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
         fetchEmployees();
+      } else {
+        const errorMessage = response?.message || response?.error?.message || 'Failed to update employee status';
+        addNotification('error', errorMessage);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating employee status:', error);
+      addNotification('error', error?.message || 'An unexpected error occurred while updating employee status');
     }
   };
 
@@ -548,33 +688,6 @@ const EmployeesPage = () => {
 
   const renderBasicInformationTab = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            First Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="firstName"
-            value={driverFormData.firstName}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Last Name
-          </label>
-          <input
-            type="text"
-            name="lastName"
-            value={driverFormData.lastName}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -611,94 +724,6 @@ const EmployeesPage = () => {
             onChange={handleDriverInputChange}
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          First Line of Address <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          name="firstLineAddress"
-          value={driverFormData.firstLineAddress}
-          onChange={handleDriverInputChange}
-          placeholder="Street address with autocomplete"
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Second Line of Address
-        </label>
-        <input
-          type="text"
-          name="secondLineAddress"
-          value={driverFormData.secondLineAddress}
-          onChange={handleDriverInputChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Country <span className="text-red-500">*</span>
-          </label>
-          <select
-            name="country"
-            value={driverFormData.country}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Select Country</option>
-            <option value="Canada">Canada</option>
-            <option value="United States">United States</option>
-            <option value="Mexico">Mexico</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            State / Province <span className="text-red-500">*</span>
-          </label>
-          <select
-            name="state"
-            value={driverFormData.state}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Select State/Province</option>
-            <option value="Ontario">Ontario</option>
-            <option value="Quebec">Quebec</option>
-            <option value="British Columbia">British Columbia</option>
-            <option value="Alberta">Alberta</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            City <span className="text-red-500">*</span>
-          </label>
-          <div className="flex">
-            <select
-              name="city"
-              value={driverFormData.city}
-              onChange={handleDriverInputChange}
-              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select City</option>
-              <option value="Toronto">Toronto</option>
-              <option value="Montreal">Montreal</option>
-              <option value="Vancouver">Vancouver</option>
-              <option value="Calgary">Calgary</option>
-            </select>
-            <button
-              type="button"
-              className="px-3 py-2.5 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 transition-colors"
-            >
-              +
-            </button>
-          </div>
         </div>
       </div>
 
@@ -925,18 +950,6 @@ const EmployeesPage = () => {
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Phone #
-          </label>
-          <input
-            type="tel"
-            name="phone"
-            value={driverFormData.phone}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
             Extn. #
           </label>
           <input
@@ -959,9 +972,6 @@ const EmployeesPage = () => {
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Gender
@@ -979,22 +989,9 @@ const EmployeesPage = () => {
             <option value="Prefer not to say">Prefer not to say</option>
           </select>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email ID
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={driverFormData.email}
-            onChange={handleDriverInputChange}
-            placeholder="Multiple entries separated by commas"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Date of Birth
@@ -1003,18 +1000,6 @@ const EmployeesPage = () => {
             type="date"
             name="dateOfBirth"
             value={driverFormData.dateOfBirth}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Hire Date
-          </label>
-          <input
-            type="date"
-            name="hireDate"
-            value={driverFormData.hireDate}
             onChange={handleDriverInputChange}
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
@@ -1109,183 +1094,6 @@ const EmployeesPage = () => {
     </div>
   );
 
-  const renderDriverLicenseTab = () => (
-    <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Document No. <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          name="documentNo"
-          value={driverFormData.documentNo}
-          onChange={handleDriverInputChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Issuing Authority
-        </label>
-        <input
-          type="text"
-          name="issuingAuthority"
-          value={driverFormData.issuingAuthority}
-          onChange={handleDriverInputChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Issuing Country
-          </label>
-          <select
-            name="issuingCountry"
-            value={driverFormData.issuingCountry}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Select Country</option>
-            <option value="Canada">Canada</option>
-            <option value="United States">United States</option>
-            <option value="Mexico">Mexico</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Issuing State / Province
-          </label>
-          <select
-            name="issuingState"
-            value={driverFormData.issuingState}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Select State/Province</option>
-            <option value="Ontario">Ontario</option>
-            <option value="Quebec">Quebec</option>
-            <option value="British Columbia">British Columbia</option>
-            <option value="Alberta">Alberta</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Issue Date <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            name="issueDate"
-            value={driverFormData.issueDate}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Expiry Date <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            name="licenseExpiryDate"
-            value={driverFormData.licenseExpiryDate}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-3">
-        <input
-          type="checkbox"
-          name="syncToQB"
-          checked={driverFormData.syncToQB}
-          onChange={handleDriverInputChange}
-          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-        />
-        <label className="text-sm font-medium text-gray-700">Sync to QB</label>
-      </div>
-    </div>
-  );
-
-  const renderTravelDocumentTab = () => (
-    <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Document Type <span className="text-red-500">*</span>
-        </label>
-        <select
-          name="travelDocumentType"
-          value={driverFormData.travelDocumentType}
-          onChange={handleDriverInputChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Select Document Type</option>
-          {travelDocumentTypes.map((type) => (
-            <option key={type} value={type}>{type}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Document <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          name="travelDocument"
-          value={driverFormData.travelDocument}
-          onChange={handleDriverInputChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Issuing Authority
-        </label>
-        <input
-          type="text"
-          name="travelIssuingAuthority"
-          value={driverFormData.travelIssuingAuthority}
-          onChange={handleDriverInputChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Issue Date <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            name="travelIssueDate"
-            value={driverFormData.travelIssueDate}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Expiry Date <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            name="travelExpiryDate"
-            value={driverFormData.travelExpiryDate}
-            onChange={handleDriverInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-    </div>
-  );
 
   const renderPaymentProfileTab = () => (
     <div className="space-y-8">
@@ -1750,6 +1558,16 @@ const EmployeesPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      {/* Notifications Container */}
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-3 max-w-md">
+        {notifications.map(notification => (
+          <Notification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-gray-800">All Employees ({employees.length})</h2>
@@ -1776,10 +1594,94 @@ const EmployeesPage = () => {
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <button className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
-            <Filter className="w-4 h-4" />
-            <span>Filter</span>
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setShowFilterPanel(!showFilterPanel)}
+              className={`px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2 ${showFilterPanel ? 'bg-blue-50 border-blue-300' : ''}`}
+            >
+              <Filter className="w-4 h-4" />
+              <span>Filter</span>
+              {(selectedRole || selectedStatus) && (
+                <span className="ml-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {(selectedRole ? 1 : 0) + (selectedStatus ? 1 : 0)}
+                </span>
+              )}
+            </button>
+            
+            {showFilterPanel && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowFilterPanel(false)}
+                ></div>
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-800">Filter Employees</h3>
+                    <button
+                      onClick={() => setShowFilterPanel(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Role
+                      </label>
+                      <select
+                        value={selectedRole}
+                        onChange={(e) => setSelectedRole(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      >
+                        <option value="">All Roles</option>
+                        {roles.map(role => (
+                          <option key={role} value={role}>
+                            {role.charAt(0).toUpperCase() + role.slice(1).replace(/([A-Z])/g, ' $1').trim()}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Status
+                      </label>
+                      <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      >
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2 pt-2 border-t border-gray-200">
+                      <button
+                        onClick={() => {
+                          setSelectedRole('');
+                          setSelectedStatus('');
+                          setShowFilterPanel(false);
+                        }}
+                        className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
+                      >
+                        Clear
+                      </button>
+                      <button
+                        onClick={() => setShowFilterPanel(false)}
+                        className="flex-1 px-3 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
           <button className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
             <Download className="w-4 h-4" />
             <span>Export</span>
@@ -2048,8 +1950,6 @@ const EmployeesPage = () => {
                       {[
                         { id: 'basic', label: 'Basic Information', icon: User },
                         { id: 'employment', label: 'Employment & Contact', icon: Mail },
-                        { id: 'license', label: 'Driver License', icon: FileText },
-                        { id: 'travel', label: 'Travel Document', icon: FileText },
                         { id: 'payment', label: 'Payment Profile', icon: CreditCard }
                       ].map((tab) => (
                         <button
@@ -2072,9 +1972,29 @@ const EmployeesPage = () => {
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     {activeTab === 'basic' && renderBasicInformationTab()}
                     {activeTab === 'employment' && renderEmploymentContactTab()}
-                    {activeTab === 'license' && renderDriverLicenseTab()}
-                    {activeTab === 'travel' && renderTravelDocumentTab()}
                     {activeTab === 'payment' && renderPaymentProfileTab()}
+                  </div>
+                  
+                  {/* Note about documents */}
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start space-x-3">
+                      <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-blue-900 mb-1">
+                          Document Management
+                        </p>
+                        <p className="text-sm text-blue-700">
+                          License documents and travel documents can be managed in the{' '}
+                          <button 
+                            onClick={() => navigate('/admin/Management/documents')}
+                            className="underline font-medium hover:text-blue-900"
+                          >
+                            Employee Documents
+                          </button>{' '}
+                          section.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2201,6 +2121,22 @@ const EmployeesPage = () => {
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };

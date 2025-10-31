@@ -18,6 +18,15 @@ import {
   FaSortUp,
   FaSortDown
 } from 'react-icons/fa';
+import {
+  getTickets,
+  getTicketStats,
+  createTicket,
+  updateTicket,
+  deleteTicket
+} from '../../../../axios/api/admin';
+import { listVehicle } from '../../../../axios/api/distapcher';
+import { listDriver } from '../../../../axios/api/distapcher';
 
 // Types
 interface Ticket {
@@ -29,15 +38,42 @@ interface Ticket {
   location: string;
   amount: number;
   status: 'paid' | 'unpaid' | 'fight';
-  driverId: string;
-  driverName: string;
-  vehicleId: string;
-  vehicleInfo: string;
+  driver: {
+    _id: string;
+    name?: string;
+    email?: string;
+  } | string;
+  vehicle: {
+    _id: string;
+    internalId?: string;
+    plateNumber?: string;
+    make?: string;
+    model?: string;
+    year?: number;
+  } | string;
   officerName: string;
   dueDate: string;
   lawyerDetails?: LawyerDetails;
   notes?: string;
+  paidDate?: string;
+  paymentMethod?: string;
+  paymentReference?: string;
   createdAt: string;
+}
+
+interface Vehicle {
+  _id: string;
+  internalId: string;
+  plateNumber: string;
+  make: string;
+  model: string;
+  year: number;
+}
+
+interface Driver {
+  _id: string;
+  name: string;
+  email: string;
 }
 
 interface LawyerDetails {
@@ -62,110 +98,19 @@ interface TicketStats {
   fightAmount: number;
 }
 
-// Mock data
-const mockTickets: Ticket[] = [
-  {
-    _id: '1',
-    ticketNumber: 'TK-2024-001',
-    violationType: 'Speeding',
-    violationDescription: 'Exceeded speed limit by 15 mph',
-    dateIssued: '2024-01-15',
-    location: 'Highway 401, Toronto, ON',
-    amount: 150.00,
-    status: 'paid',
-    driverId: 'D001',
-    driverName: 'John Smith',
-    vehicleId: 'V001',
-    vehicleInfo: 'Freightliner Cascadia - ABC123',
-    officerName: 'Officer Johnson',
-    dueDate: '2024-02-15',
-    notes: 'Paid online',
-    createdAt: '2024-01-15T10:30:00Z'
-  },
-  {
-    _id: '2',
-    ticketNumber: 'TK-2024-002',
-    violationType: 'Improper Lane Change',
-    violationDescription: 'Failed to signal lane change',
-    dateIssued: '2024-01-18',
-    location: 'Highway 403, Mississauga, ON',
-    amount: 200.00,
-    status: 'unpaid',
-    driverId: 'D002',
-    driverName: 'Sarah Johnson',
-    vehicleId: 'V002',
-    vehicleInfo: 'Peterbilt 579 - XYZ789',
-    officerName: 'Officer Williams',
-    dueDate: '2024-02-18',
-    notes: 'Driver claims signal was working',
-    createdAt: '2024-01-18T14:20:00Z'
-  },
-  {
-    _id: '3',
-    ticketNumber: 'TK-2024-003',
-    violationType: 'Overweight Vehicle',
-    violationDescription: 'Vehicle exceeded weight limit by 2,000 lbs',
-    dateIssued: '2024-01-22',
-    location: 'Weigh Station, Windsor, ON',
-    amount: 500.00,
-    status: 'fight',
-    driverId: 'D003',
-    driverName: 'Michael Brown',
-    vehicleId: 'V003',
-    vehicleInfo: 'Volvo VNL - DEF456',
-    officerName: 'Officer Davis',
-    dueDate: '2024-02-22',
-    lawyerDetails: {
-      name: 'Robert Legal',
-      firm: 'Legal Associates LLP',
-      phone: '(416) 555-0123',
-      email: 'robert@legalassociates.com',
-      address: '123 Bay Street, Toronto, ON M5G 1M5',
-      caseNumber: 'LA-2024-001',
-      courtDate: '2024-03-15',
-      status: 'active'
-    },
-    notes: 'Scale calibration dispute',
-    createdAt: '2024-01-22T09:15:00Z'
-  },
-  {
-    _id: '4',
-    ticketNumber: 'TK-2024-004',
-    violationType: 'Hours of Service',
-    violationDescription: 'Exceeded driving hours',
-    dateIssued: '2024-01-25',
-    location: 'Highway 400, Barrie, ON',
-    amount: 300.00,
-    status: 'fight',
-    driverId: 'D004',
-    driverName: 'Emily Davis',
-    vehicleId: 'V004',
-    vehicleInfo: 'Kenworth T680 - GHI789',
-    officerName: 'Officer Miller',
-    dueDate: '2024-02-25',
-    lawyerDetails: {
-      name: 'Jennifer Court',
-      firm: 'Court & Associates',
-      phone: '(905) 555-0456',
-      email: 'jennifer@courtassociates.com',
-      address: '456 Queen Street, Hamilton, ON L8P 1A1',
-      caseNumber: 'CA-2024-002',
-      courtDate: '2024-04-10',
-      status: 'pending'
-    },
-    notes: 'ELD malfunction dispute',
-    createdAt: '2024-01-25T16:45:00Z'
-  }
-];
 
 const Tickets: React.FC = () => {
-  const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
-  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>(mockTickets);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortField, setSortField] = useState<string>('dateIssued');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [showViewModal, setShowViewModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -188,49 +133,97 @@ const Tickets: React.FC = () => {
     location: '',
     amount: 0,
     status: 'unpaid',
-    driverName: '',
-    vehicleInfo: '',
+    driver: '',
+    vehicle: '',
     officerName: '',
     dueDate: '',
-    notes: ''
+    notes: '',
+    lawyerDetails: undefined
   });
 
-  // Calculate stats
+  // Fetch vehicles and drivers
   useEffect(() => {
-    const calculateStats = () => {
-      const newStats: TicketStats = {
-        total: tickets.length,
-        paid: tickets.filter(t => t.status === 'paid').length,
-        unpaid: tickets.filter(t => t.status === 'unpaid').length,
-        fight: tickets.filter(t => t.status === 'fight').length,
-        totalAmount: tickets.reduce((sum, t) => sum + t.amount, 0),
-        paidAmount: tickets.filter(t => t.status === 'paid').reduce((sum, t) => sum + t.amount, 0),
-        unpaidAmount: tickets.filter(t => t.status === 'unpaid').reduce((sum, t) => sum + t.amount, 0),
-        fightAmount: tickets.filter(t => t.status === 'fight').reduce((sum, t) => sum + t.amount, 0)
-      };
-      setStats(newStats);
+    const fetchVehicles = async () => {
+      try {
+        const res = await listVehicle();
+        if (res?.success && res?.data?.vehicles) {
+          setVehicles(res.data.vehicles);
+        }
+      } catch (error) {
+        console.error('Error fetching vehicles:', error);
+      }
     };
 
-    calculateStats();
-  }, [tickets]);
+    const fetchDrivers = async () => {
+      try {
+        const res = await listDriver();
+        if (res?.success && res?.data) {
+          const driverList = Array.isArray(res.data) 
+            ? res.data.filter((d: any) => d.role === 'driver')
+            : (res.data?.drivers || []).filter((d: any) => d.role === 'driver');
+          setDrivers(driverList);
+        }
+      } catch (error) {
+        console.error('Error fetching drivers:', error);
+      }
+    };
 
-  // Filter and sort tickets
+    fetchVehicles();
+    fetchDrivers();
+  }, []);
+
+  // Function to refresh tickets and stats
+  const refreshData = async (useFilters = true) => {
+    try {
+      const [ticketsRes, statsRes] = await Promise.all([
+        getTickets({ 
+          status: useFilters && statusFilter !== 'all' ? statusFilter : undefined, 
+          search: useFilters && searchQuery ? searchQuery : undefined 
+        }),
+        getTicketStats()
+      ]);
+
+      if (ticketsRes?.success) {
+        setTickets(ticketsRes.data || []);
+      }
+
+      if (statsRes?.success) {
+        setStats(statsRes.data || {
+          total: 0,
+          paid: 0,
+          unpaid: 0,
+          fight: 0,
+          totalAmount: 0,
+          paidAmount: 0,
+          unpaidAmount: 0,
+          fightAmount: 0
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    }
+  };
+
+  // Fetch tickets and stats
   useEffect(() => {
-    let filtered = tickets;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        await refreshData(true);
+      } catch (error) {
+        console.error('Error fetching tickets:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(ticket => ticket.status === statusFilter);
-    }
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, searchQuery]);
 
-    if (searchQuery) {
-      filtered = filtered.filter(ticket =>
-        ticket.ticketNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ticket.violationType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ticket.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ticket.vehicleInfo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ticket.location.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
+  // Filter and sort tickets (client-side for sorting)
+  useEffect(() => {
+    let filtered = [...tickets];
 
     // Sort tickets
     filtered.sort((a, b) => {
@@ -250,7 +243,26 @@ const Tickets: React.FC = () => {
     });
 
     setFilteredTickets(filtered);
-  }, [tickets, statusFilter, searchQuery, sortField, sortDirection]);
+  }, [tickets, sortField, sortDirection]);
+
+  const getVehicleInfo = (vehicle: Ticket['vehicle']): string => {
+    if (typeof vehicle === 'string') {
+      const v = vehicles.find(v => v._id === vehicle);
+      return v ? `${v.make} ${v.model} - ${v.plateNumber}` : '';
+    }
+    if (vehicle?.make && vehicle?.model && vehicle?.plateNumber) {
+      return `${vehicle.make} ${vehicle.model} - ${vehicle.plateNumber}`;
+    }
+    return '';
+  };
+
+  const getDriverName = (driver: Ticket['driver']): string => {
+    if (typeof driver === 'string') {
+      const d = drivers.find(d => d._id === driver);
+      return d ? d.name : '';
+    }
+    return driver?.name || '';
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -315,11 +327,12 @@ const Tickets: React.FC = () => {
       location: '',
       amount: 0,
       status: 'unpaid',
-      driverName: '',
-      vehicleInfo: '',
+      driver: '',
+      vehicle: '',
       officerName: '',
       dueDate: '',
-      notes: ''
+      notes: '',
+      lawyerDetails: undefined
     });
   };
 
@@ -331,11 +344,20 @@ const Tickets: React.FC = () => {
   const handleEditTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setTicketForm({
-      ...ticket,
+      violationType: ticket.violationType,
+      violationDescription: ticket.violationDescription,
+      dateIssued: ticket.dateIssued ? new Date(ticket.dateIssued).toISOString().split('T')[0] : '',
+      location: ticket.location,
+      amount: ticket.amount,
+      status: ticket.status,
+      driver: typeof ticket.driver === 'string' ? ticket.driver : ticket.driver?._id || '',
+      vehicle: typeof ticket.vehicle === 'string' ? ticket.vehicle : ticket.vehicle?._id || '',
+      officerName: ticket.officerName,
+      dueDate: ticket.dueDate ? new Date(ticket.dueDate).toISOString().split('T')[0] : '',
+      notes: ticket.notes || '',
       lawyerDetails: ticket.lawyerDetails ? { ...ticket.lawyerDetails } : undefined
     });
-    // Note: Edit functionality would be implemented here
-    console.log('Edit ticket:', ticket);
+    setShowEditModal(true);
   };
 
   const handleViewTicket = (ticket: Ticket) => {
@@ -349,51 +371,133 @@ const Tickets: React.FC = () => {
   };
 
   const validateForm = () => {
-    return (
-      !!ticketForm.violationType &&
+    const basicValid = !!ticketForm.violationType &&
       !!ticketForm.violationDescription &&
       !!ticketForm.dateIssued &&
       !!ticketForm.location &&
       !!ticketForm.amount &&
-      !!ticketForm.driverName &&
-      !!ticketForm.vehicleInfo &&
+      !!ticketForm.driver &&
+      !!ticketForm.vehicle &&
       !!ticketForm.officerName &&
-      !!ticketForm.dueDate
-    );
+      !!ticketForm.dueDate;
+    
+    // If status is 'fight', lawyer details must be provided
+    if (ticketForm.status === 'fight') {
+      return basicValid && !!ticketForm.lawyerDetails?.name &&
+        !!ticketForm.lawyerDetails?.firm &&
+        !!ticketForm.lawyerDetails?.phone &&
+        !!ticketForm.lawyerDetails?.email &&
+        !!ticketForm.lawyerDetails?.address;
+    }
+    
+    return basicValid;
   };
 
-  const saveNewTicket = () => {
-    if (!validateForm()) return;
-    const newTicket: Ticket = {
-      _id: String(Date.now()),
-      ticketNumber: `TK-${new Date().getFullYear()}-${String(tickets.length + 1).padStart(3, '0')}`,
-      violationType: ticketForm.violationType as string,
-      violationDescription: ticketForm.violationDescription as string,
-      dateIssued: ticketForm.dateIssued as string,
-      location: ticketForm.location as string,
-      amount: ticketForm.amount as number,
-      status: ticketForm.status as 'paid' | 'unpaid' | 'fight',
-      driverId: 'DNEW',
-      driverName: ticketForm.driverName as string,
-      vehicleId: 'VNEW',
-      vehicleInfo: ticketForm.vehicleInfo as string,
-      officerName: ticketForm.officerName as string,
-      dueDate: ticketForm.dueDate as string,
-      lawyerDetails: ticketForm.status === 'fight' ? ticketForm.lawyerDetails : undefined,
-      notes: ticketForm.notes || '',
-      createdAt: new Date().toISOString()
-    };
-    setTickets(prev => [newTicket, ...prev]);
+  const saveNewTicket = async () => {
+    if (!validateForm()) {
+      alert('Please fill all required fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload: any = {
+        violationType: ticketForm.violationType,
+        violationDescription: ticketForm.violationDescription,
+        dateIssued: ticketForm.dateIssued,
+        location: ticketForm.location,
+        amount: ticketForm.amount,
+        status: ticketForm.status,
+        driver: ticketForm.driver,
+        vehicle: ticketForm.vehicle,
+        officerName: ticketForm.officerName,
+        dueDate: ticketForm.dueDate,
+        notes: ticketForm.notes || ''
+      };
+
+      if (ticketForm.status === 'fight' && ticketForm.lawyerDetails) {
+        payload.lawyerDetails = ticketForm.lawyerDetails;
+      }
+
+      const res = await createTicket(payload);
+      if (res?.success) {
+        await refreshData(true);
     setShowAddModal(false);
     resetForm();
+      } else {
+        alert(res?.message || 'Failed to create ticket');
+      }
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      alert('Failed to create ticket');
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const updateTicketData = async () => {
+    if (!selectedTicket) return;
+    if (!validateForm()) {
+      alert('Please fill all required fields');
+      return;
+    }
 
-  const confirmDelete = () => {
+    setLoading(true);
+    try {
+      const payload: any = {
+        violationType: ticketForm.violationType,
+        violationDescription: ticketForm.violationDescription,
+        dateIssued: ticketForm.dateIssued,
+        location: ticketForm.location,
+        amount: ticketForm.amount,
+        status: ticketForm.status,
+        driver: ticketForm.driver,
+        vehicle: ticketForm.vehicle,
+        officerName: ticketForm.officerName,
+        dueDate: ticketForm.dueDate,
+        notes: ticketForm.notes || ''
+      };
+
+      if (ticketForm.status === 'fight' && ticketForm.lawyerDetails) {
+        payload.lawyerDetails = ticketForm.lawyerDetails;
+      }
+
+      const res = await updateTicket(selectedTicket._id, payload);
+      if (res?.success) {
+        await refreshData(true);
+        setShowEditModal(false);
+        setSelectedTicket(null);
+        resetForm();
+      } else {
+        alert(res?.message || 'Failed to update ticket');
+      }
+    } catch (error) {
+      console.error('Error updating ticket:', error);
+      alert('Failed to update ticket');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmDelete = async () => {
     if (!ticketToDelete) return;
-    setTickets(prev => prev.filter(t => t._id !== ticketToDelete._id));
+
+    setLoading(true);
+    try {
+      const res = await deleteTicket(ticketToDelete._id);
+      if (res?.success) {
+        await refreshData(true);
     setShowDeleteModal(false);
     setTicketToDelete(null);
+      } else {
+        alert(res?.message || 'Failed to delete ticket');
+      }
+    } catch (error) {
+      console.error('Error deleting ticket:', error);
+      alert('Failed to delete ticket');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const StatCard = ({ title, value, color, icon, subtitle }: { 
@@ -503,7 +607,12 @@ const Tickets: React.FC = () => {
           </h3>
         </div>
         
-        {filteredTickets.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9793E4] mx-auto mb-4"></div>
+            <p className="text-xl font-semibold text-gray-500">Loading tickets...</p>
+          </div>
+        ) : filteredTickets.length === 0 ? (
           <div className="text-center py-16">
             <FaTicketAlt size={64} className="mx-auto mb-4 text-gray-300" />
             <p className="text-xl font-semibold text-gray-500">No tickets found</p>
@@ -598,8 +707,8 @@ const Tickets: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        <div className="font-medium">{ticket.driverName}</div>
-                        <div className="text-gray-600 text-xs">{ticket.vehicleInfo}</div>
+                        <div className="font-medium">{getDriverName(ticket.driver)}</div>
+                        <div className="text-gray-600 text-xs">{getVehicleInfo(ticket.vehicle)}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -759,24 +868,32 @@ const Tickets: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    placeholder="Driver name"
-                    value={ticketForm.driverName || ''}
-                    onChange={(e) => setTicketForm(prev => ({ ...prev, driverName: e.target.value }))}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Driver <span className="text-red-500">*</span></label>
+                  <select
+                    value={typeof ticketForm.driver === 'string' ? ticketForm.driver : ticketForm.driver?._id || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, driver: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
-                  />
+                  >
+                    <option value="">Select Driver</option>
+                    {drivers.map((driver) => (
+                      <option key={driver._id} value={driver._id}>{driver.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Info <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    placeholder="Vehicle information"
-                    value={ticketForm.vehicleInfo || ''}
-                    onChange={(e) => setTicketForm(prev => ({ ...prev, vehicleInfo: e.target.value }))}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle <span className="text-red-500">*</span></label>
+                  <select
+                    value={typeof ticketForm.vehicle === 'string' ? ticketForm.vehicle : ticketForm.vehicle?._id || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, vehicle: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
-                  />
+                  >
+                    <option value="">Select Vehicle</option>
+                    {vehicles.map((vehicle) => (
+                      <option key={vehicle._id} value={vehicle._id}>
+                        {vehicle.make} {vehicle.model} - {vehicle.plateNumber}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Officer Name <span className="text-red-500">*</span></label>
@@ -822,8 +939,8 @@ const Tickets: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Lawyer Name <span className="text-red-500">*</span></label>
-                      <input
-                        type="text"
+                  <input
+                    type="text"
                         placeholder="Lawyer name"
                         value={ticketForm.lawyerDetails?.name || ''}
                         onChange={(e) => setTicketForm(prev => ({ 
@@ -838,8 +955,8 @@ const Tickets: React.FC = () => {
                             status: prev.lawyerDetails?.status || 'active'
                           } 
                         }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
-                      />
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Firm <span className="text-red-500">*</span></label>
@@ -974,8 +1091,330 @@ const Tickets: React.FC = () => {
             </div>
 
             <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
-              <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-              <button onClick={saveNewTicket} className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors disabled:opacity-60" disabled={!validateForm()}>Save Ticket</button>
+              <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors" disabled={loading}>Cancel</button>
+              <button onClick={saveNewTicket} className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                {loading ? 'Saving...' : 'Save Ticket'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Ticket Modal */}
+      {showEditModal && selectedTicket && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-800">Edit Ticket: {selectedTicket.ticketNumber}</h3>
+                <button onClick={() => { setShowEditModal(false); setSelectedTicket(null); resetForm(); }} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <FaTimesCircle className="text-gray-500" size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Violation Type <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Speeding, Improper Lane Change"
+                    value={ticketForm.violationType || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, violationType: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount <span className="text-red-500">*</span></label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value={ticketForm.amount || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Violation Description <span className="text-red-500">*</span></label>
+                  <textarea
+                    placeholder="Detailed description of the violation"
+                    value={ticketForm.violationDescription || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, violationDescription: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date Issued <span className="text-red-500">*</span></label>
+                  <input
+                    type="date"
+                    value={ticketForm.dateIssued || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, dateIssued: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Date <span className="text-red-500">*</span></label>
+                  <input
+                    type="date"
+                    value={ticketForm.dueDate || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, dueDate: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Location where violation occurred"
+                    value={ticketForm.location || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, location: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Driver <span className="text-red-500">*</span></label>
+                  <select
+                    value={typeof ticketForm.driver === 'string' ? ticketForm.driver : ticketForm.driver?._id || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, driver: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="">Select Driver</option>
+                    {drivers.map((driver) => (
+                      <option key={driver._id} value={driver._id}>{driver.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle <span className="text-red-500">*</span></label>
+                  <select
+                    value={typeof ticketForm.vehicle === 'string' ? ticketForm.vehicle : ticketForm.vehicle?._id || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, vehicle: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="">Select Vehicle</option>
+                    {vehicles.map((vehicle) => (
+                      <option key={vehicle._id} value={vehicle._id}>
+                        {vehicle.make} {vehicle.model} - {vehicle.plateNumber}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Officer Name <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Issuing officer name"
+                    value={ticketForm.officerName || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, officerName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
+                  <select
+                    value={ticketForm.status}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value as 'paid' | 'unpaid' | 'fight' }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="unpaid">Unpaid</option>
+                    <option value="paid">Paid</option>
+                    <option value="fight">Fight</option>
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                  <textarea
+                    placeholder="Additional notes"
+                    value={ticketForm.notes || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, notes: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              {/* Lawyer Details Section - Only show if status is 'fight' */}
+              {ticketForm.status === 'fight' && (
+                <div className="bg-orange-50 rounded-xl p-6 border border-orange-200">
+                  <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <FaGavel className="text-orange-600" size={20} />
+                    Lawyer Details
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Lawyer Name <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        placeholder="Lawyer name"
+                        value={ticketForm.lawyerDetails?.name || ''}
+                        onChange={(e) => setTicketForm(prev => ({ 
+                          ...prev, 
+                          lawyerDetails: { 
+                            ...prev.lawyerDetails, 
+                            name: e.target.value,
+                            firm: prev.lawyerDetails?.firm || '',
+                            phone: prev.lawyerDetails?.phone || '',
+                            email: prev.lawyerDetails?.email || '',
+                            address: prev.lawyerDetails?.address || '',
+                            caseNumber: prev.lawyerDetails?.caseNumber || '',
+                            courtDate: prev.lawyerDetails?.courtDate || '',
+                            status: prev.lawyerDetails?.status || 'active'
+                          } 
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Firm <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        placeholder="Law firm name"
+                        value={ticketForm.lawyerDetails?.firm || ''}
+                        onChange={(e) => setTicketForm(prev => ({ 
+                          ...prev, 
+                          lawyerDetails: { 
+                            ...prev.lawyerDetails, 
+                            firm: e.target.value,
+                            name: prev.lawyerDetails?.name || '',
+                            phone: prev.lawyerDetails?.phone || '',
+                            email: prev.lawyerDetails?.email || '',
+                            address: prev.lawyerDetails?.address || '',
+                            caseNumber: prev.lawyerDetails?.caseNumber || '',
+                            courtDate: prev.lawyerDetails?.courtDate || '',
+                            status: prev.lawyerDetails?.status || 'active'
+                          } 
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone <span className="text-red-500">*</span></label>
+                      <input
+                        type="tel"
+                        placeholder="Phone number"
+                        value={ticketForm.lawyerDetails?.phone || ''}
+                        onChange={(e) => setTicketForm(prev => ({ 
+                          ...prev, 
+                          lawyerDetails: { 
+                            ...prev.lawyerDetails, 
+                            phone: e.target.value,
+                            name: prev.lawyerDetails?.name || '',
+                            firm: prev.lawyerDetails?.firm || '',
+                            email: prev.lawyerDetails?.email || '',
+                            address: prev.lawyerDetails?.address || '',
+                            caseNumber: prev.lawyerDetails?.caseNumber || '',
+                            courtDate: prev.lawyerDetails?.courtDate || '',
+                            status: prev.lawyerDetails?.status || 'active'
+                          } 
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-500">*</span></label>
+                      <input
+                        type="email"
+                        placeholder="Email address"
+                        value={ticketForm.lawyerDetails?.email || ''}
+                        onChange={(e) => setTicketForm(prev => ({ 
+                          ...prev, 
+                          lawyerDetails: { 
+                            ...prev.lawyerDetails, 
+                            email: e.target.value,
+                            name: prev.lawyerDetails?.name || '',
+                            firm: prev.lawyerDetails?.firm || '',
+                            phone: prev.lawyerDetails?.phone || '',
+                            address: prev.lawyerDetails?.address || '',
+                            caseNumber: prev.lawyerDetails?.caseNumber || '',
+                            courtDate: prev.lawyerDetails?.courtDate || '',
+                            status: prev.lawyerDetails?.status || 'active'
+                          } 
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Address <span className="text-red-500">*</span></label>
+                      <textarea
+                        placeholder="Law firm address"
+                        value={ticketForm.lawyerDetails?.address || ''}
+                        onChange={(e) => setTicketForm(prev => ({ 
+                          ...prev, 
+                          lawyerDetails: { 
+                            ...prev.lawyerDetails, 
+                            address: e.target.value,
+                            name: prev.lawyerDetails?.name || '',
+                            firm: prev.lawyerDetails?.firm || '',
+                            phone: prev.lawyerDetails?.phone || '',
+                            email: prev.lawyerDetails?.email || '',
+                            caseNumber: prev.lawyerDetails?.caseNumber || '',
+                            courtDate: prev.lawyerDetails?.courtDate || '',
+                            status: prev.lawyerDetails?.status || 'active'
+                          } 
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                        rows={2}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Case Number</label>
+                      <input
+                        type="text"
+                        placeholder="Case number"
+                        value={ticketForm.lawyerDetails?.caseNumber || ''}
+                        onChange={(e) => setTicketForm(prev => ({ 
+                          ...prev, 
+                          lawyerDetails: { 
+                            ...prev.lawyerDetails, 
+                            caseNumber: e.target.value,
+                            name: prev.lawyerDetails?.name || '',
+                            firm: prev.lawyerDetails?.firm || '',
+                            phone: prev.lawyerDetails?.phone || '',
+                            email: prev.lawyerDetails?.email || '',
+                            address: prev.lawyerDetails?.address || '',
+                            courtDate: prev.lawyerDetails?.courtDate || '',
+                            status: prev.lawyerDetails?.status || 'active'
+                          } 
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Court Date</label>
+                      <input
+                        type="date"
+                        value={ticketForm.lawyerDetails?.courtDate ? new Date(ticketForm.lawyerDetails.courtDate).toISOString().split('T')[0] : ''}
+                        onChange={(e) => setTicketForm(prev => ({ 
+                          ...prev, 
+                          lawyerDetails: { 
+                            ...prev.lawyerDetails, 
+                            courtDate: e.target.value,
+                            name: prev.lawyerDetails?.name || '',
+                            firm: prev.lawyerDetails?.firm || '',
+                            phone: prev.lawyerDetails?.phone || '',
+                            email: prev.lawyerDetails?.email || '',
+                            address: prev.lawyerDetails?.address || '',
+                            caseNumber: prev.lawyerDetails?.caseNumber || '',
+                            status: prev.lawyerDetails?.status || 'active'
+                          } 
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+              <button onClick={() => { setShowEditModal(false); setSelectedTicket(null); resetForm(); }} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors" disabled={loading}>Cancel</button>
+              <button onClick={updateTicketData} className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                {loading ? 'Updating...' : 'Update Ticket'}
+              </button>
             </div>
           </div>
         </div>
@@ -1047,11 +1486,11 @@ const Tickets: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Driver</label>
-                    <p className="text-lg font-semibold text-gray-800">{selectedTicket.driverName}</p>
+                    <p className="text-lg font-semibold text-gray-800">{getDriverName(selectedTicket.driver)}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Vehicle</label>
-                    <p className="text-lg font-semibold text-gray-800">{selectedTicket.vehicleInfo}</p>
+                    <p className="text-lg font-semibold text-gray-800">{getVehicleInfo(selectedTicket.vehicle)}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Officer</label>
@@ -1133,8 +1572,10 @@ const Tickets: React.FC = () => {
               </div>
               <p className="text-gray-600 mb-6">Are you sure you want to delete ticket <span className="font-semibold">{ticketToDelete.ticketNumber}</span>? This action cannot be undone.</p>
               <div className="flex justify-end gap-3">
-                <button onClick={() => { setShowDeleteModal(false); setTicketToDelete(null); }} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors">Cancel</button>
-                <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 font-medium transition-colors">Delete</button>
+                <button onClick={() => { setShowDeleteModal(false); setTicketToDelete(null); }} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors" disabled={loading}>Cancel</button>
+                <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-60" disabled={loading}>
+                  {loading ? 'Deleting...' : 'Delete'}
+                </button>
               </div>
             </div>
           </div>

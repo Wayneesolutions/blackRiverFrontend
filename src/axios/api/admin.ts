@@ -94,3 +94,156 @@ export const updateCompany = async (data) =>{
     return (error as Error).response?.data;
   }
 }
+
+// CVSA Inspection API Functions
+export const getCvsaInspections = async (params?: { country?: string; status?: string; search?: string; page?: number; limit?: number }) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.country) queryParams.append('country', params.country);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const url = `admin/cvsa-inspections${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const getCvsaInspectionById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`admin/cvsa-inspections/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const getCvsaInspectionStats = async (country?: string) => {
+  try {
+    const url = country ? `admin/cvsa-inspections/stats?country=${country}` : 'admin/cvsa-inspections/stats';
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const createCvsaInspection = async (data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('admin/cvsa-inspections', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const updateCvsaInspection = async (id: string, data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`admin/cvsa-inspections/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const deleteCvsaInspection = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`admin/cvsa-inspections/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const getCvsaMonthlyReport = async (year?: number, country?: string) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (year) queryParams.append('year', year.toString());
+    if (country) queryParams.append('country', country);
+    
+    const url = `admin/cvsa-inspections/monthly-report${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// Ticket API Functions
+export const getTickets = async (params?: { status?: string; search?: string; page?: number; limit?: number }) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const url = `admin/tickets${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const getTicketById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`admin/tickets/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const getTicketStats = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/tickets/stats');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const createTicket = async (data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('admin/tickets', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const updateTicket = async (id: string, data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`admin/tickets/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const deleteTicket = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`admin/tickets/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};

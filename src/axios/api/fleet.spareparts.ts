@@ -9,11 +9,10 @@ interface Error {
     };
 }
 
-
+// Spare Parts API
 export const getAllSpareParts = async (): Promise<any> => {
     try {
         const res: AxiosResponse = await apiClient.get(`admin/spareparts`);
-        console.log("==getAllSpareParts res ", res);
         return res.data;
     } catch (error: unknown) {
         const err = error as Error;
@@ -21,11 +20,19 @@ export const getAllSpareParts = async (): Promise<any> => {
     }
 };
 
+export const getSparePartById = async (id: string): Promise<any> => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`admin/spareparts/${id}`);
+        return res.data;
+    } catch (error: unknown) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
 
 export const createSparePart = async (data: any): Promise<any> => {
     try {
         const res: AxiosResponse = await apiClient.post(`admin/spareparts`, data);
-        console.log("==createSparePart res ", res);
         return res.data;
     } catch (error: unknown) {
         const err = error as Error;
@@ -33,11 +40,80 @@ export const createSparePart = async (data: any): Promise<any> => {
     }
 };
 
+export const updateSparePart = async (id: string, data: any): Promise<any> => {
+    try {
+        const res: AxiosResponse = await apiClient.put(`admin/spareparts/${id}`, data);
+        return res.data;
+    } catch (error: unknown) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const deleteSparePart = async (id: string): Promise<any> => {
+    try {
+        const res: AxiosResponse = await apiClient.delete(`admin/spareparts/${id}`);
+        return res.data;
+    } catch (error: unknown) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
 
 export const useSparePart = async (id: string, data?: any): Promise<any> => {
     try {
         const res: AxiosResponse = await apiClient.put(`admin/spareparts/${id}/use`, data);
-        console.log("==useSparePart res ", res);
+        return res.data;
+    } catch (error: unknown) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Suppliers API
+export const getSuppliers = async (): Promise<any> => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`admin/suppliers`);
+        return res.data;
+    } catch (error: unknown) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const getSupplierById = async (id: string): Promise<any> => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`admin/suppliers/${id}`);
+        return res.data;
+    } catch (error: unknown) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const createSupplier = async (data: any): Promise<any> => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`admin/suppliers`, data);
+        return res.data;
+    } catch (error: unknown) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const updateSupplier = async (id: string, data: any): Promise<any> => {
+    try {
+        const res: AxiosResponse = await apiClient.put(`admin/suppliers/${id}`, data);
+        return res.data;
+    } catch (error: unknown) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const deleteSupplier = async (id: string): Promise<any> => {
+    try {
+        const res: AxiosResponse = await apiClient.delete(`admin/suppliers/${id}`);
         return res.data;
     } catch (error: unknown) {
         const err = error as Error;

@@ -1,17 +1,92 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Download, Edit, Trash2, Eye } from 'lucide-react';
+import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { createExpense, listExpenses, updateExpense, deleteExpense } from "../../../../axios/api/account.expense";
 import { getEmployees } from "../../../../axios/api/account.payroll";
+
+interface Employee {
+  _id: string;
+  name: string;
+  role?: string;
+  position?: string;
+}
+
+interface Expense {
+  _id: string;
+  userId?: Employee | string;
+  type: string;
+  amount: number;
+  description?: string;
+  date?: string | Date;
+  receiptUrl?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
+type NotificationType = 'success' | 'error' | 'info';
+
+interface Notification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+// Notification Component
+const Notification = ({ notification, onClose }: { notification: Notification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-[#9793E4]" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-[#9793E4]/10 border-[#9793E4]/30'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const ExpensesPage = () => {
   const [activeTab, setActiveTab] = useState('list');
   const [filterType, setFilterType] = useState('all');
-  const [expenses, setExpenses] = useState([]);
-  const [employees, setEmployees] = useState([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
-  const [editingExpense, setEditingExpense] = useState(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [viewingExpense, setViewingExpense] = useState<Expense | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    userId: string;
+    type: string;
+    amount: string;
+    description: string;
+    date: string;
+    receiptFile: File | null;
+  }>({
     userId: '',
     type: '',
     amount: '',
@@ -32,9 +107,12 @@ const ExpensesPage = () => {
       const response = await listExpenses();
       if (response && response.data) {
         setExpenses(response.data);
+      } else {
+        addNotification('error', response?.message || 'Failed to fetch expenses');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching expenses:', error);
+      addNotification('error', error?.message || 'Failed to fetch expenses');
     } finally {
       setLoading(false);
     }
@@ -45,22 +123,35 @@ const ExpensesPage = () => {
       const response = await getEmployees();
       if (response && response.data) {
         setEmployees(response.data);
+      } else {
+        addNotification('error', response?.message || 'Failed to fetch employees');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching employees:', error);
+      addNotification('error', error?.message || 'Failed to fetch employees');
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === 'receiptFile') {
+  const addNotification = (type: NotificationType, message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    const files = (e.target as HTMLInputElement).files;
+    if (name === 'receiptFile' && files) {
       setFormData(prev => ({ ...prev, [name]: files[0] }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -79,41 +170,58 @@ const ExpensesPage = () => {
       if (editingExpense) {
         const response = await updateExpense(editingExpense._id, formDataToSend);
         if (response && response.success) {
-          alert('Expense updated successfully!');
+          addNotification('success', response.message || 'Expense updated successfully!');
           setEditingExpense(null);
+          // Reset form and refresh list
+          setFormData({
+            userId: '',
+            type: '',
+            amount: '',
+            description: '',
+            date: new Date().toISOString().split('T')[0],
+            receiptFile: null
+          });
+          setActiveTab('list');
+          fetchExpenses();
+        } else {
+          addNotification('error', response?.message || 'Failed to update expense. Please try again.');
         }
       } else {
         const response = await createExpense(formDataToSend);
         if (response && response.success) {
-          alert('Expense created successfully!');
+          addNotification('success', response.message || 'Expense created successfully!');
+          // Reset form and refresh list
+          setFormData({
+            userId: '',
+            type: '',
+            amount: '',
+            description: '',
+            date: new Date().toISOString().split('T')[0],
+            receiptFile: null
+          });
+          setActiveTab('list');
+          fetchExpenses();
+        } else {
+          addNotification('error', response?.message || 'Failed to create expense. Please try again.');
         }
       }
-
-      // Reset form and refresh list
-      setFormData({
-        userId: '',
-        type: '',
-        amount: '',
-        description: '',
-        date: new Date().toISOString().split('T')[0],
-        receiptFile: null
-      });
-      setActiveTab('list');
-      fetchExpenses();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting expense:', error);
-      alert('Failed to save expense. Please try again.');
+      addNotification('error', error?.message || 'Failed to save expense. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = (expense) => {
+  const handleEdit = (expense: Expense) => {
     setEditingExpense(expense);
+    const userIdValue = typeof expense.userId === 'object' && expense.userId !== null 
+      ? expense.userId._id 
+      : expense.userId || '';
     setFormData({
-      userId: expense.userId?._id || expense.userId,
+      userId: userIdValue,
       type: expense.type,
-      amount: expense.amount,
+      amount: expense.amount.toString(),
       description: expense.description || '',
       date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       receiptFile: null
@@ -121,7 +229,7 @@ const ExpensesPage = () => {
     setActiveTab('create');
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this expense?')) {
       return;
     }
@@ -130,15 +238,22 @@ const ExpensesPage = () => {
     try {
       const response = await deleteExpense(id);
       if (response && response.success) {
-        alert('Expense deleted successfully!');
+        addNotification('success', response.message || 'Expense deleted successfully!');
         fetchExpenses();
+      } else {
+        addNotification('error', response?.message || 'Failed to delete expense. Please try again.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting expense:', error);
-      alert('Failed to delete expense. Please try again.');
+      addNotification('error', error?.message || 'Failed to delete expense. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleView = (expense: Expense) => {
+    setViewingExpense(expense);
+    setShowViewModal(true);
   };
 
   const handleCancel = () => {
@@ -154,8 +269,8 @@ const ExpensesPage = () => {
     setActiveTab('list');
   };
 
-  const getTypeColor = (type) => {
-    const typeMap = {
+  const getTypeColor = (type: string) => {
+    const typeMap: Record<string, string> = {
       'Fuel Expense (Fuel)': 'bg-blue-100 text-blue-800',
       'Tractor Fuel (Fuel)': 'bg-blue-100 text-blue-800',
       'Trailer Fuel (Fuel)': 'bg-blue-100 text-blue-800',
@@ -170,11 +285,27 @@ const ExpensesPage = () => {
     return typeMap[type] || 'bg-gray-100 text-gray-800';
   };
 
-  const getTypeIcon = (type) => {
+  const getTypeIcon = (type: string) => {
     if (type && type.includes('Fuel')) return '⛽';
     if (type && type.includes('Repair')) return '🔧';
     if (type && type.includes('Cash')) return '💰';
     return '📄';
+  };
+
+  const getEmployeeName = (userId: Expense['userId']): string => {
+    if (typeof userId === 'object' && userId !== null) {
+      return userId.name || 'Unknown User';
+    }
+    const employee = employees.find(emp => emp._id === userId);
+    return employee?.name || 'Unknown User';
+  };
+
+  const getEmployeeRole = (userId: Expense['userId']): string | undefined => {
+    if (typeof userId === 'object' && userId !== null) {
+      return userId.role;
+    }
+    const employee = employees.find(emp => emp._id === userId);
+    return employee?.role || employee?.position;
   };
 
   const filteredExpenses = expenses.filter(expense =>
@@ -369,7 +500,7 @@ const ExpensesPage = () => {
                               <div className="flex items-center gap-4 text-xs text-gray-500">
                                 <span className="flex items-center gap-1">
                                   <User size={12} />
-                                  {expense.userId?.name || 'Unknown User'}
+                                  {getEmployeeName(expense.userId)}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Calendar size={12} />
@@ -386,23 +517,24 @@ const ExpensesPage = () => {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            {expense.receiptUrl && (
-                              <button 
-                                onClick={() => window.open(expense.receiptUrl, '_blank')}
-                                className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              >
-                                <Eye size={16} />
-                              </button>
-                            )}
+                            <button 
+                              onClick={() => handleView(expense)}
+                              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="View Details"
+                            >
+                              <Eye size={16} />
+                            </button>
                             <button 
                               onClick={() => handleEdit(expense)}
                               className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Edit Expense"
                             >
                               <Edit size={16} />
                             </button>
                             <button 
                               onClick={() => handleDelete(expense._id)}
                               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Expense"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -566,6 +698,202 @@ const ExpensesPage = () => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* View Expense Modal */}
+      {showViewModal && viewingExpense && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Expense Details</h2>
+              <button
+                onClick={() => {
+                  setShowViewModal(false);
+                  setViewingExpense(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Expense Type and Amount */}
+              <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="text-4xl">{getTypeIcon(viewingExpense.type)}</div>
+                  <div>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTypeColor(viewingExpense.type)}`}>
+                      {viewingExpense.type || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Amount</p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    ₹{(viewingExpense.amount || 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Employee Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User size={18} className="text-gray-500" />
+                    <p className="text-sm font-medium text-gray-600">Employee</p>
+                  </div>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {getEmployeeName(viewingExpense.userId)}
+                  </p>
+                  {getEmployeeRole(viewingExpense.userId) && (
+                    <p className="text-sm text-gray-500 mt-1">{getEmployeeRole(viewingExpense.userId)}</p>
+                  )}
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar size={18} className="text-gray-500" />
+                    <p className="text-sm font-medium text-gray-600">Date</p>
+                  </div>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {viewingExpense.date 
+                      ? new Date(viewingExpense.date).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })
+                      : 'No date'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Description */}
+              {viewingExpense.description && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText size={18} className="text-gray-500" />
+                    <p className="text-sm font-medium text-gray-600">Description</p>
+                  </div>
+                  <p className="text-gray-900 bg-gray-50 p-4 rounded-lg">
+                    {viewingExpense.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Receipt */}
+              {viewingExpense.receiptUrl && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Receipt size={18} className="text-gray-500" />
+                    <p className="text-sm font-medium text-gray-600">Receipt</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-600 mb-1">Receipt Available</p>
+                        <a
+                          href={viewingExpense.receiptUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline text-sm"
+                        >
+                          View Receipt
+                        </a>
+                      </div>
+                      <button
+                        onClick={() => window.open(viewingExpense.receiptUrl, '_blank')}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+                      >
+                        <Eye size={16} />
+                        Open Receipt
+                      </button>
+                    </div>
+                    {viewingExpense.receiptUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
+                      <div className="mt-4">
+                        <img
+                          src={viewingExpense.receiptUrl}
+                          alt="Receipt"
+                          className="max-w-full h-auto rounded-lg border border-gray-200"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Timestamps */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+                {viewingExpense.createdAt && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Created At</p>
+                    <p className="text-sm text-gray-900">
+                      {new Date(viewingExpense.createdAt).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                )}
+                {viewingExpense.updatedAt && viewingExpense.updatedAt !== viewingExpense.createdAt && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Last Updated</p>
+                    <p className="text-sm text-gray-900">
+                      {new Date(viewingExpense.updatedAt).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  handleEdit(viewingExpense);
+                  setShowViewModal(false);
+                  setViewingExpense(null);
+                }}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 transition-colors"
+              >
+                <Edit size={16} />
+                Edit Expense
+              </button>
+              <button
+                onClick={() => {
+                  setShowViewModal(false);
+                  setViewingExpense(null);
+                }}
+                className="text-gray-600 hover:text-gray-900 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notifications Container */}
+      <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">
+        {notifications.map(notification => (
+          <Notification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
       </div>
     </div>
   );

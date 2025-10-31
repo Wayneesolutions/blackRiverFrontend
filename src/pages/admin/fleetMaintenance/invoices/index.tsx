@@ -14,10 +14,18 @@ import {
   FaShoppingCart,
   FaFileAlt
 } from 'react-icons/fa';
+import { 
+  getFleetInvoices, 
+  createFleetInvoice, 
+  updateFleetInvoice, 
+  deleteFleetInvoice,
+  updateFleetInvoiceStatus
+} from '../../../../axios/api/fleet.invoices';
+import { getAllSpareParts } from '../../../../axios/api/fleet.spareparts';
 
 // Enhanced Types for comprehensive invoice management
 interface InvoiceItem {
-  partId: string;
+  partId: string | { _id: string };
   partNumber: string;
   partName: string;
   quantity: number;
@@ -107,6 +115,7 @@ const InvoicesPage = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Form state
@@ -122,130 +131,58 @@ const InvoicesPage = () => {
     dueDate: ''
   });
 
-  // Sample data for demonstration
+  // Fetch invoices and spare parts on mount
   useEffect(() => {
-    setInvoices([
-      {
-        _id: '1',
-        invoiceNumber: 'INV-2024-001',
-        customerName: 'City Transport Ltd',
-        customerEmail: 'billing@citytransport.com',
-        customerPhone: '+1-555-0789',
-        customerAddress: '789 Business Blvd, Vancouver, BC',
-        items: [
-          {
-            partId: '1',
-            partNumber: 'ENG-001',
-            partName: 'Engine Oil Filter',
-            quantity: 10,
-            unitPrice: 65.00,
-            totalPrice: 650.00
-          },
-          {
-            partId: '2',
-            partNumber: 'BRAKE-002',
-            partName: 'Brake Pad Set',
-            quantity: 5,
-            unitPrice: 180.00,
-            totalPrice: 900.00
-          }
-        ],
-        subtotal: 1550.00,
-        taxRate: 13,
-        taxAmount: 201.50,
-        total: 1751.50,
-        status: 'sent',
-        createdAt: '2024-01-25T09:00:00Z',
-        dueDate: '2024-02-25',
-        notes: 'Rush order - please expedite'
-      },
-      {
-        _id: '2',
-        invoiceNumber: 'INV-2024-002',
-        customerName: 'Metro Logistics Inc',
-        customerEmail: 'accounts@metrologistics.com',
-        customerPhone: '+1-555-0123',
-        customerAddress: '456 Industrial Ave, Toronto, ON',
-        items: [
-          {
-            partId: '3',
-            partNumber: 'TRANS-003',
-            partName: 'Transmission Fluid',
-            quantity: 20,
-            unitPrice: 45.00,
-            totalPrice: 900.00
-          }
-        ],
-        subtotal: 900.00,
-        taxRate: 13,
-        taxAmount: 117.00,
-        total: 1017.00,
-        status: 'paid',
-        createdAt: '2024-01-20T14:30:00Z',
-        dueDate: '2024-02-20',
-        notes: 'Regular monthly order'
-      },
-      {
-        _id: '3',
-        invoiceNumber: 'INV-2024-003',
-        customerName: 'Express Delivery Co',
-        customerEmail: 'purchasing@expressdelivery.com',
-        customerPhone: '+1-555-0456',
-        customerAddress: '321 Commerce St, Montreal, QC',
-        items: [
-          {
-            partId: '4',
-            partNumber: 'ELEC-004',
-            partName: 'Alternator',
-            quantity: 3,
-            unitPrice: 250.00,
-            totalPrice: 750.00
-          }
-        ],
-        subtotal: 750.00,
-        taxRate: 13,
-        taxAmount: 97.50,
-        total: 847.50,
-        status: 'draft',
-        createdAt: '2024-01-28T11:15:00Z',
-        dueDate: '2024-02-28',
-        notes: 'Pending approval'
-      }
-    ]);
-
-    setSpareParts([
-      {
-        _id: '1',
-        partNumber: 'ENG-001',
-        partName: 'Engine Oil Filter',
-        stockQty: 25,
-        sellingPrice: 65.00
-      },
-      {
-        _id: '2',
-        partNumber: 'BRAKE-002',
-        partName: 'Brake Pad Set',
-        stockQty: 8,
-        sellingPrice: 180.00
-      },
-      {
-        _id: '3',
-        partNumber: 'TRANS-003',
-        partName: 'Transmission Fluid',
-        stockQty: 50,
-        sellingPrice: 45.00
-      },
-      {
-        _id: '4',
-        partNumber: 'ELEC-004',
-        partName: 'Alternator',
-        stockQty: 5,
-        sellingPrice: 250.00
-      }
-    ]);
-
-    setLoading(false);
+    fetchInvoices();
+    fetchSpareParts();
   }, []);
+
+  // Refetch invoices when filters change
+  useEffect(() => {
+    fetchInvoices();
+  }, [statusFilter]);
+
+  const fetchInvoices = async () => {
+    setLoading(true);
+    try {
+      const params: { status?: string; search?: string } = {};
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+      if (searchTerm) {
+        params.search = searchTerm;
+      }
+
+      const res = await getFleetInvoices(params);
+      if (res?.success) {
+        setInvoices(res.data || []);
+      } else {
+        addNotification('error', res?.message || 'Failed to fetch invoices');
+        setInvoices([]);
+      }
+    } catch (err: any) {
+      console.error("Error fetching invoices:", err);
+      addNotification('error', err?.message || 'Failed to fetch invoices');
+      setInvoices([]);
+    }
+    setLoading(false);
+  };
+
+  const fetchSpareParts = async () => {
+    try {
+      const res = await getAllSpareParts();
+      if (res?.success) {
+        setSpareParts(res.data || []);
+      } else {
+        addNotification('error', res?.message || 'Failed to fetch spare parts');
+        setSpareParts([]);
+      }
+    } catch (err: any) {
+      console.error("Error fetching spare parts:", err);
+      addNotification('error', err?.message || 'Failed to fetch spare parts');
+      setSpareParts([]);
+    }
+  };
 
   const addNotification = (type: NotificationType, message: string) => {
     const id = Date.now();
@@ -256,46 +193,70 @@ const InvoicesPage = () => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
+  // Filter invoices client-side (API also filters, but keeping this for instant search feedback)
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         invoice.customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    if (searchTerm) {
+      const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           invoice.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    }
+    return true;
   });
 
-  const handleCreateInvoice = () => {
+  const handleCreateInvoice = async () => {
     if (!invoiceForm.customerName || invoiceForm.items.length === 0) {
       addNotification('error', 'Please fill customer name and add at least one item');
       return;
     }
 
-    const subtotal = invoiceForm.items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const taxAmount = subtotal * (invoiceForm.taxRate / 100);
-    const total = subtotal + taxAmount;
+    if (!invoiceForm.dueDate) {
+      addNotification('error', 'Please select a due date');
+      return;
+    }
 
-    const newInvoice: Invoice = {
-      _id: Date.now().toString(),
-      invoiceNumber: `INV-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(3, '0')}`,
-      customerName: invoiceForm.customerName,
-      customerEmail: invoiceForm.customerEmail,
-      customerPhone: invoiceForm.customerPhone,
-      customerAddress: invoiceForm.customerAddress,
-      items: invoiceForm.items,
-      subtotal,
-      taxRate: invoiceForm.taxRate,
-      taxAmount,
-      total,
-      status: 'draft',
-      createdAt: new Date().toISOString(),
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      notes: invoiceForm.notes
-    };
+    setSubmitting(true);
+    try {
+      const subtotal = invoiceForm.items.reduce((sum, item) => sum + item.totalPrice, 0);
+      const taxAmount = subtotal * (invoiceForm.taxRate / 100);
+      const total = subtotal + taxAmount;
 
-    setInvoices(prev => [...prev, newInvoice]);
-    addNotification('success', 'Invoice created successfully');
-    setShowCreateModal(false);
-    resetForm();
+      const invoiceData = {
+        customerName: invoiceForm.customerName,
+        customerEmail: invoiceForm.customerEmail,
+        customerPhone: invoiceForm.customerPhone,
+        customerAddress: invoiceForm.customerAddress,
+        items: invoiceForm.items.map(item => ({
+          partId: typeof item.partId === 'string' ? item.partId : item.partId._id || item.partId,
+          partNumber: item.partNumber,
+          partName: item.partName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.totalPrice
+        })),
+        subtotal,
+        taxRate: invoiceForm.taxRate,
+        taxAmount,
+        total,
+        status: invoiceForm.status,
+        dueDate: invoiceForm.dueDate,
+        notes: invoiceForm.notes
+      };
+
+      const res = await createFleetInvoice(invoiceData);
+      if (res?.success) {
+        addNotification('success', res.message || 'Invoice created successfully');
+        setShowCreateModal(false);
+        resetForm();
+        await fetchInvoices();
+      } else {
+        addNotification('error', res?.message || 'Failed to create invoice');
+      }
+    } catch (err: any) {
+      console.error("Error creating invoice:", err);
+      addNotification('error', err?.message || 'Error creating invoice');
+    }
+    setSubmitting(false);
   };
 
   const resetForm = () => {
@@ -313,78 +274,146 @@ const InvoicesPage = () => {
   };
 
   const addItemToInvoice = (part: SparePart) => {
-    const existingItem = invoiceForm.items.find(item => item.partId === part._id);
-    if (existingItem) {
-      existingItem.quantity += 1;
-      existingItem.totalPrice = existingItem.quantity * existingItem.unitPrice;
+    if (!part._id || !part.partNumber || !part.partName || !part.sellingPrice) {
+      addNotification('error', 'Invalid part selected');
+      return;
+    }
+
+    const existingItemIndex = invoiceForm.items.findIndex(item => 
+      (typeof item.partId === 'string' ? item.partId : item.partId._id || item.partId) === part._id
+    );
+
+    if (existingItemIndex >= 0) {
+      const newItems = [...invoiceForm.items];
+      newItems[existingItemIndex].quantity += 1;
+      newItems[existingItemIndex].totalPrice = newItems[existingItemIndex].quantity * newItems[existingItemIndex].unitPrice;
+      setInvoiceForm({ ...invoiceForm, items: newItems });
     } else {
-      invoiceForm.items.push({
+      const newItems = [...invoiceForm.items, {
         partId: part._id,
         partNumber: part.partNumber,
         partName: part.partName,
         quantity: 1,
         unitPrice: part.sellingPrice,
         totalPrice: part.sellingPrice
-      });
+      }];
+      setInvoiceForm({ ...invoiceForm, items: newItems });
     }
-    setInvoiceForm({ ...invoiceForm });
   };
 
   const removeItemFromInvoice = (partId: string) => {
-    invoiceForm.items = invoiceForm.items.filter(item => item.partId !== partId);
-    setInvoiceForm({ ...invoiceForm });
+    const newItems = invoiceForm.items.filter(item => 
+      (typeof item.partId === 'string' ? item.partId : item.partId._id || item.partId) !== partId
+    );
+    setInvoiceForm({ ...invoiceForm, items: newItems });
   };
 
   const updateItemQuantity = (partId: string, quantity: number) => {
-    const item = invoiceForm.items.find(item => item.partId === partId);
-    if (item) {
-      item.quantity = quantity;
-      item.totalPrice = item.quantity * item.unitPrice;
-      setInvoiceForm({ ...invoiceForm });
+    if (quantity < 1) {
+      addNotification('error', 'Quantity must be at least 1');
+      return;
     }
+
+    const newItems = invoiceForm.items.map(item => {
+      const itemPartId = typeof item.partId === 'string' ? item.partId : item.partId._id || item.partId;
+      if (itemPartId === partId) {
+        return {
+          ...item,
+          quantity,
+          totalPrice: quantity * item.unitPrice
+        };
+      }
+      return item;
+    });
+    setInvoiceForm({ ...invoiceForm, items: newItems });
   };
 
-  const handleStatusChange = (invoiceId: string, newStatus: Invoice['status']) => {
-    setInvoices(prev => prev.map(invoice => 
-      invoice._id === invoiceId ? { ...invoice, status: newStatus } : invoice
-    ));
-    addNotification('success', `Invoice status updated to ${newStatus}`);
+  const handleStatusChange = async (invoiceId: string, newStatus: Invoice['status']) => {
+    setSubmitting(true);
+    try {
+      const res = await updateFleetInvoiceStatus(invoiceId, newStatus);
+      if (res?.success) {
+        addNotification('success', res.message || `Invoice status updated to ${newStatus}`);
+        await fetchInvoices();
+      } else {
+        addNotification('error', res?.message || 'Failed to update invoice status');
+      }
+    } catch (err: any) {
+      console.error("Error updating invoice status:", err);
+      addNotification('error', err?.message || 'Error updating invoice status');
+    }
+    setSubmitting(false);
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setInvoiceForm({
       customerName: invoice.customerName,
-      customerEmail: invoice.customerEmail,
-      customerPhone: invoice.customerPhone,
-      customerAddress: invoice.customerAddress,
-      items: invoice.items,
+      customerEmail: invoice.customerEmail || '',
+      customerPhone: invoice.customerPhone || '',
+      customerAddress: invoice.customerAddress || '',
+      items: invoice.items.map(item => ({
+        partId: typeof item.partId === 'string' ? item.partId : (item.partId as any)?._id || item.partId,
+        partNumber: item.partNumber,
+        partName: item.partName,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: item.totalPrice
+      })),
       taxRate: invoice.taxRate,
       status: invoice.status,
-      dueDate: invoice.dueDate,
+      dueDate: invoice.dueDate ? new Date(invoice.dueDate).toISOString().split('T')[0] : '',
       notes: invoice.notes || ''
     });
     setShowEditModal(true);
   };
 
-  const handleUpdateInvoice = () => {
+  const handleUpdateInvoice = async () => {
     if (!selectedInvoice) return;
-    
-    const updatedInvoice: Invoice = {
-      ...selectedInvoice,
-      ...invoiceForm,
-      subtotal: invoiceForm.items.reduce((sum, item) => sum + item.totalPrice, 0),
-      taxAmount: invoiceForm.items.reduce((sum, item) => sum + item.totalPrice, 0) * (invoiceForm.taxRate / 100),
-      total: invoiceForm.items.reduce((sum, item) => sum + item.totalPrice, 0) * (1 + invoiceForm.taxRate / 100)
-    };
 
-    setInvoices(prev => prev.map(invoice => 
-      invoice._id === selectedInvoice._id ? updatedInvoice : invoice
-    ));
-    
-    setShowEditModal(false);
-    setSelectedInvoice(null);
-    addNotification('success', 'Invoice updated successfully');
+    setSubmitting(true);
+    try {
+      const subtotal = invoiceForm.items.reduce((sum, item) => sum + item.totalPrice, 0);
+      const taxAmount = subtotal * (invoiceForm.taxRate / 100);
+      const total = subtotal + taxAmount;
+
+      const updateData = {
+        customerName: invoiceForm.customerName,
+        customerEmail: invoiceForm.customerEmail,
+        customerPhone: invoiceForm.customerPhone,
+        customerAddress: invoiceForm.customerAddress,
+        items: invoiceForm.items.map(item => ({
+          partId: typeof item.partId === 'string' ? item.partId : item.partId._id || item.partId,
+          partNumber: item.partNumber,
+          partName: item.partName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.totalPrice
+        })),
+        subtotal,
+        taxRate: invoiceForm.taxRate,
+        taxAmount,
+        total,
+        status: invoiceForm.status,
+        dueDate: invoiceForm.dueDate,
+        notes: invoiceForm.notes
+      };
+
+      const res = await updateFleetInvoice(selectedInvoice._id, updateData);
+      if (res?.success) {
+        addNotification('success', res.message || 'Invoice updated successfully');
+        setShowEditModal(false);
+        setSelectedInvoice(null);
+        resetForm();
+        await fetchInvoices();
+      } else {
+        addNotification('error', res?.message || 'Failed to update invoice');
+      }
+    } catch (err: any) {
+      console.error("Error updating invoice:", err);
+      addNotification('error', err?.message || 'Error updating invoice');
+    }
+    setSubmitting(false);
   };
 
   const handleDeleteInvoice = (invoiceId: string) => {
@@ -392,13 +421,25 @@ const InvoicesPage = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDeleteInvoice = () => {
-    if (invoiceToDelete) {
-      setInvoices(prev => prev.filter(invoice => invoice._id !== invoiceToDelete));
-      addNotification('success', 'Invoice deleted successfully');
-      setShowDeleteModal(false);
-      setInvoiceToDelete(null);
+  const confirmDeleteInvoice = async () => {
+    if (!invoiceToDelete) return;
+
+    setSubmitting(true);
+    try {
+      const res = await deleteFleetInvoice(invoiceToDelete);
+      if (res?.success) {
+        addNotification('success', res.message || 'Invoice deleted successfully');
+        setShowDeleteModal(false);
+        setInvoiceToDelete(null);
+        await fetchInvoices();
+      } else {
+        addNotification('error', res?.message || 'Failed to delete invoice');
+      }
+    } catch (err: any) {
+      console.error("Error deleting invoice:", err);
+      addNotification('error', err?.message || 'Error deleting invoice');
     }
+    setSubmitting(false);
   };
 
   const formatDate = (dateString: string): string => {
@@ -516,6 +557,11 @@ const InvoicesPage = () => {
               placeholder="Search invoices..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  fetchInvoices();
+                }
+              }}
               className="pl-10 pr-4 py-2.5 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
             />
           </div>
@@ -704,6 +750,18 @@ const InvoicesPage = () => {
                     placeholder="13"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Due Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={invoiceForm.dueDate}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, dueDate: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
               </div>
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -721,24 +779,32 @@ const InvoicesPage = () => {
 
             {/* Add Items */}
             <div className="mb-6">
-              <h4 className="text-md font-semibold text-gray-800 mb-3">Add Items</h4>
-              <div className="grid grid-cols-2 gap-4">
-                {spareParts.map((part) => (
-                  <div key={part._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <div className="font-medium text-gray-900">{part.partName}</div>
-                      <div className="text-sm text-gray-500">{part.partNumber}</div>
-                      <div className="text-sm text-gray-600">${part.sellingPrice.toFixed(2)}</div>
+              <h4 className="text-md font-semibold text-gray-800 mb-3">Add Items from Spare Parts</h4>
+              {spareParts.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                  <FaShoppingCart className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                  <p>No spare parts available</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 max-h-64 overflow-y-auto">
+                  {spareParts.map((part) => (
+                    <div key={part._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{part.partName}</div>
+                        <div className="text-sm text-gray-500">{part.partNumber}</div>
+                        <div className="text-sm font-semibold text-[#9793E4]">${(part.sellingPrice || 0).toFixed(2)}</div>
+                        <div className="text-xs text-gray-400">Stock: {part.stockQty || 0}</div>
+                      </div>
+                      <button
+                        onClick={() => addItemToInvoice(part)}
+                        className="px-3 py-1 bg-[#9793E4] !text-white rounded hover:bg-[#8783D4] transition-colors text-sm font-medium"
+                      >
+                        Add
+                      </button>
                     </div>
-                    <button
-                      onClick={() => addItemToInvoice(part)}
-                      className="px-3 py-1 bg-blue-600 !text-white rounded hover:bg-blue-700 transition-colors"
-                    >
-                      Add
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Invoice Items */}
@@ -751,8 +817,8 @@ const InvoicesPage = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {invoiceForm.items.map((item) => (
-                    <div key={item.partId} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                  {invoiceForm.items.map((item, idx) => (
+                    <div key={typeof item.partId === 'string' ? item.partId : (item.partId as any)?._id || idx} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">{item.partName}</div>
                         <div className="text-sm text-gray-500">{item.partNumber}</div>
@@ -762,13 +828,19 @@ const InvoicesPage = () => {
                           type="number"
                           min="1"
                           value={item.quantity}
-                          onChange={(e) => updateItemQuantity(item.partId, parseInt(e.target.value))}
+                          onChange={(e) => {
+                            const partId = typeof item.partId === 'string' ? item.partId : (item.partId as any)?._id || '';
+                            updateItemQuantity(partId, parseInt(e.target.value));
+                          }}
                           className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
                         />
                         <span className="text-sm text-gray-600">× ${item.unitPrice.toFixed(2)}</span>
                         <span className="font-medium text-gray-900">${item.totalPrice.toFixed(2)}</span>
                         <button
-                          onClick={() => removeItemFromInvoice(item.partId)}
+                          onClick={() => {
+                            const partId = typeof item.partId === 'string' ? item.partId : (item.partId as any)?._id || '';
+                            removeItemFromInvoice(partId);
+                          }}
                           className="p-1 text-red-600 hover:bg-red-50 rounded"
                         >
                           <FaTrash size={12} />
@@ -826,9 +898,10 @@ const InvoicesPage = () => {
               </button>
               <button
                 onClick={handleCreateInvoice}
-                className="px-4 py-2 bg-blue-600 !text-white !ml-3 rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={submitting || loading}
+                className="px-4 py-2 bg-[#9793E4] !text-white !ml-3 rounded-lg hover:bg-[#8783D4] disabled:bg-[#9793E4]/50 disabled:cursor-not-allowed transition-colors"
               >
-                Create Invoice
+                {submitting ? 'Creating...' : 'Create Invoice'}
               </button>
             </div>
           </div>
@@ -895,8 +968,8 @@ const InvoicesPage = () => {
                   Invoice Items
                 </h4>
                 <div className="space-y-3">
-                  {selectedInvoice.items.map((item) => (
-                    <div key={item.partId} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  {selectedInvoice.items.map((item, idx) => (
+                    <div key={typeof item.partId === 'string' ? item.partId : (item.partId as any)?._id || idx} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="font-medium text-gray-900">{item.partName}</div>
@@ -943,18 +1016,24 @@ const InvoicesPage = () => {
               {/* Actions */}
               <div className="flex justify-between items-center pt-4 border-t">
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => handleStatusChange(selectedInvoice._id, 'sent')}
-                    className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Mark as Sent
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange(selectedInvoice._id, 'paid')}
-                    className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    Mark as Paid
-                  </button>
+                  {selectedInvoice.status !== 'sent' && (
+                    <button
+                      onClick={() => handleStatusChange(selectedInvoice._id, 'sent')}
+                      disabled={submitting}
+                      className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Mark as Sent
+                    </button>
+                  )}
+                  {selectedInvoice.status !== 'paid' && (
+                    <button
+                      onClick={() => handleStatusChange(selectedInvoice._id, 'paid')}
+                      disabled={submitting}
+                      className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Mark as Paid
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -1062,7 +1141,7 @@ const InvoicesPage = () => {
                 </h4>
                 <div className="space-y-3">
                   {invoiceForm.items.map((item, index) => (
-                    <div key={item.partId} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div key={typeof item.partId === 'string' ? item.partId : (item.partId as any)?._id || index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                       <div className="grid grid-cols-4 gap-4 items-center">
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Part Name</label>
@@ -1180,9 +1259,10 @@ const InvoicesPage = () => {
                 </button>
                 <button
                   onClick={handleUpdateInvoice}
-                  className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors"
+                  disabled={submitting}
+                  className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] disabled:bg-[#9793E4]/50 disabled:cursor-not-allowed font-medium transition-colors"
                 >
-                  Update Invoice
+                  {submitting ? 'Updating...' : 'Update Invoice'}
                 </button>
               </div>
             </div>
@@ -1218,9 +1298,10 @@ const InvoicesPage = () => {
                 </button>
                 <button
                   onClick={confirmDeleteInvoice}
-                  className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed font-medium transition-colors"
                 >
-                  Delete Invoice
+                  {submitting ? 'Deleting...' : 'Delete Invoice'}
                 </button>
               </div>
             </div>

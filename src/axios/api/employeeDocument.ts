@@ -74,6 +74,7 @@ export const getAllEmployeeDocuments = async (
   employee?: string,
   documentType?: string,
   status?: string,
+  role?: string,
   sortBy: string = 'createdAt',
   sortOrder: string = 'desc'
 ) => {
@@ -88,6 +89,7 @@ export const getAllEmployeeDocuments = async (
     if (employee) params.append('employee', employee);
     if (documentType) params.append('documentType', documentType);
     if (status) params.append('status', status);
+    if (role) params.append('role', role);
 
     const response: AxiosResponse<{
       success: boolean;

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Plus, Trash, Package, Edit3, Upload, Camera } from "lucide-react";
+import { createLoad, listCustomer, listFaciliator, listDriver } from "../../../axios/api/distapcher";
+import { useVehicles } from "../../../customHooks/useVehicles";
 import { Section } from './settings/Section';
 import { Toggle } from './settings/Section';
 
@@ -9,29 +11,16 @@ interface NewLoadProps {
 
 
 const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
-    // Static dropdown data (mock)
-    const [customers] = useState<any[]>([
-        { _id: 'cust-1', name: '3 Rivers Logistics Inc' },
-        { _id: 'cust-2', name: 'Tech Freight' },
-        { _id: 'cust-3', name: 'Express Logistics' },
-    ]);
-    const [drivers] = useState<any[]>([
-        { _id: 'drv-1', name: 'John Doe' },
-        { _id: 'drv-2', name: 'Jane Smith' },
-        { _id: 'drv-3', name: 'Mike Johnson' },
-    ]);
-    const [facilator] = useState<any[]>([
-        { _id: 'fac-1', name: 'In-house' },
-        { _id: 'fac-2', name: 'Partner A' },
-        { _id: 'fac-3', name: 'Partner B' },
-    ]);
-    const vehicles = [
-        { _id: 'trk-1', internalId: 'TRK-001', make: 'Volvo', model: 'VNL', plateNumber: 'ABC-123' },
-        { _id: 'trk-2', internalId: 'TRK-002', make: 'Freightliner', model: 'Cascadia', plateNumber: 'XYZ-987' },
-        { _id: 'trk-3', internalId: 'TRK-003', make: 'Kenworth', model: 'T680', plateNumber: 'JKL-456' },
-    ];
-    const vehiclesLoading = false;
-    const vehiclesError = false;
+    // Use custom hook for vehicles
+    const { vehicles, loading: vehiclesLoading, error: vehiclesError } = useVehicles();
+    
+    // Debug vehicles data
+    console.log('Vehicles from hook:', { vehicles, vehiclesLoading, vehiclesError });
+    
+    // API data states
+    const [customers, setCustomers] = useState<any[]>([]);
+    const [drivers, setDrivers] = useState<any[]>([]);
+    const [facilator, setFaciliator] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
     // Form data states
@@ -44,6 +33,15 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
     const [selectPickup, setSelectPickup] = useState("");
     const [selectDropoff, setSelectDropoff] = useState("");
     const [selectReturn, setSelectReturn] = useState("");
+    const [loadAmount, setLoadAmount] = useState("");
+    const [loadRate, setLoadRate] = useState("");
+    // Receiver details
+    const [receiverName, setReceiverName] = useState("");
+    const [receiverEmail, setReceiverEmail] = useState("");
+    const [receiverPhone, setReceiverPhone] = useState("");
+    const [receiverAddress, setReceiverAddress] = useState("");
+    const [receiverContactPerson, setReceiverContactPerson] = useState("");
+    const [receiverNotes, setReceiverNotes] = useState("");
 
     // State for toggles and options
     const [isAdhoc, setIsAdhoc] = useState(false);
@@ -55,60 +53,6 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
     const [multipleDropoffs, setMultipleDropoffs] = useState(false);
     const [applyServiceRate, setApplyServiceRate] = useState(false);
     const [notes, setNotes] = useState("");
-
-	// New Load Form: Customer/Contact/Billing/Customs/Options states (static)
-	const [customerName, setCustomerName] = useState("");
-	const [customerEmail, setCustomerEmail] = useState("");
-	const [customerPhone, setCustomerPhone] = useState("");
-	const [customerAddress, setCustomerAddress] = useState("");
-
-	// Shipper fields
-	const [shipperName, setShipperName] = useState("");
-	const [shipperContact, setShipperContact] = useState("");
-	const [shipperPhone, setShipperPhone] = useState("");
-	const [shipperEmail, setShipperEmail] = useState("");
-	const [shipperAddress, setShipperAddress] = useState("");
-	const [pickupDate, setPickupDate] = useState("");
-	const [pickupTime, setPickupTime] = useState("");
-	const [pickupAppointment, setPickupAppointment] = useState("");
-	const [pickupRef, setPickupRef] = useState("");
-	const [pickupNotes, setPickupNotes] = useState("");
-
-	// Receiver fields
-	const [receiverName, setReceiverName] = useState("");
-	const [receiverContact, setReceiverContact] = useState("");
-	const [receiverPhone, setReceiverPhone] = useState("");
-	const [receiverEmail, setReceiverEmail] = useState("");
-	const [receiverAddress, setReceiverAddress] = useState("");
-	const [deliveryDate, setDeliveryDate] = useState("");
-	const [deliveryTime, setDeliveryTime] = useState("");
-	const [deliveryAppointment, setDeliveryAppointment] = useState("");
-	const [deliveryRef, setDeliveryRef] = useState("");
-	const [deliveryNotes, setDeliveryNotes] = useState("");
-
-	const [billingAddress, setBillingAddress] = useState("");
-	const [billingCity, setBillingCity] = useState("");
-	const [billingState, setBillingState] = useState("");
-	const [billingZip, setBillingZip] = useState("");
-	const [billingCountry, setBillingCountry] = useState("");
-	const [paymentTerms, setPaymentTerms] = useState("Net 15");
-
-	const [taxConfig, setTaxConfig] = useState("GST");
-	const [taxPercent, setTaxPercent] = useState("5.0000");
-	const [invoicePreviewNumber, setInvoicePreviewNumber] = useState("");
-
-	const [customsIsInternational, setCustomsIsInternational] = useState(false);
-	const [customsCountryOfOrigin, setCustomsCountryOfOrigin] = useState("");
-	const [customsHsCode, setCustomsHsCode] = useState("");
-	const [customsBroker, setCustomsBroker] = useState("");
-	const [customsDocumentsRequired, setCustomsDocumentsRequired] = useState<string[]>([]);
-
-	const [optBondedShipment, setOptBondedShipment] = useState(false);
-	const [optHighPriority, setOptHighPriority] = useState(false);
-	const [optHazmat, setOptHazmat] = useState(false);
-	const [optInside, setOptInside] = useState(false);
-	const [optLiftgate, setOptLiftgate] = useState(false);
-	const [optSignature, setOptSignature] = useState(false);
 
     // State for waypoints and items
     const [waypoints, setWaypoints] = useState<
@@ -143,7 +87,27 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
         "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=300&fit=crop"
     ];
 
-    // No API calls — static data only
+    // Load API data on component mount
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const lc = await listCustomer();
+                const ld = await listDriver();
+                const lf = await listFaciliator();
+
+                setCustomers(lc.data || []);
+                setDrivers(ld.data || []);
+                setFaciliator(lf.data || []);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     // Debug documents state changes
     useEffect(() => {
@@ -288,14 +252,105 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
         return errors;
     };
 
-    // Handle form submission (static)
-    const handleSaveLoad = () => {
+    // Handle form submission
+    const handleSaveLoad = async () => {
+        // Validate form
         const validationErrors = validateForm();
         if (validationErrors.length > 0) {
             alert("Please fix the following errors:\n" + validationErrors.join("\n"));
             return;
         }
-        onClose();
+
+        setLoading(true);
+        try {
+            const detailsData = {
+                orderType,
+                internalId: internalId || `LOAD_${Date.now()}`,
+                customer: selectedCustomer || null,
+                facilator: selectedFacilitator || null,
+                driver: selectedDriver || null,
+                vehicle: selectedVehicle || null,
+                adHoc: isAdhoc ? parseFloat(adhocDistance) || null : null,
+                addMisc,
+                dispatchImmediately,
+                requiredProof: requireProof ? proofType : null,
+                amount: loadAmount ? parseFloat(loadAmount) : 0,
+                rate: loadRate ? parseFloat(loadRate) : 0,
+                receiver: {
+                    name: receiverName || null,
+                    email: receiverEmail || null,
+                    phone: receiverPhone || null,
+                    address: receiverAddress || null,
+                    contactPerson: receiverContactPerson || null,
+                    notes: receiverNotes || null
+                }
+            };
+
+            const routeData = multipleDropoffs ? {
+                multipleDropOffs: true,
+                wayPoints: waypoints.map(wp => ({
+                    address: wp.address,
+                    customer: wp.customer || null,
+                    dropOff: wp.type === "dropoff",
+                    pickup: wp.type === "pickup"
+                })),
+                selectReturn
+            } : {
+                multipleDropOffs: false,
+                selectPickup,
+                selectDropOff: selectDropoff,
+                selectReturn
+            };
+
+            const payloadsData = items.map(item => ({
+                itemName: item.name,
+                sku: item.sku,
+                itemImageUrl: item.image,
+                internalId: item.internalId,
+                description: item.description,
+                priceAndValues: {
+                    price: parseFloat(item.price) || 0,
+                    salePrice: parseFloat(item.salePrice) || 0,
+                    cost: parseFloat(item.cost) || 0,
+                    discountValue: parseFloat(item.discountValue) || 0
+                },
+                measurementAndWeight: {
+                    length: parseFloat(item.length) || 0,
+                    width: parseFloat(item.width) || 0,
+                    height: parseFloat(item.height) || 0,
+                    weight: parseFloat(item.weight) || 0
+                }
+            }));
+
+            const servicesData = {
+                applyServiceRate
+            };
+
+            const formData = new FormData();
+            formData.append('details', JSON.stringify(detailsData));
+            formData.append('route', JSON.stringify(routeData));
+            formData.append('payloads', JSON.stringify(payloadsData));
+            formData.append('services', JSON.stringify(servicesData));
+            formData.append('notes', notes);
+            // Status will be auto-set by backend based on driver/vehicle assignment
+
+            documents.forEach((file) => {
+                formData.append('documents', file);
+            });
+
+            const response = await createLoad(formData);
+            if (response.success) {
+                alert("Load created successfully!");
+                onClose();
+            } else {
+                alert("Error creating load: " + response.message);
+            }
+        } catch (error) {
+            console.error("Error creating load:", error);
+            alert("Error creating load. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -314,116 +369,6 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-					{/* Customer Section */}
-					<Section title="Customer">
-						<div className="grid grid-cols-2 gap-4">
-							<input className="p-2 border border-gray-300 rounded" placeholder="Customer Name *" value={customerName} onChange={(e)=>setCustomerName(e.target.value)} />
-							<input type="email" className="p-2 border border-gray-300 rounded" placeholder="Customer Email" value={customerEmail} onChange={(e)=>setCustomerEmail(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="Customer Phone" value={customerPhone} onChange={(e)=>setCustomerPhone(e.target.value)} />
-							<textarea rows={2} className="p-2 border border-gray-300 rounded" placeholder="Customer Address" value={customerAddress} onChange={(e)=>setCustomerAddress(e.target.value)} />
-						</div>
-					</Section>
-
-					{/* Shipper Section */}
-					<Section title="Shipper">
-						<div className="grid grid-cols-2 gap-4">
-							<input className="p-2 border border-gray-300 rounded" placeholder="Shipper Name" value={shipperName} onChange={(e)=>setShipperName(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="Shipper Contact" value={shipperContact} onChange={(e)=>setShipperContact(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="Shipper Phone" value={shipperPhone} onChange={(e)=>setShipperPhone(e.target.value)} />
-							<input type="email" className="p-2 border border-gray-300 rounded" placeholder="Shipper Email" value={shipperEmail} onChange={(e)=>setShipperEmail(e.target.value)} />
-							<textarea rows={2} className="p-2 border border-gray-300 rounded" placeholder="Shipper Address" value={shipperAddress} onChange={(e)=>setShipperAddress(e.target.value)} />
-							<div className="grid grid-cols-2 gap-2">
-								<input type="date" className="p-2 border border-gray-300 rounded" value={pickupDate} onChange={(e)=>setPickupDate(e.target.value)} />
-								<input type="time" className="p-2 border border-gray-300 rounded" value={pickupTime} onChange={(e)=>setPickupTime(e.target.value)} />
-							</div>
-							<select className="p-2 border border-gray-300 rounded" value={pickupAppointment} onChange={(e)=>setPickupAppointment(e.target.value)}>
-								<option value="">Appointment?</option>
-								<option>Yes</option>
-								<option>No</option>
-								<option>Blank</option>
-							</select>
-							<input className="p-2 border border-gray-300 rounded" placeholder="Reference #" value={pickupRef} onChange={(e)=>setPickupRef(e.target.value)} />
-							<textarea rows={2} className="p-2 border border-gray-300 rounded" placeholder="Pickup Notes" value={pickupNotes} onChange={(e)=>setPickupNotes(e.target.value)} />
-						</div>
-					</Section>
-
-					{/* Receiver Section */}
-					<Section title="Receiver">
-						<div className="grid grid-cols-2 gap-4">
-							<input className="p-2 border border-gray-300 rounded" placeholder="Receiver Name" value={receiverName} onChange={(e)=>setReceiverName(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="Receiver Contact" value={receiverContact} onChange={(e)=>setReceiverContact(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="Receiver Phone" value={receiverPhone} onChange={(e)=>setReceiverPhone(e.target.value)} />
-							<input type="email" className="p-2 border border-gray-300 rounded" placeholder="Receiver Email" value={receiverEmail} onChange={(e)=>setReceiverEmail(e.target.value)} />
-							<textarea rows={2} className="p-2 border border-gray-300 rounded" placeholder="Receiver Address" value={receiverAddress} onChange={(e)=>setReceiverAddress(e.target.value)} />
-							<div className="grid grid-cols-2 gap-2">
-								<input type="date" className="p-2 border border-gray-300 rounded" value={deliveryDate} onChange={(e)=>setDeliveryDate(e.target.value)} />
-								<input type="time" className="p-2 border border-gray-300 rounded" value={deliveryTime} onChange={(e)=>setDeliveryTime(e.target.value)} />
-							</div>
-							<select className="p-2 border border-gray-300 rounded" value={deliveryAppointment} onChange={(e)=>setDeliveryAppointment(e.target.value)}>
-								<option value="">Appointment?</option>
-								<option>Yes</option>
-								<option>No</option>
-							</select>
-							<input className="p-2 border border-gray-300 rounded" placeholder="Reference #" value={deliveryRef} onChange={(e)=>setDeliveryRef(e.target.value)} />
-							<textarea rows={2} className="p-2 border border-gray-300 rounded" placeholder="Delivery Notes" value={deliveryNotes} onChange={(e)=>setDeliveryNotes(e.target.value)} />
-						</div>
-					</Section>
-
-					{/* Billing Information */}
-					<Section title="Billing Information">
-						<div className="grid grid-cols-2 gap-4">
-							<textarea rows={2} className="p-2 border border-gray-300 rounded" placeholder="Billing Address" value={billingAddress} onChange={(e)=>setBillingAddress(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="City" value={billingCity} onChange={(e)=>setBillingCity(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="State/Province" value={billingState} onChange={(e)=>setBillingState(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="ZIP/Postal" value={billingZip} onChange={(e)=>setBillingZip(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="Country" value={billingCountry} onChange={(e)=>setBillingCountry(e.target.value)} />
-							<select className="p-2 border border-gray-300 rounded" value={paymentTerms} onChange={(e)=>setPaymentTerms(e.target.value)}>
-								<option>Net 15</option>
-								<option>Net 30</option>
-								<option>Due on Receipt</option>
-							</select>
-						</div>
-					</Section>
-
-					{/* Tax Configuration & Invoice Preview */}
-					<Section title="Tax Configuration & Invoice Preview">
-						<div className="grid grid-cols-2 gap-4">
-							<input className="p-2 border border-gray-300 rounded" placeholder="Tax (e.g., GST/HST/PST)" value={taxConfig} onChange={(e)=>setTaxConfig(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="Tax Rate %" value={taxPercent} onChange={(e)=>setTaxPercent(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="Invoice # Preview" value={invoicePreviewNumber} onChange={(e)=>setInvoicePreviewNumber(e.target.value)} />
-							<input readOnly className="p-2 border border-gray-300 rounded bg-gray-50" placeholder="Calculated Tax Value (preview)" value={"Auto"} />
-						</div>
-					</Section>
-
-					{/* Customs Information */}
-					<Section title="Customs Information">
-						<div className="grid grid-cols-2 gap-4">
-							<Toggle label="International Shipment" checked={customsIsInternational} onChange={setCustomsIsInternational} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="Country of Origin" value={customsCountryOfOrigin} onChange={(e)=>setCustomsCountryOfOrigin(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="HS Code" value={customsHsCode} onChange={(e)=>setCustomsHsCode(e.target.value)} />
-							<input className="p-2 border border-gray-300 rounded" placeholder="Customs Broker" value={customsBroker} onChange={(e)=>setCustomsBroker(e.target.value)} />
-							<div>
-								<label className="block text-sm text-gray-600 mb-1">Documents Required</label>
-								<select multiple className="w-full p-2 border border-gray-300 rounded" value={customsDocumentsRequired} onChange={(e)=> setCustomsDocumentsRequired(Array.from(e.target.selectedOptions).map(o=>o.value))}>
-									<option value="Commercial Invoice">Commercial Invoice</option>
-									<option value="Packing List">Packing List</option>
-									<option value="Certificate of Origin">Certificate of Origin</option>
-								</select>
-							</div>
-						</div>
-					</Section>
-
-					{/* Additional Options */}
-					<Section title="Additional Options">
-						<div className="grid grid-cols-3 gap-4">
-							<Toggle label="Bonded Shipment" checked={optBondedShipment} onChange={setOptBondedShipment} />
-							<Toggle label="High Priority" checked={optHighPriority} onChange={setOptHighPriority} />
-							<Toggle label="Hazmat" checked={optHazmat} onChange={setOptHazmat} />
-							<Toggle label="Inside Pickup/Delivery" checked={optInside} onChange={setOptInside} />
-							<Toggle label="Liftgate Required" checked={optLiftgate} onChange={setOptLiftgate} />
-							<Toggle label="Signature Required" checked={optSignature} onChange={setOptSignature} />
-						</div>
-					</Section>
                     {/* Details Section */}
                     <Section title="Details">
                         <div className="grid grid-cols-2 gap-4">
@@ -477,10 +422,13 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                             <select 
                                 value={selectedDriver}
                                 onChange={(e) => setSelectedDriver(e.target.value)}
-                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${
+                                    !selectedDriver ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                                }`}
                                 disabled={loading}
+                                required
                             >
-                                <option value="">Select Driver (Optional)</option>
+                                <option value="">Select Driver *</option>
                                 {drivers.map((driver) => (
                                     <option key={driver._id} value={driver._id}>
                                         {driver.name}
@@ -556,27 +504,36 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
                         {!multipleDropoffs ? (
                             <div className="space-y-3">
-                                <input
-                                    type="text"
-                                    placeholder="Enter Pickup Address"
-                                    value={selectPickup}
-                                    onChange={(e) => setSelectPickup(e.target.value)}
-                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Enter Dropoff Address"
-                                    value={selectDropoff}
-                                    onChange={(e) => setSelectDropoff(e.target.value)}
-                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Enter Return Address"
-                                    value={selectReturn}
-                                    onChange={(e) => setSelectReturn(e.target.value)}
-                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
-                                />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Pickup Address *</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Enter Pickup Address"
+                                        value={selectPickup}
+                                        onChange={(e) => setSelectPickup(e.target.value)}
+                                        className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Dropoff Address *</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Enter Dropoff Address"
+                                        value={selectDropoff}
+                                        onChange={(e) => setSelectDropoff(e.target.value)}
+                                        className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Return Address</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Enter Return Address (Optional)"
+                                        value={selectReturn}
+                                        onChange={(e) => setSelectReturn(e.target.value)}
+                                        className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
+                                    />
+                                </div>
                             </div>
                         ) : (
                             <div className="space-y-3">
@@ -647,6 +604,84 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                 ))}
                             </div>
                         )}
+                    </Section>
+
+                    {/* Receiver Details Section */}
+                    <Section title="Receiver Details">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Receiver Name
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter receiver name"
+                                    value={receiverName}
+                                    onChange={(e) => setReceiverName(e.target.value)}
+                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Contact Person
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter contact person name"
+                                    value={receiverContactPerson}
+                                    onChange={(e) => setReceiverContactPerson(e.target.value)}
+                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Receiver Email
+                                </label>
+                                <input
+                                    type="email"
+                                    placeholder="Enter receiver email"
+                                    value={receiverEmail}
+                                    onChange={(e) => setReceiverEmail(e.target.value)}
+                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Receiver Phone
+                                </label>
+                                <input
+                                    type="tel"
+                                    placeholder="Enter receiver phone"
+                                    value={receiverPhone}
+                                    onChange={(e) => setReceiverPhone(e.target.value)}
+                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Receiver Address
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter receiver address"
+                                    value={receiverAddress}
+                                    onChange={(e) => setReceiverAddress(e.target.value)}
+                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Receiver Notes
+                                </label>
+                                <textarea
+                                    rows={2}
+                                    placeholder="Enter any special instructions or notes for receiver"
+                                    value={receiverNotes}
+                                    onChange={(e) => setReceiverNotes(e.target.value)}
+                                    className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                        </div>
                     </Section>
 
                     {/* Payload Entries */}

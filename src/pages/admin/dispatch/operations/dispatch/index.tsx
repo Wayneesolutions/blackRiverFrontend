@@ -4,6 +4,7 @@ import {
 } from 'react-icons/fa';
 import NewLoad from "../../NewLoad";
 import StepTracker from "../../../../../components/dispatch/StepTracker";
+import { listLoad } from "../../../../../axios/api/distapcher";
 
 interface Load {
   _id: string;
@@ -13,7 +14,7 @@ interface Load {
   customerName?: string;
   rate?: number;
   amount?: number;
-  status: 'available' | 'planned' | 'assigned' | 'in-delivery' | 'delivered' | 'paid';
+  status: 'planned' | 'dispatched' | 'in-delivery' | 'delivered' | 'completed';
   assignedDriver?: string;
   assignedTruck?: string;
   assignedTrailer?: string;
@@ -25,8 +26,16 @@ interface Load {
     pod?: boolean;
   };
   route?: {
-    selectPickup?: { place?: string };
-    selectDropOff?: { place?: string };
+    multipleDropOffs?: boolean;
+    selectPickup?: { place?: string; latitude?: string; longitude?: string };
+    selectDropOff?: { place?: string; latitude?: string; longitude?: string };
+    selectReturn?: string | null;
+    wayPoints?: Array<{
+      address?: { place?: string; latitude?: string; longitude?: string } | string;
+      customer?: string;
+      dropOff?: boolean;
+      pickup?: boolean;
+    }>;
   };
   shipDate?: string;
   shipTime?: string;
@@ -36,6 +45,27 @@ interface Load {
   shipperState?: string;
   receiverCity?: string;
   receiverState?: string;
+  details?: {
+    amount?: number;
+    rate?: number;
+    receiver?: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      contactPerson?: string;
+      notes?: string;
+    };
+  };
+  receiver?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    contactPerson?: string;
+    notes?: string;
+  };
+  customerEmail?: string;
 }
 
 const Index = () => {
@@ -49,130 +79,101 @@ const Index = () => {
     fetchLoads();
   }, []);
 
-  const fetchLoads = () => {
+  const fetchLoads = async () => {
     setLoading(true);
-    // Static mock data - focusing on planned loads
-    const mockLoads: Load[] = [
-      {
-        _id: '1',
-        loadNumber: 'L-001',
-        orderNumber: 'ORD-001',
-        customer: 'Black River Logistics',
-        customerName: 'Black River Logistics',
-        amount: 2500,
-        rate: 2500,
-        status: 'planned',
-        documents: { bol: false, billOfSale: false, pod: false },
-        route: { selectPickup: { place: 'Toronto, ON' }, selectDropOff: { place: 'Montreal, QC' } },
-        shipperCity: 'Toronto',
-        shipperState: 'ON',
-        receiverCity: 'Montreal',
-        receiverState: 'QC',
-        shipDate: '2024-01-25',
-        shipTime: '08:00',
-        receiveDate: '2024-01-26',
-        receiveTime: '14:00'
-      },
-      {
-        _id: '2',
-        loadNumber: 'L-002',
-        orderNumber: 'ORD-002',
-        customer: '3 Rivers Logistics',
-        customerName: '3 Rivers Logistics',
-        amount: 3200,
-        rate: 3200,
-        status: 'planned',
-        documents: { bol: false, billOfSale: false, pod: false },
-        route: { selectPickup: { place: 'Vancouver, BC' }, selectDropOff: { place: 'Calgary, AB' } },
-        shipperCity: 'Vancouver',
-        shipperState: 'BC',
-        receiverCity: 'Calgary',
-        receiverState: 'AB',
-        shipDate: '2024-01-27',
-        shipTime: '09:00',
-        receiveDate: '2024-01-28',
-        receiveTime: '16:00'
-      },
-      {
-        _id: '3',
-        loadNumber: 'L-003',
-        orderNumber: 'ORD-003',
-        customer: 'Tech Freight',
-        customerName: 'Tech Freight',
-        amount: 1800,
-        rate: 1800,
-        status: 'planned',
-        documents: { bol: false, billOfSale: false, pod: false },
-        route: { selectPickup: { place: 'Chicago, IL' }, selectDropOff: { place: 'Detroit, MI' } },
-        shipperCity: 'Chicago',
-        shipperState: 'IL',
-        receiverCity: 'Detroit',
-        receiverState: 'MI',
-        shipDate: '2024-01-26',
-        shipTime: '10:00',
-        receiveDate: '2024-01-27',
-        receiveTime: '15:00'
-      },
-      {
-        _id: '4',
-        loadNumber: 'L-004',
-        orderNumber: 'ORD-004',
-        customer: 'Global Transport',
-        customerName: 'Global Transport',
-        amount: 4500,
-        rate: 4500,
-        status: 'planned',
-        documents: { bol: false, billOfSale: false, pod: false },
-        route: { selectPickup: { place: 'New York, NY' }, selectDropOff: { place: 'Boston, MA' } },
-        shipperCity: 'New York',
-        shipperState: 'NY',
-        receiverCity: 'Boston',
-        receiverState: 'MA',
-        shipDate: '2024-01-28',
-        shipTime: '07:00',
-        receiveDate: '2024-01-29',
-        receiveTime: '13:00'
-      },
-      {
-        _id: '5',
-        loadNumber: 'L-005',
-        orderNumber: 'ORD-005',
-        customer: 'Express Logistics',
-        customerName: 'Express Logistics',
-        amount: 2900,
-        rate: 2900,
-        status: 'planned',
-        documents: { bol: false, billOfSale: false, pod: false },
-        route: { selectPickup: { place: 'Los Angeles, CA' }, selectDropOff: { place: 'San Francisco, CA' } },
-        shipperCity: 'Los Angeles',
-        shipperState: 'CA',
-        receiverCity: 'San Francisco',
-        receiverState: 'CA',
-        shipDate: '2024-01-29',
-        shipTime: '06:00',
-        receiveDate: '2024-01-30',
-        receiveTime: '12:00'
+    try {
+      const response = await listLoad();
+      if (response && response.success && response.data) {
+        // Filter for planned loads (loads without driver AND truck assigned)
+        const plannedLoads = response.data
+          .filter((load: any) => {
+            // Status is planned OR no driver/truck assigned
+            const hasDriver = load.details?.driver || load.driverId;
+            const hasVehicle = load.details?.vehicle || load.vehicleId;
+            return load.status === 'planned' || (!hasDriver || !hasVehicle);
+          })
+          .map((load: any) => {
+            // Extract shipper city/state - from pickup location
+            let shipperCity = '';
+            let shipperState = '';
+            if (load.route?.multipleDropOffs && load.route?.wayPoints) {
+              // Find first pickup waypoint
+              const pickupWaypoint = load.route.wayPoints.find((wp: any) => wp.pickup);
+              if (pickupWaypoint) {
+                const address = typeof pickupWaypoint.address === 'string' 
+                  ? pickupWaypoint.address 
+                  : pickupWaypoint.address?.place || '';
+                const parts = address.split(',').map((p: string) => p.trim());
+                shipperCity = parts[0] || '';
+                shipperState = parts[1] || '';
+              }
+            } else if (load.route?.selectPickup?.place) {
+              const parts = load.route.selectPickup.place.split(',').map((p: string) => p.trim());
+              shipperCity = parts[0] || '';
+              shipperState = parts[1] || '';
+            }
+
+            // Extract receiver city/state - from dropoff location
+            let receiverCity = '';
+            let receiverState = '';
+            if (load.route?.multipleDropOffs && load.route?.wayPoints) {
+              // Find last dropoff waypoint
+              const dropoffWaypoints = load.route.wayPoints.filter((wp: any) => wp.dropOff);
+              if (dropoffWaypoints.length > 0) {
+                const lastDropoff = dropoffWaypoints[dropoffWaypoints.length - 1];
+                const address = typeof lastDropoff.address === 'string' 
+                  ? lastDropoff.address 
+                  : lastDropoff.address?.place || '';
+                const parts = address.split(',').map((p: string) => p.trim());
+                receiverCity = parts[0] || '';
+                receiverState = parts[1] || '';
+              }
+            } else if (load.route?.selectDropOff?.place) {
+              const parts = load.route.selectDropOff.place.split(',').map((p: string) => p.trim());
+              receiverCity = parts[0] || '';
+              receiverState = parts[1] || '';
+            }
+
+            return {
+              _id: load._id,
+              loadNumber: load.loadNumber || load.details?.internalId || load._id,
+              orderNumber: load.orderNumber || load.details?.internalId || load._id,
+              customer: load.customerName || load.details?.customer?.name || 'N/A',
+              customerName: load.customerName || load.details?.customer?.name || 'N/A',
+              amount: load.amount || load.details?.amount || load.rate || load.details?.rate || 0,
+              rate: load.rate || load.details?.rate || load.amount || load.details?.amount || 0,
+              status: (load.status === 'planned' || (!load.details?.driver && !load.details?.vehicle)) ? 'planned' : load.status,
+              assignedDriver: load.details?.driver?.name || load.driverName || null,
+              assignedTruck: load.details?.vehicle?.plateNumber || load.vehiclePlate || null,
+              route: load.route || {},
+              receiver: load.details?.receiver || load.receiver || null,
+              customerEmail: load.details?.customer?.email || load.customerEmail || null,
+              documents: load.documents || { bol: false, billOfSale: false, pod: false },
+              shipperCity,
+              shipperState,
+              receiverCity,
+              receiverState,
+              shipDate: load.assignedAt || load.startedAt || null,
+              shipTime: load.assignedAt || load.startedAt || null,
+              receiveDate: load.completedAt || null,
+              receiveTime: load.completedAt || null,
+            };
+          });
+        setLoads(plannedLoads);
+      } else {
+        setLoads([]);
       }
-    ];
-    setLoads(mockLoads);
+    } catch (error) {
+      console.error('Error fetching loads:', error);
+      setLoads([]);
+    } finally {
     setLoading(false);
+    }
   };
 
   const handleLoadAdded = () => {
     setSidebarOpen(false);
-    // Add new load with status "planned"
-    const newLoad: Load = {
-      _id: `load-${Date.now()}`,
-      loadNumber: `L-${String(loads.length + 1).padStart(3, '0')}`,
-      orderNumber: `ORD-${String(loads.length + 1).padStart(3, '0')}`,
-      customer: 'New Customer',
-      customerName: 'New Customer',
-      amount: 0,
-      rate: 0,
-      status: 'planned', // Always set to planned when new load is added
-      documents: { bol: false, billOfSale: false, pod: false }
-    };
-    setLoads([...loads, newLoad]);
+    fetchLoads(); // Refresh the list after adding a new load
   };
 
   const handleLoadClick = (load: Load) => {
@@ -184,9 +185,10 @@ const Index = () => {
     const statusConfig = {
       available: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Available' },
       planned: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Planned' },
-      assigned: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Assigned' },
+      dispatched: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Dispatched' },
       'in-delivery': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'In Delivery' },
       delivered: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Delivered' },
+      completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Completed' },
       paid: { bg: 'bg-green-100', text: 'text-green-800', label: 'Paid' }
     };
 
@@ -310,13 +312,23 @@ const Index = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {load.orderNumber || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                      {load.customer || load.customerName || 'N/A'}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-800">{load.customer || load.customerName || 'N/A'}</span>
+                        {load.receiver?.name && (
+                          <span className="text-xs text-gray-500">To: {load.receiver.name}</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col">
                       <span className="text-green-600 font-bold">
                         {formatCurrency(load.amount || load.rate || 0)}
                       </span>
+                        {load.rate && load.rate !== load.amount && (
+                          <span className="text-xs text-gray-500">Rate: {formatCurrency(load.rate)}</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(load.status)}
@@ -324,36 +336,79 @@ const Index = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-1 text-sm text-gray-700">
                         <FaMapMarkerAlt className="text-red-500" size={12} />
-                        <span>{load.shipperCity || load.route?.selectPickup?.place || 'N/A'}, {load.shipperState || ''}</span>
+                        <span>
+                          {load.shipperCity ? (
+                            <>
+                              {load.shipperCity}{load.shipperState ? `, ${load.shipperState}` : ''}
+                            </>
+                          ) : (
+                            'N/A'
+                          )}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2 text-sm text-gray-700">
                         <FaCalendarAlt className="text-blue-500" size={12} />
                         <div>
-                          <div>{formatDate(load.shipDate || '')}</div>
-                          <div className="text-xs text-gray-500">{load.shipTime || 'N/A'}</div>
+                          <div>{load.shipDate ? formatDate(load.shipDate) : 'N/A'}</div>
+                          <div className="text-xs text-gray-500">
+                            {load.shipTime ? new Date(load.shipTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-1 text-sm text-gray-700">
                         <FaMapMarkerAlt className="text-green-500" size={12} />
-                        <span>{load.receiverCity || load.route?.selectDropOff?.place || 'N/A'}, {load.receiverState || ''}</span>
+                        <span>
+                          {load.receiverCity ? (
+                            <>
+                              {load.receiverCity}{load.receiverState ? `, ${load.receiverState}` : ''}
+                            </>
+                          ) : (
+                            'N/A'
+                          )}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2 text-sm text-gray-700">
                         <FaCalendarAlt className="text-purple-500" size={12} />
                         <div>
-                          <div>{formatDate(load.receiveDate || '')}</div>
-                          <div className="text-xs text-gray-500">{load.receiveTime || 'N/A'}</div>
+                          <div>{load.receiveDate ? formatDate(load.receiveDate) : 'N/A'}</div>
+                          <div className="text-xs text-gray-500">
+                            {load.receiveTime ? new Date(load.receiveTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4">
                       <div className="text-sm text-gray-700">
-                        {load.route?.selectPickup?.place || 'N/A'} → {load.route?.selectDropOff?.place || 'N/A'}
+                        {load.route?.multipleDropOffs ? (
+                          <div className="text-xs space-y-0.5">
+                            {load.route.wayPoints && load.route.wayPoints.length > 0 ? (
+                              load.route.wayPoints.map((wp: any, idx: number) => {
+                                const address = typeof wp.address === 'string' 
+                                  ? wp.address 
+                                  : wp.address?.place || 'N/A';
+                                const addressParts = address.split(',');
+                                const cityName = addressParts[0]?.trim() || address;
+                                return (
+                                  <div key={idx} className="text-gray-600 flex items-center gap-1">
+                                    {wp.pickup ? '📦' : wp.dropOff ? '📬' : '📍'} {cityName}
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <span className="text-gray-400 italic text-xs">No waypoints</span>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            {load.route?.selectPickup?.place || 'N/A'} → {load.route?.selectDropOff?.place || 'N/A'}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -414,7 +469,15 @@ const Index = () => {
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-sm text-gray-600">Amount</p>
-                  <p className="font-semibold text-green-600 text-lg">{formatCurrency(selectedLoad.amount || selectedLoad.rate || 0)}</p>
+                  <p className="font-semibold text-green-600 text-lg">
+                    {formatCurrency(selectedLoad.amount || selectedLoad.details?.amount || selectedLoad.rate || selectedLoad.details?.rate || 0)}
+                  </p>
+                  {(selectedLoad.rate || selectedLoad.details?.rate) && 
+                   (selectedLoad.rate !== selectedLoad.amount || selectedLoad.details?.rate !== selectedLoad.details?.amount) && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Rate: {formatCurrency(selectedLoad.rate || selectedLoad.details?.rate || 0)}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -458,18 +521,153 @@ const Index = () => {
                     <p className="font-medium text-gray-800">{selectedLoad.receiveTime || 'N/A'}</p>
                   </div>
                 </div>
+                
+                {/* Receiver Information */}
+                {(selectedLoad.receiver || selectedLoad.details?.receiver) && (
+                  <div className="mt-4 bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h5 className="text-md font-semibold text-gray-800 mb-3">Receiver Contact Information</h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      {(selectedLoad.receiver?.name || selectedLoad.details?.receiver?.name) && (
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">Name</p>
+                          <p className="font-medium text-gray-800">
+                            {selectedLoad.receiver?.name || selectedLoad.details?.receiver?.name}
+                          </p>
+                        </div>
+                      )}
+                      {(selectedLoad.receiver?.contactPerson || selectedLoad.details?.receiver?.contactPerson) && (
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">Contact Person</p>
+                          <p className="font-medium text-gray-800">
+                            {selectedLoad.receiver?.contactPerson || selectedLoad.details?.receiver?.contactPerson}
+                          </p>
+                        </div>
+                      )}
+                      {(selectedLoad.receiver?.phone || selectedLoad.details?.receiver?.phone) && (
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">Phone</p>
+                          <p className="font-medium text-gray-800">
+                            {selectedLoad.receiver?.phone || selectedLoad.details?.receiver?.phone}
+                          </p>
+                        </div>
+                      )}
+                      {(selectedLoad.receiver?.email || selectedLoad.details?.receiver?.email) && (
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">Email</p>
+                          <p className="font-medium text-gray-800">
+                            {selectedLoad.receiver?.email || selectedLoad.details?.receiver?.email}
+                          </p>
+                        </div>
+                      )}
+                      {(selectedLoad.receiver?.address || selectedLoad.details?.receiver?.address) && (
+                        <div className="col-span-2">
+                          <p className="text-sm text-gray-600 mb-1">Address</p>
+                          <p className="font-medium text-gray-800">
+                            {selectedLoad.receiver?.address || selectedLoad.details?.receiver?.address}
+                          </p>
+                        </div>
+                      )}
+                      {(selectedLoad.receiver?.notes || selectedLoad.details?.receiver?.notes) && (
+                        <div className="col-span-2">
+                          <p className="text-sm text-gray-600 mb-1">Notes</p>
+                          <p className="font-medium text-gray-800">
+                            {selectedLoad.receiver?.notes || selectedLoad.details?.receiver?.notes}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Route */}
               <div className="border-t pt-6">
                 <h4 className="text-lg font-semibold text-gray-800 mb-4">Route</h4>
-                <div className="flex items-center gap-2 text-gray-700">
-                  <FaMapMarkerAlt className="text-red-500" />
-                  <span>{selectedLoad.route?.selectPickup?.place || 'N/A'}</span>
-                  <span className="mx-2">→</span>
-                  <FaMapMarkerAlt className="text-green-500" />
-                  <span>{selectedLoad.route?.selectDropOff?.place || 'N/A'}</span>
+                {selectedLoad.route?.multipleDropOffs ? (
+                  // Multiple Dropoffs - Show Waypoints
+                  <div className="space-y-3">
+                    <div className="text-sm text-gray-600 mb-3 font-medium">Multiple Dropoffs Route:</div>
+                    {selectedLoad.route?.wayPoints && selectedLoad.route.wayPoints.length > 0 ? (
+                      <div className="space-y-2">
+                        {selectedLoad.route.wayPoints.map((waypoint: any, index: number) => (
+                          <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex-shrink-0 mt-1">
+                              {waypoint.pickup ? (
+                                <FaMapMarkerAlt className="text-blue-500" size={16} />
+                              ) : waypoint.dropOff ? (
+                                <FaMapMarkerAlt className="text-green-500" size={16} />
+                              ) : (
+                                <FaMapMarkerAlt className="text-gray-400" size={16} />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-medium text-gray-600">
+                                  {waypoint.pickup ? 'PICKUP' : waypoint.dropOff ? 'DROPOFF' : 'WAYPOINT'} {index + 1}
+                                </span>
+                              </div>
+                              <p className="text-sm font-medium text-gray-800">
+                                {waypoint.address?.place || waypoint.address || 'N/A'}
+                              </p>
+                              {waypoint.customer && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Customer: {typeof waypoint.customer === 'object' 
+                                    ? waypoint.customer.name || waypoint.customer._id || 'N/A'
+                                    : waypoint.customer}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No waypoints defined</p>
+                    )}
+                    {selectedLoad.route?.selectReturn && (
+                      <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200 mt-2">
+                        <FaMapMarkerAlt className="text-yellow-600" size={16} />
+                        <div>
+                          <span className="text-xs font-medium text-yellow-700">RETURN</span>
+                          <p className="text-sm font-medium text-gray-800">{selectedLoad.route.selectReturn}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // Single Dropoff - Show Direct Route
+                  <div className="space-y-3">
+                    {selectedLoad.route?.selectPickup && (
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <FaMapMarkerAlt className="text-blue-500" size={16} />
+                        <div>
+                          <span className="text-xs font-medium text-blue-700">PICKUP</span>
+                          <p className="text-sm font-medium text-gray-800">{selectedLoad.route.selectPickup.place || 'N/A'}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedLoad.route?.selectDropOff && (
+                      <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <FaMapMarkerAlt className="text-green-500" size={16} />
+                        <div>
+                          <span className="text-xs font-medium text-green-700">DROPOFF</span>
+                          <p className="text-sm font-medium text-gray-800">{selectedLoad.route.selectDropOff.place || 'N/A'}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedLoad.route?.selectReturn && (
+                      <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <FaMapMarkerAlt className="text-yellow-600" size={16} />
+                        <div>
+                          <span className="text-xs font-medium text-yellow-700">RETURN</span>
+                          <p className="text-sm font-medium text-gray-800">{selectedLoad.route.selectReturn}</p>
+                        </div>
+                      </div>
+                    )}
+                    {!selectedLoad.route?.selectPickup && !selectedLoad.route?.selectDropOff && (
+                      <p className="text-sm text-gray-500">No route information available</p>
+                    )}
                 </div>
+                )}
               </div>
             </div>
 

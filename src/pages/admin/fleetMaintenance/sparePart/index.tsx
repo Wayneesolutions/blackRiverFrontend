@@ -17,16 +17,28 @@ import {
   FaBuilding,
   FaShoppingCart
 } from 'react-icons/fa';
-import { getAllSpareParts, createSparePart, useSparePart } from '../../../../axios/api/fleet.spareparts';
+import { 
+    getAllSpareParts, 
+    createSparePart, 
+    updateSparePart,
+    deleteSparePart,
+    useSparePart,
+    getSuppliers,
+    createSupplier,
+    updateSupplier,
+    deleteSupplier
+} from '../../../../axios/api/fleet.spareparts';
 import { useNavigate } from 'react-router-dom';
-// import { getAllWorkOrders } from '../../../../axios/api/fleet.workorder';
+import { getAllWorkOrders } from '../../../../axios/api/fleet.workorder';
 
 // Enhanced Types for comprehensive spare parts management
 interface VehicleId {
     _id: string;
-    licensePlate: string;
-    make: string;
-    model: string;
+    licensePlate?: string;
+    plateNumber?: string;
+    internalId?: string;
+    make?: string;
+    model?: string;
 }
 
 interface WorkOrderId {
@@ -156,19 +168,23 @@ const SparePartsInventory = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [showAddModal, setShowAddModal] = useState<boolean>(false);
+    const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showUsageModal, setShowUsageModal] = useState<boolean>(false);
     const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
-  const [showInvoiceModal, setShowInvoiceModal] = useState<boolean>(false);
-  const [showSupplierModal, setShowSupplierModal] = useState<boolean>(false);
-  const [showInvoiceDetailsModal, setShowInvoiceDetailsModal] = useState<boolean>(false);
+    const [showInvoiceModal, setShowInvoiceModal] = useState<boolean>(false);
+    const [showSupplierModal, setShowSupplierModal] = useState<boolean>(false);
+    const [showSupplierEditModal, setShowSupplierEditModal] = useState<boolean>(false);
+    const [showInvoiceDetailsModal, setShowInvoiceDetailsModal] = useState<boolean>(false);
     const [selectedPart, setSelectedPart] = useState<SparePart | null>(null);
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+    const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+    const [qtyUsedInput, setQtyUsedInput] = useState<string>('');
     const [spareParts, setSpareParts] = useState<SparePart[]>([]);
-    const [workOrders] = useState<WorkOrder[]>([]);
+    const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [loadingWorkOrders] = useState<boolean>(false);
+    const [loadingWorkOrders, setLoadingWorkOrders] = useState<boolean>(false);
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
@@ -210,118 +226,56 @@ const SparePartsInventory = () => {
 
     const usageDataRef = useRef({ workOrderId: '', qtyUsed: '' });
 
-    // Sample data for demonstration
+    // Fetch suppliers on mount
     useEffect(() => {
-        // Initialize with sample data
-        setSpareParts([
-            {
-                _id: '1',
-                partNumber: 'ENG-001',
-                partName: 'Engine Oil Filter',
-                description: 'High-quality engine oil filter for heavy-duty trucks',
-                category: 'Engine Parts',
-                stockQty: 25,
-                minStockLevel: 5,
-                maxStockLevel: 50,
-                buyingPrice: 45.00,
-                sellingPrice: 65.00,
-                purchaseDate: '2024-01-15',
-                supplier: {
-                    _id: '1',
-                    name: 'Auto Parts Central',
-                    contact: 'John Smith',
-                    email: 'john@autopartscentral.com',
-                    phone: '+1-555-0123',
-                    address: '123 Main St, Toronto, ON'
-                },
-                location: 'Warehouse A - Shelf 3',
-                condition: 'new',
-                warrantyPeriod: 12,
-                warrantyExpiry: '2025-01-15',
-                createdAt: '2024-01-15T10:00:00Z',
-                updatedAt: '2024-01-15T10:00:00Z',
-                usageHistory: []
-            },
-            {
-                _id: '2',
-                partNumber: 'BRAKE-002',
-                partName: 'Brake Pad Set',
-                description: 'Ceramic brake pads for front wheels',
-                category: 'Brake System',
-                stockQty: 8,
-                minStockLevel: 3,
-                maxStockLevel: 20,
-                buyingPrice: 120.00,
-                sellingPrice: 180.00,
-                purchaseDate: '2024-01-20',
-                supplier: {
-                    _id: '2',
-                    name: 'Brake Masters Inc',
-                    contact: 'Sarah Johnson',
-                    email: 'sarah@brakemasters.com',
-                    phone: '+1-555-0456',
-                    address: '456 Industrial Ave, Montreal, QC'
-                },
-                location: 'Warehouse B - Shelf 1',
-                condition: 'new',
-                warrantyPeriod: 24,
-                warrantyExpiry: '2026-01-20',
-                createdAt: '2024-01-20T14:30:00Z',
-                updatedAt: '2024-01-20T14:30:00Z',
-                usageHistory: []
-            }
-        ]);
-
-        setSuppliers([
-            {
-                _id: '1',
-                name: 'Auto Parts Central',
-                contact: 'John Smith',
-                email: 'john@autopartscentral.com',
-                phone: '+1-555-0123',
-                address: '123 Main St, Toronto, ON'
-            },
-            {
-                _id: '2',
-                name: 'Brake Masters Inc',
-                contact: 'Sarah Johnson',
-                email: 'sarah@brakemasters.com',
-                phone: '+1-555-0456',
-                address: '456 Industrial Ave, Montreal, QC'
-            }
-        ]);
-
-        setInvoices([
-            {
-                _id: '1',
-                invoiceNumber: 'INV-2024-001',
-                customerName: 'City Transport Ltd',
-                customerEmail: 'billing@citytransport.com',
-                customerPhone: '+1-555-0789',
-                customerAddress: '789 Business Blvd, Vancouver, BC',
-                items: [
-                    {
-                        partId: '1',
-                        partNumber: 'ENG-001',
-                        partName: 'Engine Oil Filter',
-                        quantity: 10,
-                        unitPrice: 65.00,
-                        totalPrice: 650.00
-                    }
-                ],
-                subtotal: 650.00,
-                taxRate: 13,
-                taxAmount: 84.50,
-                total: 734.50,
-                status: 'sent',
-                createdAt: '2024-01-25T09:00:00Z',
-                dueDate: '2024-02-25',
-                notes: 'Rush order - please expedite'
-            }
-        ]);
-
-        setLoading(false);
+        fetchSuppliers();
     }, []);
+
+    // Fetch spare parts on mount
+    useEffect(() => {
+        fetchSpareParts();
+    }, []);
+
+    // Fetch work orders when usage modal opens
+    useEffect(() => {
+        if (showUsageModal) {
+            fetchWorkOrders();
+        }
+    }, [showUsageModal]);
+
+    const fetchSuppliers = async () => {
+        try {
+            const res = await getSuppliers();
+            if (res?.success) {
+                setSuppliers(res.data || []);
+            } else {
+                addNotification('error', res?.message || 'Failed to fetch suppliers');
+                setSuppliers([]);
+            }
+        } catch (err: any) {
+            console.error("Error fetching suppliers:", err);
+            addNotification('error', err?.message || 'Failed to fetch suppliers');
+            setSuppliers([]);
+        }
+    };
+
+    const fetchWorkOrders = async () => {
+        setLoadingWorkOrders(true);
+        try {
+            const res = await getAllWorkOrders();
+            if (res?.success) {
+                setWorkOrders(res.data || []);
+            } else {
+                addNotification('error', res?.message || 'Failed to fetch work orders');
+                setWorkOrders([]);
+            }
+        } catch (err: any) {
+            console.error("Error fetching work orders:", err);
+            addNotification('error', err?.message || 'Failed to fetch work orders');
+            setWorkOrders([]);
+        }
+        setLoadingWorkOrders(false);
+    };
 
     const addNotification = (type: NotificationType, message: string) => {
         const id = Date.now();
@@ -369,9 +323,9 @@ const SparePartsInventory = () => {
   // };
 
     const filteredParts = spareParts.filter(part =>
-        part.partName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        part.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        part.category.toLowerCase().includes(searchTerm.toLowerCase())
+        part.partName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        part.partNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        part.category?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleAddPart = async (e: React.FormEvent) => {
@@ -443,21 +397,79 @@ const SparePartsInventory = () => {
             return;
         }
 
-        const newSupplier: Supplier = {
-            _id: Date.now().toString(),
-            ...formData
-        };
+        setSubmitting(true);
+        try {
+            const res = await createSupplier(formData);
+            if (res?.success) {
+                addNotification('success', res.message || 'Supplier added successfully');
+                setShowSupplierModal(false);
+                newSupplierRef.current = {
+                    name: '',
+                    contact: '',
+                    email: '',
+                    phone: '',
+                    address: ''
+                };
+                await fetchSuppliers();
+            } else {
+                addNotification('error', res?.message || 'Failed to add supplier');
+            }
+        } catch (err: any) {
+            addNotification('error', err?.message || 'Error adding supplier');
+        }
+        setSubmitting(false);
+    };
 
-        setSuppliers(prev => [...prev, newSupplier]);
-        addNotification('success', 'Supplier added successfully');
-        setShowSupplierModal(false);
-        newSupplierRef.current = {
-            name: '',
-            contact: '',
-            email: '',
-            phone: '',
-            address: ''
-        };
+    const handleEditSupplier = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedSupplier) return;
+
+        const formData = newSupplierRef.current;
+        if (!formData.name || !formData.contact || !formData.email) {
+            addNotification('error', 'Please fill all required fields');
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const res = await updateSupplier(selectedSupplier._id, formData);
+            if (res?.success) {
+                addNotification('success', res.message || 'Supplier updated successfully');
+                setShowSupplierEditModal(false);
+                setSelectedSupplier(null);
+                newSupplierRef.current = {
+                    name: '',
+                    contact: '',
+                    email: '',
+                    phone: '',
+                    address: ''
+                };
+                await fetchSuppliers();
+            } else {
+                addNotification('error', res?.message || 'Failed to update supplier');
+            }
+        } catch (err: any) {
+            addNotification('error', err?.message || 'Error updating supplier');
+        }
+        setSubmitting(false);
+    };
+
+    const handleDeleteSupplier = async (supplierId: string) => {
+        if (!window.confirm('Are you sure you want to delete this supplier?')) return;
+
+        setSubmitting(true);
+        try {
+            const res = await deleteSupplier(supplierId);
+            if (res?.success) {
+                addNotification('success', res.message || 'Supplier deleted successfully');
+                await fetchSuppliers();
+            } else {
+                addNotification('error', res?.message || 'Failed to delete supplier');
+            }
+        } catch (err: any) {
+            addNotification('error', err?.message || 'Error deleting supplier');
+        }
+        setSubmitting(false);
     };
 
     const handleCreateInvoice = () => {
@@ -520,7 +532,8 @@ const SparePartsInventory = () => {
                 setShowUsageModal(false);
                 setSelectedPart(null);
                 usageDataRef.current = { workOrderId: '', qtyUsed: '' };
-                fetchSpareParts();
+                setQtyUsedInput('');
+                await fetchSpareParts();
             } else {
                 addNotification('error', res?.message || 'Failed to use part');
             }
@@ -531,11 +544,85 @@ const SparePartsInventory = () => {
         setSubmitting(false);
     };
 
-    const handleDeletePart = (partId: string): void => {
-        if (window.confirm('Are you sure you want to delete this part?')) {
-            setSpareParts(prev => prev.filter(part => part._id !== partId));
-            addNotification('success', 'Part deleted successfully');
+    const handleEditPart = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedPart) return;
+
+        const formData = newPartRef.current;
+
+        if (!formData.partNumber || !formData.partName) {
+            addNotification('error', 'Please fill all required fields');
+            return;
         }
+
+        setSubmitting(true);
+
+        const data = {
+            partNumber: formData.partNumber,
+            partName: formData.partName,
+            description: formData.description,
+            category: formData.category,
+            stockQty: parseInt(formData.stockQty),
+            minStockLevel: parseInt(formData.minStockLevel) || 0,
+            maxStockLevel: parseInt(formData.maxStockLevel) || 100,
+            buyingPrice: parseFloat(formData.buyingPrice) || 0,
+            sellingPrice: parseFloat(formData.sellingPrice) || 0,
+            purchaseDate: formData.purchaseDate,
+            supplier: formData.supplier,
+            location: formData.location,
+            condition: formData.condition,
+            warrantyPeriod: parseInt(formData.warrantyPeriod) || 0
+        };
+
+        try {
+            const res = await updateSparePart(selectedPart._id, data);
+            if (res?.success) {
+                addNotification('success', res.message || 'Spare part updated successfully');
+                setShowEditModal(false);
+                setSelectedPart(null);
+                newPartRef.current = {
+                    partNumber: '',
+                    partName: '',
+                    description: '',
+                    category: '',
+                    stockQty: '',
+                    minStockLevel: '',
+                    maxStockLevel: '',
+                    buyingPrice: '',
+                    sellingPrice: '',
+                    purchaseDate: '',
+                    supplier: '',
+                    location: '',
+                    condition: 'new',
+                    warrantyPeriod: ''
+                };
+                await fetchSpareParts();
+            } else {
+                addNotification('error', res?.message || 'Failed to update spare part');
+            }
+        } catch (err: any) {
+            addNotification('error', err?.message || 'Error updating spare part');
+        }
+
+        setSubmitting(false);
+    };
+
+    const handleDeletePart = async (partId: string) => {
+        if (!window.confirm('Are you sure you want to delete this part?')) return;
+
+        setSubmitting(true);
+        try {
+            const res = await deleteSparePart(partId);
+            if (res?.success) {
+                addNotification('success', res.message || 'Part deleted successfully');
+                await fetchSpareParts();
+            } else {
+                addNotification('error', res?.message || 'Failed to delete part');
+            }
+        } catch (err: any) {
+            addNotification('error', err?.message || 'Error deleting part');
+        }
+        setSubmitting(false);
     };
 
     const formatDate = (dateString: string): string => {
@@ -587,10 +674,46 @@ const SparePartsInventory = () => {
 
     const ActionDropdown = ({ part }: { part: SparePart }) => {
         const [showDropdown, setShowDropdown] = useState(false);
+        const dropdownRef = useRef<HTMLDivElement>(null);
+        const buttonRef = useRef<HTMLButtonElement>(null);
+
+        useEffect(() => {
+            const handleClickOutside = (event: MouseEvent) => {
+                if (
+                    dropdownRef.current &&
+                    !dropdownRef.current.contains(event.target as Node) &&
+                    buttonRef.current &&
+                    !buttonRef.current.contains(event.target as Node)
+                ) {
+                    setShowDropdown(false);
+                }
+            };
+
+            if (showDropdown) {
+                document.addEventListener('mousedown', handleClickOutside);
+            }
+
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+            };
+        }, [showDropdown]);
+
+        const getDropdownPosition = () => {
+            if (!buttonRef.current) return { top: 0, right: 0 };
+            
+            const rect = buttonRef.current.getBoundingClientRect();
+            return {
+                top: rect.bottom + 4,
+                right: window.innerWidth - rect.right
+            };
+        };
+
+        const position = showDropdown ? getDropdownPosition() : { top: 0, right: 0 };
 
         return (
             <div className="relative">
                 <button
+                    ref={buttonRef}
                     onClick={() => setShowDropdown(!showDropdown)}
                     className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
                     title="More actions"
@@ -601,20 +724,55 @@ const SparePartsInventory = () => {
                 {showDropdown && (
                     <>
                         <div
-                            className="fixed inset-0 z-10"
+                            className="fixed inset-0 z-[100]"
                             onClick={() => setShowDropdown(false)}
                         ></div>
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                        <div
+                            ref={dropdownRef}
+                            className="fixed w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-[101]"
+                            style={{
+                                top: `${position.top}px`,
+                                right: `${position.right}px`
+                            }}
+                        >
                             <button
                                 onClick={() => {
                                     setSelectedPart(part);
-                                    usageDataRef.current = { workOrderId: '', qtyUsed: '' };
-                                    setShowUsageModal(true);
+                                    newPartRef.current = {
+                                        partNumber: part.partNumber || '',
+                                        partName: part.partName || '',
+                                        description: part.description || '',
+                                        category: part.category || '',
+                                        stockQty: part.stockQty.toString(),
+                                        minStockLevel: part.minStockLevel?.toString() || '',
+                                        maxStockLevel: part.maxStockLevel?.toString() || '',
+                                        buyingPrice: part.buyingPrice?.toString() || '',
+                                        sellingPrice: part.sellingPrice?.toString() || '',
+                                        purchaseDate: part.purchaseDate ? new Date(part.purchaseDate).toISOString().split('T')[0] : '',
+                                        supplier: typeof part.supplier === 'object' ? part.supplier._id : part.supplier || '',
+                                        location: part.location || '',
+                                        condition: part.condition || 'new',
+                                        warrantyPeriod: part.warrantyPeriod?.toString() || ''
+                                    };
+                                    setShowEditModal(true);
                                     setShowDropdown(false);
                                 }}
                                 className="flex items-center gap-3 w-full px-4 py-2 text-sm !text-gray-700 hover:bg-gray-50 transition-colors"
                             >
-                                <FaEdit size={14} className="text-orange-600" />
+                                <FaEdit size={14} className="text-blue-600" />
+                                Edit Part
+                            </button>
+                            <button
+                                    onClick={() => {
+                                        setSelectedPart(part);
+                                        usageDataRef.current = { workOrderId: '', qtyUsed: '' };
+                                        setQtyUsedInput('');
+                                        setShowUsageModal(true);
+                                        setShowDropdown(false);
+                                    }}
+                                className="flex items-center gap-3 w-full px-4 py-2 text-sm !text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                                <FaHistory size={14} className="text-orange-600" />
                                 Use Part
                             </button>
                             <button
@@ -724,8 +882,8 @@ const SparePartsInventory = () => {
                     )}
                 </div>
             ) : (
-                <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
-                    <div className="overflow-x-auto">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="overflow-x-auto overflow-y-visible">
                         <table className="w-full">
                             <thead className="bg-gray-50">
                                 <tr>
@@ -1074,6 +1232,247 @@ const SparePartsInventory = () => {
                 </div>
             )}
 
+            {/* Edit Part Modal */}
+            {showEditModal && selectedPart && (
+                <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">Edit Spare Part</h3>
+                        <form onSubmit={handleEditPart} className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Part Number <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        defaultValue={newPartRef.current.partNumber}
+                                        onChange={(e) => newPartRef.current.partNumber = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="e.g., ENG-001"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Part Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        defaultValue={newPartRef.current.partName}
+                                        onChange={(e) => newPartRef.current.partName = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Enter part name"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Category
+                                    </label>
+                                    <select
+                                        defaultValue={newPartRef.current.category}
+                                        onChange={(e) => newPartRef.current.category = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        <option value="">Select Category</option>
+                                        <option value="Engine Parts">Engine Parts</option>
+                                        <option value="Brake System">Brake System</option>
+                                        <option value="Transmission">Transmission</option>
+                                        <option value="Electrical">Electrical</option>
+                                        <option value="Suspension">Suspension</option>
+                                        <option value="Body Parts">Body Parts</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Condition
+                                    </label>
+                                    <select
+                                        defaultValue={newPartRef.current.condition}
+                                        onChange={(e) => newPartRef.current.condition = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        <option value="new">New</option>
+                                        <option value="refurbished">Refurbished</option>
+                                        <option value="used">Used</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Description
+                                </label>
+                                <textarea
+                                    defaultValue={newPartRef.current.description}
+                                    onChange={(e) => newPartRef.current.description = e.target.value}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    rows={2}
+                                    placeholder="Part description..."
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Stock Quantity <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        defaultValue={newPartRef.current.stockQty}
+                                        onChange={(e) => newPartRef.current.stockQty = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="0"
+                                        min="0"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Min Stock Level
+                                    </label>
+                                    <input
+                                        type="number"
+                                        defaultValue={newPartRef.current.minStockLevel}
+                                        onChange={(e) => newPartRef.current.minStockLevel = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="0"
+                                        min="0"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Max Stock Level
+                                    </label>
+                                    <input
+                                        type="number"
+                                        defaultValue={newPartRef.current.maxStockLevel}
+                                        onChange={(e) => newPartRef.current.maxStockLevel = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="100"
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Buying Price
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        defaultValue={newPartRef.current.buyingPrice}
+                                        onChange={(e) => newPartRef.current.buyingPrice = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="0.00"
+                                        min="0"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Selling Price
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        defaultValue={newPartRef.current.sellingPrice}
+                                        onChange={(e) => newPartRef.current.sellingPrice = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="0.00"
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Purchase Date
+                                    </label>
+                                    <input
+                                        type="date"
+                                        defaultValue={newPartRef.current.purchaseDate}
+                                        onChange={(e) => newPartRef.current.purchaseDate = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Supplier
+                                    </label>
+                                    <select
+                                        defaultValue={newPartRef.current.supplier}
+                                        onChange={(e) => newPartRef.current.supplier = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        <option value="">Select Supplier</option>
+                                        {suppliers.map(supplier => (
+                                            <option key={supplier._id} value={supplier._id}>
+                                                {supplier.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Location
+                                    </label>
+                                    <input
+                                        type="text"
+                                        defaultValue={newPartRef.current.location}
+                                        onChange={(e) => newPartRef.current.location = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="e.g., Warehouse A - Shelf 3"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Warranty Period (months)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        defaultValue={newPartRef.current.warrantyPeriod}
+                                        onChange={(e) => newPartRef.current.warrantyPeriod = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="12"
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowEditModal(false);
+                                        setSelectedPart(null);
+                                    }}
+                                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    disabled={submitting}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-[#9793E4] !text-white !ml-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                                    disabled={submitting}
+                                >
+                                    {submitting ? 'Updating...' : 'Update Part'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             {/* Add Supplier Modal */}
             {showSupplierModal && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
@@ -1318,35 +1717,91 @@ const SparePartsInventory = () => {
             {/* Use Part Modal */}
             {showUsageModal && selectedPart && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4">
-                            Use Part: {selectedPart.partName}
-                        </h3>
-                        <div className="mb-4 p-3 bg-[#9793E4]/10 rounded-lg border border-[#9793E4]/30">
-                            <div className="text-sm text-gray-600">
-                                Current Stock: <span className="font-semibold text-gray-900">{selectedPart.stockQty} units</span>
+                    <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+                        <div className="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                                    Use Spare Part
+                                </h3>
+                                <p className="text-sm text-gray-600">Record usage of this part in a work order</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowUsageModal(false);
+                                    setSelectedPart(null);
+                                    usageDataRef.current = { workOrderId: '', qtyUsed: '' };
+                                    setQtyUsedInput('');
+                                }}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <FaTimes className="text-gray-500" size={18} />
+                            </button>
+                        </div>
+
+                        {/* Spare Part Details */}
+                        <div className="mb-6 p-4 bg-gradient-to-r from-[#9793E4] to-[#8783D4] rounded-lg text-white">
+                            <div className="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 className="text-lg font-bold">{selectedPart.partName}</h4>
+                                    <p className="text-sm opacity-90">{selectedPart.partNumber}</p>
+                                    {selectedPart.category && (
+                                        <p className="text-xs opacity-75 mt-1">{selectedPart.category}</p>
+                                    )}
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-sm opacity-90">Current Stock</div>
+                                    <div className="text-2xl font-bold">{selectedPart.stockQty} units</div>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/20">
+                                <div>
+                                    <div className="text-xs opacity-75">Min Stock Level</div>
+                                    <div className="font-semibold">{selectedPart.minStockLevel || 0} units</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs opacity-75">Location</div>
+                                    <div className="font-semibold">{selectedPart.location || 'N/A'}</div>
+                                </div>
                             </div>
                         </div>
+
                         <form onSubmit={handleUsePart} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                                     Work Order <span className="text-red-500">*</span>
                                 </label>
                                 {loadingWorkOrders ? (
-                                    <div className="text-sm text-gray-500 py-2">Loading work orders...</div>
+                                    <div className="flex items-center justify-center py-8 bg-gray-50 rounded-lg">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#9793E4]"></div>
+                                        <span className="ml-3 text-sm text-gray-500">Loading work orders...</span>
+                                    </div>
+                                ) : workOrders.length === 0 ? (
+                                    <div className="py-8 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+                                        <FaExclamationCircle className="text-yellow-600 mx-auto mb-2" size={24} />
+                                        <p className="text-sm text-yellow-800">No work orders available</p>
+                                        <p className="text-xs text-yellow-600 mt-1">Create a work order first to use this part</p>
+                                    </div>
                                 ) : (
                                     <select
                                         defaultValue={usageDataRef.current.workOrderId}
                                         onChange={(e) => usageDataRef.current.workOrderId = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-[#9793E4] transition-all bg-white"
                                         required
                                     >
                                         <option value="">Select Work Order</option>
-                                        {workOrders.map(wo => (
-                                            <option key={wo._id} value={wo._id}>
-                                                {wo.issue} {wo.vehicleId ? `- ${wo.vehicleId.licensePlate}` : ''}
-                                            </option>
-                                        ))}
+                                        {workOrders.map(wo => {
+                                            const vehicleInfo = wo.vehicleId 
+                                                ? (wo.vehicleId.plateNumber || wo.vehicleId.licensePlate || wo.vehicleId.internalId || 'N/A')
+                                                : 'No Vehicle';
+                                            const vehicleDetails = wo.vehicleId 
+                                                ? (wo.vehicleId.make && wo.vehicleId.model ? ` (${wo.vehicleId.make} ${wo.vehicleId.model})` : '')
+                                                : '';
+                                            return (
+                                                <option key={wo._id} value={wo._id}>
+                                                    {wo.issue} - {vehicleInfo}{vehicleDetails} {wo.status ? `[${wo.status}]` : ''}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                 )}
                             </div>
@@ -1356,31 +1811,39 @@ const SparePartsInventory = () => {
                                 </label>
                                 <input
                                     type="number"
-                                    defaultValue={usageDataRef.current.qtyUsed}
-                                    onChange={(e) => usageDataRef.current.qtyUsed = e.target.value}
-                                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
-                                    placeholder="Enter quantity used"
+                                    value={qtyUsedInput}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setQtyUsedInput(value);
+                                        usageDataRef.current.qtyUsed = value;
+                                    }}
+                                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-[#9793E4] transition-all"
+                                    placeholder={`Enter quantity (max: ${selectedPart.stockQty})`}
                                     min="1"
                                     max={selectedPart.stockQty}
                                     required
                                 />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Available: {selectedPart.stockQty} units | After use: {selectedPart.stockQty - (parseInt(qtyUsedInput) || 0)} units
+                                </p>
                             </div>
-                            <div className="flex justify-end space-x-3 mt-6">
+                            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setShowUsageModal(false);
                                         setSelectedPart(null);
+                                        usageDataRef.current = { workOrderId: '', qtyUsed: '' };
                                     }}
-                                    className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                    className="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
                                     disabled={submitting}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-[#9793E4] !text-white !ml-3 rounded-lg hover:bg-[#8783D4] disabled:bg-[#9793E4]/50 disabled:cursor-not-allowed font-medium transition-colors shadow-md"
-                                    disabled={submitting}
+                                    className="px-5 py-2.5 bg-[#9793E4] !text-white !ml-3 rounded-lg hover:bg-[#8783D4] disabled:bg-[#9793E4]/50 disabled:cursor-not-allowed font-medium transition-colors shadow-md"
+                                    disabled={submitting || loadingWorkOrders || workOrders.length === 0}
                                 >
                                     {submitting ? 'Processing...' : 'Use Part'}
                                 </button>

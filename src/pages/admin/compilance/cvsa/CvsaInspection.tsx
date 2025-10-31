@@ -15,6 +15,15 @@ import {
   FaFlag,
   FaFlagUsa
 } from 'react-icons/fa';
+import {
+  getCvsaInspections,
+  getCvsaInspectionStats,
+  createCvsaInspection,
+  updateCvsaInspection,
+  deleteCvsaInspection
+} from '../../../../axios/api/admin';
+import { listVehicle } from '../../../../axios/api/distapcher';
+import { listDriver } from '../../../../axios/api/distapcher';
 
 // Types
 interface Inspection {
@@ -24,14 +33,38 @@ interface Inspection {
   date: string;
   location: string;
   status: 'pass' | 'fail' | 'warning' | 'out-of-service';
-  vehicleId: string;
-  vehicleInfo: string;
-  driverId: string;
-  driverName: string;
+  vehicle: {
+    _id: string;
+    internalId?: string;
+    plateNumber?: string;
+    make?: string;
+    model?: string;
+    year?: number;
+  } | string;
+  driver: {
+    _id: string;
+    name?: string;
+    email?: string;
+  } | string;
   inspectorName: string;
   violations?: Violation[];
   notes?: string;
   createdAt: string;
+}
+
+interface Vehicle {
+  _id: string;
+  internalId: string;
+  plateNumber: string;
+  make: string;
+  model: string;
+  year: number;
+}
+
+interface Driver {
+  _id: string;
+  name: string;
+  email: string;
 }
 
 interface Violation {
@@ -49,104 +82,10 @@ interface InspectionStats {
   outOfService: number;
 }
 
-// Mock data
-const mockInspections: Inspection[] = [
-  {
-    _id: '1',
-    inspectionId: 'CVSA-2024-001',
-    country: 'canada',
-    date: '2024-01-15',
-    location: 'Windsor, ON - Ambassador Bridge',
-    status: 'pass',
-    vehicleId: 'V001',
-    vehicleInfo: 'Freightliner Cascadia - ABC123',
-    driverId: 'D001',
-    driverName: 'John Smith',
-    inspectorName: 'Inspector Johnson',
-    violations: [],
-    notes: 'All systems functioning properly',
-    createdAt: '2024-01-15T10:30:00Z'
-  },
-  {
-    _id: '2',
-    inspectionId: 'CVSA-2024-002',
-    country: 'usa',
-    date: '2024-01-18',
-    location: 'Detroit, MI - Ambassador Bridge',
-    status: 'warning',
-    vehicleId: 'V002',
-    vehicleInfo: 'Peterbilt 579 - XYZ789',
-    driverId: 'D002',
-    driverName: 'Sarah Johnson',
-    inspectorName: 'Inspector Williams',
-    violations: [
-      {
-        _id: 'v1',
-        code: '393.75',
-        description: 'Brake adjustment',
-        severity: 'minor'
-      }
-    ],
-    notes: 'Minor brake adjustment needed',
-    createdAt: '2024-01-18T14:20:00Z'
-  },
-  {
-    _id: '3',
-    inspectionId: 'CVSA-2024-003',
-    country: 'canada',
-    date: '2024-01-22',
-    location: 'Toronto, ON - Highway 401',
-    status: 'fail',
-    vehicleId: 'V003',
-    vehicleInfo: 'Volvo VNL - DEF456',
-    driverId: 'D003',
-    driverName: 'Michael Brown',
-    inspectorName: 'Inspector Davis',
-    violations: [
-      {
-        _id: 'v2',
-        code: '393.45',
-        description: 'Brake system defect',
-        severity: 'major'
-      },
-      {
-        _id: 'v3',
-        code: '393.75',
-        description: 'Brake adjustment',
-        severity: 'minor'
-      }
-    ],
-    notes: 'Multiple brake system issues found',
-    createdAt: '2024-01-22T09:15:00Z'
-  },
-  {
-    _id: '4',
-    inspectionId: 'CVSA-2024-004',
-    country: 'usa',
-    date: '2024-01-25',
-    location: 'Buffalo, NY - Peace Bridge',
-    status: 'out-of-service',
-    vehicleId: 'V004',
-    vehicleInfo: 'Kenworth T680 - GHI789',
-    driverId: 'D004',
-    driverName: 'Emily Davis',
-    inspectorName: 'Inspector Miller',
-    violations: [
-      {
-        _id: 'v4',
-        code: '393.45',
-        description: 'Critical brake system failure',
-        severity: 'critical'
-      }
-    ],
-    notes: 'Vehicle placed out of service due to critical brake failure',
-    createdAt: '2024-01-25T16:45:00Z'
-  }
-];
 
 const CvsaInspection: React.FC = () => {
-  const [inspections, setInspections] = useState<Inspection[]>(mockInspections);
-  const [filteredInspections, setFilteredInspections] = useState<Inspection[]>(mockInspections);
+  const [inspections, setInspections] = useState<Inspection[]>([]);
+  const [filteredInspections, setFilteredInspections] = useState<Inspection[]>([]);
   const [activeTab, setActiveTab] = useState<'canada' | 'usa'>('canada');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -156,14 +95,18 @@ const CvsaInspection: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [inspectionToDelete, setInspectionToDelete] = useState<Inspection | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [inspectionForm, setInspectionForm] = useState<Partial<Inspection>>({
     country: 'canada',
     date: '',
     location: '',
     status: 'pass',
-    vehicleInfo: '',
-    driverName: '',
+    vehicle: '',
+    driver: '',
     inspectorName: '',
+    violations: [],
     notes: ''
   });
   const [stats, setStats] = useState<InspectionStats>({
@@ -174,42 +117,89 @@ const CvsaInspection: React.FC = () => {
     outOfService: 0
   });
 
-  // Calculate stats
+  // Fetch vehicles and drivers
   useEffect(() => {
-    const calculateStats = () => {
-      const countryInspections = inspections.filter(inspection => inspection.country === activeTab);
-      const newStats: InspectionStats = {
-        total: countryInspections.length,
-        pass: countryInspections.filter(i => i.status === 'pass').length,
-        fail: countryInspections.filter(i => i.status === 'fail').length,
-        warning: countryInspections.filter(i => i.status === 'warning').length,
-        outOfService: countryInspections.filter(i => i.status === 'out-of-service').length
-      };
-      setStats(newStats);
+    const fetchVehicles = async () => {
+      try {
+        const res = await listVehicle();
+        if (res?.success && res?.data?.vehicles) {
+          setVehicles(res.data.vehicles);
+        }
+      } catch (error) {
+        console.error('Error fetching vehicles:', error);
+      }
     };
 
-    calculateStats();
-  }, [inspections, activeTab]);
+    const fetchDrivers = async () => {
+      try {
+        const res = await listDriver();
+        if (res?.success && res?.data) {
+          // Filter for drivers only
+          const driverList = Array.isArray(res.data) 
+            ? res.data.filter((d: any) => d.role === 'driver')
+            : (res.data?.drivers || []).filter((d: any) => d.role === 'driver');
+          setDrivers(driverList);
+        }
+      } catch (error) {
+        console.error('Error fetching drivers:', error);
+      }
+    };
 
-  // Filter inspections
+    fetchVehicles();
+    fetchDrivers();
+  }, []);
+
+  // Function to refresh inspections and stats
+  const refreshData = async (useFilters = true) => {
+    try {
+      const [inspectionsRes, statsRes] = await Promise.all([
+        getCvsaInspections({ 
+          country: activeTab,
+          status: useFilters && statusFilter !== 'all' ? statusFilter : undefined, 
+          search: useFilters && searchQuery ? searchQuery : undefined 
+        }),
+        getCvsaInspectionStats(activeTab)
+      ]);
+
+      if (inspectionsRes?.success) {
+        setInspections(inspectionsRes.data || []);
+      }
+
+      if (statsRes?.success) {
+        setStats(statsRes.data || {
+          total: 0,
+          pass: 0,
+          fail: 0,
+          warning: 0,
+          outOfService: 0
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    }
+  };
+
+  // Fetch inspections and stats
   useEffect(() => {
-    let filtered = inspections.filter(inspection => inspection.country === activeTab);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        await refreshData(true);
+      } catch (error) {
+        console.error('Error fetching inspections:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(inspection => inspection.status === statusFilter);
-    }
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, statusFilter, searchQuery]);
 
-    if (searchQuery) {
-      filtered = filtered.filter(inspection =>
-        inspection.inspectionId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        inspection.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        inspection.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        inspection.vehicleInfo.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    setFilteredInspections(filtered);
-  }, [inspections, activeTab, statusFilter, searchQuery]);
+  // Filter inspections (already filtered by API, but keep for client-side if needed)
+  useEffect(() => {
+    setFilteredInspections(inspections);
+  }, [inspections]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -273,9 +263,10 @@ const CvsaInspection: React.FC = () => {
       date: '',
       location: '',
       status: 'pass',
-      vehicleInfo: '',
-      driverName: '',
+      vehicle: '',
+      driver: '',
       inspectorName: '',
+      violations: [],
       notes: ''
     });
   };
@@ -288,7 +279,15 @@ const CvsaInspection: React.FC = () => {
   const handleEditInspection = (inspection: Inspection) => {
     setSelectedInspection(inspection);
     setInspectionForm({
-      ...inspection
+      country: inspection.country,
+      date: inspection.date ? new Date(inspection.date).toISOString().split('T')[0] : '',
+      location: inspection.location,
+      status: inspection.status,
+      vehicle: typeof inspection.vehicle === 'string' ? inspection.vehicle : inspection.vehicle?._id || '',
+      driver: typeof inspection.driver === 'string' ? inspection.driver : inspection.driver?._id || '',
+      inspectorName: inspection.inspectorName,
+      violations: inspection.violations || [],
+      notes: inspection.notes || ''
     });
     setShowEditModal(true);
   };
@@ -298,65 +297,133 @@ const CvsaInspection: React.FC = () => {
     setShowDeleteModal(true);
   };
 
+  const getVehicleInfo = (vehicle: Inspection['vehicle']): string => {
+    if (typeof vehicle === 'string') {
+      const v = vehicles.find(v => v._id === vehicle);
+      return v ? `${v.make} ${v.model} - ${v.plateNumber}` : '';
+    }
+    if (vehicle?.make && vehicle?.model && vehicle?.plateNumber) {
+      return `${vehicle.make} ${vehicle.model} - ${vehicle.plateNumber}`;
+    }
+    return '';
+  };
+
+  const getDriverName = (driver: Inspection['driver']): string => {
+    if (typeof driver === 'string') {
+      const d = drivers.find(d => d._id === driver);
+      return d ? d.name : '';
+    }
+    return driver?.name || '';
+  };
+
   const validateForm = () => {
     return (
       !!inspectionForm.country &&
       !!inspectionForm.date &&
       !!inspectionForm.location &&
       !!inspectionForm.status &&
-      !!inspectionForm.vehicleInfo &&
-      !!inspectionForm.driverName &&
+      !!inspectionForm.vehicle &&
+      !!inspectionForm.driver &&
       !!inspectionForm.inspectorName
     );
   };
 
-  const saveNewInspection = () => {
-    if (!validateForm()) return;
-    const newInspection: Inspection = {
-      _id: String(Date.now()),
-      inspectionId: `CVSA-${new Date().getFullYear()}-${String(inspections.length + 1).padStart(3, '0')}`,
-      country: inspectionForm.country as 'canada' | 'usa',
-      date: inspectionForm.date as string,
-      location: inspectionForm.location as string,
-      status: inspectionForm.status as Inspection['status'],
-      vehicleId: 'VNEW',
-      vehicleInfo: inspectionForm.vehicleInfo as string,
-      driverId: 'DNEW',
-      driverName: inspectionForm.driverName as string,
-      inspectorName: inspectionForm.inspectorName as string,
-      violations: [],
-      notes: inspectionForm.notes || '',
-      createdAt: new Date().toISOString()
-    };
-    setInspections(prev => [newInspection, ...prev]);
+  const saveNewInspection = async () => {
+    if (!validateForm()) {
+      alert('Please fill all required fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        country: inspectionForm.country,
+        date: inspectionForm.date,
+        location: inspectionForm.location,
+        status: inspectionForm.status,
+        vehicle: inspectionForm.vehicle,
+        driver: inspectionForm.driver,
+        inspectorName: inspectionForm.inspectorName,
+        violations: inspectionForm.violations || [],
+        notes: inspectionForm.notes || ''
+      };
+
+      const res = await createCvsaInspection(payload);
+      if (res?.success) {
+        // Refresh both inspections and stats
+        await refreshData(true);
     setShowAddModal(false);
     resetForm();
+      } else {
+        alert(res?.message || 'Failed to create inspection');
+      }
+    } catch (error) {
+      console.error('Error creating inspection:', error);
+      alert('Failed to create inspection');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateInspection = () => {
+  const updateInspection = async () => {
     if (!selectedInspection) return;
-    if (!validateForm()) return;
-    setInspections(prev => prev.map(i => i._id === selectedInspection._id ? {
-      ...i,
-      country: inspectionForm.country as 'canada' | 'usa',
-      date: inspectionForm.date as string,
-      location: inspectionForm.location as string,
-      status: inspectionForm.status as Inspection['status'],
-      vehicleInfo: inspectionForm.vehicleInfo as string,
-      driverName: inspectionForm.driverName as string,
-      inspectorName: inspectionForm.inspectorName as string,
+    if (!validateForm()) {
+      alert('Please fill all required fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        country: inspectionForm.country,
+        date: inspectionForm.date,
+        location: inspectionForm.location,
+        status: inspectionForm.status,
+        vehicle: inspectionForm.vehicle,
+        driver: inspectionForm.driver,
+        inspectorName: inspectionForm.inspectorName,
+        violations: inspectionForm.violations || [],
       notes: inspectionForm.notes || ''
-    } : i));
+      };
+
+      const res = await updateCvsaInspection(selectedInspection._id, payload);
+      if (res?.success) {
+        // Refresh both inspections and stats
+        await refreshData(true);
     setShowEditModal(false);
     setSelectedInspection(null);
     resetForm();
+      } else {
+        alert(res?.message || 'Failed to update inspection');
+      }
+    } catch (error) {
+      console.error('Error updating inspection:', error);
+      alert('Failed to update inspection');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!inspectionToDelete) return;
-    setInspections(prev => prev.filter(i => i._id !== inspectionToDelete._id));
+
+    setLoading(true);
+    try {
+      const res = await deleteCvsaInspection(inspectionToDelete._id);
+      if (res?.success) {
+        // Refresh both inspections and stats
+        await refreshData(true);
     setShowDeleteModal(false);
     setInspectionToDelete(null);
+      } else {
+        alert(res?.message || 'Failed to delete inspection');
+      }
+    } catch (error) {
+      console.error('Error deleting inspection:', error);
+      alert('Failed to delete inspection');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const StatCard = ({ title, value, color, icon }: { title: string; value: number; color: string; icon: React.ReactNode }) => (
@@ -492,7 +559,12 @@ const CvsaInspection: React.FC = () => {
           </h3>
         </div>
 
-        {filteredInspections.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9793E4] mx-auto mb-4"></div>
+            <p className="text-xl font-semibold text-gray-500">Loading inspections...</p>
+          </div>
+        ) : filteredInspections.length === 0 ? (
           <div className="text-center py-16">
             <FaClipboardCheck size={64} className="mx-auto mb-4 text-gray-300" />
             <p className="text-xl font-semibold text-gray-500">No inspections found</p>
@@ -545,8 +617,8 @@ const CvsaInspection: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        <div className="font-medium">{inspection.vehicleInfo}</div>
-                        <div className="text-gray-600">{inspection.driverName}</div>
+                        <div className="font-medium">{getVehicleInfo(inspection.vehicle)}</div>
+                        <div className="text-gray-600">{getDriverName(inspection.driver)}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -654,11 +726,11 @@ const CvsaInspection: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Vehicle</label>
-                    <p className="text-lg font-semibold text-gray-800">{selectedInspection.vehicleInfo}</p>
+                    <p className="text-lg font-semibold text-gray-800">{getVehicleInfo(selectedInspection.vehicle)}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Driver</label>
-                    <p className="text-lg font-semibold text-gray-800">{selectedInspection.driverName}</p>
+                    <p className="text-lg font-semibold text-gray-800">{getDriverName(selectedInspection.driver)}</p>
                   </div>
                 </div>
               </div>
@@ -780,23 +852,31 @@ const CvsaInspection: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Driver <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    placeholder="Driver name"
-                    value={inspectionForm.driverName || ''}
-                    onChange={(e) => setInspectionForm(prev => ({ ...prev, driverName: e.target.value }))}
+                  <select
+                    value={typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, driver: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
-                  />
+                  >
+                    <option value="">Select Driver</option>
+                    {drivers.map((driver) => (
+                      <option key={driver._id} value={driver._id}>{driver.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    placeholder="Vehicle info"
-                    value={inspectionForm.vehicleInfo || ''}
-                    onChange={(e) => setInspectionForm(prev => ({ ...prev, vehicleInfo: e.target.value }))}
+                  <select
+                    value={typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, vehicle: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
-                  />
+                  >
+                    <option value="">Select Vehicle</option>
+                    {vehicles.map((vehicle) => (
+                      <option key={vehicle._id} value={vehicle._id}>
+                        {vehicle.make} {vehicle.model} - {vehicle.plateNumber}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -813,7 +893,9 @@ const CvsaInspection: React.FC = () => {
 
             <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
               <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-              <button onClick={saveNewInspection} className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors disabled:opacity-60" disabled={!validateForm()}>Save Inspection</button>
+              <button onClick={saveNewInspection} className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                {loading ? 'Saving...' : 'Save Inspection'}
+              </button>
             </div>
           </div>
         </div>
@@ -868,11 +950,31 @@ const CvsaInspection: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Driver <span className="text-red-500">*</span></label>
-                  <input type="text" value={inspectionForm.driverName || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, driverName: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" />
+                  <select
+                    value={typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, driver: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="">Select Driver</option>
+                    {drivers.map((driver) => (
+                      <option key={driver._id} value={driver._id}>{driver.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle <span className="text-red-500">*</span></label>
-                  <input type="text" value={inspectionForm.vehicleInfo || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, vehicleInfo: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" />
+                  <select
+                    value={typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, vehicle: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="">Select Vehicle</option>
+                    {vehicles.map((vehicle) => (
+                      <option key={vehicle._id} value={vehicle._id}>
+                        {vehicle.make} {vehicle.model} - {vehicle.plateNumber}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -883,7 +985,9 @@ const CvsaInspection: React.FC = () => {
 
             <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
               <button onClick={() => setShowEditModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-              <button onClick={updateInspection} className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors disabled:opacity-60" disabled={!validateForm()}>Update Inspection</button>
+              <button onClick={updateInspection} className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                {loading ? 'Updating...' : 'Update Inspection'}
+              </button>
             </div>
           </div>
         </div>
@@ -902,8 +1006,10 @@ const CvsaInspection: React.FC = () => {
               </div>
               <p className="text-gray-600 mb-6">Are you sure you want to delete inspection <span className="font-semibold">{inspectionToDelete.inspectionId}</span>? This action cannot be undone.</p>
               <div className="flex justify-end gap-3">
-                <button onClick={() => { setShowDeleteModal(false); setInspectionToDelete(null); }} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors">Cancel</button>
-                <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 font-medium transition-colors">Delete</button>
+                <button onClick={() => { setShowDeleteModal(false); setInspectionToDelete(null); }} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors" disabled={loading}>Cancel</button>
+                <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-60" disabled={loading}>
+                  {loading ? 'Deleting...' : 'Delete'}
+                </button>
               </div>
             </div>
           </div>

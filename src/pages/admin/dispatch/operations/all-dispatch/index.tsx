@@ -4,6 +4,7 @@ import {
 } from 'react-icons/fa';
 import AssignDriverTruckModal from "../../../../../components/dispatch/AssignDriverTruckModal";
 import StepTracker from "../../../../../components/dispatch/StepTracker";
+import { listLoad, assignDriverTruck } from "../../../../../axios/api/distapcher";
 
 interface Load {
   _id: string;
@@ -13,14 +14,22 @@ interface Load {
   customerName?: string;
   rate?: number;
   amount?: number;
-  status: 'available' | 'planned' | 'assigned' | 'in-delivery' | 'delivered' | 'paid';
+  status: 'planned' | 'dispatched' | 'in-delivery' | 'delivered' | 'completed';
   assignedDriver?: string;
   assignedTruck?: string;
   assignedTrailer?: string;
   plannedDate?: string;
   route?: {
-    selectPickup?: { place?: string };
-    selectDropOff?: { place?: string };
+    multipleDropOffs?: boolean;
+    selectPickup?: { place?: string; latitude?: string; longitude?: string };
+    selectDropOff?: { place?: string; latitude?: string; longitude?: string };
+    selectReturn?: string | null;
+    wayPoints?: Array<{
+      address?: { place?: string; latitude?: string; longitude?: string } | string;
+      customer?: string;
+      dropOff?: boolean;
+      pickup?: boolean;
+    }>;
   };
   shipperCity?: string;
   shipperState?: string;
@@ -39,118 +48,101 @@ const AllDispatch = () => {
     fetchLoads();
   }, []);
 
-  const fetchLoads = () => {
+  const fetchLoads = async () => {
     setLoading(true);
-    // Static mock data - loads that need assignment
-    const mockLoads: Load[] = [
-      {
-        _id: '1',
-        loadNumber: 'L-001',
-        orderNumber: 'ORD-001',
-        customer: 'Black River Logistics',
-        customerName: 'Black River Logistics',
-        amount: 2500,
-        rate: 2500,
-        status: 'planned',
-        route: { selectPickup: { place: 'Toronto, ON' }, selectDropOff: { place: 'Montreal, QC' } },
-        shipperCity: 'Toronto',
-        shipperState: 'ON',
-        receiverCity: 'Montreal',
-        receiverState: 'QC'
-      },
-      {
-        _id: '2',
-        loadNumber: 'L-002',
-        orderNumber: 'ORD-002',
-        customer: '3 Rivers Logistics',
-        customerName: '3 Rivers Logistics',
-        amount: 3200,
-        rate: 3200,
-        status: 'planned',
-        route: { selectPickup: { place: 'Vancouver, BC' }, selectDropOff: { place: 'Calgary, AB' } },
-        shipperCity: 'Vancouver',
-        shipperState: 'BC',
-        receiverCity: 'Calgary',
-        receiverState: 'AB'
-      },
-      {
-        _id: '3',
-        loadNumber: 'L-003',
-        orderNumber: 'ORD-003',
-        customer: 'Tech Freight',
-        customerName: 'Tech Freight',
-        amount: 1800,
-        rate: 1800,
-        status: 'assigned',
-        assignedDriver: 'John Doe',
-        assignedTruck: 'TRK-001',
-        assignedTrailer: 'TRL-001',
-        plannedDate: '2024-01-20',
-        route: { selectPickup: { place: 'Chicago, IL' }, selectDropOff: { place: 'Detroit, MI' } },
-        shipperCity: 'Chicago',
-        shipperState: 'IL',
-        receiverCity: 'Detroit',
-        receiverState: 'MI'
-      },
-      {
-        _id: '4',
-        loadNumber: 'L-004',
-        orderNumber: 'ORD-004',
-        customer: 'Global Transport',
-        customerName: 'Global Transport',
-        amount: 4500,
-        rate: 4500,
-        status: 'assigned',
-        assignedDriver: 'Jane Smith',
-        assignedTruck: 'TRK-002',
-        plannedDate: '2024-01-21',
-        route: { selectPickup: { place: 'New York, NY' }, selectDropOff: { place: 'Boston, MA' } },
-        shipperCity: 'New York',
-        shipperState: 'NY',
-        receiverCity: 'Boston',
-        receiverState: 'MA'
+    try {
+      const response = await listLoad();
+      if (response && response.success && response.data) {
+        const formattedLoads = response.data.map((load: any) => {
+          // Extract shipper city/state - from pickup location
+          let shipperCity = '';
+          let shipperState = '';
+          if (load.route?.multipleDropOffs && load.route?.wayPoints) {
+            // Find first pickup waypoint
+            const pickupWaypoint = load.route.wayPoints.find((wp: any) => wp.pickup);
+            if (pickupWaypoint) {
+              const address = typeof pickupWaypoint.address === 'string' 
+                ? pickupWaypoint.address 
+                : pickupWaypoint.address?.place || '';
+              const parts = address.split(',').map((p: string) => p.trim());
+              shipperCity = parts[0] || '';
+              shipperState = parts[1] || '';
+            }
+          } else if (load.route?.selectPickup?.place) {
+            const parts = load.route.selectPickup.place.split(',').map((p: string) => p.trim());
+            shipperCity = parts[0] || '';
+            shipperState = parts[1] || '';
+          }
+
+          // Extract receiver city/state - from dropoff location
+          let receiverCity = '';
+          let receiverState = '';
+          if (load.route?.multipleDropOffs && load.route?.wayPoints) {
+            // Find last dropoff waypoint
+            const dropoffWaypoints = load.route.wayPoints.filter((wp: any) => wp.dropOff);
+            if (dropoffWaypoints.length > 0) {
+              const lastDropoff = dropoffWaypoints[dropoffWaypoints.length - 1];
+              const address = typeof lastDropoff.address === 'string' 
+                ? lastDropoff.address 
+                : lastDropoff.address?.place || '';
+              const parts = address.split(',').map((p: string) => p.trim());
+              receiverCity = parts[0] || '';
+              receiverState = parts[1] || '';
+            }
+          } else if (load.route?.selectDropOff?.place) {
+            const parts = load.route.selectDropOff.place.split(',').map((p: string) => p.trim());
+            receiverCity = parts[0] || '';
+            receiverState = parts[1] || '';
+          }
+
+          return {
+            _id: load._id,
+            loadNumber: load.loadNumber || load.details?.internalId || load._id,
+            orderNumber: load.orderNumber || load.details?.internalId || load._id,
+            customer: load.customerName || load.details?.customer?.name || 'N/A',
+            customerName: load.customerName || load.details?.customer?.name || 'N/A',
+            amount: load.amount || load.details?.amount || load.rate || load.details?.rate || 0,
+            rate: load.rate || load.details?.rate || load.amount || load.details?.amount || 0,
+            status: load.status || 'planned',
+            assignedDriver: load.details?.driver?.name || load.driverName || null,
+            assignedTruck: load.details?.vehicle?.plateNumber || load.vehiclePlate || null,
+            route: load.route || {},
+            receiver: load.details?.receiver || load.receiver || null,
+            customerEmail: load.details?.customer?.email || load.customerEmail || null,
+            shipperCity,
+            shipperState,
+            receiverCity,
+            receiverState,
+            plannedDate: load.assignedAt ? new Date(load.assignedAt).toISOString().split('T')[0] : undefined,
+          };
+        });
+        setLoads(formattedLoads);
+      } else {
+        setLoads([]);
       }
-    ];
-    setLoads(mockLoads);
-    setLoading(false);
+    } catch (error) {
+      console.error('Error fetching loads:', error);
+      setLoads([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAssign = (loadId: string, driverId: string, truckId: string, trailerId?: string, planDate?: string) => {
-    const drivers = [
-      { id: '1', name: 'John Doe' },
-      { id: '2', name: 'Jane Smith' },
-      { id: '3', name: 'Mike Johnson' },
-      { id: '4', name: 'Sarah Williams' }
-    ];
-
-    const trucks = [
-      { id: '1', name: 'TRK-001' },
-      { id: '2', name: 'TRK-002' },
-      { id: '3', name: 'TRK-003' },
-      { id: '4', name: 'TRK-004' }
-    ];
-
-    const trailers = [
-      { id: '1', name: 'TRL-001' },
-      { id: '2', name: 'TRL-002' },
-      { id: '3', name: 'TRL-003' }
-    ];
-
-    const updatedLoads: Load[] = loads.map(l => 
-      l._id === loadId 
-        ? { 
-            ...l, 
-            status: 'assigned' as Load['status'],
-            assignedDriver: drivers.find(d => d.id === driverId)?.name || '',
-            assignedTruck: trucks.find(t => t.id === truckId)?.name || '',
-            assignedTrailer: trailerId ? trailers.find(tr => tr.id === trailerId)?.name : undefined,
-            plannedDate: planDate
-          } 
-        : l
-    );
-    setLoads(updatedLoads);
-    setShowAssignModal(false);
-    setSelectedLoad(null);
+  const handleAssign = async (loadId: string, driverId: string, truckId: string, trailerId?: string, planDate?: string) => {
+    try {
+      const response = await assignDriverTruck(loadId, driverId, truckId, trailerId, planDate);
+      if (response && response.success) {
+        // Refresh the loads list after successful assignment
+        await fetchLoads();
+        setShowAssignModal(false);
+        setSelectedLoad(null);
+      } else {
+        alert(response?.message || 'Failed to assign driver and truck');
+      }
+    } catch (error: any) {
+      console.error('Error assigning driver and truck:', error);
+      alert(error?.message || 'Failed to assign driver and truck');
+    }
   };
 
   const handleLoadClick = (load: Load) => {
@@ -161,8 +153,10 @@ const AllDispatch = () => {
   const getStatusBadge = (status: Load['status']) => {
     const statusConfig = {
       planned: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Planned' },
-      assigned: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Assigned' },
+      dispatched: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Dispatched' },
       'in-delivery': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'In Delivery' },
+      delivered: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Delivered' },
+      completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Completed' },
     };
 
     const config = statusConfig[status] || statusConfig.planned;
@@ -209,7 +203,10 @@ const AllDispatch = () => {
           >
             <option value="all">All Status</option>
             <option value="planned">Planned</option>
-            <option value="assigned">Assigned</option>
+            <option value="dispatched">Dispatched</option>
+            <option value="in-delivery">In Delivery</option>
+            <option value="delivered">Delivered</option>
+            <option value="completed">Completed</option>
           </select>
         </div>
       </div>
@@ -291,7 +288,7 @@ const AllDispatch = () => {
                     </td>
                     <td className="px-6 py-4">
                       <StepTracker 
-                        currentStep={load.status === 'planned' ? 'planned' : 'assigned'} 
+                        currentStep={load.status === 'planned' ? 'planned' : load.status === 'dispatched' ? 'dispatched' : load.status || 'planned'} 
                       />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -313,9 +310,32 @@ const AllDispatch = () => {
                         <span className="text-gray-400 italic text-sm">Not assigned</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4">
                       <div className="text-sm text-gray-700">
-                        {load.route?.selectPickup?.place || 'N/A'} → {load.route?.selectDropOff?.place || 'N/A'}
+                        {load.route?.multipleDropOffs ? (
+                          <div className="text-xs space-y-0.5">
+                            {load.route.wayPoints && load.route.wayPoints.length > 0 ? (
+                              load.route.wayPoints.map((wp: any, idx: number) => {
+                                const address = typeof wp.address === 'string' 
+                                  ? wp.address 
+                                  : wp.address?.place || 'N/A';
+                                const addressParts = address.split(',');
+                                const cityName = addressParts[0]?.trim() || address;
+                                return (
+                                  <div key={idx} className="text-gray-600 flex items-center gap-1">
+                                    {wp.pickup ? '📦' : wp.dropOff ? '📬' : '📍'} {cityName}
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <span className="text-gray-400 italic text-xs">No waypoints</span>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            {load.route?.selectPickup?.place || 'N/A'} → {load.route?.selectDropOff?.place || 'N/A'}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

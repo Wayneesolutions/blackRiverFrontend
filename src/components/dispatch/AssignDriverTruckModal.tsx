@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaUser, FaTruck, FaTrailer, FaCalendarAlt, FaTimes, FaCheck } from 'react-icons/fa';
 import StepTracker from './StepTracker';
+import { listDriver, listVehicle, listTrailers } from '../../axios/api/distapcher';
 
 interface Load {
   _id: string;
@@ -10,10 +11,38 @@ interface Load {
   customerName?: string;
   amount?: number;
   rate?: number;
-  status: 'available' | 'planned' | 'assigned' | 'in-delivery' | 'delivered' | 'paid';
+  status: 'planned' | 'dispatched' | 'in-delivery' | 'delivered' | 'completed';
   route?: {
-    selectPickup?: { place?: string };
-    selectDropOff?: { place?: string };
+    multipleDropOffs?: boolean;
+    selectPickup?: { place?: string; latitude?: string; longitude?: string };
+    selectDropOff?: { place?: string; latitude?: string; longitude?: string };
+    selectReturn?: string | null;
+    wayPoints?: Array<{
+      address?: { place?: string; latitude?: string; longitude?: string } | string;
+      customer?: string;
+      dropOff?: boolean;
+      pickup?: boolean;
+    }>;
+  };
+  details?: {
+    amount?: number;
+    rate?: number;
+    receiver?: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      contactPerson?: string;
+      notes?: string;
+    };
+  };
+  receiver?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    contactPerson?: string;
+    notes?: string;
   };
 }
 
@@ -28,27 +57,95 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({ load, o
   const [selectedTruck, setSelectedTruck] = useState("");
   const [selectedTrailer, setSelectedTrailer] = useState("");
   const [planDate, setPlanDate] = useState(new Date().toISOString().split('T')[0]);
+  const [drivers, setDrivers] = useState<any[]>([]);
+  const [trucks, setTrucks] = useState<any[]>([]);
+  const [trailers, setTrailers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - in production, fetch from API
-  const drivers = [
-    { id: '1', name: 'John Doe' },
-    { id: '2', name: 'Jane Smith' },
-    { id: '3', name: 'Mike Johnson' },
-    { id: '4', name: 'Sarah Williams' }
-  ];
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const trucks = [
-    { id: '1', name: 'TRK-001', type: 'Dry Van' },
-    { id: '2', name: 'TRK-002', type: 'Reefer' },
-    { id: '3', name: 'TRK-003', type: 'Flatbed' },
-    { id: '4', name: 'TRK-004', type: 'Dry Van' }
-  ];
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [driversRes, vehiclesRes, trailersRes] = await Promise.all([
+        listDriver(),
+        listVehicle(),
+        listTrailers()
+      ]);
 
-  const trailers = [
-    { id: '1', name: 'TRL-001' },
-    { id: '2', name: 'TRL-002' },
-    { id: '3', name: 'TRL-003' }
-  ];
+      console.log('🔍 Drivers response:', driversRes);
+      console.log('🔍 Vehicles response:', vehiclesRes);
+      console.log('🔍 Trailers response:', trailersRes);
+
+      // Handle drivers - check for both response structures
+      if (driversRes) {
+        const driverData = driversRes.data || (driversRes.success ? driversRes.data : driversRes) || [];
+        if (Array.isArray(driverData)) {
+          setDrivers(driverData.map((d: any) => ({ 
+            id: d._id, 
+            name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || d._id 
+          })));
+        }
+      }
+
+      // Handle vehicles - check for both response structures
+      if (vehiclesRes) {
+        let vehicleData: any[] = [];
+        
+        // Check if vehicles are nested in data.vehicles (like the API response shows)
+        if (vehiclesRes.data?.vehicles && Array.isArray(vehiclesRes.data.vehicles)) {
+          vehicleData = vehiclesRes.data.vehicles;
+        } 
+        // Check if data is directly an array
+        else if (Array.isArray(vehiclesRes.data)) {
+          vehicleData = vehiclesRes.data;
+        }
+        // Fallback: check if vehiclesRes itself is an array
+        else if (Array.isArray(vehiclesRes)) {
+          vehicleData = vehiclesRes;
+        }
+        // Check success wrapper
+        else if (vehiclesRes.success && vehiclesRes.data) {
+          if (Array.isArray(vehiclesRes.data.vehicles)) {
+            vehicleData = vehiclesRes.data.vehicles;
+          } else if (Array.isArray(vehiclesRes.data)) {
+            vehicleData = vehiclesRes.data;
+          }
+        }
+        
+        console.log('🔍 Vehicle data extracted:', vehicleData);
+        
+        if (Array.isArray(vehicleData) && vehicleData.length > 0) {
+          setTrucks(vehicleData.map((v: any) => ({ 
+            id: v._id, 
+            name: v.plateNumber || v.internalId || `${v.make || ''} ${v.model || ''}`.trim() || v._id,
+            type: v.type || v.vehicleType || 'Truck',
+            displayName: `${v.plateNumber || v.internalId || 'Unknown'} - ${v.make || ''} ${v.model || ''}`.trim() || v._id
+          })));
+        } else {
+          console.warn('⚠️ No vehicles found in response:', vehiclesRes);
+          setTrucks([]);
+        }
+      }
+
+      // Handle trailers - check for both response structures
+      if (trailersRes) {
+        const trailerData = trailersRes.data || (trailersRes.success ? trailersRes.data : trailersRes) || [];
+        if (Array.isArray(trailerData)) {
+          setTrailers(trailerData.map((t: any) => ({ 
+            id: t._id, 
+            name: t.plateNumber || t.trailerNumber || t.trailer || t._id 
+          })));
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAssign = () => {
     if (!selectedDriver || !selectedTruck) {
@@ -94,7 +191,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({ load, o
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               Workflow Progress
             </label>
-            <StepTracker currentStep={load.status === 'planned' ? 'planned' : 'assigned'} />
+            <StepTracker currentStep={load.status === 'planned' ? 'planned' : load.status || 'planned'} />
           </div>
 
           {/* Load Details Summary */}
@@ -106,90 +203,204 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({ load, o
                 <span className="ml-2 font-medium">{load.customer || load.customerName || 'N/A'}</span>
               </div>
               <div>
-                <span className="text-gray-600">Amount:</span>
+                <span className="text-gray-600">Load Amount:</span>
                 <span className="ml-2 font-bold text-green-600">
-                  {formatCurrency(load.amount || load.rate || 0)}
+                  {formatCurrency(load.amount || load.rate || load.details?.amount || 0)}
                 </span>
               </div>
+              {load.details?.rate && load.details.rate > 0 && (
+                <div>
+                  <span className="text-gray-600">Rate:</span>
+                  <span className="ml-2 font-medium text-blue-600">
+                    {formatCurrency(load.details.rate)}
+                  </span>
+                </div>
+              )}
               <div className="col-span-2">
                 <span className="text-gray-600">Route:</span>
-                <span className="ml-2">
-                  {load.route?.selectPickup?.place || 'N/A'} → {load.route?.selectDropOff?.place || 'N/A'}
-                </span>
+                <div className="mt-2">
+                  {load.route?.multipleDropOffs ? (
+                    // Multiple Dropoffs - Show Waypoints
+                    <div className="space-y-2">
+                      {load.route.wayPoints && load.route.wayPoints.length > 0 ? (
+                        load.route.wayPoints.map((waypoint: any, index: number) => (
+                          <div key={index} className="text-xs bg-gray-100 p-2 rounded">
+                            <span className="font-medium">
+                              {waypoint.pickup ? '📦 Pickup' : waypoint.dropOff ? '📬 Dropoff' : '📍 Waypoint'} {index + 1}:
+                            </span>
+                            <span className="ml-2">
+                              {typeof waypoint.address === 'string' 
+                                ? waypoint.address 
+                                : waypoint.address?.place || 'N/A'}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-xs text-gray-500">Multiple waypoints configured</span>
+                      )}
+                      {load.route.selectReturn && (
+                        <div className="text-xs bg-yellow-100 p-2 rounded mt-1">
+                          <span className="font-medium">🔄 Return:</span>
+                          <span className="ml-2">{load.route.selectReturn}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    // Single Dropoff - Show Direct Route
+                    <div className="text-sm space-y-1">
+                      {load.route?.selectPickup && (
+                        <div>
+                          <span className="font-medium text-blue-600">📦 Pickup:</span>
+                          <span className="ml-2">{load.route.selectPickup.place || 'N/A'}</span>
+                        </div>
+                      )}
+                      {load.route?.selectDropOff && (
+                        <div>
+                          <span className="font-medium text-green-600">📬 Dropoff:</span>
+                          <span className="ml-2">{load.route.selectDropOff.place || 'N/A'}</span>
+                        </div>
+                      )}
+                      {load.route?.selectReturn && (
+                        <div>
+                          <span className="font-medium text-yellow-600">🔄 Return:</span>
+                          <span className="ml-2">{load.route.selectReturn}</span>
+                        </div>
+                      )}
+                      {!load.route?.selectPickup && !load.route?.selectDropOff && (
+                        <span className="text-gray-500">No route information</span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
+              {/* Receiver Details */}
+              {(load.details?.receiver || load.receiver) && (
+                <div className="col-span-2 mt-3 pt-3 border-t border-gray-200">
+                  <h5 className="font-semibold text-gray-700 mb-2">Receiver Information</h5>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {(load.details?.receiver?.name || load.receiver?.name) && (
+                      <div>
+                        <span className="text-gray-600">Name:</span>
+                        <span className="ml-2 font-medium">{load.details?.receiver?.name || load.receiver?.name}</span>
+                      </div>
+                    )}
+                    {(load.details?.receiver?.contactPerson || load.receiver?.contactPerson) && (
+                      <div>
+                        <span className="text-gray-600">Contact Person:</span>
+                        <span className="ml-2 font-medium">{load.details?.receiver?.contactPerson || load.receiver?.contactPerson}</span>
+                      </div>
+                    )}
+                    {(load.details?.receiver?.phone || load.receiver?.phone) && (
+                      <div>
+                        <span className="text-gray-600">Phone:</span>
+                        <span className="ml-2 font-medium">{load.details?.receiver?.phone || load.receiver?.phone}</span>
+                      </div>
+                    )}
+                    {(load.details?.receiver?.email || load.receiver?.email) && (
+                      <div>
+                        <span className="text-gray-600">Email:</span>
+                        <span className="ml-2 font-medium">{load.details?.receiver?.email || load.receiver?.email}</span>
+                      </div>
+                    )}
+                    {(load.details?.receiver?.address || load.receiver?.address) && (
+                      <div className="col-span-2">
+                        <span className="text-gray-600">Address:</span>
+                        <span className="ml-2 font-medium">{load.details?.receiver?.address || load.receiver?.address}</span>
+                      </div>
+                    )}
+                    {(load.details?.receiver?.notes || load.receiver?.notes) && (
+                      <div className="col-span-2">
+                        <span className="text-gray-600">Notes:</span>
+                        <span className="ml-2 text-gray-700">{load.details?.receiver?.notes || load.receiver?.notes}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Assignment Form */}
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <FaUser className="inline mr-2 text-blue-600" />
-                Select Driver <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={selectedDriver}
-                onChange={(e) => setSelectedDriver(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                <option value="">Choose Driver</option>
-                {drivers.map(driver => (
-                  <option key={driver.id} value={driver.id}>{driver.name}</option>
-                ))}
-              </select>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
             </div>
+          ) : (
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <FaUser className="inline mr-2 text-blue-600" />
+                  Select Driver <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedDriver}
+                  onChange={(e) => setSelectedDriver(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                  disabled={drivers.length === 0}
+                >
+                  <option value="">{drivers.length === 0 ? 'No drivers available' : 'Choose Driver'}</option>
+                  {drivers.map(driver => (
+                    <option key={driver.id} value={driver.id}>{driver.name}</option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <FaTruck className="inline mr-2 text-purple-600" />
-                Select Truck <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={selectedTruck}
-                onChange={(e) => setSelectedTruck(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                <option value="">Choose Truck</option>
-                {trucks.map(truck => (
-                  <option key={truck.id} value={truck.id}>
-                    {truck.name} - {truck.type}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <FaTruck className="inline mr-2 text-purple-600" />
+                  Select Truck <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedTruck}
+                  onChange={(e) => setSelectedTruck(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                  disabled={trucks.length === 0 || loading}
+                >
+                  <option value="">
+                    {loading ? 'Loading trucks...' : trucks.length === 0 ? 'No trucks available' : 'Choose Truck'}
                   </option>
-                ))}
-              </select>
-            </div>
+                  {trucks.map(truck => (
+                    <option key={truck.id} value={truck.id}>
+                      {truck.displayName || truck.name} {truck.type ? `(${truck.type})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <FaTrailer className="inline mr-2 text-green-600" />
-                Select Trailer (Optional)
-              </label>
-              <select
-                value={selectedTrailer}
-                onChange={(e) => setSelectedTrailer(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">No Trailer</option>
-                {trailers.map(trailer => (
-                  <option key={trailer.id} value={trailer.id}>{trailer.name}</option>
-                ))}
-              </select>
-            </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <FaTrailer className="inline mr-2 text-green-600" />
+                  Select Trailer (Optional)
+                </label>
+                <select
+                  value={selectedTrailer}
+                  onChange={(e) => setSelectedTrailer(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={trailers.length === 0}
+                >
+                  <option value="">{trailers.length === 0 ? 'No trailers available' : 'No Trailer'}</option>
+                  {trailers.map(trailer => (
+                    <option key={trailer.id} value={trailer.id}>{trailer.name}</option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <FaCalendarAlt className="inline mr-2 text-orange-600" />
-                Plan Date
-              </label>
-              <input
-                type="date"
-                value={planDate}
-                onChange={(e) => setPlanDate(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <FaCalendarAlt className="inline mr-2 text-orange-600" />
+                  Plan Date
+                </label>
+                <input
+                  type="date"
+                  value={planDate}
+                  onChange={(e) => setPlanDate(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Selected Assignment Preview */}
           {(selectedDriver || selectedTruck) && (
@@ -229,10 +440,10 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({ load, o
           </button>
           <button
             onClick={handleAssign}
-            disabled={!selectedDriver || !selectedTruck}
+            disabled={!selectedDriver || !selectedTruck || loading}
             className="px-6 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            <FaCheck /> Confirm Assignment
+            <FaCheck /> {loading ? 'Loading...' : 'Confirm Assignment'}
           </button>
         </div>
       </div>

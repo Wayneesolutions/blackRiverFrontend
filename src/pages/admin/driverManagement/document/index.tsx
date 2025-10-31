@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Search, Upload, Eye, Download, Trash2, CheckCircle, XCircle, AlertTriangle, Plus, Edit } from 'lucide-react';
+import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import {
   getAllEmployeeDocuments,
   getEmployeeDocumentStats,
@@ -12,17 +13,74 @@ import {
   type DocumentStats
 } from '../../../../axios/api/employeeDocument';
 
+type NotificationType = 'success' | 'error' | 'info';
+
+interface Notification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+// Notification Component
+const Notification = ({ notification, onClose }: { notification: Notification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-900">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
+
 const EmployeeDocumentsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [selectedRole, setSelectedRole] = useState<string>('');
   const [employeeDocuments, setEmployeeDocuments] = useState<EmployeeWithDocuments[]>([]);
   const [documentStats, setDocumentStats] = useState<DocumentStats | null>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [editingDocument, setEditingDocument] = useState<EmployeeDocument | null>(null);
+  const [viewingDocument, setViewingDocument] = useState<EmployeeDocument | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Available roles
+  const roles = [
+    'employee', 'dispatcher', 'hr', 'contact', 'customer', 'reporter',
+    'fleetmanager', 'safetyofficer', 'operationsstaff', 'maintenancecrew', 'administrative', 'driver'
+  ];
 
   // Document types configuration
   const documentTypes = [
@@ -33,6 +91,8 @@ const EmployeeDocumentsPage = () => {
     { name: 'Background Check', required: true },
     { name: 'Tax Document', required: true },
     { name: 'Payroll Document', required: true },
+    { name: 'Driving Licence', required: false },
+    { name: 'Travel Document', required: false },
     { name: 'Medical Certificate', required: false },
     { name: 'Training Certificate', required: false },
     { name: 'Performance Review', required: false },
@@ -43,10 +103,10 @@ const EmployeeDocumentsPage = () => {
     { name: 'Other', required: false }
   ];
 
-  // Fetch data on component mount
+  // Fetch data on component mount and when filters change
   useEffect(() => {
     fetchData();
-  }, [currentPage, selectedEmployee]);
+  }, [currentPage, selectedEmployee, selectedRole]);
 
 
   const fetchData = async () => {
@@ -59,6 +119,7 @@ const EmployeeDocumentsPage = () => {
           selectedEmployee?._id,
           undefined,
           undefined,
+          selectedRole || undefined,
           'createdAt',
           'desc'
         ),
@@ -86,6 +147,7 @@ const EmployeeDocumentsPage = () => {
         selectedEmployee?._id,
         undefined,
         undefined,
+        selectedRole || undefined,
         'createdAt',
         'desc'
       );
@@ -98,14 +160,47 @@ const EmployeeDocumentsPage = () => {
     }
   };
 
-  const handleDeleteDocument = async (documentId: string) => {
-    if (window.confirm('Are you sure you want to delete this document?')) {
-      try {
-        await deleteEmployeeDocument(documentId);
-        fetchData(); // Refresh data
-      } catch (error) {
-        console.error('Error deleting document:', error);
+  const addNotification = (type: NotificationType, message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const handleViewDocument = (doc: EmployeeDocument) => {
+    setViewingDocument(doc);
+    setShowViewModal(true);
+  };
+
+  const handleEditDocument = (doc: EmployeeDocument) => {
+    setEditingDocument(doc);
+    setShowUploadModal(true);
+  };
+
+  const handleDeleteClick = (documentId: string) => {
+    setDocumentToDelete(documentId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteDocument = async () => {
+    if (!documentToDelete) return;
+    
+    try {
+      const response = await deleteEmployeeDocument(documentToDelete);
+      if (response && response.success) {
+        addNotification('success', response.message || 'Document deleted successfully');
+        fetchData();
+      } else {
+        addNotification('error', response?.message || 'Failed to delete document');
       }
+    } catch (error: any) {
+      console.error('Error deleting document:', error);
+      addNotification('error', error?.message || 'Failed to delete document');
+    } finally {
+      setShowDeleteModal(false);
+      setDocumentToDelete(null);
     }
   };
 
@@ -147,8 +242,27 @@ const EmployeeDocumentsPage = () => {
     }
   };
 
+  // Find employee name for viewing document
+  const getEmployeeName = (employeeId: string | { _id: string; name: string }) => {
+    if (typeof employeeId === 'string') {
+      const emp = employees.find(e => e._id === employeeId);
+      return emp ? emp.name : 'Unknown Employee';
+    }
+    return employeeId.name || 'Unknown Employee';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      {/* Notifications Container */}
+      <div className="fixed top-4 right-4 z-[1000] flex flex-col gap-2 max-w-md">
+        {notifications.map(notification => (
+          <Notification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
       
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
@@ -188,6 +302,18 @@ const EmployeeDocumentsPage = () => {
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Roles</option>
+            {roles.map((role) => (
+              <option key={role} value={role}>
+                {role.charAt(0).toUpperCase() + role.slice(1).replace(/([A-Z])/g, ' $1').trim()}
+              </option>
+            ))}
+          </select>
           <select
             value={selectedEmployee?._id || ''}
             onChange={(e) => {
@@ -375,37 +501,30 @@ const EmployeeDocumentsPage = () => {
                             <td className="px-6 py-4">
                               <div className="flex items-center space-x-2">
                                 {doc.fileUrl && (
-                                  <>
-                                    <button 
-                                      onClick={() => window.open(doc.fileUrl, '_blank')}
-                                      className="p-1.5 hover:bg-blue-50 rounded text-blue-600" 
-                                      title="View"
-                                    >
-                                      <Eye className="w-4 h-4" />
-                                    </button>
-                                    <button 
-                                      onClick={() => {
-                                        const link = document.createElement('a');
-                                        link.href = doc.fileUrl!;
-                                        link.download = doc.fileName || 'document';
-                                        link.click();
-                                      }}
-                                      className="p-1.5 hover:bg-green-50 rounded text-green-600" 
-                                      title="Download"
-                                    >
-                                      <Download className="w-4 h-4" />
-                                    </button>
-                                  </>
+                                  <button 
+                                    onClick={() => window.open(doc.fileUrl, '_blank')}
+                                    className="p-1.5 hover:bg-green-50 rounded text-green-600" 
+                                    title="Download"
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </button>
                                 )}
                                 <button 
-                                  onClick={() => setEditingDocument(doc)}
+                                  onClick={() => handleViewDocument(doc)}
+                                  className="p-1.5 hover:bg-blue-50 rounded text-blue-600" 
+                                  title="View Details"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => handleEditDocument(doc)}
                                   className="p-1.5 hover:bg-yellow-50 rounded text-yellow-600" 
                                   title="Edit"
                                 >
                                   <Edit className="w-4 h-4" />
                                 </button>
                                 <button 
-                                  onClick={() => handleDeleteDocument(doc._id)}
+                                  onClick={() => handleDeleteClick(doc._id)}
                                   className="p-1.5 hover:bg-red-50 rounded text-red-600" 
                                   title="Delete"
                                 >
@@ -457,7 +576,7 @@ const EmployeeDocumentsPage = () => {
         </div>
       )}
 
-      {/* Upload Document Modal */}
+      {/* Upload/Edit Document Modal */}
       {showUploadModal && (
         <UploadDocumentModal
           employee={selectedEmployee}
@@ -465,18 +584,304 @@ const EmployeeDocumentsPage = () => {
           onClose={() => {
             setShowUploadModal(false);
             setEditingDocument(null);
-            setSelectedEmployee(null); // Clear selected employee when modal is closed
+            setSelectedEmployee(null);
           }}
           onSuccess={() => {
             setShowUploadModal(false);
             setEditingDocument(null);
-            setSelectedEmployee(null); // Clear selected employee to show all users
+            setSelectedEmployee(null);
+            addNotification('success', editingDocument ? 'Document updated successfully' : 'Document uploaded successfully');
             fetchData();
           }}
           editingDocument={editingDocument}
+          onError={(message: string) => {
+            addNotification('error', message);
+          }}
         />
       )}
 
+      {/* View Document Modal */}
+      {showViewModal && viewingDocument && (
+        <ViewDocumentModal
+          document={viewingDocument}
+          employeeName={getEmployeeName(viewingDocument.employee)}
+          onClose={() => {
+            setShowViewModal(false);
+            setViewingDocument(null);
+          }}
+          onEdit={(doc) => {
+            setViewingDocument(null);
+            setShowViewModal(false);
+            handleEditDocument(doc);
+          }}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          onConfirm={handleDeleteDocument}
+          onCancel={() => {
+            setShowDeleteModal(false);
+            setDocumentToDelete(null);
+          }}
+        />
+      )}
+
+    </div>
+  );
+};
+
+// View Document Modal Component
+const ViewDocumentModal = ({
+  document,
+  employeeName,
+  onClose,
+  onEdit
+}: {
+  document: EmployeeDocument;
+  employeeName: string;
+  onClose: () => void;
+  onEdit: (doc: EmployeeDocument) => void;
+}) => {
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'valid':
+        return 'bg-green-100 text-green-700';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'expired':
+        return 'bg-red-100 text-red-700';
+      case 'rejected':
+        return 'bg-red-100 text-red-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
+      <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">Document Details</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <XCircle className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Document Type and Status */}
+          <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <FileText className="w-10 h-10 text-blue-500" />
+              <div>
+                <p className="text-lg font-semibold text-gray-900">{document.documentType}</p>
+                <p className="text-sm text-gray-500">Employee: {employeeName}</p>
+              </div>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(document.status)}`}>
+              {document.status.charAt(0).toUpperCase() + document.status.slice(1)}
+            </span>
+          </div>
+
+          {/* Document Information Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {document.documentNumber && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-medium text-gray-600 mb-1">Document Number</p>
+                <p className="text-lg font-semibold text-gray-900">{document.documentNumber}</p>
+              </div>
+            )}
+            
+            {document.issueDate && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-medium text-gray-600 mb-1">Issue Date</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {new Date(document.issueDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
+            )}
+
+            {document.expiryDate && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-medium text-gray-600 mb-1">Expiry Date</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {new Date(document.expiryDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
+            )}
+
+            {document.fileSize && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-medium text-gray-600 mb-1">File Size</p>
+                <p className="text-lg font-semibold text-gray-900">{formatFileSize(document.fileSize)}</p>
+              </div>
+            )}
+
+            {document.mimeType && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-medium text-gray-600 mb-1">File Type</p>
+                <p className="text-lg font-semibold text-gray-900">{document.mimeType}</p>
+              </div>
+            )}
+
+            {document.createdAt && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-medium text-gray-600 mb-1">Upload Date</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {new Date(document.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          {document.description && (
+            <div>
+              <p className="text-sm font-medium text-gray-600 mb-2">Description</p>
+              <p className="text-gray-900 bg-gray-50 p-4 rounded-lg">{document.description}</p>
+            </div>
+          )}
+
+          {/* File Preview/Link */}
+          {document.fileUrl && (
+            <div>
+              <p className="text-sm font-medium text-gray-600 mb-3">Document File</p>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600 mb-1">File: {document.fileName || 'Document'}</p>
+                    <a
+                      href={document.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline text-sm"
+                    >
+                      Open Document
+                    </a>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const link = window.document.createElement('a');
+                      link.href = document.fileUrl!;
+                      link.download = document.fileName || 'document';
+                      link.click();
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download
+                  </button>
+                </div>
+                {document.fileUrl.match(/\.(jpg|jpeg|png|gif|webp|pdf)$/i) && (
+                  <div className="mt-4">
+                    {document.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                      <img
+                        src={document.fileUrl}
+                        alt="Document Preview"
+                        className="max-w-full h-auto rounded-lg border border-gray-200"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <iframe
+                        src={document.fileUrl}
+                        className="w-full h-96 rounded-lg border border-gray-200"
+                        title="Document Preview"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Modal Footer */}
+        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
+          <button
+            onClick={() => onEdit(document)}
+            className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 flex items-center gap-2 transition-colors"
+          >
+            <Edit className="w-4 h-4" />
+            Edit Document
+          </button>
+          <button
+            onClick={onClose}
+            className="text-gray-600 hover:text-gray-900 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Delete Confirmation Modal
+const DeleteConfirmationModal = ({
+  onConfirm,
+  onCancel
+}: {
+  onConfirm: () => void;
+  onCancel: () => void;
+}) => {
+  return (
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+              <Trash2 className="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Delete Document</h3>
+              <p className="text-sm text-gray-500">This action cannot be undone</p>
+            </div>
+          </div>
+          <p className="text-gray-700 mb-6">
+            Are you sure you want to delete this document? This will permanently remove the document and all associated data.
+          </p>
+          <div className="flex items-center justify-end gap-3">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -487,13 +892,15 @@ const UploadDocumentModal = ({
   employees, 
   onClose, 
   onSuccess, 
-  editingDocument 
+  editingDocument,
+  onError
 }: {
   employee: any;
   employees: any[];
   onClose: () => void;
   onSuccess: () => void;
   editingDocument: EmployeeDocument | null;
+  onError?: (message: string) => void;
 }) => {
   const [formData, setFormData] = useState({
     employee: employee?._id || '',
@@ -522,6 +929,8 @@ const UploadDocumentModal = ({
     'Tax Document',
     'Emergency Contact',
     'Medical Certificate',
+    'Driving Licence',
+    'Travel Document',
     'Other'
   ];
 
@@ -544,12 +953,20 @@ const UploadDocumentModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.employee || !formData.documentType) {
-      alert('Please select an employee and document type');
+      if (onError) {
+        onError('Please select an employee and document type');
+      } else {
+        alert('Please select an employee and document type');
+      }
       return;
     }
 
     if (!editingDocument && !selectedFile) {
-      alert('Please select a file to upload');
+      if (onError) {
+        onError('Please select a file to upload');
+      } else {
+        alert('Please select a file to upload');
+      }
       return;
     }
 
@@ -572,17 +989,29 @@ const UploadDocumentModal = ({
         console.log(key, value);
       }
 
-      if (editingDocument) {
-        await updateEmployeeDocument(editingDocument._id, submitData);
-      } else {
-        await createEmployeeDocument(submitData);
-      }
+      const response = editingDocument 
+        ? await updateEmployeeDocument(editingDocument._id, submitData)
+        : await createEmployeeDocument(submitData);
 
-      onSuccess();
+      if (response && response.success) {
+        onSuccess();
+      } else {
+        const errorMessage = response?.message || 'Failed to save document';
+        if (onError) {
+          onError(errorMessage);
+        } else {
+          alert(`Error saving document: ${errorMessage}`);
+        }
+      }
     } catch (error: any) {
       console.error('Error saving document:', error);
       console.error('Error response:', error.response?.data);
-      alert(`Error saving document: ${error.response?.data?.message || error.message}`);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document';
+      if (onError) {
+        onError(errorMessage);
+      } else {
+        alert(`Error saving document: ${errorMessage}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -749,3 +1178,25 @@ const UploadDocumentModal = ({
 };
 
 export default EmployeeDocumentsPage;
+
+// Add CSS for notification animation
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slide-in {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+  }
+`;
+if (!document.getElementById('employee-documents-notification-styles')) {
+  style.id = 'employee-documents-notification-styles';
+  document.head.appendChild(style);
+}

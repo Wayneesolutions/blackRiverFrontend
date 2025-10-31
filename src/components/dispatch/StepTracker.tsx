@@ -2,23 +2,32 @@ import React from 'react';
 import { FaCheck } from 'react-icons/fa';
 
 interface StepTrackerProps {
-  currentStep: 'planned' | 'assigned' | 'delivered' | 'paid';
+  currentStep: 'planned' | 'dispatched' | 'assigned' | 'in-delivery' | 'delivered' | 'completed' | 'paid';
   className?: string;
 }
 
 const StepTracker: React.FC<StepTrackerProps> = ({ currentStep, className = '' }) => {
   const steps = [
-    { key: 'planned', label: 'Plan' },
-    { key: 'assigned', label: 'Assign Driver & Truck' },
-    { key: 'delivered', label: 'Deliver' },
-    { key: 'paid', label: 'Paid' }
+    { key: 'planned', label: 'Planned' },
+    { key: 'dispatched', label: 'Dispatched' },
+    { key: 'in-delivery', label: 'In Delivery' },
+    { key: 'delivered', label: 'Delivered' },
+    { key: 'completed', label: 'Completed' }
   ];
+  
+  // Map old status names to new ones for backward compatibility
+  const statusMap: any = {
+    'assigned': 'dispatched',
+    'paid': 'completed'
+  };
+  
+  const normalizedStep = statusMap[currentStep] || currentStep;
 
   const getStepIndex = (step: string) => {
     return steps.findIndex(s => s.key === step);
   };
 
-  const currentIndex = getStepIndex(currentStep);
+  const currentIndex = getStepIndex(normalizedStep);
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
