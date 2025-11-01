@@ -2,13 +2,16 @@ import { useState, useRef, useEffect } from 'react'
 import { FaBell, FaCommentDots, FaUserCircle, FaExpand, FaSignOutAlt, FaUser, FaCog } from "react-icons/fa";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
+import QuickAction from "../common/QuickAction";
 
 function Header() {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { logout } = useLogout();
   const { userInfo } = useSelector((state: RootState) => state.userAuth);
+  const navigate = useNavigate();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -29,18 +32,22 @@ function Header() {
     setIsUserDropdownOpen(false);
   };
 
+  const handleProfileClick = () => {
+    navigate('/admin/profile');
+    setIsUserDropdownOpen(false);
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/admin/company');
+    setIsUserDropdownOpen(false);
+  };
+
   return (
     <header className="flex items-center justify-between px-4 py-4">
       {/* Left section: Search + Button */}
       <div className="flex items-center flex-1 gap-14 max-w-3xl">
         {/* Quick Action Search */}
-        <div className="flex-1 bg-white shadow-[0px_4px_4px_0px_#00000040] rounded-md">
-          <input
-            type="text"
-            placeholder="Quick Action"
-            className="w-full rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300"
-          />
-        </div>
+        <QuickAction />
 
         {/* Dispatch & Load Management Button */}
         <button className="px-4 py-2 rounded-md text-sm bg-gradient-to-r from-gray-200 to-blue-200 shadow-md hover:opacity-90 transition">
@@ -71,13 +78,19 @@ function Header() {
                 </div>
                 
                 {/* Profile Option */}
-                <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                <button 
+                  onClick={handleProfileClick}
+                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                >
                   <FaUser className="mr-3 text-gray-400" />
                   Profile
                 </button>
                 
                 {/* Settings Option */}
-                <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                <button 
+                  onClick={handleSettingsClick}
+                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                >
                   <FaCog className="mr-3 text-gray-400" />
                   Settings
                 </button>
