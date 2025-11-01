@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import type { ReactElement } from "react";
 import { Truck, MapPin, Clock, CheckCircle, Play, Package, Calendar, TrendingUp, ChevronRight } from "lucide-react";
 import NewLoad from "../NewLoad";
-import { listLoad, listDriver, updateLoad } from "../../../../axios/api/distapcher"; 
+import { listLoad, listDriver, updateLoad, getDispatcherDashboard, getRouteAnalysis } from "../../../../axios/api/distapcher"; 
 import type { TabButtonProps,
   ProfessionalCircularProgressProps,StockChartProps ,
   ProfessionalUtilizationGaugeProps,
@@ -27,6 +27,8 @@ const Index = () => {
   
   // Loads data state
   const [loadsData, setLoadsData] = useState<Load[]>([]);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [routesData, setRoutesData] = useState<any[]>([]);
 
   // Fetch loads function - memoized to prevent unnecessary re-renders
   const fetchLoads = useCallback(async () => {
@@ -40,9 +42,35 @@ const Index = () => {
     }
   }, []);
 
-  // Fetch loads on component mount
+  // Fetch dashboard data
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      const res = await getDispatcherDashboard();
+      if (res.success) {
+        setDashboardData(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
+  }, []);
+
+  // Fetch routes data
+  const fetchRoutesData = useCallback(async () => {
+    try {
+      const res = await getRouteAnalysis();
+      if (res.success) {
+        setRoutesData(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching routes data:", error);
+    }
+  }, []);
+
+  // Fetch loads, dashboard, and routes on component mount
   useEffect(() => {
     fetchLoads();
+    fetchDashboardData();
+    fetchRoutesData();
   }, []);
 
   const today = new Date().toLocaleDateString("en-GB", {
@@ -74,21 +102,6 @@ const Index = () => {
     'reached': <CheckCircle className="w-4 h-4" />,
     'completed': <Package className="w-4 h-4" />
   };
-
-
-  
-
-  const routesData = [
-    {
-      route: "Trans-Pacific",
-      activeLoads: 1,
-      totalDistance: "12,450 km",
-      avgTime: "72 hrs",
-      efficiency: "92%",
-      status: "active"
-    },
-    
-  ];
 
   interface StatusBadgeProps {
     status: Status;
@@ -702,12 +715,15 @@ const Index = () => {
               </div>
               <div className="space-y-3">
                 <div className="text-2xl font-bold text-gray-800">
-                  <AnimatedCounter value="6" suffix="/24" />
+                  <AnimatedCounter 
+                    value={dashboardData?.truckUtilization?.active || 0} 
+                    suffix={`/${dashboardData?.truckUtilization?.total || 0}`} 
+                  />
                 </div>
                 <div className="text-xs text-gray-500">Truck Utilization</div>
                 <ProfessionalUtilizationGauge
-                  activeCount={6}
-                  totalCount={24}
+                  activeCount={dashboardData?.truckUtilization?.active || 0}
+                  totalCount={dashboardData?.truckUtilization?.total || 0}
                   type="Truck"
                   color="#3b82f6"
                 />
@@ -725,12 +741,15 @@ const Index = () => {
               </div>
               <div className="space-y-3">
                 <div className="text-2xl font-bold text-gray-800">
-                  <AnimatedCounter value="4" suffix="/30" />
+                  <AnimatedCounter 
+                    value={dashboardData?.trailerUtilization?.active || 0} 
+                    suffix={`/${dashboardData?.trailerUtilization?.total || 0}`} 
+                  />
                 </div>
                 <div className="text-xs text-gray-500">Trailer Utilization</div>
                 <ProfessionalUtilizationGauge
-                  activeCount={4}
-                  totalCount={30}
+                  activeCount={dashboardData?.trailerUtilization?.active || 0}
+                  totalCount={dashboardData?.trailerUtilization?.total || 0}
                   type="Trailer"
                   color="#10b981"
                 />
@@ -744,16 +763,16 @@ const Index = () => {
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-2xl font-bold text-gray-800">
-                  $<AnimatedCounter value="4.80" />
+                  $<AnimatedCounter value={dashboardData?.revenuePerMile?.toFixed(2) || "0.00"} />
                 </div>
                 <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
                   10% ↗
                 </div>
               </div>
-              <div className="text-xs text-gray-500 mb-3">Revenue Per Mile</div>
+              <div className="text-xs text-gray-500 mb-3">Revenue Per Load</div>
               <StockChart
-                data={[3.2, 3.8, 3.5, 4.1, 3.9, 4.3, 4.0, 4.6, 4.2, 4.8]}
+                data={dashboardData?.weeklyRevenueTrend || [0, 0, 0, 0, 0]}
                 height={50}
                 color="#16a34a"
                 label="rpm"
@@ -767,18 +786,16 @@ const Index = () => {
             <div className="relative z-10">
               <div className="text-right mb-4">
                 <div className="text-lg font-bold text-gray-800 mb-1">
-                  $<AnimatedCounter value="351457" /> INCOMING
+                  $<AnimatedCounter value={dashboardData?.totalRevenue || 0} /> INCOMING
                 </div>
                 <div className="text-xs text-gray-500 mb-3">30 Day Cashflow</div>
               </div>
               <CandlestickBarChart
-                data={[
-                  { label: 'W1', value: 280000, color: '#64748b' },
-                  { label: 'W2', value: 320000, color: '#14b8a6' },
-                  { label: 'W3', value: 290000, color: '#0d9488' },
-                  { label: 'W4', value: 350000, color: '#14b8a6' },
-                  { label: 'W5', value: 351457, color: '#0f766e' }
-                ]}
+                data={dashboardData?.weeklyRevenueTrend?.map((value: number, idx: number) => ({
+                  label: `W${idx + 1}`,
+                  value,
+                  color: idx < 2 ? '#64748b' : idx < 4 ? '#14b8a6' : '#0f766e'
+                })) || []}
                 height={80}
               />
             </div>
@@ -796,7 +813,7 @@ const Index = () => {
             </div>
             <div className="flex items-center justify-center">
               <ProfessionalCircularProgress
-                percentage={75}
+                percentage={dashboardData?.invoicesNotSent?.count > 0 ? 75 : 0}
                 size={160}
                 strokeWidth={12}
                 color="#16a34a"
@@ -804,9 +821,9 @@ const Index = () => {
               >
                 <div className="text-center">
                   <div className="text-3xl font-bold text-gray-800">
-                    $<AnimatedCounter value="21250" />
+                    $<AnimatedCounter value={dashboardData?.invoicesNotSent?.amount || 0} />
                   </div>
-                  <div className="text-xs text-gray-500">22 - 48 HRS</div>
+                  <div className="text-xs text-gray-500">{dashboardData?.invoicesNotSent?.count || 0} loads</div>
                   <div className="text-sm text-gray-600 font-medium mt-1">Invoices Not Sent</div>
                 </div>
               </ProfessionalCircularProgress>
@@ -838,16 +855,16 @@ const Index = () => {
                 {/* Left Side - Payment Info */}
                 <div className="flex-1">
                   <div className="text-4xl font-bold text-gray-800 mb-2">
-                    $<AnimatedCounter value="440528" />
+                    $<AnimatedCounter value={dashboardData?.outstandingPayments?.amount || 0} />
                   </div>
-                  <div className="text-sm text-gray-600">Total Outstanding</div>
+                  <div className="text-sm text-gray-600">{dashboardData?.outstandingPayments?.count || 0} loads outstanding</div>
                 </div>
 
                 {/* Right Side - Line Chart */}
                 <div className="flex-1 max-w-xs">
                   <div className="text-xs text-gray-500 mb-3">Payment Trend (Last 30 Days)</div>
                   <StockChart
-                    data={[520000, 485000, 465000, 445000, 460000, 440528]}
+                    data={dashboardData?.weeklyRevenueTrend || [0, 0, 0, 0, 0]}
                     height={45}
                     color="#dc2626"
                     label="payments"
@@ -1063,44 +1080,52 @@ const Index = () => {
           </tr>
         </thead>
         <tbody>
-          {routesData.map((route, idx) => (
-            <tr key={idx} className="hover:bg-blue-50 hover:bg-opacity-50 transition-colors duration-200 border-b border-gray-100 border-opacity-50">
-              <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 font-medium text-gray-800">
-                {route.route}
-              </td>
-              <td className="px-6 py-4 border-r border-gray-100 border-opacity-50">
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">
-                  {route.activeLoads}
-                </span>
-              </td>
-              <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
-                {route.totalDistance}
-              </td>
-              <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
-                {route.avgTime}
-              </td>
-              <td className="px-6 py-4 border-r border-gray-100 border-opacity-50">
-                <div className="flex items-center gap-2">
-                  <div className="w-16 bg-gray-200 rounded-full h-2 overflow-hidden">
-                    <div
-                      className={`h-2 rounded-full transition-all duration-1000 ease-out ${parseInt(route.efficiency) > 90 ? 'bg-gradient-to-r from-green-500 to-green-400' :
-                        parseInt(route.efficiency) > 80 ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' :
-                          'bg-gradient-to-r from-red-500 to-red-400'
-                        }`}
-                      style={{
-                        width: animationTrigger ? route.efficiency : '0%',
-                        transitionDelay: `${idx * 150}ms`
-                      }}
-                    ></div>
+          {routesData.length > 0 ? (
+            routesData.map((route, idx) => (
+              <tr key={idx} className="hover:bg-blue-50 hover:bg-opacity-50 transition-colors duration-200 border-b border-gray-100 border-opacity-50">
+                <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 font-medium text-gray-800">
+                  {route.route}
+                </td>
+                <td className="px-6 py-4 border-r border-gray-100 border-opacity-50">
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">
+                    {route.activeLoads}
+                  </span>
+                </td>
+                <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
+                  {route.totalDistance}
+                </td>
+                <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
+                  {route.avgTime}
+                </td>
+                <td className="px-6 py-4 border-r border-gray-100 border-opacity-50">
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-1000 ease-out ${parseInt(route.efficiency || "0") > 90 ? 'bg-gradient-to-r from-green-500 to-green-400' :
+                          parseInt(route.efficiency || "0") > 80 ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' :
+                            'bg-gradient-to-r from-red-500 to-red-400'
+                          }`}
+                        style={{
+                          width: animationTrigger ? route.efficiency : '0%',
+                          transitionDelay: `${idx * 150}ms`
+                        }}
+                      ></div>
+                    </div>
+                    <span className="text-xs font-medium">{route.efficiency}</span>
                   </div>
-                  <span className="text-xs font-medium">{route.efficiency}</span>
-                </div>
-              </td>
-              <td className="px-6 py-4">
-                <StatusBadge status={route.status as Status} />
+                </td>
+                <td className="px-6 py-4">
+                  <StatusBadge status={route.status as Status} />
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={6} className="text-center py-6 text-gray-500">
+                No routes available
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>
@@ -1164,7 +1189,9 @@ const Index = () => {
               <div className="p-1 bg-green-100 rounded-full">
                 <TrendingUp className="w-4 h-4 text-green-600" />
               </div>
-              <span className="text-sm font-medium text-gray-700">5 Active Loads</span>
+              <span className="text-sm font-medium text-gray-700">
+                {dashboardData?.activeLoads || 0} Active Loads
+              </span>
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             </div>
           </div>

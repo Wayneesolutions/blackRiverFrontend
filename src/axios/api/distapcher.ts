@@ -485,3 +485,76 @@ export const searchIssues = async (keyword: string) => {
     return (error as Error).response?.data;
   }
 }
+
+// Delivery management APIs
+export const getDeliveryLoads = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/delivery-loads`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ getDeliveryLoads API error:', error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const uploadDeliveryDocument = async (loadId: string, documentType: string, file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append('document', file);
+    
+    const res: AxiosResponse = await apiClient.post(
+      `dispatcher/load/${loadId}/delivery-document/${documentType}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error('❌ uploadDeliveryDocument API error:', error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const updatePaymentStatus = async (
+  loadId: string, 
+  paymentMethod: string, 
+  paymentReference: string, 
+  paymentDate: string, 
+  notes?: string
+) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/load/${loadId}/payment`, {
+      paymentMethod,
+      paymentReference,
+      paymentDate,
+      notes
+    });
+    return res.data;
+  } catch (error) {
+    console.error('❌ updatePaymentStatus API error:', error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const getDispatcherDashboard = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/dashboard`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ getDispatcherDashboard API error:', error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const getRouteAnalysis = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/routes`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ getRouteAnalysis API error:', error);
+    return (error as Error).response?.data;
+  }
+}

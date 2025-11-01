@@ -1,8 +1,54 @@
 import { useState, useEffect } from "react";
 import { 
-  FaTruck, FaFilter, FaDollarSign, FaFileAlt, FaUpload, FaCheck, FaTimes
+  FaTruck, FaFilter, FaDollarSign, FaFileAlt, FaUpload, FaCheck, FaTimes,
+  FaCheckCircle, FaExclamationCircle, FaInfoCircle
 } from 'react-icons/fa';
 import PaymentStatusBadge from "../../../../../components/dispatch/PaymentStatusBadge";
+import { getDeliveryLoads, uploadDeliveryDocument, updatePaymentStatus } from "../../../../../axios/api/distapcher";
+
+type NotificationType = 'success' | 'error' | 'info';
+
+interface Notification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+const Notification = ({ notification, onClose }: { notification: Notification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-50 ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-900">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 interface Load {
   _id: string;
@@ -12,13 +58,19 @@ interface Load {
   customerName?: string;
   amount?: number;
   rate?: number;
-  status: 'delivered' | 'paid';
+  status: 'delivered' | 'paid' | 'completed';
   paymentStatus?: 'pending' | 'due' | 'paid';
   deliveryDate?: string;
+  completedAt?: string;
   documents?: {
     bol?: boolean;
     billOfSale?: boolean;
     pod?: boolean;
+  };
+  deliveryDocuments?: {
+    bol?: { url?: string };
+    billOfSale?: { url?: string };
+    pod?: { url?: string };
   };
   route?: {
     selectPickup?: { place?: string };
@@ -33,118 +85,140 @@ const Delivery = () => {
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentReference, setPaymentReference] = useState('');
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [paymentNotes, setPaymentNotes] = useState('');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const addNotification = (type: NotificationType, message: string) => {
+    const id = Date.now();
+    setNotifications((prev) => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
 
   useEffect(() => {
     fetchLoads();
   }, []);
 
-  const fetchLoads = () => {
+  const fetchLoads = async () => {
     setLoading(true);
-    // Static mock data - only delivered/paid loads
-    const mockLoads: Load[] = [
-      {
-        _id: '4',
-        loadNumber: 'L-004',
-        orderNumber: 'ORD-004',
-        customer: 'Global Transport',
-        customerName: 'Global Transport',
-        amount: 4500,
-        rate: 4500,
-        status: 'delivered',
-        paymentStatus: 'due',
-        deliveryDate: '2024-01-18',
-        documents: { bol: true, billOfSale: true, pod: true },
-        route: { selectPickup: { place: 'New York, NY' }, selectDropOff: { place: 'Boston, MA' } }
-      },
-      {
-        _id: '5',
-        loadNumber: 'L-005',
-        orderNumber: 'ORD-005',
-        customer: 'Express Logistics',
-        customerName: 'Express Logistics',
-        amount: 2900,
-        rate: 2900,
-        status: 'paid',
-        paymentStatus: 'paid',
-        deliveryDate: '2024-01-15',
-        documents: { bol: true, billOfSale: true, pod: true },
-        route: { selectPickup: { place: 'Los Angeles, CA' }, selectDropOff: { place: 'San Francisco, CA' } }
-      },
-      {
-        _id: '6',
-        loadNumber: 'L-006',
-        orderNumber: 'ORD-006',
-        customer: 'Speed Freight',
-        customerName: 'Speed Freight',
-        amount: 3500,
-        rate: 3500,
-        status: 'delivered',
-        paymentStatus: 'due',
-        deliveryDate: '2024-01-19',
-        documents: { bol: true, billOfSale: false, pod: true },
-        route: { selectPickup: { place: 'Chicago, IL' }, selectDropOff: { place: 'Detroit, MI' } }
-      },
-      {
-        _id: '7',
-        loadNumber: 'L-007',
-        orderNumber: 'ORD-007',
-        customer: 'Pacific Logistics',
-        customerName: 'Pacific Logistics',
-        amount: 2200,
-        rate: 2200,
-        status: 'paid',
-        paymentStatus: 'paid',
-        deliveryDate: '2024-01-12',
-        documents: { bol: true, billOfSale: true, pod: true },
-        route: { selectPickup: { place: 'Seattle, WA' }, selectDropOff: { place: 'Portland, OR' } }
-      },
-      {
-        _id: '8',
-        loadNumber: 'L-008',
-        orderNumber: 'ORD-008',
-        customer: 'Northern Freight',
-        customerName: 'Northern Freight',
-        amount: 3100,
-        rate: 3100,
-        status: 'delivered',
-        paymentStatus: 'due',
-        deliveryDate: '2024-01-20',
-        documents: { bol: false, billOfSale: false, pod: false },
-        route: { selectPickup: { place: 'Toronto, ON' }, selectDropOff: { place: 'Ottawa, ON' } }
+    try {
+      const response = await getDeliveryLoads();
+      if (response && response.success && response.data) {
+        // Transform data to match frontend interface
+        const transformedLoads = response.data.map((load: any) => ({
+          _id: load._id,
+          loadNumber: load.loadNumber || load._id,
+          orderNumber: load.orderNumber || load._id,
+          customer: load.customerName || load.customer,
+          customerName: load.customerName || load.customer,
+          amount: load.amount || load.rate || 0,
+          rate: load.rate || 0,
+          status: load.status,
+          paymentStatus: load.paymentStatus || 'pending',
+          deliveryDate: load.deliveryDate || load.completedAt,
+          completedAt: load.completedAt,
+          documents: {
+            bol: !!load.deliveryDocuments?.bol?.url,
+            billOfSale: !!load.deliveryDocuments?.billOfSale?.url,
+            pod: !!load.deliveryDocuments?.pod?.url
+          },
+          deliveryDocuments: load.deliveryDocuments || {},
+          route: load.route || {}
+        }));
+        setLoads(transformedLoads);
+      } else {
+        addNotification('error', 'Failed to fetch delivery loads');
+        setLoads([]);
       }
-    ];
-    setLoads(mockLoads);
-    setLoading(false);
+    } catch (error) {
+      console.error('Error fetching delivery loads:', error);
+      addNotification('error', 'Error fetching delivery loads');
+      setLoads([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDocumentUpload = (loadId: string, docType: 'bol' | 'billOfSale' | 'pod') => {
-    const updatedLoads = loads.map(l => 
-      l._id === loadId 
-        ? { 
-            ...l, 
-            documents: {
-              ...l.documents,
-              [docType]: true
-            }
-          } 
-        : l
-    );
-    setLoads(updatedLoads);
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, loadId: string, docType: 'bol' | 'billOfSale' | 'pod') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingDoc(docType);
+    try {
+      const response = await uploadDeliveryDocument(loadId, docType, file);
+      if (response && response.success) {
+        addNotification('success', `${docType.toUpperCase()} uploaded successfully`);
+        
+        // Optimistically update the selected load immediately for instant feedback
+        if (selectedLoad && selectedLoad._id === loadId) {
+          setSelectedLoad(prev => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              documents: {
+                ...prev.documents,
+                [docType]: true
+              },
+              deliveryDocuments: {
+                ...prev.deliveryDocuments,
+                [docType]: { url: 'uploaded' }
+              }
+            };
+          });
+        }
+        
+        // Update the loads list in background
+        await fetchLoads();
+      } else {
+        addNotification('error', response?.message || 'Failed to upload document');
+      }
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      addNotification('error', 'Error uploading document');
+    } finally {
+      setUploadingDoc(null);
+      e.target.value = ''; // Reset file input
+    }
   };
 
-  const handleMarkPaid = (loadId: string) => {
-    const updatedLoads = loads.map(l => 
-      l._id === loadId 
-        ? { 
-            ...l, 
-            status: 'paid' as Load['status'],
-            paymentStatus: 'paid'
-          } 
-        : l
-    );
-    setLoads(updatedLoads);
-    setShowPaymentModal(false);
-    setSelectedLoad(null);
+  const handleMarkPaid = async () => {
+    if (!selectedLoad) return;
+    
+    if (!paymentMethod || !paymentReference) {
+      addNotification('error', 'Please fill in payment method and reference');
+      return;
+    }
+    
+    try {
+      const response = await updatePaymentStatus(
+        selectedLoad._id, 
+        paymentMethod, 
+        paymentReference, 
+        paymentDate, 
+        paymentNotes
+      );
+      
+      if (response && response.success) {
+        addNotification('success', 'Payment marked as paid successfully');
+        setShowPaymentModal(false);
+        setSelectedLoad(null);
+        setPaymentMethod('');
+        setPaymentReference('');
+        setPaymentNotes('');
+        await fetchLoads(); // Refresh data
+      } else {
+        addNotification('error', response?.message || 'Failed to mark payment');
+      }
+    } catch (error) {
+      console.error('Error marking payment:', error);
+      addNotification('error', 'Error marking payment');
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -185,6 +259,11 @@ const Delivery = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      {/* Notifications */}
+      {notifications.map((notification) => (
+        <Notification key={notification.id} notification={notification} onClose={removeNotification} />
+      ))}
+
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Delivery</h1>
@@ -432,11 +511,8 @@ const Delivery = () => {
                       type="file"
                       className="hidden"
                       accept=".pdf,.doc,.docx,.jpg,.png"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          handleDocumentUpload(selectedLoad._id, 'bol');
-                        }
-                      }}
+                      onChange={(e) => handleDocumentUpload(e, selectedLoad._id, 'bol')}
+                      disabled={uploadingDoc === 'bol'}
                     />
                   </label>
                 </div>
@@ -472,11 +548,8 @@ const Delivery = () => {
                       type="file"
                       className="hidden"
                       accept=".pdf,.doc,.docx,.jpg,.png"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          handleDocumentUpload(selectedLoad._id, 'billOfSale');
-                        }
-                      }}
+                      onChange={(e) => handleDocumentUpload(e, selectedLoad._id, 'billOfSale')}
+                      disabled={uploadingDoc === 'billOfSale'}
                     />
                   </label>
                 </div>
@@ -512,11 +585,8 @@ const Delivery = () => {
                       type="file"
                       className="hidden"
                       accept=".pdf,.doc,.docx,.jpg,.png"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          handleDocumentUpload(selectedLoad._id, 'pod');
-                        }
-                      }}
+                      onChange={(e) => handleDocumentUpload(e, selectedLoad._id, 'pod')}
+                      disabled={uploadingDoc === 'pod'}
                     />
                   </label>
                 </div>
@@ -576,12 +646,16 @@ const Delivery = () => {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Payment Method
                   </label>
-                  <select className="w-full p-3 border border-gray-300 rounded-lg">
-                    <option>Select Payment Method</option>
-                    <option>Bank Transfer</option>
-                    <option>Check</option>
-                    <option>Cash</option>
-                    <option>Credit Card</option>
+                  <select 
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  >
+                    <option value="">Select Payment Method</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Check">Check</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Credit Card">Credit Card</option>
                   </select>
                 </div>
                 <div>
@@ -592,6 +666,8 @@ const Delivery = () => {
                     type="text"
                     placeholder="Transaction ID or reference number"
                     className="w-full p-3 border border-gray-300 rounded-lg"
+                    value={paymentReference}
+                    onChange={(e) => setPaymentReference(e.target.value)}
                   />
                 </div>
                 <div>
@@ -600,8 +676,21 @@ const Delivery = () => {
                   </label>
                   <input
                     type="date"
-                    defaultValue={new Date().toISOString().split('T')[0]}
+                    value={paymentDate}
+                    onChange={(e) => setPaymentDate(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Notes (Optional)
+                  </label>
+                  <textarea
+                    placeholder="Additional notes about the payment"
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    rows={3}
+                    value={paymentNotes}
+                    onChange={(e) => setPaymentNotes(e.target.value)}
                   />
                 </div>
               </div>
@@ -611,13 +700,17 @@ const Delivery = () => {
                 onClick={() => {
                   setShowPaymentModal(false);
                   setSelectedLoad(null);
+                  setPaymentMethod('');
+                  setPaymentReference('');
+                  setPaymentDate(new Date().toISOString().split('T')[0]);
+                  setPaymentNotes('');
                 }}
                 className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
-                onClick={() => handleMarkPaid(selectedLoad._id)}
+                onClick={handleMarkPaid}
                 className="px-6 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700"
               >
                 Confirm Payment
@@ -626,6 +719,22 @@ const Delivery = () => {
           </div>
         </div>
       )}
+      
+      <style>{`
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };
