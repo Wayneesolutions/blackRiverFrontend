@@ -3,7 +3,8 @@ import {
     MdSettings,
     MdBusiness,
     MdApi,
-    MdPeople
+    MdPeople,
+    MdCreditCard
 } from "react-icons/md";
 import { BsPersonVcard } from "react-icons/bs";
 import { RiBillLine } from "react-icons/ri";
@@ -41,6 +42,11 @@ export const AdminSidebarLinks: AdminSidebarLink[] = [
         key: "invoice",
         icon: <RiBillLine />,
         label: "Invoices",
+    },
+    {
+        key: "subscription",
+        icon: <MdCreditCard />,
+        label: "Subscription & Plans",
     },
     {
         key: "company-documents",

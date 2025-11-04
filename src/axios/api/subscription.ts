@@ -1,0 +1,66 @@
+import type { AxiosResponse } from "axios";
+import apiClient from "../apiClient";
+
+interface Error {
+  response?: {
+    data?: {
+      message: string,
+    }
+  }
+}
+
+// ✅ Get All Plans (for admin to view)
+export const getAllPlans = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/plans');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ✅ Get My Active Subscription
+export const getMySubscription = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/subscription');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ✅ Get All My Subscriptions (history)
+export const getMySubscriptions = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/subscriptions');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ✅ Create Checkout Session
+export const createCheckoutSession = async (data: { planId: string; subscriptionType: string }) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('admin/subscription/checkout', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ✅ Cancel Subscription
+export const cancelSubscription = async (subscriptionId: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`admin/subscription/${subscriptionId}/cancel`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+

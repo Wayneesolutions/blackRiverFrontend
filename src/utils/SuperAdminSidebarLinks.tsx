@@ -22,13 +22,12 @@ export const SuperAdminSidebarLink: SuperAdminSidebarLink[] = [
         key: "/superadmin/viewalladmins",
         icon: <HiOutlineUsers />,
         label: "Admin Accounts",
-     
     },
-    // {
-    //     key: "/superadmin/billing",
-    //     icon: <RiBillLine />,
-    //     label: "Billing",
-    // },
+    {
+        key: "/superadmin/billing",
+        icon: <RiBillLine />,
+        label: "Plan Management",
+    },
     {
         key: "/superadmin/revenue",
         icon: <RiBarChart2Fill />,

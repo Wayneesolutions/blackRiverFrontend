@@ -25,6 +25,7 @@ const DriverManagement = lazy(() => import("./AdminFeatures/HRManagementRoutes")
 const ComplianceRoute = lazy(() => import('./AdminFeatures/CompilanceRoute'))
 const FleetMaintainRoute = lazy(() => import("./AdminFeatures/FleetMaintainRoutes"))
 const AccountsRoute = lazy(() => import("./AdminFeatures/AccountsRoutes"))
+const Subscription = lazy(() => import("../pages/admin/subscription/index"))
 
 function AdminRoute() {
   return (
@@ -61,6 +62,7 @@ function AdminRoute() {
           <Route path="company" element={<CompanyManage />} />
           <Route path="integrations" element={<Integrations />} />
           <Route path="company-documents" element={<CompanyDocuments />} />
+          <Route path="subscription" element={<Subscription />} />
         </Route>
       </Routes>
     </Suspense>

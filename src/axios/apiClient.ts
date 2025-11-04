@@ -1,8 +1,7 @@
 // src/config/apiClient.js
 import axios from "axios";
-import { message } from "antd";
 
-const baseUrl = import.meta.env.VITE_APP_BASE_URL || 'http://localhost:3000'
+const baseUrl = import.meta.env.VITE_APP_BASE_URL || 'http://localhost:3000/api/v1'
 
 // Debug: Log the base URL to console
 console.log('VITE_APP_BASE_URL:', baseUrl);
@@ -30,13 +29,14 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Don't show error message automatically - let the component handle it
+    // This prevents duplicate error messages
     if (error.response) {
-      // Show error message
-      message.error(error.response.data.message || "Something went wrong");
+      console.error('API Error Response:', error.response.data);
     } else if (error.request) {
-      message.error("No response from server");
+      console.error('API Request Error:', error.request);
     } else {
-      message.error(error.message);
+      console.error('API Error:', error.message);
     }
     return Promise.reject(error);
   }
