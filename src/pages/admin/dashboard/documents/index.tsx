@@ -61,10 +61,30 @@ const DocumentManagement: React.FC = () => {
     }
   };
 
+  const isPubliclyAccessible = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url);
+      // Check if it's a public URL (not localhost, 127.0.0.1, or private IP)
+      const hostname = urlObj.hostname.toLowerCase();
+      return !hostname.includes('localhost') && 
+             !hostname.includes('127.0.0.1') && 
+             !hostname.startsWith('192.168.') &&
+             !hostname.startsWith('10.') &&
+             !hostname.startsWith('172.');
+    } catch {
+      return false;
+    }
+  };
+
   const getViewerUrl = (doc: Document) => {
     const ext = getExtension(doc);
     const encoded = encodeURIComponent(doc.url);
-    // Images and PDFs are handled natively outside this function
+    
+    // Only use external viewers if URL is publicly accessible
+    if (!isPubliclyAccessible(doc.url)) {
+      return null; // Will trigger download/open instead
+    }
+    
     // Office formats via Microsoft viewer
     const officeExts = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
     if (officeExts.includes(ext)) {
@@ -487,20 +507,99 @@ const DocumentManagement: React.FC = () => {
             <div className="p-4 overflow-auto bg-gray-50">
               {(() => {
                 const ext = getExtension(viewDoc);
+                
+                // PDFs - use iframe
                 if (ext === 'pdf') {
-                  return <iframe title="preview" src={viewDoc.url} className="w-full h-[70vh] border rounded-lg"></iframe>;
+                  return (
+                    <iframe 
+                      title="preview" 
+                      src={viewDoc.url} 
+                      className="w-full h-[70vh] border rounded-lg"
+                      onError={(e) => {
+                        console.error('PDF load error:', e);
+                      }}
+                    />
+                  );
                 }
+                
+                // Images - use img tag
                 if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
-                  return <img src={viewDoc.url} alt={viewDoc.name} className="max-h-[70vh] w-auto mx-auto rounded-lg border" />;
+                  return (
+                    <img 
+                      src={viewDoc.url} 
+                      alt={viewDoc.name} 
+                      className="max-h-[70vh] w-auto mx-auto rounded-lg border"
+                      onError={(e) => {
+                        console.error('Image load error:', e);
+                      }}
+                    />
+                  );
                 }
-                // Use online viewers for other types
+                
+                // For Office documents and other file types
                 const viewerSrc = getViewerUrl(viewDoc);
+                
+                // If viewer URL is not available (private/local URL), show download option
+                if (!viewerSrc) {
+                  return (
+                    <div className="flex flex-col items-center justify-center h-[70vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
+                      <FileText className="text-gray-400 mb-4" size={64} />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Document Preview Not Available</h3>
+                      <p className="text-sm text-gray-600 mb-6 text-center max-w-md">
+                        This document cannot be previewed in the browser. Please download it to view.
+                      </p>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => {
+                            window.open(viewDoc.url, '_blank');
+                          }}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                        >
+                          <Download size={18} />
+                          Open Document
+                        </button>
+                        <button
+                          onClick={() => {
+                            const a = document.createElement('a');
+                            a.href = viewDoc.url;
+                            a.download = viewDoc.name || 'document';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }}
+                          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium flex items-center gap-2"
+                        >
+                          <Download size={18} />
+                          Download
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+                
+                // Try to use external viewer (only if URL is publicly accessible)
                 return (
-                  <iframe
-                    title="preview"
-                    src={viewerSrc}
-                    className="w-full h-[70vh] border rounded-lg bg-white"
-                  />
+                  <div className="relative">
+                    <iframe
+                      title="preview"
+                      src={viewerSrc}
+                      className="w-full h-[70vh] border rounded-lg bg-white"
+                      onError={(e) => {
+                        console.error('Viewer load error:', e);
+                      }}
+                    />
+                    <div className="absolute bottom-4 right-4">
+                      <button
+                        onClick={() => {
+                          window.open(viewDoc.url, '_blank');
+                        }}
+                        className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                      >
+                        <Download size={16} />
+                        Open Directly
+                      </button>
+                    </div>
+                  </div>
                 );
               })()}
             </div>

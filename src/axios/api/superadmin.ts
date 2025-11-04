@@ -1,0 +1,74 @@
+import type { AxiosResponse } from "axios";
+import apiClient from "../apiClient";
+
+interface Error {
+  response?: {
+    data?: {
+      message: string,
+    }
+  }
+}
+
+// ✅ Get All Admins (Customers)
+export const getAllAdmins = async (search?: string, status?: string, page: number = 1, limit: number = 100) => {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    
+    if (search) params.append('search', search);
+    if (status && status !== 'all') params.append('status', status);
+    
+    const res: AxiosResponse = await apiClient.get(`superadmin/admin?${params.toString()}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ✅ Get Admin by ID
+export const getAdminById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`superadmin/admin/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ✅ Create Admin
+export const createAdmin = async (data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('superadmin/admin', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ✅ Update Admin
+export const updateAdmin = async (id: string, data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`superadmin/admin/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ✅ Delete Admin
+export const deleteAdmin = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`superadmin/admin/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+

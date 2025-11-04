@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Shield, Eye, EyeOff, CheckCircle, Mail, Lock, ArrowRight, AlertTriangle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { loginSuperAdmin } from "../../../axios/api/auth";
+import { message } from "antd";
 
 export default function SuperAdminLogin() {
     const [email, setEmail] = useState("");
@@ -9,13 +12,26 @@ export default function SuperAdminLogin() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // Check if user is already logged in
+        const token = localStorage.getItem("token");
+        const userRole = localStorage.getItem("userRole");
+        if (token && userRole === "superadmin") {
+            navigate("/superadmin/dashboard");
+        }
+    }, [navigate]);
 
     useEffect(() => {
         if (success) {
-            const t = window.setTimeout(() => setSuccess(false), 2500);
+            const t = window.setTimeout(() => {
+                setSuccess(false);
+                navigate("/superadmin/dashboard");
+            }, 1500);
             return () => window.clearTimeout(t);
         }
-    }, [success]);
+    }, [success, navigate]);
 
     function validate() {
         const e: Record<string, string> = {};
@@ -26,30 +42,59 @@ export default function SuperAdminLogin() {
         return Object.keys(e).length === 0;
     }
 
-    async function fakeLogin(payload: object) {
-        return new Promise((res, rej) =>
-            setTimeout(() => {
-                // Simulate authentication check
-                if (email === "admin@logistics.com" && password === "admin123") {
-                    res({ ok: true });
-                } else {
-                    rej(new Error("Invalid credentials"));
-                }
-            }, 1200)
-        );
-    }
+    // Store token in localStorage
+    const storeToken = (token: string, userData: any) => {
+        localStorage.setItem("token", token);
+        localStorage.setItem("userRole", userData.role || "superadmin");
+        localStorage.setItem("userData", JSON.stringify(userData));
+    };
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (!validate()) return;
+        
         setLoading(true);
+        setErrors({});
+        
         try {
             const payload = { email, password };
-            await fakeLogin(payload);
-            setSuccess(true);
-        } catch (err) {
-            console.error(err);
-            setErrors({ submit: "Invalid super admin credentials. Access denied." });
+            const response = await loginSuperAdmin(payload);
+            
+            console.log("SuperAdmin login response:", response);
+            
+            if (response?.success) {
+                // Store token and user data
+                if (response.data?.token && response.data) {
+                    storeToken(response.data.token, response.data);
+                }
+                
+                // Clear form
+                setEmail("");
+                setPassword("");
+                
+                setSuccess(true);
+                message.success(response.message || "Login successful! Redirecting to dashboard...");
+                
+                // Navigate will be handled by useEffect when success is true
+            } else {
+                // Error case - API returned success: false
+                setErrors({ submit: response?.message || "Invalid super admin credentials. Access denied." });
+                message.error(response?.message || "Login failed. Please try again.");
+            }
+        } catch (err: any) {
+            console.error("SuperAdmin login error:", err);
+            
+            // Handle different types of errors
+            if (err?.response?.data?.message) {
+                setErrors({ submit: err.response.data.message });
+                message.error(err.response.data.message);
+            } else if (err?.message) {
+                setErrors({ submit: err.message });
+                message.error(err.message);
+            } else {
+                setErrors({ submit: "Network error. Please check your connection and try again." });
+                message.error("Network error. Please check your connection and try again.");
+            }
         } finally {
             setLoading(false);
         }

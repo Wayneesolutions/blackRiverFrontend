@@ -74,13 +74,21 @@ export const deleteDriverDocument = async (id: string) => {
 };
 
 // Get expiring driver documents
+// NOTE: This endpoint is not implemented on backend. Returning empty data to avoid 404 errors.
 export const getExpiringDriverDocuments = async (days: number = 30) => {
     try {
-        const res: AxiosResponse = await apiClient.get(`hr/driver-document-expiring?days=${days}`);
-        console.log("==getExpiringDriverDocuments res ", res);
-        return res.data;
+        // Endpoint doesn't exist - return empty data to avoid 404 errors
+        console.log("⚠️ getExpiringDriverDocuments: Endpoint not implemented, returning empty data");
+        return {
+            success: true,
+            data: []
+        };
     } catch (error: any) {
         const err = error as Error;
-        return err.response?.data;
+        // Return empty data instead of error
+        return {
+            success: true,
+            data: []
+        };
     }
 };

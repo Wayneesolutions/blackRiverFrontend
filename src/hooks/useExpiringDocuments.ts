@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import type { RootState } from '../redux/store';
 
 export const useExpiringDocuments = () => {
     const [showExpiringPopup, setShowExpiringPopup] = useState(false);
     const [, setExpiringDocuments] = useState<any[]>([]);
+    const navigate = useNavigate();
     
     const { userInfo } = useSelector((state: RootState) => state.userAuth);
     
@@ -79,9 +81,9 @@ export const useExpiringDocuments = () => {
     };
 
     const handleViewDocuments = () => {
-        // Navigate to employee documents page
-        window.location.href = '/admin/employeeManagement/documents';
+        // Navigate to employee documents page using React Router
         setShowExpiringPopup(false);
+        navigate('/admin/Management/documents');
     };
 
     return {

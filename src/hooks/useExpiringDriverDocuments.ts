@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import type { RootState } from '../redux/store';
 
 export const useExpiringDriverDocuments = () => {
     const [showExpiringPopup, setShowExpiringPopup] = useState(false);
     const [, setExpiringDocuments] = useState<any[]>([]);
+    const navigate = useNavigate();
     
     const { userInfo } = useSelector((state: RootState) => state.userAuth);
     
@@ -79,9 +81,9 @@ export const useExpiringDriverDocuments = () => {
     };
 
     const handleViewDocuments = () => {
-        // Navigate to driver documents page
-        window.location.href = '/admin/driverManagement/documents';
+        // Navigate to driver documents page using React Router
         setShowExpiringPopup(false);
+        navigate('/admin/compliance/driver-documents');
     };
 
     return {

@@ -53,3 +53,14 @@ export const changePassword = async (data: {newPassword: string}) => {
     return (error as Error).response?.data;
   }
 }
+
+// ✅ Super Admin Login
+export const loginSuperAdmin = async (data: {email: string, password: string}) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`superadmin/login`, data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
