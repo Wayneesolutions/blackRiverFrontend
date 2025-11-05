@@ -2,6 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import App from "../components/superadmin/Layout";
 import Loading from "../components/common/Loading";
+import SuperAdminProtectedRoute from "../components/auth/SuperAdminProtectedRoute";
+import SuperAdminPublicRoute from "../components/auth/SuperAdminPublicRoute";
 
 const Login = lazy(() => import("../pages/superadmin/auth/Login"))
 
@@ -20,15 +22,31 @@ function SuperAdminRoute() {
 
 
             <Routes>
-                <Route path="login" element={<Login />} />
-                <Route element={<App />}>
-                    {/* <Route index element={<Dashboard />} /> */}
+                {/* Public Route - Login */}
+                <Route 
+                    path="login" 
+                    element={
+                        <SuperAdminPublicRoute>
+                            <Login />
+                        </SuperAdminPublicRoute>
+                    } 
+                />
+                
+                {/* Protected Routes - SuperAdmin Dashboard */}
+                <Route 
+                    element={
+                        <SuperAdminProtectedRoute>
+                            <App />
+                        </SuperAdminProtectedRoute>
+                    }
+                >
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="viewalladmins" element={<Viewalladmins />} />
                     <Route path="revenue" element={<Revenue />} />
                     <Route path="billing" element={<Billing />} />
                     <Route path="systemsetting" element={<SystemSetting />} />
-
+                    {/* Redirect root to dashboard */}
+                    <Route index element={<Dashboard />} />
                 </Route>
             </Routes>
         </Suspense>

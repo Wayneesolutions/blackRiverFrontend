@@ -192,3 +192,16 @@ export const updateSuperAdminSettings = async (data: any) => {
   }
 };
 
+// ============ ALLOWED ROLES ============
+
+// ✅ Get Allowed Roles for Admin (based on subscription)
+export const getAllowedRolesForAdmin = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/allowed-roles');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+

@@ -2,6 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Layout from "../components/admin/Layout";
 import Loading from "../components/common/Loading";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
+import PublicRoute from "../components/auth/PublicRoute";
 
 
 const Register = lazy(() => import("../pages/admin/auth/Register"));
@@ -31,25 +33,32 @@ function AdminRoute() {
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
-        {/* Feature Routes - These should come BEFORE the Layout routes */}
-        <Route path="dispatch/*" element={<DispatchRoutes />} />
-        <Route path="gpsvehicle/*" element={<GpsVehicleRoutes />} />
-        <Route path="Management/*" element={<DriverManagement />} />
-        <Route path="compliance/*" element={<ComplianceRoute />} />
-        <Route path="accounts/*" element={<AccountsRoute />} />
-        <Route path="fleetmaintenance/*" element={<FleetMaintainRoute />} />
-        {/* Add other feature routes here when ready */}
-        {/* 
-         <Route path="gps/*" element={<GPSRoutes />} />
-        <Route path="driver/*" element={<DriverRoutes />} />
-        <Route path="maintenance/*" element={<MaintenanceRoutes />} />
-        // <Route path="compliance/*" element={<ComplianceRoutes />} />
-        <Route path="billing/*" element={<BillingRoutes />} />
-        */}
-        <Route path="register" element={<Register />} />
-        <Route path="login" element={<Login />} />
-        {/* Main Admin Layout Routes */}
-        <Route element={<Layout />}>
+        {/* Public Routes - Auth Pages */}
+        <Route 
+          path="register" 
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="login" 
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } 
+        />
+        
+        {/* Protected Routes - Main Admin Layout Routes */}
+        <Route 
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="profile" element={<Profile />} />
@@ -64,6 +73,56 @@ function AdminRoute() {
           <Route path="company-documents" element={<CompanyDocuments />} />
           <Route path="subscription" element={<Subscription />} />
         </Route>
+        
+        {/* Protected Feature Routes */}
+        <Route 
+          path="dispatch/*" 
+          element={
+            <ProtectedRoute>
+              <DispatchRoutes />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="gpsvehicle/*" 
+          element={
+            <ProtectedRoute>
+              <GpsVehicleRoutes />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="Management/*" 
+          element={
+            <ProtectedRoute>
+              <DriverManagement />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="compliance/*" 
+          element={
+            <ProtectedRoute>
+              <ComplianceRoute />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="accounts/*" 
+          element={
+            <ProtectedRoute>
+              <AccountsRoute />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="fleetmaintenance/*" 
+          element={
+            <ProtectedRoute>
+              <FleetMaintainRoute />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
     </Suspense>
   );

@@ -74,7 +74,7 @@ const SuperAdminOverview = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full flex items-center justify-center py-20">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading dashboard data...</p>
@@ -85,12 +85,12 @@ const SuperAdminOverview = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full flex items-center justify-center py-20">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-red-600 mb-4 text-lg font-medium">{error}</p>
           <button
             onClick={fetchDashboardData}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="px-6 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
           >
             Retry
           </button>
@@ -101,12 +101,12 @@ const SuperAdminOverview = () => {
 
   if (!dashboardData || !dashboardData.stats) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full flex items-center justify-center py-20">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">No data available</p>
+          <p className="text-gray-600 mb-4 text-lg">No data available</p>
           <button
             onClick={fetchDashboardData}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="px-6 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
           >
             Retry
           </button>
@@ -161,7 +161,7 @@ const SuperAdminOverview = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="w-full">
       <div className="p-6">
         {/* Header */}
         <div className="mb-6">

@@ -22,7 +22,7 @@ import { getSuperAdminRevenue } from '../../../axios/api/superadmin';
 
 const RevenueDashboard = () => {
     const navigate = useNavigate();
-    
+
     const [revenueFilter, setRevenueFilter] = useState('all');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -443,8 +443,8 @@ const RevenueDashboard = () => {
                                                         className="text-gray-400 hover:text-gray-600 p-1 rounded transition-colors"
                                                         title="More Actions"
                                                     >
-                                                        <MoreHorizontal className="w-4 h-4" />
-                                                    </button>
+                                                    <MoreHorizontal className="w-4 h-4" />
+                                                </button>
                                                     {activeDropdown === revenue.id && (
                                                         <>
                                                             {/* Backdrop to close on click outside */}

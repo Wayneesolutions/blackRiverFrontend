@@ -1,41 +1,46 @@
-// src/components/admin/Layout.tsx
+// src/components/superadmin/Layout.tsx
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import ExpiringDocumentsPopup from "../common/ExpiringDocumentsPopup";
-import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
 
 const Layout = () => {
-    const { showExpiringPopup, handleClosePopup, handleViewDocuments } = useExpiringDocuments();
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+    const toggleSidebar = () => {
+        setIsSidebarCollapsed(!isSidebarCollapsed);
+    };
 
     return (
-        <div className="flex flex-col min-h-screen bg-[#eeeeee] pb-16">
-            {/* Main row with sidebar + content */}
-            <div className="flex flex-1">
-                <Sidebar />
-                <div className="flex flex-col flex-1 pl-5">
-                    <Header />
-                    <main className="p-4 flex-1">
-                        <Outlet />
-                    </main>
-                </div>
+        <div className="flex h-screen bg-[#eeeeee] overflow-hidden">
+            {/* Sidebar with independent scroll */}
+            <div className="flex-shrink-0 h-screen overflow-hidden">
+                <Sidebar 
+                    isCollapsed={isSidebarCollapsed} 
+                    onToggle={toggleSidebar} 
+                />
             </div>
-
+            
+            {/* Main content area with independent scroll */}
+            <div className="flex flex-col flex-1 h-full overflow-hidden">
+                {/* Header - fixed at top */}
+                <div className="flex-shrink-0 pl-5">
+                    <Header />
+                </div>
+                
+                {/* Main content with scroll */}
+                <main className="flex-1 overflow-y-auto pl-5 p-4 pb-20">
+                    <Outlet />
+                </main>
+            </div>
+            
             {/* Footer fixed at bottom */}
             <footer className="bg-[#9793E4] text-center text-white py-4 text-md fixed bottom-0 left-0 w-full z-50">
                 Logistics All rights reserved
             </footer>
-
-            {/* Global Expiring Documents Popup */}
-            <ExpiringDocumentsPopup
-                isOpen={showExpiringPopup}
-                onClose={handleClosePopup}
-                onViewDocuments={handleViewDocuments}
-                daysThreshold={30}
-                showOnlyOnce={false}
-            />
         </div>
     );
 };
+
 export default Layout;
 

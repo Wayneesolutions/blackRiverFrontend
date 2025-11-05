@@ -3,6 +3,10 @@ import { Shield, Eye, EyeOff, CheckCircle, Mail, Lock, ArrowRight, AlertTriangle
 import { useNavigate } from "react-router-dom";
 import { loginSuperAdmin } from "../../../axios/api/auth";
 import { message } from "antd";
+import { useDispatch } from "react-redux";
+import { setSuperAdminCredentials } from "../../../redux/slices/superAdminSlice";
+import { useSelector } from "react-redux";
+import { type RootState } from "../../../redux/store";
 
 export default function SuperAdminLogin() {
     const [email, setEmail] = useState("");
@@ -13,15 +17,16 @@ export default function SuperAdminLogin() {
     const [success, setSuccess] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { superAdminInfo } = useSelector((state: RootState) => state.superAdminAuth);
 
     useEffect(() => {
         // Check if user is already logged in
         const token = localStorage.getItem("token");
-        const userRole = localStorage.getItem("userRole");
-        if (token && userRole === "superadmin") {
+        if (token && superAdminInfo) {
             navigate("/superadmin/dashboard");
         }
-    }, [navigate]);
+    }, [navigate, superAdminInfo]);
 
     useEffect(() => {
         if (success) {
@@ -42,11 +47,11 @@ export default function SuperAdminLogin() {
         return Object.keys(e).length === 0;
     }
 
-    // Store token in localStorage
-    const storeToken = (token: string, userData: any) => {
+    // Store token and superadmin info
+    const storeSuperAdminCredentials = (token: string, userData: any) => {
         localStorage.setItem("token", token);
-        localStorage.setItem("userRole", userData.role || "superadmin");
-        localStorage.setItem("userData", JSON.stringify(userData));
+        // Store in Redux
+        dispatch(setSuperAdminCredentials({ userData }));
     };
 
     async function handleSubmit(e: React.FormEvent) {
@@ -63,9 +68,9 @@ export default function SuperAdminLogin() {
             console.log("SuperAdmin login response:", response);
             
             if (response?.success) {
-                // Store token and user data
+                // Store token and superadmin data
                 if (response.data?.token && response.data) {
-                    storeToken(response.data.token, response.data);
+                    storeSuperAdminCredentials(response.data.token, response.data);
                 }
                 
                 // Clear form

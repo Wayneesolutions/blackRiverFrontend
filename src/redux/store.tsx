@@ -1,10 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './slices/userSlice'
+import authReducer from './slices/userSlice';
+import superAdminReducer from './slices/superAdminSlice';
 
 export const store = configureStore({
     reducer: {
         userAuth: authReducer,
-        // superAdminAuth: superAdminReducer,
+        superAdminAuth: superAdminReducer,
         // clientAuth: clientReducer,
         // photographerAuth: photographerReducer,
         // editorAuth: editorReducer

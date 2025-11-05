@@ -316,8 +316,75 @@ const Users = () => {
     setActiveTab('basic');
   };
 
+  // Configure message defaults on mount
+  useEffect(() => {
+    // Test message to ensure it's working
+    // message.info('Message system initialized', 1);
+    
+    message.config({
+      top: 100,
+      duration: 4,
+      maxCount: 3,
+      rtl: false,
+    });
+  }, []);
+
+  // Frontend validation function
+  const validateForm = (): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    // Required fields validation
+    if (!formData.name?.trim()) {
+      errors.push('Name is required');
+    }
+    if (!formData.email?.trim()) {
+      errors.push('Email is required');
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.push('Please enter a valid email address');
+    }
+    if (!formData.phone?.trim()) {
+      errors.push('Phone number is required');
+    }
+    if (!isEditing && !formData.password?.trim()) {
+      errors.push('Password is required for new users');
+    } else if (!isEditing && formData.password && formData.password.length < 6) {
+      errors.push('Password must be at least 6 characters long');
+    }
+    if (!formData.role) {
+      errors.push('Role is required');
+    }
+    if (!formData.internalId?.trim()) {
+      errors.push('Internal ID is required');
+    }
+
+    // Driver-specific validations
+    if (formData.role === 'driver') {
+      if (!driverFormData.employeeCode?.trim()) {
+        errors.push('Employee Code is required for drivers');
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Frontend validation
+    const validation = validateForm();
+    if (!validation.isValid) {
+      const errorMsg = validation.errors.join(', ');
+      console.log('Validation errors:', errorMsg);
+      message.error({
+        content: errorMsg,
+        duration: 4,
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -352,31 +419,72 @@ const Users = () => {
         delete submitData.password;
       }
       
+      let response;
       if (isEditing && selectedUser) {
-        const response = await updateEmployee(selectedUser._id, submitData);
+        response = await updateEmployee(selectedUser._id, submitData);
         if (response && response.success) {
-          message.success(response.message || 'User updated successfully');
+          message.success({
+            content: response.message || 'User updated successfully',
+            duration: 3,
+          });
           await fetchUsers();
+          resetForm();
+          setShowCreateModal(false);
         } else {
-          const errorMessage = response?.message || response?.error?.message || response?.errors?.map((e: any) => e.msg).join(', ') || 'Failed to update user';
-          message.error(errorMessage);
+          // Extract error message properly
+          const errorMessage = response?.message || 
+                              response?.error?.message || 
+                              response?.error || 
+                              (Array.isArray(response?.errors) ? response.errors.map((e: any) => e.msg || e.message || e).join(', ') : '') ||
+                              'Failed to update user';
+          console.log('Update error message to show:', errorMessage);
+          message.error({
+            content: errorMessage,
+            duration: 5,
+          });
+          // Don't close modal or reset form on error
         }
       } else {
-        const response = await createEmployee(submitData);
+        response = await createEmployee(submitData);
+        console.log('Create employee response:', response);
         if (response && response.success) {
-          message.success(response.message || 'User created successfully');
+          message.success({
+            content: response.message || 'User created successfully',
+            duration: 3,
+          });
           await fetchUsers();
+          resetForm();
+          setShowCreateModal(false);
         } else {
-          const errorMessage = response?.message || response?.error?.message || response?.errors?.map((e: any) => e.msg).join(', ') || 'Failed to create user';
-          message.error(errorMessage);
+          // Extract error message properly
+          const errorMessage = response?.message || 
+                              response?.error?.message || 
+                              response?.error || 
+                              (Array.isArray(response?.errors) ? response.errors.map((e: any) => e.msg || e.message || e).join(', ') : '') ||
+                              'Failed to create user';
+          console.log('Error message to show:', errorMessage);
+          console.log('Response object:', JSON.stringify(response, null, 2));
+          message.error({
+            content: errorMessage,
+            duration: 5,
+          });
+          // Don't close modal or reset form on error
         }
       }
-
-      resetForm();
-      setShowCreateModal(false);
     } catch (error: any) {
       console.error('Error saving user:', error);
-      message.error(error?.message || 'Failed to save user');
+      const errorMessage = error?.response?.data?.message || 
+                          error?.response?.data?.error?.message || 
+                          error?.response?.data?.error ||
+                          (Array.isArray(error?.response?.data?.errors) ? error.response.data.errors.map((e: any) => e.msg || e.message || e).join(', ') : '') ||
+                          error?.message || 
+                          'Failed to save user';
+      console.log('Catch error message to show:', errorMessage);
+      message.error({
+        content: errorMessage,
+        duration: 5,
+      });
+      // Don't close modal or reset form on error
     } finally {
       setLoading(false);
     }

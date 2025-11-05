@@ -6,15 +6,11 @@ import {
   Trash2,
   Eye,
   Search,
-  Filter,
-  TrendingUp,
   Users,
-  DollarSign,
   Calendar,
   CheckCircle,
   XCircle,
   Zap,
-  Download,
   BarChart3,
   Grid3x3,
   List,
@@ -23,7 +19,7 @@ import {
   ArrowUpDown,
   Sparkles,
 } from 'lucide-react';
-import { message, Modal, Input, Select, Button, Switch, Tag, Tabs, Tooltip, Dropdown } from 'antd';
+import { message, Modal, Input, Select, Button, Switch, Tag, Tooltip, Dropdown } from 'antd';
 import { getAllPlans, createPlan, updatePlan, deletePlan } from '../../../axios/api/superadmin';
 
 interface Plan {
@@ -62,6 +58,8 @@ interface Plan {
     };
   };
   features?: Array<{ name: string; included: boolean }>;
+  allowedRoles?: string[];
+  blockedRoles?: string[];
   status: 'active' | 'inactive';
   isDefault: boolean;
   createdAt?: string;
@@ -79,6 +77,10 @@ const Billing = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showCompareModal, setShowCompareModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePlanId, setDeletePlanId] = useState<string | null>(null);
+  const [deletePlanName, setDeletePlanName] = useState<string>('');
+  const [deleting, setDeleting] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [selectedPlans, setSelectedPlans] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -103,6 +105,8 @@ const Billing = () => {
       withoutHR: { price: 500, currency: 'CAD', enabled: true }
     },
     features: [] as Array<{ name: string; included: boolean }>,
+    allowedRoles: undefined as string[] | undefined,
+    blockedRoles: [] as string[],
     status: 'active' as 'active' | 'inactive',
     isDefault: false
   });
@@ -203,6 +207,8 @@ const Billing = () => {
         withoutHR: { price: 500, currency: 'CAD', enabled: true }
       },
       features: [],
+      allowedRoles: undefined,
+      blockedRoles: [],
       status: 'active',
       isDefault: false
     });
@@ -249,6 +255,8 @@ const Billing = () => {
         withoutHR: { price: 500, currency: 'CAD', enabled: true }
       },
       features: plan.features || [],
+      allowedRoles: plan.allowedRoles || undefined,
+      blockedRoles: plan.blockedRoles || [],
       status: plan.status,
       isDefault: plan.isDefault
     });
@@ -280,27 +288,33 @@ const Billing = () => {
   };
 
   const handleDelete = (plan: Plan) => {
-    Modal.confirm({
-      title: 'Delete Plan',
-      content: `Are you sure you want to delete "${plan.planName}"? This action cannot be undone.`,
-      okText: 'Delete',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: async () => {
-        try {
-          const response = await deletePlan(plan._id);
-          if (response?.success) {
-            message.success(response.message || 'Plan deleted successfully');
-            fetchPlans();
-          } else {
-            message.error(response?.message || 'Failed to delete plan');
-          }
-        } catch (error: any) {
-          console.error('Error deleting plan:', error);
-          message.error(error?.message || 'Failed to delete plan');
-        }
+    setDeletePlanId(plan._id);
+    setDeletePlanName(plan.planName);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletePlanId) return;
+
+    setDeleting(true);
+    try {
+      const response = await deletePlan(deletePlanId);
+      if (response?.success) {
+        message.success(response.message || 'Plan deleted successfully');
+        setShowDeleteModal(false);
+        setDeletePlanId(null);
+        setDeletePlanName('');
+        fetchPlans();
+      } else {
+        message.error(response?.message || 'Failed to delete plan');
       }
-    });
+    } catch (error: any) {
+      console.error('Error deleting plan:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete plan';
+      message.error(errorMessage);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleView = (plan: Plan) => {
@@ -310,11 +324,6 @@ const Billing = () => {
 
   const handleDuplicate = async (plan: Plan) => {
     try {
-      const duplicateData = {
-        ...formData,
-        planName: `${plan.planName} (Copy)`,
-        isDefault: false,
-      };
       setFormData({
         planName: `${plan.planName} (Copy)`,
         planType: plan.planType,
@@ -331,6 +340,8 @@ const Billing = () => {
           withoutHR: { price: 500, currency: 'CAD', enabled: true }
         },
         features: plan.features || [],
+        allowedRoles: plan.allowedRoles || undefined,
+        blockedRoles: plan.blockedRoles || [],
         status: 'inactive',
         isDefault: false
       });
@@ -644,6 +655,41 @@ const Billing = () => {
                     <p className="text-sm text-gray-600 mb-4 line-clamp-2">{plan.description}</p>
                   )}
 
+                  {/* Role Restrictions */}
+                  {(plan.blockedRoles && plan.blockedRoles.length > 0) || (plan.allowedRoles && plan.allowedRoles.length > 0) ? (
+                    <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-xs font-medium text-gray-700 mb-2">Role Restrictions:</p>
+                      {plan.blockedRoles && plan.blockedRoles.length > 0 && (
+                        <div className="mb-2">
+                          <p className="text-xs text-red-600 font-medium mb-1">Cannot Create:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {plan.blockedRoles.map((role) => (
+                              <Tag key={role} color="red" className="text-xs">
+                                {role.charAt(0).toUpperCase() + role.slice(1)}
+                              </Tag>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {plan.allowedRoles && plan.allowedRoles.length > 0 && (
+                        <div>
+                          <p className="text-xs text-green-600 font-medium mb-1">Can Only Create:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {plan.allowedRoles.map((role) => (
+                              <Tag key={role} color="green" className="text-xs">
+                                {role.charAt(0).toUpperCase() + role.slice(1)}
+                              </Tag>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-xs text-blue-700 font-medium">All roles allowed</p>
+                    </div>
+                  )}
+
                   {/* Actions */}
                   <div className="flex items-center gap-2 pt-4 border-t border-gray-100">
                     <Tooltip title="View Details">
@@ -679,9 +725,13 @@ const Billing = () => {
                       type="text"
                       danger
                       icon={<Trash2 className="w-4 h-4" />}
-                      onClick={() => handleDelete(plan)}
-                        className="flex-1"
-                      />
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDelete(plan);
+                      }}
+                      className="flex-1"
+                    />
                     </Tooltip>
                   </div>
                 </div>
@@ -712,6 +762,41 @@ const Billing = () => {
                       {plan.description && (
                         <p className="text-sm text-gray-600 mb-3">{plan.description}</p>
                       )}
+                      
+                      {/* Role Restrictions */}
+                      {(plan.blockedRoles && plan.blockedRoles.length > 0) || (plan.allowedRoles && plan.allowedRoles.length > 0) ? (
+                        <div className="mb-3 p-2 bg-gray-50 rounded border border-gray-200">
+                          {plan.blockedRoles && plan.blockedRoles.length > 0 && (
+                            <div className="mb-1">
+                              <span className="text-xs text-red-600 font-medium mr-2">Cannot Create:</span>
+                              <span className="text-xs">
+                                {plan.blockedRoles.map((role) => (
+                                  <Tag key={role} color="red" className="text-xs mr-1">
+                                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                                  </Tag>
+                                ))}
+                              </span>
+                            </div>
+                          )}
+                          {plan.allowedRoles && plan.allowedRoles.length > 0 && (
+                            <div>
+                              <span className="text-xs text-green-600 font-medium mr-2">Can Only Create:</span>
+                              <span className="text-xs">
+                                {plan.allowedRoles.map((role) => (
+                                  <Tag key={role} color="green" className="text-xs mr-1">
+                                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                                  </Tag>
+                                ))}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="mb-3">
+                          <Tag color="blue" className="text-xs">All roles allowed</Tag>
+                        </div>
+                      )}
+                      
                       <div className="flex items-center gap-6 text-sm">
                         {plan.planType === 'lifetime' && plan.lifetime && (
                           <div>
@@ -735,7 +820,17 @@ const Billing = () => {
                       <Button icon={<Eye className="w-4 h-4" />} onClick={() => handleView(plan)}>View</Button>
                       <Button icon={<Edit className="w-4 h-4" />} onClick={() => handleEdit(plan)}>Edit</Button>
                       <Button icon={<Copy className="w-4 h-4" />} onClick={() => handleDuplicate(plan)}>Duplicate</Button>
-                      <Button danger icon={<Trash2 className="w-4 h-4" />} onClick={() => handleDelete(plan)}>Delete</Button>
+                      <Button 
+                        danger 
+                        icon={<Trash2 className="w-4 h-4" />} 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDelete(plan);
+                        }}
+                      >
+                        Delete
+                      </Button>
                     </div>
                 </div>
               </div>
@@ -981,6 +1076,69 @@ const Billing = () => {
               </div>
             </div>
           )}
+
+          {/* Role Permissions */}
+          <div className="space-y-4 border p-4 rounded-lg">
+            <h4 className="font-medium text-gray-900 mb-3">Role Permissions</h4>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Allowed Roles (Optional)
+                <span className="text-xs text-gray-500 ml-2">Leave empty to allow all roles</span>
+              </label>
+              <Select
+                mode="multiple"
+                value={formData.allowedRoles || []}
+                onChange={(value) => setFormData({ ...formData, allowedRoles: value.length > 0 ? value : undefined })}
+                placeholder="Select allowed roles (empty = all roles allowed)"
+                className="w-full"
+                allowClear
+              >
+                <Select.Option value="admin">Admin</Select.Option>
+                <Select.Option value="employee">Employee</Select.Option>
+                <Select.Option value="driver">Driver</Select.Option>
+                <Select.Option value="dispatcher">Dispatcher</Select.Option>
+                <Select.Option value="hr">HR</Select.Option>
+                <Select.Option value="contact">Contact</Select.Option>
+                <Select.Option value="customer">Customer</Select.Option>
+                <Select.Option value="reporter">Reporter</Select.Option>
+                <Select.Option value="fleetmanager">Fleet Manager</Select.Option>
+                <Select.Option value="safetyofficer">Safety Officer</Select.Option>
+                <Select.Option value="operationsstaff">Operations Staff</Select.Option>
+                <Select.Option value="maintenancecrew">Maintenance Crew</Select.Option>
+                <Select.Option value="administrative">Administrative</Select.Option>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Blocked Roles
+                <span className="text-xs text-gray-500 ml-2">Roles that cannot be created with this plan</span>
+              </label>
+              <Select
+                mode="multiple"
+                value={formData.blockedRoles || []}
+                onChange={(value) => setFormData({ ...formData, blockedRoles: value || [] })}
+                placeholder="Select blocked roles"
+                className="w-full"
+                allowClear
+              >
+                <Select.Option value="admin">Admin</Select.Option>
+                <Select.Option value="employee">Employee</Select.Option>
+                <Select.Option value="driver">Driver</Select.Option>
+                <Select.Option value="dispatcher">Dispatcher</Select.Option>
+                <Select.Option value="hr">HR</Select.Option>
+                <Select.Option value="contact">Contact</Select.Option>
+                <Select.Option value="customer">Customer</Select.Option>
+                <Select.Option value="reporter">Reporter</Select.Option>
+                <Select.Option value="fleetmanager">Fleet Manager</Select.Option>
+                <Select.Option value="safetyofficer">Safety Officer</Select.Option>
+                <Select.Option value="operationsstaff">Operations Staff</Select.Option>
+                <Select.Option value="maintenancecrew">Maintenance Crew</Select.Option>
+                <Select.Option value="administrative">Administrative</Select.Option>
+              </Select>
+            </div>
+          </div>
 
           <div className="flex items-center justify-between">
             <div>
@@ -1254,6 +1412,69 @@ const Billing = () => {
             </div>
           )}
 
+          {/* Role Permissions */}
+          <div className="space-y-4 border p-4 rounded-lg">
+            <h4 className="font-medium text-gray-900 mb-3">Role Permissions</h4>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Allowed Roles (Optional)
+                <span className="text-xs text-gray-500 ml-2">Leave empty to allow all roles</span>
+              </label>
+              <Select
+                mode="multiple"
+                value={formData.allowedRoles || []}
+                onChange={(value) => setFormData({ ...formData, allowedRoles: value.length > 0 ? value : undefined })}
+                placeholder="Select allowed roles (empty = all roles allowed)"
+                className="w-full"
+                allowClear
+              >
+                <Select.Option value="admin">Admin</Select.Option>
+                <Select.Option value="employee">Employee</Select.Option>
+                <Select.Option value="driver">Driver</Select.Option>
+                <Select.Option value="dispatcher">Dispatcher</Select.Option>
+                <Select.Option value="hr">HR</Select.Option>
+                <Select.Option value="contact">Contact</Select.Option>
+                <Select.Option value="customer">Customer</Select.Option>
+                <Select.Option value="reporter">Reporter</Select.Option>
+                <Select.Option value="fleetmanager">Fleet Manager</Select.Option>
+                <Select.Option value="safetyofficer">Safety Officer</Select.Option>
+                <Select.Option value="operationsstaff">Operations Staff</Select.Option>
+                <Select.Option value="maintenancecrew">Maintenance Crew</Select.Option>
+                <Select.Option value="administrative">Administrative</Select.Option>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Blocked Roles
+                <span className="text-xs text-gray-500 ml-2">Roles that cannot be created with this plan</span>
+              </label>
+              <Select
+                mode="multiple"
+                value={formData.blockedRoles || []}
+                onChange={(value) => setFormData({ ...formData, blockedRoles: value || [] })}
+                placeholder="Select blocked roles"
+                className="w-full"
+                allowClear
+              >
+                <Select.Option value="admin">Admin</Select.Option>
+                <Select.Option value="employee">Employee</Select.Option>
+                <Select.Option value="driver">Driver</Select.Option>
+                <Select.Option value="dispatcher">Dispatcher</Select.Option>
+                <Select.Option value="hr">HR</Select.Option>
+                <Select.Option value="contact">Contact</Select.Option>
+                <Select.Option value="customer">Customer</Select.Option>
+                <Select.Option value="reporter">Reporter</Select.Option>
+                <Select.Option value="fleetmanager">Fleet Manager</Select.Option>
+                <Select.Option value="safetyofficer">Safety Officer</Select.Option>
+                <Select.Option value="operationsstaff">Operations Staff</Select.Option>
+                <Select.Option value="maintenancecrew">Maintenance Crew</Select.Option>
+                <Select.Option value="administrative">Administrative</Select.Option>
+              </Select>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
@@ -1355,6 +1576,47 @@ const Billing = () => {
                 </div>
               </div>
             )}
+
+            {/* Role Restrictions */}
+            <div className="border-t pt-6">
+              <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-purple-500" />
+                Role Permissions
+              </h4>
+              {(selectedPlan.blockedRoles && selectedPlan.blockedRoles.length > 0) || (selectedPlan.allowedRoles && selectedPlan.allowedRoles.length > 0) ? (
+                <div className="space-y-4">
+                  {selectedPlan.blockedRoles && selectedPlan.blockedRoles.length > 0 && (
+                    <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                      <p className="text-sm font-semibold text-red-700 mb-2">❌ Cannot Create These Roles:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedPlan.blockedRoles.map((role) => (
+                          <Tag key={role} color="red" className="text-sm px-3 py-1">
+                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                          </Tag>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {selectedPlan.allowedRoles && selectedPlan.allowedRoles.length > 0 && (
+                    <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                      <p className="text-sm font-semibold text-green-700 mb-2">✅ Can Only Create These Roles:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedPlan.allowedRoles.map((role) => (
+                          <Tag key={role} color="green" className="text-sm px-3 py-1">
+                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                          </Tag>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <p className="text-sm font-semibold text-blue-700">✅ All roles are allowed</p>
+                  <p className="text-xs text-blue-600 mt-1">Admins with this plan can create users with any role</p>
+                </div>
+              )}
+            </div>
 
             {/* Pricing Section */}
             {selectedPlan.planType === 'lifetime' && selectedPlan.lifetime && (
@@ -1607,6 +1869,69 @@ const Billing = () => {
           )}
           </div>
         </Modal>
+
+      {/* Delete Plan Confirmation Modal */}
+      <Modal
+        title={
+          <div className="flex items-center gap-2">
+            <Trash2 className="w-5 h-5 text-red-600" />
+            <span>Delete Plan</span>
+          </div>
+        }
+        open={showDeleteModal}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setDeletePlanId(null);
+          setDeletePlanName('');
+        }}
+        footer={[
+          <Button 
+            key="cancel"
+            onClick={() => {
+              setShowDeleteModal(false);
+              setDeletePlanId(null);
+              setDeletePlanName('');
+            }}
+            disabled={deleting}
+          >
+            Cancel
+          </Button>,
+          <Button
+            key="delete"
+            type="primary"
+            danger
+            onClick={confirmDelete}
+            loading={deleting}
+            className="bg-red-600 hover:bg-red-700 border-red-600"
+          >
+            {deleting ? 'Deleting...' : 'Delete Plan'}
+          </Button>
+        ]}
+        width={500}
+      >
+        <div className="py-4">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+              <Trash2 className="w-6 h-6 text-red-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Are you sure you want to delete this plan?
+              </h3>
+              <p className="text-gray-600 mb-4">
+                You are about to delete the plan <span className="font-semibold text-gray-900">"{deletePlanName}"</span>. 
+                This action cannot be undone.
+              </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-sm text-yellow-800">
+                  <strong>Warning:</strong> If this plan is associated with any active subscriptions, 
+                  you may need to update those subscriptions before deleting this plan.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
