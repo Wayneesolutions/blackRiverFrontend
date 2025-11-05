@@ -133,3 +133,62 @@ export const deletePlan = async (id: string) => {
   }
 };
 
+// ============ DASHBOARD ============
+
+// ✅ Get Super Admin Dashboard Data
+export const getSuperAdminDashboard = async (timeRange?: string) => {
+  try {
+    const params = new URLSearchParams();
+    if (timeRange) params.append('timeRange', timeRange);
+    
+    const res: AxiosResponse = await apiClient.get(`superadmin/dashboard?${params.toString()}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ============ REVENUE ============
+
+// ✅ Get Super Admin Revenue Data
+export const getSuperAdminRevenue = async (status?: string, page: number = 1, limit: number = 50) => {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (status && status !== 'all') params.append('status', status);
+    
+    const res: AxiosResponse = await apiClient.get(`superadmin/revenue?${params.toString()}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ============ SYSTEM SETTINGS ============
+
+// ✅ Get Super Admin Settings
+export const getSuperAdminSettings = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('superadmin/system-settings');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ✅ Update Super Admin Settings
+export const updateSuperAdminSettings = async (data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put('superadmin/system-settings', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+

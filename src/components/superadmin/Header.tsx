@@ -5,7 +5,6 @@ import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
-import QuickAction from "../common/QuickAction";
 
 const Header = () => {
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
@@ -45,11 +44,8 @@ const Header = () => {
 
     return (
         <header className="flex items-center justify-between px-4 py-4">
-            {/* Quick Action Search */}
-            <QuickAction />
-
             {/* Icons */}
-            <div className="flex items-center gap-4 ml-4 relative">
+            <div className="flex items-center gap-4 ml-auto relative">
                 <FaBell className="cursor-pointer" />
                 <div className="relative" ref={dropdownRef}>
                     <FaUserCircle 

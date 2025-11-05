@@ -1,203 +1,380 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
-  Mail,
   Save,
   Eye,
-  EyeOff
+  EyeOff,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
+  FileText,
+  Lock
 } from 'lucide-react';
+import { message } from 'antd';
+import { getSuperAdminSettings, updateSuperAdminSettings } from '../../../axios/api/superadmin';
 
 const SystemSettings = () => {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [settings, setSettings] = useState({
-    systemName: 'Super Admin Dashboard System',
-    systemDescription: 'Multi-tenant super admin dashboard platform',
-    maintenanceMode: false,
-    allowRegistration: true,
-    defaultTimezone: 'UTC',
-    sessionTimeout: 30,
-    twoFactorAuth: true,
-    passwordExpiry: 90,
-    maxLoginAttempts: 5,
-    sslEnabled: true,
-    smtpServer: 'smtp.company.com',
-    smtpPort: 587,
-    smtpUser: 'admin@company.com',
-    smtpPassword: '••••••••',
-    enableNotifications: true,
-    dbHost: 'db.company.com',
-    dbPort: 5432,
-    backupFrequency: 'daily'
+    name: '',
+    email: '',
+    phone: '',
+    country: '',
+    state: '',
+    city: '',
+    address: '',
+    policies: '',
+    password: '',
+    newPassword: ''
   });
 
+  useEffect(() => {
+    fetchSettings();
+  }, []);
 
-
-  const handleSave = () => {
-    console.log('Saving settings...', settings);
-    // Show success message or handle API call
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+      const response = await getSuperAdminSettings();
+      
+      if (response?.success && response?.data) {
+        setSettings({
+          name: response.data.name || '',
+          email: response.data.email || '',
+          phone: response.data.phone || '',
+          country: response.data.country || '',
+          state: response.data.state || '',
+          city: response.data.city || '',
+          address: response.data.address || '',
+          policies: response.data.policies || '',
+          password: '',
+          newPassword: ''
+        });
+      } else {
+        message.error(response?.message || 'Failed to load settings');
+      }
+    } catch (error: any) {
+      console.error('Error fetching settings:', error);
+      message.error(error?.message || 'Failed to load settings');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateSetting = (key:any, value:any) => {
+  const handleSave = async () => {
+    try {
+      // Validate required fields
+      if (!settings.name || !settings.email) {
+        message.error('Name and email are required');
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(settings.email)) {
+        message.error('Please enter a valid email address');
+        return;
+      }
+
+      // If new password is provided, current password is required
+      if (settings.newPassword && !settings.password) {
+        message.error('Current password is required to change password');
+        return;
+      }
+
+      // Validate new password length
+      if (settings.newPassword && settings.newPassword.length < 6) {
+        message.error('New password must be at least 6 characters');
+        return;
+      }
+
+      setSaving(true);
+      
+      const updateData: any = {
+        name: settings.name,
+        email: settings.email,
+        phone: settings.phone || undefined,
+        country: settings.country || undefined,
+        state: settings.state || undefined,
+        city: settings.city || undefined,
+        address: settings.address || undefined,
+        policies: settings.policies || undefined,
+      };
+
+      // Only include password fields if new password is provided
+      if (settings.newPassword) {
+        updateData.password = settings.password;
+        updateData.newPassword = settings.newPassword;
+      }
+
+      const response = await updateSuperAdminSettings(updateData);
+      
+      if (response?.success) {
+        message.success(response.message || 'Settings updated successfully');
+        // Clear password fields after successful save
+        setSettings(prev => ({
+          ...prev,
+          password: '',
+          newPassword: ''
+        }));
+        // Refetch to get latest data
+        await fetchSettings();
+      } else {
+        message.error(response?.message || 'Failed to update settings');
+      }
+    } catch (error: any) {
+      console.error('Error updating settings:', error);
+      message.error(error?.message || 'Failed to update settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateSetting = (key: string, value: any) => {
     setSettings(prev => ({
       ...prev,
       [key]: value
     }));
   };
 
-  return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
-          <p className="text-gray-600 mt-1">Configure system preferences and security settings</p>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading settings...</p>
         </div>
-        <button
-          onClick={handleSave}
-          className="flex items-center px-4 py-2 bg-purple-600 !text-white rounded-lg hover:bg-purple-700 transition-colors"
-        >
-          <Save className="w-4 h-4 mr-2" />
-          Save All Changes
-        </button>
       </div>
+    );
+  }
 
-    
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      {/* Header */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Settings className="w-6 h-6 mr-3 text-purple-600" />
+              System Settings
+            </h1>
+            <p className="text-gray-600 mt-1">Manage your super admin profile and preferences</p>
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {saving ? 'Saving...' : 'Save All Changes'}
+          </button>
+        </div>
+      </div>
 
       {/* Settings Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* General Settings */}
+        {/* Profile Information */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center mb-6">
-            <div className="bg-blue-100 p-2 rounded-lg mr-3">
-              <Settings className="w-5 h-5 text-blue-600" />
+            <div className="bg-purple-100 p-2 rounded-lg mr-3">
+              <User className="w-5 h-5 text-purple-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">General Settings</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Profile Information</h2>
           </div>
           
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                System Name
+                Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                value={settings.systemName}
-                onChange={(e) => updateSetting('systemName', e.target.value)}
+                value={settings.name}
+                onChange={(e) => updateSetting('name', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                placeholder="Enter your full name"
+                required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Default Timezone
+                Email Address <span className="text-red-500">*</span>
               </label>
-              <select
-                value={settings.defaultTimezone}
-                onChange={(e) => updateSetting('defaultTimezone', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              >
-                <option value="UTC">UTC</option>
-                <option value="EST">EST</option>
-                <option value="PST">PST</option>
-                <option value="GMT">GMT</option>
-              </select>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="email"
+                  value={settings.email}
+                  onChange={(e) => updateSetting('email', e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <h3 className="font-medium text-gray-900">Maintenance Mode</h3>
-                <p className="text-sm text-gray-600">Enable system maintenance</p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="tel"
+                  value={settings.phone}
+                  onChange={(e) => updateSetting('phone', e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Enter your phone number"
+                />
               </div>
-              <button
-                onClick={() => updateSetting('maintenanceMode', !settings.maintenanceMode)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  settings.maintenanceMode ? 'bg-purple-600' : 'bg-gray-300'
-                }`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  settings.maintenanceMode ? 'translate-x-6' : 'translate-x-1'
-                }`} />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <h3 className="font-medium text-gray-900">User Registration</h3>
-                <p className="text-sm text-gray-600">Allow new registrations</p>
-              </div>
-              <button
-                onClick={() => updateSetting('allowRegistration', !settings.allowRegistration)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  settings.allowRegistration ? 'bg-purple-600' : 'bg-gray-300'
-                }`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  settings.allowRegistration ? 'translate-x-6' : 'translate-x-1'
-                }`} />
-              </button>
             </div>
           </div>
         </div>
 
-      
-
-        {/* Email Settings */}
+        {/* Location Information */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center mb-6">
-            <div className="bg-green-100 p-2 rounded-lg mr-3">
-              <Mail className="w-5 h-5 text-green-600" />
+            <div className="bg-blue-100 p-2 rounded-lg mr-3">
+              <MapPin className="w-5 h-5 text-blue-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Email Configuration</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Location Information</h2>
           </div>
           
           <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Country
+              </label>
+              <div className="relative">
+                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={settings.country}
+                  onChange={(e) => updateSetting('country', e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Enter country"
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  SMTP Server
+                  State/Province
                 </label>
                 <input
                   type="text"
-                  value={settings.smtpServer}
-                  onChange={(e) => updateSetting('smtpServer', e.target.value)}
+                  value={settings.state}
+                  onChange={(e) => updateSetting('state', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Enter state"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Port
+                  City
                 </label>
                 <input
-                  type="number"
-                  value={settings.smtpPort}
-                  onChange={(e) => updateSetting('smtpPort', parseInt(e.target.value))}
+                  type="text"
+                  value={settings.city}
+                  onChange={(e) => updateSetting('city', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Enter city"
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Username
+                Address
               </label>
-              <input
-                type="email"
-                value={settings.smtpUser}
-                onChange={(e) => updateSetting('smtpUser', e.target.value)}
+              <textarea
+                value={settings.address}
+                onChange={(e) => updateSetting('address', e.target.value)}
+                rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                placeholder="Enter full address"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Policies */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center mb-6">
+            <div className="bg-green-100 p-2 rounded-lg mr-3">
+              <FileText className="w-5 h-5 text-green-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Policies</h2>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Policies
+            </label>
+            <textarea
+              value={settings.policies}
+              onChange={(e) => updateSetting('policies', e.target.value)}
+              rows={5}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              placeholder="Enter policies or terms"
+            />
+          </div>
+        </div>
+
+        {/* Password Change */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center mb-6">
+            <div className="bg-orange-100 p-2 rounded-lg mr-3">
+              <Lock className="w-5 h-5 text-orange-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Current Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showCurrentPassword ? 'text' : 'password'}
+                  value={settings.password}
+                  onChange={(e) => updateSetting('password', e.target.value)}
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Enter current password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                >
+                  {showCurrentPassword ? (
+                    <EyeOff className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <Eye className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                New Password
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  value={settings.smtpPassword}
-                  onChange={(e) => updateSetting('smtpPassword', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 pr-10"
+                  value={settings.newPassword}
+                  onChange={(e) => updateSetting('newPassword', e.target.value)}
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Enter new password (min 6 characters)"
                 />
                 <button
                   type="button"
@@ -211,31 +388,13 @@ const SystemSettings = () => {
                   )}
                 </button>
               </div>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <h3 className="font-medium text-gray-900">Email Notifications</h3>
-                <p className="text-sm text-gray-600">Enable system notifications</p>
-              </div>
-              <button
-                onClick={() => updateSetting('enableNotifications', !settings.enableNotifications)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  settings.enableNotifications ? 'bg-purple-600' : 'bg-gray-300'
-                }`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  settings.enableNotifications ? 'translate-x-6' : 'translate-x-1'
-                }`} />
-              </button>
+              <p className="text-xs text-gray-500 mt-1">
+                Leave blank to keep current password
+              </p>
             </div>
           </div>
         </div>
-
-      
       </div>
-
-  
     </div>
   );
 };

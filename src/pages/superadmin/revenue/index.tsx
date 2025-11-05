@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     DollarSign,
     TrendingUp,
@@ -12,113 +13,148 @@ import {
     AlertCircle,
     CheckCircle,
     Clock,
-
+    FileText,
+    Copy,
+    ExternalLink,
 } from 'lucide-react';
+import { Modal, Button, message } from 'antd';
+import { getSuperAdminRevenue } from '../../../axios/api/superadmin';
 
 const RevenueDashboard = () => {
-
+    const navigate = useNavigate();
+    
     const [revenueFilter, setRevenueFilter] = useState('all');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [revenueData, setRevenueData] = useState<any>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [limit] = useState(50);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [selectedRevenue, setSelectedRevenue] = useState<any>(null);
+    const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+    const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-    // Sample revenue data
-    const revenueData = [
-        {
-            id: 'REV-001',
-            customer: 'Global Logistics Corp',
-            customerId: 'CUST-001',
-            plan: 'Enterprise',
-            amount: 2500,
-            recurring: true,
-            paymentDate: '2024-08-01',
-            nextPayment: '2024-09-01',
-            status: 'Paid',
-            method: 'Credit Card',
-            growth: 15.2
-        },
-        {
-            id: 'REV-002',
-            customer: 'Urban Delivery Services',
-            customerId: 'CUST-002',
-            plan: 'Professional',
-            amount: 899,
-            recurring: true,
-            paymentDate: '2024-08-05',
-            nextPayment: '2024-09-05',
-            status: 'Paid',
-            method: 'Bank Transfer',
-            growth: 8.7
-        },
-        {
-            id: 'REV-003',
-            customer: 'QuickMove Solutions',
-            customerId: 'CUST-005',
-            plan: 'Enterprise',
-            amount: 2500,
-            recurring: true,
-            paymentDate: '2024-08-12',
-            nextPayment: '2024-09-12',
-            status: 'Paid',
-            method: 'Credit Card',
-            growth: 22.1
-        },
-        {
-            id: 'REV-004',
-            customer: 'Northern Freight Co',
-            customerId: 'CUST-006',
-            plan: 'Professional',
-            amount: 899,
-            recurring: true,
-            paymentDate: '2024-08-18',
-            nextPayment: '2024-09-18',
-            status: 'Paid',
-            method: 'Credit Card',
-            growth: -5.3
-        },
-        {
-            id: 'REV-005',
-            customer: 'Express Cargo Hub',
-            customerId: 'CUST-007',
-            plan: 'Starter',
-            amount: 199,
-            recurring: true,
-            paymentDate: '2024-08-22',
-            nextPayment: '2024-09-22',
-            status: 'Paid',
-            method: 'Credit Card',
-            growth: 12.4
-        },
-        {
-            id: 'REV-006',
-            customer: 'FastTrack Shipping',
-            customerId: 'CUST-003',
-            plan: 'Starter',
-            amount: 199,
-            recurring: false,
-            paymentDate: '2024-08-10',
-            nextPayment: 'Trial',
-            status: 'Trial',
-            method: 'N/A',
-            growth: 0
-        },
-        {
-            id: 'REV-007',
-            customer: 'Metro Transport Ltd',
-            customerId: 'CUST-004',
-            plan: 'Professional',
-            amount: 899,
-            recurring: true,
-            paymentDate: '2024-07-28',
-            nextPayment: '2024-08-28',
-            status: 'Overdue',
-            method: 'Credit Card',
-            growth: -12.8
+    useEffect(() => {
+        fetchRevenueData();
+    }, [revenueFilter, currentPage]);
+
+    // Close dropdown when clicking outside or pressing Escape
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (activeDropdown && dropdownRefs.current[activeDropdown]) {
+                const dropdownElement = dropdownRefs.current[activeDropdown];
+                if (dropdownElement && !dropdownElement.contains(event.target as Node)) {
+                    setActiveDropdown(null);
+                }
+            }
+        };
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && activeDropdown) {
+                setActiveDropdown(null);
+            }
+        };
+
+        if (activeDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleEscape);
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+                document.removeEventListener('keydown', handleEscape);
+            };
         }
-    ];
+    }, [activeDropdown]);
 
-    // Revenue metrics
-    const totalRevenue = revenueData.reduce((sum, item) => sum + (item.status === 'Paid' ? item.amount : 0), 0);
-    const monthlyRecurring = revenueData.filter(item => item.recurring && item.status === 'Paid').reduce((sum, item) => sum + item.amount, 0);
-    const overdueAmount = revenueData.filter(item => item.status === 'Overdue').reduce((sum, item) => sum + item.amount, 0);
-    const trialRevenuePotential = revenueData.filter(item => item.status === 'Trial').reduce((sum, item) => sum + item.amount, 0);
+    const fetchRevenueData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getSuperAdminRevenue(revenueFilter, currentPage, limit);
+            
+            console.log('Full API Response:', response);
+            
+            if (response?.success && response?.data) {
+                console.log('Setting revenue data:', response.data);
+                setRevenueData(response.data);
+            } else {
+                setError(response?.message || 'Failed to load revenue data');
+            }
+        } catch (err: any) {
+            console.error('Revenue fetch error:', err);
+            setError(err?.message || 'An error occurred while fetching revenue data');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading revenue data...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-600 mb-4">{error}</p>
+                    <button
+                        onClick={fetchRevenueData}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (!revenueData) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p className="text-gray-600">No data available</p>
+            </div>
+        );
+    }
+
+    // Use real data from API
+    const revenueEntries = revenueData.revenueEntries || [];
+    const metrics = revenueData.metrics || {};
+    const pagination = revenueData.pagination || { total: 0, page: 1, limit: 50, totalPages: 1 };
+
+    // Debug logging
+    console.log('Revenue Data:', revenueData);
+    console.log('Metrics:', metrics);
+    console.log('Revenue Entries:', revenueEntries);
+
+    // Revenue metrics from API - ensure proper number handling
+    const totalRevenue = typeof metrics.totalRevenue === 'number' 
+        ? metrics.totalRevenue 
+        : (metrics.totalRevenue != null ? parseFloat(String(metrics.totalRevenue)) : 0);
+    const monthlyRecurring = typeof metrics.monthlyRecurring === 'number' 
+        ? metrics.monthlyRecurring 
+        : (metrics.monthlyRecurring != null ? parseFloat(String(metrics.monthlyRecurring)) : 0);
+    const overdueAmount = typeof metrics.overdueAmount === 'number' 
+        ? metrics.overdueAmount 
+        : (metrics.overdueAmount != null ? parseFloat(String(metrics.overdueAmount)) : 0);
+    const trialRevenuePotential = typeof metrics.trialRevenuePotential === 'number' 
+        ? metrics.trialRevenuePotential 
+        : (metrics.trialRevenuePotential != null ? parseFloat(String(metrics.trialRevenuePotential)) : 0);
+    const revenueGrowth = typeof metrics.revenueGrowth === 'number' 
+        ? metrics.revenueGrowth 
+        : (metrics.revenueGrowth != null ? parseFloat(String(metrics.revenueGrowth)) : 0);
+    const monthlyRecurringGrowth = typeof metrics.monthlyRecurringGrowth === 'number' 
+        ? metrics.monthlyRecurringGrowth 
+        : (metrics.monthlyRecurringGrowth != null ? parseFloat(String(metrics.monthlyRecurringGrowth)) : 0);
+
+    console.log('Metrics object:', metrics);
+    console.log('Total Revenue:', totalRevenue, typeof totalRevenue, 'Raw:', metrics.totalRevenue);
+    console.log('Monthly Recurring:', monthlyRecurring, typeof monthlyRecurring, 'Raw:', metrics.monthlyRecurring);
 
     const getStatusColor = (status: any) => {
         switch (status) {
@@ -141,13 +177,31 @@ const RevenueDashboard = () => {
     };
 
 
-    const filteredRevenue = revenueData.filter(item => {
-        if (revenueFilter === 'all') return true;
-        if (revenueFilter === 'paid') return item.status === 'Paid';
-        if (revenueFilter === 'overdue') return item.status === 'Overdue';
-        if (revenueFilter === 'trial') return item.status === 'Trial';
-        return true;
-    });
+    // Filtering is handled by the API, but we can add client-side filter if needed
+    const filteredRevenue = revenueEntries;
+
+    const handleViewDetails = (revenue: any) => {
+        setSelectedRevenue(revenue);
+        setShowViewModal(true);
+    };
+
+    const handlePaymentActions = (_revenue: any) => {
+        message.info('Payment actions functionality coming soon');
+    };
+
+    const handleCopyId = (id: string) => {
+        navigator.clipboard.writeText(id);
+        message.success('ID copied to clipboard');
+    };
+
+    const handleExport = (_revenue: any) => {
+        message.info('Export functionality coming soon');
+    };
+
+    const handleMoreActions = (revenueId: string, event: React.MouseEvent) => {
+        event.stopPropagation();
+        setActiveDropdown(activeDropdown === revenueId ? null : revenueId);
+    };
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -173,10 +227,14 @@ const RevenueDashboard = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
-                                <p className="text-2xl font-bold text-gray-900">${totalRevenue.toLocaleString()}</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    ${typeof totalRevenue === 'number' && !isNaN(totalRevenue) ? totalRevenue.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
+                                </p>
                                 <div className="flex items-center mt-2">
                                     <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                                    <span className="text-sm text-green-600">+12.5% from last month</span>
+                                    <span className="text-sm text-green-600">
+                                        {revenueGrowth >= 0 ? '+' : ''}{revenueGrowth}% from last month
+                                    </span>
                                 </div>
                             </div>
                             <div className="bg-green-100 p-3 rounded-lg">
@@ -190,10 +248,14 @@ const RevenueDashboard = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-600 mb-1">Monthly Recurring</p>
-                                <p className="text-2xl font-bold text-gray-900">${monthlyRecurring.toLocaleString()}</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    ${typeof monthlyRecurring === 'number' && !isNaN(monthlyRecurring) ? monthlyRecurring.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
+                                </p>
                                 <div className="flex items-center mt-2">
                                     <TrendingUp className="w-4 h-4 text-blue-500 mr-1" />
-                                    <span className="text-sm text-blue-600">+8.2% growth</span>
+                                    <span className="text-sm text-blue-600">
+                                        {monthlyRecurringGrowth >= 0 ? '+' : ''}{monthlyRecurringGrowth}% growth
+                                    </span>
                                 </div>
                             </div>
                             <div className="bg-blue-100 p-3 rounded-lg">
@@ -207,7 +269,9 @@ const RevenueDashboard = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-600 mb-1">Overdue Amount</p>
-                                <p className="text-2xl font-bold text-gray-900">${overdueAmount.toLocaleString()}</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    ${typeof overdueAmount === 'number' && !isNaN(overdueAmount) ? overdueAmount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
+                                </p>
                                 <div className="flex items-center mt-2">
                                     <AlertCircle className="w-4 h-4 text-red-500 mr-1" />
                                     <span className="text-sm text-red-600">Needs attention</span>
@@ -224,7 +288,9 @@ const RevenueDashboard = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-600 mb-1">Trial Potential</p>
-                                <p className="text-2xl font-bold text-gray-900">${trialRevenuePotential.toLocaleString()}</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    ${typeof trialRevenuePotential === 'number' && !isNaN(trialRevenuePotential) ? trialRevenuePotential.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
+                                </p>
                                 <div className="flex items-center mt-2">
                                     <Clock className="w-4 h-4 text-purple-500 mr-1" />
                                     <span className="text-sm text-purple-600">Conversion pending</span>
@@ -239,8 +305,50 @@ const RevenueDashboard = () => {
 
 
 
-                {/* Results Summary */}
-                <div className="mb-6">
+                {/* Filter and Results Summary */}
+                <div className="mb-6 flex items-center justify-between">
+                    <div className="flex space-x-2">
+                        <button
+                            onClick={() => setRevenueFilter('all')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                revenueFilter === 'all'
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            All
+                        </button>
+                        <button
+                            onClick={() => setRevenueFilter('paid')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                revenueFilter === 'paid'
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            Paid
+                        </button>
+                        <button
+                            onClick={() => setRevenueFilter('overdue')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                revenueFilter === 'overdue'
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            Overdue
+                        </button>
+                        <button
+                            onClick={() => setRevenueFilter('trial')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                revenueFilter === 'trial'
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            Trial
+                        </button>
+                    </div>
                     <p className="text-gray-600">
                         Showing <span className="font-medium">{filteredRevenue.length}</span> revenue entries
                     </p>
@@ -274,7 +382,7 @@ const RevenueDashboard = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {filteredRevenue.map((revenue) => (
+                                {filteredRevenue.map((revenue: any) => (
                                     <tr key={revenue.id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap w-64">
                                             <div className="flex items-center">
@@ -282,15 +390,18 @@ const RevenueDashboard = () => {
                                                     <Building2 className="w-5 h-5 text-green-600" />
                                                 </div>
                                                 <div>
-                                                    <div className="text-sm font-medium text-gray-900">{revenue.customer}</div>
+                                                    <div className="text-sm font-medium text-gray-900">{revenue.customer || revenue.adminName || 'N/A'}</div>
                                                     <div className="text-sm text-gray-500">{revenue.customerId}</div>
+                                                    {revenue.companyName && (
+                                                        <div className="text-xs text-gray-400 mt-0.5">Company: {revenue.companyName}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>
 
                                         <td className="px-6 py-4 whitespace-nowrap w-32">
                                             <div className="text-sm font-medium text-gray-900">
-                                                ${revenue.amount.toLocaleString()}
+                                                ${typeof revenue.amount === 'number' && !isNaN(revenue.amount) ? revenue.amount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
                                             </div>
                                             <div className="text-xs text-gray-500">
                                                 {revenue.recurring ? 'Monthly' : 'One-time'}
@@ -312,15 +423,94 @@ const RevenueDashboard = () => {
 
                                         <td className="px-6 py-4 whitespace-nowrap w-32">
                                             <div className="flex items-center space-x-2">
-                                                <button className="text-gray-400 hover:text-green-600 p-1 rounded">
+                                                <button
+                                                    onClick={() => handleViewDetails(revenue)}
+                                                    className="text-gray-400 hover:text-green-600 p-1 rounded transition-colors"
+                                                    title="View Details"
+                                                >
                                                     <Eye className="w-4 h-4" />
                                                 </button>
-                                                <button className="text-gray-400 hover:text-blue-600 p-1 rounded">
+                                                <button
+                                                    onClick={() => handlePaymentActions(revenue)}
+                                                    className="text-gray-400 hover:text-blue-600 p-1 rounded transition-colors"
+                                                    title="Payment Actions"
+                                                >
                                                     <CreditCard className="w-4 h-4" />
                                                 </button>
-                                                <button className="text-gray-400 hover:text-gray-600 p-1 rounded">
-                                                    <MoreHorizontal className="w-4 h-4" />
-                                                </button>
+                                                <div className="relative" ref={(el) => { dropdownRefs.current[revenue.id] = el; }}>
+                                                    <button
+                                                        onClick={(e) => handleMoreActions(revenue.id, e)}
+                                                        className="text-gray-400 hover:text-gray-600 p-1 rounded transition-colors"
+                                                        title="More Actions"
+                                                    >
+                                                        <MoreHorizontal className="w-4 h-4" />
+                                                    </button>
+                                                    {activeDropdown === revenue.id && (
+                                                        <>
+                                                            {/* Backdrop to close on click outside */}
+                                                            <div 
+                                                                className="fixed inset-0 z-[9998]" 
+                                                                onClick={() => setActiveDropdown(null)}
+                                                            />
+                                                            {/* Dropdown menu */}
+                                                            <div className="absolute right-0 bottom-full mb-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-[9999] py-1 overflow-hidden">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleCopyId(revenue.id);
+                                                                        setActiveDropdown(null);
+                                                                    }}
+                                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                                                >
+                                                                    <Copy className="w-4 h-4" />
+                                                                    <span>Copy Revenue ID</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleExport(revenue);
+                                                                        setActiveDropdown(null);
+                                                                    }}
+                                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                                                >
+                                                                    <Download className="w-4 h-4" />
+                                                                    <span>Export Details</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleCopyId(revenue.customerId);
+                                                                        setActiveDropdown(null);
+                                                                    }}
+                                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                                                >
+                                                                    <Copy className="w-4 h-4" />
+                                                                    <span>Copy Customer ID</span>
+                                                                </button>
+                                                                <div className="border-t border-gray-200 my-1"></div>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setActiveDropdown(null);
+                                                                        // Navigate to viewalladmins page
+                                                                        navigate('/superadmin/viewalladmins');
+                                                                        // Show message with customer ID for easy searching
+                                                                        setTimeout(() => {
+                                                                            message.info({
+                                                                                content: `Navigate to Admin Accounts page. Search for customer ID: ${revenue.customerId}`,
+                                                                                duration: 5,
+                                                                            });
+                                                                        }, 300);
+                                                                    }}
+                                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                                                >
+                                                                    <ExternalLink className="w-4 h-4" />
+                                                                    <span>View Customer Profile</span>
+                                                                </button>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -333,24 +523,196 @@ const RevenueDashboard = () => {
                 {/* Pagination */}
                 <div className="mt-6 flex items-center justify-between">
                     <div className="text-sm text-gray-600">
-                        Showing 1 to {filteredRevenue.length} of {revenueData.length} revenue entries
+                        Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, pagination.total)} of {pagination.total} revenue entries
                     </div>
                     <div className="flex space-x-2">
-                        <button className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50">
+                        <button 
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
                             Previous
                         </button>
-                        <button className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">
-                            1
+                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                            const pageNum = i + 1;
+                            return (
+                                <button
+                                    key={pageNum}
+                                    onClick={() => setCurrentPage(pageNum)}
+                                    className={`px-3 py-2 rounded-lg text-sm ${
+                                        currentPage === pageNum
+                                            ? 'bg-green-600 text-white hover:bg-green-700'
+                                            : 'border border-gray-300 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    {pageNum}
                         </button>
-                        <button className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
-                            2
-                        </button>
-                        <button className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
+                            );
+                        })}
+                        <button 
+                            onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                            disabled={currentPage >= pagination.totalPages}
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
                             Next
                         </button>
                     </div>
                 </div>
             </div>
+
+            {/* View Revenue Details Modal */}
+            <Modal
+                title={
+                    <div className="flex items-center gap-2">
+                        <DollarSign className="w-5 h-5 text-green-600" />
+                        <span>Revenue Details</span>
+                    </div>
+                }
+                open={showViewModal}
+                onCancel={() => {
+                    setShowViewModal(false);
+                    setSelectedRevenue(null);
+                }}
+                footer={[
+                    <Button key="close" onClick={() => {
+                        setShowViewModal(false);
+                        setSelectedRevenue(null);
+                    }}>
+                        Close
+                    </Button>,
+                    <Button
+                        key="export"
+                        type="primary"
+                        icon={<Download className="w-4 h-4" />}
+                        onClick={() => {
+                            if (selectedRevenue) handleExport(selectedRevenue);
+                        }}
+                        className="bg-green-600 hover:bg-green-700"
+                    >
+                        Export
+                    </Button>
+                ]}
+                width={700}
+            >
+                {selectedRevenue && (
+                    <div className="space-y-6 py-4">
+                        {/* Customer Information */}
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
+                            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <Building2 className="w-4 h-4" />
+                                Customer Information
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Customer Name</p>
+                                    <p className="text-sm font-medium text-gray-900">{selectedRevenue.customer || selectedRevenue.adminName || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Customer ID</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm font-medium text-gray-900">{selectedRevenue.customerId}</p>
+                                        <button
+                                            onClick={() => handleCopyId(selectedRevenue.customerId)}
+                                            className="text-gray-400 hover:text-gray-600"
+                                            title="Copy ID"
+                                        >
+                                            <Copy className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                </div>
+                                {selectedRevenue.companyName && (
+                                    <div className="col-span-2">
+                                        <p className="text-xs text-gray-600 mb-1">Company Name</p>
+                                        <p className="text-sm font-medium text-gray-900">{selectedRevenue.companyName}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Payment Information */}
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+                            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <CreditCard className="w-4 h-4" />
+                                Payment Information
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Amount</p>
+                                    <p className="text-lg font-bold text-gray-900">
+                                        ${typeof selectedRevenue.amount === 'number' && !isNaN(selectedRevenue.amount) 
+                                            ? selectedRevenue.amount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) 
+                                            : '0'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Payment Type</p>
+                                    <p className="text-sm font-medium text-gray-900">
+                                        {selectedRevenue.recurring ? 'Monthly Recurring' : 'One-time'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Payment Date</p>
+                                    <p className="text-sm font-medium text-gray-900">{selectedRevenue.paymentDate}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Next Payment</p>
+                                    <p className="text-sm font-medium text-gray-900">{selectedRevenue.nextPayment || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Payment Method</p>
+                                    <p className="text-sm font-medium text-gray-900">{selectedRevenue.method || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Status</p>
+                                    <div className="flex items-center gap-2">
+                                        {getStatusIcon(selectedRevenue.status)}
+                                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(selectedRevenue.status)}`}>
+                                            {selectedRevenue.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Plan Information */}
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <FileText className="w-4 h-4" />
+                                Plan Information
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Plan Name</p>
+                                    <p className="text-sm font-medium text-gray-900">{selectedRevenue.plan || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Plan Type</p>
+                                    <p className="text-sm font-medium text-gray-900">
+                                        {selectedRevenue.recurring ? 'Monthly' : 'Lifetime'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Revenue ID */}
+                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Revenue Entry ID</p>
+                                    <p className="text-sm font-mono text-gray-900">{selectedRevenue.id}</p>
+                                </div>
+                                <button
+                                    onClick={() => handleCopyId(selectedRevenue.id)}
+                                    className="text-gray-400 hover:text-gray-600 p-1 rounded"
+                                    title="Copy Revenue ID"
+                                >
+                                    <Copy className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };
