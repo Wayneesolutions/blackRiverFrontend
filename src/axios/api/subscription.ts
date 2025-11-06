@@ -64,3 +64,25 @@ export const cancelSubscription = async (subscriptionId: string) => {
   }
 };
 
+// ✅ Get Trial Status
+export const getTrialStatus = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/trial/status');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ✅ Check Access (trial/subscription)
+export const checkTrialAccess = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/trial/check-access');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+

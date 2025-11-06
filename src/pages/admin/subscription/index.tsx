@@ -22,7 +22,7 @@ import {
   Star,
 } from 'lucide-react';
 import { message, Modal, Button, Tag, Card, Spin, Tabs, Progress } from 'antd';
-import { getAllPlans, getMySubscription, getMySubscriptions, createCheckoutSession, cancelSubscription } from '../../../axios/api/subscription';
+import { getAllPlans, getMySubscription, getMySubscriptions, createCheckoutSession, cancelSubscription, getTrialStatus } from '../../../axios/api/subscription';
 import { getAllowedRolesForAdmin } from '../../../axios/api/superadmin';
 
 interface Plan {
@@ -72,6 +72,18 @@ interface Subscription {
   };
 }
 
+interface TrialStatus {
+  hasActiveSubscription: boolean;
+  isTrialActive: boolean;
+  isTrialExpired: boolean;
+  hasTrial: boolean;
+  trialStartDate?: string;
+  trialEndDate?: string;
+  daysUsed?: number;
+  daysRemaining?: number;
+  message?: string;
+}
+
 const SubscriptionPage = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [activeSubscription, setActiveSubscription] = useState<Subscription | null>(null);
@@ -85,6 +97,7 @@ const SubscriptionPage = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelSubscriptionId, setCancelSubscriptionId] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -93,11 +106,12 @@ const SubscriptionPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [plansRes, subscriptionRes, subscriptionsRes, allowedRolesRes] = await Promise.all([
+      const [plansRes, subscriptionRes, subscriptionsRes, allowedRolesRes, trialRes] = await Promise.all([
         getAllPlans(),
         getMySubscription(),
         getMySubscriptions(),
         getAllowedRolesForAdmin(),
+        getTrialStatus(),
       ]);
 
       if (plansRes?.success) {
@@ -114,6 +128,10 @@ const SubscriptionPage = () => {
 
       if (allowedRolesRes?.success && allowedRolesRes.data?.allowedRoles) {
         setAllowedRoles(allowedRolesRes.data.allowedRoles || []);
+      }
+
+      if (trialRes?.success && trialRes.data) {
+        setTrialStatus(trialRes.data);
       }
     } catch (error: any) {
       console.error('Error fetching subscription data:', error);
@@ -283,6 +301,116 @@ const SubscriptionPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Trial Status Card */}
+        {trialStatus && !trialStatus.hasActiveSubscription && trialStatus.hasTrial && (
+          <div className={`mb-8 relative overflow-hidden rounded-2xl shadow-2xl ${
+            trialStatus.isTrialExpired 
+              ? 'bg-gradient-to-br from-red-500 via-red-600 to-orange-600' 
+              : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
+              ? 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500'
+              : 'bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600'
+          }`}>
+            <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
+            
+            <div className="relative p-8 z-10">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                      {trialStatus.isTrialExpired ? (
+                        <XCircle className="w-6 h-6 text-white" />
+                      ) : (
+                        <Clock className="w-6 h-6 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                        {trialStatus.isTrialExpired ? 'Free Trial Expired' : 'Free Trial Active'}
+                      </h2>
+                      <p className="text-white/90 mt-1">
+                        {trialStatus.isTrialExpired 
+                          ? 'Your 7-day free trial has ended. Subscribe now to continue using the platform.'
+                          : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
+                          ? `⚠️ Your free trial is expiring soon! Only ${trialStatus.daysRemaining} day${trialStatus.daysRemaining === 1 ? '' : 's'} remaining.`
+                          : `You have ${trialStatus.daysRemaining || 0} days remaining in your free trial.`
+                        }
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="w-5 h-5 text-white" />
+                        <span className="text-white/80 text-sm font-medium">Days Used</span>
+                      </div>
+                      <p className="text-white text-2xl font-bold">
+                        {trialStatus.daysUsed || 0} / 7
+                      </p>
+                    </div>
+
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="w-5 h-5 text-white" />
+                        <span className="text-white/80 text-sm font-medium">Days Remaining</span>
+                      </div>
+                      <p className="text-white text-2xl font-bold">
+                        {trialStatus.daysRemaining || 0}
+                      </p>
+                    </div>
+
+                    {trialStatus.trialEndDate && (
+                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertCircle className="w-5 h-5 text-white" />
+                          <span className="text-white/80 text-sm font-medium">Expires On</span>
+                        </div>
+                        <p className="text-white text-lg font-bold">
+                          {new Date(trialStatus.trialEndDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {trialStatus.daysRemaining !== undefined && trialStatus.daysRemaining > 0 && (
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white/80 text-sm font-medium">Trial Progress</span>
+                        <span className="text-white text-sm font-bold">
+                          {Math.round(((7 - (trialStatus.daysRemaining || 0)) / 7) * 100)}%
+                        </span>
+                      </div>
+                      <Progress 
+                        percent={Math.round(((7 - (trialStatus.daysRemaining || 0)) / 7) * 100)} 
+                        strokeColor="#ffffff"
+                        trailColor="rgba(255,255,255,0.3)"
+                        showInfo={false}
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex gap-4">
+                    <Button
+                      type="primary"
+                      size="large"
+                      className="bg-white text-purple-600 hover:bg-white/90 border-0 font-semibold"
+                      onClick={() => setActiveTab('plans')}
+                    >
+                      <ArrowRight className="w-4 h-4 mr-2" />
+                      {trialStatus.isTrialExpired ? 'Subscribe Now' : 'View Plans'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Enhanced Active Subscription Card */}
         {activeSubscription && (

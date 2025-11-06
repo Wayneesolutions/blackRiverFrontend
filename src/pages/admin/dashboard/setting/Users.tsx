@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, X, Users as UsersIcon, Filter, Search, Truck, Mail, CreditCard, FileText } from 'lucide-react';
-import { Select, Tag, message } from "antd";
+import { Select, Tag, message, notification } from "antd";
 import { 
   getAllEmployees, 
   createEmployee, 
@@ -163,6 +163,7 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [showDriverPanel, setShowDriverPanel] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const roleOptions: Role[] = ['admin', 'superadmin', 'driver', 'dispatcher', 'hr', 'employee', 'contact', 'customer', 'reporter', 'fleetmanager', 'safetyofficer', 'operationsstaff', 'maintenancecrew', 'administrative'];
 
@@ -246,6 +247,14 @@ const Users = () => {
       const response = await getAllEmployees(1, 1000, searchQuery, selectedRole !== 'all' ? selectedRole : undefined, selectedStatus !== 'all' ? selectedStatus : undefined);
       if (response && response.success) {
         setUsers(response.data || []);
+        
+        // Show message if company setup is required
+        if (response.requiresCompanySetup && response.message) {
+          message.warning({
+            content: response.message,
+            duration: 6,
+          });
+        }
       } else {
         console.error(response?.message || 'Error fetching users');
         message.error(response?.message || 'Error fetching users');
@@ -479,11 +488,15 @@ const Users = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Clear any previous error messages
+    setModalError(null);
+    
     // Frontend validation
     const validation = validateForm();
     if (!validation.isValid) {
       const errorMsg = validation.errors.join(', ');
       console.log('Validation errors:', errorMsg);
+      setModalError(errorMsg);
       message.error({
         content: errorMsg,
         duration: 4,
@@ -533,7 +546,10 @@ const Users = () => {
       let response;
       if (isEditing && selectedUser) {
         response = await updateEmployee(selectedUser._id, submitData);
-        if (response && response.success) {
+        
+        // Check if response exists and has success property
+        if (response && response.success === true) {
+          setModalError(null); // Clear any error messages
           message.success({
             content: response.message || 'User updated successfully',
             duration: 3,
@@ -542,23 +558,51 @@ const Users = () => {
           resetForm();
           setShowCreateModal(false);
         } else {
-          // Extract error message properly
-          const errorMessage = response?.message || 
-                              response?.error?.message || 
-                              response?.error || 
-                              (Array.isArray(response?.errors) ? response.errors.map((e: any) => e.msg || e.message || e).join(', ') : '') ||
-                              'Failed to update user';
-          console.log('Update error message to show:', errorMessage);
-          message.error({
-            content: errorMessage,
-            duration: 5,
+          // Handle both success: false and error responses
+          // Prioritize detailed errors from errors array over generic message
+          let errorMessage = 'Failed to update user';
+          
+          if (Array.isArray(response?.errors) && response.errors.length > 0) {
+            // Extract detailed validation errors
+            const errorDetails = response.errors.map((e: any) => {
+              const field = e.path || e.field || '';
+              const msg = e.msg || e.message || '';
+              return field ? `${field}: ${msg}` : msg;
+            }).join('; ');
+            errorMessage = errorDetails || response?.message || 'Validation failed';
+          } else if (response?.message) {
+            errorMessage = response.message;
+          } else if (response?.error?.message) {
+            errorMessage = response.error.message;
+          } else if (typeof response?.error === 'string') {
+            errorMessage = response.error;
+          }
+          
+          console.log('❌ Update user error - Response:', JSON.stringify(response, null, 2));
+          console.log('❌ Error message to show:', errorMessage);
+          
+          // Set error message in modal
+          setModalError(errorMessage);
+          
+          // Also show notification for better visibility
+          notification.error({
+            message: 'Error Updating User',
+            description: errorMessage,
+            duration: 8, // Longer duration for important messages
+            placement: 'topRight',
+            style: {
+              zIndex: 9999, // Ensure it's above modal
+            },
           });
           // Don't close modal or reset form on error
         }
       } else {
         response = await createEmployee(submitData);
         console.log('Create employee response:', response);
-        if (response && response.success) {
+        
+        // Check if response exists and has success property
+        if (response && response.success === true) {
+          setModalError(null); // Clear any error messages
           message.success({
             content: response.message || 'User created successfully',
             duration: 3,
@@ -567,33 +611,86 @@ const Users = () => {
           resetForm();
           setShowCreateModal(false);
         } else {
-          // Extract error message properly
-          const errorMessage = response?.message || 
-                              response?.error?.message || 
-                              response?.error || 
-                              (Array.isArray(response?.errors) ? response.errors.map((e: any) => e.msg || e.message || e).join(', ') : '') ||
-                              'Failed to create user';
-          console.log('Error message to show:', errorMessage);
-          console.log('Response object:', JSON.stringify(response, null, 2));
-          message.error({
-            content: errorMessage,
-            duration: 5,
+          // Handle both success: false and error responses
+          // Prioritize detailed errors from errors array over generic message
+          let errorMessage = 'Failed to create user';
+          
+          if (Array.isArray(response?.errors) && response.errors.length > 0) {
+            // Extract detailed validation errors
+            const errorDetails = response.errors.map((e: any) => {
+              const field = e.path || e.field || '';
+              const msg = e.msg || e.message || '';
+              return field ? `${field}: ${msg}` : msg;
+            }).join('; ');
+            errorMessage = errorDetails || response?.message || 'Validation failed';
+          } else if (response?.message) {
+            errorMessage = response.message;
+          } else if (response?.error?.message) {
+            errorMessage = response.error.message;
+          } else if (typeof response?.error === 'string') {
+            errorMessage = response.error;
+          }
+          
+          console.log('❌ Create user error - Response:', JSON.stringify(response, null, 2));
+          console.log('❌ Error message to show:', errorMessage);
+          
+          // Set error message in modal
+          setModalError(errorMessage);
+          
+          // Also show notification for better visibility
+          notification.error({
+            message: 'Error Creating User',
+            description: errorMessage,
+            duration: 8, // Longer duration for important messages
+            placement: 'topRight',
+            style: {
+              zIndex: 9999, // Ensure it's above modal
+            },
           });
           // Don't close modal or reset form on error
         }
       }
     } catch (error: any) {
-      console.error('Error saving user:', error);
-      const errorMessage = error?.response?.data?.message || 
-                          error?.response?.data?.error?.message || 
-                          error?.response?.data?.error ||
-                          (Array.isArray(error?.response?.data?.errors) ? error.response.data.errors.map((e: any) => e.msg || e.message || e).join(', ') : '') ||
-                          error?.message || 
-                          'Failed to save user';
-      console.log('Catch error message to show:', errorMessage);
-      message.error({
-        content: errorMessage,
-        duration: 5,
+      console.error('❌ Error saving user (catch block):', error);
+      
+      // Extract error message from various possible locations
+      // Prioritize detailed errors from errors array over generic message
+      let errorMessage = 'Failed to save user';
+      const errorData = error?.response?.data;
+      
+      if (Array.isArray(errorData?.errors) && errorData.errors.length > 0) {
+        // Extract detailed validation errors
+        const errorDetails = errorData.errors.map((e: any) => {
+          const field = e.path || e.field || '';
+          const msg = e.msg || e.message || '';
+          return field ? `${field}: ${msg}` : msg;
+        }).join('; ');
+        errorMessage = errorDetails || errorData?.message || 'Validation failed';
+      } else if (errorData?.message) {
+        errorMessage = errorData.message;
+      } else if (errorData?.error?.message) {
+        errorMessage = errorData.error.message;
+      } else if (typeof errorData?.error === 'string') {
+        errorMessage = errorData.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      console.log('❌ Catch error message to show:', errorMessage);
+      console.log('❌ Full error object:', JSON.stringify(errorData || error, null, 2));
+      
+      // Set error message in modal
+      setModalError(errorMessage);
+      
+      // Also show notification for better visibility
+      notification.error({
+        message: 'Error Saving User',
+        description: errorMessage,
+        duration: 8, // Longer duration for important messages
+        placement: 'topRight',
+        style: {
+          zIndex: 9999, // Ensure it's above modal
+        },
       });
       // Don't close modal or reset form on error
     } finally {
@@ -602,6 +699,7 @@ const Users = () => {
   };
 
   const resetForm = () => {
+    setModalError(null); // Clear error when resetting form
     setFormData({
       name: '',
       email: '',
@@ -681,6 +779,7 @@ const Users = () => {
   };
 
   const handleEdit = (user: User) => {
+    setModalError(null); // Clear any previous errors
     setFormData({
       name: user.name,
       email: user.email,
@@ -861,6 +960,7 @@ const Users = () => {
             </div>
             <button
               onClick={() => {
+                setModalError(null); // Clear any previous errors
                 resetForm();
                 setShowCreateModal(true);
               }}
@@ -1063,12 +1163,39 @@ const Users = () => {
                   onClick={() => {
                     setShowCreateModal(false);
                     resetForm();
+                    setModalError(null); // Clear error when closing modal
                   }}
                   className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <X size={24} />
                 </button>
               </div>
+
+              {/* Error Message Display */}
+              {modalError && (
+                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h3 className="text-sm font-medium text-red-800">Error</h3>
+                      <p className="mt-1 text-sm text-red-700">{modalError}</p>
+                    </div>
+                    <div className="ml-auto pl-3">
+                      <button
+                        type="button"
+                        onClick={() => setModalError(null)}
+                        className="inline-flex text-red-400 hover:text-red-600 focus:outline-none"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -529,33 +529,105 @@ const EmployeesPage = () => {
       if (editingEmployee) {
         // Update existing employee
         const response = await updateEmployee(editingEmployee._id, submitData);
-        if (response.success) {
+        console.log('Update employee response:', response);
+        
+        // Check if response exists and has success property
+        if (response && response.success === true) {
           addNotification('success', response.message || 'Employee updated successfully');
           fetchEmployees();
           setShowAddModal(false);
           resetForm();
         } else {
-          // Show error message from response
-          const errorMessage = response?.message || response?.error?.message || response?.errors?.map((e: any) => e.msg).join(', ') || 'Failed to update employee';
+          // Handle both success: false and error responses
+          // Prioritize detailed errors from errors array over generic message
+          let errorMessage = 'Failed to update employee';
+          
+          if (Array.isArray(response?.errors) && response.errors.length > 0) {
+            // Extract detailed validation errors
+            const errorDetails = response.errors.map((e: any) => {
+              const field = e.path || e.field || '';
+              const msg = e.msg || e.message || '';
+              return field ? `${field}: ${msg}` : msg;
+            }).join('; ');
+            errorMessage = errorDetails || response?.message || 'Validation failed';
+          } else if (response?.message) {
+            errorMessage = response.message;
+          } else if (response?.error?.message) {
+            errorMessage = response.error.message;
+          } else if (typeof response?.error === 'string') {
+            errorMessage = response.error;
+          }
+          
+          console.log('❌ Update employee error - Response:', JSON.stringify(response, null, 2));
+          console.log('❌ Error message to show:', errorMessage);
           addNotification('error', errorMessage);
         }
       } else {
         // Create new employee
         const response = await createEmployee(submitData);
-        if (response.success) {
+        console.log('Create employee response:', response);
+        
+        // Check if response exists and has success property
+        if (response && response.success === true) {
           addNotification('success', response.message || 'Employee created successfully');
           fetchEmployees();
           setShowAddModal(false);
           resetForm();
         } else {
-          // Show error message from response
-          const errorMessage = response?.message || response?.error?.message || response?.errors?.map((e: any) => e.msg).join(', ') || 'Failed to create employee';
+          // Handle both success: false and error responses
+          // Prioritize detailed errors from errors array over generic message
+          let errorMessage = 'Failed to create employee';
+          
+          if (Array.isArray(response?.errors) && response.errors.length > 0) {
+            // Extract detailed validation errors
+            const errorDetails = response.errors.map((e: any) => {
+              const field = e.path || e.field || '';
+              const msg = e.msg || e.message || '';
+              return field ? `${field}: ${msg}` : msg;
+            }).join('; ');
+            errorMessage = errorDetails || response?.message || 'Validation failed';
+          } else if (response?.message) {
+            errorMessage = response.message;
+          } else if (response?.error?.message) {
+            errorMessage = response.error.message;
+          } else if (typeof response?.error === 'string') {
+            errorMessage = response.error;
+          }
+          
+          console.log('❌ Create employee error - Response:', JSON.stringify(response, null, 2));
+          console.log('❌ Error message to show:', errorMessage);
           addNotification('error', errorMessage);
         }
       }
     } catch (error: any) {
-      console.error('Error saving employee:', error);
-      addNotification('error', error?.message || 'An unexpected error occurred');
+      console.error('❌ Error saving employee (catch block):', error);
+      
+      // Extract error message from various possible locations
+      // Prioritize detailed errors from errors array over generic message
+      let errorMessage = 'An unexpected error occurred';
+      const errorData = error?.response?.data;
+      
+      if (Array.isArray(errorData?.errors) && errorData.errors.length > 0) {
+        // Extract detailed validation errors
+        const errorDetails = errorData.errors.map((e: any) => {
+          const field = e.path || e.field || '';
+          const msg = e.msg || e.message || '';
+          return field ? `${field}: ${msg}` : msg;
+        }).join('; ');
+        errorMessage = errorDetails || errorData?.message || 'Validation failed';
+      } else if (errorData?.message) {
+        errorMessage = errorData.message;
+      } else if (errorData?.error?.message) {
+        errorMessage = errorData.error.message;
+      } else if (typeof errorData?.error === 'string') {
+        errorMessage = errorData.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      console.log('❌ Catch error message to show:', errorMessage);
+      console.log('❌ Full error object:', JSON.stringify(errorData || error, null, 2));
+      addNotification('error', errorMessage);
     }
   };
 
