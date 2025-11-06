@@ -11,6 +11,7 @@ type CompilanceSidebarLink = {
     icon: React.ReactNode;
     label: string;
     children?: CompilanceSidebarLink[];
+    action?: string;
 };
 
 export const CompilanceSidebarLinks: CompilanceSidebarLink[] = [

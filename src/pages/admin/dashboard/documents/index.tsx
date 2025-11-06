@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { listCompanyDocuments, uploadCompanyDocument, deleteCompanyDocument } from '../../../../axios/api/companyDocuments';
+import { message, notification } from 'antd';
 import {
   FolderOpen,
   FileText,
@@ -18,7 +19,8 @@ import {
   XCircle,
   Plus,
   Folder,
-  Sheet
+  Sheet,
+  X
 } from 'lucide-react';
 
 interface Document {
@@ -49,6 +51,9 @@ const DocumentManagement: React.FC = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewDoc, setViewDoc] = useState<Document | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; id: string | null; name?: string }>({ open: false, id: null });
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
+  const [uploadModalError, setUploadModalError] = useState<string | null>(null);
 
   const getExtension = (doc: Document) => {
     if (doc.type) return doc.type.toLowerCase();
@@ -107,6 +112,8 @@ const DocumentManagement: React.FC = () => {
 
   const fetchDocuments = async () => {
     setLoading(true);
+    setErrorMessage(null);
+    setRequiresCompanySetup(false);
     try {
       const res = await listCompanyDocuments({
         category: selectedCategory,
@@ -114,11 +121,27 @@ const DocumentManagement: React.FC = () => {
       });
       if (res?.success) {
         setDocuments(res.data || []);
+        setRequiresCompanySetup(res?.requiresCompanySetup || false);
+        if (res?.requiresCompanySetup && res?.message) {
+          setErrorMessage(res.message);
+        }
       } else {
         setDocuments([]);
+        // Handle error response
+        if (res?.message) {
+          setErrorMessage(res.message);
+          if (res.message.includes('company settings') || res.message.includes('Company Settings')) {
+            setRequiresCompanySetup(true);
+          }
+        }
       }
-    } catch (e) {
+    } catch (e: any) {
       setDocuments([]);
+      const errorMsg = e?.response?.data?.message || e?.message || 'Failed to fetch documents';
+      setErrorMessage(errorMsg);
+      if (errorMsg.includes('company settings') || errorMsg.includes('Company Settings')) {
+        setRequiresCompanySetup(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -181,11 +204,15 @@ const DocumentManagement: React.FC = () => {
 
   const handleFileUpload = async () => {
     if (!selectedFile) {
-      alert('Please select a file to upload');
+      setUploadModalError('Please select a file to upload');
+      message.warning('Please select a file to upload');
       return;
     }
 
+    // Clear any previous errors
+    setUploadModalError(null);
     setUploading(true);
+    
     try {
       const res = await uploadCompanyDocument({
         name: uploadForm.name || selectedFile.name,
@@ -193,17 +220,45 @@ const DocumentManagement: React.FC = () => {
         description: uploadForm.description,
         file: selectedFile,
       });
+      
       if (res?.success) {
+        setUploadModalError(null); // Clear error on success
+        message.success(res?.message || 'Document uploaded successfully');
         await fetchDocuments();
+        setUploadDialog(false);
+        setSelectedFile(null);
+        setUploadForm({ name: '', category: 'hr', description: '' });
       } else {
-        alert(res?.message || 'Failed to upload');
+        // Handle error response
+        const errorMsg = res?.message || 'Failed to upload document';
+        setUploadModalError(errorMsg);
+        notification.error({
+          message: 'Upload Failed',
+          description: errorMsg,
+          duration: 6,
+          placement: 'topRight',
+        });
+        // If it's a company settings error, also show in main area
+        if (errorMsg.includes('company settings') || errorMsg.includes('Company Settings')) {
+          setErrorMessage(errorMsg);
+          setRequiresCompanySetup(true);
+        }
       }
-      setUploadDialog(false);
-      setSelectedFile(null);
-      setUploadForm({ name: '', category: 'hr', description: '' });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading file:', error);
-      alert('Failed to upload file. Please try again.');
+      const errorMsg = error?.response?.data?.message || error?.message || 'Failed to upload file. Please try again.';
+      setUploadModalError(errorMsg);
+      notification.error({
+        message: 'Upload Error',
+        description: errorMsg,
+        duration: 6,
+        placement: 'topRight',
+      });
+      // If it's a company settings error, also show in main area
+      if (errorMsg.includes('company settings') || errorMsg.includes('Company Settings')) {
+        setErrorMessage(errorMsg);
+        setRequiresCompanySetup(true);
+      }
     } finally {
       setUploading(false);
     }
@@ -218,13 +273,26 @@ const DocumentManagement: React.FC = () => {
     try {
       const res = await deleteCompanyDocument(confirmDelete.id);
       if (res?.success) {
+        message.success(res?.message || 'Document deleted successfully');
         setConfirmDelete({ open: false, id: null });
         await fetchDocuments();
       } else {
-        alert(res?.message || 'Delete failed');
+        const errorMsg = res?.message || 'Failed to delete document';
+        notification.error({
+          message: 'Delete Failed',
+          description: errorMsg,
+          duration: 6,
+          placement: 'topRight',
+        });
       }
-    } catch (e) {
-      alert('Delete failed');
+    } catch (e: any) {
+      const errorMsg = e?.response?.data?.message || e?.message || 'Failed to delete document';
+      notification.error({
+        message: 'Delete Error',
+        description: errorMsg,
+        duration: 6,
+        placement: 'topRight',
+      });
     }
   };
 
@@ -239,7 +307,11 @@ const DocumentManagement: React.FC = () => {
               <p className="text-gray-600">Manage and organize your company documents in one place</p>
             </div>
             <button
-              onClick={() => setUploadDialog(true)}
+              onClick={() => {
+                setErrorMessage(null);
+                setUploadModalError(null); // Clear modal error when opening
+                setUploadDialog(true);
+              }}
               className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 shadow-md"
             >
               <Plus size={20} />
@@ -247,6 +319,35 @@ const DocumentManagement: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Error Message Display */}
+        {errorMessage && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-red-400" />
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <p className="mt-1 text-sm text-red-700">{errorMessage}</p>
+                {requiresCompanySetup && (
+                  <p className="mt-2 text-xs text-red-600">
+                    Please go to <strong>Company Settings</strong> to complete your company setup.
+                  </p>
+                )}
+              </div>
+              <div className="ml-auto pl-3">
+                <button
+                  type="button"
+                  onClick={() => setErrorMessage(null)}
+                  className="inline-flex text-red-400 hover:text-red-600 focus:outline-none"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar - Categories */}
@@ -310,6 +411,18 @@ const DocumentManagement: React.FC = () => {
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            ) : errorMessage && requiresCompanySetup ? (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                <AlertCircle size={64} className="mx-auto text-red-300 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Company Settings Required</h3>
+                <p className="text-gray-600 mb-4">{errorMessage}</p>
+                <button
+                  onClick={() => window.location.href = '/admin/company-settings'}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Go to Company Settings
+                </button>
               </div>
             ) : filteredDocuments.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -385,7 +498,10 @@ const DocumentManagement: React.FC = () => {
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-gray-900">Upload Document</h2>
                 <button
-                  onClick={() => setUploadDialog(false)}
+                  onClick={() => {
+                    setUploadModalError(null); // Clear error when closing
+                    setUploadDialog(false);
+                  }}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <XCircle size={24} />
@@ -394,6 +510,34 @@ const DocumentManagement: React.FC = () => {
             </div>
             
             <div className="p-6 space-y-6">
+              {/* Error Message Display in Modal */}
+              {uploadModalError && (
+                <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 text-red-400" />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h3 className="text-sm font-medium text-red-800">Error</h3>
+                      <p className="mt-1 text-sm text-red-700">{uploadModalError}</p>
+                      {uploadModalError.includes('company settings') || uploadModalError.includes('Company Settings') ? (
+                        <p className="mt-2 text-xs text-red-600">
+                          Please go to <strong>Company Settings</strong> to complete your company setup.
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="ml-auto pl-3">
+                      <button
+                        type="button"
+                        onClick={() => setUploadModalError(null)}
+                        className="inline-flex text-red-400 hover:text-red-600 focus:outline-none"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               {/* File Select */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Select File</label>

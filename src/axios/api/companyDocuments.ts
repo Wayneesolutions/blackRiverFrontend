@@ -8,28 +8,43 @@ export interface CompanyDocumentPayload {
 }
 
 export const listCompanyDocuments = async (params?: { category?: string; search?: string }) => {
-  const query = new URLSearchParams();
-  if (params?.category) query.append("category", params.category);
-  if (params?.search) query.append("search", params.search);
-  const res = await apiClient.get(`/company-documents?${query.toString()}`);
-  return res.data;
+  try {
+    const query = new URLSearchParams();
+    if (params?.category) query.append("category", params.category);
+    if (params?.search) query.append("search", params.search);
+    const res = await apiClient.get(`/company-documents?${query.toString()}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
 };
 
 export const uploadCompanyDocument = async (payload: CompanyDocumentPayload) => {
-  const form = new FormData();
-  form.append("name", payload.name);
-  form.append("category", payload.category);
-  if (payload.description) form.append("description", payload.description);
-  form.append("file", payload.file);
-  const res = await apiClient.post(`/company-documents`, form, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return res.data;
+  try {
+    const form = new FormData();
+    form.append("name", payload.name);
+    form.append("category", payload.category);
+    if (payload.description) form.append("description", payload.description);
+    form.append("file", payload.file);
+    const res = await apiClient.post(`/company-documents`, form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
 };
 
 export const deleteCompanyDocument = async (id: string) => {
-  const res = await apiClient.delete(`/company-documents/${id}`);
-  return res.data;
+  try {
+    const res = await apiClient.delete(`/company-documents/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
 };
 
 

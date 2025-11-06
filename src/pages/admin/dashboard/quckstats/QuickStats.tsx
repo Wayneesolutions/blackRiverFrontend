@@ -130,8 +130,17 @@ export default function QuickStatsUI() {
           pendingWorkOrders: statsData.pendingWorkOrders || 0,
           pendingInvoices: statsData.pendingInvoices || 0,
         });
+        
+        // Show message if company setup is required
+        if (results[0].value.requiresCompanySetup && results[0].value.message) {
+          setError(results[0].value.message);
+        }
       } else {
         console.error("Failed to fetch quick stats:", results[0]);
+        const errorMsg = results[0].status === 'rejected' 
+          ? 'Failed to fetch statistics' 
+          : (results[0].value?.message || 'Failed to fetch statistics');
+        setError(errorMsg);
       }
 
       // Process Loads Per Month

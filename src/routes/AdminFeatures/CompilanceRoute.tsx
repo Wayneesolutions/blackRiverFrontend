@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Layout from "../../components/compilance/Layout"
 import Loading from "../../components/common/Loading";
+import ErrorBoundary from "../../components/common/ErrorBoundary";
 
 const CompilanceDashboard = lazy(()=>import('../../pages/admin/compilance/Dashboard'))
 const VehicleDocument = lazy(()=>import('../../pages/admin/compilance/vehicle/VehicleDocument'))
@@ -17,15 +18,15 @@ function CompilanceRoute() {
       <Routes>
         <Route element={<Layout />}>
 
-          <Route index element={<CompilanceDashboard />} />
-          <Route path="compilance-summary" element={<CompilanceDashboard />} />
-          <Route path="vehicle-documents" element={<VehicleDocument />} />
-          <Route path="driver-documents" element={<DriverDocumenet />} />
-          <Route path="hos-eld" element={<HosAndEld />} />
-          <Route path="cvsa-inspection" element={<CvsaInspection />} />
-          <Route path="monthly-report" element={<MonthlyReport />} />
-          <Route path="tickets" element={<Tickets />} />
-          <Route path="fuel-reports" element={<FuelReports />} />
+          <Route index element={<ErrorBoundary><CompilanceDashboard /></ErrorBoundary>} />
+          <Route path="compilance-summary" element={<ErrorBoundary><CompilanceDashboard /></ErrorBoundary>} />
+          <Route path="vehicle-documents" element={<ErrorBoundary><VehicleDocument /></ErrorBoundary>} />
+          <Route path="driver-documents" element={<ErrorBoundary><DriverDocumenet /></ErrorBoundary>} />
+          <Route path="hos-eld" element={<ErrorBoundary><HosAndEld /></ErrorBoundary>} />
+          <Route path="cvsa-inspection" element={<ErrorBoundary><CvsaInspection /></ErrorBoundary>} />
+          <Route path="monthly-report" element={<ErrorBoundary><MonthlyReport /></ErrorBoundary>} />
+          <Route path="tickets" element={<ErrorBoundary><Tickets /></ErrorBoundary>} />
+          <Route path="fuel-reports" element={<ErrorBoundary><FuelReports /></ErrorBoundary>} />
           
         </Route>
       </Routes>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { CompilanceSidebarLinks } from '../../utils/CompilanceSidebarLinks';
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { FaChevronDown, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
 import Logo from "../../assets/FleetGo.png"
 
@@ -13,6 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const [, setHoveredMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
 
   // Toggle expand/collapse for parent menus
   const toggleMenu = (key: string) => {
@@ -108,9 +109,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                           {link.children.map((child) => (
                             <li key={child.key}>
                               <NavLink
-                                to={child.key}
+                                to={`/admin/compliance/${child.key}`}
                                 className={({ isActive }) => {
-                                  const pathname = window.location.pathname;
+                                  const pathname = location.pathname;
                                   const activeState = isActiveLink(
                                     child.key,
                                     isActive,
@@ -123,6 +124,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
                                     }`;
                                 }}
+                                onClick={() => {
+                                  console.log('🔗 Compliance Sidebar navigation to:', `/admin/compliance/${child.key}`);
+                                }}
                               >
                                 <span className="text-base group-hover:scale-110 transition-transform duration-200">
                                   {child.icon}
@@ -134,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                         </ul>
                       )}
                     </>
-                  ) : link.action ? (
+                  ) : (link as any).action ? (
                     // --- SPECIAL ACTION (open drawer) ---
                     <button
                       onClick={() => handleClick(link)}
@@ -150,9 +154,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                   ) : (
                     // --- NORMAL LINK (same as before) ---
                     <NavLink
-                      to={link.key}
+                      to={`/admin/compliance/${link.key}`}
                       className={({ isActive }) => {
-                        const pathname = window.location.pathname;
+                        const pathname = location.pathname;
                         const activeState = isActiveLink(
                           link.key,
                           isActive,
@@ -166,6 +170,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                           }`;
                       }}
                       title={isCollapsed ? link.label : ''}
+                      onClick={() => {
+                        console.log('🔗 Compliance Sidebar navigation to:', `/admin/compliance/${link.key}`);
+                      }}
                     >
                       <span className={`${isCollapsed ? 'text-2xl' : 'text-xl'} transition-all duration-200 group-hover:scale-110`}>
                         {link.icon}
