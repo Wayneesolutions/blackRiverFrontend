@@ -32,7 +32,49 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error) => {
-   
+    // Handle 403 Forbidden errors
+    if (error.response && error.response.status === 403) {
+      const errorMessage = error.response.data?.message || 'Access forbidden';
+      
+      // Log detailed error information
+      console.error('❌ 403 Forbidden Error:', {
+        message: errorMessage,
+        url: error.config?.url,
+        status: error.response.status,
+        data: error.response.data
+      });
+      
+      // Check if it's a token issue (invalid/expired token)
+      if (errorMessage.includes('Invalid token') || errorMessage.includes('token')) {
+        console.warn('⚠️ Token issue detected. Clearing token and redirecting to login...');
+        localStorage.removeItem('token');
+        localStorage.removeItem('userInfo');
+        // Redirect to login page
+        if (window.location.pathname !== '/admin/adminLogin' && window.location.pathname !== '/admin/login') {
+          window.location.href = '/admin/adminLogin';
+        }
+      }
+      
+      // Check if it's an inactive account
+      if (errorMessage.includes('inactive') || errorMessage.includes('Account is inactive')) {
+        console.error('❌ Account is inactive. Please contact administrator.');
+      }
+      
+      // Check if it's a role/permission issue
+      if (errorMessage.includes('Access denied') || errorMessage.includes('role')) {
+        console.error('❌ Access denied. Your role does not have permission to access this resource.');
+      }
+    }
+    
+    // Handle 401 Unauthorized errors
+    if (error.response && error.response.status === 401) {
+      console.warn('⚠️ Unauthorized. Token may be expired. Clearing storage...');
+      localStorage.removeItem('token');
+      localStorage.removeItem('userInfo');
+      if (window.location.pathname !== '/admin/adminLogin' && window.location.pathname !== '/admin/login') {
+        window.location.href = '/admin/adminLogin';
+      }
+    }
     
     return Promise.reject(error);
   }
