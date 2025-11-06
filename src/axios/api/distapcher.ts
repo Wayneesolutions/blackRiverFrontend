@@ -282,6 +282,15 @@ export const listVehicle = async () =>{
   }
 }
 
+export const getGpsVehicleDashboardStats = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`admin/gps-vehicle/dashboard-stats`);
+    return res.data;
+  } catch (error: any) {
+    return error?.response?.data || { success: false, message: error?.message || 'Failed to fetch GPS vehicle dashboard stats', data: null };
+  }
+}
+
 export const createVehicle = async (data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/vehicle`,data);

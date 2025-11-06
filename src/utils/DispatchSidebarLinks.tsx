@@ -2,11 +2,8 @@ import {
   MdDashboard,
   MdMiscellaneousServices,
   MdEventNote,
-  MdSettings,
   MdContacts,
   MdErrorOutline,
-  MdPayment,
-  MdNotificationsActive,
   MdLocalShipping,
   MdOutlineMap,
 } from "react-icons/md";
@@ -20,7 +17,6 @@ import {
   FaClipboardCheck,
 } from "react-icons/fa";
 import { RiOilLine } from "react-icons/ri";
-import { GiPathDistance } from "react-icons/gi";
 import { TbTruckDelivery, TbReportAnalytics } from "react-icons/tb";
 import { IoIosSend } from "react-icons/io";
 
@@ -115,33 +111,6 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
         key: "/admin/dispatch/resources/places",
         icon: <MdOutlineMap />,
         label: "Places",
-      },
-    ],
-  },
-  {
-    key: "/admin/dispatch/settings",
-    icon: <MdSettings />,
-    label: "Settings",
-    children: [
-      {
-        key: "/admin/dispatch/settings/navigator-app",
-        icon: <IoIosSend />,
-        label: "FleetGo Navigator",
-      },
-      {
-        key: "/admin/dispatch/settings/payments",
-        icon: <MdPayment />,
-        label: "Payments",
-      },
-      {
-        key: "/admin/dispatch/settings/notifications",
-        icon: <MdNotificationsActive />,
-        label: "Notifications",
-      },
-      {
-        key: "/admin/dispatch/settings/routing",
-        icon: <GiPathDistance />,
-        label: "Routing",
       },
     ],
   },

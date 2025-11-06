@@ -1,21 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import type { ReactElement } from "react";
 import { Truck, MapPin, Clock, CheckCircle, Play, Package, Calendar, TrendingUp, ChevronRight } from "lucide-react";
-import NewLoad from "../NewLoad";
-import { listLoad, listDriver, updateLoad, getDispatcherDashboard, getRouteAnalysis } from "../../../../axios/api/distapcher"; 
-import type { TabButtonProps,
+import { listLoad, listDriver, updateLoad, getDispatcherDashboard } from "../../../../axios/api/distapcher"; 
+import type {
   ProfessionalCircularProgressProps,StockChartProps ,
   ProfessionalUtilizationGaugeProps,
 CandlestickBarChartProps,
 AnimatedCounterProps,Load} from "./helpers";
-import DriversTable from "./DriversTable";
 // Define allowed statuses
 type Status = "pending" | "started" | "enroute" | "arrived" | "reached" | "completed";
 
 
 const Index = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('loads');
   const [animationTrigger, setAnimationTrigger] = useState(false);
   
   // Driver assignment inline state - now load-specific
@@ -28,7 +24,6 @@ const Index = () => {
   // Loads data state
   const [loadsData, setLoadsData] = useState<Load[]>([]);
   const [dashboardData, setDashboardData] = useState<any>(null);
-  const [routesData, setRoutesData] = useState<any[]>([]);
 
   // Fetch loads function - memoized to prevent unnecessary re-renders
   const fetchLoads = useCallback(async () => {
@@ -54,23 +49,10 @@ const Index = () => {
     }
   }, []);
 
-  // Fetch routes data
-  const fetchRoutesData = useCallback(async () => {
-    try {
-      const res = await getRouteAnalysis();
-      if (res.success) {
-        setRoutesData(res.data);
-      }
-    } catch (error) {
-      console.error("Error fetching routes data:", error);
-    }
-  }, []);
-
-  // Fetch loads, dashboard, and routes on component mount
+  // Fetch loads and dashboard on component mount
   useEffect(() => {
     fetchLoads();
     fetchDashboardData();
-    fetchRoutesData();
   }, []);
 
   const today = new Date().toLocaleDateString("en-GB", {
@@ -878,271 +860,6 @@ const Index = () => {
       </div>
     )
   }
-  const RenderLoadsTable: React.FC = () => {
-
-  return (
-    <div className="bg-white bg-opacity-95 backdrop-blur-lg rounded-xl border border-white border-opacity-50 shadow-xl overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="bg-gray-50 bg-opacity-80 backdrop-blur-sm text-left font-semibold text-gray-700">
-              <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">Image</th>
-              <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">Drivers</th>
-              <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">Order #</th>
-              <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">Customer</th>
-              <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">Route</th>
-              <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">ETA</th>
-              <th className="px-4 py-4 border-r border-gray-200 border-opacity-50">Status</th>
-              <th className="px-4 py-4">Notes</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {loadsData.length > 0 ? (
-              loadsData.map((row, idx) => {
-                // Use orderId as the primary ID since it contains the MongoDB ObjectId
-                const rowAny = row as any;
-                const realId = rowAny.orderId || row._id || rowAny.id || rowAny.loadId || rowAny.load_id || rowAny.__id;
-                const loadId = realId || `load-${idx}`;
-                return (
-                <tr
-                  key={idx}
-                  className="hover:bg-blue-50 hover:bg-opacity-50 transition-colors duration-200 border-b border-gray-100 border-opacity-50"
-                >
-                  {/* Image */}
-                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50">
-                    <ImagePlaceholder image={""} alt="Truck" />
-                  </td>
-
-                  {/* Driver */}
-                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 align-top w-64 min-w-64 max-w-64">
-                    {row.driverName? (
-                      <div className="text-gray-800 font-medium w-full">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span>{row.driverName}</span>
-                        </div>
-                      </div>
-                    ) : assigningLoads[loadId] ? (
-                      <div className="flex flex-col gap-2 w-full">
-                        <span className="text-gray-600 text-sm font-medium">Assign Driver:</span>
-                        <span className="text-xs text-gray-500">Load ID: {loadId}</span>
-                        
-                        {/* Show loading state while fetching drivers */}
-                        {isLoadingDrivers[loadId] ? (
-                          <div className="flex items-center justify-center py-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                            <span className="ml-2 text-sm text-gray-600">Loading drivers...</span>
-                          </div>
-                        ) : (
-                          <div>
-                            <span className="text-xs text-gray-500 mb-1 block">
-                              Drivers for this load: {(availableDrivers[loadId] || []).length}
-                            </span>
-                            <select
-                              value={selectedDrivers[loadId] || ""}
-                              onChange={(e) => setSelectedDrivers(prev => ({ ...prev, [loadId]: e.target.value }))}
-                              className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              disabled={isAssigningDriver[loadId]}
-                            >
-                              <option value="">Choose a driver...</option>
-                              {(availableDrivers[loadId] || []).map((driver) => (
-                                <option key={driver._id} value={driver._id}>
-                                  {driver.name} - {driver.email}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
-                        
-                        <div className="flex gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleConfirmAssignment(loadId);
-                            }}
-                            disabled={!selectedDrivers[loadId] || isAssigningDriver[loadId] || isLoadingDrivers[loadId]}
-                            className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-1"
-                          >
-                            {isAssigningDriver[loadId] && (
-                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                            )}
-                            {isAssigningDriver[loadId] ? 'Assigning...' : 'Assign'}
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCancelAssignment(loadId);
-                            }}
-                            disabled={isAssigningDriver[loadId] || isLoadingDrivers[loadId]}
-                            className="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white text-xs rounded transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-2 w-full">
-                        <span className="text-gray-500 italic text-sm">Unassigned</span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAssignDriver(loadId);
-                          }}
-                          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded transition-colors w-full"
-                        >
-                          Assign Driver
-                        </button>
-                      </div>
-                    )}
-                  </td>
-
-                  {/* Order ID */}
-                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 font-mono text-blue-600 font-semibold">
-                    {row._id}
-                  </td>
-
-                  {/* Customer */}
-                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 text-gray-800 font-medium">
-                    {row.customerName ? (
-                      <>
-                        {row.customerName} 
-                      </>
-                    ) : (
-                      <span className="text-gray-500 italic">Unknown</span>
-                    )}
-                  </td>
-
-                  {/* Route */}
-                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50">
-                    {row.route?.multipleDropOffs ? (
-                      <div className="flex flex-col gap-1">
-                        {row.route.wayPoints.map((wp, i) => (
-                          <div key={i} className="text-xs text-gray-700 flex items-center gap-1">
-                            <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-                            {wp.address.place || "Unknown"}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="text-gray-700 font-medium">
-                          {row.route?.selectPickup?.place || "Pickup N/A"}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {row.route?.selectPickup?.place || "N/A"} →{" "}
-                          {row.route?.selectDropOff?.place || "N/A"}
-                        </div>
-                      </div>
-                    )}
-                  </td>
-
-                  {/* ETA */}
-                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
-                    {new Date(row.assignedAt).toLocaleString()}
-                  </td>
-
-                  {/* Status */}
-                  <td className="px-4 py-4 border-r border-gray-100 border-opacity-50">
-                    <StatusBadge status={row.status as any} />
-                  </td>
-
-                  {/* Notes */}
-                  <td className="px-4 py-4 text-xs">{row.notes || "No notes"}</td>
-                </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={8} className="text-center py-6 text-gray-500">
-                  No loads available
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
-
-  const renderRoutesTable = () => (
-    <div className="bg-white bg-opacity-95 backdrop-blur-lg rounded-xl border border-white border-opacity-50 shadow-xl overflow-hidden">
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr className="bg-gray-50 bg-opacity-80 backdrop-blur-sm text-left font-semibold text-gray-700">
-            <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Route</th>
-            <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Active Loads</th>
-            <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Total Distance</th>
-            <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Avg Time</th>
-            <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Efficiency</th>
-            <th className="px-6 py-4">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {routesData.length > 0 ? (
-            routesData.map((route, idx) => (
-              <tr key={idx} className="hover:bg-blue-50 hover:bg-opacity-50 transition-colors duration-200 border-b border-gray-100 border-opacity-50">
-                <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 font-medium text-gray-800">
-                  {route.route}
-                </td>
-                <td className="px-6 py-4 border-r border-gray-100 border-opacity-50">
-                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">
-                    {route.activeLoads}
-                  </span>
-                </td>
-                <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
-                  {route.totalDistance}
-                </td>
-                <td className="px-6 py-4 border-r border-gray-100 border-opacity-50 text-gray-700">
-                  {route.avgTime}
-                </td>
-                <td className="px-6 py-4 border-r border-gray-100 border-opacity-50">
-                  <div className="flex items-center gap-2">
-                    <div className="w-16 bg-gray-200 rounded-full h-2 overflow-hidden">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-1000 ease-out ${parseInt(route.efficiency || "0") > 90 ? 'bg-gradient-to-r from-green-500 to-green-400' :
-                          parseInt(route.efficiency || "0") > 80 ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' :
-                            'bg-gradient-to-r from-red-500 to-red-400'
-                          }`}
-                        style={{
-                          width: animationTrigger ? route.efficiency : '0%',
-                          transitionDelay: `${idx * 150}ms`
-                        }}
-                      ></div>
-                    </div>
-                    <span className="text-xs font-medium">{route.efficiency}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <StatusBadge status={route.status as Status} />
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={6} className="text-center py-6 text-gray-500">
-                No routes available
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
-
-  const TabButton: React.FC<TabButtonProps> = ({ id, label, icon: Icon, active, onClick }) => (
-    <button
-      onClick={() => onClick(id)}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${active
-        ? "bg-white bg-opacity-90 text-blue-600 shadow-lg scale-105"
-        : "text-gray-600 hover:bg-white hover:bg-opacity-50 hover:text-blue-500"
-        }`}
-    >
-      <Icon className="w-4 h-4" />
-      {label}
-    </button>
-  );
 
   return (
     <div className="min-h-screen  flex flex-col relative overflow-hidden bg-gray-50 px-2">
@@ -1195,70 +912,11 @@ const Index = () => {
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             </div>
           </div>
-
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="flex items-center gap-2 bg-green-500 hover:bg-green-600 !text-white font-medium px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-green-400"
-          >
-            <Package className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12" />
-            <span>New Load +</span>
-          </button>
-
         </div>
 
         {/* Enhanced Dashboard Metrics */}
         {renderDashboardMetrics()}
-
-        {/* Enhanced Tab Navigation */}
-        <div className="flex gap-2 mb-6 bg-white/70 backdrop-blur-md p-2 rounded-xl shadow-lg border border-white/30">
-          <TabButton
-            id="loads"
-            label="Active Loads"
-            icon={Package}
-            active={activeTab === 'loads'}
-            onClick={setActiveTab}
-          />
-          <TabButton
-            id="drivers"
-            label="Today's Drivers"
-            icon={Truck}
-            active={activeTab === 'drivers'}
-            onClick={setActiveTab}
-          />
-          <TabButton
-            id="routes"
-            label="Routes"
-            icon={MapPin}
-            active={activeTab === 'routes'}
-            onClick={setActiveTab}
-          />
-        </div>
-
-        {/* Content based on active tab */}
-        <div className="transform transition-all duration-500 ease-out">
-          {activeTab === 'loads' && <RenderLoadsTable />
-}
-          {activeTab === 'drivers' && <DriversTable/>}
-          {activeTab === 'routes' && renderRoutesTable()}
-        </div>
       </div>
-
-      {/* Enhanced Right Sidebar */}
-      {/* Right Sidebar */}
-      <div
-        className={`fixed top-0 right-0 h-full max-w-lg w-full sm:w-[42rem] bg-white bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 border-opacity-50 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
-          }`}
-      >
-        <NewLoad onClose={() => setSidebarOpen(false)} />
-      </div>
-
-      {/* Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm transition-all duration-500"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
 
       {/* Enhanced Styles */}
       <style>{`

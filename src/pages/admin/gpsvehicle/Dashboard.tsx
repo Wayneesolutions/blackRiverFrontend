@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -11,37 +11,56 @@ import {
   Area,
   AreaChart,
 } from "recharts";
+import { getGpsVehicleDashboardStats } from "../../../axios/api/distapcher";
 
 const Dashboard = () => {
-  // Sample Data matching the image
-  const watchingReportData = [
-    { name: "00", value: 45 },
-    { name: "04", value: 25 },
-    { name: "08", value: 65 },
-    { name: "12", value: 35 },
-    { name: "14", value: 55 },
-    { name: "16", value: 85 },
-    { name: "18", value: 20 },
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const res = await getGpsVehicleDashboardStats();
+        if (res.success) {
+          setDashboardData(res.data);
+        }
+      } catch (error) {
+        console.error("Error fetching GPS vehicle dashboard stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Use real data if available, otherwise use empty/default data
+  const watchingReportData = dashboardData?.watchingReport || Array.from({ length: 24 }, (_, i) => ({
+    name: String(i).padStart(2, '0'),
+    value: 0
+  }));
+
+  const driverUtilizationData = dashboardData?.driverUtilizationData || [
+    { day: "Sat", value: 0 },
+    { day: "Sun", value: 0 },
+    { day: "Mon", value: 0 },
+    { day: "Tue", value: 0 },
+    { day: "Wed", value: 0 },
+    { day: "Thu", value: 0 },
+    { day: "Fri", value: 0 },
   ];
 
-  const driverUtilizationData = [
-    { day: "Sat", value: 25 },
-    { day: "Sun", value: 30 },
-    { day: "Mon", value: 35 },
-    { day: "Tue", value: 28 },
-    { day: "Wed", value: 45 },
-    { day: "Thu", value: 55 },
-    { day: "Fri", value: 65 },
+  const speedingData = dashboardData?.speedingData || [
+    { month: "SEP", speeding: 0, events: 0 },
+    { month: "OCT", speeding: 0, events: 0 },
+    { month: "NOV", speeding: 0, events: 0 },
+    { month: "DEC", speeding: 0, events: 0 },
+    { month: "JAN", speeding: 0, events: 0 },
+    { month: "FEB", speeding: 0, events: 0 },
   ];
 
-  const speedingData = [
-    { month: "SEP", speeding: 30, events: 20 },
-    { month: "OCT", speeding: 25, events: 15 },
-    { month: "NOV", speeding: 45, events: 35 },
-    { month: "DEC", speeding: 28, events: 18 },
-    { month: "JAN", speeding: 55, events: 42 },
-    { month: "FEB", speeding: 48, events: 32 },
-  ];
+  const safetyScore = dashboardData?.safetyScore || 0;
 
   // Custom Circular Progress Component
   const CircularProgress = ({ percentage }: { percentage: number }) => {
@@ -92,6 +111,14 @@ const Dashboard = () => {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen p-6 bg-gray-50 px-6 flex items-center justify-center">
+        <div className="text-gray-500">Loading dashboard data...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6 bg-gray-50 px-6">
@@ -172,7 +199,11 @@ const Dashboard = () => {
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Driver Safety Scorecard</h3>
             <div className="flex justify-center items-center h-48">
-              <CircularProgress percentage={68} />
+              {loading ? (
+                <div className="text-gray-500">Loading...</div>
+              ) : (
+                <CircularProgress percentage={safetyScore} />
+              )}
             </div>
           </div>
         </div>
