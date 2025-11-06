@@ -138,9 +138,10 @@ export default function QuickStatsUI() {
       if (results[1].status === 'fulfilled' && results[1].value?.success) {
         const loadsArray = results[1].value.data;
         if (loadsArray && loadsArray.length > 0) {
-          const formattedLoads = loadsArray.map((item: { _id: number; total: number }) => ({
-            name: MONTH_NAMES[item._id - 1] || `Month ${item._id}`,
-            value: item.total,
+          // Backend returns { month: "January", total: 0 }
+          const formattedLoads = loadsArray.map((item: { month: string; total: number }) => ({
+            name: item.month ? item.month.substring(0, 3) : 'N/A', // Use first 3 letters of month name (Jan, Feb, etc.)
+            value: item.total || 0,
           }));
           setLoadsData(formattedLoads);
         } else {
@@ -155,9 +156,10 @@ export default function QuickStatsUI() {
       if (results[2].status === 'fulfilled' && results[2].value?.success) {
         const revenueArray = results[2].value.data;
         if (revenueArray && revenueArray.length > 0) {
-          const formattedRevenue = revenueArray.map((item: { _id: number; totalRevenue: number }) => ({
-            name: MONTH_NAMES[item._id - 1] || `Month ${item._id}`,
-            value: item.totalRevenue,
+          // Backend returns { month: "January", totalRevenue: 0 }
+          const formattedRevenue = revenueArray.map((item: { month: string; totalRevenue: number }) => ({
+            name: item.month ? item.month.substring(0, 3) : 'N/A', // Use first 3 letters of month name (Jan, Feb, etc.)
+            value: item.totalRevenue || 0,
           }));
           setRevenueData(formattedRevenue);
         } else {

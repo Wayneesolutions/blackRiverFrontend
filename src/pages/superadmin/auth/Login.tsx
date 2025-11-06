@@ -21,10 +21,14 @@ export default function SuperAdminLogin() {
     const { superAdminInfo } = useSelector((state: RootState) => state.superAdminAuth);
 
     useEffect(() => {
-        // Check if user is already logged in
+        // Check if user is already logged in and active
         const token = localStorage.getItem("token");
-        if (token && superAdminInfo) {
+        if (token && superAdminInfo && superAdminInfo.userData?.status === 'active') {
             navigate("/superadmin/dashboard");
+        } else if (token && superAdminInfo && superAdminInfo.userData?.status !== 'active') {
+            // Clear inactive user's data
+            localStorage.removeItem('token');
+            message.error('Your account is not active. Please contact administrator.');
         }
     }, [navigate, superAdminInfo]);
 
@@ -67,7 +71,33 @@ export default function SuperAdminLogin() {
             
             console.log("SuperAdmin login response:", response);
             
-            if (response?.success) {
+            // Check if response indicates an error - if success is false, show error and stop
+            if (!response || response.success !== true) {
+                const errorMessage = response?.message || "Invalid super admin credentials. Access denied.";
+                
+                // Clear any existing tokens if account is inactive
+                if (errorMessage.includes('not active') || errorMessage.includes('inactive')) {
+                    localStorage.removeItem('token');
+                }
+                
+                setErrors({ submit: errorMessage });
+                message.error(errorMessage);
+                setLoading(false);
+                return; // Stop here - do NOT navigate to dashboard
+            }
+            
+            // Only proceed if response.success is explicitly true
+            if (response.success === true) {
+                // Double-check user status before allowing login
+                const userStatus = response.data?.status || 'active';
+                if (userStatus !== 'active') {
+                    const errorMsg = "Your account is not active. Please contact administrator.";
+                    setErrors({ submit: errorMsg });
+                    message.error(errorMsg);
+                    setLoading(false);
+                    return; // Stop here - do NOT navigate to dashboard
+                }
+                
                 // Store token and superadmin data
                 if (response.data?.token && response.data) {
                     storeSuperAdminCredentials(response.data.token, response.data);
@@ -81,10 +111,6 @@ export default function SuperAdminLogin() {
                 message.success(response.message || "Login successful! Redirecting to dashboard...");
                 
                 // Navigate will be handled by useEffect when success is true
-            } else {
-                // Error case - API returned success: false
-                setErrors({ submit: response?.message || "Invalid super admin credentials. Access denied." });
-                message.error(response?.message || "Login failed. Please try again.");
             }
         } catch (err: any) {
             console.error("SuperAdmin login error:", err);

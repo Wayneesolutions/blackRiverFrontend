@@ -67,10 +67,19 @@ apiClient.interceptors.response.use(
       }
       
       // Check if it's an inactive account
-      if (errorMessage.includes('inactive') || errorMessage.includes('Account is inactive')) {
+      if (errorMessage.includes('not active') || errorMessage.includes('inactive') || errorMessage.includes('Account is inactive')) {
         if (!isBackgroundRequest) {
-          console.error('❌ Account is inactive. Please contact administrator.');
+          console.error('❌ Account is inactive. Clearing token and redirecting to login...');
+          localStorage.removeItem('token');
+          localStorage.removeItem('userInfo');
+          // Only redirect if not already on login page
+          if (!isLoginPage) {
+            setTimeout(() => {
+              window.location.href = '/admin/login';
+            }, 100);
+          }
         }
+        return Promise.reject(error);
       }
       
       // Check if it's a role/permission issue

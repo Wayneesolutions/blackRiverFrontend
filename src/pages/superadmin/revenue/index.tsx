@@ -430,13 +430,6 @@ const RevenueDashboard = () => {
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </button>
-                                                <button
-                                                    onClick={() => handlePaymentActions(revenue)}
-                                                    className="text-gray-400 hover:text-blue-600 p-1 rounded transition-colors"
-                                                    title="Payment Actions"
-                                                >
-                                                    <CreditCard className="w-4 h-4" />
-                                                </button>
                                                 <div className="relative" ref={(el) => { dropdownRefs.current[revenue.id] = el; }}>
                                                     <button
                                                         onClick={(e) => handleMoreActions(revenue.id, e)}

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { FaBell, FaCommentDots, FaUserCircle, FaExpand, FaSignOutAlt, FaUser, FaCog } from "react-icons/fa";
+import { FaCommentDots, FaUserCircle, FaExpand, FaSignOutAlt, FaUser, FaCog } from "react-icons/fa";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -58,7 +58,6 @@ function Header() {
       {/* Right section: Icons */}
       <div className="flex items-center gap-4 ml-4">
         <FaExpand className="cursor-pointer" />
-        <FaBell className="cursor-pointer" />
         <FaCommentDots className="cursor-pointer" />
         
         {/* User Dropdown */}

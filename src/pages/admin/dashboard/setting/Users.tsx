@@ -280,9 +280,14 @@ const Users = () => {
         [name]: checked
       }));
     } else {
+      // Auto-uppercase internalId and filter out invalid characters
+      let processedValue = value;
+      if (name === 'internalId') {
+        processedValue = value.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+      }
       setFormData(prev => ({
         ...prev,
-        [name]: name === 'internalId' ? value.toUpperCase() : value
+        [name]: processedValue
       }));
     }
   };
@@ -329,39 +334,140 @@ const Users = () => {
     });
   }, []);
 
-  // Frontend validation function
+  // Frontend validation function - matches backend validation
   const validateForm = (): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
-    // Required fields validation
+    // Name validation (required, 2-50 chars, letters and spaces only)
     if (!formData.name?.trim()) {
       errors.push('Name is required');
-    }
-    if (!formData.email?.trim()) {
-      errors.push('Email is required');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.push('Please enter a valid email address');
-    }
-    if (!formData.phone?.trim()) {
-      errors.push('Phone number is required');
-    }
-    if (!isEditing && !formData.password?.trim()) {
-      errors.push('Password is required for new users');
-    } else if (!isEditing && formData.password && formData.password.length < 6) {
-      errors.push('Password must be at least 6 characters long');
-    }
-    if (!formData.role) {
-      errors.push('Role is required');
-    }
-    if (!formData.internalId?.trim()) {
-      errors.push('Internal ID is required');
+    } else {
+      const nameTrimmed = formData.name.trim();
+      if (nameTrimmed.length < 2 || nameTrimmed.length > 50) {
+        errors.push('Name must be between 2 and 50 characters');
+      } else if (!/^[a-zA-Z\s]+$/.test(nameTrimmed)) {
+        errors.push('Name can only contain letters and spaces');
+      }
     }
 
-    // Driver-specific validations
-    if (formData.role === 'driver') {
-      if (!driverFormData.employeeCode?.trim()) {
-        errors.push('Employee Code is required for drivers');
+    // Email validation (required, valid email format)
+    if (!formData.email?.trim()) {
+      errors.push('Email is required');
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.push('Please provide a valid email address');
+    }
+
+    // Phone validation (required, valid mobile phone format)
+    if (!formData.phone?.trim()) {
+      errors.push('Phone is required');
+    } else {
+      // Basic phone validation - accepts common formats
+      const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
+      if (!phoneRegex.test(formData.phone.trim())) {
+        errors.push('Please provide a valid phone number');
       }
+    }
+
+    // Country validation (required, 2-50 chars)
+    if (!formData.country?.trim()) {
+      errors.push('Country is required');
+    } else {
+      const countryTrimmed = formData.country.trim();
+      if (countryTrimmed.length < 2 || countryTrimmed.length > 50) {
+        errors.push('Country must be between 2 and 50 characters');
+      }
+    }
+
+    // State validation (required, 2-50 chars)
+    if (!formData.state?.trim()) {
+      errors.push('State is required');
+    } else {
+      const stateTrimmed = formData.state.trim();
+      if (stateTrimmed.length < 2 || stateTrimmed.length > 50) {
+        errors.push('State must be between 2 and 50 characters');
+      }
+    }
+
+    // City validation (required, 2-50 chars)
+    if (!formData.city?.trim()) {
+      errors.push('City is required');
+    } else {
+      const cityTrimmed = formData.city.trim();
+      if (cityTrimmed.length < 2 || cityTrimmed.length > 50) {
+        errors.push('City must be between 2 and 50 characters');
+      }
+    }
+
+    // Join Date validation (required, valid date)
+    if (!formData.joinDate) {
+      errors.push('Join date is required');
+    } else {
+      const joinDate = new Date(formData.joinDate);
+      if (isNaN(joinDate.getTime())) {
+        errors.push('Please provide a valid join date');
+      }
+    }
+
+    // Internal ID validation (required, 3-20 chars, uppercase letters, numbers, hyphens, underscores)
+    if (!formData.internalId?.trim()) {
+      errors.push('Internal ID is required');
+    } else {
+      const internalIdTrimmed = formData.internalId.trim().toUpperCase();
+      if (internalIdTrimmed.length < 3 || internalIdTrimmed.length > 20) {
+        errors.push('Internal ID must be between 3 and 20 characters');
+      } else if (!/^[A-Z0-9_-]+$/.test(internalIdTrimmed)) {
+        errors.push('Internal ID can only contain uppercase letters, numbers, hyphens, and underscores');
+      }
+    }
+
+    // Address validation (optional, but if provided must be 5-200 chars)
+    if (formData.address?.trim()) {
+      const addressTrimmed = formData.address.trim();
+      if (addressTrimmed.length < 5 || addressTrimmed.length > 200) {
+        errors.push('Address must be between 5 and 200 characters');
+      }
+    }
+
+    // Password validation (optional for new users, but if provided must be min 6 chars)
+    // Note: Backend provides default password if not provided, but we'll validate if user provides one
+    if (!isEditing && formData.password?.trim()) {
+      if (formData.password.length < 6) {
+        errors.push('Password must be at least 6 characters long');
+      }
+    }
+    // For updates, password is optional
+    if (isEditing && formData.password?.trim() && formData.password.length < 6) {
+      errors.push('Password must be at least 6 characters long');
+    }
+
+    // Role validation (required, must be in allowed list)
+    if (!formData.role) {
+      errors.push('Role is required');
+    } else {
+      const allowedRoles = ['employee', 'driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', 
+        'fleetmanager', 'safetyofficer', 'operationsstaff', 'maintenancecrew', 'administrative'];
+      if (!allowedRoles.includes(formData.role)) {
+        errors.push('Invalid role selected');
+      }
+    }
+
+    // Policies validation (optional, but if provided must be 5-500 chars)
+    if (formData.policies?.trim()) {
+      const policiesTrimmed = formData.policies.trim();
+      if (policiesTrimmed.length < 5 || policiesTrimmed.length > 500) {
+        errors.push('Policies must be between 5 and 500 characters');
+      }
+    }
+
+    // Status validation (optional, but must be 'active' or 'inactive' if provided)
+    if (formData.status && !['active', 'inactive'].includes(formData.status)) {
+      errors.push('Status must be either active or inactive');
+    }
+
+    // Driver-specific validations (employeeCode is optional in backend, but we'll keep it for consistency)
+    if (formData.role === 'driver') {
+      // Employee code is optional but recommended
+      // No strict validation needed as backend handles it
     }
 
     return {
@@ -390,6 +496,11 @@ const Users = () => {
     try {
       // Prepare data for submission
       const submitData: any = { ...formData };
+      
+      // Ensure internalId is uppercase and valid format
+      if (submitData.internalId) {
+        submitData.internalId = submitData.internalId.trim().toUpperCase();
+      }
       
       // If driver role is selected, include all driver-specific data
       if (formData.role === 'driver') {
@@ -963,7 +1074,7 @@ const Users = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         name="name"
@@ -971,12 +1082,13 @@ const Users = () => {
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Enter full name"
+                        placeholder="Enter full name (letters and spaces only)"
+                        maxLength={50}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address <span className="text-red-500">*</span></label>
                       <input
                         type="email"
                         name="email"
@@ -989,7 +1101,7 @@ const Users = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number <span className="text-red-500">*</span></label>
                       <input
                         type="tel"
                         name="phone"
@@ -997,40 +1109,44 @@ const Users = () => {
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Enter phone number"
+                        placeholder="Enter phone number (e.g., +1234567890)"
                       />
                     </div>
 
                     {!isEditing && (
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Password <span className="text-gray-500 text-xs">(optional - default will be set if not provided)</span></label>
                         <input
                           type="password"
                           name="password"
                           value={formData.password}
                           onChange={handleInputChange}
-                          required
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder="Enter password"
+                          placeholder="Enter password (min 6 characters)"
+                          minLength={6}
                         />
                       </div>
                     )}
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Internal ID</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Internal ID <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         name="internalId"
                         value={formData.internalId}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="EMP-001"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all uppercase"
+                        placeholder="EMP-001 (uppercase letters, numbers, hyphens, underscores only)"
+                        minLength={3}
+                        maxLength={20}
+                        pattern="[A-Z0-9_-]+"
                       />
+                      <p className="text-xs text-gray-500 mt-1">3-20 characters, uppercase letters, numbers, hyphens, and underscores only</p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Join Date</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Join Date <span className="text-red-500">*</span></label>
                       <input
                         type="date"
                         name="joinDate"
@@ -1075,7 +1191,7 @@ const Users = () => {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Country <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         name="country"
@@ -1084,11 +1200,13 @@ const Users = () => {
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter country"
+                        minLength={2}
+                        maxLength={50}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">State <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         name="state"
@@ -1097,11 +1215,13 @@ const Users = () => {
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter state"
+                        minLength={2}
+                        maxLength={50}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">City <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         name="city"
@@ -1110,31 +1230,36 @@ const Users = () => {
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter city"
+                        minLength={2}
+                        maxLength={50}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Address</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Address <span className="text-gray-500 text-xs">(optional)</span></label>
                       <textarea
                         name="address"
                         value={formData.address}
                         onChange={handleInputChange}
-                        required
                         rows={3}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                        placeholder="Enter full address"
+                        placeholder="Enter full address (5-200 characters)"
+                        minLength={5}
+                        maxLength={200}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Policies</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Policies <span className="text-gray-500 text-xs">(optional)</span></label>
                       <textarea
                         name="policies"
                         value={formData.policies}
                         onChange={handleInputChange}
                         rows={3}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                        placeholder="Enter user policies"
+                        placeholder="Enter user policies (5-500 characters)"
+                        minLength={5}
+                        maxLength={500}
                       />
                     </div>
                   </div>

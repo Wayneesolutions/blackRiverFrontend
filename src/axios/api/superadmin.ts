@@ -64,11 +64,18 @@ export const updateAdmin = async (id: string, data: any) => {
 // ✅ Delete Admin
 export const deleteAdmin = async (id: string) => {
   try {
+    console.log('🔗 API Call: DELETE superadmin/admin/' + id);
     const res: AxiosResponse = await apiClient.delete(`superadmin/admin/${id}`);
+    console.log('✅ Delete API Response:', res.data);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return (error as Error).response?.data;
+  } catch (error: any) {
+    console.error('❌ Delete API Error:', error);
+    // Return error response data if available, otherwise throw
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+    // Re-throw if it's a network error or other issue
+    throw error;
   }
 };
 

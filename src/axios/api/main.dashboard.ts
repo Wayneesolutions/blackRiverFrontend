@@ -56,7 +56,7 @@ export const fuelEfficiency = async () => {
 
 export const recentAlerts = async () => {
     try {
-        const res: AxiosResponse = await apiClient.get("admin/alerts");
+        const res: AxiosResponse = await apiClient.get("admin/recent-alerts");
         return res.data;
     } catch (error) {
         console.error(error);

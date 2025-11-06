@@ -11,7 +11,7 @@ import {
     Mail,
     Phone,
 } from 'lucide-react';
-import { message, Modal, Input, Select, Button } from 'antd';
+import { message, Modal, Input, Select, Button, Switch } from 'antd';
 import { getAllAdmins, createAdmin, updateAdmin, deleteAdmin } from '../../../axios/api/superadmin';
 
 interface Admin {
@@ -53,6 +53,9 @@ const ViewAllAccounts = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showViewModal, setShowViewModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [statusUpdating, setStatusUpdating] = useState<string | null>(null); // Track which admin's status is being updated
     const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
 
     // Form data
@@ -226,27 +229,93 @@ const ViewAllAccounts = () => {
     };
 
     const handleDelete = (admin: Admin) => {
-        Modal.confirm({
-            title: 'Delete Admin',
-            content: `Are you sure you want to delete ${admin.name}? This action cannot be undone.`,
-            okText: 'Delete',
-            okType: 'danger',
-            cancelText: 'Cancel',
-            onOk: async () => {
-                try {
-                    const response = await deleteAdmin(admin._id);
-                    if (response?.success) {
-                        message.success(response.message || 'Admin deleted successfully');
-                        fetchAdmins();
-                    } else {
-                        message.error(response?.message || 'Failed to delete admin');
-                    }
-                } catch (error: any) {
-                    console.error('Error deleting admin:', error);
-                    message.error(error?.message || 'Failed to delete admin');
-                }
+        console.log('🗑️ Delete button clicked for admin:', admin);
+        setSelectedAdmin(admin);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!selectedAdmin) return;
+        
+        try {
+            console.log('🗑️ Confirmed deletion for admin:', selectedAdmin._id, selectedAdmin.name);
+            setDeleteLoading(true);
+            
+            const response = await deleteAdmin(selectedAdmin._id);
+            console.log('Delete API response:', response);
+            
+            if (response?.success) {
+                message.success(response.message || 'Admin deleted successfully');
+                setShowDeleteModal(false);
+                setSelectedAdmin(null);
+                // Refresh the list
+                await fetchAdmins();
+            } else {
+                const errorMsg = response?.message || 'Failed to delete admin';
+                console.error('❌ Delete failed:', errorMsg);
+                message.error(errorMsg);
             }
-        });
+        } catch (error: any) {
+            console.error('❌ Error deleting admin:', error);
+            const errorMsg = error?.response?.data?.message || 
+                           error?.message || 
+                           'Failed to delete admin. Please try again.';
+            message.error(errorMsg);
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
+
+    const cancelDelete = () => {
+        console.log('❌ Delete cancelled by user');
+        setShowDeleteModal(false);
+        setSelectedAdmin(null);
+    };
+
+    const handleStatusToggle = async (admin: Admin, checked: boolean) => {
+        const newStatus = checked ? 'active' : 'inactive';
+        const oldStatus = admin.status;
+        
+        // Optimistically update UI first
+        setAdmins(prevAdmins => 
+            prevAdmins.map(a => 
+                a._id === admin._id ? { ...a, status: newStatus } : a
+            )
+        );
+        setStatusUpdating(admin._id);
+        
+        try {
+            console.log('🔄 Toggling admin status:', admin._id, 'from', oldStatus, 'to', newStatus);
+            
+            const response = await updateAdmin(admin._id, { status: newStatus });
+            
+            if (response?.success) {
+                message.success(`Admin status updated to ${newStatus} successfully`);
+                // Status already updated in UI above
+            } else {
+                // Revert on error
+                setAdmins(prevAdmins => 
+                    prevAdmins.map(a => 
+                        a._id === admin._id ? { ...a, status: oldStatus } : a
+                    )
+                );
+                message.error(response?.message || 'Failed to update admin status');
+            }
+        } catch (error: any) {
+            console.error('❌ Error toggling admin status:', error);
+            // Revert on error
+            setAdmins(prevAdmins => 
+                prevAdmins.map(a => 
+                    a._id === admin._id ? { ...a, status: oldStatus } : a
+                )
+            );
+            const errorMsg = error?.response?.data?.message || 
+                           error?.message || 
+                           'Failed to update admin status. Please try again.';
+            message.error(errorMsg);
+        } finally {
+            setStatusUpdating(null);
+        }
     };
 
     const handleView = (admin: Admin) => {
@@ -438,7 +507,7 @@ const ViewAllAccounts = () => {
                                             </td>
 
                                             <td className="px-6 py-4 whitespace-nowrap min-w-[120px]">
-                                                <div className="text-sm text-gray-900">
+                                                <div className="text-sm text-gray-900 mb-2">
                                                     {admin.location?.address ? (
                                                         <div className="truncate max-w-[150px]" title={admin.location.address}>
                                                             {admin.location.address}
@@ -447,12 +516,24 @@ const ViewAllAccounts = () => {
                                                         <div className="text-gray-400">No address</div>
                                                     )}
                                                 </div>
-                                                <div className={`text-xs mt-1 inline-block px-2 py-0.5 rounded-full ${
-                                                    admin.status === 'active' 
-                                                        ? 'bg-green-100 text-green-700' 
-                                                        : 'bg-red-100 text-red-700'
-                                                }`}>
-                                                    {admin.status}
+                                                <div className="flex items-center gap-2">
+                                                    <Switch
+                                                        checked={admin.status === 'active'}
+                                                        checkedChildren="Active"
+                                                        unCheckedChildren="Inactive"
+                                                        onChange={(checked) => handleStatusToggle(admin, checked)}
+                                                        loading={statusUpdating === admin._id}
+                                                        disabled={statusUpdating === admin._id}
+                                                        className={admin.status === 'active' ? 'bg-green-500' : ''}
+                                                        title={`Toggle ${admin.name}'s status`}
+                                                    />
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                                        admin.status === 'active' 
+                                                            ? 'bg-green-100 text-green-700' 
+                                                            : 'bg-red-100 text-red-700'
+                                                    }`}>
+                                                        {admin.status}
+                                                    </span>
                                                 </div>
                                             </td>
                                          
@@ -483,9 +564,21 @@ const ViewAllAccounts = () => {
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button 
-                                                        onClick={() => handleDelete(admin)}
-                                                        className="text-gray-400 hover:text-red-600 p-1 rounded transition-colors"
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            console.log('🔴 Delete button clicked!', admin);
+                                                            if (!admin || !admin._id) {
+                                                                console.error('❌ Invalid admin data:', admin);
+                                                                message.error('Invalid admin data. Cannot delete.');
+                                                                return;
+                                                            }
+                                                            handleDelete(admin);
+                                                        }}
+                                                        className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded transition-all duration-200 cursor-pointer active:scale-95"
                                                         title="Delete Admin"
+                                                        aria-label="Delete Admin"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
@@ -901,6 +994,60 @@ const ViewAllAccounts = () => {
                     </div>
                 </Modal>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                title="Delete Admin"
+                open={showDeleteModal}
+                onCancel={cancelDelete}
+                footer={[
+                    <Button key="cancel" onClick={cancelDelete} disabled={deleteLoading}>
+                        Cancel
+                    </Button>,
+                    <Button 
+                        key="delete" 
+                        type="primary" 
+                        danger 
+                        onClick={confirmDelete}
+                        loading={deleteLoading}
+                        className="bg-red-600 hover:bg-red-700"
+                    >
+                        {deleteLoading ? 'Deleting...' : 'Delete'}
+                    </Button>
+                ]}
+                width={500}
+                maskClosable={!deleteLoading}
+                closable={!deleteLoading}
+            >
+                <div className="py-4">
+                    <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                <Trash2 className="w-6 h-6 text-red-600" />
+                            </div>
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                Are you sure you want to delete this admin?
+                            </h3>
+                            {selectedAdmin && (
+                                <div className="space-y-1 text-sm text-gray-600">
+                                    <p><strong>Name:</strong> {selectedAdmin.name}</p>
+                                    <p><strong>Email:</strong> {selectedAdmin.email}</p>
+                                    {selectedAdmin.company?.companyName && (
+                                        <p><strong>Company:</strong> {selectedAdmin.company.companyName}</p>
+                                    )}
+                                </div>
+                            )}
+                            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-sm text-red-800 font-medium">
+                                    ⚠️ This action cannot be undone. All data associated with this admin will be permanently deleted.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

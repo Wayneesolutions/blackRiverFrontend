@@ -1,6 +1,6 @@
 // components/Header.jsx
 import { useState, useRef, useEffect } from "react";
-import { FaBell, FaUserCircle, FaSignOutAlt, FaUser, FaCog } from "react-icons/fa";
+import { FaUserCircle, FaSignOutAlt, FaUser, FaCog } from "react-icons/fa";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -49,14 +49,6 @@ const Header = () => {
             
             {/* Right side - Icons */}
             <div className="flex items-center gap-4 relative">
-                <button 
-                    className="p-2 rounded-full hover:bg-gray-100 transition-colors relative"
-                    aria-label="Notifications"
-                >
-                    <FaBell className="w-5 h-5 text-gray-600" />
-                    {/* Notification badge can be added here */}
-                </button>
-                
                 <div className="relative" ref={dropdownRef}>
                     <button
                         onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}

@@ -1,6 +1,6 @@
 // components/Header.jsx
 import { useState, useRef, useEffect } from "react";
-import { FaBell, FaUserCircle, FaSignOutAlt, FaUser, FaCog } from "react-icons/fa";
+import { FaUserCircle, FaSignOutAlt, FaUser, FaCog } from "react-icons/fa";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -49,7 +49,6 @@ const Header = () => {
             </div>
 
             <div className="flex items-center gap-4 ml-4 relative">
-                <FaBell className="cursor-pointer" />
                 <div className="relative" ref={dropdownRef}>
                     <FaUserCircle 
                         className="cursor-pointer" 

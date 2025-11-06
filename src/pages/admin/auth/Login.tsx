@@ -23,12 +23,17 @@ export default function LoginPage() {
     const token = localStorage.getItem('token');
     const storedUserInfo = localStorage.getItem('userInfo');
     
-    // Only redirect if we have both token and userInfo, and we're on login page
+    // Only redirect if we have both token and userInfo, and user is active
     if (location.pathname === '/admin/login' && token && storedUserInfo) {
       try {
         const parsed = JSON.parse(storedUserInfo);
-        if (parsed && parsed.userData && parsed.userData.role) {
+        if (parsed && parsed.userData && parsed.userData.role && parsed.userData.status === 'active') {
           navigate('/admin/dashboard', { replace: true });
+        } else if (parsed && parsed.userData && parsed.userData.status !== 'active') {
+          // Clear inactive user's data
+          localStorage.removeItem('token');
+          localStorage.removeItem('userInfo');
+          message.error('Your account is not active. Please contact administrator.');
         }
       } catch (e) {
         // Invalid userInfo, don't redirect
@@ -60,12 +65,40 @@ export default function LoginPage() {
     try {
       const response = await login({ email, password });
       
-      if (response?.success) {
+      // Check if response indicates an error - if success is false, show error and stop
+      if (!response || response.success !== true) {
+        const errorMessage = response?.message || "Invalid credentials. Please try again.";
+        
+        // Clear any existing tokens if account is inactive
+        if (errorMessage.includes('not active') || errorMessage.includes('inactive')) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userInfo');
+        }
+        
+        setErrors({ submit: errorMessage });
+        message.error(errorMessage);
+        setLoading(false);
+        return; // Stop here - do NOT navigate to dashboard
+      }
+      
+      // Only proceed if response.success is explicitly true
+      if (response.success === true) {
         const token = response.token || response.data?.token || response.data?.accessToken;
         const userData = response.data || response.user || response;
         
         if (!token || !userData) {
-          setErrors({ submit: "Invalid response from server. Please try again." });
+          const errorMsg = "Invalid response from server. Please try again.";
+          setErrors({ submit: errorMsg });
+          message.error(errorMsg);
+          setLoading(false);
+          return; // Stop here - do NOT navigate to dashboard
+        }
+        
+        // Double-check user status before allowing login
+        const userStatus = userData.status || userData.userData?.status || 'active';
+        if (userStatus !== 'active') {
+          setErrors({ submit: "Your account is not active. Please contact administrator." });
+          message.error("Your account is not active. Please contact administrator.");
           setLoading(false);
           return;
         }
@@ -82,7 +115,7 @@ export default function LoginPage() {
           name: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.email,
           email: userData.email,
           role: userData.role,
-          status: userData.status || 'active'
+          status: userStatus // Use the checked status
         };
         
         const userInfoPayload = { userData: normalizedUserData };
@@ -104,13 +137,11 @@ export default function LoginPage() {
         // Navigate to dashboard
         navigate('/admin/dashboard', { replace: true });
         setLoading(false);
-      } else {
-        setErrors({ submit: response?.message || "Invalid credentials. Please try again." });
-        setLoading(false);
       }
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || error?.message || "Network error. Please check your connection and try again.";
       setErrors({ submit: errorMessage });
+      message.error(errorMessage);
       setLoading(false);
     }
   }
