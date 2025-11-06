@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Car,
     Fuel,
@@ -23,6 +23,7 @@ import {
     Truck,
     Route,
 } from 'lucide-react';
+import { listVehicle } from '../../../../axios/api/distapcher';
 
 import type { ReactNode } from "react";
 
@@ -91,177 +92,73 @@ const VehicleList = () => {
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
     const [showDetails, setShowDetails] = useState(false);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const mockVehicles: Vehicle[] = [
-        {
-            _id: "1",
-            internalId: "VH001",
-            plateNumber: "DL-01-AB-1234",
-            vinNumber: "WVWZZZ1JZ3W386752",
-            make: "Tata",
-            model: "Ace Gold",
-            year: 2022,
-            driver: {
-                _id: "driver1",
-                name: "Rajesh Kumar",
-                phone: "+91-9876543210",
-            },
-            status: "moving",
-            vehicleImage: [
-                {
-                    imageUrl:
-                        "https://via.placeholder.com/300x200/3b82f6/ffffff?text=Vehicle+Image",
-                },
-            ],
-            documents: [
-                {
-                    documentUrl:
-                        "https://via.placeholder.com/300x200/10b981/ffffff?text=RC+Document",
-                },
-                {
-                    documentUrl:
-                        "https://via.placeholder.com/300x200/f59e0b/ffffff?text=Insurance",
-                },
-            ],
-            avatar:
-                "https://via.placeholder.com/100x100/6366f1/ffffff?text=VH001",
-            hasTrailer: true,
-            trailerDetails: {
-                serialNumber: "TR001234",
-                capacity: "5000 kg",
-                status: "attached",
-            },
-            currentLocation: {
-                address: "Sector 18, Noida, UP",
-                longitude: "77.3273",
-                latitude: "28.5706",
-                updatedAt: new Date(),
-            },
-            speed: 45,
-            fuelLevel: 78,
-            odometer: 45230,
-            engineOn: true,
-            driverBehaviour: {
-                harshBraking: 3,
-                speedingEvents: 1,
-                idlingDuration: 25,
-            },
-            engineHealth: {
-                faultCodes: [],
-                batteryVoltage: 12.4,
-                engineHours: 1250,
-            },
-            trips: [
-                {
-                    startTime: new Date("2024-01-20T08:00:00"),
-                    endTime: new Date("2024-01-20T14:30:00"),
-                    route: [
-                        {
-                            latitude: "28.5706",
-                            longitude: "77.3273",
-                            timestamp: new Date("2024-01-20T08:00:00"),
+    // Fetch vehicles from API
+    useEffect(() => {
+        const fetchVehicles = async () => {
+            try {
+                setLoading(true);
+                const res = await listVehicle();
+                if (res.success && res.data?.vehicles) {
+                    // Map API response to Vehicle interface
+                    const formattedVehicles: Vehicle[] = res.data.vehicles.map((v: any) => ({
+                        _id: v._id,
+                        internalId: v.internalId || v._id,
+                        plateNumber: v.plateNumber || 'N/A',
+                        vinNumber: v.vinNumber || 'N/A',
+                        make: v.make || 'Unknown',
+                        model: v.model || 'Unknown',
+                        year: v.year || new Date().getFullYear(),
+                        driver: v.driver ? {
+                            _id: v.driver._id || v.driver,
+                            name: v.driver.name || 'Unknown',
+                            phone: v.driver.phone || 'N/A'
+                        } : null,
+                        status: v.status || 'stopped',
+                        vehicleImage: v.vehicleImage || [],
+                        documents: v.documents || [],
+                        avatar: v.avatar || (v.vehicleImage?.[0]?.imageUrl || 'https://via.placeholder.com/100x100/6366f1/ffffff?text=Vehicle'),
+                        hasTrailer: !!v.trailer,
+                        trailerDetails: v.trailer ? {
+                            serialNumber: v.trailer.serialNumber || 'N/A',
+                            capacity: v.trailer.capacity || 'N/A',
+                            status: v.trailer.status || 'attached'
+                        } : null,
+                        currentLocation: {
+                            address: v.currentLocation?.address || 'Location not available',
+                            longitude: String(v.currentLocation?.longitude || v.coordinates?.longitude || '0'),
+                            latitude: String(v.currentLocation?.latitude || v.coordinates?.latitude || '0'),
+                            updatedAt: v.currentLocation?.updatedAt ? new Date(v.currentLocation.updatedAt) : new Date()
                         },
-                        {
-                            latitude: "28.6315",
-                            longitude: "77.2167",
-                            timestamp: new Date("2024-01-20T14:30:00"),
+                        speed: v.speed || 0,
+                        fuelLevel: v.fuelLevel || 0,
+                        odometer: v.odometer || 0,
+                        engineOn: v.engineOn || false,
+                        driverBehaviour: v.driverBehaviour || {
+                            harshBraking: 0,
+                            speedingEvents: 0,
+                            idlingDuration: 0
                         },
-                    ],
-                },
-            ],
-        },
-        {
-            _id: '2',
-            internalId: 'VH002',
-            plateNumber: 'DL-02-CD-5678',
-            vinNumber: 'WVWZZZ1JZ3W386753',
-            make: 'Mahindra',
-            model: 'Bolero Pickup',
-            year: 2021,
-            driver: {
-                _id: 'driver2',
-                name: 'Amit Singh',
-                phone: '+91-9876543211'
-            },
-            status: 'idle',
-            vehicleImage: [
-                { imageUrl: 'https://via.placeholder.com/300x200/3b82f6/ffffff?text=Vehicle+Image' }
-            ],
-            documents: [
-                { documentUrl: 'https://via.placeholder.com/300x200/10b981/ffffff?text=RC+Document' }
-            ],
-            avatar: 'https://via.placeholder.com/100x100/6366f1/ffffff?text=VH002',
-            hasTrailer: false,
-            trailerDetails: null,
-            currentLocation: {
-                address: 'Connaught Place, New Delhi',
-                longitude: '77.2167',
-                latitude: '28.6315',
-                updatedAt: new Date()
-            },
-            speed: 0,
-            fuelLevel: 45,
-            odometer: 38450,
-            engineOn: false,
-            driverBehaviour: {
-                harshBraking: 1,
-                speedingEvents: 0,
-                idlingDuration: 45
-            },
-            engineHealth: {
-                faultCodes: [
-                    { code: 'P0171', description: 'System Too Lean (Bank 1)' }
-                ],
-                batteryVoltage: 11.8,
-                engineHours: 980
-            },
-            trips: []
-        },
-        {
-            _id: '3',
-            internalId: 'VH003',
-            plateNumber: 'UP-16-EF-9012',
-            vinNumber: 'WVWZZZ1JZ3W386754',
-            make: 'Ashok Leyland',
-            model: 'Dost',
-            year: 2023,
-            driver: null,
-            status: 'stopped',
-            vehicleImage: [
-                { imageUrl: 'https://via.placeholder.com/300x200/3b82f6/ffffff?text=Vehicle+Image' }
-            ],
-            documents: [
-                { documentUrl: 'https://via.placeholder.com/300x200/10b981/ffffff?text=RC+Document' },
-                { documentUrl: 'https://via.placeholder.com/300x200/f59e0b/ffffff?text=Insurance' },
-                { documentUrl: 'https://via.placeholder.com/300x200/ef4444/ffffff?text=PUC+Certificate' }
-            ],
-            avatar: 'https://via.placeholder.com/100x100/6366f1/ffffff?text=VH003',
-            hasTrailer: false,
-            trailerDetails: null,
-            currentLocation: {
-                address: 'Industrial Area, Ghaziabad, UP',
-                longitude: '77.4126',
-                latitude: '28.6692',
-                updatedAt: new Date()
-            },
-            speed: 0,
-            fuelLevel: 92,
-            odometer: 12890,
-            engineOn: false,
-            driverBehaviour: {
-                harshBraking: 0,
-                speedingEvents: 0,
-                idlingDuration: 0
-            },
-            engineHealth: {
-                faultCodes: [],
-                batteryVoltage: 12.6,
-                engineHours: 340
-            },
-            trips: []
-        }
-    ];
-    const [vehicles] = useState<Vehicle[]>(mockVehicles);
+                        engineHealth: v.engineHealth || {
+                            faultCodes: [],
+                            batteryVoltage: 12.0,
+                            engineHours: 0
+                        },
+                        trips: v.trips || []
+                    }));
+                    setVehicles(formattedVehicles);
+                }
+            } catch (error) {
+                console.error('Error fetching vehicles:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchVehicles();
+    }, []);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -405,6 +302,14 @@ const VehicleList = () => {
         lowFuel: vehicles.filter(v => v.fuelLevel < 20).length
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen p-4 bg-gray-50 px-6 flex items-center justify-center">
+                <div className="text-gray-500">Loading vehicles...</div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen p-4 bg-gray-50 px-6">
             <div className="max-w-7xl mx-auto">
@@ -527,7 +432,22 @@ const VehicleList = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-slate-100">
-                                {currentVehicles.map((vehicle) => (
+                                {currentVehicles.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="px-6 py-12 text-center">
+                                            <div className="flex flex-col items-center justify-center">
+                                                <Car className="w-12 h-12 text-slate-400 mb-4" />
+                                                <p className="text-slate-600 font-medium">No vehicles found</p>
+                                                <p className="text-slate-500 text-sm mt-1">
+                                                    {searchTerm || filterStatus !== 'all' 
+                                                        ? 'Try adjusting your search or filter criteria' 
+                                                        : 'No vehicles are available for your company'}
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    currentVehicles.map((vehicle) => (
                                     <tr key={vehicle._id} className="hover:bg-slate-50 transition-colors duration-150">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
@@ -601,7 +521,8 @@ const VehicleList = () => {
                                             </button>
                                         </td>
                                     </tr>
-                                ))}
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
