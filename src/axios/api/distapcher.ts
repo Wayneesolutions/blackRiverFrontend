@@ -14,8 +14,8 @@ export const listCustomer = async () =>{
     const res: AxiosResponse = await apiClient.get(`dispatcher/customer`);
     console.log('==res ', res)
     return res.data;
-  } catch (error) {
-    return (error as Error).response?.data;
+  } catch (error: any) {
+    return error?.response?.data || { success: false, message: error?.message || 'Failed to fetch customers', data: null };
   }
 }
 
@@ -272,14 +272,13 @@ export const deleteVehicle = async (id:string) =>{
 
 export const listVehicle = async () =>{
     try {
-
     const res: AxiosResponse = await apiClient.get(`dispatcher/vehicle`);
     console.log('==res ', res)
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
-
-    return (error as Error).response?.data;
+    // Return error response data if available, otherwise return error structure
+    return error?.response?.data || { success: false, message: error?.message || 'Failed to fetch vehicles', data: null };
   }
 }
 
@@ -396,14 +395,12 @@ export const deleteLoad = async (id: string) => {
 
 export const listDriver = async () =>{
     try {
-
     const res: AxiosResponse = await apiClient.get(`dispatcher/driver`);
     console.log('==res ', res)
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
-
-    return (error as Error).response?.data;
+    return error?.response?.data || { success: false, message: error?.message || 'Failed to fetch drivers', data: null };
   }
 }
 
@@ -414,14 +411,12 @@ export const listDriver = async () =>{
 
 export const listFaciliator = async () =>{
     try {
-
     const res: AxiosResponse = await apiClient.get(`dispatcher/faciliator`);
     console.log('==res ', res)
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
-
-    return (error as Error).response?.data;
+    return error?.response?.data || { success: false, message: error?.message || 'Failed to fetch facilitators', data: null };
   }
 }
 

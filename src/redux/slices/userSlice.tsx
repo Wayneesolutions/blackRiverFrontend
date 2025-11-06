@@ -11,10 +11,25 @@ export interface UserInfo{
 interface InitialState{
     userInfo : {userData: UserInfo} | null;
 }
-const userInfoFromLocalStorage = localStorage.getItem("userInfo");
+// Safely get userInfo from localStorage for initial state
+const getUserInfoFromStorage = (): {userData: any} | null => {
+    try {
+        const stored = localStorage.getItem("userInfo");
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            // Validate structure
+            if (parsed && parsed.userData) {
+                return parsed;
+            }
+        }
+    } catch (e) {
+        console.error("Error parsing userInfo from localStorage:", e);
+    }
+    return null;
+};
 
 const initialState: InitialState = {
-    userInfo: userInfoFromLocalStorage? JSON.parse(userInfoFromLocalStorage): null,
+    userInfo: getUserInfoFromStorage(),
 }
 const authSlice = createSlice({
     name:'userAuth',
@@ -22,8 +37,18 @@ const authSlice = createSlice({
     reducers:{
 
           setUserCredentials: (state, action) => {
-            state.userInfo = action.payload;
-            localStorage.setItem("userInfo", JSON.stringify(action.payload));
+            // Validate payload structure
+            if (action.payload && action.payload.userData) {
+                state.userInfo = action.payload;
+                // Update localStorage synchronously
+                try {
+                    localStorage.setItem("userInfo", JSON.stringify(action.payload));
+                } catch (e) {
+                    console.error("Error storing userInfo to localStorage:", e);
+                }
+            } else {
+                console.error("Invalid payload structure for setUserCredentials:", action.payload);
+            }
           },
           userLogOut: (state) => {
             state.userInfo = null;

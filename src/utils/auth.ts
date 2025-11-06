@@ -14,8 +14,8 @@ export const isAuthenticated = (): boolean => {
   try {
     const parsed = JSON.parse(userInfo);
     const status = parsed?.userData?.status;
-    // User must be authenticated AND active
-    return status === 'active';
+    // User must be authenticated AND (active or status undefined for backward compatibility)
+    return status === undefined || status === 'active';
   } catch (e) {
     return false;
   }
@@ -34,8 +34,8 @@ export const isSuperAdmin = (): boolean => {
     
     const parsed = JSON.parse(superAdminInfo);
     const status = parsed?.userData?.status;
-    // Superadmin must be authenticated AND active
-    return status === 'active';
+    // Superadmin must be authenticated AND (active or status undefined for backward compatibility)
+    return status === undefined || status === 'active';
   } catch (e) {
     return false;
   }
@@ -124,7 +124,7 @@ export const isTokenExpired = (token: string | null): boolean => {
     const payload = JSON.parse(atob(token.split('.')[1]));
     const exp = payload.exp;
     
-    if (!exp) return false; // No expiration claim
+    if (!exp) return false; // No expiration claim means token doesn't expire (valid)
     
     // Check if token is expired (exp is in seconds)
     return Date.now() >= exp * 1000;

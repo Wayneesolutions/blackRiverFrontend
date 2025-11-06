@@ -10,7 +10,6 @@ interface SuperAdminProtectedRouteProps {
 
 /**
  * SuperAdminProtectedRoute - Component to protect superadmin routes
- * Checks for superadmin token and role in localStorage
  * 
  * @param children - The component to render if authenticated as superadmin
  * @param redirectTo - Optional custom redirect path (defaults to /superadmin/login)
@@ -23,19 +22,47 @@ const SuperAdminProtectedRoute = ({
   const { superAdminInfo } = useSelector((state: RootState) => state.superAdminAuth);
   const token = localStorage.getItem('token');
 
-  // Check if user is authenticated as superadmin and token is valid
-  const isSuperAdmin = !!(token && superAdminInfo && isTokenValid());
+  // Check localStorage for superAdminInfo if Redux doesn't have it
+  let effectiveSuperAdminInfo = superAdminInfo;
+  
+  if (token && !effectiveSuperAdminInfo) {
+    try {
+      const storedSuperAdminInfo = localStorage.getItem('superAdminInfo');
+      if (storedSuperAdminInfo) {
+        const parsed = JSON.parse(storedSuperAdminInfo);
+        if (parsed && parsed.userData) {
+          effectiveSuperAdminInfo = parsed;
+        }
+      }
+    } catch (e) {
+      // Ignore parsing errors
+    }
+  }
 
-  // If not authenticated as superadmin, redirect to login
+  // Check if token was recently set (grace period for fresh login)
+  const tokenSetTime = sessionStorage.getItem('tokenSetTime');
+  const now = Date.now();
+  const recentlyLoggedIn = tokenSetTime && (now - parseInt(tokenSetTime)) < 10000;
+
+  // Check token validity - skip validation for recently logged in users
+  let tokenValid = true;
+  if (!recentlyLoggedIn) {
+    tokenValid = isTokenValid();
+  } else {
+    tokenValid = !!token;
+  }
+
+  // Check if user is authenticated as superadmin
+  const isSuperAdmin = !!(token && effectiveSuperAdminInfo && effectiveSuperAdminInfo.userData && tokenValid);
+
   if (!isSuperAdmin) {
     const loginPath = redirectTo || '/superadmin/login';
     return <Navigate to={loginPath} state={{ from: location }} replace />;
   }
 
   // Check if superadmin is active
-  const superAdminStatus = superAdminInfo?.userData?.status;
-  if (superAdminStatus !== 'active') {
-    // Clear auth data and redirect to login if superadmin is inactive
+  const superAdminStatus = effectiveSuperAdminInfo?.userData?.status;
+  if (!recentlyLoggedIn && superAdminStatus !== undefined && superAdminStatus !== 'active') {
     localStorage.removeItem('token');
     localStorage.removeItem('superAdminInfo');
     const loginPath = redirectTo || '/superadmin/login';
@@ -46,4 +73,3 @@ const SuperAdminProtectedRoute = ({
 };
 
 export default SuperAdminProtectedRoute;
-

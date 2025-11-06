@@ -2,7 +2,6 @@ import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Layout from "../components/admin/Layout";
 import Loading from "../components/common/Loading";
-import ProtectedRoute from "../components/auth/ProtectedRoute";
 import PublicRoute from "../components/auth/PublicRoute";
 
 
@@ -53,11 +52,7 @@ function AdminRoute() {
         
         {/* Protected Routes - Main Admin Layout Routes */}
         <Route 
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
+          element={<Layout />}
         >
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
@@ -77,51 +72,27 @@ function AdminRoute() {
         {/* Protected Feature Routes */}
         <Route 
           path="dispatch/*" 
-          element={
-            <ProtectedRoute>
-              <DispatchRoutes />
-            </ProtectedRoute>
-          } 
+          element={<DispatchRoutes />} 
         />
         <Route 
           path="gpsvehicle/*" 
-          element={
-            <ProtectedRoute>
-              <GpsVehicleRoutes />
-            </ProtectedRoute>
-          } 
+          element={<GpsVehicleRoutes />} 
         />
         <Route 
           path="Management/*" 
-          element={
-            <ProtectedRoute>
-              <DriverManagement />
-            </ProtectedRoute>
-          } 
+          element={<DriverManagement />} 
         />
         <Route 
           path="compliance/*" 
-          element={
-            <ProtectedRoute>
-              <ComplianceRoute />
-            </ProtectedRoute>
-          } 
+          element={<ComplianceRoute />} 
         />
         <Route 
           path="accounts/*" 
-          element={
-            <ProtectedRoute>
-              <AccountsRoute />
-            </ProtectedRoute>
-          } 
+          element={<AccountsRoute />} 
         />
         <Route 
           path="fleetmaintenance/*" 
-          element={
-            <ProtectedRoute>
-              <FleetMaintainRoute />
-            </ProtectedRoute>
-          } 
+          element={<FleetMaintainRoute />} 
         />
       </Routes>
     </Suspense>

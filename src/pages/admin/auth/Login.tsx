@@ -1,33 +1,41 @@
 import React, { useEffect, useState } from "react";
-import { Truck, Eye, EyeOff, CheckCircle, Mail, Lock, ArrowRight, MapPin, Users, Shield, AlertCircle } from "lucide-react";
+import { Truck, Eye, EyeOff, Mail, Lock, ArrowRight, MapPin, Users, Shield, AlertCircle } from "lucide-react";
 import { login } from "../../../axios/api/auth";
-import { useNavigate } from "react-router-dom"; // Assuming you're using React Router
-import {message} from 'antd'
-import { setUserCredentials, type UserInfo } from "../../../redux/slices/userSlice";
+import { useNavigate, useLocation } from "react-router-dom";
+import { message } from 'antd';
+import { setUserCredentials } from "../../../redux/slices/userSlice";
 import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
-import  { type RootState } from "../../../redux/store";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState<"success" | "error">("success");
-  const dispatch = useDispatch()
-   const { userInfo } = useSelector((state: RootState) => state.userAuth);
-  const navigate = useNavigate(); // For navigation
-
   
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Redirect if already logged in (only check once on mount)
   useEffect(() => {
-        if (userInfo) {
-            navigate('/admin/dashboard')
+    const token = localStorage.getItem('token');
+    const storedUserInfo = localStorage.getItem('userInfo');
+    
+    // Only redirect if we have both token and userInfo, and we're on login page
+    if (location.pathname === '/admin/login' && token && storedUserInfo) {
+      try {
+        const parsed = JSON.parse(storedUserInfo);
+        if (parsed && parsed.userData && parsed.userData.role) {
+          navigate('/admin/dashboard', { replace: true });
         }
-    }, [])
+      } catch (e) {
+        // Invalid userInfo, don't redirect
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   function validate() {
     const e: Record<string, string> = {};
@@ -38,67 +46,71 @@ export default function LoginPage() {
     return Object.keys(e).length === 0;
   }
 
-  // Store token in localStorage (or you can use a context/state management)
-  const storeToken = (token: string, userData: UserInfo) => {
-    localStorage.setItem("token", token);
-    dispatch(setUserCredentials({ userData }));
-  };
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!validate()) return;
+    e.stopPropagation();
+    
+    if (!validate()) {
+      return;
+    }
     
     setLoading(true);
     setErrors({});
     
     try {
-      const payload = { email, password };
-      const response = await login(payload);
-      
-      console.log("Login response:", response);
+      const response = await login({ email, password });
       
       if (response?.success) {
-        // // Success case
-        // setSuccess(true);
-        // setAlertType("success");
-        // setAlertMessage(response.message || "Login successful! Redirecting to dashboard...");
+        const token = response.token || response.data?.token || response.data?.accessToken;
+        const userData = response.data || response.user || response;
         
-        // Store token and user data
-        if (response.token && response.data) {
-          storeToken(response.token, response.data);
+        if (!token || !userData) {
+          setErrors({ submit: "Invalid response from server. Please try again." });
+          setLoading(false);
+          return;
         }
         
-        // Clear form
+        // Clean up old localStorage keys
+        localStorage.removeItem('adminInfo');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userData');
+        
+        // Normalize user data
+        const normalizedUserData = {
+          _id: userData._id || userData.id,
+          name: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.email,
+          email: userData.email,
+          role: userData.role,
+          status: userData.status || 'active'
+        };
+        
+        const userInfoPayload = { userData: normalizedUserData };
+        
+        // Store authentication data
+        localStorage.setItem("token", token);
+        localStorage.setItem("userInfo", JSON.stringify(userInfoPayload));
+        sessionStorage.setItem("tokenSetTime", Date.now().toString());
+        
+        // Update Redux
+        dispatch(setUserCredentials(userInfoPayload));
+        
+        // Clear form and show success
         setEmail("");
         setPassword("");
         setRememberMe(false);
-        message.success(response.message)
-        navigate('/admin/dashboard')
+        message.success(response.message || "Login successful");
+        
+        // Navigate to dashboard
+        navigate('/admin/dashboard', { replace: true });
+        setLoading(false);
       } else {
-        // Error case - API returned success: false
-        // setSuccess(false);
-        // setAlertType("error");
-        // setAlertMessage(response?.message || "Login failed. Please try again.");
         setErrors({ submit: response?.message || "Invalid credentials. Please try again." });
-        return
+        setLoading(false);
       }
-      
     } catch (error: any) {
-      console.error("Login error:", error);
-      setAlertType("error");
-      
-      // Handle different types of errors
-      if (error?.response?.data?.message) {
-        setAlertMessage(error.response.data.message);
-        setErrors({ submit: error.response.data.message });
-      } else if (error?.message) {
-        setAlertMessage(error.message);
-        setErrors({ submit: error.message });
-      } else {
-        setAlertMessage("Network error. Please check your connection and try again.");
-        setErrors({ submit: "Network error. Please check your connection and try again." });
-      }
-    } finally {
+      const errorMessage = error?.response?.data?.message || error?.message || "Network error. Please check your connection and try again.";
+      setErrors({ submit: errorMessage });
       setLoading(false);
     }
   }
@@ -112,22 +124,6 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full max-w-6xl relative">
-        {/* Alert Messages */}
-        {alertMessage && (
-          <div className={`fixed top-6 right-6 px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md ${
-            alertType === "success" 
-              ? "bg-emerald-500 text-white" 
-              : "bg-red-500 text-white"
-          }`}>
-            {alertType === "success" ? (
-              <CheckCircle className="w-5 h-5 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            )}
-            <span className="text-sm font-medium">{alertMessage}</span>
-          </div>
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Left Side - Welcome Content */}
           <div className="space-y-8 text-center lg:text-left">
@@ -327,22 +323,6 @@ export default function LoginPage() {
           © 2025 Logistics Platform. All rights reserved.
         </div>
       </div>
-
-      <style>{`
-        @keyframes slide-in {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out;
-        }
-      `}</style>
     </div>
   );
 }

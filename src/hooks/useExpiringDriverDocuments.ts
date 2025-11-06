@@ -27,7 +27,27 @@ export const useExpiringDriverDocuments = () => {
             console.log('🔍 role check:', userData?.role);
             console.log('🔍 authorized roles check:', ['admin', 'hr', 'superadmin'].includes(userData?.role || ''));
             
-            if (!userInfo || !userData || !['admin', 'hr', 'superadmin'].includes(userData.role)) {
+            // Check both Redux and localStorage for userInfo (fallback for timing issues)
+            let effectiveUserInfo = userInfo;
+            let effectiveUserData = userData;
+            
+            if (!effectiveUserInfo) {
+                try {
+                    const storedUserInfo = localStorage.getItem('userInfo');
+                    if (storedUserInfo) {
+                        const parsed = JSON.parse(storedUserInfo);
+                        if (parsed && parsed.userData) {
+                            effectiveUserInfo = parsed;
+                            effectiveUserData = parsed.userData;
+                            console.log('✅ Using userInfo from localStorage as fallback');
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing userInfo from localStorage:', e);
+                }
+            }
+            
+            if (!effectiveUserInfo || !effectiveUserData || !['admin', 'hr', 'superadmin'].includes(effectiveUserData.role)) {
                 console.log('❌ User not authorized or no userInfo');
                 return;
             }
@@ -57,9 +77,12 @@ export const useExpiringDriverDocuments = () => {
             }
         };
 
-        // Check immediately when component mounts
-        console.log('🔍 Starting initial check...');
-        checkExpiringDocuments();
+        // Add a small delay before first check to allow Redux state to update after login
+        // This prevents race conditions where API calls happen before auth state is ready
+        console.log('🔍 Starting initial check with delay...');
+        const initialCheckTimeout = setTimeout(() => {
+            checkExpiringDocuments();
+        }, 500); // 500ms delay to allow Redux state to update
 
         // Set up interval to check every 30 seconds
         console.log('🔍 Setting up 30-second interval...');
@@ -68,10 +91,11 @@ export const useExpiringDriverDocuments = () => {
             checkExpiringDocuments();
         }, 30 * 1000); // 30 seconds
 
-        // Cleanup interval on unmount
+        // Cleanup interval and timeout on unmount
         return () => {
-            console.log('🔍 Cleaning up interval');
+            console.log('🔍 Cleaning up interval and timeout');
             clearInterval(interval);
+            clearTimeout(initialCheckTimeout);
         };
     }, [userInfo, userData]);
 

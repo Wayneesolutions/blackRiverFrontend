@@ -18,7 +18,8 @@ interface Error {
 
 adminApi.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('adminToken');
+    // Use the standard token key (same as main apiClient)
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

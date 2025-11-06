@@ -218,9 +218,10 @@ export const getExpiringDocuments = async (days: number = 30) => {
     }> = await apiClient.get(`/employee-documents/expiring?days=${days}`);
     
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching expiring documents:', error);
-    throw error;
+    // Return error structure instead of throwing
+    return error?.response?.data || { success: false, message: error?.message || 'Failed to fetch expiring documents', data: [] };
   }
 };
 
