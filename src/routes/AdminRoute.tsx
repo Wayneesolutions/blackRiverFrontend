@@ -1,8 +1,10 @@
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
+import React from "react";
 import Layout from "../components/admin/Layout";
 import Loading from "../components/common/Loading";
 import PublicRoute from "../components/auth/PublicRoute";
+import ErrorBoundary from "../components/common/ErrorBoundary";
 
 
 const Register = lazy(() => import("../pages/admin/auth/Register"));
@@ -28,10 +30,19 @@ const FleetMaintainRoute = lazy(() => import("./AdminFeatures/FleetMaintainRoute
 const AccountsRoute = lazy(() => import("./AdminFeatures/AccountsRoutes"))
 const Subscription = lazy(() => import("../pages/admin/subscription/index"))
 
+// Debug wrapper to log route changes
+const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
+  React.useEffect(() => {
+    console.log('📍 Current route:', window.location.pathname);
+  }, [window.location.pathname]);
+  return <>{children}</>;
+};
+
 function AdminRoute() {
   return (
     <Suspense fallback={<Loading />}>
-      <Routes>
+      <RouteDebugger>
+        <Routes>
         {/* Public Routes - Auth Pages */}
         <Route 
           path="register" 
@@ -54,19 +65,19 @@ function AdminRoute() {
         <Route 
           element={<Layout />}
         >
-          <Route index element={<Dashboard />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="quick-stats" element={<QuickStats />} />
-          <Route path="member" element={<Member />} />
-          <Route path="slots" element={<Slots />} />
-          <Route path="invoice" element={<Invoice />} />
+          <Route index element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+          <Route path="dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+          <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
+          <Route path="quick-stats" element={<ErrorBoundary><QuickStats /></ErrorBoundary>} />
+          <Route path="member" element={<ErrorBoundary><Member /></ErrorBoundary>} />
+          <Route path="slots" element={<ErrorBoundary><Slots /></ErrorBoundary>} />
+          <Route path="invoice" element={<ErrorBoundary><Invoice /></ErrorBoundary>} />
 
-          <Route path="users" element={<UserManage />} />
-          <Route path="company" element={<CompanyManage />} />
-          <Route path="integrations" element={<Integrations />} />
-          <Route path="company-documents" element={<CompanyDocuments />} />
-          <Route path="subscription" element={<Subscription />} />
+          <Route path="users" element={<ErrorBoundary><UserManage /></ErrorBoundary>} />
+          <Route path="company" element={<ErrorBoundary><CompanyManage /></ErrorBoundary>} />
+          <Route path="integrations" element={<ErrorBoundary><Integrations /></ErrorBoundary>} />
+          <Route path="company-documents" element={<ErrorBoundary><CompanyDocuments /></ErrorBoundary>} />
+          <Route path="subscription" element={<ErrorBoundary><Subscription /></ErrorBoundary>} />
         </Route>
         
         {/* Protected Feature Routes */}
@@ -95,6 +106,7 @@ function AdminRoute() {
           element={<FleetMaintainRoute />} 
         />
       </Routes>
+      </RouteDebugger>
     </Suspense>
   );
 }

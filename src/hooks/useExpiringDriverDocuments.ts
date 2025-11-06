@@ -72,8 +72,13 @@ export const useExpiringDriverDocuments = () => {
                     console.log('❌ No expiring driver documents found or API failed');
                     setShowExpiringPopup(false);
                 }
-            } catch (error) {
-                console.error('❌ Error checking expiring driver documents:', error);
+            } catch (error: any) {
+                // Silently handle errors - don't crash the app for background checks
+                // Only log if it's not a 403/401 (those are handled by interceptor)
+                if (error?.response?.status !== 403 && error?.response?.status !== 401) {
+                    console.error('❌ Error checking expiring driver documents:', error);
+                }
+                setShowExpiringPopup(false);
             }
         };
 

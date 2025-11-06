@@ -24,7 +24,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
   // Helper function to check if route is active
   const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
-    if (linkKey === "/admin/") {
+    // Handle dashboard route (can be index or /admin/dashboard)
+    if (linkKey === "dashboard" || linkKey === "/admin/dashboard") {
       return (
         pathname === "/admin/" ||
         pathname === "/admin/dashboard"
@@ -105,7 +106,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                           {link.children.map((child) => (
                             <li key={child.key}>
                               <NavLink
-                                to={child.key}
+                                to={`/admin/${child.key}`}
+                                onClick={() => {
+                                  console.log('🔗 Sidebar navigation to:', `/admin/${child.key}`);
+                                }}
                                 className={({ isActive }) => {
                                   const pathname = window.location.pathname;
                                   const activeState = isActiveLink(
@@ -147,7 +151,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                   ) : (
                     // --- NORMAL LINK (same as before) ---
                     <NavLink
-                      to={link.key}
+                      to={link.key === "dashboard" ? "/admin/" : `/admin/${link.key}`}
+                      onClick={() => {
+                        const targetPath = link.key === "dashboard" ? "/admin/" : `/admin/${link.key}`;
+                        console.log('🔗 Sidebar navigation to:', targetPath);
+                      }}
                       className={({ isActive }) => {
                         const pathname = window.location.pathname;
                         const activeState = isActiveLink(

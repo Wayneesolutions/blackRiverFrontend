@@ -48,7 +48,13 @@ interface Plan {
 
 interface Subscription {
   _id: string;
-  plan: Plan;
+  plan: Plan | string; // Can be populated Plan object or just plan ID
+  planSnapshot?: {
+    planName: string;
+    allowedRoles?: string[];
+    blockedRoles?: string[];
+    snapshotDate?: string;
+  };
   planType: 'lifetime' | 'monthly';
   subscriptionType: string;
   amount: number;
@@ -110,8 +116,11 @@ const SubscriptionPage = () => {
         setAllowedRoles(allowedRolesRes.data.allowedRoles || []);
       }
     } catch (error: any) {
-      console.error('Error fetching data:', error);
-      message.error(error?.message || 'Failed to fetch data');
+      console.error('Error fetching subscription data:', error);
+      // Don't show error message if it's just a missing subscription
+      if (!error?.message?.includes('No active subscription')) {
+        message.error(error?.message || 'Failed to fetch data');
+      }
     } finally {
       setLoading(false);
     }
@@ -311,7 +320,11 @@ const SubscriptionPage = () => {
                         <Package className="w-5 h-5 text-yellow-300" />
                         <span className="text-white/80 text-sm font-medium">Plan Name</span>
                       </div>
-                      <p className="text-white text-xl font-bold">{activeSubscription.plan?.planName}</p>
+                      <p className="text-white text-xl font-bold">
+                        {typeof activeSubscription.plan === 'object' 
+                          ? activeSubscription.plan?.planName 
+                          : activeSubscription.planSnapshot?.planName || 'Plan'}
+                      </p>
                     </div>
 
                     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
@@ -380,66 +393,81 @@ const SubscriptionPage = () => {
                   </div>
 
                   {/* Role Permissions */}
-                  {activeSubscription.plan && (
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 mb-4">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Shield className="w-5 h-5 text-yellow-300" />
-                        <h3 className="text-white font-semibold">Role Creation Permissions</h3>
+                  {activeSubscription && (() => {
+                    // Use planSnapshot if available (what admin paid for), otherwise fall back to populated plan
+                    const plan = typeof activeSubscription.plan === 'object' ? activeSubscription.plan : null;
+                    const planSnapshot = activeSubscription.planSnapshot;
+                    const blockedRoles = planSnapshot?.blockedRoles || plan?.blockedRoles || [];
+                    const allowedRoles = planSnapshot?.allowedRoles || plan?.allowedRoles || [];
+                    
+                    if (!plan && !planSnapshot) return null;
+                    
+                    return (
+                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 mb-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Shield className="w-5 h-5 text-yellow-300" />
+                          <h3 className="text-white font-semibold">Role Creation Permissions</h3>
+                          {planSnapshot && (
+                            <Tag color="blue" className="ml-auto">
+                              Snapshot Protected
+                            </Tag>
+                          )}
+                        </div>
+                        <div className="space-y-3">
+                          {blockedRoles && blockedRoles.length > 0 && (
+                            <div>
+                              <p className="text-red-200 text-xs font-medium mb-2 flex items-center gap-1">
+                                <X className="w-3 h-3" />
+                                Cannot Create These Roles:
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {blockedRoles.map((role: string) => (
+                                  <Tag key={role} color="red" className="bg-red-500/20 text-red-100 border-red-400/30">
+                                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                                  </Tag>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {allowedRoles && allowedRoles.length > 0 ? (
+                            <div>
+                              <p className="text-green-200 text-xs font-medium mb-2 flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3" />
+                                Can Only Create These Roles:
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {allowedRoles.map((role: string) => (
+                                  <Tag key={role} color="green" className="bg-green-500/20 text-green-100 border-green-400/30">
+                                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                                  </Tag>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (!blockedRoles || blockedRoles.length === 0) ? (
+                            <div className="flex items-center gap-2 text-blue-200">
+                              <BadgeCheck className="w-4 h-4" />
+                              <p className="text-sm font-medium">All roles allowed</p>
+                            </div>
+                          ) : null}
+                          {allowedRoles.length > 0 && (
+                            <div className="pt-3 border-t border-white/20">
+                              <p className="text-blue-200 text-xs font-medium mb-2 flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                Your Current Permissions:
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {allowedRoles.map((role: string) => (
+                                  <Tag key={role} color="blue" className="bg-blue-500/20 text-blue-100 border-blue-400/30">
+                                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                                  </Tag>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="space-y-3">
-                        {activeSubscription.plan.blockedRoles && activeSubscription.plan.blockedRoles.length > 0 && (
-                          <div>
-                            <p className="text-red-200 text-xs font-medium mb-2 flex items-center gap-1">
-                              <X className="w-3 h-3" />
-                              Cannot Create These Roles:
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {activeSubscription.plan.blockedRoles.map((role) => (
-                                <Tag key={role} color="red" className="bg-red-500/20 text-red-100 border-red-400/30">
-                                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                                </Tag>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        {activeSubscription.plan.allowedRoles && activeSubscription.plan.allowedRoles.length > 0 ? (
-                          <div>
-                            <p className="text-green-200 text-xs font-medium mb-2 flex items-center gap-1">
-                              <CheckCircle className="w-3 h-3" />
-                              Can Only Create These Roles:
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {activeSubscription.plan.allowedRoles.map((role) => (
-                                <Tag key={role} color="green" className="bg-green-500/20 text-green-100 border-green-400/30">
-                                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                                </Tag>
-                              ))}
-                            </div>
-                          </div>
-                        ) : !activeSubscription.plan.blockedRoles || activeSubscription.plan.blockedRoles.length === 0 ? (
-                          <div className="flex items-center gap-2 text-blue-200">
-                            <BadgeCheck className="w-4 h-4" />
-                            <p className="text-sm font-medium">All roles allowed</p>
-                          </div>
-                        ) : null}
-                        {allowedRoles.length > 0 && (
-                          <div className="pt-3 border-t border-white/20">
-                            <p className="text-blue-200 text-xs font-medium mb-2 flex items-center gap-1">
-                              <Users className="w-3 h-3" />
-                              Your Current Permissions:
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {allowedRoles.map((role) => (
-                                <Tag key={role} color="blue" className="bg-blue-500/20 text-blue-100 border-blue-400/30">
-                                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                                </Tag>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   <div className="flex items-center gap-2 text-white/80 text-sm">
                     <Clock className="w-4 h-4" />
@@ -510,7 +538,8 @@ const SubscriptionPage = () => {
           {activeTab === 'plans' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {plans.map((plan) => {
-                const isCurrentPlan = activeSubscription?.plan?._id === plan._id;
+                const currentPlanId = typeof activeSubscription?.plan === 'object' ? activeSubscription.plan?._id : null;
+                const isCurrentPlan = currentPlanId === plan._id;
                 return (
                   <div
                     key={plan._id}
@@ -763,7 +792,11 @@ const SubscriptionPage = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-4">
                             {getStatusIcon(sub.status)}
-                            <h3 className="text-xl font-bold text-gray-900">{sub.plan?.planName}</h3>
+                            <h3 className="text-xl font-bold text-gray-900">
+                              {typeof sub.plan === 'object' 
+                                ? sub.plan?.planName 
+                                : sub.planSnapshot?.planName || 'Plan'}
+                            </h3>
                             <Tag color={getStatusColor(sub.status)}>{sub.status.toUpperCase()}</Tag>
                             <Tag color={sub.paymentStatus === 'paid' ? 'success' : 'warning'}>
                               {sub.paymentStatus.toUpperCase()}
