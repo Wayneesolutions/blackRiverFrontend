@@ -22,6 +22,7 @@ function Trucks() {
 
   // Use the custom hook - it handles loading, error, and data fetching
   const { vehicles, loading, error, emptyMessage } = useVehicles();
+  const sanitizedMessage = emptyMessage && emptyMessage.toLowerCase().includes('no company assigned') ? null : emptyMessage;
 
   // Filter vehicles based on search
   const filtered = vehicles.filter((truck: Vehicle) =>
@@ -51,21 +52,16 @@ function Trucks() {
     );
   }
 
-  if (emptyMessage) {
-    return (
-      <div className="p-6 min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
-        <TruckIcon />
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-2xl font-semibold text-gray-800">No truck data available</h2>
-          <p className="text-gray-500">{emptyMessage}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 min-h-screen bg-gray-50">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Truck Listing</h1>
+
+      {sanitizedMessage && (
+        <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
+          <span className="text-2xl">🚛</span>
+          <span className="text-sm">{sanitizedMessage}</span>
+        </div>
+      )}
 
       <div className="mb-6">
         <input

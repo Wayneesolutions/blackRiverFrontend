@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   FaFileInvoice, 
   FaPlus, 
@@ -121,6 +121,17 @@ const InvoicesPage = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [userInfoReady, setUserInfoReady] = useState<boolean>(false);
 
+  const sanitizeMessage = useCallback((message?: string | null) => {
+    if (!message) return null;
+    return message.toLowerCase().includes('no company assigned') ? null : message;
+  }, []);
+
+  const pushBannerMessage = useCallback((message?: string | null) => {
+    const sanitized = sanitizeMessage(message);
+    if (!sanitized) return;
+    setEmptyStateMessage(prev => prev || sanitized);
+  }, [sanitizeMessage]);
+
   // Form state
   const [invoiceForm, setInvoiceForm] = useState({
     customerName: '',
@@ -157,9 +168,8 @@ const InvoicesPage = () => {
     const hasCompany = Boolean(userInfo?.company);
 
     if (!isSuperadmin && !hasCompany) {
+      setEmptyStateMessage(null);
       setInvoices([]);
-      setSpareParts([]);
-      setEmptyStateMessage('No company assigned to the current admin.');
       setLoading(false);
       return;
     }
@@ -171,7 +181,7 @@ const InvoicesPage = () => {
 
   // Refetch invoices when filters change
   useEffect(() => {
-    if (!userInfoReady || emptyStateMessage) {
+    if (!userInfoReady) {
       return;
     }
     fetchInvoices();
@@ -193,21 +203,21 @@ const InvoicesPage = () => {
       if (res?.success) {
         const data = res.data || [];
         setInvoices(data);
-        if (res.message && data.length === 0) {
-          setEmptyStateMessage(res.message);
+        if (data.length === 0) {
+          pushBannerMessage(res.message);
         } else {
           setEmptyStateMessage(null);
         }
       } else {
         addNotification('error', res?.message || 'Failed to fetch invoices');
         setInvoices([]);
-        setEmptyStateMessage(res?.message || 'Failed to fetch invoices');
+        pushBannerMessage(res?.message || 'Failed to fetch invoices');
       }
     } catch (err: any) {
       console.error("Error fetching invoices:", err);
       addNotification('error', err?.message || 'Failed to fetch invoices');
       setInvoices([]);
-      setEmptyStateMessage(err?.message || 'Failed to fetch invoices');
+      pushBannerMessage(err?.message || 'Failed to fetch invoices');
     }
     setLoading(false);
   };
@@ -218,21 +228,19 @@ const InvoicesPage = () => {
       if (res?.success) {
         const data = res.data || [];
         setSpareParts(data);
-        if (res.message && data.length === 0) {
-          setEmptyStateMessage((prev) => prev || res.message);
+        if (data.length === 0) {
+          pushBannerMessage(res.message);
         }
       } else {
         addNotification('error', res?.message || 'Failed to fetch spare parts');
         setSpareParts([]);
-        if (res?.message) {
-          setEmptyStateMessage((prev) => prev || res.message);
-        }
+        pushBannerMessage(res?.message || 'Failed to fetch spare parts');
       }
     } catch (err: any) {
       console.error("Error fetching spare parts:", err);
       addNotification('error', err?.message || 'Failed to fetch spare parts');
       setSpareParts([]);
-      setEmptyStateMessage((prev) => prev || 'Failed to fetch spare parts');
+      pushBannerMessage(err?.message || 'Failed to fetch spare parts');
     }
   };
 
@@ -256,19 +264,6 @@ const InvoicesPage = () => {
     );
   }
 
-  if (emptyStateMessage) {
-    return (
-      <div className="p-6 min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
-        <FaFileInvoice className="text-5xl text-gray-300" />
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-2xl font-semibold text-gray-800">No invoice data available</h2>
-          <p className="text-gray-500">{emptyStateMessage}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Filter invoices client-side (API also filters, but keeping this for instant search feedback)
   const filteredInvoices = invoices.filter(invoice => {
     if (searchTerm) {
       const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -563,6 +558,13 @@ const InvoicesPage = () => {
           />
         ))}
       </div>
+
+      {emptyStateMessage && (
+        <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
+          <FaInfoCircle className="w-5 h-5" />
+          <span className="text-sm">{emptyStateMessage}</span>
+        </div>
+      )}
 
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">

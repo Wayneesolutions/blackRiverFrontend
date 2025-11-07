@@ -56,7 +56,6 @@ const index = () => {
   const [safetyStats, setSafetyStats] = useState<SafetyStats | null>(null);
   const [activities, setActivities] = useState<DriverActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -74,39 +73,10 @@ const index = () => {
         getDriverActivities()
       ]);
 
-      const noCompanyMessage = driverStatsRes?.message || loadStatsRes?.message || safetyStatsRes?.message || activitiesRes?.message;
-      const hasMeaningfulData = Boolean(
-        (driverStatsRes?.data && (driverStatsRes.data.totalDrivers > 0 || driverStatsRes.data.activeDrivers > 0)) ||
-        (loadStatsRes?.data && loadStatsRes.data.totalLoads > 0) ||
-        (activitiesRes?.data && activitiesRes.data.length > 0)
-      );
-
-      if (noCompanyMessage && !hasMeaningfulData) {
-        setEmptyStateMessage(noCompanyMessage);
-        setDriverStats(null);
-        setLoadStats(null);
-        setSafetyStats(null);
-        setActivities([]);
-        return;
-      }
-
-      setEmptyStateMessage(null);
-
-      if (driverStatsRes.success && driverStatsRes.data) {
-        setDriverStats(driverStatsRes.data);
-      }
-      
-      if (loadStatsRes.success && loadStatsRes.data) {
-        setLoadStats(loadStatsRes.data);
-      }
-      
-      if (safetyStatsRes.success && safetyStatsRes.data) {
-        setSafetyStats(safetyStatsRes.data);
-      }
-      
-      if (activitiesRes.success && activitiesRes.data) {
-        setActivities(activitiesRes.data);
-      }
+      setDriverStats(driverStatsRes.success && driverStatsRes.data ? driverStatsRes.data : null);
+      setLoadStats(loadStatsRes.success && loadStatsRes.data ? loadStatsRes.data : null);
+      setSafetyStats(safetyStatsRes.success && safetyStatsRes.data ? safetyStatsRes.data : null);
+      setActivities(activitiesRes.success && Array.isArray(activitiesRes.data) ? activitiesRes.data : []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -168,18 +138,6 @@ const index = () => {
               </div>
             ))}
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (emptyStateMessage) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] bg-gray-50 p-6 text-center space-y-4">
-        <Shield className="h-12 w-12 text-gray-400" />
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-gray-800">No company data available</h2>
-          <p className="text-gray-500 max-w-md">{emptyStateMessage}</p>
         </div>
       </div>
     );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   FaEllipsisH, 
   FaPlus, 
@@ -24,9 +24,7 @@ import {
     deleteSparePart,
     useSparePart,
     getSuppliers,
-    createSupplier,
-    updateSupplier,
-    deleteSupplier
+    createSupplier
 } from '../../../../axios/api/fleet.spareparts';
 import { useNavigate } from 'react-router-dom';
 import { getAllWorkOrders } from '../../../../axios/api/fleet.workorder';
@@ -173,10 +171,8 @@ const SparePartsInventory = () => {
     const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
     const [showInvoiceModal, setShowInvoiceModal] = useState<boolean>(false);
     const [showSupplierModal, setShowSupplierModal] = useState<boolean>(false);
-    const [showSupplierEditModal, setShowSupplierEditModal] = useState<boolean>(false);
     const [showInvoiceDetailsModal, setShowInvoiceDetailsModal] = useState<boolean>(false);
     const [selectedPart, setSelectedPart] = useState<SparePart | null>(null);
-    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
     const [qtyUsedInput, setQtyUsedInput] = useState<string>('');
     const [spareParts, setSpareParts] = useState<SparePart[]>([]);
@@ -256,7 +252,7 @@ const SparePartsInventory = () => {
             setSuppliers([]);
             setInvoices([]);
             setWorkOrders([]);
-            setEmptyStateMessage('No company assigned to the current admin.');
+            setEmptyStateMessage(null);
             setLoading(false);
             return;
         }
@@ -279,51 +275,44 @@ const SparePartsInventory = () => {
             if (res?.success) {
                 const data = res.data || [];
                 setSuppliers(data);
-                if (res.message && data.length === 0) {
-                    setEmptyStateMessage((prev) => prev || res.message);
+                if (data.length > 0) {
+                    setEmptyStateMessage(null);
+                } else {
+                    pushBannerMessage(res.message);
                 }
             } else {
                 addNotification('error', res?.message || 'Failed to fetch suppliers');
                 setSuppliers([]);
-                if (res?.message) {
-                    setEmptyStateMessage((prev) => prev || res.message);
-                }
+                pushBannerMessage(res?.message || 'Failed to fetch suppliers');
             }
         } catch (err: any) {
             console.error("Error fetching suppliers:", err);
             addNotification('error', err?.message || 'Failed to fetch suppliers');
             setSuppliers([]);
-            setEmptyStateMessage((prev) => prev || 'Failed to fetch suppliers');
+            pushBannerMessage(err?.message || 'Failed to fetch suppliers');
         }
     };
 
     const fetchWorkOrders = async () => {
         setLoadingWorkOrders(true);
-        if (emptyStateMessage) {
-            setWorkOrders([]);
-            setLoadingWorkOrders(false);
-            return;
-        }
         try {
             const res = await getAllWorkOrders();
             if (res?.success) {
                 const data = res.data || [];
                 setWorkOrders(data);
-                if (res.message && data.length === 0) {
-                    setEmptyStateMessage((prev) => prev || res.message);
+                if (data.length === 0) {
+                    pushBannerMessage(res.message);
                 }
             } else {
                 addNotification('error', res?.message || 'Failed to fetch work orders');
                 setWorkOrders([]);
-                if (res?.message) {
-                    setEmptyStateMessage((prev) => prev || res.message);
-                }
+                pushBannerMessage(res?.message || 'Failed to fetch work orders');
             }
         } catch (err: any) {
             console.error("Error fetching work orders:", err);
             addNotification('error', err?.message || 'Failed to fetch work orders');
             setWorkOrders([]);
-            setEmptyStateMessage((prev) => prev || 'Failed to fetch work orders');
+            pushBannerMessage(err?.message || 'Failed to fetch work orders');
         }
         setLoadingWorkOrders(false);
     };
@@ -344,42 +333,35 @@ const SparePartsInventory = () => {
             if (res?.success) {
                 const data = res.data || [];
                 setSpareParts(data);
-                if (res.message && data.length === 0) {
-                    setEmptyStateMessage(res.message);
+                if (data.length === 0) {
+                    pushBannerMessage(res.message);
                 } else {
                     setEmptyStateMessage(null);
                 }
             } else {
                 addNotification('error', res?.message || 'Failed to fetch spare parts');
                 setSpareParts([]);
-                setEmptyStateMessage(res?.message || 'Failed to fetch spare parts');
+                pushBannerMessage(res?.message || 'Failed to fetch spare parts');
             }
         } catch (err: any) {
             console.error("Error fetching spare parts:", err);
             addNotification('error', err?.message || 'Failed to fetch spare parts');
             setSpareParts([]);
-            setEmptyStateMessage(err?.message || 'Failed to fetch spare parts');
+            pushBannerMessage(err?.message || 'Failed to fetch spare parts');
         }
         setLoading(false);
     };
 
-  // const fetchWorkOrders = async () => {
-  //   setLoadingWorkOrders(true);
-  //   try {
-  //     const res = await getAllWorkOrders();
-  //     if (res?.success) {
-  //       setWorkOrders(res.data || []);
-  //     } else {
-  //       addNotification('error', res?.message || 'Failed to fetch work orders');
-  //       setWorkOrders([]);
-  //     }
-  //   } catch (err: any) {
-  //     console.error("Error fetching work orders:", err);
-  //     addNotification('error', err?.message || 'Failed to fetch work orders');
-  //     setWorkOrders([]);
-  //   }
-  //   setLoadingWorkOrders(false);
-  // };
+    const sanitizeMessage = useCallback((message?: string | null) => {
+        if (!message) return null;
+        return message.toLowerCase().includes('no company assigned') ? null : message;
+    }, []);
+
+    const pushBannerMessage = useCallback((message?: string | null) => {
+        const sanitized = sanitizeMessage(message);
+        if (!sanitized) return;
+        setEmptyStateMessage(prev => prev || sanitized);
+    }, [sanitizeMessage]);
 
     if (loading) {
         return (
@@ -387,18 +369,6 @@ const SparePartsInventory = () => {
                 <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                     <p className="mt-4 text-gray-600">Loading spare parts...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (emptyStateMessage) {
-        return (
-            <div className="p-6 min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
-                <FaBox className="text-5xl text-gray-300" />
-                <div className="space-y-2 max-w-md">
-                    <h2 className="text-2xl font-semibold text-gray-800">No spare parts data available</h2>
-                    <p className="text-gray-500">{emptyStateMessage}</p>
                 </div>
             </div>
         );
@@ -472,6 +442,7 @@ const SparePartsInventory = () => {
 
     const handleAddSupplier = async (e: React.FormEvent) => {
         e.preventDefault();
+
         const formData = newSupplierRef.current;
 
         if (!formData.name || !formData.contact || !formData.email) {
@@ -499,193 +470,6 @@ const SparePartsInventory = () => {
         } catch (err: any) {
             addNotification('error', err?.message || 'Error adding supplier');
         }
-        setSubmitting(false);
-    };
-
-    const handleEditSupplier = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedSupplier) return;
-
-        const formData = newSupplierRef.current;
-        if (!formData.name || !formData.contact || !formData.email) {
-            addNotification('error', 'Please fill all required fields');
-            return;
-        }
-
-        setSubmitting(true);
-        try {
-            const res = await updateSupplier(selectedSupplier._id, formData);
-            if (res?.success) {
-                addNotification('success', res.message || 'Supplier updated successfully');
-                setShowSupplierEditModal(false);
-                setSelectedSupplier(null);
-                newSupplierRef.current = {
-                    name: '',
-                    contact: '',
-                    email: '',
-                    phone: '',
-                    address: ''
-                };
-                await fetchSuppliers();
-            } else {
-                addNotification('error', res?.message || 'Failed to update supplier');
-            }
-        } catch (err: any) {
-            addNotification('error', err?.message || 'Error updating supplier');
-        }
-        setSubmitting(false);
-    };
-
-    const handleDeleteSupplier = async (supplierId: string) => {
-        if (!window.confirm('Are you sure you want to delete this supplier?')) return;
-
-        setSubmitting(true);
-        try {
-            const res = await deleteSupplier(supplierId);
-            if (res?.success) {
-                addNotification('success', res.message || 'Supplier deleted successfully');
-                await fetchSuppliers();
-            } else {
-                addNotification('error', res?.message || 'Failed to delete supplier');
-            }
-        } catch (err: any) {
-            addNotification('error', err?.message || 'Error deleting supplier');
-        }
-        setSubmitting(false);
-    };
-
-    const handleCreateInvoice = () => {
-        const newInvoice: Invoice = {
-            _id: Date.now().toString(),
-            invoiceNumber: `INV-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(3, '0')}`,
-            customerName: invoiceRef.current.customerName,
-            customerEmail: invoiceRef.current.customerEmail,
-            customerPhone: invoiceRef.current.customerPhone,
-            customerAddress: invoiceRef.current.customerAddress,
-            items: invoiceRef.current.items,
-            subtotal: invoiceRef.current.items.reduce((sum, item) => sum + item.totalPrice, 0),
-            taxRate: invoiceRef.current.taxRate,
-            taxAmount: invoiceRef.current.items.reduce((sum, item) => sum + item.totalPrice, 0) * (invoiceRef.current.taxRate / 100),
-            total: invoiceRef.current.items.reduce((sum, item) => sum + item.totalPrice, 0) * (1 + invoiceRef.current.taxRate / 100),
-            status: 'draft',
-            createdAt: new Date().toISOString(),
-            dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            notes: invoiceRef.current.notes
-        };
-
-        setInvoices(prev => [...prev, newInvoice]);
-        addNotification('success', 'Invoice created successfully');
-        setShowInvoiceModal(false);
-    };
-
-    const handleUsePart = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedPart) return;
-
-        const formData = usageDataRef.current;
-
-        if (!formData.workOrderId || !formData.qtyUsed) {
-            addNotification('error', 'Please fill all required fields');
-            return;
-        }
-
-        const qtyUsed = parseInt(formData.qtyUsed);
-        if (qtyUsed <= 0) {
-            addNotification('error', 'Quantity must be greater than 0');
-            return;
-        }
-
-        if (selectedPart.stockQty < qtyUsed) {
-            addNotification('error', `Not enough stock! Available: ${selectedPart.stockQty} units`);
-            return;
-        }
-
-        setSubmitting(true);
-
-        const data = {
-            workOrderId: formData.workOrderId,
-            qtyUsed: qtyUsed
-        };
-
-        try {
-            const res = await useSparePart(selectedPart._id, data);
-            if (res?.success) {
-                addNotification('success', res.message || 'Part used successfully');
-                setShowUsageModal(false);
-                setSelectedPart(null);
-                usageDataRef.current = { workOrderId: '', qtyUsed: '' };
-                setQtyUsedInput('');
-                await fetchSpareParts();
-            } else {
-                addNotification('error', res?.message || 'Failed to use part');
-            }
-        } catch (err: any) {
-            addNotification('error', err?.message || 'Error using part');
-        }
-
-        setSubmitting(false);
-    };
-
-    const handleEditPart = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedPart) return;
-
-        const formData = newPartRef.current;
-
-        if (!formData.partNumber || !formData.partName) {
-            addNotification('error', 'Please fill all required fields');
-            return;
-        }
-
-        setSubmitting(true);
-
-        const data = {
-            partNumber: formData.partNumber,
-            partName: formData.partName,
-            description: formData.description,
-            category: formData.category,
-            stockQty: parseInt(formData.stockQty),
-            minStockLevel: parseInt(formData.minStockLevel) || 0,
-            maxStockLevel: parseInt(formData.maxStockLevel) || 100,
-            buyingPrice: parseFloat(formData.buyingPrice) || 0,
-            sellingPrice: parseFloat(formData.sellingPrice) || 0,
-            purchaseDate: formData.purchaseDate,
-            supplier: formData.supplier,
-            location: formData.location,
-            condition: formData.condition,
-            warrantyPeriod: parseInt(formData.warrantyPeriod) || 0
-        };
-
-        try {
-            const res = await updateSparePart(selectedPart._id, data);
-            if (res?.success) {
-                addNotification('success', res.message || 'Spare part updated successfully');
-                setShowEditModal(false);
-                setSelectedPart(null);
-                newPartRef.current = {
-                    partNumber: '',
-                    partName: '',
-                    description: '',
-                    category: '',
-                    stockQty: '',
-                    minStockLevel: '',
-                    maxStockLevel: '',
-                    buyingPrice: '',
-                    sellingPrice: '',
-                    purchaseDate: '',
-                    supplier: '',
-                    location: '',
-                    condition: 'new',
-                    warrantyPeriod: ''
-                };
-                await fetchSpareParts();
-            } else {
-                addNotification('error', res?.message || 'Failed to update spare part');
-            }
-        } catch (err: any) {
-            addNotification('error', err?.message || 'Error updating spare part');
-        }
-
         setSubmitting(false);
     };
 
@@ -1034,42 +818,39 @@ const SparePartsInventory = () => {
 
                             return (
         <div className="p-6 min-h-screen bg-gray-50">
-            {/* Notifications Container */}
-            <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">
+            {/* Notifications */}
+            <div className="fixed top-4 right-4 z-[999] flex flex-col gap-3 max-w-md">
                 {notifications.map(notification => (
-                    <Notification
-                        key={notification.id}
-                        notification={notification}
-                        onClose={removeNotification}
-                    />
+                    <Notification key={notification.id} notification={notification} onClose={removeNotification} />
                 ))}
             </div>
 
+            {emptyStateMessage && (
+                <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
+                    <FaInfoCircle className="w-5 h-5" />
+                    <span className="text-sm">{emptyStateMessage}</span>
+                </div>
+            )}
+ 
             {/* Header */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <div className="flex justify-between items-center">
-                                        <div>
-                        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                            <FaBox className="text-[#9793E4]" />
-                            Fleet Parts Management
-                        </h1>
-                        <p className="text-gray-600 mt-2">Comprehensive spare parts inventory and invoice management</p>
-                                            </div>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowSupplierModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors"
-                        >
-                            <FaBuilding />
-                            Add Supplier
-                        </button>
-                        <button
-                            onClick={() => setShowAddModal(true)}
-                            className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] shadow-lg hover:shadow-xl transition-all font-medium"
-                        >
-                            <FaPlus /> Add New Part
-                        </button>
-                                            </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-800">Fleet Spare Parts</h1>
+                </div>
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => setShowSupplierModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                        <FaBuilding />
+                        Add Supplier
+                    </button>
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] shadow-lg hover:shadow-xl transition-all font-medium"
+                    >
+                        <FaPlus /> Add New Part
+                    </button>
                 </div>
             </div>
 

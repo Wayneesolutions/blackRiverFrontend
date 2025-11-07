@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   FaTruck, FaFilter, FaDollarSign, FaFileAlt, FaUpload, FaCheck, FaTimes,
   FaCheckCircle, FaExclamationCircle, FaInfoCircle
@@ -93,7 +93,6 @@ const Delivery = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>(null);
-  const [userInfoReady, setUserInfoReady] = useState(false);
 
   const addNotification = (type: NotificationType, message: string) => {
     const id = Date.now();
@@ -105,39 +104,66 @@ const Delivery = () => {
   };
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('userInfo');
-      if (stored) {
-        setUserInfo(JSON.parse(stored));
+    const syncUser = () => {
+      try {
+        const stored = localStorage.getItem('userInfo');
+        if (stored) {
+          setUserInfo(JSON.parse(stored));
+        }
+      } catch (error) {
+        console.error('Error parsing userInfo from localStorage:', error);
       }
-    } catch (error) {
-      console.error('Error parsing userInfo from localStorage:', error);
-    } finally {
-      setUserInfoReady(true);
-    }
+    };
+
+    syncUser();
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'userInfo') {
+        syncUser();
+        fetchLoads();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchLoads = async () => {
+  const fetchLoads = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await getDeliveryLoads();
-      if (response?.message) {
-        setEmptyStateMessage(response.message);
-      } else {
-        setEmptyStateMessage(null);
+      const stored = localStorage.getItem('userInfo');
+      let parsedUser = userInfo;
+      if (stored) {
+        try {
+          parsedUser = JSON.parse(stored);
+          setUserInfo(parsedUser);
+        } catch (error) {
+          console.error('Error parsing userInfo during fetch:', error);
+        }
       }
 
-      if (response && response.success && response.data) {
-        if (response.message) {
+      const isSuperadmin = parsedUser?.role === 'superadmin';
+      const hasCompany = Boolean(parsedUser?.company);
+
+      if (!isSuperadmin && !hasCompany) {
+        setLoads([]);
+        setEmptyStateMessage(null);
+        return;
+      }
+
+      const response = await getDeliveryLoads();
+      const message = response?.message || null;
+      const data = response?.data;
+
+      if (response?.success && Array.isArray(data)) {
+        if (data.length === 0) {
           setLoads([]);
-          return;
-        }
-        if (!Array.isArray(response.data) || response.data.length === 0) {
-          setLoads([]);
+          setEmptyStateMessage(message || 'No delivery loads available.');
           return;
         }
         // Transform data to match frontend interface
-        const transformedLoads = response.data.map((load: any) => ({
+        const transformedLoads = data.map((load: any) => ({
           _id: load._id,
           loadNumber: load.loadNumber || load._id,
           orderNumber: load.orderNumber || load._id,
@@ -158,36 +184,27 @@ const Delivery = () => {
           route: load.route || {}
         }));
         setLoads(transformedLoads);
+        setEmptyStateMessage(null);
       } else {
-        addNotification('error', 'Failed to fetch delivery loads');
+        const fallbackMessage = message || 'Failed to fetch delivery loads';
+        addNotification('error', fallbackMessage);
         setLoads([]);
+        setEmptyStateMessage(fallbackMessage);
       }
     } catch (error) {
       console.error('Error fetching delivery loads:', error);
       addNotification('error', 'Error fetching delivery loads');
       setLoads([]);
+      setEmptyStateMessage('Error fetching delivery loads');
     } finally {
       setLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    if (!userInfoReady) {
-      return;
-    }
-
-    const isSuperadmin = userInfo?.role === 'superadmin';
-    const hasCompany = Boolean(userInfo?.company);
-
-    if (!isSuperadmin && !hasCompany) {
-      setLoads([]);
-      setEmptyStateMessage('No company assigned to the current admin.');
-      setLoading(false);
-      return;
-    }
-
     fetchLoads();
-  }, [userInfoReady, userInfo]);
+  }, [fetchLoads, userInfo?.company]);
 
   const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, loadId: string, docType: 'bol' | 'billOfSale' | 'pod') => {
     const file = e.target.files?.[0];
@@ -301,18 +318,6 @@ const Delivery = () => {
     );
   }
 
-  if (emptyStateMessage && loads.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
-        <FaTruck className="text-5xl text-gray-300" />
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-2xl font-semibold text-gray-800">No delivery data available</h2>
-          <p className="text-gray-500">{emptyStateMessage}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Notifications */}
@@ -325,6 +330,13 @@ const Delivery = () => {
         <h1 className="text-3xl font-bold text-gray-800">Delivery</h1>
         <p className="text-gray-600 mt-1">Completed loads with document uploads and payment tracking</p>
       </div>
+
+      {emptyStateMessage && filteredLoads.length === 0 && (
+        <div className="mb-4 bg-white border border-blue-100 text-blue-700 px-4 py-3 rounded-lg shadow-sm flex items-center gap-3">
+          <FaTruck className="text-blue-500" />
+          <span className="text-sm">{emptyStateMessage}</span>
+        </div>
+      )}
 
       {/* Total Load Amount Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -422,7 +434,8 @@ const Delivery = () => {
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                     <FaTruck className="mx-auto mb-3 text-gray-300" size={48} />
-                    <p>No delivered loads found</p>
+                    <p className="text-lg font-medium">No delivered loads found</p>
+                    <p className="text-sm">{emptyStateMessage || 'Completed loads will appear here once deliveries are recorded.'}</p>
                   </td>
                 </tr>
               ) : (

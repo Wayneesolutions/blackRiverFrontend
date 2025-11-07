@@ -19,8 +19,7 @@ import {
     Thermometer,
     Weight,
     Lock,
-    Unlock,
-    Building2
+    Unlock
 } from 'lucide-react';
 import { getSocket } from "../../../../socket/socketClient";
 import { listTrailers } from '../../../../axios/api/trailerTracking';
@@ -162,7 +161,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
             if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
                 setTrailers([]);
                 setSelectedTrailer(null);
-                setEmptyStateMessage('No company assigned to the current admin. Please set up your company to view trailer tracking data.');
+                setEmptyStateMessage(null);
                 return;
             }
 
@@ -462,24 +461,6 @@ const ProfessionalTrailerTracker: React.FC = () => {
         );
     }
 
-    if (emptyStateMessage) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-center space-y-5 px-6">
-                <Building2 className="h-16 w-16 text-gray-400" />
-                <div className="space-y-3 max-w-xl">
-                    <h2 className="text-2xl font-semibold text-gray-800">No trailer tracking data available</h2>
-                    <p className="text-gray-500">{emptyStateMessage}</p>
-                </div>
-                <button
-                    onClick={fetchTrailersData}
-                    className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg shadow"
-                >
-                    Refresh
-                </button>
-            </div>
-        );
-    }
-
     return (
         <div className="h-screen bg-gray-50 flex overflow-hidden">
             {/* Sidebar */}
@@ -545,6 +526,11 @@ const ProfessionalTrailerTracker: React.FC = () => {
 
                         {/* Trailer List */}
                         <div className="flex-1 overflow-y-auto">
+                            {!loading && emptyStateMessage && (
+                                <div className="mx-4 my-3 rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-sm text-orange-700">
+                                    {emptyStateMessage}
+                                </div>
+                            )}
                             {loading ? (
                                 <div className="flex items-center justify-center h-32">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
@@ -555,6 +541,9 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                         <div className="p-8 text-center text-gray-500">
                                             <Truck className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                                             <p>No trailers found</p>
+                                            {emptyStateMessage && (
+                                                <p className="mt-1 text-sm text-gray-400">{emptyStateMessage}</p>
+                                            )}
                                         </div>
                                     ) : (
                                         filteredTrailers.map((trailer) => (

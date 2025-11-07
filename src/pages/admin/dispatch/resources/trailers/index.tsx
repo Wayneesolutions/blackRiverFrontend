@@ -339,83 +339,76 @@ const TrailersTable = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {trailers.map((trailer) => (
-                                            <tr key={trailer._id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div className="flex-shrink-0 h-10 w-10">
-                                                            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                                                <Truck className="h-5 w-5 text-blue-600" />
-                                                            </div>
-                                                        </div>
-                                                        <div className="ml-4">
-                                                            <div className="text-sm font-medium text-gray-900">
-                                                                {trailer.trailer}
-                                                            </div>
-                                                            <div className="text-sm text-gray-500">
-                                                                {trailer.internalId}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">
-                                                        {trailer.type} • {trailer.plateNumber}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        {trailer.capacity}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(trailer.status)}`}>
-                                                        {trailer.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getOperationStatusColor(trailer.operationStatus)}`}>
-                                                        {trailer.operationStatus}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {trailer.currentLocation?.address || 'No location'}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <div className="flex items-center space-x-2">
-                                                        <button
-                                                            onClick={() => handleDelete(trailer._id)}
-                                                            className="text-red-600 hover:text-red-900"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                        <div className="relative">
-                                                            <button className="text-gray-600 hover:text-gray-900">
-                                                                <MoreVertical className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
+                                        {trailers.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                                    <div className="flex flex-col items-center space-y-2">
+                                                        <div className="text-5xl text-gray-300">🚛</div>
+                                                        <p>No trailers found.</p>
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ))}
+                                        ) : (
+                                            trailers.map((trailer) => (
+                                                <tr key={trailer._id} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <div className="flex-shrink-0 h-10 w-10">
+                                                                <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                                                    <Truck className="h-5 w-5 text-blue-600" />
+                                                                </div>
+                                                            </div>
+                                                            <div className="ml-4">
+                                                                <div className="text-sm font-medium text-gray-900">
+                                                                    {trailer.trailer}
+                                                                </div>
+                                                                <div className="text-sm text-gray-500">
+                                                                    {trailer.internalId}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm text-gray-900">
+                                                            {trailer.type} • {trailer.plateNumber}
+                                                        </div>
+                                                        <div className="text-sm text-gray-500">
+                                                            {trailer.capacity}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(trailer.status)}`}>
+                                                            {trailer.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getOperationStatusColor(trailer.operationStatus)}`}>
+                                                            {trailer.operationStatus}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {trailer.currentLocation?.address || 'No location'}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        <div className="flex items-center space-x-2">
+                                                            <button
+                                                                onClick={() => handleDelete(trailer._id)}
+                                                                className="text-red-600 hover:text-red-900"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                            <div className="relative">
+                                                                <button className="text-gray-600 hover:text-gray-900">
+                                                                    <MoreVertical className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
                                     </tbody>
                                 </table>
-                                {trailers.length === 0 && (
-                                    <div className="text-center py-12">
-                                        <Truck className="mx-auto h-12 w-12 text-gray-400" />
-                                        <h3 className="mt-2 text-sm font-medium text-gray-900">No trailers found</h3>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            Get started by creating a new trailer.
-                                        </p>
-                                        <div className="mt-6 flex justify-center">
-                                            <button
-                                                onClick={() => setIsSidebarOpen(true)}
-                                                className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2 mx-auto"
-                                            >
-                                                <Plus className="w-4 h-4" />
-                                                <span>Add Trailer</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         )}
                     </div>

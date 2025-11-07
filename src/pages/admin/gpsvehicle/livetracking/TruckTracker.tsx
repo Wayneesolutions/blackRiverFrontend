@@ -14,8 +14,7 @@ import {
     Fuel,
     User,
     ExternalLink,
-    ChevronLeft,
-    Building2
+    ChevronLeft
 } from 'lucide-react';
 import { getSocket } from "../../../../socket/socketClient";
 import { listTrucks } from '../../../../axios/api/truckTracking';
@@ -209,7 +208,7 @@ const ProfessionalTruckTracker: React.FC = () => {
             if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
                 setVehicles([]);
                 setSelectedVehicle(null);
-                setEmptyStateMessage('No company assigned to the current admin. Please set up your company to view truck tracking data.');
+                setEmptyStateMessage(null);
                 return;
             }
 
@@ -751,24 +750,6 @@ const ProfessionalTruckTracker: React.FC = () => {
         );
     }
 
-    if (emptyStateMessage) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-center space-y-5 px-6">
-                <Building2 className="h-16 w-16 text-gray-400" />
-                <div className="space-y-3 max-w-xl">
-                    <h2 className="text-2xl font-semibold text-gray-800">No truck tracking data available</h2>
-                    <p className="text-gray-500">{emptyStateMessage}</p>
-                </div>
-                <button
-                    onClick={fetchVehiclesData}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow"
-                >
-                    Refresh
-                </button>
-            </div>
-        );
-    }
-
     return (
         <div className="flex h-screen bg-gray-100">
             {/* Left Sidebar */}
@@ -798,7 +779,7 @@ const ProfessionalTruckTracker: React.FC = () => {
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search trucks..."
+                                placeholder="Search by plate number..."
                                 className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/90 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -824,18 +805,25 @@ const ProfessionalTruckTracker: React.FC = () => {
 
                     {/* Vehicle List */}
                     <div className="flex-1 overflow-y-auto p-4">
+                        {!loading && emptyStateMessage && (
+                            <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                                {emptyStateMessage}
+                            </div>
+                        )}
                         {filteredVehicles.length === 0 ? (
                             <div className="text-center py-8">
-                                <Truck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                <p className="text-gray-500">No trucks found</p>
+                                <p className="text-gray-500">No vehicles found</p>
+                                {!loading && emptyStateMessage && (
+                                    <p className="mt-1 text-sm text-gray-400">{emptyStateMessage}</p>
+                                )}
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {filteredVehicles.map((vehicle) => (
+                                {filteredVehicles.map((v) => (
                                     <div
-                                        key={vehicle._id}
+                                        key={v._id}
                                         className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 relative group ${
-                                            selectedVehicle?._id === vehicle._id
+                                            selectedVehicle?._id === v._id
                                                 ? "bg-blue-50 border-blue-400 shadow-md"
                                                 : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm"
                                         }`}
@@ -844,7 +832,7 @@ const ProfessionalTruckTracker: React.FC = () => {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                openVehicleInNewTab(vehicle);
+                                                openVehicleInNewTab(v);
                                             }}
                                             className="absolute top-2 right-2 p-2 bg-white rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-50 z-10"
                                             title="Open in new tab"
@@ -852,20 +840,20 @@ const ProfessionalTruckTracker: React.FC = () => {
                                             <ExternalLink className="w-4 h-4 text-blue-600" />
                                         </button>
 
-                                        <div onClick={() => handleVehicleClick(vehicle)}>
+                                        <div onClick={() => handleVehicleClick(v)}>
                                             {/* Plate Number & Status */}
                                             <div className="flex items-center justify-between mb-3">
                                                 <h3 className="font-bold text-lg text-gray-800">
-                                                    {vehicle.plateNumber}
+                                                    {v.plateNumber}
                                                 </h3>
                                                 <span
                                                     className="px-3 py-1 rounded-full text-xs font-semibold"
                                                     style={{
-                                                        backgroundColor: statusBgColors[vehicle.status],
-                                                        color: statusColors[vehicle.status],
+                                                        backgroundColor: statusBgColors[v.status],
+                                                        color: statusColors[v.status],
                                                     }}
                                                 >
-                                                    {vehicle.status.toUpperCase()}
+                                                    {v.status.toUpperCase()}
                                                 </span>
                                             </div>
 
@@ -874,21 +862,21 @@ const ProfessionalTruckTracker: React.FC = () => {
                                                 <div className="flex items-center gap-2 text-gray-600">
                                                     <User className="w-4 h-4" />
                                                     <span>
-                                                        {vehicle.driver ? vehicle.driver.name : "No driver assigned"}
+                                                        {v.driver ? v.driver.name : "No driver assigned"}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-gray-600">
                                                     <MapPin className="w-4 h-4" />
-                                                    <span className="truncate">{vehicle.currentLocation?.address}</span>
+                                                    <span className="truncate">{v.currentLocation?.address}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between text-gray-500 mt-2 pt-2 border-t border-gray-200">
                                                     <span className="flex items-center gap-1">
                                                         <Gauge className="w-4 h-4" />
-                                                        {vehicle.speed} km/h
+                                                        {v.speed} km/h
                                                     </span>
                                                     <span className="flex items-center gap-1">
                                                         <Fuel className="w-4 h-4" />
-                                                        {vehicle.fuelLevel}%
+                                                        {v.fuelLevel}%
                                                     </span>
                                                 </div>
                                             </div>

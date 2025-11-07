@@ -84,7 +84,7 @@ const Index = () => {
 
     if (!isSuperadmin && !hasCompany) {
       setFuelReports([]);
-      setEmptyStateMessage('No company assigned to the current admin.');
+      setEmptyStateMessage(null);
       return;
     }
 

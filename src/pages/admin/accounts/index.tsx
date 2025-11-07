@@ -35,7 +35,7 @@ const Dashboard = () => {
         setInvoices([]);
         setExpenses([]);
         setPayrolls([]);
-        setEmptyStateMessage('No company assigned to the current admin. Please set up your company to view accounts data.');
+        setEmptyStateMessage(null);
         return;
       }
 

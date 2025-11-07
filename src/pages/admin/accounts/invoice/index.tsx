@@ -135,8 +135,8 @@ const InvoiceManagement: React.FC = () => {
         try {
             const userInfo: any = getLocalUserInfo();
             if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+                setEmptyStateMessage(null);
                 setInvoices([]);
-                setEmptyStateMessage('No company assigned to the current admin. Please set up your company to manage invoices.');
                 return;
             }
 

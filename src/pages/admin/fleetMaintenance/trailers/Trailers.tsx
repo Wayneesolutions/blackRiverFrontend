@@ -70,8 +70,8 @@ function Trailers() {
     const hasCompany = Boolean(userInfo?.company);
 
     if (!isSuperadmin && !hasCompany) {
+      setEmptyMessage(null);
       setTrailers([]);
-      setEmptyMessage('No company assigned to the current admin.');
       setLoading(false);
       return;
     }
@@ -137,21 +137,16 @@ function Trailers() {
     );
   }
 
-  if (emptyMessage) {
-    return (
-      <div className="p-6 min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
-        <div className="text-5xl text-gray-300">🚚</div>
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-2xl font-semibold text-gray-800">No trailer data available</h2>
-          <p className="text-gray-500">{emptyMessage}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 min-h-screen bg-gray-50">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Trailer Listing</h1>
+
+      {emptyMessage && !emptyMessage.toLowerCase().includes('no company assigned') && (
+        <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
+          <span className="text-2xl">🚚</span>
+          <span className="text-sm">{emptyMessage}</span>
+        </div>
+      )}
 
       <div className="mb-6">
         <input

@@ -118,8 +118,8 @@ const ExpensesPage = () => {
     try {
       const userInfo: any = getLocalUserInfo();
       if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+        setEmptyStateMessage(null);
         setExpenses([]);
-        setEmptyStateMessage('No company assigned to the current admin. Please set up your company to manage expenses.');
         return;
       }
 

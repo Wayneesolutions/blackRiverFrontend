@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { FaPlus, FaEdit, FaTrash, FaEye, FaTimes, FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaSearch, FaFilter, FaClock, FaUser, FaDollarSign, FaCalendar, FaFileAlt, FaWrench } from "react-icons/fa";
 import {
     getAllWorkOrders,
@@ -105,7 +105,12 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 };
 
 function WorkOrdersPage() {
-    const { vehicles, loading: vehiclesLoading, emptyMessage: vehiclesEmptyMessage } = useVehicles();
+    const { vehicles, emptyMessage: vehiclesEmptyMessage } = useVehicles();
+
+    const sanitizeMessage = useCallback((message?: string | null) => {
+        if (!message) return null;
+        return message.toLowerCase().includes('no company assigned') ? null : message;
+    }, []);
 
     const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -182,20 +187,20 @@ function WorkOrdersPage() {
                 const data = Array.isArray(res.data) ? res.data : [];
                 setWorkOrders(data);
                 if (res.message && data.length === 0) {
-                    setEmptyStateMessage(res.message);
+                    setEmptyStateMessage(sanitizeMessage(res.message));
                 } else {
                     setEmptyStateMessage(null);
                 }
             } else {
                 addNotification('error', res?.message || 'Failed to fetch work orders');
                 setWorkOrders([]);
-                setEmptyStateMessage(res?.message || 'Failed to fetch work orders');
+                setEmptyStateMessage(sanitizeMessage(res?.message) || 'Failed to fetch work orders');
             }
         } catch (err: any) {
             console.error("Error fetching work orders:", err);
             addNotification('error', err?.message || 'Failed to fetch work orders');
             setWorkOrders([]);
-            setEmptyStateMessage(err?.message || 'Failed to fetch work orders');
+            setEmptyStateMessage(sanitizeMessage(err?.message) || 'Failed to fetch work orders');
         }
         setLoading(false);
     };
@@ -209,8 +214,8 @@ function WorkOrdersPage() {
         const hasCompany = Boolean(userInfo?.company);
 
         if (!isSuperadmin && !hasCompany) {
+            setEmptyStateMessage(null);
             setWorkOrders([]);
-            setEmptyStateMessage('No company assigned to the current admin.');
             setLoading(false);
             return;
         }
@@ -400,18 +405,6 @@ function WorkOrdersPage() {
         );
     }
 
-    if (emptyStateMessage) {
-        return (
-            <div className="p-6 min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
-                <FaWrench className="text-5xl text-gray-300" />
-                <div className="space-y-2 max-w-md">
-                    <h2 className="text-2xl font-semibold text-gray-800">No work order data available</h2>
-                    <p className="text-gray-500">{emptyStateMessage}</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="p-6 min-h-screen bg-gray-50">
             {/* Notifications Container */}
@@ -424,6 +417,13 @@ function WorkOrdersPage() {
                     />
                 ))}
             </div>
+
+            {emptyStateMessage && (
+                <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
+                    <FaInfoCircle className="w-5 h-5" />
+                    <span className="text-sm">{emptyStateMessage}</span>
+                </div>
+            )}
 
             {/* Header */}
             <div className="flex justify-between items-center mb-6">

@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
-  FaTruck, FaUser, FaFilter, FaEye, FaCheck, FaTimes
+  FaTruck, FaUser, FaFilter, FaEye, FaCheck
 } from 'react-icons/fa';
 import AssignDriverTruckModal from "../../../../../components/dispatch/AssignDriverTruckModal";
 import StepTracker from "../../../../../components/dispatch/StepTracker";
@@ -45,41 +45,68 @@ const AllDispatch = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>(null);
-  const [userInfoReady, setUserInfoReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('userInfo');
-      if (stored) {
-        setUserInfo(JSON.parse(stored));
+    const syncUserInfo = () => {
+      try {
+        const stored = localStorage.getItem('userInfo');
+        if (stored) {
+          setUserInfo(JSON.parse(stored));
+        }
+      } catch (error) {
+        console.error('Error parsing userInfo from localStorage:', error);
       }
-    } catch (error) {
-      console.error('Error parsing userInfo from localStorage:', error);
-    } finally {
-      setUserInfoReady(true);
-    }
+    };
+
+    syncUserInfo();
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'userInfo') {
+        syncUserInfo();
+        fetchLoads();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchLoads = async () => {
+  const fetchLoads = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await listLoad();
-      if (response?.message) {
-        setEmptyStateMessage(response.message);
-      } else {
-        setEmptyStateMessage(null);
+      const stored = localStorage.getItem('userInfo');
+      let parsedUser = userInfo;
+      if (stored) {
+        try {
+          parsedUser = JSON.parse(stored);
+          setUserInfo(parsedUser);
+        } catch (err) {
+          console.error('Error parsing userInfo from localStorage during fetch:', err);
+        }
       }
 
-      if (response && response.success && response.data) {
-        if (response.message) {
+      const isSuperadmin = parsedUser?.role === 'superadmin';
+      const hasCompany = Boolean(parsedUser?.company);
+
+      if (!isSuperadmin && !hasCompany) {
+        setLoads([]);
+        setEmptyStateMessage(null);
+        return;
+      }
+
+      const response = await listLoad();
+      const message = response?.message || null;
+      const data = response?.data;
+
+      if (response?.success && Array.isArray(data)) {
+        if (data.length === 0) {
           setLoads([]);
+          setEmptyStateMessage(message || 'No loads available.');
           return;
         }
-        if (!Array.isArray(response.data) || response.data.length === 0) {
-          setLoads([]);
-          return;
-        }
-        const formattedLoads = response.data.map((load: any) => {
+
+        const formattedLoads = data.map((load: any) => {
           // Extract shipper city/state - from pickup location
           let shipperCity = '';
           let shipperState = '';
@@ -143,34 +170,24 @@ const AllDispatch = () => {
           };
         });
         setLoads(formattedLoads);
+        setEmptyStateMessage(null);
       } else {
         setLoads([]);
+        setEmptyStateMessage(message || 'Failed to fetch loads.');
       }
     } catch (error) {
       console.error('Error fetching loads:', error);
       setLoads([]);
+      setEmptyStateMessage('Failed to fetch loads: ' + (error as any)?.message);
     } finally {
       setLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    if (!userInfoReady) {
-      return;
-    }
-
-    const isSuperadmin = userInfo?.role === 'superadmin';
-    const hasCompany = Boolean(userInfo?.company);
-
-    if (!isSuperadmin && !hasCompany) {
-      setLoads([]);
-      setEmptyStateMessage('No company assigned to the current admin.');
-      setLoading(false);
-      return;
-    }
-
     fetchLoads();
-  }, [userInfoReady, userInfo]);
+  }, [fetchLoads, userInfo?.company]);
 
   const handleAssign = async (loadId: string, driverId: string, truckId: string, trailerId?: string, planDate?: string) => {
     try {
@@ -230,18 +247,6 @@ const AllDispatch = () => {
     );
   }
 
-  if (emptyStateMessage && loads.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
-        <FaTruck className="text-5xl text-gray-300" />
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-2xl font-semibold text-gray-800">No dispatch data available</h2>
-          <p className="text-gray-500">{emptyStateMessage}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
@@ -266,6 +271,13 @@ const AllDispatch = () => {
           </select>
         </div>
       </div>
+
+      {emptyStateMessage && filteredLoads.length === 0 && (
+        <div className="mb-4 bg-white border border-blue-100 text-blue-700 px-4 py-3 rounded-lg shadow-sm flex items-center gap-3">
+          <FaTruck className="text-blue-500" />
+          <span className="text-sm">{emptyStateMessage}</span>
+        </div>
+      )}
 
       {/* Step Tracker */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
@@ -314,6 +326,7 @@ const AllDispatch = () => {
                   <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                     <FaTruck className="mx-auto mb-3 text-gray-300" size={48} />
                     <p className="text-lg font-medium">No loads available</p>
+                    <p className="text-sm">{emptyStateMessage || 'Create or import loads to see them listed here.'}</p>
                   </td>
                 </tr>
               ) : (

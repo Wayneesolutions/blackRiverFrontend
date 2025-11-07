@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent } from "react";
+import { useState, useEffect, useCallback, type ChangeEvent } from "react";
 import { Plus, Search, X, Filter } from "lucide-react";
 import NewContactSidebar from "./NewContactSidebar";
 import NewCustomerSidebar from "./NewCustomerSidebar";
@@ -41,8 +41,15 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const [userInfoReady, setUserInfoReady] = useState(false);
+  const [userInfo, setUserInfo] = useState<any>(() => {
+    try {
+      const stored = localStorage.getItem('userInfo');
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.error('Error parsing userInfo from localStorage:', error);
+      return null;
+    }
+  });
 
   // Edit modal state
   const [editItem, setEditItem] = useState<Contact | Customer | null>(null);
@@ -55,48 +62,45 @@ const Index = () => {
     country: "",
   });
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('userInfo');
-      if (stored) {
-        setUserInfo(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error('Error parsing userInfo from localStorage:', error);
-    } finally {
-      setUserInfoReady(true);
-    }
+  const canCreate = userInfo?.role === 'superadmin' || Boolean(userInfo?.company);
+
+  const normalizeEmptyMessage = useCallback((message?: string | null) => {
+    if (!message) return null;
+    return message.toLowerCase().includes('no company assigned') ? null : message;
   }, []);
 
-  const updateEmptyState = (message?: string, hasData?: boolean) => {
-    if (message && !hasData) {
-      setEmptyStateMessage(message);
+  const updateEmptyState = useCallback((message?: string, hasData?: boolean) => {
+    const sanitized = normalizeEmptyMessage(message);
+    if (sanitized && !hasData) {
+      setEmptyStateMessage(sanitized);
     } else if (hasData) {
       setEmptyStateMessage(null);
+    } else if (!sanitized) {
+      setEmptyStateMessage(null);
     }
-  };
+  }, [normalizeEmptyMessage]);
 
-  const fetchContacts = async () => {
+  const fetchContacts = useCallback(async () => {
     try {
       const res = await listContact();
       if (res?.success) {
         const data = Array.isArray(res.data) ? res.data : [];
         setContacts(data);
-        updateEmptyState(res?.message, data.length > 0);
+        updateEmptyState(res?.message, data.length > 0 || customers.length > 0);
       } else if (res?.message) {
         setContacts([]);
-        updateEmptyState(res.message, false);
+        updateEmptyState(res.message, customers.length > 0);
       } else {
         setContacts([]);
       }
     } catch (error: any) {
       console.error('Error fetching contacts:', error);
       setContacts([]);
-      updateEmptyState(error?.message, false);
+      updateEmptyState(error?.message, customers.length > 0);
     }
-  };
+  }, [customers.length]);
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     try {
       const res = await listCustomer();
       if (res?.success) {
@@ -114,16 +118,16 @@ const Index = () => {
       setCustomers([]);
       updateEmptyState(error?.message, contacts.length > 0);
     }
-  };
+  }, [contacts.length]);
 
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     setLoading(true);
-    await Promise.all([fetchContacts(), fetchCustomers()]);
-    setLoading(false);
-  };
 
-  useEffect(() => {
-    if (!userInfoReady) {
+    if (!userInfo) {
+      setContacts([]);
+      setCustomers([]);
+      setEmptyStateMessage(null);
+      setLoading(false);
       return;
     }
 
@@ -133,14 +137,33 @@ const Index = () => {
     if (!isSuperadmin && !hasCompany) {
       setContacts([]);
       setCustomers([]);
-      setEmptyStateMessage('No company assigned to the current admin.');
+      setEmptyStateMessage(null);
       setLoading(false);
       return;
     }
 
+    await Promise.all([fetchContacts(), fetchCustomers()]);
+    setLoading(false);
+  }, [userInfo, fetchContacts, fetchCustomers]);
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'userInfo' && event.newValue) {
+        try {
+          setUserInfo(JSON.parse(event.newValue));
+        } catch (error) {
+          console.error('Error parsing userInfo from storage event:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  useEffect(() => {
     fetchAllData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfoReady, userInfo]);
+  }, [fetchAllData]);
 
   // Delete item
   const handleDelete = async (id: string, type: "contact" | "customer") => {
@@ -225,18 +248,6 @@ const Index = () => {
     );
   }
 
-  if (emptyStateMessage && contacts.length === 0 && customers.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
-        <div className="text-5xl text-gray-300">👥</div>
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-2xl font-semibold text-gray-800">No contact or customer data available</h2>
-          <p className="text-gray-500">{emptyStateMessage}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -283,15 +294,24 @@ const Index = () => {
           <button className="p-2 text-gray-400 hover:text-gray-600">
             <Filter className="w-5 h-5" />
           </button>
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{activeTab === "contacts" ? "Create Contact" : "Create Customer"}</span>
-          </button>
+          {canCreate && (
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{activeTab === "contacts" ? "Create Contact" : "Create Customer"}</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {emptyStateMessage && tableData.length === 0 && (
+        <div className="mx-6 mt-4 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3">
+          👥
+          <span className="text-sm">{emptyStateMessage}</span>
+        </div>
+      )}
 
       {/* Table */}
       <div className="p-6">
@@ -355,8 +375,14 @@ const Index = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
-                      No {activeTab} found.
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="text-4xl text-gray-300">👥</div>
+                        <p>No {activeTab} found.</p>
+                        {emptyStateMessage && (
+                          <p className="text-xs text-gray-400">{emptyStateMessage}</p>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -368,9 +394,9 @@ const Index = () => {
 
       {/* Sidebars */}
       {activeTab === "contacts" ? (
-        <NewContactSidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
+        <NewContactSidebar isOpen={isSidebarOpen && canCreate} onClose={handleSidebarClose} />
       ) : (
-        <NewCustomerSidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
+        <NewCustomerSidebar isOpen={isSidebarOpen && canCreate} onClose={handleSidebarClose} />
       )}
 
       {/* Edit Modal */}

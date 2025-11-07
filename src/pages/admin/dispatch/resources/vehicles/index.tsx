@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Plus, Filter, Trash2, MoreVertical, Search } from 'lucide-react';
 import NewVehicleSidebar from './NewVehicleSidebar';
 import { listVehicle, deleteVehicle } from '../../../../../axios/api/distapcher';
@@ -25,69 +25,86 @@ const VehiclesTable = () => {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const [userInfoReady, setUserInfoReady] = useState(false);
-
-  useEffect(() => {
+  const [userInfo, setUserInfo] = useState<any>(() => {
     try {
       const stored = localStorage.getItem('userInfo');
-      if (stored) {
-        setUserInfo(JSON.parse(stored));
-      }
+      return stored ? JSON.parse(stored) : null;
     } catch (error) {
       console.error('Error parsing userInfo from localStorage:', error);
-    } finally {
-      setUserInfoReady(true);
+      return null;
     }
+  });
+
+  const sanitizeMessage = useCallback((message?: string | null) => {
+    if (!message) return null;
+    return message.toLowerCase().includes('no company assigned') ? null : message;
   }, []);
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     setLoading(true);
     try {
+      if (!userInfo) {
+        setVehicles([]);
+        setEmptyStateMessage(null);
+        return;
+      }
+
+      const isSuperadmin = userInfo?.role === 'superadmin';
+      const hasCompany = Boolean(userInfo?.company);
+
+      if (!isSuperadmin && !hasCompany) {
+        setVehicles([]);
+        setEmptyStateMessage(null);
+        return;
+      }
+
       const res = await listVehicle();
+      const message = sanitizeMessage(res?.message || null);
+
       if (res?.success) {
         const data = Array.isArray(res?.data?.vehicles)
           ? res.data.vehicles
           : Array.isArray(res?.data)
             ? res.data
             : [];
+
         setVehicles(data);
-        if (res?.message && data.length === 0) {
-          setEmptyStateMessage(res.message);
-        } else if (data.length > 0) {
+        if (data.length === 0) {
+          setEmptyStateMessage(message || 'No vehicles found.');
+        } else {
           setEmptyStateMessage(null);
         }
       } else {
         setVehicles([]);
-        setEmptyStateMessage(res?.message || 'Failed to fetch vehicles.');
+        setEmptyStateMessage(message || 'Failed to fetch vehicles.');
       }
     } catch (error: any) {
       console.error('Error fetching vehicles:', error);
       setVehicles([]);
-      setEmptyStateMessage(error?.message || 'Failed to fetch vehicles.');
+      setEmptyStateMessage(sanitizeMessage(error?.message) || 'Failed to fetch vehicles.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [userInfo, sanitizeMessage]);
 
   useEffect(() => {
-    if (!userInfoReady) {
-      return;
-    }
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'userInfo' && event.newValue) {
+        try {
+          setUserInfo(JSON.parse(event.newValue));
+        } catch (error) {
+          console.error('Error parsing userInfo from storage event:', error);
+        }
+      }
+    };
 
-    const isSuperadmin = userInfo?.role === 'superadmin';
-    const hasCompany = Boolean(userInfo?.company);
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
-    if (!isSuperadmin && !hasCompany) {
-      setVehicles([]);
-      setEmptyStateMessage('No company assigned to the current admin.');
-      setLoading(false);
-      return;
-    }
-
+  useEffect(() => {
     fetchVehicles();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfoReady, userInfo]);
+  }, [fetchVehicles]);
 
   const getStatusColor = (status: string) => {
   if (!status) {
@@ -151,17 +168,7 @@ if (loading) {
   );
 }
 
-if (emptyStateMessage && vehicles.length === 0) {
-  return (
-    <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
-      <div className="text-5xl text-gray-300">🚚</div>
-      <div className="space-y-2 max-w-md">
-        <h2 className="text-2xl font-semibold text-gray-800">No vehicle data available</h2>
-        <p className="text-gray-500">{emptyStateMessage}</p>
-      </div>
-    </div>
-  );
-}
+const canCreateVehicle = userInfo?.role === 'superadmin' || Boolean(userInfo?.company);
 
 return (
   <div className="min-h-screen bg-gray-50">
@@ -183,15 +190,24 @@ return (
         <button className="p-2 text-gray-400 hover:text-gray-600">
           <Filter className="w-5 h-5" />
         </button>
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Create Vehicle</span>
-        </button>
+        {canCreateVehicle && (
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Vehicle</span>
+          </button>
+        )}
       </div>
     </div>
+
+    {emptyStateMessage && filteredVehicles.length === 0 && (
+      <div className="mx-6 mt-4 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3">
+        🚚
+        <span className="text-sm">{emptyStateMessage}</span>
+      </div>
+    )}
 
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-auto">
@@ -215,7 +231,15 @@ return (
             <tbody className="divide-y divide-gray-200">
               {filteredVehicles.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="text-center py-4">No vehicles found.</td>
+                  <td colSpan={12} className="text-center py-12 text-gray-500">
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="text-5xl text-gray-300">🚚</div>
+                      <p>No vehicles found.</p>
+                      {emptyStateMessage && (
+                        <p className="text-xs text-gray-400">{emptyStateMessage}</p>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ) : (
                 filteredVehicles.map((vehicle) => (
@@ -228,18 +252,18 @@ return (
                     <td className="px-6 py-4 text-sm text-gray-500">{vehicle.year}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{vehicle.driver?.name || '-'}</td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(vehicle.status)}`}>
-                        {vehicle.status}
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(vehicle.status || '')}`}>
+                        {vehicle.status || 'unknown'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">{vehicle.currentLocation?.address || '-'}</td>
                     <td className="px-6 py-4">
-                      {vehicle.vehicleImage?.length > 0 ? (
+                      {vehicle.vehicleImage && vehicle.vehicleImage.length > 0 ? (
                         <div className="flex space-x-2">
                           {vehicle.vehicleImage.map((img: any, idx: number) => (
                             <img
                               key={idx}
-                              src={img.imageUrl.replace(/\\/g, '/')}
+                              src={(img.imageUrl || '').replace(/\\/g, '/')}
                               alt="Vehicle"
                               className="h-20 w-20 object-cover rounded border"
                             />
@@ -281,7 +305,7 @@ return (
 
       {/* Sidebar */}
       <NewVehicleSidebar
-        isOpen={isSidebarOpen}
+        isOpen={isSidebarOpen && canCreateVehicle}
         onClose={() => setIsSidebarOpen(false)}
       />
     </div>
@@ -289,3 +313,4 @@ return (
 };
 
 export default VehiclesTable;
+

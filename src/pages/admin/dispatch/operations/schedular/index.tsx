@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight, Calendar, Clock, User, Truck, Trash2 } from "lucide-react";
 import { listLoad, updateLoad } from "../../../../../axios/api/distapcher";
 
@@ -27,71 +27,89 @@ const SchedulerPage = () => {
     const [draggedLoad, setDraggedLoad] = useState<Load | null>(null);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
     const [userInfo, setUserInfo] = useState<any>(null);
-    const [userInfoReady, setUserInfoReady] = useState(false);
-
-    useEffect(() => {
-        try {
-            const stored = localStorage.getItem('userInfo');
-            if (stored) {
-                setUserInfo(JSON.parse(stored));
-            }
-        } catch (error) {
-            console.error('Error parsing userInfo from localStorage:', error);
-        } finally {
-            setUserInfoReady(true);
-        }
-    }, []);
 
     // Fetch loads data
-    const fetchLoads = async () => {
+    const fetchLoads = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await listLoad();
 
-            if (response?.message) {
-                setEmptyStateMessage(response.message);
-            } else {
-                setEmptyStateMessage(null);
+            let currentUser = userInfo;
+            if (!currentUser) {
+                const stored = localStorage.getItem('userInfo');
+                if (stored) {
+                    try {
+                        currentUser = JSON.parse(stored);
+                        setUserInfo(currentUser);
+                    } catch (error) {
+                        console.error('Error parsing userInfo during fetch:', error);
+                    }
+                }
             }
 
-            if (response.success && Array.isArray(response.data) && response.data.length > 0) {
-                const loadsWithDates = response.data.map((load: any) => ({
+            const isSuperadmin = currentUser?.role === 'superadmin';
+            const hasCompany = Boolean(currentUser?.company);
+
+            if (!isSuperadmin && !hasCompany) {
+                setLoads([]);
+                setEmptyStateMessage(null);
+                return;
+            }
+
+            const response = await listLoad();
+            const message = response?.message || null;
+            const data = response?.data;
+
+            if (response.success && Array.isArray(data)) {
+                if (data.length === 0) {
+                    setLoads([]);
+                    setEmptyStateMessage(message || 'No loads available.');
+                    return;
+                }
+
+                const loadsWithDates = data.map((load: any) => ({
                     ...load,
                     scheduledDate: load.assignedAt ? new Date(load.assignedAt) : null
                 }));
                 setLoads(loadsWithDates);
+                setEmptyStateMessage(null);
             } else {
-                if (response?.message) {
-                    setLoads([]);
-                } else {
-                    setLoads([]);
-                }
+                setLoads([]);
+                setEmptyStateMessage(message || 'Failed to fetch loads.');
             }
         } catch (error) {
             console.error('Error fetching loads:', error);
             setLoads([]);
+            setEmptyStateMessage('Error fetching loads.');
         } finally {
             setLoading(false);
         }
-    };
+    }, [userInfo]);
 
     useEffect(() => {
-        if (!userInfoReady) {
-            return;
-        }
+        const syncUser = () => {
+            try {
+                const stored = localStorage.getItem('userInfo');
+                if (stored) {
+                    setUserInfo(JSON.parse(stored));
+                }
+            } catch (error) {
+                console.error('Error parsing userInfo from localStorage:', error);
+            }
+        };
 
-        const isSuperadmin = userInfo?.role === 'superadmin';
-        const hasCompany = Boolean(userInfo?.company);
-
-        if (!isSuperadmin && !hasCompany) {
-            setLoads([]);
-            setEmptyStateMessage('No company assigned to the current admin.');
-            setLoading(false);
-            return;
-        }
-
+        syncUser();
         fetchLoads();
-    }, [userInfoReady, userInfo]);
+
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key === 'userInfo') {
+                syncUser();
+                fetchLoads();
+            }
+        };
+
+        window.addEventListener('storage', handleStorage);
+        return () => window.removeEventListener('storage', handleStorage);
+    }, [fetchLoads]);
 
     // Filter loads based on scheduling status
     const scheduledLoads = loads.filter((load) => load.scheduledDate);
@@ -284,18 +302,6 @@ const SchedulerPage = () => {
         );
     }
 
-    if (emptyStateMessage && loads.length === 0) {
-        return (
-            <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
-                <Truck className="text-5xl text-gray-300" />
-                <div className="space-y-2 max-w-md">
-                    <h2 className="text-2xl font-semibold text-gray-800">No scheduler data available</h2>
-                    <p className="text-gray-500">{emptyStateMessage}</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="min-h-screen bg-white">
             {/* Header */}
@@ -315,6 +321,13 @@ const SchedulerPage = () => {
                     </div>
                 </div>
             </div>
+
+            {emptyStateMessage && currentLoads.length === 0 && (
+                <div className="bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3">
+                    <Calendar className="text-xl" />
+                    <span className="text-sm">{emptyStateMessage}</span>
+                </div>
+            )}
 
             <div className="flex">
                 {/* Left Sidebar */}
@@ -450,10 +463,11 @@ const SchedulerPage = () => {
                                 ))
                             ) : (
                                 <div className="text-center py-8">
-                                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                    <p className="text-gray-500">
-                                        No {activeTab} loads
-                                    </p>
+                                    <Truck className="mx-auto mb-3 text-gray-300" size={32} />
+                                    <p className="text-gray-500">No loads found</p>
+                                    {emptyStateMessage && (
+                                        <p className="text-xs text-gray-400 mt-1">{emptyStateMessage}</p>
+                                    )}
                                 </div>
                             )}
                         </div>

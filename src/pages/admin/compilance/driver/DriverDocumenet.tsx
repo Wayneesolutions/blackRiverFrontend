@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { FaUser, FaPlus, FaEdit, FaTrash, FaFileUpload, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaArrowLeft, FaEye } from "react-icons/fa";
+import { FaUser, FaPlus, FaEdit, FaTrash, FaFileUpload, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaArrowLeft } from "react-icons/fa";
 import {
-  getAllDriverDocuments,
   getDriverDocumentsById,
   createDriverDocument,
   updateDriverDocument,
@@ -473,43 +472,45 @@ function DriverDocument() {
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#9793E4] mx-auto mb-4"></div>
               <p className="text-gray-500 text-lg">Loading drivers...</p>
             </div>
-          ) : drivers.length === 0 ? (
-            <div className="bg-white shadow-lg rounded-2xl p-16 text-center text-gray-500">
-              <FaUser size={64} className="mx-auto mb-4 text-gray-300" />
-              <p className="text-xl font-semibold">No drivers found</p>
-            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {drivers.map((driver: Driver) => (
-                <div
-                  key={driver._id}
-                  className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all cursor-pointer overflow-hidden border border-gray-200"
-                  onClick={() => handleSelectDriver(driver)}
-                >
-                  <div className="bg-gradient-to-r from-[#9793E4] via-[#8783D4] to-[#7773C4] p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-4 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
-                        <FaUser size={24} className="text-black" />
-                      </div>
-                      <div className="flex-1">
-                        <h2 className="text-xl font-bold text-white">{driver.name}</h2>
-                        <p className="text-sm text-white/80">{driver.email}</p>
+              {drivers.length === 0 ? (
+                <div className="bg-white rounded-2xl shadow-lg border border-dashed border-gray-300 p-10 flex flex-col items-center justify-center text-gray-400">
+                  <FaUser size={48} className="mb-3" />
+                  <p className="text-sm">No drivers available yet.</p>
+                </div>
+              ) : (
+                drivers.map((driver: Driver) => (
+                  <div
+                    key={driver._id}
+                    className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all cursor-pointer overflow-hidden border border-gray-200"
+                    onClick={() => handleSelectDriver(driver)}
+                  >
+                    <div className="bg-gradient-to-r from-[#9793E4] via-[#8783D4] to-[#7773C4] p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="p-4 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
+                          <FaUser size={24} className="text-black" />
+                        </div>
+                        <div className="flex-1">
+                          <h2 className="text-xl font-bold text-white">{driver.name}</h2>
+                          <p className="text-sm text-white/80">{driver.email}</p>
+                        </div>
                       </div>
                     </div>
+                    <div className="p-6">
+                      <p className="text-sm text-gray-600 mb-3 flex items-center gap-2">
+                        <span className="font-semibold">📞</span> {driver.phone}
+                      </p>
+                      <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-semibold capitalize ${driver.status?.toLowerCase() === 'active'
+                        ? 'bg-green-100 text-green-700 border border-green-200'
+                        : 'bg-red-100 text-red-700 border border-red-200'
+                        }`}>
+                        {driver.status}
+                      </span>
+                    </div>
                   </div>
-                  <div className="p-6">
-                    <p className="text-sm text-gray-600 mb-3 flex items-center gap-2">
-                      <span className="font-semibold">📞</span> {driver.phone}
-                    </p>
-                    <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-semibold capitalize ${driver.status?.toLowerCase() === 'active'
-                      ? 'bg-green-100 text-green-700 border border-green-200'
-                      : 'bg-red-100 text-red-700 border border-red-200'
-                      }`}>
-                      {driver.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
         </>

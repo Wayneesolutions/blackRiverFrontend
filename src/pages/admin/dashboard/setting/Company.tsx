@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Building, Mail, Phone, MapPin, Bell, Upload, Save, Edit, Check, X, AlertCircle } from 'lucide-react';
 import { getCompany } from '../../../../axios/api/admin';
 import { updateCompany } from '../../../../axios/api/admin';
@@ -44,6 +44,32 @@ const Company = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
 
+  const updateStoredUserCompany = useCallback((companyId: string | null) => {
+    try {
+      const stored = localStorage.getItem('userInfo');
+      if (!stored) {
+        return;
+      }
+
+      const parsed = JSON.parse(stored);
+      if (!parsed?.userData) {
+        return;
+      }
+
+      const updated = {
+        ...parsed,
+        userData: {
+          ...parsed.userData,
+          company: companyId || undefined
+        }
+      };
+
+      localStorage.setItem('userInfo', JSON.stringify(updated));
+    } catch (err) {
+      console.error('Error updating stored userInfo with company details:', err);
+    }
+  }, []);
+
   // Fetch company data on component mount
   useEffect(() => {
     fetchCompanyData();
@@ -70,6 +96,9 @@ const Company = () => {
         
         setCompanyInfo(companyData);
         setEditForm(companyData);
+        if (data._id) {
+          updateStoredUserCompany(data._id);
+        }
         
         // Handle notification preferences
         if (data.notificationPreferences) {
@@ -85,12 +114,13 @@ const Company = () => {
           setPreviewUrl(data.logoUrl);
         }
       } else {
-        // No company data found, keep default empty state
+        updateStoredUserCompany(null);
         console.log('No company data found or response failed');
       }
     } catch (error) {
       console.error('Error fetching company data:', error);
       setError('Failed to load company data. Please try again.');
+      updateStoredUserCompany(null);
     } finally {
       setFetchLoading(false);
     }
@@ -121,9 +151,10 @@ const Company = () => {
       const formData = new FormData();
       
       // Add company info fields
-      Object.keys(editForm).forEach(key => {
-        if (editForm[key] && key !== 'logoUrl') {
-          formData.append(key, editForm[key]);
+      (Object.keys(editForm) as Array<keyof CompanyInfo>).forEach((key) => {
+        const value = editForm[key];
+        if (value && key !== 'logoUrl') {
+          formData.append(key, value);
         }
       });
       
@@ -142,6 +173,9 @@ const Company = () => {
         setCompanyInfo(editForm);
         setIsEditing(false);
         setSelectedFile(null);
+        if (response.data?._id) {
+          updateStoredUserCompany(response.data._id);
+        }
         
         // Update logo URL if returned in response
         if (response.data?.logoUrl) {

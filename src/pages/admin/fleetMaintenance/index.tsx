@@ -32,6 +32,11 @@ interface MaintenanceItem {
 }
 
 const Dashboard = () => {
+  const sanitizeMessage = (message?: string | null) => {
+    if (!message) return null;
+    return message.toLowerCase().includes('no company assigned') ? null : message;
+  };
+
   const [loading, setLoading] = useState(true);
   const [dashboardStats, setDashboardStats] = useState({
     totalVehicles: 0,
@@ -91,7 +96,7 @@ const Dashboard = () => {
       });
       setRecentWorkOrders([]);
       setUpcomingMaintenance([]);
-      setEmptyStateMessage('No company assigned to the current admin.');
+      setEmptyStateMessage(null);
       setLoading(false);
       return;
     }
@@ -103,6 +108,7 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
+      let aggregatedMessage: string | null = null;
       const [statsRes, upcomingRes, workOrderRes, costRes] = await Promise.all([
         DashboardStats(),
         UpcomingOverdue(),
@@ -124,14 +130,12 @@ const Dashboard = () => {
           trailersUnattached: statsRes.data.trailersUnattached || 0
         }));
         if (statsRes?.message && statsRes?.requiresCompanySetup) {
-          setEmptyStateMessage(statsRes.message);
-        } else {
-          setEmptyStateMessage(null);
+          aggregatedMessage = sanitizeMessage(statsRes.message) ?? aggregatedMessage;
         }
       }
 
       if (statsRes?.success === false && statsRes?.message) {
-        setEmptyStateMessage(statsRes.message);
+        aggregatedMessage = sanitizeMessage(statsRes.message) ?? aggregatedMessage;
       }
 
       // Process Monthly Cost
@@ -142,8 +146,8 @@ const Dashboard = () => {
         }));
       }
 
-      if (costRes?.success === false && costRes?.message && !emptyStateMessage) {
-        setEmptyStateMessage(costRes.message);
+      if (costRes?.success === false && costRes?.message) {
+        aggregatedMessage = sanitizeMessage(costRes.message) ?? aggregatedMessage;
       }
 
       // Process Upcoming/Overdue Maintenance
@@ -165,9 +169,9 @@ const Dashboard = () => {
         }));
         
         setUpcomingMaintenance(upcoming);
-      } else if (upcomingRes?.success === false && upcomingRes?.message && !emptyStateMessage) {
+      } else if (upcomingRes?.success === false && upcomingRes?.message) {
         setUpcomingMaintenance([]);
-        setEmptyStateMessage(upcomingRes.message);
+        aggregatedMessage = sanitizeMessage(upcomingRes.message) ?? aggregatedMessage;
       }
 
       // Process Recent Work Orders
@@ -189,10 +193,12 @@ const Dashboard = () => {
           ...prev,
           completedThisMonth: completed.length
         }));
-      } else if (workOrderRes?.success === false && workOrderRes?.message && !emptyStateMessage) {
+      } else if (workOrderRes?.success === false && workOrderRes?.message) {
         setRecentWorkOrders([]);
-        setEmptyStateMessage(workOrderRes.message);
+        aggregatedMessage = sanitizeMessage(workOrderRes.message) ?? aggregatedMessage;
       }
+
+      setEmptyStateMessage(aggregatedMessage);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setEmptyStateMessage('Failed to load fleet maintenance data.');
@@ -241,25 +247,19 @@ const Dashboard = () => {
     );
   }
 
-  if (emptyStateMessage) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
-        <Truck className="h-12 w-12 text-gray-300" />
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-2xl font-semibold text-gray-800">No fleet maintenance data available</h2>
-          <p className="text-gray-500">{emptyStateMessage}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 space-y-6 min-h-screen bg-gray-50">
+      {emptyStateMessage && (
+        <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
+          <AlertTriangle className="w-5 h-5" />
+          <span className="text-sm">{emptyStateMessage}</span>
+        </div>
+      )}
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Fleet Management Dashboard</h1>
-          <p className="text-gray-600 mt-1">Overview of your fleet maintenance operations</p>
+          <h1 className="text-2xl font-bold text-gray-800">Fleet Maintenance Overview</h1>
+          <p className="text-gray-500">Monitor maintenance performance and upcoming services</p>
         </div>
         <div className="text-sm text-gray-500">
           Last updated: {new Date().toLocaleString()}

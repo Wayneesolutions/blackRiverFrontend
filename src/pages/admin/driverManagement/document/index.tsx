@@ -66,7 +66,6 @@ const EmployeeDocumentsPage = () => {
   const [documentStats, setDocumentStats] = useState<DocumentStats | null>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [editingDocument, setEditingDocument] = useState<EmployeeDocument | null>(null);
   const [viewingDocument, setViewingDocument] = useState<EmployeeDocument | null>(null);
@@ -128,24 +127,11 @@ const EmployeeDocumentsPage = () => {
         getAllEmployees()
       ]);
 
-      const message = (documentsResponse as any)?.message || (statsResponse as any)?.message || (employeesResponse as any)?.message;
-      const hasDocuments = Array.isArray(documentsResponse?.data) && documentsResponse.data.length > 0;
-
-      if (message && !hasDocuments) {
-        setEmptyStateMessage(message);
-        setEmployeeDocuments([]);
-        setDocumentStats(null);
-        setEmployees([]);
-        setTotalPages(1);
-        return;
-      }
-
-      setEmptyStateMessage(null);
-
-      setEmployeeDocuments(documentsResponse.data || []);
-      setDocumentStats(statsResponse.data || null);
-      setEmployees(employeesResponse.data || []);
-      setTotalPages(documentsResponse.pagination?.pages || 1);
+      const documents = Array.isArray(documentsResponse?.data) ? documentsResponse.data : [];
+      setEmployeeDocuments(documents);
+      setDocumentStats(statsResponse?.data || null);
+      setEmployees(Array.isArray(employeesResponse?.data) ? employeesResponse.data : []);
+      setTotalPages(documentsResponse?.pagination?.pages || 1);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -275,18 +261,6 @@ const EmployeeDocumentsPage = () => {
             <div className="h-32 bg-gray-200 rounded"></div>
             <div className="h-6 bg-gray-200 rounded w-1/3"></div>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (emptyStateMessage) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
-        <FileText className="w-12 h-12 text-gray-400" />
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-xl font-semibold text-gray-800">No document data available</h2>
-          <p className="text-gray-500">{emptyStateMessage}</p>
         </div>
       </div>
     );

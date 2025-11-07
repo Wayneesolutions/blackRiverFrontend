@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Plus, Search, MoreVertical, User, Filter } from 'lucide-react';
 import NewDriverSidebar from './NewDriverSidebar';
 import { listDriver } from '../../../../../axios/api/distapcher';
@@ -21,26 +22,42 @@ const DriversTable = () => {
   const [loading, setLoading] = useState(true);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const [userInfoReady, setUserInfoReady] = useState(false);
-
-  useEffect(() => {
+  const [userInfo, setUserInfo] = useState<any>(() => {
     try {
       const stored = localStorage.getItem('userInfo');
-      if (stored) {
-        setUserInfo(JSON.parse(stored));
-      }
+      return stored ? JSON.parse(stored) : null;
     } catch (error) {
       console.error('Error parsing userInfo from localStorage:', error);
-    } finally {
-      setUserInfoReady(true);
+      return null;
     }
+  });
+  const location = useLocation();
+
+  const sanitizeMessage = useCallback((message?: string | null) => {
+    if (!message) return null;
+    return message.toLowerCase().includes('no company assigned') ? null : message;
   }, []);
 
-  const fetchDrivers = async () => {
+  const fetchDrivers = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
+      if (!userInfo) {
+        setDrivers([]);
+        setEmptyStateMessage(null);
+        return;
+      }
+
+      const isSuperadmin = userInfo?.role === 'superadmin';
+      const hasCompany = Boolean(userInfo?.company);
+
+      if (!isSuperadmin && !hasCompany) {
+        setDrivers([]);
+        setEmptyStateMessage(null);
+        return;
+      }
+
       const res = await listDriver();
+      const message = sanitizeMessage(res?.message || null);
 
       if (res?.success) {
         const data = Array.isArray(res?.data)
@@ -48,43 +65,44 @@ const DriversTable = () => {
           : Array.isArray(res?.data?.data)
             ? res.data.data
             : [];
+
         setDrivers(data);
-        if (res.message && data.length === 0) {
-          setEmptyStateMessage(res.message);
-        } else if (data.length > 0) {
+        if (data.length === 0) {
+          setEmptyStateMessage(message || 'No drivers found.');
+        } else {
           setEmptyStateMessage(null);
         }
       } else {
         setDrivers([]);
-        setEmptyStateMessage(res?.message || 'Failed to load drivers.');
+        setEmptyStateMessage(message || 'Failed to load drivers.');
       }
     } catch (error: any) {
       console.error('Error fetching drivers:', error);
       setDrivers([]);
-      setEmptyStateMessage(error?.message || 'Failed to load drivers.');
+      setEmptyStateMessage(sanitizeMessage(error?.message) || 'Failed to load drivers.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [userInfo, sanitizeMessage]);
 
   useEffect(() => {
-    if (!userInfoReady) {
-      return;
-    }
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'userInfo' && event.newValue) {
+        try {
+          setUserInfo(JSON.parse(event.newValue));
+        } catch (error) {
+          console.error('Error parsing userInfo from storage event:', error);
+        }
+      }
+    };
 
-    const isSuperadmin = userInfo?.role === 'superadmin';
-    const hasCompany = Boolean(userInfo?.company);
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
-    if (!isSuperadmin && !hasCompany) {
-      setDrivers([]);
-      setEmptyStateMessage('No company assigned to the current admin.');
-      setLoading(false);
-      return;
-    }
-
+  useEffect(() => {
     fetchDrivers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfoReady, userInfo]);
+  }, [fetchDrivers, location.pathname]);
 
   const filteredDrivers = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -114,17 +132,7 @@ const DriversTable = () => {
     );
   }
 
-  if (emptyStateMessage && drivers.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
-        <div className="text-5xl text-gray-300">🧑‍✈️</div>
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-2xl font-semibold text-gray-800">No driver data available</h2>
-          <p className="text-gray-500">{emptyStateMessage}</p>
-        </div>
-      </div>
-    );
-  }
+  const canCreateDriver = userInfo?.role === 'superadmin' || Boolean(userInfo?.company);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -148,16 +156,25 @@ const DriversTable = () => {
               <button className="p-2 text-gray-400 hover:text-gray-600">
                 <Filter className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Create Driver</span>
-              </button>
+              {canCreateDriver && (
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create Driver</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
+
+        {emptyStateMessage && filteredDrivers.length === 0 && (
+          <div className="mx-6 mt-4 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3">
+            <User />
+            <span className="text-sm">{emptyStateMessage}</span>
+          </div>
+        )}
 
         <div className="p-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -204,7 +221,13 @@ const DriversTable = () => {
                   ) : (
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                        No drivers found.
+                        <div className="flex flex-col items-center space-y-2">
+                          <User className="w-10 h-10 text-gray-300" />
+                          <p>No drivers found.</p>
+                          {emptyStateMessage && (
+                            <p className="text-xs text-gray-400">{emptyStateMessage}</p>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )}

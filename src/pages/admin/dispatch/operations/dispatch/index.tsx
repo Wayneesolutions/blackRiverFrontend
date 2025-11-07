@@ -76,7 +76,6 @@ const Index = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>(null);
-  const [userInfoReady, setUserInfoReady] = useState(false);
 
   useEffect(() => {
     try {
@@ -86,25 +85,41 @@ const Index = () => {
       }
     } catch (error) {
       console.error('Error parsing userInfo from localStorage:', error);
-    } finally {
-      setUserInfoReady(true);
     }
+    fetchLoads();
+
+    // Listen for storage updates (e.g. company assignment in another tab)
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'userInfo' && event.newValue) {
+        try {
+          setUserInfo(JSON.parse(event.newValue));
+        } catch (err) {
+          console.error('Error parsing updated userInfo from localStorage:', err);
+        }
+        fetchLoads();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchLoads = async () => {
     setLoading(true);
     try {
       const response = await listLoad();
-      if (response && response.success && response.data) {
-        // Respect backend empty-state message
-        if (response.message) {
+      const message = response?.message || null;
+      const data = response?.data;
+
+      if (response?.success && Array.isArray(data)) {
+        if (data.length === 0) {
           setLoads([]);
-          setEmptyStateMessage(response.message);
+          setEmptyStateMessage(message || 'No loads available.');
           return;
         }
 
-        // Filter for planned loads (loads without driver AND truck assigned)
-        const plannedLoads = response.data
+        const plannedLoads = data
           .filter((load: any) => {
             // Status is planned OR no driver/truck assigned
             const hasDriver = load.details?.driver || load.driverId;
@@ -181,10 +196,8 @@ const Index = () => {
         setLoads(plannedLoads);
         setEmptyStateMessage(null);
       } else {
-        if (response?.message) {
-          setEmptyStateMessage(response.message);
-        }
         setLoads([]);
+        setEmptyStateMessage(message || 'Failed to fetch loads.');
       }
     } catch (error) {
       console.error('Error fetching loads:', error);
@@ -196,22 +209,9 @@ const Index = () => {
   };
 
   useEffect(() => {
-    if (!userInfoReady) {
-      return;
-    }
-
-    const isSuperadmin = userInfo?.role === 'superadmin';
-    const hasCompany = Boolean(userInfo?.company);
-
-    if (!isSuperadmin && !hasCompany) {
-      setLoads([]);
-      setEmptyStateMessage('No company assigned to the current admin.');
-      setLoading(false);
-      return;
-    }
-
     fetchLoads();
-  }, [userInfoReady, userInfo]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfo?.company]);
 
   const handleLoadAdded = () => {
     setSidebarOpen(false);
@@ -258,28 +258,12 @@ const Index = () => {
     });
   };
 
+  const canCreateLoad = userInfo?.role === 'superadmin' || Boolean(userInfo?.company);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (emptyStateMessage && loads.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center text-center space-y-4">
-        <FaTruck className="text-5xl text-gray-300" />
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-2xl font-semibold text-gray-800">No dispatch data available</h2>
-          <p className="text-gray-500">{emptyStateMessage}</p>
-        </div>
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg"
-        >
-          <FaUpload /> + New Load
-        </button>
       </div>
     );
   }
@@ -292,13 +276,22 @@ const Index = () => {
           <h1 className="text-3xl font-bold text-gray-800">Available Dispatch</h1>
           <p className="text-gray-600 mt-1">Manage planned loads - All new loads appear here with status "Planned"</p>
         </div>
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 shadow-lg font-medium"
-        >
-          <FaUpload /> + New Load
-        </button>
+        {canCreateLoad && (
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 shadow-lg font-medium"
+          >
+            <FaUpload /> + New Load
+          </button>
+        )}
       </div>
+
+      {emptyStateMessage && loads.length === 0 && (
+        <div className="mb-4 bg-white border border-blue-100 text-blue-700 px-4 py-3 rounded-lg shadow-sm flex items-center gap-3">
+          <FaTruck className="text-blue-500" />
+          <span className="text-sm">{emptyStateMessage}</span>
+        </div>
+      )}
 
       {/* Step Tracker */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
@@ -353,7 +346,7 @@ const Index = () => {
                   <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
                     <FaTruck className="mx-auto mb-3 text-gray-300" size={48} />
                     <p className="text-lg font-medium">No loads available</p>
-                    <p className="text-sm">Create a new load to get started</p>
+                    <p className="text-sm">{emptyStateMessage || 'Create a new load to get started'}</p>
                   </td>
                 </tr>
               ) : (

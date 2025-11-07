@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Clock, AlertTriangle, Truck, Wrench, CheckCircle, Search, Bell, Plus, X, FileText, Edit, Trash2 } from 'lucide-react';
 import { getMaintenanceSchedule, getMaintenanceCostReport } from "../../../../axios/api/fleet.maintenance"
 import { 
@@ -76,26 +76,7 @@ interface Alert {
     };
 }
 
-interface Service {
-    id: string;
-    vehicle: string;
-    vehicleId: string;
-    vehicleType: string;
-    service: string;
-    dueDate: string;
-    dueKm: string;
-    currentKm: string;
-    priority: string;
-    status: string;
-    estimatedTime: string;
-    estimatedCost: string;
-    mechanic: string;
-    description: string;
-}
-
 const MaintenanceSchedule = () => {
-    const [selectedFilter, setSelectedFilter] = useState<string>('all');
-    const [searchTerm, setSearchTerm] = useState<string>('');
     const [showScheduleForm, setShowScheduleForm] = useState<boolean>(false);
     const [showAlertDetails, setShowAlertDetails] = useState<Alert | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -105,13 +86,23 @@ const MaintenanceSchedule = () => {
     
     // Vehicle Service State
     const [vehicleServices, setVehicleServices] = useState<VehicleServiceResponse[]>([]);
-    const [showServiceModal, setShowServiceModal] = useState<boolean>(false);
     const [editingService, setEditingService] = useState<VehicleServiceResponse | null>(null);
     const [serviceFilters, setServiceFilters] = useState<ServiceFilters>({});
     const [servicesLoading, setServicesLoading] = useState<boolean>(false);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
     const [userInfo, setUserInfo] = useState<any>(null);
     const [userInfoReady, setUserInfoReady] = useState<boolean>(false);
+
+    const sanitizeMessage = useCallback((message?: string | null) => {
+        if (!message) return null;
+        return message.toLowerCase().includes('no company assigned') ? null : message;
+    }, []);
+
+    const pushBannerMessage = useCallback((message?: string | null) => {
+        const sanitized = sanitizeMessage(message);
+        if (!sanitized) return;
+        setEmptyStateMessage(prev => prev || sanitized);
+    }, [sanitizeMessage]);
 
     const [scheduleForm, setScheduleForm] = useState({
         vehicle: '',
@@ -153,9 +144,8 @@ const MaintenanceSchedule = () => {
             setVehicles([]);
             setVehicleServices([]);
             setCostReport([]);
-            setEmptyStateMessage('No company assigned to the current admin.');
+            setEmptyStateMessage(null);
             setLoading(false);
-            setServicesLoading(false);
             return;
         }
 
@@ -170,15 +160,12 @@ const MaintenanceSchedule = () => {
         if (!userInfoReady) {
             return;
         }
-        if (emptyStateMessage) {
-            return;
-        }
         fetchVehicleServices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [serviceFilters]);
 
     useEffect(() => {
-        if (!userInfoReady || emptyStateMessage) {
+        if (!userInfoReady) {
             return;
         }
         if (selectedYear) {
@@ -194,20 +181,20 @@ const MaintenanceSchedule = () => {
             if (response.success) {
                 const data = response.data || [];
                 setVehicles(data);
-                if (response.message && data.length === 0) {
-                    setEmptyStateMessage(response.message);
+                if (data.length === 0) {
+                    pushBannerMessage(response.message);
                 } else {
                     setEmptyStateMessage(null);
                 }
             }
             if (response.success === false && response.message) {
                 setVehicles([]);
-                setEmptyStateMessage(response.message);
+                pushBannerMessage(response.message);
             }
         } catch (error) {
             console.error('Error fetching maintenance schedule:', error);
             setVehicles([]);
-            setEmptyStateMessage('Failed to load maintenance schedule.');
+            pushBannerMessage('Failed to load maintenance schedule.');
         } finally {
             setLoading(false);
         }
@@ -219,17 +206,17 @@ const MaintenanceSchedule = () => {
             if (response.success) {
                 const data = response.data || [];
                 setCostReport(data);
-                if (response.message && data.length === 0) {
-                    setEmptyStateMessage(response.message);
+                if (data.length === 0) {
+                    pushBannerMessage(response.message);
                 }
             } else if (response?.message) {
                 setCostReport([]);
-                setEmptyStateMessage((prev) => prev || response.message);
+                pushBannerMessage(response.message);
             }
         } catch (error) {
             console.error('Error fetching cost report:', error);
             setCostReport([]);
-            setEmptyStateMessage((prev) => prev || 'Failed to load maintenance cost report.');
+            pushBannerMessage('Failed to load maintenance cost report.');
         }
     };
 
@@ -243,20 +230,18 @@ const MaintenanceSchedule = () => {
                 console.log('✅ Vehicle services fetched successfully:', response.data?.length || 0, 'services');
                 const data = response.data || [];
                 setVehicleServices(data);
-                if (response.message && data.length === 0) {
-                    setEmptyStateMessage((prev) => prev || response.message);
+                if (data.length === 0) {
+                    pushBannerMessage(response.message);
                 }
             } else {
                 console.error('❌ Failed to fetch vehicle services:', response?.message);
                 setVehicleServices([]);
-                if (response?.message) {
-                    setEmptyStateMessage((prev) => prev || response.message);
-                }
+                pushBannerMessage(response?.message || 'Failed to load vehicle services.');
             }
         } catch (error) {
             console.error('❌ Error fetching vehicle services:', error);
             setVehicleServices([]);
-            setEmptyStateMessage((prev) => prev || 'Failed to load vehicle services.');
+            pushBannerMessage('Failed to load vehicle services.');
         } finally {
             setServicesLoading(false);
         }
@@ -501,42 +486,6 @@ const MaintenanceSchedule = () => {
 
     const alerts: Alert[] = generateAlerts();
 
-    // Transform vehicle data to service format
-    const upcomingServices: Service[] = vehicles.flatMap((vehicle: Vehicle) => {
-        if (!vehicle.upcomingServices || vehicle.upcomingServices.length === 0) return [];
-
-        return vehicle.upcomingServices.map((service: UpcomingService) => {
-            const currentOdo = vehicle.currentOdometer || vehicle.odometer || 0;
-            const kmUntilService = service.serviceOdometer - currentOdo;
-            let status = 'upcoming';
-
-            if (kmUntilService <= 0) {
-                status = 'overdue';
-            } else if (kmUntilService < 500) {
-                status = 'in-progress';
-            } else if (service.scheduledDate) {
-                status = 'scheduled';
-            }
-
-            return {
-                id: `${vehicle._id}-${service.serviceType}`,
-                vehicle: vehicle.plateNumber,
-                vehicleId: vehicle._id,
-                vehicleType: vehicle.make && vehicle.model ? `${vehicle.make} ${vehicle.model}` : 'Unknown',
-                service: service.serviceType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-                dueDate: service.scheduledDate ? new Date(service.scheduledDate).toISOString().split('T')[0] : 'Not set',
-                dueKm: service.serviceOdometer?.toString() || '0',
-                currentKm: currentOdo.toString(),
-                priority: service.priority || 'medium',
-                status,
-                estimatedTime: '2 hours',
-                estimatedCost: '$150',
-                mechanic: 'Auto-assign',
-                description: service.description || ''
-            };
-        });
-    });
-
     // Calculate stats from actual vehicle services data
     const stats = useMemo(() => {
         console.log('📊 Calculating stats for', vehicleServices.length, 'services');
@@ -564,26 +513,6 @@ const MaintenanceSchedule = () => {
         return { overdue, dueThisWeek, inProgress, scheduled };
     }, [vehicleServices]);
 
-    const getPriorityColor = (priority: string): string => {
-        switch (priority) {
-            case 'high':
-            case 'urgent': return 'text-red-600 bg-red-50';
-            case 'medium': return 'text-yellow-600 bg-yellow-50';
-            case 'low': return 'text-green-600 bg-green-50';
-            default: return 'text-gray-600 bg-gray-50';
-        }
-    };
-
-    const getStatusColor = (status: string): string => {
-        switch (status) {
-            case 'overdue': return 'text-red-600 bg-red-100';
-            case 'in-progress': return 'text-blue-600 bg-blue-100';
-            case 'scheduled': return 'text-purple-600 bg-purple-100';
-            case 'upcoming': return 'text-gray-600 bg-gray-100';
-            default: return 'text-gray-600 bg-gray-100';
-        }
-    };
-
     const handleFormChange = (field: string, value: string | boolean): void => {
         setScheduleForm(prev => ({ ...prev, [field]: value }));
     };
@@ -600,13 +529,6 @@ const MaintenanceSchedule = () => {
             await handleCreateService();
         }
     };
-
-    const filteredServices = upcomingServices.filter((service: Service) => {
-        const matchesFilter = selectedFilter === 'all' || service.status === selectedFilter;
-        const matchesSearch = service.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            service.service.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesFilter && matchesSearch;
-    });
 
     const AlertDetailsModal = ({ alert, onClose }: { alert: Alert | null; onClose: () => void }) => {
         if (!alert) return null;
@@ -693,6 +615,13 @@ const MaintenanceSchedule = () => {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
+                {emptyStateMessage && (
+                    <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
+                        <AlertTriangle className="w-5 h-5" />
+                        <span className="text-sm">{emptyStateMessage}</span>
+                    </div>
+                )}
+
                 <div className="mb-8">
                     <div className="flex justify-between items-center mb-4">
                         <h1 className="text-3xl font-bold text-gray-900">Fleet Maintenance Schedule</h1>

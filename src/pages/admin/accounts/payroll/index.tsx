@@ -209,7 +209,7 @@ const PayrollManagement = () => {
             const userInfo: any = getLocalUserInfo();
             if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
                 setPayrollData([]);
-                setEmptyStateMessage('No company assigned to the current admin. Please set up your company to manage payroll.');
+                setEmptyStateMessage(null);
                 return;
             }
 

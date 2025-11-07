@@ -38,7 +38,7 @@ function Dashboard() {
         vehicles: { total: 0, valid: 0, expired: 0, expiringSoon: 0, complianceRate: 0 },
         drivers: { total: 0, valid: 0, expired: 0, expiringSoon: 0, complianceRate: 0 },
       });
-      setEmptyStateMessage('No company assigned to the current admin.');
+      setEmptyStateMessage(null);
       setLoading(false);
       return;
     }
