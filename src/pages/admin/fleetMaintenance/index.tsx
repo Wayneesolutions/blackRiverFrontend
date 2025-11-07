@@ -49,10 +49,56 @@ const Dashboard = () => {
   });
   const [recentWorkOrders, setRecentWorkOrders] = useState<WorkOrder[]>([]);
   const [upcomingMaintenance, setUpcomingMaintenance] = useState<MaintenanceItem[]>([]);
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfoReady, setUserInfoReady] = useState(false);
 
   useEffect(() => {
-    fetchDashboardData();
+    try {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        setUserInfo(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Error parsing userInfo from localStorage:', error);
+    } finally {
+      setUserInfoReady(true);
+    }
   }, []);
+
+  useEffect(() => {
+    if (!userInfoReady) {
+      return;
+    }
+
+    const isSuperadmin = userInfo?.role === 'superadmin';
+    const hasCompany = Boolean(userInfo?.company);
+
+    if (!isSuperadmin && !hasCompany) {
+      setDashboardStats({
+        totalVehicles: 0,
+        activeWorkOrders: 0,
+        pendingMaintenance: 0,
+        completedThisMonth: 0,
+        totalCosts: 0,
+        overdueMaintenance: 0,
+        totalTrailers: 0,
+        trailersInTransit: 0,
+        trailersAvailable: 0,
+        trailersMaintenance: 0,
+        trailersAttached: 0,
+        trailersUnattached: 0
+      });
+      setRecentWorkOrders([]);
+      setUpcomingMaintenance([]);
+      setEmptyStateMessage('No company assigned to the current admin.');
+      setLoading(false);
+      return;
+    }
+
+    fetchDashboardData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfoReady, userInfo]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -77,6 +123,15 @@ const Dashboard = () => {
           trailersAttached: statsRes.data.trailersAttached || 0,
           trailersUnattached: statsRes.data.trailersUnattached || 0
         }));
+        if (statsRes?.message && statsRes?.requiresCompanySetup) {
+          setEmptyStateMessage(statsRes.message);
+        } else {
+          setEmptyStateMessage(null);
+        }
+      }
+
+      if (statsRes?.success === false && statsRes?.message) {
+        setEmptyStateMessage(statsRes.message);
       }
 
       // Process Monthly Cost
@@ -85,6 +140,10 @@ const Dashboard = () => {
           ...prev,
           totalCosts: costRes.data.totalMonthlyCost || 0
         }));
+      }
+
+      if (costRes?.success === false && costRes?.message && !emptyStateMessage) {
+        setEmptyStateMessage(costRes.message);
       }
 
       // Process Upcoming/Overdue Maintenance
@@ -106,6 +165,9 @@ const Dashboard = () => {
         }));
         
         setUpcomingMaintenance(upcoming);
+      } else if (upcomingRes?.success === false && upcomingRes?.message && !emptyStateMessage) {
+        setUpcomingMaintenance([]);
+        setEmptyStateMessage(upcomingRes.message);
       }
 
       // Process Recent Work Orders
@@ -127,9 +189,13 @@ const Dashboard = () => {
           ...prev,
           completedThisMonth: completed.length
         }));
+      } else if (workOrderRes?.success === false && workOrderRes?.message && !emptyStateMessage) {
+        setRecentWorkOrders([]);
+        setEmptyStateMessage(workOrderRes.message);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setEmptyStateMessage('Failed to load fleet maintenance data.');
     } finally {
       setLoading(false);
     }
@@ -171,6 +237,18 @@ const Dashboard = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (emptyStateMessage) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
+        <Truck className="h-12 w-12 text-gray-300" />
+        <div className="space-y-2 max-w-md">
+          <h2 className="text-2xl font-semibold text-gray-800">No fleet maintenance data available</h2>
+          <p className="text-gray-500">{emptyStateMessage}</p>
+        </div>
       </div>
     );
   }

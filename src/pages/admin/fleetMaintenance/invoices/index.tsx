@@ -117,6 +117,9 @@ const InvoicesPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfoReady, setUserInfoReady] = useState<boolean>(false);
 
   // Form state
   const [invoiceForm, setInvoiceForm] = useState({
@@ -131,15 +134,48 @@ const InvoicesPage = () => {
     dueDate: ''
   });
 
-  // Fetch invoices and spare parts on mount
   useEffect(() => {
+    try {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        setUserInfo(JSON.parse(stored));
+      }
+    } catch (err) {
+      console.error('Error parsing userInfo from localStorage:', err);
+    } finally {
+      setUserInfoReady(true);
+    }
+  }, []);
+
+  // Fetch invoices and spare parts when company context is available
+  useEffect(() => {
+    if (!userInfoReady) {
+      return;
+    }
+
+    const isSuperadmin = userInfo?.role === 'superadmin';
+    const hasCompany = Boolean(userInfo?.company);
+
+    if (!isSuperadmin && !hasCompany) {
+      setInvoices([]);
+      setSpareParts([]);
+      setEmptyStateMessage('No company assigned to the current admin.');
+      setLoading(false);
+      return;
+    }
+
     fetchInvoices();
     fetchSpareParts();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfoReady, userInfo]);
 
   // Refetch invoices when filters change
   useEffect(() => {
+    if (!userInfoReady || emptyStateMessage) {
+      return;
+    }
     fetchInvoices();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
 
   const fetchInvoices = async () => {
@@ -155,15 +191,23 @@ const InvoicesPage = () => {
 
       const res = await getFleetInvoices(params);
       if (res?.success) {
-        setInvoices(res.data || []);
+        const data = res.data || [];
+        setInvoices(data);
+        if (res.message && data.length === 0) {
+          setEmptyStateMessage(res.message);
+        } else {
+          setEmptyStateMessage(null);
+        }
       } else {
         addNotification('error', res?.message || 'Failed to fetch invoices');
         setInvoices([]);
+        setEmptyStateMessage(res?.message || 'Failed to fetch invoices');
       }
     } catch (err: any) {
       console.error("Error fetching invoices:", err);
       addNotification('error', err?.message || 'Failed to fetch invoices');
       setInvoices([]);
+      setEmptyStateMessage(err?.message || 'Failed to fetch invoices');
     }
     setLoading(false);
   };
@@ -172,15 +216,23 @@ const InvoicesPage = () => {
     try {
       const res = await getAllSpareParts();
       if (res?.success) {
-        setSpareParts(res.data || []);
+        const data = res.data || [];
+        setSpareParts(data);
+        if (res.message && data.length === 0) {
+          setEmptyStateMessage((prev) => prev || res.message);
+        }
       } else {
         addNotification('error', res?.message || 'Failed to fetch spare parts');
         setSpareParts([]);
+        if (res?.message) {
+          setEmptyStateMessage((prev) => prev || res.message);
+        }
       }
     } catch (err: any) {
       console.error("Error fetching spare parts:", err);
       addNotification('error', err?.message || 'Failed to fetch spare parts');
       setSpareParts([]);
+      setEmptyStateMessage((prev) => prev || 'Failed to fetch spare parts');
     }
   };
 
@@ -192,6 +244,29 @@ const InvoicesPage = () => {
   const removeNotification = (id: number) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <p className="mt-4 text-gray-600">Loading invoices...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (emptyStateMessage) {
+    return (
+      <div className="p-6 min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
+        <FaFileInvoice className="text-5xl text-gray-300" />
+        <div className="space-y-2 max-w-md">
+          <h2 className="text-2xl font-semibold text-gray-800">No invoice data available</h2>
+          <p className="text-gray-500">{emptyStateMessage}</p>
+        </div>
+      </div>
+    );
+  }
 
   // Filter invoices client-side (API also filters, but keeping this for instant search feedback)
   const filteredInvoices = invoices.filter(invoice => {

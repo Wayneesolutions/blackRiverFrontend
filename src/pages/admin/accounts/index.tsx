@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Truck,  DollarSign, Users, Gauge, 
-  TrendingUp, AlertCircle, Calendar, FileText
+  TrendingUp, AlertCircle, Calendar, FileText, Building2
 } from 'lucide-react';
 import { listInvoices } from '../../../axios/api/account.invoices';
 import { listExpenses } from '../../../axios/api/account.expense';
@@ -12,6 +12,7 @@ const Dashboard = () => {
   const [expenses, setExpenses] = useState([]);
   const [payrolls, setPayrolls] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -20,17 +21,49 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
+      const userInfoString = localStorage.getItem('userInfo');
+      let userInfo: any = null;
+      if (userInfoString) {
+        try {
+          userInfo = JSON.parse(userInfoString);
+        } catch (err) {
+          console.error('Error parsing userInfo from localStorage:', err);
+        }
+      }
+
+      if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+        setInvoices([]);
+        setExpenses([]);
+        setPayrolls([]);
+        setEmptyStateMessage('No company assigned to the current admin. Please set up your company to view accounts data.');
+        return;
+      }
+
       const [invoicesRes, expensesRes, payrollsRes] = await Promise.all([
         listInvoices(),
         listExpenses(),
         listPayrolls()
       ]);
 
-      if (invoicesRes?.success) setInvoices(invoicesRes.data || []);
-      if (expensesRes?.success) setExpenses(expensesRes.data || []);
-      if (payrollsRes?.success) setPayrolls(payrollsRes.data || []);
+      const invoicesData = invoicesRes?.success ? invoicesRes.data || [] : [];
+      const expensesData = expensesRes?.success ? expensesRes.data || [] : [];
+      const payrollsData = payrollsRes?.success ? payrollsRes.data || [] : [];
+
+      setInvoices(invoicesData);
+      setExpenses(expensesData);
+      setPayrolls(payrollsData);
+
+      const responseMessage = invoicesRes?.message || expensesRes?.message || payrollsRes?.message;
+      const hasData = invoicesData.length > 0 || expensesData.length > 0 || payrollsData.length > 0;
+
+      if (responseMessage && !hasData) {
+        setEmptyStateMessage(responseMessage);
+      } else {
+        setEmptyStateMessage(null);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setEmptyStateMessage('Failed to load accounts data. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -74,6 +107,31 @@ const Dashboard = () => {
       </div>
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-center space-y-4">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p className="text-gray-600">Loading accounts data...</p>
+      </div>
+    );
+  }
+
+  if (emptyStateMessage) {
+    return (
+      <div className="min-h-screen p-6 bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
+        <Building2 className="h-16 w-16 text-gray-400" />
+        <h2 className="text-2xl font-semibold text-gray-800">No accounts data available</h2>
+        <p className="text-gray-500 max-w-md">{emptyStateMessage}</p>
+        <button
+          onClick={fetchDashboardData}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow"
+        >
+          Refresh
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">

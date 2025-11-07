@@ -91,6 +91,9 @@ const Delivery = () => {
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
   const [paymentNotes, setPaymentNotes] = useState('');
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfoReady, setUserInfoReady] = useState(false);
 
   const addNotification = (type: NotificationType, message: string) => {
     const id = Date.now();
@@ -102,14 +105,37 @@ const Delivery = () => {
   };
 
   useEffect(() => {
-    fetchLoads();
+    try {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        setUserInfo(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Error parsing userInfo from localStorage:', error);
+    } finally {
+      setUserInfoReady(true);
+    }
   }, []);
 
   const fetchLoads = async () => {
     setLoading(true);
     try {
       const response = await getDeliveryLoads();
+      if (response?.message) {
+        setEmptyStateMessage(response.message);
+      } else {
+        setEmptyStateMessage(null);
+      }
+
       if (response && response.success && response.data) {
+        if (response.message) {
+          setLoads([]);
+          return;
+        }
+        if (!Array.isArray(response.data) || response.data.length === 0) {
+          setLoads([]);
+          return;
+        }
         // Transform data to match frontend interface
         const transformedLoads = response.data.map((load: any) => ({
           _id: load._id,
@@ -144,6 +170,24 @@ const Delivery = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!userInfoReady) {
+      return;
+    }
+
+    const isSuperadmin = userInfo?.role === 'superadmin';
+    const hasCompany = Boolean(userInfo?.company);
+
+    if (!isSuperadmin && !hasCompany) {
+      setLoads([]);
+      setEmptyStateMessage('No company assigned to the current admin.');
+      setLoading(false);
+      return;
+    }
+
+    fetchLoads();
+  }, [userInfoReady, userInfo]);
 
   const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, loadId: string, docType: 'bol' | 'billOfSale' | 'pod') => {
     const file = e.target.files?.[0];
@@ -253,6 +297,18 @@ const Delivery = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (emptyStateMessage && loads.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
+        <FaTruck className="text-5xl text-gray-300" />
+        <div className="space-y-2 max-w-md">
+          <h2 className="text-2xl font-semibold text-gray-800">No delivery data available</h2>
+          <p className="text-gray-500">{emptyStateMessage}</p>
+        </div>
       </div>
     );
   }

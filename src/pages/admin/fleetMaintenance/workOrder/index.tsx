@@ -105,7 +105,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 };
 
 function WorkOrdersPage() {
-    const { vehicles, loading: vehiclesLoading } = useVehicles();
+    const { vehicles, loading: vehiclesLoading, emptyMessage: vehiclesEmptyMessage } = useVehicles();
 
     const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -121,6 +121,9 @@ function WorkOrdersPage() {
     });
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+    const [userInfo, setUserInfo] = useState<any>(null);
+    const [userInfoReady, setUserInfoReady] = useState<boolean>(false);
 
     const [mechanics] = useState<string[]>([
         'John Doe',
@@ -158,27 +161,63 @@ function WorkOrdersPage() {
         setNotifications(prev => prev.filter(n => n.id !== id));
     };
 
+    useEffect(() => {
+        try {
+            const stored = localStorage.getItem('userInfo');
+            if (stored) {
+                setUserInfo(JSON.parse(stored));
+            }
+        } catch (err) {
+            console.error('Error parsing userInfo from localStorage:', err);
+        } finally {
+            setUserInfoReady(true);
+        }
+    }, []);
+
     const fetchAllWorkOrders = async () => {
         setLoading(true);
         try {
             const res = await getAllWorkOrders();
             if (res?.success) {
-                setWorkOrders(res.data || []);
+                const data = Array.isArray(res.data) ? res.data : [];
+                setWorkOrders(data);
+                if (res.message && data.length === 0) {
+                    setEmptyStateMessage(res.message);
+                } else {
+                    setEmptyStateMessage(null);
+                }
             } else {
                 addNotification('error', res?.message || 'Failed to fetch work orders');
                 setWorkOrders([]);
+                setEmptyStateMessage(res?.message || 'Failed to fetch work orders');
             }
         } catch (err: any) {
             console.error("Error fetching work orders:", err);
             addNotification('error', err?.message || 'Failed to fetch work orders');
             setWorkOrders([]);
+            setEmptyStateMessage(err?.message || 'Failed to fetch work orders');
         }
         setLoading(false);
     };
 
     useEffect(() => {
+        if (!userInfoReady) {
+            return;
+        }
+
+        const isSuperadmin = userInfo?.role === 'superadmin';
+        const hasCompany = Boolean(userInfo?.company);
+
+        if (!isSuperadmin && !hasCompany) {
+            setWorkOrders([]);
+            setEmptyStateMessage('No company assigned to the current admin.');
+            setLoading(false);
+            return;
+        }
+
         fetchAllWorkOrders();
-    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfoReady, userInfo]);
 
     const getStatusColor = (status: string): string => {
         switch (status) {
@@ -350,6 +389,29 @@ function WorkOrdersPage() {
         });
     };
 
+    if (loading) {
+        return (
+            <div className="p-6 min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                    <p className="mt-4 text-gray-600">Loading work orders...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (emptyStateMessage) {
+        return (
+            <div className="p-6 min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
+                <FaWrench className="text-5xl text-gray-300" />
+                <div className="space-y-2 max-w-md">
+                    <h2 className="text-2xl font-semibold text-gray-800">No work order data available</h2>
+                    <p className="text-gray-500">{emptyStateMessage}</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="p-6 min-h-screen bg-gray-50">
             {/* Notifications Container */}
@@ -372,6 +434,7 @@ function WorkOrdersPage() {
                 <button
                     onClick={() => setShowCreateModal(true)}
                     className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] shadow-lg hover:shadow-xl transition-all font-medium"
+                    disabled={Boolean(vehiclesEmptyMessage)}
                 >
                     <FaPlus /> Create Work Order
                 </button>

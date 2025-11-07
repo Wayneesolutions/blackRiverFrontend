@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Download, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Download, Edit, Trash2, Eye, Building2 } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { createExpense, listExpenses, updateExpense, deleteExpense } from "../../../../axios/api/account.expense";
 import { getEmployees } from "../../../../axios/api/account.payroll";
@@ -78,6 +78,7 @@ const ExpensesPage = () => {
   const [viewingExpense, setViewingExpense] = useState<Expense | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<{
     userId: string;
@@ -101,18 +102,47 @@ const ExpensesPage = () => {
     fetchEmployees();
   }, []);
 
+  const getLocalUserInfo = () => {
+    const userInfoString = localStorage.getItem('userInfo');
+    if (!userInfoString) return null;
+    try {
+      return JSON.parse(userInfoString);
+    } catch (err) {
+      console.error('Error parsing userInfo from localStorage:', err);
+      return null;
+    }
+  };
+
   const fetchExpenses = async () => {
     setLoading(true);
     try {
+      const userInfo: any = getLocalUserInfo();
+      if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+        setExpenses([]);
+        setEmptyStateMessage('No company assigned to the current admin. Please set up your company to manage expenses.');
+        return;
+      }
+
       const response = await listExpenses();
-      if (response && response.data) {
+      if (response?.success && Array.isArray(response.data)) {
         setExpenses(response.data);
+        if (response.message && response.data.length === 0) {
+          setEmptyStateMessage(response.message);
+        } else {
+          setEmptyStateMessage(null);
+        }
       } else {
-        addNotification('error', response?.message || 'Failed to fetch expenses');
+        setExpenses([]);
+        const message = response?.message || 'Failed to fetch expenses';
+        setEmptyStateMessage(message);
+        addNotification('error', message);
       }
     } catch (error: any) {
       console.error('Error fetching expenses:', error);
-      addNotification('error', error?.message || 'Failed to fetch expenses');
+      setExpenses([]);
+      const message = error?.message || 'Failed to fetch expenses';
+      setEmptyStateMessage(message);
+      addNotification('error', message);
     } finally {
       setLoading(false);
     }
@@ -120,11 +150,17 @@ const ExpensesPage = () => {
 
   const fetchEmployees = async () => {
     try {
+      const userInfo: any = getLocalUserInfo();
+      if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+        setEmployees([]);
+        return;
+      }
+
       const response = await getEmployees();
       if (response && response.data) {
         setEmployees(response.data);
-      } else {
-        addNotification('error', response?.message || 'Failed to fetch employees');
+      } else if (response?.message) {
+        addNotification('error', response.message);
       }
     } catch (error: any) {
       console.error('Error fetching employees:', error);
@@ -334,6 +370,38 @@ const ExpensesPage = () => {
     'Truck Repair',
     'Truck Service'
   ];
+
+  if (loading && !emptyStateMessage) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p className="text-gray-600">Loading expenses...</p>
+      </div>
+    );
+  }
+
+  if (emptyStateMessage) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center text-center space-y-5">
+        <div className="fixed top-4 right-4 max-w-sm space-y-3">
+          {notifications.map((notification) => (
+            <Notification key={notification.id} notification={notification} onClose={removeNotification} />
+          ))}
+        </div>
+        <Building2 className="h-16 w-16 text-gray-400" />
+        <div className="space-y-3 max-w-md">
+          <h2 className="text-2xl font-semibold text-gray-800">No expense data available</h2>
+          <p className="text-gray-500">{emptyStateMessage}</p>
+        </div>
+        <button
+          onClick={fetchExpenses}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow"
+        >
+          Refresh
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">

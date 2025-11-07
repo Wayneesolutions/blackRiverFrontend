@@ -14,15 +14,15 @@ import {
     RefreshCw,
     X,
     ChevronRight,
-    ChevronDown,
     Activity,
     Settings,
     Thermometer,
     Weight,
     Lock,
-    Unlock
+    Unlock,
+    Building2
 } from 'lucide-react';
-import { getSocket, disconnectSocket } from "../../../../socket/socketClient";
+import { getSocket } from "../../../../socket/socketClient";
 import { listTrailers } from '../../../../axios/api/trailerTracking';
 
 // Type definitions
@@ -46,13 +46,6 @@ interface CargoDetails {
     description: string;
     temperature?: number;
     isRefrigerated: boolean;
-}
-
-interface AttachedVehicle {
-    plateNumber: string;
-    make: string;
-    model: string;
-    driverName: string;
 }
 
 interface TrailerSensors {
@@ -124,36 +117,9 @@ const ProfessionalTrailerTracker: React.FC = () => {
     const [directionsRenderers, setDirectionsRenderers] = useState<any[]>([]);
     const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
+    const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
     const socket = useMemo(() => getSocket(), []);
-
-    // Fetch trailers from backend
-    useEffect(() => {
-        const fetchTrailers = async () => {
-            try {
-                setLoading(true);
-                const res = await listTrailers();
-                if (res.success) {
-                    const data = res.data || [];
-                    const formatted = data.map((t: any) => ({
-                        ...t,
-                        currentLocation: {
-                            ...t.currentLocation,
-                            latitude: Number(t.currentLocation.latitude),
-                            longitude: Number(t.currentLocation.longitude),
-                        },
-                    }));
-                    setTrailers(formatted);
-                    if (formatted.length > 0) handleTrailerClick(formatted[0]);
-                }
-            } catch (err) {
-                console.error("Error fetching trailers:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchTrailers();
-    }, []);
 
     // Handle trailer selection and socket connection
     const handleTrailerClick = useCallback((trailer: Trailer) => {
@@ -180,6 +146,68 @@ const ProfessionalTrailerTracker: React.FC = () => {
         });
     }, [socket]);
 
+    const fetchTrailersData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const userInfoString = localStorage.getItem('userInfo');
+            let userInfo: any = null;
+            if (userInfoString) {
+                try {
+                    userInfo = JSON.parse(userInfoString);
+                } catch (err) {
+                    console.error('Error parsing userInfo from localStorage:', err);
+                }
+            }
+
+            if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+                setTrailers([]);
+                setSelectedTrailer(null);
+                setEmptyStateMessage('No company assigned to the current admin. Please set up your company to view trailer tracking data.');
+                return;
+            }
+
+            const res = await listTrailers();
+            if (res?.success) {
+                const data = res.data || [];
+                if (data.length === 0) {
+                    setTrailers([]);
+                    setSelectedTrailer(null);
+                    setEmptyStateMessage(res?.message || 'No trailers found for the current company.');
+                    return;
+                }
+
+                const formatted = data.map((t: any) => ({
+                    ...t,
+                    currentLocation: {
+                        ...t.currentLocation,
+                        latitude: Number(t.currentLocation?.latitude ?? 0),
+                        longitude: Number(t.currentLocation?.longitude ?? 0),
+                        updatedAt: t.currentLocation?.updatedAt || new Date().toISOString()
+                    },
+                }));
+                setTrailers(formatted);
+                setEmptyStateMessage(null);
+                handleTrailerClick(formatted[0]);
+            } else {
+                const message = res?.message || 'Failed to fetch trailers.';
+                setTrailers([]);
+                setSelectedTrailer(null);
+                setEmptyStateMessage(message);
+            }
+        } catch (err) {
+            console.error('Error fetching trailers:', err);
+            setTrailers([]);
+            setSelectedTrailer(null);
+            setEmptyStateMessage((err as any)?.message || 'Failed to fetch trailers.');
+        } finally {
+            setLoading(false);
+        }
+    }, [handleTrailerClick]);
+
+    useEffect(() => {
+        fetchTrailersData();
+    }, [fetchTrailersData]);
+
     // Cleanup socket connection
     useEffect(() => {
         return () => {
@@ -187,213 +215,6 @@ const ProfessionalTrailerTracker: React.FC = () => {
             socket.off("trailerLocation");
         };
     }, [socket]);
-
-    // Mock trailer data (fallback)
-    const mockTrailers: Trailer[] = [
-        {
-            _id: '1',
-            serialNumber: 'TR-2024-001',
-            registrationNumber: 'DL-TR-1234',
-            type: 'refrigerated',
-            capacity: '25 Tons',
-            status: 'in_transit',
-            isAttached: true,
-            attachedVehicle: {
-                plateNumber: 'DL-01-AB-1234',
-                make: 'Tata',
-                model: 'Prima',
-                driverName: 'Rajesh Kumar'
-            },
-            currentLocation: {
-                address: 'NH-1, Gurgaon, Haryana',
-                longitude: 77.0266,
-                latitude: 28.4595,
-                updatedAt: new Date('2025-09-18T10:45:00Z')
-            },
-            route: [
-                { latitude: 28.4595, longitude: 77.0266, timestamp: '2025-09-18T09:00:00Z' },
-                { latitude: 28.4700, longitude: 77.0300, timestamp: '2025-09-18T09:15:00Z' },
-                { latitude: 28.4800, longitude: 77.0400, timestamp: '2025-09-18T09:30:00Z' },
-                { latitude: 28.4900, longitude: 77.0500, timestamp: '2025-09-18T09:45:00Z' },
-            ],
-            destination: {
-                address: 'Industrial Area, Ludhiana, Punjab',
-                latitude: 30.9010,
-                longitude: 75.8573,
-                updatedAt: new Date()
-            },
-            cargoDetails: {
-                type: 'Fresh Produce',
-                weight: 18500,
-                capacity: 25000,
-                description: 'Mixed vegetables and fruits',
-                temperature: 4,
-                isRefrigerated: true
-            },
-            sensors: {
-                doorStatus: 'locked',
-                temperature: 4.2,
-                humidity: 85,
-                shockDetection: false,
-                tilting: false
-            },
-            maintenance: {
-                lastService: new Date('2025-08-15'),
-                nextService: new Date('2025-11-15'),
-                tyreCondition: 'good',
-                brakeCondition: 'good',
-                issues: []
-            },
-            speed: 65,
-            lastMovement: new Date('2025-09-18T10:44:00Z')
-        },
-        {
-            _id: '2',
-            serialNumber: 'TR-2024-002',
-            registrationNumber: 'UP-TR-5678',
-            type: 'dry_van',
-            capacity: '20 Tons',
-            status: 'loading',
-            isAttached: true,
-            attachedVehicle: {
-                plateNumber: 'UP-16-CD-5678',
-                make: 'Ashok Leyland',
-                model: 'U-Truck',
-                driverName: 'Suresh Singh'
-            },
-            currentLocation: {
-                address: 'Warehouse Complex, Noida, UP',
-                longitude: 77.3273,
-                latitude: 28.5706,
-                updatedAt: new Date('2025-09-18T10:30:00Z')
-            },
-            route: [
-                { latitude: 28.5706, longitude: 77.3273, timestamp: '2025-09-18T08:00:00Z' },
-                { latitude: 28.5700, longitude: 77.3270, timestamp: '2025-09-18T08:30:00Z' },
-            ],
-            destination: {
-                address: 'Distribution Center, Delhi',
-                latitude: 28.6139,
-                longitude: 77.2090,
-                updatedAt: new Date()
-            },
-            cargoDetails: {
-                type: 'Electronics',
-                weight: 12000,
-                capacity: 20000,
-                description: 'Consumer electronics and appliances',
-                isRefrigerated: false
-            },
-            sensors: {
-                doorStatus: 'unlocked',
-                temperature: 28,
-                humidity: 60,
-                shockDetection: false,
-                tilting: false
-            },
-            maintenance: {
-                lastService: new Date('2025-07-20'),
-                nextService: new Date('2025-10-20'),
-                tyreCondition: 'fair',
-                brakeCondition: 'good',
-                issues: ['Tire pressure low on rear left']
-            },
-            speed: 0,
-            lastMovement: new Date('2025-09-18T08:30:00Z')
-        },
-        {
-            _id: '3',
-            serialNumber: 'TR-2024-003',
-            registrationNumber: 'HR-TR-9012',
-            type: 'container',
-            capacity: '30 Tons',
-            status: 'idle',
-            isAttached: false,
-            currentLocation: {
-                address: 'Container Yard, Faridabad, HR',
-                longitude: 77.3178,
-                latitude: 28.4089,
-                updatedAt: new Date('2025-09-18T09:15:00Z')
-            },
-            route: [
-                { latitude: 28.4089, longitude: 77.3178, timestamp: '2025-09-18T07:00:00Z' },
-            ],
-            destination: {
-                address: 'Port Terminal, Mumbai, MH',
-                latitude: 19.0760,
-                longitude: 72.8777,
-                updatedAt: new Date()
-            },
-            cargoDetails: {
-                type: 'Export Goods',
-                weight: 25000,
-                capacity: 30000,
-                description: 'Textile and garment exports',
-                isRefrigerated: false
-            },
-            sensors: {
-                doorStatus: 'locked',
-                temperature: 32,
-                humidity: 45,
-                shockDetection: false,
-                tilting: false
-            },
-            maintenance: {
-                lastService: new Date('2025-06-10'),
-                nextService: new Date('2025-09-10'),
-                tyreCondition: 'good',
-                brakeCondition: 'fair',
-                issues: ['Brake pads need replacement']
-            },
-            speed: 0,
-            lastMovement: new Date('2025-09-18T07:00:00Z')
-        },
-        {
-            _id: '4',
-            serialNumber: 'TR-2024-004',
-            registrationNumber: 'PB-TR-3456',
-            type: 'tanker',
-            capacity: '35 Tons',
-            status: 'maintenance',
-            isAttached: false,
-            currentLocation: {
-                address: 'Service Center, Ludhiana, Punjab',
-                longitude: 75.8573,
-                latitude: 30.9010,
-                updatedAt: new Date('2025-09-18T08:00:00Z')
-            },
-            route: [
-                { latitude: 30.9010, longitude: 75.8573, timestamp: '2025-09-18T08:00:00Z' },
-            ],
-            cargoDetails: {
-                type: 'Fuel',
-                weight: 0,
-                capacity: 35000,
-                description: 'Diesel fuel transport',
-                isRefrigerated: false
-            },
-            sensors: {
-                doorStatus: 'locked',
-                temperature: 25,
-                humidity: 50,
-                shockDetection: false,
-                tilting: false
-            },
-            maintenance: {
-                lastService: new Date('2025-09-15'),
-                nextService: new Date('2025-12-15'),
-                tyreCondition: 'poor',
-                brakeCondition: 'poor',
-                issues: [
-                    'All tires need replacement',
-                    'Brake system overhaul required',
-                    'Valve inspection needed'
-                ]
-            },
-            speed: 0,
-            lastMovement: new Date('2025-09-15T18:00:00Z')
-        }
-    ];
 
     // Load Google Maps
     useEffect(() => {
@@ -427,9 +248,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
         loadGoogleMaps();
 
         return () => {
-            if (window.initMap) {
-                delete window.initMap;
-            }
+            (window as any).initMap = undefined;
         };
     }, []);
 
@@ -633,6 +452,33 @@ const ProfessionalTrailerTracker: React.FC = () => {
         const hours = Math.floor(minutes / 60);
         return `${hours}h ago`;
     };
+
+    if (loading && !emptyStateMessage) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-center space-y-4">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+                <p className="text-gray-600">Loading trailer tracking data...</p>
+            </div>
+        );
+    }
+
+    if (emptyStateMessage) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-center space-y-5 px-6">
+                <Building2 className="h-16 w-16 text-gray-400" />
+                <div className="space-y-3 max-w-xl">
+                    <h2 className="text-2xl font-semibold text-gray-800">No trailer tracking data available</h2>
+                    <p className="text-gray-500">{emptyStateMessage}</p>
+                </div>
+                <button
+                    onClick={fetchTrailersData}
+                    className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg shadow"
+                >
+                    Refresh
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="h-screen bg-gray-50 flex overflow-hidden">

@@ -43,16 +43,42 @@ const AllDispatch = () => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedLoad, setSelectedLoad] = useState<Load | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfoReady, setUserInfoReady] = useState(false);
 
   useEffect(() => {
-    fetchLoads();
+    try {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        setUserInfo(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Error parsing userInfo from localStorage:', error);
+    } finally {
+      setUserInfoReady(true);
+    }
   }, []);
 
   const fetchLoads = async () => {
     setLoading(true);
     try {
       const response = await listLoad();
+      if (response?.message) {
+        setEmptyStateMessage(response.message);
+      } else {
+        setEmptyStateMessage(null);
+      }
+
       if (response && response.success && response.data) {
+        if (response.message) {
+          setLoads([]);
+          return;
+        }
+        if (!Array.isArray(response.data) || response.data.length === 0) {
+          setLoads([]);
+          return;
+        }
         const formattedLoads = response.data.map((load: any) => {
           // Extract shipper city/state - from pickup location
           let shipperCity = '';
@@ -128,6 +154,24 @@ const AllDispatch = () => {
     }
   };
 
+  useEffect(() => {
+    if (!userInfoReady) {
+      return;
+    }
+
+    const isSuperadmin = userInfo?.role === 'superadmin';
+    const hasCompany = Boolean(userInfo?.company);
+
+    if (!isSuperadmin && !hasCompany) {
+      setLoads([]);
+      setEmptyStateMessage('No company assigned to the current admin.');
+      setLoading(false);
+      return;
+    }
+
+    fetchLoads();
+  }, [userInfoReady, userInfo]);
+
   const handleAssign = async (loadId: string, driverId: string, truckId: string, trailerId?: string, planDate?: string) => {
     try {
       const response = await assignDriverTruck(loadId, driverId, truckId, trailerId, planDate);
@@ -182,6 +226,18 @@ const AllDispatch = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (emptyStateMessage && loads.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
+        <FaTruck className="text-5xl text-gray-300" />
+        <div className="space-y-2 max-w-md">
+          <h2 className="text-2xl font-semibold text-gray-800">No dispatch data available</h2>
+          <p className="text-gray-500">{emptyStateMessage}</p>
+        </div>
       </div>
     );
   }

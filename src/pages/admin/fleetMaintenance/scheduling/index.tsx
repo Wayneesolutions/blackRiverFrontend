@@ -109,6 +109,9 @@ const MaintenanceSchedule = () => {
     const [editingService, setEditingService] = useState<VehicleServiceResponse | null>(null);
     const [serviceFilters, setServiceFilters] = useState<ServiceFilters>({});
     const [servicesLoading, setServicesLoading] = useState<boolean>(false);
+    const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+    const [userInfo, setUserInfo] = useState<any>(null);
+    const [userInfoReady, setUserInfoReady] = useState<boolean>(false);
 
     const [scheduleForm, setScheduleForm] = useState({
         vehicle: '',
@@ -126,19 +129,62 @@ const MaintenanceSchedule = () => {
 
     // Fetch data on component mount
     useEffect(() => {
+        try {
+            const stored = localStorage.getItem('userInfo');
+            if (stored) {
+                setUserInfo(JSON.parse(stored));
+            }
+        } catch (err) {
+            console.error('Error parsing userInfo from localStorage:', err);
+        } finally {
+            setUserInfoReady(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!userInfoReady) {
+            return;
+        }
+
+        const isSuperadmin = userInfo?.role === 'superadmin';
+        const hasCompany = Boolean(userInfo?.company);
+
+        if (!isSuperadmin && !hasCompany) {
+            setVehicles([]);
+            setVehicleServices([]);
+            setCostReport([]);
+            setEmptyStateMessage('No company assigned to the current admin.');
+            setLoading(false);
+            setServicesLoading(false);
+            return;
+        }
+
         fetchMaintenanceData();
         fetchVehicleServices();
-    }, []);
+        fetchCostReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfoReady, userInfo]);
 
     // Fetch vehicle services when filters change
     useEffect(() => {
+        if (!userInfoReady) {
+            return;
+        }
+        if (emptyStateMessage) {
+            return;
+        }
         fetchVehicleServices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [serviceFilters]);
 
     useEffect(() => {
+        if (!userInfoReady || emptyStateMessage) {
+            return;
+        }
         if (selectedYear) {
             fetchCostReport();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedYear]);
 
     const fetchMaintenanceData = async () => {
@@ -146,10 +192,22 @@ const MaintenanceSchedule = () => {
         try {
             const response = await getMaintenanceSchedule();
             if (response.success) {
-                setVehicles(response.data || []);
+                const data = response.data || [];
+                setVehicles(data);
+                if (response.message && data.length === 0) {
+                    setEmptyStateMessage(response.message);
+                } else {
+                    setEmptyStateMessage(null);
+                }
+            }
+            if (response.success === false && response.message) {
+                setVehicles([]);
+                setEmptyStateMessage(response.message);
             }
         } catch (error) {
             console.error('Error fetching maintenance schedule:', error);
+            setVehicles([]);
+            setEmptyStateMessage('Failed to load maintenance schedule.');
         } finally {
             setLoading(false);
         }
@@ -159,10 +217,19 @@ const MaintenanceSchedule = () => {
         try {
             const response = await getMaintenanceCostReport({ year: selectedYear });
             if (response.success) {
-                setCostReport(response.data || []);
+                const data = response.data || [];
+                setCostReport(data);
+                if (response.message && data.length === 0) {
+                    setEmptyStateMessage(response.message);
+                }
+            } else if (response?.message) {
+                setCostReport([]);
+                setEmptyStateMessage((prev) => prev || response.message);
             }
         } catch (error) {
             console.error('Error fetching cost report:', error);
+            setCostReport([]);
+            setEmptyStateMessage((prev) => prev || 'Failed to load maintenance cost report.');
         }
     };
 
@@ -174,12 +241,22 @@ const MaintenanceSchedule = () => {
             const response = await listVehicleServices(serviceFilters);
             if (response?.success) {
                 console.log('✅ Vehicle services fetched successfully:', response.data?.length || 0, 'services');
-                setVehicleServices(response.data || []);
+                const data = response.data || [];
+                setVehicleServices(data);
+                if (response.message && data.length === 0) {
+                    setEmptyStateMessage((prev) => prev || response.message);
+                }
             } else {
                 console.error('❌ Failed to fetch vehicle services:', response?.message);
+                setVehicleServices([]);
+                if (response?.message) {
+                    setEmptyStateMessage((prev) => prev || response.message);
+                }
             }
         } catch (error) {
             console.error('❌ Error fetching vehicle services:', error);
+            setVehicleServices([]);
+            setEmptyStateMessage((prev) => prev || 'Failed to load vehicle services.');
         } finally {
             setServicesLoading(false);
         }

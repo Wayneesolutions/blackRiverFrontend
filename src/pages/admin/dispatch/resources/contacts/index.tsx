@@ -39,6 +39,10 @@ const Index = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfoReady, setUserInfoReady] = useState(false);
 
   // Edit modal state
   const [editItem, setEditItem] = useState<Contact | Customer | null>(null);
@@ -51,22 +55,92 @@ const Index = () => {
     country: "",
   });
 
-  // Fetch contacts
-  const fetchContacts = async () => {
-    const res = await listContact();
-    if (res?.success) setContacts(res.data || []);
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        setUserInfo(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Error parsing userInfo from localStorage:', error);
+    } finally {
+      setUserInfoReady(true);
+    }
+  }, []);
+
+  const updateEmptyState = (message?: string, hasData?: boolean) => {
+    if (message && !hasData) {
+      setEmptyStateMessage(message);
+    } else if (hasData) {
+      setEmptyStateMessage(null);
+    }
   };
 
-  // Fetch customers
+  const fetchContacts = async () => {
+    try {
+      const res = await listContact();
+      if (res?.success) {
+        const data = Array.isArray(res.data) ? res.data : [];
+        setContacts(data);
+        updateEmptyState(res?.message, data.length > 0);
+      } else if (res?.message) {
+        setContacts([]);
+        updateEmptyState(res.message, false);
+      } else {
+        setContacts([]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching contacts:', error);
+      setContacts([]);
+      updateEmptyState(error?.message, false);
+    }
+  };
+
   const fetchCustomers = async () => {
-    const res = await listCustomer();
-    if (res?.success) setCustomers(res.data || []);
+    try {
+      const res = await listCustomer();
+      if (res?.success) {
+        const data = Array.isArray(res.data) ? res.data : [];
+        setCustomers(data);
+        updateEmptyState(res?.message, data.length > 0 || contacts.length > 0);
+      } else if (res?.message) {
+        setCustomers([]);
+        updateEmptyState(res.message, contacts.length > 0);
+      } else {
+        setCustomers([]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching customers:', error);
+      setCustomers([]);
+      updateEmptyState(error?.message, contacts.length > 0);
+    }
+  };
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    await Promise.all([fetchContacts(), fetchCustomers()]);
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchContacts();
-    fetchCustomers();
-  }, []);
+    if (!userInfoReady) {
+      return;
+    }
+
+    const isSuperadmin = userInfo?.role === 'superadmin';
+    const hasCompany = Boolean(userInfo?.company);
+
+    if (!isSuperadmin && !hasCompany) {
+      setContacts([]);
+      setCustomers([]);
+      setEmptyStateMessage('No company assigned to the current admin.');
+      setLoading(false);
+      return;
+    }
+
+    fetchAllData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfoReady, userInfo]);
 
   // Delete item
   const handleDelete = async (id: string, type: "contact" | "customer") => {
@@ -137,12 +211,31 @@ const Index = () => {
 
   const handleSidebarClose = () => {
     setIsSidebarOpen(false);
-    fetchContacts();
-    fetchCustomers();
+    fetchAllData();
   };
 
   const tableData =
     activeTab === "contacts" ? filteredContacts : filteredCustomers;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (emptyStateMessage && contacts.length === 0 && customers.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
+        <div className="text-5xl text-gray-300">👥</div>
+        <div className="space-y-2 max-w-md">
+          <h2 className="text-2xl font-semibold text-gray-800">No contact or customer data available</h2>
+          <p className="text-gray-500">{emptyStateMessage}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

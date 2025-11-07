@@ -21,7 +21,7 @@ function Trucks() {
   const [search, setSearch] = useState<string>("");
 
   // Use the custom hook - it handles loading, error, and data fetching
-  const { vehicles, loading, error } = useVehicles();
+  const { vehicles, loading, error, emptyMessage } = useVehicles();
 
   // Filter vehicles based on search
   const filtered = vehicles.filter((truck: Vehicle) =>
@@ -46,6 +46,18 @@ function Trucks() {
       <div className="p-6 min-h-screen bg-gray-50">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
           {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (emptyMessage) {
+    return (
+      <div className="p-6 min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
+        <TruckIcon />
+        <div className="space-y-2 max-w-md">
+          <h2 className="text-2xl font-semibold text-gray-800">No truck data available</h2>
+          <p className="text-gray-500">{emptyMessage}</p>
         </div>
       </div>
     );
@@ -120,3 +132,9 @@ function Trucks() {
 }
 
 export default Trucks;
+
+const TruckIcon = () => (
+  <div className="text-5xl text-gray-300">
+    🚛
+  </div>
+);

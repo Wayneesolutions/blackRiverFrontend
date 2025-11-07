@@ -44,10 +44,41 @@ function Trailers() {
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [emptyMessage, setEmptyMessage] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfoReady, setUserInfoReady] = useState<boolean>(false);
 
   useEffect(() => {
-    fetchTrailers();
+    try {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        setUserInfo(JSON.parse(stored));
+      }
+    } catch (err) {
+      console.error('Error parsing userInfo from localStorage:', err);
+    } finally {
+      setUserInfoReady(true);
+    }
   }, []);
+
+  useEffect(() => {
+    if (!userInfoReady) {
+      return;
+    }
+
+    const isSuperadmin = userInfo?.role === 'superadmin';
+    const hasCompany = Boolean(userInfo?.company);
+
+    if (!isSuperadmin && !hasCompany) {
+      setTrailers([]);
+      setEmptyMessage('No company assigned to the current admin.');
+      setLoading(false);
+      return;
+    }
+
+    fetchTrailers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfoReady, userInfo]);
 
   const fetchTrailers = async () => {
     try {
@@ -60,13 +91,20 @@ function Trailers() {
         console.log('✅ Trailers loaded successfully:', response.data.length, 'trailers');
         setTrailers(response.data);
         setError(null);
+        if (response.message && response.data.length === 0) {
+          setEmptyMessage(response.message);
+        } else {
+          setEmptyMessage(null);
+        }
       } else {
         console.error('❌ Failed to load trailers:', response?.message);
         setError(response?.message || "Failed to load trailers");
+        setEmptyMessage(response?.message || "Failed to load trailers");
       }
     } catch (err: any) {
       console.error('❌ Error fetching trailers:', err);
       setError(err?.message || "An error occurred while fetching trailers");
+      setEmptyMessage(err?.message || "An error occurred while fetching trailers");
     } finally {
       setLoading(false);
     }
@@ -94,6 +132,18 @@ function Trailers() {
       <div className="p-6 min-h-screen bg-gray-50">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
           {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (emptyMessage) {
+    return (
+      <div className="p-6 min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
+        <div className="text-5xl text-gray-300">🚚</div>
+        <div className="space-y-2 max-w-md">
+          <h2 className="text-2xl font-semibold text-gray-800">No trailer data available</h2>
+          <p className="text-gray-500">{emptyMessage}</p>
         </div>
       </div>
     );

@@ -74,9 +74,21 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [selectedLoad, setSelectedLoad] = useState<Load | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfoReady, setUserInfoReady] = useState(false);
 
   useEffect(() => {
-    fetchLoads();
+    try {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        setUserInfo(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Error parsing userInfo from localStorage:', error);
+    } finally {
+      setUserInfoReady(true);
+    }
   }, []);
 
   const fetchLoads = async () => {
@@ -84,6 +96,13 @@ const Index = () => {
     try {
       const response = await listLoad();
       if (response && response.success && response.data) {
+        // Respect backend empty-state message
+        if (response.message) {
+          setLoads([]);
+          setEmptyStateMessage(response.message);
+          return;
+        }
+
         // Filter for planned loads (loads without driver AND truck assigned)
         const plannedLoads = response.data
           .filter((load: any) => {
@@ -160,16 +179,39 @@ const Index = () => {
             };
           });
         setLoads(plannedLoads);
+        setEmptyStateMessage(null);
       } else {
+        if (response?.message) {
+          setEmptyStateMessage(response.message);
+        }
         setLoads([]);
       }
     } catch (error) {
       console.error('Error fetching loads:', error);
+      setEmptyStateMessage('Failed to fetch loads: ' + (error as any)?.message);
       setLoads([]);
     } finally {
     setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!userInfoReady) {
+      return;
+    }
+
+    const isSuperadmin = userInfo?.role === 'superadmin';
+    const hasCompany = Boolean(userInfo?.company);
+
+    if (!isSuperadmin && !hasCompany) {
+      setLoads([]);
+      setEmptyStateMessage('No company assigned to the current admin.');
+      setLoading(false);
+      return;
+    }
+
+    fetchLoads();
+  }, [userInfoReady, userInfo]);
 
   const handleLoadAdded = () => {
     setSidebarOpen(false);
@@ -220,6 +262,24 @@ const Index = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (emptyStateMessage && loads.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center text-center space-y-4">
+        <FaTruck className="text-5xl text-gray-300" />
+        <div className="space-y-2 max-w-md">
+          <h2 className="text-2xl font-semibold text-gray-800">No dispatch data available</h2>
+          <p className="text-gray-500">{emptyStateMessage}</p>
+        </div>
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg"
+        >
+          <FaUpload /> + New Load
+        </button>
       </div>
     );
   }

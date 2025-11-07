@@ -8,14 +8,12 @@ import {
   Sparkles,
   Crown,
   Zap,
-  Shield,
   Users,
   Calendar,
   DollarSign,
   TrendingUp,
   ArrowRight,
   Info,
-  BadgeCheck,
   X,
   History,
   Package,
@@ -23,7 +21,6 @@ import {
 } from 'lucide-react';
 import { message, Modal, Button, Tag, Card, Spin, Tabs, Progress } from 'antd';
 import { getAllPlans, getMySubscription, getMySubscriptions, createCheckoutSession, cancelSubscription, getTrialStatus } from '../../../axios/api/subscription';
-import { getAllowedRolesForAdmin } from '../../../axios/api/superadmin';
 
 interface Plan {
   _id: string;
@@ -93,7 +90,6 @@ const SubscriptionPage = () => {
   const [selectedType, setSelectedType] = useState<string>('');
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [allowedRoles, setAllowedRoles] = useState<string[]>([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelSubscriptionId, setCancelSubscriptionId] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
@@ -106,11 +102,10 @@ const SubscriptionPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [plansRes, subscriptionRes, subscriptionsRes, allowedRolesRes, trialRes] = await Promise.all([
+      const [plansRes, subscriptionRes, subscriptionsRes, trialRes] = await Promise.all([
         getAllPlans(),
         getMySubscription(),
         getMySubscriptions(),
-        getAllowedRolesForAdmin(),
         getTrialStatus(),
       ]);
 
@@ -124,10 +119,6 @@ const SubscriptionPage = () => {
 
       if (subscriptionsRes?.success) {
         setSubscriptions(subscriptionsRes.data || []);
-      }
-
-      if (allowedRolesRes?.success && allowedRolesRes.data?.allowedRoles) {
-        setAllowedRoles(allowedRolesRes.data.allowedRoles || []);
       }
 
       if (trialRes?.success && trialRes.data) {
@@ -520,83 +511,6 @@ const SubscriptionPage = () => {
                     )}
                   </div>
 
-                  {/* Role Permissions */}
-                  {activeSubscription && (() => {
-                    // Use planSnapshot if available (what admin paid for), otherwise fall back to populated plan
-                    const plan = typeof activeSubscription.plan === 'object' ? activeSubscription.plan : null;
-                    const planSnapshot = activeSubscription.planSnapshot;
-                    const blockedRoles = planSnapshot?.blockedRoles || plan?.blockedRoles || [];
-                    const allowedRoles = planSnapshot?.allowedRoles || plan?.allowedRoles || [];
-                    
-                    if (!plan && !planSnapshot) return null;
-                    
-                    return (
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 mb-4">
-                        <div className="flex items-center gap-2 mb-4">
-                          <Shield className="w-5 h-5 text-yellow-300" />
-                          <h3 className="text-white font-semibold">Role Creation Permissions</h3>
-                          {planSnapshot && (
-                            <Tag color="blue" className="ml-auto">
-                              Snapshot Protected
-                            </Tag>
-                          )}
-                        </div>
-                        <div className="space-y-3">
-                          {blockedRoles && blockedRoles.length > 0 && (
-                            <div>
-                              <p className="text-red-200 text-xs font-medium mb-2 flex items-center gap-1">
-                                <X className="w-3 h-3" />
-                                Cannot Create These Roles:
-                              </p>
-                              <div className="flex flex-wrap gap-2">
-                                {blockedRoles.map((role: string) => (
-                                  <Tag key={role} color="red" className="bg-red-500/20 text-red-100 border-red-400/30">
-                                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                                  </Tag>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {allowedRoles && allowedRoles.length > 0 ? (
-                            <div>
-                              <p className="text-green-200 text-xs font-medium mb-2 flex items-center gap-1">
-                                <CheckCircle className="w-3 h-3" />
-                                Can Only Create These Roles:
-                              </p>
-                              <div className="flex flex-wrap gap-2">
-                                {allowedRoles.map((role: string) => (
-                                  <Tag key={role} color="green" className="bg-green-500/20 text-green-100 border-green-400/30">
-                                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                                  </Tag>
-                                ))}
-                              </div>
-                            </div>
-                          ) : (!blockedRoles || blockedRoles.length === 0) ? (
-                            <div className="flex items-center gap-2 text-blue-200">
-                              <BadgeCheck className="w-4 h-4" />
-                              <p className="text-sm font-medium">All roles allowed</p>
-                            </div>
-                          ) : null}
-                          {allowedRoles.length > 0 && (
-                            <div className="pt-3 border-t border-white/20">
-                              <p className="text-blue-200 text-xs font-medium mb-2 flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                Your Current Permissions:
-                              </p>
-                              <div className="flex flex-wrap gap-2">
-                                {allowedRoles.map((role: string) => (
-                                  <Tag key={role} color="blue" className="bg-blue-500/20 text-blue-100 border-blue-400/30">
-                                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                                  </Tag>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
                   <div className="flex items-center gap-2 text-white/80 text-sm">
                     <Clock className="w-4 h-4" />
                     <span>Started on {new Date(activeSubscription.startDate).toLocaleDateString('en-US', {
@@ -716,54 +630,6 @@ const SubscriptionPage = () => {
                     </div>
 
                     <div className="p-6">
-                      {/* Role Restrictions */}
-                      {(plan.blockedRoles && plan.blockedRoles.length > 0) ||
-                      (plan.allowedRoles && plan.allowedRoles.length > 0) ? (
-                        <div className="mb-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Shield className="w-4 h-4 text-gray-600" />
-                            <p className="text-xs font-semibold text-gray-700">Role Restrictions:</p>
-                          </div>
-                          {plan.blockedRoles && plan.blockedRoles.length > 0 && (
-                            <div className="mb-3">
-                              <p className="text-xs text-red-600 font-medium mb-2 flex items-center gap-1">
-                                <X className="w-3 h-3" />
-                                Cannot Create:
-                              </p>
-                              <div className="flex flex-wrap gap-1">
-                                {plan.blockedRoles.map((role) => (
-                                  <Tag key={role} color="red" className="text-xs">
-                                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                                  </Tag>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {plan.allowedRoles && plan.allowedRoles.length > 0 && (
-                            <div>
-                              <p className="text-xs text-green-600 font-medium mb-2 flex items-center gap-1">
-                                <CheckCircle className="w-3 h-3" />
-                                Can Only Create:
-                              </p>
-                              <div className="flex flex-wrap gap-1">
-                                {plan.allowedRoles.map((role) => (
-                                  <Tag key={role} color="green" className="text-xs">
-                                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                                  </Tag>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="mb-4 p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                          <div className="flex items-center gap-2">
-                            <BadgeCheck className="w-4 h-4 text-blue-600" />
-                            <p className="text-xs text-blue-700 font-medium">All roles allowed</p>
-                          </div>
-                        </div>
-                      )}
-
                       {/* Pricing Options */}
                       {plan.planType === 'lifetime' && plan.lifetime && (
                         <div className="space-y-4">
@@ -868,7 +734,7 @@ const SubscriptionPage = () => {
                                 {formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency)}
                                 <span className="text-sm font-normal text-gray-600">/month</span>
                               </p>
-                              <p className="text-xs text-gray-600 mt-1">Full access to all features</p>
+                              <p className="text-xs text-gray-600 mt-1">Complete feature bundle</p>
                             </div>
                           )}
 
@@ -1117,7 +983,7 @@ const SubscriptionPage = () => {
                         {formatPrice(selectedPlan.monthly.fullApp.price, selectedPlan.monthly.fullApp.currency)}
                         <span className="text-lg font-normal text-gray-600">/month</span>
                       </p>
-                      <p className="text-sm text-gray-600">Full access to all features</p>
+                      <p className="text-sm text-gray-600">Complete feature bundle</p>
                     </div>
                   )}
                   {selectedType === 'without-hr' && (
@@ -1126,7 +992,7 @@ const SubscriptionPage = () => {
                         {formatPrice(selectedPlan.monthly.withoutHR.price, selectedPlan.monthly.withoutHR.currency)}
                         <span className="text-lg font-normal text-gray-600">/month</span>
                       </p>
-                      <p className="text-sm text-gray-600">Access without HR features</p>
+                      <p className="text-sm text-gray-600">Streamlined experience without HR</p>
                     </div>
                   )}
                 </>

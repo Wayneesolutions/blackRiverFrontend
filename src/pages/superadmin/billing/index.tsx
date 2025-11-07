@@ -6,7 +6,6 @@ import {
   Trash2,
   Eye,
   Search,
-  Users,
   Calendar,
   CheckCircle,
   XCircle,
@@ -51,15 +50,8 @@ interface Plan {
       currency: string;
       enabled: boolean;
     };
-    withoutHR: {
-      price: number;
-      currency: string;
-      enabled: boolean;
-    };
   };
   features?: Array<{ name: string; included: boolean }>;
-  allowedRoles?: string[];
-  blockedRoles?: string[];
   status: 'active' | 'inactive';
   isDefault: boolean;
   createdAt?: string;
@@ -69,6 +61,10 @@ interface Plan {
 type ViewMode = 'grid' | 'list';
 type FilterType = 'all' | 'active' | 'inactive' | 'lifetime' | 'monthly' | 'default';
 type SortType = 'name' | 'price' | 'created' | 'status';
+
+const createDefaultMonthly = () => ({
+  fullApp: { price: 699, currency: 'CAD', enabled: true }
+});
 
 const Billing = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -100,13 +96,8 @@ const Billing = () => {
         sixMonths: { price: 3150, currency: 'CAD', enabled: true }
       }
     },
-    monthly: {
-      fullApp: { price: 699, currency: 'CAD', enabled: true },
-      withoutHR: { price: 500, currency: 'CAD', enabled: true }
-    },
+    monthly: createDefaultMonthly(),
     features: [] as Array<{ name: string; included: boolean }>,
-    allowedRoles: undefined as string[] | undefined,
-    blockedRoles: [] as string[],
     status: 'active' as 'active' | 'inactive',
     isDefault: false
   });
@@ -202,13 +193,8 @@ const Billing = () => {
           sixMonths: { price: 3150, currency: 'CAD', enabled: true }
         }
       },
-      monthly: {
-        fullApp: { price: 699, currency: 'CAD', enabled: true },
-        withoutHR: { price: 500, currency: 'CAD', enabled: true }
-      },
+      monthly: createDefaultMonthly(),
       features: [],
-      allowedRoles: undefined,
-      blockedRoles: [],
       status: 'active',
       isDefault: false
     });
@@ -250,13 +236,16 @@ const Billing = () => {
           sixMonths: { price: 3150, currency: 'CAD', enabled: true }
         }
       },
-      monthly: plan.monthly || {
-        fullApp: { price: 699, currency: 'CAD', enabled: true },
-        withoutHR: { price: 500, currency: 'CAD', enabled: true }
-      },
+      monthly: plan.monthly?.fullApp
+        ? {
+            fullApp: {
+              price: plan.monthly.fullApp.price ?? 0,
+              currency: plan.monthly.fullApp.currency ?? 'CAD',
+              enabled: plan.monthly.fullApp.enabled ?? true,
+            },
+          }
+        : createDefaultMonthly(),
       features: plan.features || [],
-      allowedRoles: plan.allowedRoles || undefined,
-      blockedRoles: plan.blockedRoles || [],
       status: plan.status,
       isDefault: plan.isDefault
     });
@@ -328,20 +317,23 @@ const Billing = () => {
         planName: `${plan.planName} (Copy)`,
         planType: plan.planType,
         description: plan.description || '',
-        lifetime: plan.lifetime || {
-          oneTime: { price: 17999, currency: 'CAD' },
-          installments: {
-            threeMonths: { price: 6200, currency: 'CAD', enabled: true },
-            sixMonths: { price: 3150, currency: 'CAD', enabled: true }
+      lifetime: plan.lifetime || {
+        oneTime: { price: 17999, currency: 'CAD' },
+        installments: {
+          threeMonths: { price: 6200, currency: 'CAD', enabled: true },
+          sixMonths: { price: 3150, currency: 'CAD', enabled: true }
+        }
+      },
+      monthly: plan.monthly?.fullApp
+        ? {
+            fullApp: {
+              price: plan.monthly.fullApp.price ?? 0,
+              currency: plan.monthly.fullApp.currency ?? 'CAD',
+              enabled: plan.monthly.fullApp.enabled ?? true,
+            },
           }
-        },
-        monthly: plan.monthly || {
-          fullApp: { price: 699, currency: 'CAD', enabled: true },
-          withoutHR: { price: 500, currency: 'CAD', enabled: true }
-        },
+        : createDefaultMonthly(),
         features: plan.features || [],
-        allowedRoles: plan.allowedRoles || undefined,
-        blockedRoles: plan.blockedRoles || [],
         status: 'inactive',
         isDefault: false
       });
@@ -640,54 +632,12 @@ const Billing = () => {
                           </div>
                         </div>
                       )}
-                      {plan.monthly.withoutHR.enabled && (
-                        <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border border-orange-100">
-                          <div className="text-xs text-gray-600 mb-1">Without HR</div>
-                          <div className="text-2xl font-bold text-gray-900">
-                            {formatPrice(plan.monthly.withoutHR.price, plan.monthly.withoutHR.currency)}<span className="text-sm font-normal text-gray-600">/mo</span>
-                          </div>
-                        </div>
-                      )}
+                  
                     </div>
                   )}
 
                   {plan.description && (
                     <p className="text-sm text-gray-600 mb-4 line-clamp-2">{plan.description}</p>
-                  )}
-
-                  {/* Role Restrictions */}
-                  {(plan.blockedRoles && plan.blockedRoles.length > 0) || (plan.allowedRoles && plan.allowedRoles.length > 0) ? (
-                    <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <p className="text-xs font-medium text-gray-700 mb-2">Role Restrictions:</p>
-                      {plan.blockedRoles && plan.blockedRoles.length > 0 && (
-                        <div className="mb-2">
-                          <p className="text-xs text-red-600 font-medium mb-1">Cannot Create:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {plan.blockedRoles.map((role) => (
-                              <Tag key={role} color="red" className="text-xs">
-                                {role.charAt(0).toUpperCase() + role.slice(1)}
-                              </Tag>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {plan.allowedRoles && plan.allowedRoles.length > 0 && (
-                        <div>
-                          <p className="text-xs text-green-600 font-medium mb-1">Can Only Create:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {plan.allowedRoles.map((role) => (
-                              <Tag key={role} color="green" className="text-xs">
-                                {role.charAt(0).toUpperCase() + role.slice(1)}
-                              </Tag>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-xs text-blue-700 font-medium">All roles allowed</p>
-                    </div>
                   )}
 
                   {/* Actions */}
@@ -761,40 +711,6 @@ const Billing = () => {
                   </div>
                       {plan.description && (
                         <p className="text-sm text-gray-600 mb-3">{plan.description}</p>
-                      )}
-                      
-                      {/* Role Restrictions */}
-                      {(plan.blockedRoles && plan.blockedRoles.length > 0) || (plan.allowedRoles && plan.allowedRoles.length > 0) ? (
-                        <div className="mb-3 p-2 bg-gray-50 rounded border border-gray-200">
-                          {plan.blockedRoles && plan.blockedRoles.length > 0 && (
-                            <div className="mb-1">
-                              <span className="text-xs text-red-600 font-medium mr-2">Cannot Create:</span>
-                              <span className="text-xs">
-                                {plan.blockedRoles.map((role) => (
-                                  <Tag key={role} color="red" className="text-xs mr-1">
-                                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                                  </Tag>
-                                ))}
-                              </span>
-                            </div>
-                          )}
-                          {plan.allowedRoles && plan.allowedRoles.length > 0 && (
-                            <div>
-                              <span className="text-xs text-green-600 font-medium mr-2">Can Only Create:</span>
-                              <span className="text-xs">
-                                {plan.allowedRoles.map((role) => (
-                                  <Tag key={role} color="green" className="text-xs mr-1">
-                                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                                  </Tag>
-                                ))}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="mb-3">
-                          <Tag color="blue" className="text-xs">All roles allowed</Tag>
-                        </div>
                       )}
                       
                       <div className="flex items-center gap-6 text-sm">
@@ -1038,107 +954,9 @@ const Billing = () => {
                 )}
               </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">Without HR</label>
-                  <Switch
-                    checked={formData.monthly.withoutHR.enabled}
-                    onChange={(checked) => setFormData({
-                      ...formData,
-                      monthly: {
-                        ...formData.monthly,
-                        withoutHR: {
-                          ...formData.monthly.withoutHR,
-                          enabled: checked
-                        }
-                      }
-                    })}
-                  />
-                </div>
-                {formData.monthly.withoutHR.enabled && (
-                  <Input
-                    type="number"
-                    value={formData.monthly.withoutHR.price}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      monthly: {
-                        ...formData.monthly,
-                        withoutHR: {
-                          ...formData.monthly.withoutHR,
-                          price: parseFloat(e.target.value) || 0
-                        }
-                      }
-                    })}
-                    placeholder="500"
-                    addonAfter="CAD/month"
-                  />
-                )}
-              </div>
+          
             </div>
           )}
-
-          {/* Role Permissions */}
-          <div className="space-y-4 border p-4 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-3">Role Permissions</h4>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Allowed Roles (Optional)
-                <span className="text-xs text-gray-500 ml-2">Leave empty to allow all roles</span>
-              </label>
-              <Select
-                mode="multiple"
-                value={formData.allowedRoles || []}
-                onChange={(value) => setFormData({ ...formData, allowedRoles: value.length > 0 ? value : undefined })}
-                placeholder="Select allowed roles (empty = all roles allowed)"
-                className="w-full"
-                allowClear
-              >
-                <Select.Option value="admin">Admin</Select.Option>
-                <Select.Option value="employee">Employee</Select.Option>
-                <Select.Option value="driver">Driver</Select.Option>
-                <Select.Option value="dispatcher">Dispatcher</Select.Option>
-                <Select.Option value="hr">HR</Select.Option>
-                <Select.Option value="contact">Contact</Select.Option>
-                <Select.Option value="customer">Customer</Select.Option>
-                <Select.Option value="reporter">Reporter</Select.Option>
-                <Select.Option value="fleetmanager">Fleet Manager</Select.Option>
-                <Select.Option value="safetyofficer">Safety Officer</Select.Option>
-                <Select.Option value="operationsstaff">Operations Staff</Select.Option>
-                <Select.Option value="maintenancecrew">Maintenance Crew</Select.Option>
-                <Select.Option value="administrative">Administrative</Select.Option>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Blocked Roles
-                <span className="text-xs text-gray-500 ml-2">Roles that cannot be created with this plan</span>
-              </label>
-              <Select
-                mode="multiple"
-                value={formData.blockedRoles || []}
-                onChange={(value) => setFormData({ ...formData, blockedRoles: value || [] })}
-                placeholder="Select blocked roles"
-                className="w-full"
-                allowClear
-              >
-                <Select.Option value="admin">Admin</Select.Option>
-                <Select.Option value="employee">Employee</Select.Option>
-                <Select.Option value="driver">Driver</Select.Option>
-                <Select.Option value="dispatcher">Dispatcher</Select.Option>
-                <Select.Option value="hr">HR</Select.Option>
-                <Select.Option value="contact">Contact</Select.Option>
-                <Select.Option value="customer">Customer</Select.Option>
-                <Select.Option value="reporter">Reporter</Select.Option>
-                <Select.Option value="fleetmanager">Fleet Manager</Select.Option>
-                <Select.Option value="safetyofficer">Safety Officer</Select.Option>
-                <Select.Option value="operationsstaff">Operations Staff</Select.Option>
-                <Select.Option value="maintenancecrew">Maintenance Crew</Select.Option>
-                <Select.Option value="administrative">Administrative</Select.Option>
-              </Select>
-            </div>
-          </div>
 
           <div className="flex items-center justify-between">
             <div>
@@ -1373,107 +1191,9 @@ const Billing = () => {
                 )}
               </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">Without HR</label>
-                  <Switch
-                    checked={formData.monthly.withoutHR.enabled}
-                    onChange={(checked) => setFormData({
-                      ...formData,
-                      monthly: {
-                        ...formData.monthly,
-                        withoutHR: {
-                          ...formData.monthly.withoutHR,
-                          enabled: checked
-                        }
-                      }
-                    })}
-                  />
-                </div>
-                {formData.monthly.withoutHR.enabled && (
-                  <Input
-                    type="number"
-                    value={formData.monthly.withoutHR.price}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      monthly: {
-                        ...formData.monthly,
-                        withoutHR: {
-                          ...formData.monthly.withoutHR,
-                          price: parseFloat(e.target.value) || 0
-                        }
-                      }
-                    })}
-                    placeholder="500"
-                    addonAfter="CAD/month"
-                  />
-                )}
-              </div>
+          
             </div>
           )}
-
-          {/* Role Permissions */}
-          <div className="space-y-4 border p-4 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-3">Role Permissions</h4>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Allowed Roles (Optional)
-                <span className="text-xs text-gray-500 ml-2">Leave empty to allow all roles</span>
-              </label>
-              <Select
-                mode="multiple"
-                value={formData.allowedRoles || []}
-                onChange={(value) => setFormData({ ...formData, allowedRoles: value.length > 0 ? value : undefined })}
-                placeholder="Select allowed roles (empty = all roles allowed)"
-                className="w-full"
-                allowClear
-              >
-                <Select.Option value="admin">Admin</Select.Option>
-                <Select.Option value="employee">Employee</Select.Option>
-                <Select.Option value="driver">Driver</Select.Option>
-                <Select.Option value="dispatcher">Dispatcher</Select.Option>
-                <Select.Option value="hr">HR</Select.Option>
-                <Select.Option value="contact">Contact</Select.Option>
-                <Select.Option value="customer">Customer</Select.Option>
-                <Select.Option value="reporter">Reporter</Select.Option>
-                <Select.Option value="fleetmanager">Fleet Manager</Select.Option>
-                <Select.Option value="safetyofficer">Safety Officer</Select.Option>
-                <Select.Option value="operationsstaff">Operations Staff</Select.Option>
-                <Select.Option value="maintenancecrew">Maintenance Crew</Select.Option>
-                <Select.Option value="administrative">Administrative</Select.Option>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Blocked Roles
-                <span className="text-xs text-gray-500 ml-2">Roles that cannot be created with this plan</span>
-              </label>
-              <Select
-                mode="multiple"
-                value={formData.blockedRoles || []}
-                onChange={(value) => setFormData({ ...formData, blockedRoles: value || [] })}
-                placeholder="Select blocked roles"
-                className="w-full"
-                allowClear
-              >
-                <Select.Option value="admin">Admin</Select.Option>
-                <Select.Option value="employee">Employee</Select.Option>
-                <Select.Option value="driver">Driver</Select.Option>
-                <Select.Option value="dispatcher">Dispatcher</Select.Option>
-                <Select.Option value="hr">HR</Select.Option>
-                <Select.Option value="contact">Contact</Select.Option>
-                <Select.Option value="customer">Customer</Select.Option>
-                <Select.Option value="reporter">Reporter</Select.Option>
-                <Select.Option value="fleetmanager">Fleet Manager</Select.Option>
-                <Select.Option value="safetyofficer">Safety Officer</Select.Option>
-                <Select.Option value="operationsstaff">Operations Staff</Select.Option>
-                <Select.Option value="maintenancecrew">Maintenance Crew</Select.Option>
-                <Select.Option value="administrative">Administrative</Select.Option>
-              </Select>
-            </div>
-          </div>
 
           <div className="flex items-center justify-between">
             <div>
@@ -1577,47 +1297,6 @@ const Billing = () => {
               </div>
             )}
 
-            {/* Role Restrictions */}
-            <div className="border-t pt-6">
-              <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Users className="w-5 h-5 text-purple-500" />
-                Role Permissions
-              </h4>
-              {(selectedPlan.blockedRoles && selectedPlan.blockedRoles.length > 0) || (selectedPlan.allowedRoles && selectedPlan.allowedRoles.length > 0) ? (
-                <div className="space-y-4">
-                  {selectedPlan.blockedRoles && selectedPlan.blockedRoles.length > 0 && (
-                    <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                      <p className="text-sm font-semibold text-red-700 mb-2">❌ Cannot Create These Roles:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedPlan.blockedRoles.map((role) => (
-                          <Tag key={role} color="red" className="text-sm px-3 py-1">
-                            {role.charAt(0).toUpperCase() + role.slice(1)}
-                          </Tag>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {selectedPlan.allowedRoles && selectedPlan.allowedRoles.length > 0 && (
-                    <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                      <p className="text-sm font-semibold text-green-700 mb-2">✅ Can Only Create These Roles:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedPlan.allowedRoles.map((role) => (
-                          <Tag key={role} color="green" className="text-sm px-3 py-1">
-                            {role.charAt(0).toUpperCase() + role.slice(1)}
-                          </Tag>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <p className="text-sm font-semibold text-blue-700">✅ All roles are allowed</p>
-                  <p className="text-xs text-blue-600 mt-1">Admins with this plan can create users with any role</p>
-                </div>
-              )}
-            </div>
-
             {/* Pricing Section */}
             {selectedPlan.planType === 'lifetime' && selectedPlan.lifetime && (
               <div className="border-t pt-6">
@@ -1692,20 +1371,7 @@ const Billing = () => {
                       </div>
                     </div>
                   )}
-                  {selectedPlan.monthly.withoutHR.enabled && (
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                      <div className="flex items-center justify-between">
-                    <div>
-                          <p className="text-sm font-medium text-gray-700">Without HR Module</p>
-                          <p className="text-xl font-bold text-gray-900 mt-1">
-                            {formatPrice(selectedPlan.monthly.withoutHR.price, selectedPlan.monthly.withoutHR.currency)}
-                            <span className="text-sm font-normal text-gray-600">/month</span>
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">Excludes HR features</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  
                 </div>
               </div>
             )}

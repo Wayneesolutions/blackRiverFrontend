@@ -1,36 +1,30 @@
 import React, { useState, useEffect, useCallback } from "react";
-import type { ReactElement } from "react";
-import { Truck, MapPin, Clock, CheckCircle, Play, Package, Calendar, TrendingUp, ChevronRight } from "lucide-react";
+import { Truck, Calendar, TrendingUp, ChevronRight } from "lucide-react";
 import { listLoad, listDriver, updateLoad, getDispatcherDashboard } from "../../../../axios/api/distapcher"; 
 import type {
   ProfessionalCircularProgressProps,StockChartProps ,
   ProfessionalUtilizationGaugeProps,
 CandlestickBarChartProps,
 AnimatedCounterProps,Load} from "./helpers";
-// Define allowed statuses
-type Status = "pending" | "started" | "enroute" | "arrived" | "reached" | "completed";
-
-
 const Index = () => {
   const [animationTrigger, setAnimationTrigger] = useState(false);
-  
-  // Driver assignment inline state - now load-specific
-  const [assigningLoads, setAssigningLoads] = useState<{[loadId: string]: boolean}>({});
-  const [availableDrivers, setAvailableDrivers] = useState<{[loadId: string]: any[]}>({});
-  const [selectedDrivers, setSelectedDrivers] = useState<{[loadId: string]: string}>({});
-  const [isAssigningDriver, setIsAssigningDriver] = useState<{[loadId: string]: boolean}>({});
-  const [isLoadingDrivers, setIsLoadingDrivers] = useState<{[loadId: string]: boolean}>({});
   
   // Loads data state
   const [loadsData, setLoadsData] = useState<Load[]>([]);
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
   // Fetch loads function - memoized to prevent unnecessary re-renders
   const fetchLoads = useCallback(async () => {
     try {
       const res = await listLoad();
       if (res.success) {
-        setLoadsData(res.data);
+        if (res.message && (!res.data || res.data.length === 0)) {
+          setLoadsData([]);
+          setEmptyStateMessage(res.message);
+        } else {
+          setLoadsData(res.data || []);
+        }
       }
     } catch (error) {
       console.error("Error fetching loads:", error);
@@ -42,7 +36,12 @@ const Index = () => {
     try {
       const res = await getDispatcherDashboard();
       if (res.success) {
-        setDashboardData(res.data);
+        if (res.message && !res.data) {
+          setDashboardData(null);
+          setEmptyStateMessage(res.message);
+        } else {
+          setDashboardData(res.data);
+        }
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -53,7 +52,7 @@ const Index = () => {
   useEffect(() => {
     fetchLoads();
     fetchDashboardData();
-  }, []);
+  }, [fetchLoads, fetchDashboardData]);
 
   const today = new Date().toLocaleDateString("en-GB", {
     day: "2-digit",
@@ -67,141 +66,26 @@ const Index = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const statusColors: Record<Status, string> = {
-    'pending': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    'started': 'bg-blue-100 text-blue-800 border-blue-300',
-    'enroute': 'bg-purple-100 text-purple-800 border-purple-300',
-    'arrived': 'bg-orange-100 text-orange-800 border-orange-300',
-    'reached': 'bg-green-100 text-green-800 border-green-300',
-    'completed': 'bg-gray-100 text-gray-800 border-gray-300'
-  };
+  const hasAnyData = (loadsData && loadsData.length > 0) || Boolean(dashboardData);
 
-  const statusIcons: Record<Status, ReactElement> = {
-    'pending': <Clock className="w-4 h-4" />,
-    'started': <Play className="w-4 h-4" />,
-    'enroute': <Truck className="w-4 h-4" />,
-    'arrived': <MapPin className="w-4 h-4" />,
-    'reached': <CheckCircle className="w-4 h-4" />,
-    'completed': <Package className="w-4 h-4" />
-  };
+  useEffect(() => {
+    if (emptyStateMessage && hasAnyData) {
+      setEmptyStateMessage(null);
+    }
+  }, [emptyStateMessage, hasAnyData]);
 
-  interface StatusBadgeProps {
-    status: Status;
+  if (emptyStateMessage && !hasAnyData) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
+        <Truck className="w-12 h-12 text-gray-400" />
+        <div className="space-y-2 max-w-md">
+          <h2 className="text-xl font-semibold text-gray-800">No dispatch data available</h2>
+          <p className="text-gray-500">{emptyStateMessage}</p>
+        </div>
+      </div>
+    );
   }
 
-  const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => (
-    <span
-      className={`px-3 py-1 rounded-full text-xs font-semibold border flex items-center gap-1 ${statusColors[status]}`}
-    >
-      {statusIcons[status]}
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </span>
-  );
-
-  // Driver assignment functions - memoized to prevent unnecessary re-renders
-  const handleAssignDriver = useCallback(async (loadId: string) => {
-    // Set this specific load to assigning mode
-    setAssigningLoads(prev => ({ ...prev, [loadId]: true }));
-    setSelectedDrivers(prev => ({ ...prev, [loadId]: "" }));
-    
-    // Always fetch drivers fresh for each load to ensure isolation
-    // Set loading state for this specific load
-    setIsLoadingDrivers(prev => ({ ...prev, [loadId]: true }));
-    
-    try {
-      const driversRes = await listDriver();
-      if (driversRes && driversRes.success) {
-        // Store drivers ONLY for this specific load
-        setAvailableDrivers(prev => ({ 
-          ...prev, 
-          [loadId]: driversRes.data || [] 
-        }));
-      } else {
-        alert('Failed to load drivers. Please try again.');
-      }
-    } catch (error) {
-      alert('Error loading drivers: ' + (error as any).message);
-    } finally {
-      // Clear loading state for this specific load
-      setIsLoadingDrivers(prev => ({ ...prev, [loadId]: false }));
-    }
-  }, []);
-
-  const handleConfirmAssignment = useCallback(async (loadId: string) => {
-    const selectedDriverId = selectedDrivers[loadId];
-    
-    if (!loadId || !selectedDriverId) {
-      return;
-    }
-    
-    // Check if this is a real MongoDB ObjectId or our temporary index-based ID
-    const isRealObjectId = /^[0-9a-fA-F]{24}$/.test(loadId);
-    if (!isRealObjectId) {
-      alert('Error: Invalid load ID. Please refresh the page and try again.');
-      return;
-    }
-    
-    // Set loading state for this specific load
-    setIsAssigningDriver(prev => ({ ...prev, [loadId]: true }));
-    
-    try {
-      const updateData = {
-        details: {
-          driver: selectedDriverId
-        }
-      };
-      
-      const response = await updateLoad(loadId, updateData);
-      
-      if (response.success) {
-        alert('Driver assigned successfully!');
-        // Update the loads data without page reload
-        await fetchLoads();
-        // Clear assignment state
-        setAssigningLoads(prev => ({ ...prev, [loadId]: false }));
-        setSelectedDrivers(prev => ({ ...prev, [loadId]: "" }));
-        setAvailableDrivers(prev => {
-          const newState = { ...prev };
-          delete newState[loadId];
-          return newState;
-        });
-      } else {
-        alert('Failed to assign driver: ' + (response.message || 'Unknown error'));
-      }
-    } catch (error) {
-      alert('Error assigning driver: ' + (error as any).message);
-    } finally {
-      // Clear loading state for this specific load
-      setIsAssigningDriver(prev => ({ ...prev, [loadId]: false }));
-    }
-  }, [selectedDrivers, fetchLoads]);
-
-  const handleCancelAssignment = useCallback((loadId: string) => {
-    setAssigningLoads(prev => ({ ...prev, [loadId]: false }));
-    setSelectedDrivers(prev => ({ ...prev, [loadId]: "" }));
-    // Clear the drivers data for this load to ensure complete isolation
-    setAvailableDrivers(prev => {
-      const newState = { ...prev };
-      delete newState[loadId];
-      return newState;
-    });
-  }, []);
-
-  // Props type for ImagePlaceholder
-  interface ImagePlaceholderProps {
-    image?: string; // optional if not always passed
-    alt?: string;
-  }
-
-  const ImagePlaceholder: React.FC<ImagePlaceholderProps> = ({ image, alt }) => (
-    <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
-      {image ? (
-        <img src={image} alt={alt} className="w-12 h-12 object-cover rounded-lg" />
-      ) : (
-        <Truck className="w-6 h-6 text-white" />
-      )}
-    </div>
-  );
 
   const StockChart: React.FC<StockChartProps> = ({
     data,

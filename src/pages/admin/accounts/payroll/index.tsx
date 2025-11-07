@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Clock } from 'lucide-react';
+import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Clock, Building2 } from 'lucide-react';
 import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedLoads } from "../../../../axios/api/account.payroll";
 
 interface Employee {
@@ -153,6 +153,7 @@ const PayrollManagement = () => {
     const [loading, setLoading] = useState(false);
     const [loadingLoads, setLoadingLoads] = useState(false);
     const [notification, setNotification] = useState<Notification | null>(null);
+    const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
     const [formData, setFormData] = useState<PayrollFormData>({
         userId: '',
@@ -172,11 +173,30 @@ const PayrollManagement = () => {
         setTimeout(() => setNotification(null), 5000);
     };
 
+    const getLocalUserInfo = () => {
+        const userInfoString = localStorage.getItem('userInfo');
+        if (!userInfoString) return null;
+        try {
+            return JSON.parse(userInfoString);
+        } catch (error) {
+            console.error('Error parsing userInfo from localStorage:', error);
+            return null;
+        }
+    };
+
     const fetchEmployees = async () => {
         try {
+            const userInfo: any = getLocalUserInfo();
+            if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+                setEmployees([]);
+                return;
+            }
+
             const response = await getEmployees();
             if (response?.success) {
                 setEmployees(response.data || []);
+            } else if (response?.message) {
+                showNotification('error', response.message);
             }
         } catch (error) {
             console.error('Error fetching employees:', error);
@@ -186,14 +206,34 @@ const PayrollManagement = () => {
     const fetchPayrolls = async () => {
         setLoading(true);
         try {
+            const userInfo: any = getLocalUserInfo();
+            if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+                setPayrollData([]);
+                setEmptyStateMessage('No company assigned to the current admin. Please set up your company to manage payroll.');
+                return;
+            }
+
             const response = await listPayrolls();
             if (response?.success) {
-                setPayrollData(response.data || []);
+                const data = response.data || [];
+                setPayrollData(data);
+                if (response.message && data.length === 0) {
+                    setEmptyStateMessage(response.message);
+                } else {
+                    setEmptyStateMessage(null);
+                }
             } else {
-                showNotification('error', response?.message || 'Failed to fetch payrolls');
+                const message = response?.message || 'Failed to fetch payrolls';
+                setPayrollData([]);
+                setEmptyStateMessage(message);
+                showNotification('error', message);
             }
         } catch (error) {
-            showNotification('error', 'Error fetching payrolls');
+            console.error('Error fetching payrolls:', error);
+            setPayrollData([]);
+            const message = 'Error fetching payrolls';
+            setEmptyStateMessage(message);
+            showNotification('error', message);
         } finally {
             setLoading(false);
         }
@@ -203,6 +243,13 @@ const PayrollManagement = () => {
     const fetchDriverLoads = async (driverId: string, startDate?: string, endDate?: string) => {
         setLoadingLoads(true);
         try {
+            const userInfo: any = getLocalUserInfo();
+            if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+                setDriverLoads([]);
+                setDriverPayrollSummary(null);
+                return;
+            }
+
             const response = await getDriverCompletedLoads(driverId, startDate, endDate);
             
             if (response?.success) {
@@ -357,6 +404,11 @@ const PayrollManagement = () => {
     };
 
     const handleCreate = async () => {
+        if (emptyStateMessage) {
+            showNotification('error', emptyStateMessage);
+            return;
+        }
+
         if (!formData.userId || formData.baseSalary === '' || formData.baseSalary === null || !formData.payDate || !formData.startDate || !formData.endDate) {
             showNotification('error', 'Please fill in all required fields');
             return;
@@ -539,6 +591,48 @@ const PayrollManagement = () => {
 
     const totalPayroll = payrollData.reduce((sum, payroll) => sum + payroll.totalSalary, 0);
     const avgSalary = payrollData.length > 0 ? totalPayroll / payrollData.length : 0;
+
+    if (loading && !emptyStateMessage) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="text-gray-600">Loading payroll data...</p>
+            </div>
+        );
+    }
+
+    if (emptyStateMessage) {
+        return (
+            <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center text-center space-y-5">
+                {notification && (
+                    <div className={`fixed top-4 right-4 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                        {notification.type === 'success' ? (
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                        ) : (
+                            <AlertCircle className="h-5 w-5 text-red-600" />
+                        )}
+                        <span className={`text-sm font-medium ${notification.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>
+                            {notification.message}
+                        </span>
+                        <button onClick={() => setNotification(null)}>
+                            <X className={`h-4 w-4 ${notification.type === 'success' ? 'text-green-600' : 'text-red-600'}`} />
+                        </button>
+                    </div>
+                )}
+                <Building2 className="h-16 w-16 text-gray-400" />
+                <div className="space-y-3 max-w-md">
+                    <h2 className="text-2xl font-semibold text-gray-800">No payroll data available</h2>
+                    <p className="text-gray-500">{emptyStateMessage}</p>
+                </div>
+                <button
+                    onClick={fetchPayrolls}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow"
+                >
+                    Refresh
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 px-6">

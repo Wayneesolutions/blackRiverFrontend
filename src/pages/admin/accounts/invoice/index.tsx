@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Eye, Edit, Download, Filter, Calendar, DollarSign, Users, TrendingUp, Truck, Fuel, Wrench, MapPin, Trash2, X, CheckCircle, AlertCircle, CreditCard } from 'lucide-react';
+import { FileText, Plus, Eye, Edit, Download, Filter, Calendar, DollarSign, Users, TrendingUp, Truck, Fuel, Wrench, MapPin, Trash2, X, CheckCircle, AlertCircle, CreditCard, Building2 } from 'lucide-react';
 import { createInvoice, listInvoices, getInvoiceById, updateInvoice, deleteInvoice, listLoad, createPaymentSession } from "../../../../axios/api/account.invoices";
 
 interface Invoice {
@@ -72,6 +72,7 @@ const InvoiceManagement: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [deleteModal, setDeleteModal] = useState<{ show: boolean; invoiceId: string | null }>({ show: false, invoiceId: null });
+    const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
     useEffect(() => {
         // Check authentication state
@@ -99,6 +100,19 @@ const InvoiceManagement: React.FC = () => {
         }, 5000);
     };
 
+    const getLocalUserInfo = () => {
+        const userInfoString = localStorage.getItem('userInfo');
+        if (!userInfoString) {
+            return null;
+        }
+        try {
+            return JSON.parse(userInfoString);
+        } catch (error) {
+            console.error('Error parsing userInfo from localStorage:', error);
+            return null;
+        }
+    };
+
     const handleCreatePaymentLink = async (invoice: Invoice) => {
         try {
             const response = await createPaymentSession(invoice._id);
@@ -119,12 +133,31 @@ const InvoiceManagement: React.FC = () => {
     const fetchInvoices = async () => {
         setLoading(true);
         try {
+            const userInfo: any = getLocalUserInfo();
+            if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+                setInvoices([]);
+                setEmptyStateMessage('No company assigned to the current admin. Please set up your company to manage invoices.');
+                return;
+            }
+
             const response = await listInvoices();
-            if (response && response.data) {
+            const message = (response as any)?.message;
+
+            if (response && response.success && Array.isArray(response.data)) {
                 setInvoices(response.data);
+                if (message && response.data.length === 0) {
+                    setEmptyStateMessage(message);
+                } else {
+                    setEmptyStateMessage(null);
+                }
+            } else {
+                setInvoices([]);
+                setEmptyStateMessage(message || 'Failed to fetch invoices.');
             }
         } catch (error) {
             console.error('Error fetching invoices:', error);
+            setInvoices([]);
+            setEmptyStateMessage('Failed to fetch invoices.');
         } finally {
             setLoading(false);
         }
@@ -132,6 +165,12 @@ const InvoiceManagement: React.FC = () => {
 
     const fetchLoads = async () => {
         try {
+            const userInfo: any = getLocalUserInfo();
+            if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+                setLoads([]);
+                return;
+            }
+
             console.log('🔍 Starting to fetch loads...');
             const response = await listLoad();
             console.log('📡 Load API Response:', response);
@@ -994,6 +1033,25 @@ const InvoiceManagement: React.FC = () => {
                 );
         }
     };
+
+    if (!loading && emptyStateMessage) {
+        return (
+            <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center text-center space-y-5">
+                <NotificationContainer />
+                <Building2 className="h-16 w-16 text-gray-400" />
+                <div className="space-y-3 max-w-md">
+                    <h2 className="text-2xl font-semibold text-gray-800">No invoice data available</h2>
+                    <p className="text-gray-500">{emptyStateMessage}</p>
+                </div>
+                <button
+                    onClick={fetchInvoices}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow"
+                >
+                    Refresh
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">

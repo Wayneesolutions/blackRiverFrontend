@@ -15,6 +15,7 @@ const ServicePage = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [updateData, setUpdateData] = useState({});
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
   // Fetch services from API
   const fetchServices = async () => {
@@ -22,7 +23,13 @@ const ServicePage = () => {
     try {
       const res = await listServiceRate();
       if (res.success) {
-        setServices(res.data);
+        if (res.message && (!res.data || res.data.length === 0)) {
+          setServices([]);
+          setEmptyStateMessage(res.message);
+        } else {
+          setServices(res.data || []);
+          setEmptyStateMessage(null);
+        }
       } else {
         alert(res.message || "Failed to fetch services");
       }
@@ -83,6 +90,29 @@ const ServicePage = () => {
     });
     setUpdateModalOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  if (emptyStateMessage) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-center space-y-4 px-4">
+        <h2 className="text-xl font-semibold text-gray-800">No service rates available</h2>
+        <p className="text-gray-500 max-w-md">{emptyStateMessage}</p>
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg shadow-lg"
+        >
+          + New Service
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col relative bg-gray-50 px-4">

@@ -28,26 +28,69 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingReport, setEditingReport] = useState<FuelReportType | null>(null);
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfoReady, setUserInfoReady] = useState(false);
 
   const { drivers, loading: loadingDrivers } = useDrivers();
   const { vehicles, loading: loadingVehicles } = useVehicles();
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        setUserInfo(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Error parsing userInfo from localStorage:', error);
+    } finally {
+      setUserInfoReady(true);
+    }
+  }, []);
 
   const fetchFuelReports = async () => {
     try {
       setLoading(true);
       const res = await listFuelReport();
-      if (res.success) setFuelReports(res.data);
-      else alert(res.message || "Failed to fetch fuel reports");
+      if (res.success) {
+        const data = Array.isArray(res.data) ? res.data : [];
+        setFuelReports(data);
+        if (res.message && data.length === 0) {
+          setEmptyStateMessage(res.message);
+        } else {
+          setEmptyStateMessage(null);
+        }
+      } else {
+        alert(res.message || "Failed to fetch fuel reports");
+        setFuelReports([]);
+        setEmptyStateMessage(res?.message || 'Failed to fetch fuel reports');
+      }
       setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      setFuelReports([]);
+      setEmptyStateMessage(error?.message || 'Failed to fetch fuel reports');
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!userInfoReady) {
+      return;
+    }
+
+    const isSuperadmin = userInfo?.role === 'superadmin';
+    const hasCompany = Boolean(userInfo?.company);
+
+    if (!isSuperadmin && !hasCompany) {
+      setFuelReports([]);
+      setEmptyStateMessage('No company assigned to the current admin.');
+      return;
+    }
+
     fetchFuelReports();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfoReady, userInfo]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this fuel report?")) return;
@@ -115,6 +158,29 @@ const Index = () => {
     report.vehicle?.plateNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     report.status?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <p className="mt-4 text-gray-600">Loading fuel reports...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (emptyStateMessage) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4 px-6">
+        <div className="text-5xl text-gray-300">⛽</div>
+        <div className="space-y-2 max-w-md">
+          <h2 className="text-2xl font-semibold text-gray-800">No fuel reports available</h2>
+          <p className="text-gray-500">{emptyStateMessage}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

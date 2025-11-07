@@ -1,30 +1,21 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     MapPin,
     Truck,
-    Package,
     Gauge,
-    Circle,
     Filter,
     Search,
-    AlertTriangle,
     Navigation,
-    Clock,
     Route,
     RefreshCw,
     X,
     ChevronRight,
     ChevronDown,
-    Activity,
-    Settings,
-    Thermometer,
-    Weight,
-    Lock,
-    Unlock,
     Fuel,
     User,
     ExternalLink,
-    ChevronLeft
+    ChevronLeft,
+    Building2
 } from 'lucide-react';
 import { getSocket } from "../../../../socket/socketClient";
 import { listTrucks } from '../../../../axios/api/truckTracking';
@@ -149,78 +140,12 @@ const ProfessionalTruckTracker: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
     const [, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
     const socket = useMemo(() => getSocket(), []);
 
-    // Fetch vehicles from backend
-    useEffect(() => {
-        const fetchVehicles = async () => {
-            try {
-                setLoading(true);
-                const res = await listTrucks();
-                if (res.success) {
-                    const data = res.data?.vehicles || [];
-                    console.log('🚛 Raw vehicle data from API:', data);
-                    
-                    const formatted = data.map((v: any) => ({
-                        ...v,
-                        currentLocation: {
-                            ...v.currentLocation,
-                            latitude: Number(v.currentLocation.latitude),
-                            longitude: Number(v.currentLocation.longitude),
-                        },
-                        // Add default values for missing fields
-                        route: v.route || [],
-                        cargoDetails: v.cargoDetails || {
-                            type: 'General',
-                            weight: 0,
-                            capacity: 0,
-                            description: 'No cargo',
-                            isRefrigerated: false
-                        },
-                        sensors: v.sensors || {
-                            doorStatus: 'locked',
-                            temperature: 20,
-                            humidity: 50,
-                            shockDetection: false,
-                            tilting: false,
-                            fuelLevel: v.fuelLevel || 0,
-                            engineOn: v.engineOn || false,
-                            batteryVoltage: 12.5
-                        },
-                        maintenance: v.maintenance || {
-                            lastService: new Date(),
-                            nextService: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                            tyreCondition: 'good',
-                            brakeCondition: 'good',
-                            engineHealth: 'good',
-                            issues: []
-                        },
-                        driverBehaviour: v.driverBehaviour || {
-                            harshBraking: 0,
-                            speedingEvents: 0,
-                            idlingDuration: 0
-                        },
-                        engineHealth: v.engineHealth || {
-                            faultCodes: [],
-                            batteryVoltage: 12.5,
-                            engineHours: 0
-                        }
-                    }));
-                    setVehicles(formatted);
-                    if (formatted.length > 0) handleVehicleClick(formatted[0]);
-                }
-            } catch (err) {
-                console.error("Error fetching vehicles:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchVehicles();
-    }, []);
-
     // Handle vehicle selection
-    const handleVehicleClick = (vehicle: Vehicle) => {
+    const handleVehicleClick = useCallback((vehicle: Vehicle) => {
         console.log('🚛 Vehicle selected:', vehicle.plateNumber);
         setSelectedVehicle(vehicle);
         
@@ -266,7 +191,105 @@ const ProfessionalTruckTracker: React.FC = () => {
                 }
             }
         });
-    };
+    }, [socket, map]);
+
+    const fetchVehiclesData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const userInfoString = localStorage.getItem('userInfo');
+            let userInfo: any = null;
+            if (userInfoString) {
+                try {
+                    userInfo = JSON.parse(userInfoString);
+                } catch (err) {
+                    console.error('Error parsing userInfo from localStorage:', err);
+                }
+            }
+
+            if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+                setVehicles([]);
+                setSelectedVehicle(null);
+                setEmptyStateMessage('No company assigned to the current admin. Please set up your company to view truck tracking data.');
+                return;
+            }
+
+            const res = await listTrucks();
+            if (res?.success) {
+                const data = res.data?.vehicles || [];
+                if (data.length === 0) {
+                    setVehicles([]);
+                    setSelectedVehicle(null);
+                    setEmptyStateMessage(res?.message || 'No trucks found for the current company.');
+                    return;
+                }
+
+                const formatted = data.map((v: any) => ({
+                    ...v,
+                    currentLocation: {
+                        ...v.currentLocation,
+                        latitude: Number(v.currentLocation?.latitude ?? 0),
+                        longitude: Number(v.currentLocation?.longitude ?? 0),
+                        updatedAt: v.currentLocation?.updatedAt || new Date().toISOString()
+                    },
+                    route: v.route || [],
+                    cargoDetails: v.cargoDetails || {
+                        type: 'General',
+                        weight: 0,
+                        capacity: 0,
+                        description: 'No cargo',
+                        isRefrigerated: false
+                    },
+                    sensors: v.sensors || {
+                        doorStatus: 'locked',
+                        temperature: 20,
+                        humidity: 50,
+                        shockDetection: false,
+                        tilting: false,
+                        fuelLevel: v.fuelLevel || 0,
+                        engineOn: v.engineOn || false,
+                        batteryVoltage: 12.5
+                    },
+                    maintenance: v.maintenance || {
+                        lastService: new Date(),
+                        nextService: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        tyreCondition: 'good',
+                        brakeCondition: 'good',
+                        engineHealth: 'good',
+                        issues: []
+                    },
+                    driverBehaviour: v.driverBehaviour || {
+                        harshBraking: 0,
+                        speedingEvents: 0,
+                        idlingDuration: 0
+                    },
+                    engineHealth: v.engineHealth || {
+                        faultCodes: [],
+                        batteryVoltage: 12.5,
+                        engineHours: 0
+                    }
+                }));
+                setVehicles(formatted);
+                setEmptyStateMessage(null);
+                handleVehicleClick(formatted[0]);
+            } else {
+                const message = res?.message || 'Failed to fetch trucks.';
+                setVehicles([]);
+                setSelectedVehicle(null);
+                setEmptyStateMessage(message);
+            }
+        } catch (err) {
+            console.error('Error fetching vehicles:', err);
+            setVehicles([]);
+            setSelectedVehicle(null);
+            setEmptyStateMessage((err as any)?.message || 'Failed to fetch trucks.');
+        } finally {
+            setLoading(false);
+        }
+    }, [handleVehicleClick]);
+
+    useEffect(() => {
+        fetchVehiclesData();
+    }, [fetchVehiclesData]);
 
     // Toggle section expansion
     const toggleSection = (section: string) => {
@@ -303,9 +326,7 @@ const ProfessionalTruckTracker: React.FC = () => {
         loadGoogleMaps();
 
         return () => {
-            if (window.initMap) {
-                delete window.initMap;
-            }
+            (window as any).initMap = undefined;
         };
     }, []);
 
@@ -719,13 +740,31 @@ const ProfessionalTruckTracker: React.FC = () => {
         }
     };
 
-    if (loading) {
+    if (loading && !emptyStateMessage) {
         return (
             <div className="flex items-center justify-center h-screen bg-gray-100">
                 <div className="text-center">
                     <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
                     <p className="text-gray-600">Loading truck tracking data...</p>
                 </div>
+            </div>
+        );
+    }
+
+    if (emptyStateMessage) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-center space-y-5 px-6">
+                <Building2 className="h-16 w-16 text-gray-400" />
+                <div className="space-y-3 max-w-xl">
+                    <h2 className="text-2xl font-semibold text-gray-800">No truck tracking data available</h2>
+                    <p className="text-gray-500">{emptyStateMessage}</p>
+                </div>
+                <button
+                    onClick={fetchVehiclesData}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow"
+                >
+                    Refresh
+                </button>
             </div>
         );
     }

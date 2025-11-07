@@ -187,6 +187,9 @@ const SparePartsInventory = () => {
     const [loadingWorkOrders, setLoadingWorkOrders] = useState<boolean>(false);
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+    const [userInfo, setUserInfo] = useState<any>(null);
+    const [userInfoReady, setUserInfoReady] = useState<boolean>(false);
 
     // Form refs
     const newPartRef = useRef({
@@ -226,15 +229,42 @@ const SparePartsInventory = () => {
 
     const usageDataRef = useRef({ workOrderId: '', qtyUsed: '' });
 
-    // Fetch suppliers on mount
     useEffect(() => {
-        fetchSuppliers();
+        try {
+            const stored = localStorage.getItem('userInfo');
+            if (stored) {
+                setUserInfo(JSON.parse(stored));
+            }
+        } catch (err) {
+            console.error('Error parsing userInfo from localStorage:', err);
+        } finally {
+            setUserInfoReady(true);
+        }
     }, []);
 
-    // Fetch spare parts on mount
+    // Fetch suppliers and spare parts once company context is ready
     useEffect(() => {
+        if (!userInfoReady) {
+            return;
+        }
+
+        const isSuperadmin = userInfo?.role === 'superadmin';
+        const hasCompany = Boolean(userInfo?.company);
+
+        if (!isSuperadmin && !hasCompany) {
+            setSpareParts([]);
+            setSuppliers([]);
+            setInvoices([]);
+            setWorkOrders([]);
+            setEmptyStateMessage('No company assigned to the current admin.');
+            setLoading(false);
+            return;
+        }
+
+        fetchSuppliers();
         fetchSpareParts();
-    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfoReady, userInfo]);
 
     // Fetch work orders when usage modal opens
     useEffect(() => {
@@ -247,32 +277,53 @@ const SparePartsInventory = () => {
         try {
             const res = await getSuppliers();
             if (res?.success) {
-                setSuppliers(res.data || []);
+                const data = res.data || [];
+                setSuppliers(data);
+                if (res.message && data.length === 0) {
+                    setEmptyStateMessage((prev) => prev || res.message);
+                }
             } else {
                 addNotification('error', res?.message || 'Failed to fetch suppliers');
                 setSuppliers([]);
+                if (res?.message) {
+                    setEmptyStateMessage((prev) => prev || res.message);
+                }
             }
         } catch (err: any) {
             console.error("Error fetching suppliers:", err);
             addNotification('error', err?.message || 'Failed to fetch suppliers');
             setSuppliers([]);
+            setEmptyStateMessage((prev) => prev || 'Failed to fetch suppliers');
         }
     };
 
     const fetchWorkOrders = async () => {
         setLoadingWorkOrders(true);
+        if (emptyStateMessage) {
+            setWorkOrders([]);
+            setLoadingWorkOrders(false);
+            return;
+        }
         try {
             const res = await getAllWorkOrders();
             if (res?.success) {
-                setWorkOrders(res.data || []);
+                const data = res.data || [];
+                setWorkOrders(data);
+                if (res.message && data.length === 0) {
+                    setEmptyStateMessage((prev) => prev || res.message);
+                }
             } else {
                 addNotification('error', res?.message || 'Failed to fetch work orders');
                 setWorkOrders([]);
+                if (res?.message) {
+                    setEmptyStateMessage((prev) => prev || res.message);
+                }
             }
         } catch (err: any) {
             console.error("Error fetching work orders:", err);
             addNotification('error', err?.message || 'Failed to fetch work orders');
             setWorkOrders([]);
+            setEmptyStateMessage((prev) => prev || 'Failed to fetch work orders');
         }
         setLoadingWorkOrders(false);
     };
@@ -291,15 +342,23 @@ const SparePartsInventory = () => {
         try {
             const res = await getAllSpareParts();
             if (res?.success) {
-                setSpareParts(res.data || []);
+                const data = res.data || [];
+                setSpareParts(data);
+                if (res.message && data.length === 0) {
+                    setEmptyStateMessage(res.message);
+                } else {
+                    setEmptyStateMessage(null);
+                }
             } else {
                 addNotification('error', res?.message || 'Failed to fetch spare parts');
                 setSpareParts([]);
+                setEmptyStateMessage(res?.message || 'Failed to fetch spare parts');
             }
         } catch (err: any) {
             console.error("Error fetching spare parts:", err);
             addNotification('error', err?.message || 'Failed to fetch spare parts');
             setSpareParts([]);
+            setEmptyStateMessage(err?.message || 'Failed to fetch spare parts');
         }
         setLoading(false);
     };
@@ -321,6 +380,29 @@ const SparePartsInventory = () => {
   //   }
   //   setLoadingWorkOrders(false);
   // };
+
+    if (loading) {
+        return (
+            <div className="p-6 min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                    <p className="mt-4 text-gray-600">Loading spare parts...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (emptyStateMessage) {
+        return (
+            <div className="p-6 min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
+                <FaBox className="text-5xl text-gray-300" />
+                <div className="space-y-2 max-w-md">
+                    <h2 className="text-2xl font-semibold text-gray-800">No spare parts data available</h2>
+                    <p className="text-gray-500">{emptyStateMessage}</p>
+                </div>
+            </div>
+        );
+    }
 
     const filteredParts = spareParts.filter(part =>
         part.partName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
