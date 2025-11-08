@@ -13,10 +13,10 @@ interface NewLoadProps {
 const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
     // Use custom hook for vehicles
     const { vehicles, loading: vehiclesLoading, error: vehiclesError } = useVehicles();
-    
+
     // Debug vehicles data
     console.log('Vehicles from hook:', { vehicles, vehiclesLoading, vehiclesError });
-    
+
     // API data states
     const [customers, setCustomers] = useState<any[]>([]);
     const [drivers, setDrivers] = useState<any[]>([]);
@@ -188,7 +188,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
             const newFiles = Array.from(e.target.files);
             console.log('Selected files:', newFiles);
             console.log('Current documents before update:', documents);
-            
+
             // Simple state update
             setDocuments(prevDocuments => {
                 const updated = [...prevDocuments, ...newFiles];
@@ -214,7 +214,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const files = Array.from(e.dataTransfer.files);
         if (files.length > 0) {
             setDocuments(prevDocuments => {
@@ -228,10 +228,10 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
     // Form validation
     const validateForm = () => {
         const errors = [];
-        
+
         if (!orderType) errors.push("Order type is required");
         if (!selectedCustomer) errors.push("Customer is required");
-        
+
         if (!multipleDropoffs) {
             if (!selectPickup) errors.push("Pickup address is required");
             if (!selectDropoff) errors.push("Dropoff address is required");
@@ -241,14 +241,14 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                 if (!wp.address) errors.push(`Waypoint ${index + 1} address is required`);
             });
         }
-        
+
         if (items.length === 0) errors.push("At least one item is required");
         items.forEach((item, index) => {
             if (!item.name) errors.push(`Item ${index + 1} name is required`);
             if (!item.sku) errors.push(`Item ${index + 1} SKU is required`);
             if (!item.internalId) errors.push(`Item ${index + 1} internal ID is required`);
         });
-        
+
         return errors;
     };
 
@@ -372,12 +372,11 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                     {/* Details Section */}
                     <Section title="Details">
                         <div className="grid grid-cols-2 gap-4">
-                            <select 
+                            <select
                                 value={orderType}
                                 onChange={(e) => setOrderType(e.target.value)}
-                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${
-                                    !orderType ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-                                }`}
+                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${!orderType ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                                    }`}
                                 required
                             >
                                 <option value="">Select Order Type *</option>
@@ -391,12 +390,11 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                 value={internalId}
                                 onChange={(e) => setInternalId(e.target.value)}
                             />
-                            <select 
+                            <select
                                 value={selectedCustomer}
                                 onChange={(e) => setSelectedCustomer(e.target.value)}
-                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${
-                                    !selectedCustomer ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-                                }`}
+                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${!selectedCustomer ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                                    }`}
                                 disabled={loading}
                                 required
                             >
@@ -407,7 +405,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                     </option>
                                 ))}
                             </select>
-                            <select 
+                            {/* <select
                                 value={selectedFacilitator}
                                 onChange={(e) => setSelectedFacilitator(e.target.value)}
                                 className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -418,13 +416,12 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                         {facilator.name}
                                     </option>
                                 ))}
-                            </select>
-                            <select 
+                            </select> */}
+                            <select
                                 value={selectedDriver}
                                 onChange={(e) => setSelectedDriver(e.target.value)}
-                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${
-                                    !selectedDriver ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-                                }`}
+                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${!selectedDriver ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                                    }`}
                                 disabled={loading}
                                 required
                             >
@@ -435,12 +432,11 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                     </option>
                                 ))}
                             </select>
-                            <select 
+                            <select
                                 value={selectedVehicle}
                                 onChange={(e) => setSelectedVehicle(e.target.value)}
-                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${
-                                    !selectedVehicle ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-                                }`}
+                                className={`p-2 border rounded w-full focus:outline-none focus:ring-2 ${!selectedVehicle ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                                    }`}
                                 disabled={loading || vehiclesLoading}
                                 required
                             >
@@ -457,6 +453,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
                         <div className="space-y-4 mt-6">
                             {/* Ad-hoc with distance input */}
+                            {/*
                             <div className="flex items-center gap-3">
                                 <Toggle label="Ad-hoc" checked={isAdhoc} onChange={setIsAdhoc} />
                                 {isAdhoc && (
@@ -476,9 +473,10 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                             <div className="mt-3">
                                 <Toggle label="Dispatch Immediately" checked={dispatchImmediately} onChange={setDispatchImmediately} />
                             </div>
+                             */}
 
                             {/* Require Proof with type selector */}
-                            <div className="flex items-center gap-3 mt-3">
+                            {/*    <div className="flex items-center gap-3 mt-3">
                                 <Toggle label="Require Proof of Delivery" checked={requireProof} onChange={setRequireProof} />
                                 {requireProof && (
                                     <select
@@ -493,6 +491,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                     </select>
                                 )}
                             </div>
+                            */}
                         </div>
                     </Section>
 
@@ -566,7 +565,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                                 onChange={(e) => updateWaypoint(wp.id, 'address', e.target.value)}
                                                 className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
                                             />
-                                            <select 
+                                            <select
                                                 value={wp.customer}
                                                 onChange={(e) => updateWaypoint(wp.id, 'customer', e.target.value)}
                                                 className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 !mb-4"
@@ -787,7 +786,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                         <div className="mb-2 text-xs text-gray-500">
                             Documents: {documents.length} file{documents.length !== 1 ? 's' : ''} selected
                         </div>
-                        <div 
+                        <div
                             className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50 hover:bg-blue-100 transition-colors"
                             onDragOver={handleDragOver}
                             onDrop={handleDrop}
@@ -804,7 +803,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                         className="hidden"
                                         id="file-upload"
                                     />
-                                    <button 
+                                    <button
                                         onClick={() => document.getElementById('file-upload')?.click()}
                                         className="px-6 py-2 bg-blue-500 hover:bg-blue-600 !text-white rounded transition-colors"
                                     >
@@ -831,13 +830,13 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                         className="hidden"
                                         id="file-upload"
                                     />
-                                    <button 
+                                    <button
                                         onClick={() => document.getElementById('file-upload')?.click()}
                                         className="px-4 py-2 bg-gray-500 hover:bg-gray-600 !text-white rounded transition-colors mr-2"
                                     >
                                         Add More Files
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => setDocuments([])}
                                         className="px-4 py-2 bg-red-500 hover:bg-red-600 !text-white rounded transition-colors"
                                     >
@@ -880,7 +879,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                 {/* Fixed Footer */}
                 <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0">
                     <div className="flex gap-3">
-                        <button 
+                        <button
                             onClick={handleSaveLoad}
                             disabled={loading}
                             className="flex-1 bg-green-500 hover:bg-green-600 !text-white font-semibold px-6 py-3 rounded shadow transition-colors disabled:opacity-50"
