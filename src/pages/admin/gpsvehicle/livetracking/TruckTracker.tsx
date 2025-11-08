@@ -16,6 +16,8 @@ import {
     ExternalLink,
     ChevronLeft
 } from 'lucide-react';
+import { LoadScriptNext } from '@react-google-maps/api';
+import type { Libraries } from '@react-google-maps/api';
 import { getSocket } from "../../../../socket/socketClient";
 import { listTrucks } from '../../../../axios/api/truckTracking';
 
@@ -124,6 +126,9 @@ declare global {
         initMap: () => void;
     }
 }
+
+const GOOGLE_MAPS_API_KEY = "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
+const GOOGLE_MAPS_LIBRARIES: Libraries = ["places"];
 
 const ProfessionalTruckTracker: React.FC = () => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -298,41 +303,10 @@ const ProfessionalTruckTracker: React.FC = () => {
         }));
     };
 
-    // Load Google Maps
-    useEffect(() => {
-        const loadGoogleMaps = () => {
-            if (window.google && window.google.maps) {
-                setMapLoaded(true);
-                return;
-            }
-
-            const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-            if (existingScript) {
-                existingScript.remove();
-            }
-
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4&libraries=places,directions`;
-            script.async = true;
-            script.defer = true;
-            script.onload = () => {
-                setMapLoaded(true);
-            };
-
-            document.head.appendChild(script);
-        };
-
-        loadGoogleMaps();
-
-        return () => {
-            (window as any).initMap = undefined;
-        };
-    }, []);
-
     // Initialize map
     useEffect(() => {
         if (mapLoaded && window.google && window.google.maps) {
-            const mapElement = document.getElementById('google-map');
+            const mapElement = document.getElementById('truck-google-map');
             if (mapElement && !map) {
                 console.log('🗺️ Initializing Google Map...');
                 
@@ -901,18 +875,33 @@ const ProfessionalTruckTracker: React.FC = () => {
 
             {/* Right Map */}
             <div className="flex-1 relative">
-                <div className="w-full h-full relative">
-                    {!mapLoaded ? (
+                <LoadScriptNext
+                    googleMapsApiKey={GOOGLE_MAPS_API_KEY}
+                    libraries={GOOGLE_MAPS_LIBRARIES}
+                    onLoad={() => setMapLoaded(true)}
+                    onError={() => setMapLoaded(false)}
+                    loadingElement={
                         <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                             <div className="text-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                                 <p className="text-gray-600">Loading Google Maps...</p>
                             </div>
                         </div>
-                    ) : (
-                        <div id="google-map" className="w-full h-full"></div>
-                    )}
-                </div>
+                    }
+                >
+                    <div className="w-full h-full relative">
+                        {mapLoaded ? (
+                            <div id="truck-google-map" className="w-full h-full"></div>
+                        ) : (
+                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                <div className="text-center">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                                    <p className="text-gray-600">Loading Google Maps...</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </LoadScriptNext>
 
                 {/* Status Legend */}
                 <div className="absolute top-4 left-4 bg-white p-3 rounded-lg shadow-lg text-xs">

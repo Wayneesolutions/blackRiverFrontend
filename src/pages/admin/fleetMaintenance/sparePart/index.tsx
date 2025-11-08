@@ -172,13 +172,15 @@ const SparePartsInventory = () => {
     const [showInvoiceModal, setShowInvoiceModal] = useState<boolean>(false);
     const [showSupplierModal, setShowSupplierModal] = useState<boolean>(false);
     const [showInvoiceDetailsModal, setShowInvoiceDetailsModal] = useState<boolean>(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
+    const [deleteTarget, setDeleteTarget] = useState<SparePart | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
     const [selectedPart, setSelectedPart] = useState<SparePart | null>(null);
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
     const [qtyUsedInput, setQtyUsedInput] = useState<string>('');
     const [spareParts, setSpareParts] = useState<SparePart[]>([]);
     const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-    const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [loadingWorkOrders, setLoadingWorkOrders] = useState<boolean>(false);
     const [submitting, setSubmitting] = useState<boolean>(false);
@@ -250,7 +252,6 @@ const SparePartsInventory = () => {
         if (!isSuperadmin && !hasCompany) {
             setSpareParts([]);
             setSuppliers([]);
-            setInvoices([]);
             setWorkOrders([]);
             setEmptyStateMessage(null);
             setLoading(false);
@@ -440,6 +441,110 @@ const SparePartsInventory = () => {
         setSubmitting(false);
     };
 
+    const handleEditPart = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!selectedPart) {
+            addNotification('error', 'No spare part selected for update');
+            return;
+        }
+
+        const formData = newPartRef.current;
+        if (!formData.partNumber || !formData.partName || !formData.stockQty) {
+            addNotification('error', 'Please fill all required fields');
+            return;
+        }
+
+        const payload = {
+            partNumber: formData.partNumber,
+            partName: formData.partName,
+            description: formData.description,
+            category: formData.category,
+            stockQty: Number(formData.stockQty) || 0,
+            minStockLevel: Number(formData.minStockLevel) || 0,
+            maxStockLevel: Number(formData.maxStockLevel) || 0,
+            buyingPrice: Number(formData.buyingPrice) || 0,
+            sellingPrice: Number(formData.sellingPrice) || 0,
+            purchaseDate: formData.purchaseDate || '',
+            supplier: formData.supplier || '',
+            location: formData.location || '',
+            condition: formData.condition as SparePart['condition'],
+            warrantyPeriod: Number(formData.warrantyPeriod) || 0,
+        };
+
+        setSubmitting(true);
+        try {
+            const res = await updateSparePart(selectedPart._id, payload);
+            if (res?.success) {
+                addNotification('success', res.message || 'Spare part updated successfully');
+                setShowEditModal(false);
+                setSelectedPart(null);
+                await fetchSpareParts();
+            } else {
+                addNotification('error', res?.message || 'Failed to update spare part');
+            }
+        } catch (err: any) {
+            console.error('Error updating spare part:', err);
+            addNotification('error', err?.message || 'Error updating spare part');
+        }
+        setSubmitting(false);
+    };
+
+    const handleCreateInvoice = () => {
+        setShowInvoiceModal(false);
+        navigate('/admin/fleetmaintenance/invoices');
+    };
+
+    const handleUsePart = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!selectedPart) {
+            addNotification('error', 'No spare part selected');
+            return;
+        }
+
+        const { workOrderId, qtyUsed } = usageDataRef.current;
+        const quantity = Number(qtyUsed);
+
+        if (!workOrderId) {
+            addNotification('error', 'Please select a work order');
+            return;
+        }
+
+        if (!quantity || quantity <= 0) {
+            addNotification('error', 'Enter a valid quantity to use');
+            return;
+        }
+
+        if (quantity > selectedPart.stockQty) {
+            addNotification('error', 'Quantity exceeds available stock');
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const res = await useSparePart(selectedPart._id, {
+                workOrderId,
+                qtyUsed: quantity,
+            });
+
+            if (res?.success) {
+                addNotification('success', res.message || 'Spare part usage recorded');
+                setShowUsageModal(false);
+                setSelectedPart(null);
+                usageDataRef.current = { workOrderId: '', qtyUsed: '' };
+                setQtyUsedInput('');
+                await fetchSpareParts();
+            } else {
+                addNotification('error', res?.message || 'Failed to record part usage');
+            }
+        } catch (err: any) {
+            console.error('Error using spare part:', err);
+            addNotification('error', err?.message || 'Error recording part usage');
+        }
+        setSubmitting(false);
+    };
+
     const handleAddSupplier = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -473,22 +578,35 @@ const SparePartsInventory = () => {
         setSubmitting(false);
     };
 
-    const handleDeletePart = async (partId: string) => {
-        if (!window.confirm('Are you sure you want to delete this part?')) return;
+    const handleDeletePart = (part: SparePart) => {
+        setDeleteTarget(part);
+        setDeleteModalOpen(true);
+    };
 
-        setSubmitting(true);
+    const closeDeleteModal = () => {
+        if (deleteLoading) return;
+        setDeleteModalOpen(false);
+        setDeleteTarget(null);
+        setDeleteLoading(false);
+    };
+
+    const confirmDeletePart = async () => {
+        if (!deleteTarget) return;
+        setDeleteLoading(true);
         try {
-            const res = await deleteSparePart(partId);
+            const res = await deleteSparePart(deleteTarget._id);
             if (res?.success) {
                 addNotification('success', res.message || 'Part deleted successfully');
+                closeDeleteModal();
                 await fetchSpareParts();
             } else {
                 addNotification('error', res?.message || 'Failed to delete part');
             }
         } catch (err: any) {
+            console.error('Error deleting part:', err);
             addNotification('error', err?.message || 'Error deleting part');
         }
-        setSubmitting(false);
+        setDeleteLoading(false);
     };
 
     const formatDate = (dateString: string): string => {
@@ -664,7 +782,7 @@ const SparePartsInventory = () => {
                             <div className="border-t border-gray-100 my-1"></div>
                             <button
                                 onClick={() => {
-                                    handleDeletePart(part._id);
+                                    handleDeletePart(part);
                                     setShowDropdown(false);
                                 }}
                                 className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
@@ -1421,6 +1539,34 @@ const SparePartsInventory = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {deleteModalOpen && deleteTarget && (
+                <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                        <h3 className="text-lg font-bold text-gray-900 mb-3">Delete Spare Part</h3>
+                        <p className="text-sm text-gray-600 mb-6">
+                            Are you sure you want to delete{' '}
+                            <span className="font-semibold text-gray-900">{deleteTarget.partName}</span>? This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={closeDeleteModal}
+                                disabled={deleteLoading}
+                                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDeletePart}
+                                disabled={deleteLoading}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                {deleteLoading ? 'Deleting...' : 'Delete'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

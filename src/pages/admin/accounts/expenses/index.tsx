@@ -380,32 +380,27 @@ const ExpensesPage = () => {
     );
   }
 
-  if (emptyStateMessage) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center text-center space-y-5">
-        <div className="fixed top-4 right-4 max-w-sm space-y-3">
-          {notifications.map((notification) => (
-            <Notification key={notification.id} notification={notification} onClose={removeNotification} />
-          ))}
-        </div>
-        <Building2 className="h-16 w-16 text-gray-400" />
-        <div className="space-y-3 max-w-md">
-          <h2 className="text-2xl font-semibold text-gray-800">No expense data available</h2>
-          <p className="text-gray-500">{emptyStateMessage}</p>
-        </div>
-        <button
-          onClick={fetchExpenses}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow"
-        >
-          Refresh
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
+        {emptyStateMessage && (
+          <div className="mb-6">
+            <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 shadow-sm">
+              <Building2 className="h-5 w-5 mt-0.5 text-blue-500" />
+              <div className="flex-1">
+                <p className="font-semibold text-blue-900">No expense data available</p>
+                <p className="mt-1">{emptyStateMessage}</p>
+                <button
+                  onClick={fetchExpenses}
+                  className="mt-3 inline-flex items-center rounded-lg border border-blue-400 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition"
+                >
+                  Refresh Data
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">

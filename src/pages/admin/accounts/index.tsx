@@ -1,16 +1,66 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Truck,  DollarSign, Users, Gauge, 
-  TrendingUp, AlertCircle, Calendar, FileText, Building2
+import { useState, useEffect } from 'react';
+import type { ComponentType } from 'react';
+import {
+  DollarSign,
+  Users,
+  Gauge,
+  TrendingUp,
+  AlertCircle,
+  Calendar,
+  FileText,
+  Building2,
 } from 'lucide-react';
 import { listInvoices } from '../../../axios/api/account.invoices';
 import { listExpenses } from '../../../axios/api/account.expense';
 import { listPayrolls } from '../../../axios/api/account.payroll';
 
+interface Invoice {
+  _id: string;
+  clientName?: string;
+  clientCompany?: string;
+  amount?: number | string;
+  status?: string;
+  dueDate?: string;
+}
+
+interface Expense {
+  _id: string;
+  type?: string;
+  amount?: number | string;
+  userId?: { name?: string };
+  date?: string;
+}
+
+interface Payroll {
+  _id: string;
+  totalSalary?: number | string;
+}
+
+interface TrendInfo {
+  value: string;
+  positive: boolean;
+}
+
+interface RecentExpense {
+  type: string;
+  amount: number;
+  employee: string;
+  date: string;
+}
+
+interface StatCardProps {
+  title: string;
+  value: string;
+  icon: ComponentType<{ size?: number; className?: string }>;
+  color?: 'green' | 'orange' | 'blue' | 'purple' | 'gray';
+  subtitle?: string;
+  trend?: TrendInfo | null;
+}
+
 const Dashboard = () => {
-  const [invoices, setInvoices] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [payrolls, setPayrolls] = useState([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [payrolls, setPayrolls] = useState<Payroll[]>([]);
   const [loading, setLoading] = useState(true);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
@@ -35,7 +85,7 @@ const Dashboard = () => {
         setInvoices([]);
         setExpenses([]);
         setPayrolls([]);
-        setEmptyStateMessage(null);
+        setEmptyStateMessage('Assign this account to a company to start tracking invoices, expenses, and payroll.');
         return;
       }
 
@@ -69,44 +119,73 @@ const Dashboard = () => {
     }
   };
 
+  const normalizeAmount = (value?: number | string) => {
+    const numeric = typeof value === 'string' ? parseFloat(value) : value;
+    return Number.isFinite(numeric) ? Number(numeric) : 0;
+  };
+
+  const formatDate = (value?: string) => (value ? new Date(value).toLocaleDateString() : 'N/A');
+
   // Calculate stats from real data
-  const totalRevenue = invoices.reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0);
-  const paidRevenue = invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0);
-  const pendingRevenue = invoices.filter(inv => inv.status === 'pending').reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0);
-  
-  const totalExpenses = expenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
-  const fuelExpenses = expenses.filter(exp => exp.type && exp.type.includes('Fuel')).reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
-  
-  const totalPayroll = payrolls.reduce((sum, payroll) => sum + (Number(payroll.totalSalary) || 0), 0);
+  const totalRevenue = invoices.reduce((sum, inv) => sum + normalizeAmount(inv.amount), 0);
+  const pendingRevenue = invoices
+    .filter((inv) => inv.status === 'pending')
+    .reduce((sum, inv) => sum + normalizeAmount(inv.amount), 0);
+
+  const totalExpenses = expenses.reduce((sum, exp) => sum + normalizeAmount(exp.amount), 0);
+
+  const totalPayroll = payrolls.reduce((sum, payroll) => sum + normalizeAmount(payroll.totalSalary), 0);
   const totalEmployees = payrolls.length;
 
-  const recentExpenses = expenses.slice(0, 4).map(exp => ({
+  const recentExpenses: RecentExpense[] = expenses.slice(0, 4).map((exp) => ({
     type: exp.type || 'Unknown',
-    amount: Number(exp.amount) || 0,
+    amount: normalizeAmount(exp.amount),
     employee: exp.userId?.name || 'Unknown',
-    date: exp.date ? new Date(exp.date).toLocaleDateString() : 'N/A'
+    date: formatDate(exp.date),
   }));
 
-  const StatCard = ({ title, value, icon: Icon, color = 'blue', subtitle = '', trend = null }) => (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
-          {trend && (
-            <div className={`flex items-center mt-2 text-sm ${trend.positive ? 'text-green-600' : 'text-red-600'}`}>
-              <TrendingUp size={14} className="mr-1" />
-              <span>{trend.value}</span>
-            </div>
-          )}
-        </div>
-        <div className={`p-3 rounded-full bg-${color}-100 flex-shrink-0`}>
-          <Icon className={`text-${color}-600`} size={24} />
+const StatCard = ({
+  title,
+  value,
+  icon: Icon,
+  color = 'blue',
+  subtitle = '',
+  trend = null,
+}: StatCardProps) => {
+    const colorMap: Record<string, { bg: string; text: string }> = {
+      green: { bg: 'bg-green-100', text: 'text-green-600' },
+      orange: { bg: 'bg-orange-100', text: 'text-orange-600' },
+      blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
+      purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
+      gray: { bg: 'bg-gray-100', text: 'text-gray-600' },
+    };
+    const palette = colorMap[color] || colorMap.gray;
+
+    return (
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+            {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+            {trend ? (
+              <div
+                className={`flex items-center mt-2 text-sm ${
+                  trend.positive ? 'text-green-600' : 'text-red-600'
+                }`}
+              >
+                <TrendingUp size={14} className="mr-1" />
+                <span>{trend.value}</span>
+              </div>
+            ) : null}
+          </div>
+          <div className={`p-3 rounded-full flex-shrink-0 ${palette.bg}`}>
+            <Icon className={palette.text} size={24} />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -117,25 +196,27 @@ const Dashboard = () => {
     );
   }
 
-  if (emptyStateMessage) {
-    return (
-      <div className="min-h-screen p-6 bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
-        <Building2 className="h-16 w-16 text-gray-400" />
-        <h2 className="text-2xl font-semibold text-gray-800">No accounts data available</h2>
-        <p className="text-gray-500 max-w-md">{emptyStateMessage}</p>
-        <button
-          onClick={fetchDashboardData}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow"
-        >
-          Refresh
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
+        {emptyStateMessage && (
+          <div className="mb-8">
+            <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 shadow-sm">
+              <Building2 className="h-5 w-5 mt-0.5 text-blue-500" />
+              <div className="flex-1">
+                <p className="font-semibold text-blue-900">Accounts data unavailable</p>
+                <p className="mt-1">{emptyStateMessage}</p>
+                <button
+                  onClick={fetchDashboardData}
+                  className="mt-3 inline-flex items-center rounded-lg border border-blue-400 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition"
+                >
+                  Refresh Data
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Fleet Management Dashboard</h1>
@@ -200,8 +281,8 @@ const Dashboard = () => {
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mb-1">{invoice.clientCompany || 'No company'}</p>
-                      <p className="text-sm text-gray-600 mb-1">Amount: ${Number(invoice.amount).toLocaleString()}</p>
-                      <p className="text-xs text-gray-500">Due: {new Date(invoice.dueDate).toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-600 mb-1">Amount: ${normalizeAmount(invoice.amount).toLocaleString()}</p>
+                      <p className="text-xs text-gray-500">Due: {formatDate(invoice.dueDate)}</p>
                     </div>
                   ))}
                 </div>

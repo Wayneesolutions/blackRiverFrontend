@@ -41,6 +41,25 @@ interface ChartData {
 }
 
 
+const sanitizeNumber = (value: any): number => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const normalizeMonthlyStat = (stat: Partial<MonthlyStats>): MonthlyStats => ({
+  month: stat.month || '',
+  year: sanitizeNumber(stat.year) || new Date().getFullYear(),
+  totalInspections: sanitizeNumber(stat.totalInspections),
+  passCount: sanitizeNumber(stat.passCount),
+  failCount: sanitizeNumber(stat.failCount),
+  warningCount: sanitizeNumber(stat.warningCount),
+  outOfServiceCount: sanitizeNumber(stat.outOfServiceCount),
+  canadaInspections: sanitizeNumber(stat.canadaInspections),
+  usaInspections: sanitizeNumber(stat.usaInspections),
+  vehiclesInspected: sanitizeNumber(stat.vehiclesInspected),
+  driversInspected: sanitizeNumber(stat.driversInspected),
+});
+
 const MonthlyReport: React.FC = () => {
   const [monthlyData, setMonthlyData] = useState<MonthlyStats[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -58,18 +77,26 @@ const MonthlyReport: React.FC = () => {
         const countryFilter = selectedCountry === 'all' ? undefined : selectedCountry;
         const res = await getCvsaMonthlyReport(selectedYear, countryFilter);
         
-        if (res?.success && res?.data?.monthlyData) {
-          setMonthlyData(res.data.monthlyData);
+        if (res?.success && Array.isArray(res?.data?.monthlyData)) {
+          const sanitized = res.data.monthlyData.map(normalizeMonthlyStat);
+          setMonthlyData(sanitized);
           // Set selected month to current month if not set or if selected month doesn't exist in new data
           const currentSelectedMonth = selectedMonth;
-          if (!currentSelectedMonth || !res.data.monthlyData.find(d => d.month === currentSelectedMonth)) {
+          if (!currentSelectedMonth || !sanitized.find(d => d.month === currentSelectedMonth)) {
             const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
-            const monthExists = res.data.monthlyData.find(d => d.month === currentMonthName);
-            setSelectedMonth(monthExists ? currentMonthName : (res.data.monthlyData[res.data.monthlyData.length - 1]?.month || ''));
+            const monthExists = sanitized.find(d => d.month === currentMonthName);
+            setSelectedMonth(monthExists ? currentMonthName : (sanitized[sanitized.length - 1]?.month || ''));
           }
+        } else {
+          setMonthlyData([]);
+          setSelectedMonth('');
+          setCurrentMonthData(null);
         }
       } catch (error) {
         console.error('Error fetching monthly report:', error);
+        setMonthlyData([]);
+        setSelectedMonth('');
+        setCurrentMonthData(null);
       } finally {
         setLoading(false);
       }
@@ -485,8 +512,15 @@ const MonthlyReport: React.FC = () => {
         </div>
       )}
 
+      {!loading && monthlyData.length === 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-12 text-center text-gray-500 border border-dashed border-gray-200">
+          <p className="text-xl font-semibold">No inspection data available for the selected filters.</p>
+          <p className="text-sm mt-2">Try choosing a different year or expanding the country filter.</p>
+        </div>
+      )}
+
       {/* Monthly Stats Cards */}
-      {!loading && currentMonthData && (
+      {!loading && currentMonthData && monthlyData.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <StatCard
             title="Total Inspections"
@@ -497,7 +531,9 @@ const MonthlyReport: React.FC = () => {
           />
           <StatCard
             title="Pass Rate"
-            value={Math.round((currentMonthData.passCount / currentMonthData.totalInspections) * 100)}
+            value={currentMonthData.totalInspections > 0
+              ? Math.round((currentMonthData.passCount / currentMonthData.totalInspections) * 100)
+              : 0}
             icon={<FaCheckCircle className="text-green-600" size={24} />}
             color="bg-green-50 border-green-200"
             subtitle={`${currentMonthData.passCount} passed`}

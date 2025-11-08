@@ -21,6 +21,8 @@ import {
     Lock,
     Unlock
 } from 'lucide-react';
+import { LoadScriptNext } from '@react-google-maps/api';
+import type { Libraries } from '@react-google-maps/api';
 import { getSocket } from "../../../../socket/socketClient";
 import { listTrailers } from '../../../../axios/api/trailerTracking';
 
@@ -103,6 +105,9 @@ declare global {
         initMap: () => void;
     }
 }
+
+const GOOGLE_MAPS_API_KEY = "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
+const GOOGLE_MAPS_LIBRARIES: Libraries = ["places"];
 
 const ProfessionalTrailerTracker: React.FC = () => {
     const [trailers, setTrailers] = useState<Trailer[]>([]);
@@ -215,46 +220,10 @@ const ProfessionalTrailerTracker: React.FC = () => {
         };
     }, [socket]);
 
-    // Load Google Maps
-    useEffect(() => {
-        const loadGoogleMaps = () => {
-            if (window.google && window.google.maps) {
-                setMapLoaded(true);
-                return;
-            }
-
-            const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-            if (existingScript) {
-                existingScript.remove();
-            }
-
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBxk4rW7mAOs6MhDSOklssvcqbJ6uXzgEQ&libraries=places,geometry&callback=initMap`;
-            script.async = true;
-            script.defer = true;
-
-            window.initMap = () => {
-                setMapLoaded(true);
-            };
-
-            script.onerror = (error) => {
-                console.error('Error loading Google Maps:', error);
-            };
-
-            document.head.appendChild(script);
-        };
-
-        loadGoogleMaps();
-
-        return () => {
-            (window as any).initMap = undefined;
-        };
-    }, []);
-
     // Initialize map
     useEffect(() => {
         if (mapLoaded && !map && window.google && window.google.maps) {
-            const mapElement = document.getElementById('google-map');
+            const mapElement = document.getElementById('trailer-google-map');
             if (mapElement) {
                 const newMap = new window.google.maps.Map(mapElement, {
                     center: { lat: 28.6139, lng: 77.2090 },
@@ -674,16 +643,31 @@ const ProfessionalTrailerTracker: React.FC = () => {
 
                 {/* Map */}
                 <div className="absolute inset-0 pt-20">
-                    {!mapLoaded ? (
-                        <div className="flex items-center justify-center h-full bg-gray-100">
-                            <div className="text-center">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-                                <p className="text-gray-600">Loading Google Maps...</p>
+                    <LoadScriptNext
+                        googleMapsApiKey={GOOGLE_MAPS_API_KEY}
+                        libraries={GOOGLE_MAPS_LIBRARIES}
+                        onLoad={() => setMapLoaded(true)}
+                        onError={() => setMapLoaded(false)}
+                        loadingElement={
+                            <div className="flex items-center justify-center h-full bg-gray-100">
+                                <div className="text-center">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+                                    <p className="text-gray-600">Loading Google Maps...</p>
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div id="google-map" className="w-full h-full"></div>
-                    )}
+                        }
+                    >
+                        {mapLoaded ? (
+                            <div id="trailer-google-map" className="w-full h-full"></div>
+                        ) : (
+                            <div className="flex items-center justify-center h-full bg-gray-100">
+                                <div className="text-center">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+                                    <p className="text-gray-600">Loading Google Maps...</p>
+                                </div>
+                            </div>
+                        )}
+                    </LoadScriptNext>
                 </div>
 
                 {/* Trailer Details Panel */}

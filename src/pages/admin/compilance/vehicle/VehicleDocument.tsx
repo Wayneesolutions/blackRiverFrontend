@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { FaCar, FaPlus, FaEdit, FaTrash, FaFileUpload, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaEye, FaDownload, FaTruck, FaTrailer } from "react-icons/fa";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import type { ReactNode } from "react";
+import { FaCar, FaPlus, FaEdit, FaTrash, FaFileUpload, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaEye, FaDownload, FaTrailer } from "react-icons/fa";
 import {
   getVehicleDocument,
   createVehicleDocument,
@@ -7,15 +8,32 @@ import {
   deleteVehicleDocument
 } from "../../../../axios/api/compilance.vehicledoc";
 import { useVehicles } from "../../../../customHooks/useVehicles";
+import { useTrailers } from "../../../../customHooks/useTrailers";
 
 // Types
+type AssetType = 'vehicle' | 'trailer';
+
 interface Vehicle {
   _id: string;
-  make: string;
-  model: string;
-  year: number;
-  plateNumber: string;
-  status: string;
+  make?: string;
+  model?: string;
+  year?: number | null;
+  plateNumber?: string;
+  status?: string;
+  internalId?: string;
+  assetType?: AssetType;
+  trailerName?: string;
+  type?: string;
+  capacity?: string;
+}
+
+interface DocumentFile {
+  _id?: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  uploadedAt: string;
+  fileType: string;
 }
 
 interface Document {
@@ -25,26 +43,24 @@ interface Document {
   expiryDate: string;
   issuedAt: string;
   status?: string;
+  documentLocation?: string;
   files?: DocumentFile[];
-}
-
-interface DocumentFile {
-  _id: string;
-  fileName: string;
-  fileUrl: string;
-  fileSize: number;
-  uploadedAt: string;
-  fileType: string;
+  assetType?: AssetType;
+  vehicleId?: string;
+  trailerId?: string;
 }
 
 interface VehicleDocument {
   _id: string;
+  assetType: AssetType;
   vehicle: Vehicle;
   documents: Document[];
 }
 
 interface FormData {
   vehicleId: string;
+  trailerId: string;
+  assetType: AssetType;
   documentType: 'insurance' | 'permit' | 'fitness' | 'pollution' | 'driver_license' | 'logbook' | 'maintenance' | 'trailer_registration' | 'safety_inspection' | 'brake_certificate' | 'coupling_certificate' | 'other';
   documentNumber: string;
   expiryDate: string;
@@ -63,6 +79,35 @@ interface DeleteConfirmation {
   show: boolean;
   docId: string | null;
 }
+
+const normalizeAsset = (entity: any, explicitType?: AssetType): Vehicle => {
+  const resolvedType: AssetType =
+    explicitType || entity?.assetType || (entity?.trailer || entity?.type ? "trailer" : "vehicle");
+  const id = entity?._id ? String(entity._id) : "";
+  const yearValue =
+    typeof entity?.year === "number"
+      ? entity.year
+      : entity?.year
+      ? Number(entity.year)
+      : null;
+
+  return {
+    _id: id,
+    make:
+      resolvedType === "trailer"
+        ? entity?.trailer || entity?.make || "Trailer"
+        : entity?.make || entity?.vehicle || "",
+    model: entity?.model ?? entity?.type ?? "",
+    year: yearValue,
+    plateNumber: entity?.plateNumber || entity?.vehicleNumber || "",
+    status: entity?.status || entity?.operationStatus || "available",
+    internalId: entity?.internalId || "",
+    assetType: resolvedType,
+    trailerName: entity?.trailer,
+    type: entity?.type,
+    capacity: entity?.capacity,
+  };
+};
 
 // Notification Component
 const Notification = ({ notification, onClose }: { notification: Notification; onClose: (id: number) => void }) => {
@@ -104,6 +149,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 
 function VehicleDocument() {
   const { vehicles } = useVehicles();
+  const { trailers } = useTrailers();
 
   const [vehicleDocuments, setVehicleDocuments] = useState<VehicleDocument[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -118,56 +164,130 @@ function VehicleDocument() {
   });
   const [showViewModal, setShowViewModal] = useState<boolean>(false);
   const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
-  const [activeTab, setActiveTab] = useState<'all' | 'truck' | 'trailer'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'trailer'>('all');
   const [formData, setFormData] = useState<FormData>({
     vehicleId: "",
+    trailerId: "",
+    assetType: "vehicle",
     documentType: "insurance",
     documentNumber: "",
     expiryDate: "",
     issuedAt: ""
   });
 
-  const addNotification = (type: NotificationType, message: string) => {
+  const normalizedVehicles = useMemo<Vehicle[]>(() => {
+    if (!Array.isArray(vehicles)) {
+      return [];
+    }
+    return vehicles.map((vehicle: any) => normalizeAsset(vehicle, "vehicle"));
+  }, [vehicles]);
+
+  const normalizedTrailers = useMemo<Vehicle[]>(() => {
+    if (!Array.isArray(trailers)) {
+      return [];
+    }
+    return trailers.map((trailer: any) => normalizeAsset(trailer, "trailer"));
+  }, [trailers]);
+
+  const addNotification = useCallback((type: NotificationType, message: string) => {
     const id = Date.now();
-    setNotifications(prev => [...prev, { id, type, message }]);
-  };
+    setNotifications((prev) => [...prev, { id, type, message }]);
+  }, []);
 
-  const removeNotification = (id: number) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  };
+  const removeNotification = useCallback((id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
 
-  const fetchAllDocuments = async () => {
+  const fallbackEntries = useMemo<VehicleDocument[]>(() => {
+    const vehicleEntries = normalizedVehicles.map((vehicle) => ({
+      _id: vehicle._id,
+      assetType: "vehicle" as AssetType,
+      vehicle,
+      documents: [],
+    }));
+    const trailerEntries = normalizedTrailers.map((trailer) => ({
+      _id: trailer._id,
+      assetType: "trailer" as AssetType,
+      vehicle: trailer,
+      documents: [],
+    }));
+    return [...vehicleEntries, ...trailerEntries];
+  }, [normalizedVehicles, normalizedTrailers]);
+
+  const fetchAllDocuments = useCallback(async () => {
     setLoading(true);
     try {
-      console.log('🔄 Fetching vehicle documents...');
       const res = await getVehicleDocument();
-      console.log('📡 Vehicle documents API response:', res);
-      
       if (res?.success) {
-        console.log('✅ Documents loaded successfully:', res.documentsByVehicle?.length || 0, 'vehicles with documents');
-        setVehicleDocuments(res.documentsByVehicle || []);
+        const mapped = new Map<string, VehicleDocument>();
+        const documentsByVehicle = Array.isArray(res?.documentsByVehicle) ? res.documentsByVehicle : [];
+
+        documentsByVehicle.forEach((item: any) => {
+          const assetType: AssetType =
+            item?.assetType === "trailer" || item?.assetType === "vehicle"
+              ? item.assetType
+              : item?.vehicle?.assetType === "trailer" ||
+                item?.vehicle?.type ||
+                item?.vehicle?.trailer
+              ? "trailer"
+              : "vehicle";
+
+          const normalized = normalizeAsset(item.vehicle ?? item.trailer ?? {}, assetType);
+          const key = `${assetType}:${normalized._id}`;
+
+          const documents = Array.isArray(item?.documents)
+            ? item.documents.map((doc: any) => ({
+                ...doc,
+                assetType:
+                  doc?.assetType === "trailer" || doc?.assetType === "vehicle"
+                    ? doc.assetType
+                    : assetType,
+                vehicleId: doc?.vehicleId ? String(doc.vehicleId) : undefined,
+                trailerId: doc?.trailerId ? String(doc.trailerId) : undefined,
+              }))
+            : [];
+
+          mapped.set(key, {
+            _id: normalized._id,
+            assetType,
+            vehicle: normalized,
+            documents,
+          });
+        });
+
+        fallbackEntries.forEach((entry) => {
+          const key = `${entry.assetType}:${entry._id}`;
+          if (!mapped.has(key)) {
+            mapped.set(key, entry);
+          }
+        });
+
+        setVehicleDocuments(Array.from(mapped.values()));
       } else {
-        console.error('❌ Failed to load documents:', res?.message);
-        addNotification('error', res?.message || 'Failed to fetch documents');
-        setVehicleDocuments([]);
+        console.error("❌ Failed to load documents:", res?.message);
+        addNotification("error", res?.message || "Failed to fetch documents");
+        setVehicleDocuments(fallbackEntries);
       }
     } catch (err: any) {
       console.error("❌ Error fetching documents:", err);
-      addNotification('error', err?.message || 'Failed to fetch documents');
-      setVehicleDocuments([]);
+      addNotification("error", err?.message || "Failed to fetch documents");
+      setVehicleDocuments(fallbackEntries);
     }
     setLoading(false);
-  };
+  }, [fallbackEntries, addNotification]);
 
   useEffect(() => {
     fetchAllDocuments();
-  }, []);
+  }, [fetchAllDocuments]);
 
   const handleAddDocument = () => {
     setEditingDoc(null);
     setSelectedFile(null);
+    const defaultAssetType: AssetType = activeTab === 'trailer' ? 'trailer' : 'vehicle';
     setFormData({
       vehicleId: "",
+      trailerId: "",
+      assetType: defaultAssetType,
       documentType: "insurance",
       documentNumber: "",
       expiryDate: "",
@@ -176,11 +296,28 @@ function VehicleDocument() {
     setShowDocModal(true);
   };
 
-  const handleEditDocument = (doc: Document, vehicleId: string) => {
+  const handleEditDocument = (doc: Document, asset: VehicleDocument) => {
     setEditingDoc(doc);
     setSelectedFile(null);
+    const inferredAssetType: AssetType =
+      doc?.assetType === "trailer" || doc?.assetType === "vehicle"
+        ? doc.assetType
+        : asset?.assetType === "trailer"
+        ? "trailer"
+        : doc?.trailerId
+        ? "trailer"
+        : "vehicle";
+
+    const rawId =
+      inferredAssetType === "trailer"
+        ? doc?.trailerId || asset?.vehicle?._id
+        : doc?.vehicleId || asset?.vehicle?._id;
+    const selectedAssetId = rawId ? String(rawId) : "";
+
     setFormData({
-      vehicleId: vehicleId,
+      vehicleId: inferredAssetType === "vehicle" ? selectedAssetId : "",
+      trailerId: inferredAssetType === "trailer" ? selectedAssetId : "",
+      assetType: inferredAssetType,
       documentType: doc.documentType || "insurance",
       documentNumber: doc.documentNumber || "",
       expiryDate: doc.expiryDate ? doc.expiryDate.split('T')[0] : "",
@@ -233,8 +370,28 @@ function VehicleDocument() {
     });
   };
 
+  const handleAssetTypeChange = (assetType: AssetType) => {
+    setFormData((prev) => ({
+      ...prev,
+      assetType,
+      vehicleId: assetType === "vehicle" ? prev.vehicleId : "",
+      trailerId: assetType === "trailer" ? prev.trailerId : "",
+    }));
+  };
+
+  const handleAssetSelectChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      vehicleId: prev.assetType === "vehicle" ? value : "",
+      trailerId: prev.assetType === "trailer" ? value : "",
+    }));
+  };
+
   const handleSubmitDocument = async () => {
-    if (!formData.vehicleId || !formData.documentNumber || !formData.expiryDate || !formData.issuedAt) {
+    const isTrailer = formData.assetType === "trailer";
+    const selectedAssetId = isTrailer ? formData.trailerId : formData.vehicleId;
+
+    if (!selectedAssetId || !formData.documentNumber || !formData.expiryDate || !formData.issuedAt) {
       addNotification('error', "Please fill all required fields");
       return;
     }
@@ -242,7 +399,14 @@ function VehicleDocument() {
     setSubmitting(true);
 
     const data = new FormData();
-    data.append("vehicleId", formData.vehicleId);
+    data.append("assetType", formData.assetType);
+    if (isTrailer) {
+      data.append("trailerId", selectedAssetId);
+      data.append("vehicleId", "");
+    } else {
+      data.append("vehicleId", selectedAssetId);
+      data.append("trailerId", "");
+    }
     data.append("documentType", formData.documentType);
     data.append("documentNumber", formData.documentNumber);
     data.append("expiryDate", formData.expiryDate);
@@ -293,15 +457,15 @@ function VehicleDocument() {
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
-  const getVehicleTypeIcon = (vehicleType: string) => {
-    switch (vehicleType?.toLowerCase()) {
-      case 'truck':
-        return <FaTruck className="text-blue-600" size={20} />;
-      case 'trailer':
-        return <FaTrailer className="text-green-600" size={20} />;
-      default:
-        return <FaCar className="text-gray-600" size={20} />;
+  const resolveAssetType = (value?: string): AssetType =>
+    value === "trailer" ? "trailer" : "vehicle";
+
+  const getVehicleTypeIcon = (value?: string) => {
+    const assetType = resolveAssetType(value);
+    if (assetType === "trailer") {
+      return <FaTrailer className="text-green-600" size={20} />;
     }
+    return <FaCar className="text-[#9793E4]" size={20} />;
   };
 
   const getDocumentTypeDisplayName = (docType: string) => {
@@ -323,89 +487,83 @@ function VehicleDocument() {
   };
 
   // Static vehicle type definitions
-  const getVehicleTypeInfo = (vehicleType: string) => {
-    const typeMap: { [key: string]: { name: string; icon: React.ReactElement; color: string; bgColor: string; description: string } } = {
-      'truck': {
-        name: 'Truck',
-        icon: <FaTruck className="text-blue-600" size={20} />,
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-50 border-blue-200',
-        description: 'Commercial truck vehicle'
-      },
-      'trailer': {
-        name: 'Trailer',
-        icon: <FaTrailer className="text-green-600" size={20} />,
-        color: 'text-green-600',
-        bgColor: 'bg-green-50 border-green-200',
-        description: 'Commercial trailer vehicle'
-      },
-      'car': {
-        name: 'Car',
-        icon: <FaCar className="text-gray-600" size={20} />,
-        color: 'text-gray-600',
-        bgColor: 'bg-gray-50 border-gray-200',
-        description: 'Passenger vehicle'
-      }
-    };
-    return typeMap[vehicleType?.toLowerCase()] || typeMap['car'];
+  const getVehicleTypeInfo = (value?: string) => {
+    const assetType = resolveAssetType(value);
+    const map: Record<AssetType, { name: string; icon: ReactNode; color: string; bgColor: string; description: string }> =
+      {
+        vehicle: {
+          name: "Vehicle",
+          icon: <FaCar className="text-[#9793E4]" size={20} />,
+          color: "text-[#4A45B0]",
+          bgColor: "bg-[#9793E4]/10 border-[#9793E4]/30",
+          description: "Company vehicle / truck asset",
+        },
+        trailer: {
+          name: "Trailer",
+          icon: <FaTrailer className="text-green-600" size={20} />,
+          color: "text-green-600",
+          bgColor: "bg-green-50 border-green-200",
+          description: "Company trailer asset",
+        },
+      };
+    return map[assetType];
   };
 
-  // Vehicles available to select in the Add/Edit modal based on active tab
-  const getSelectableVehicles = () => {
-    if (activeTab === 'all') return vehicles as Vehicle[];
-    return (vehicles as Vehicle[]).filter((v: Vehicle) => v.status?.toLowerCase() === activeTab);
+  const getSelectableAssets = useCallback(
+    (assetTypeOverride?: AssetType) => {
+      const resolvedType: AssetType =
+        assetTypeOverride ||
+        (activeTab === "trailer" ? "trailer" : "vehicle");
+      return resolvedType === "trailer" ? normalizedTrailers : normalizedVehicles;
+    },
+    [activeTab, normalizedTrailers, normalizedVehicles]
+  );
+
+  const getDocumentsWithFallback = () => {
+    if (vehicleDocuments.length) return vehicleDocuments;
+    return fallbackEntries;
   };
 
-  // Filter vehicles by type
   const getFilteredVehicles = () => {
-    if (activeTab === 'all') return vehicleDocuments;
-    return vehicleDocuments.filter(item => 
-      item.vehicle?.status?.toLowerCase() === activeTab
-    );
+    const docs = getDocumentsWithFallback();
+    if (activeTab === "trailer") {
+      return docs.filter((item) => item.assetType === "trailer");
+    }
+    return docs;
   };
 
-  // Get statistics for each tab
-  const getTabStats = () => {
-    const all = vehicleDocuments.length;
-    const trucks = vehicleDocuments.filter(item => 
-      item.vehicle?.status?.toLowerCase() === 'truck'
-    ).length;
-    const trailers = vehicleDocuments.filter(item => 
-      item.vehicle?.status?.toLowerCase() === 'trailer'
-    ).length;
-    
-    return { all, trucks, trailers };
-  };
-
-  const tabStats = getTabStats();
+  const tabStats = useMemo(() => {
+    const docs = getDocumentsWithFallback();
+    const all = docs.length;
+    const trailers = docs.filter((item) => item.assetType === "trailer").length;
+    return { all, trailers };
+  }, [vehicleDocuments, fallbackEntries, activeTab]);
 
   const DocumentModal = () => {
-    const selectedVehicle = getSelectableVehicles().find(v => v._id === formData.vehicleId);
-    
+    const currentAssetType = formData.assetType;
+    const selectableAssets = getSelectableAssets(currentAssetType);
+    const selectedAssetId = currentAssetType === "trailer" ? formData.trailerId : formData.vehicleId;
+    const selectedAsset = selectableAssets.find((asset) => asset._id === selectedAssetId);
+    const assetInfo = getVehicleTypeInfo(currentAssetType);
+
     return (
       <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
           {/* Modal Header */}
-          <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between rounded-t-2xl ${
-            activeTab === 'truck' ? 'bg-blue-50 border-blue-200' :
-            activeTab === 'trailer' ? 'bg-green-50 border-green-200' :
-            'bg-[#9793E4]/5 border-[#9793E4]/20'
-          }`}>
+          <div
+            className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between rounded-t-2xl ${
+              currentAssetType === "trailer" ? "bg-green-50 border-green-200" : "bg-[#9793E4]/5 border-[#9793E4]/20"
+            }`}
+          >
             <div className="flex items-center gap-3">
-              {activeTab === 'truck' && <FaTruck className="text-blue-600" size={20} />}
-              {activeTab === 'trailer' && <FaTrailer className="text-green-600" size={20} />}
-              {activeTab === 'all' && <FaCar className="text-[#9793E4]" size={20} />}
-              <h3 className={`text-xl font-bold ${
-                activeTab === 'truck' ? 'text-blue-800' :
-                activeTab === 'trailer' ? 'text-green-800' :
-                'text-gray-800'
-              }`}>
+              {getVehicleTypeIcon(currentAssetType)}
+              <h3
+                className={`text-xl font-bold ${currentAssetType === "trailer" ? "text-green-800" : "text-gray-800"}`}
+              >
                 {editingDoc ? "Update Document" : "Add New Document"}
-                {activeTab !== 'all' && (
-                  <span className="text-sm font-normal ml-2">
-                    ({activeTab === 'truck' ? 'Truck' : 'Trailer'} Documents)
-                  </span>
-                )}
+                <span className="text-sm font-normal ml-2">
+                  ({assetInfo.name} Documents)
+                </span>
               </h3>
             </div>
             <button
@@ -419,19 +577,47 @@ function VehicleDocument() {
 
         {/* Modal Body */}
         <div className="p-6 space-y-5">
+          {activeTab === "all" && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Asset Type <span className="text-red-500">*</span>
+              </label>
+              <div className="flex items-center gap-3">
+                {(["vehicle", "trailer"] as AssetType[]).map((type) => {
+                  const info = getVehicleTypeInfo(type);
+                  const isActive = currentAssetType === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => handleAssetTypeChange(type)}
+                      className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                        isActive
+                          ? `${info.bgColor} shadow-sm`
+                          : "bg-white border-gray-200 text-gray-600 hover:border-[#9793E4]/40"
+                      }`}
+                    >
+                      {info.icon}
+                      {info.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Vehicle Type Context */}
-          <div className={`p-4 rounded-lg border ${getVehicleTypeInfo(activeTab === 'all' ? 'car' : activeTab).bgColor}`}>
+          <div className={`p-4 rounded-lg border ${assetInfo.bgColor}`}>
             <div className="flex items-center gap-3">
-              {getVehicleTypeInfo(activeTab === 'all' ? 'car' : activeTab).icon}
+              {assetInfo.icon}
               <div>
-                <h4 className={`font-bold text-lg ${getVehicleTypeInfo(activeTab === 'all' ? 'car' : activeTab).color}`}>
-                  {activeTab === 'all' ? 'All Vehicle Types' : `${getVehicleTypeInfo(activeTab).name} Documents`}
+                <h4 className={`font-bold text-lg ${assetInfo.color}`}>
+                  {assetInfo.name} Documents
                 </h4>
                 <p className="text-sm text-gray-600">
-                  {activeTab === 'all' 
-                    ? 'Adding document for any vehicle type' 
-                    : `Adding document specifically for ${getVehicleTypeInfo(activeTab).name.toLowerCase()} vehicles`
-                  }
+                  {currentAssetType === "trailer"
+                    ? "Adding documentation for company trailers"
+                    : "Adding documentation for company vehicles"}
                 </p>
               </div>
             </div>
@@ -439,33 +625,34 @@ function VehicleDocument() {
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Select Vehicle <span className="text-red-500">*</span>
-              {activeTab !== 'all' && (
-                <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
-                  activeTab === 'truck' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-                }`}>
-                  {activeTab === 'truck' ? 'Trucks Only' : 'Trailers Only'}
+              Select {currentAssetType === "trailer" ? "Trailer" : "Vehicle"} <span className="text-red-500">*</span>
+              {currentAssetType === "trailer" && (
+                <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                  Trailers Only
                 </span>
               )}
             </label>
             <select
-              name="vehicleId"
               className="w-full border border-gray-300 rounded-lg p-3 bg-white focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
-              value={formData.vehicleId}
-              onChange={handleInputChange}
+              value={selectedAssetId}
+              onChange={(e) => handleAssetSelectChange(e.target.value)}
               required
             >
-              <option value="">-- Choose a Vehicle --</option>
-              {getSelectableVehicles().length === 0 ? (
+              <option value="">-- Choose an {currentAssetType === "trailer" ? "Trailer" : "Asset"} --</option>
+              {selectableAssets.length === 0 ? (
                 <option value="" disabled>
-                  {activeTab === 'truck' ? 'No trucks available' : activeTab === 'trailer' ? 'No trailers available' : 'No vehicles available'}
+                  {currentAssetType === "trailer" ? "No trailers available" : "No vehicles available"}
                 </option>
               ) : (
-                getSelectableVehicles().map((vehicle: Vehicle) => {
-                  const vehicleTypeInfo = getVehicleTypeInfo(vehicle.status || 'car');
+                selectableAssets.map((asset: Vehicle) => {
+                  const info = getVehicleTypeInfo(asset.assetType);
                   return (
-                    <option key={vehicle._id} value={vehicle._id}>
-                      {vehicleTypeInfo.name.toUpperCase()}: {vehicle.make} {vehicle.model} ({vehicle.year}) - {vehicle.plateNumber}
+                    <option key={asset._id} value={asset._id}>
+                      {info.name.toUpperCase()}:{" "}
+                      {asset.assetType === "trailer"
+                        ? `${asset.trailerName || asset.make || "Trailer"} (${asset.type || "Type N/A"})`
+                        : `${asset.make ?? "Vehicle"} ${asset.model ?? ""} (${asset.year ?? "N/A"})`}{" "}
+                      {asset.plateNumber ? `- ${asset.plateNumber}` : ""}
                     </option>
                   );
                 })
@@ -473,24 +660,28 @@ function VehicleDocument() {
             </select>
             
             {/* Selected Vehicle Info */}
-            {selectedVehicle && (
-              <div className={`mt-3 p-4 rounded-lg border ${getVehicleTypeInfo(selectedVehicle.status || 'car').bgColor}`}>
+            {selectedAsset && (
+              <div className={`mt-3 p-4 rounded-lg border ${getVehicleTypeInfo(selectedAsset.assetType).bgColor}`}>
                 <div className="flex items-center gap-3">
-                  {getVehicleTypeInfo(selectedVehicle.status || 'car').icon}
+                  {getVehicleTypeInfo(selectedAsset.assetType).icon}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`font-bold text-lg ${getVehicleTypeInfo(selectedVehicle.status || 'car').color}`}>
-                        {getVehicleTypeInfo(selectedVehicle.status || 'car').name.toUpperCase()}
+                      <span className={`font-bold text-lg ${getVehicleTypeInfo(selectedAsset.assetType).color}`}>
+                        {getVehicleTypeInfo(selectedAsset.assetType).name.toUpperCase()}
                       </span>
                       <span className="text-xs bg-white bg-opacity-50 px-2 py-1 rounded-full font-medium">
-                        {getVehicleTypeInfo(selectedVehicle.status || 'car').description}
+                        {getVehicleTypeInfo(selectedAsset.assetType).description}
                       </span>
                     </div>
                     <p className="font-semibold text-gray-800 text-lg">
-                      {selectedVehicle.make} {selectedVehicle.model}
+                      {selectedAsset.assetType === "trailer"
+                        ? selectedAsset.trailerName || selectedAsset.make
+                        : `${selectedAsset.make ?? ""} ${selectedAsset.model ?? ""}`}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {selectedVehicle.year} • Plate: {selectedVehicle.plateNumber}
+                      {selectedAsset.assetType === "trailer"
+                        ? `${selectedAsset.type || "Type N/A"}${selectedAsset.capacity ? ` • Capacity: ${selectedAsset.capacity}` : ""}`
+                        : `${selectedAsset.year ?? "Year N/A"} • Plate: ${selectedAsset.plateNumber || "N/A"}`}
                     </p>
                   </div>
                 </div>
@@ -501,10 +692,9 @@ function VehicleDocument() {
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Document Type <span className="text-red-500">*</span>
-              {selectedVehicle && (
+              {selectedAsset && (
                 <span className="text-xs text-gray-500 ml-2">
-                  ({selectedVehicle.status?.toLowerCase() === 'truck' ? 'Truck' : 
-                    selectedVehicle.status?.toLowerCase() === 'trailer' ? 'Trailer' : 'Vehicle'} Documents)
+                  ({selectedAsset.assetType === "trailer" ? "Trailer" : "Vehicle"} Documents)
                 </span>
               )}
             </label>
@@ -514,23 +704,14 @@ function VehicleDocument() {
               value={formData.documentType}
               onChange={handleInputChange}
             >
-              {/* Common Documents */}
               <option value="insurance">Insurance Certificate</option>
               <option value="permit">Operating Permit</option>
-              
-              {/* Truck-specific Documents */}
-              {(!selectedVehicle || selectedVehicle.status?.toLowerCase() === 'truck') && (
-                <>
-                  <option value="fitness">Fitness Certificate</option>
-                  <option value="pollution">Pollution Certificate</option>
-                  <option value="driver_license">Driver License</option>
-                  <option value="logbook">Logbook</option>
-                  <option value="maintenance">Maintenance Record</option>
-                </>
-              )}
-              
-              {/* Trailer-specific Documents */}
-              {selectedVehicle?.status?.toLowerCase() === 'trailer' && (
+              <option value="fitness">Fitness Certificate</option>
+              <option value="pollution">Pollution Certificate</option>
+              <option value="driver_license">Driver License</option>
+              <option value="logbook">Logbook</option>
+              <option value="maintenance">Maintenance Record</option>
+              {selectedAsset?.assetType === "trailer" && (
                 <>
                   <option value="trailer_registration">Trailer Registration</option>
                   <option value="safety_inspection">Safety Inspection</option>
@@ -538,8 +719,6 @@ function VehicleDocument() {
                   <option value="coupling_certificate">Coupling Certificate</option>
                 </>
               )}
-              
-              {/* General Documents */}
               <option value="other">Other Document</option>
             </select>
           </div>
@@ -688,7 +867,7 @@ function VehicleDocument() {
             {viewingDoc?.files && viewingDoc.files.length > 0 ? (
               <div className="space-y-3">
                 {viewingDoc.files.map((file) => (
-                  <div key={file._id} className="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all bg-white">
+                  <div key={file._id || file.fileUrl} className="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all bg-white">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-[#9793E4]/10 rounded-lg">
@@ -733,6 +912,14 @@ function VehicleDocument() {
               <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl">
                 <FaFileAlt size={40} className="mx-auto mb-3 opacity-30" />
                 <p className="text-sm font-medium">No files uploaded for this document</p>
+                {viewingDoc?.documentLocation && (
+                  <button
+                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] transition-colors"
+                    onClick={() => window.open(viewingDoc.documentLocation, '_blank')}
+                  >
+                    <FaEye size={16} /> View Document
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -806,22 +993,16 @@ function VehicleDocument() {
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Vehicle Documents</h1>
-        {activeTab !== 'all' && (
-          <button
-            onClick={handleAddDocument}
-            className={`flex items-center gap-2 px-5 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all font-medium ${
-              activeTab === 'truck' 
-                ? 'bg-blue-600 hover:bg-blue-700 !text-white' 
-                : 'bg-green-600 hover:bg-green-700 !text-white'
-            }`}
-          >
-            <FaPlus /> Add New Document
-          </button>
-        )}
+        <button
+          onClick={handleAddDocument}
+          className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] hover:bg-[#8783d4] !text-white rounded-lg shadow-lg hover:shadow-xl transition-all font-medium"
+        >
+          <FaPlus /> Add New Document
+        </button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-gray-100 rounded-xl">
@@ -830,17 +1011,6 @@ function VehicleDocument() {
             <div>
               <h3 className="text-2xl font-bold text-gray-800">{tabStats.all}</h3>
               <p className="text-gray-600 text-sm font-medium">Total Vehicles</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-100 rounded-xl">
-              <FaTruck className="text-blue-600" size={24} />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-blue-600">{tabStats.trucks}</h3>
-              <p className="text-gray-600 text-sm font-medium">Trucks</p>
             </div>
           </div>
         </div>
@@ -877,22 +1047,6 @@ function VehicleDocument() {
             </div>
           </button>
           <button
-            onClick={() => setActiveTab('truck')}
-            className={`flex-1 px-6 py-4 text-sm font-semibold transition-all ${
-              activeTab === 'truck'
-                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-2">
-              <FaTruck className="text-blue-500" size={16} />
-              Trucks
-              <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs font-medium">
-                {tabStats.trucks}
-              </span>
-            </div>
-          </button>
-          <button
             onClick={() => setActiveTab('trailer')}
             className={`flex-1 px-6 py-4 text-sm font-semibold transition-all ${
               activeTab === 'trailer'
@@ -923,12 +1077,6 @@ function VehicleDocument() {
               <FaCar size={64} className="mx-auto mb-4 text-gray-300" />
               <p className="text-xl font-semibold">No vehicles with documents found</p>
             </>
-          ) : activeTab === 'truck' ? (
-            <>
-              <FaTruck size={64} className="mx-auto mb-4 text-blue-300" />
-              <p className="text-xl font-semibold">No truck documents found</p>
-              <p className="text-gray-400 mt-2">Add documents for your trucks to see them here</p>
-            </>
           ) : (
             <>
               <FaTrailer size={64} className="mx-auto mb-4 text-green-300" />
@@ -939,39 +1087,46 @@ function VehicleDocument() {
         </div>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {getFilteredVehicles().map((item) => (
-            <div key={item._id} className="bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-200">
-              {/* Vehicle Header */}
-              <div className={`p-6 text-white ${
-                item.vehicle?.status?.toLowerCase() === 'truck' 
-                  ? 'bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700'
-                  : item.vehicle?.status?.toLowerCase() === 'trailer'
-                  ? 'bg-gradient-to-r from-green-500 via-green-600 to-green-700'
-                  : 'bg-gradient-to-r from-[#9793E4] via-[#8783D4] to-[#7773C4]'
-              }`}>
-                <div className="flex items-center gap-4">
-                  <div className="p-4 bg-white text-black bg-opacity-20 rounded-xl backdrop-blur-sm">
-                    {getVehicleTypeIcon(item.vehicle?.status || 'car')}
+          {getFilteredVehicles().map((item) => {
+            const assetType = resolveAssetType(item.assetType);
+            const gradientClass =
+              assetType === "trailer"
+                ? "bg-gradient-to-r from-green-500 via-green-600 to-green-700"
+                : "bg-gradient-to-r from-[#9793E4] via-[#8783D4] to-[#7773C4]";
+            const title =
+              assetType === "trailer"
+                ? item.vehicle?.trailerName || item.vehicle?.make || "Trailer"
+                : `${item.vehicle?.make ?? "Vehicle"} ${item.vehicle?.model ?? ""}`.trim();
+            const subtitle =
+              assetType === "trailer"
+                ? `${item.vehicle?.type || "Type N/A"}${item.vehicle?.capacity ? ` • Capacity: ${item.vehicle.capacity}` : ""}`
+                : `${item.vehicle?.year ?? "Year N/A"} • Plate: ${item.vehicle?.plateNumber || "N/A"}`;
+            const statusLabel =
+              assetType === "trailer"
+                ? item.vehicle?.type || "Trailer"
+                : item.vehicle?.status || "Vehicle";
+
+            return (
+              <div key={`${item.assetType}:${item._id}`} className="bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-200">
+                {/* Asset Header */}
+                <div className={`p-6 text-white ${gradientClass}`}>
+                  <div className="flex items-center gap-4">
+                    <div className="p-4 bg-white text-black bg-opacity-20 rounded-xl backdrop-blur-sm">
+                      {getVehicleTypeIcon(assetType)}
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold">
+                        {title}
+                      </h2>
+                      <p className="text-sm opacity-90 mt-1">
+                        {subtitle}
+                      </p>
+                    </div>
+                    <span className="px-4 py-1.5 text-black bg-white bg-opacity-20 rounded-full text-sm font-semibold capitalize backdrop-blur-sm">
+                      {statusLabel}
+                    </span>
                   </div>
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-bold">
-                      {item.vehicle?.make} {item.vehicle?.model}
-                    </h2>
-                    <p className="text-sm opacity-90 mt-1">
-                      {item.vehicle?.year} • Plate: {item.vehicle?.plateNumber}
-                    </p>
-                  </div>
-                  <span className={`px-4 py-1.5 text-black bg-white bg-opacity-20 rounded-full text-sm font-semibold capitalize backdrop-blur-sm ${
-                    item.vehicle?.status?.toLowerCase() === 'truck' 
-                      ? 'text-blue-800'
-                      : item.vehicle?.status?.toLowerCase() === 'trailer'
-                      ? 'text-green-800'
-                      : 'text-gray-800'
-                  }`}>
-                    {item.vehicle?.status}
-                  </span>
                 </div>
-              </div>
 
               {/* Documents List */}
               <div className="p-6">
@@ -1020,7 +1175,7 @@ function VehicleDocument() {
                             </button>
                             <button
                               className="p-2.5 text-[#9793E4] hover:bg-[#9793E4]/10 rounded-lg transition-all border border-[#9793E4]/30"
-                              onClick={() => handleEditDocument(doc, item.vehicle._id)}
+                              onClick={() => handleEditDocument(doc, item)}
                               title="Edit Document"
                             >
                               <FaEdit size={16} />
@@ -1053,7 +1208,8 @@ function VehicleDocument() {
                 )}
               </div>
             </div>
-          ))}
+          );
+        })}
         </div>
       )}
 

@@ -6,7 +6,6 @@ import ErrorBoundary from "../../components/common/ErrorBoundary";
 
 const CompilanceDashboard = lazy(()=>import('../../pages/admin/compilance/Dashboard'))
 const VehicleDocument = lazy(()=>import('../../pages/admin/compilance/vehicle/VehicleDocument'))
-const DriverDocumenet = lazy(()=>import('../../pages/admin/compilance/driver/DriverDocumenet'))
 const HosAndEld = lazy(()=>import('../../pages/admin/compilance/host/HosAndEld'))
 const CvsaInspection = lazy(()=>import('../../pages/admin/compilance/cvsa/CvsaInspection'))
 const MonthlyReport = lazy(()=>import('../../pages/admin/compilance/reports/MonthlyReport'))
@@ -21,7 +20,6 @@ function CompilanceRoute() {
           <Route index element={<ErrorBoundary><CompilanceDashboard /></ErrorBoundary>} />
           <Route path="compilance-summary" element={<ErrorBoundary><CompilanceDashboard /></ErrorBoundary>} />
           <Route path="vehicle-documents" element={<ErrorBoundary><VehicleDocument /></ErrorBoundary>} />
-          <Route path="driver-documents" element={<ErrorBoundary><DriverDocumenet /></ErrorBoundary>} />
           <Route path="hos-eld" element={<ErrorBoundary><HosAndEld /></ErrorBoundary>} />
           <Route path="cvsa-inspection" element={<ErrorBoundary><CvsaInspection /></ErrorBoundary>} />
           <Route path="monthly-report" element={<ErrorBoundary><MonthlyReport /></ErrorBoundary>} />

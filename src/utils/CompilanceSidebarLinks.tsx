@@ -36,11 +36,6 @@ export const CompilanceSidebarLinks: CompilanceSidebarLink[] = [
     //     label: "Slots",
     // },
     {
-        key: "driver-documents",
-        icon: <RiBillLine />,
-        label: "Driver Documents",
-    },
-    {
         key: "hos-eld",
         icon: <RiBillLine />,
         label: "HOST & ELD",

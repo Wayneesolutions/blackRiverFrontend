@@ -112,7 +112,7 @@ export const useExpiringDriverDocuments = () => {
     const handleViewDocuments = () => {
         // Navigate to driver documents page using React Router
         setShowExpiringPopup(false);
-        navigate('/admin/compliance/driver-documents');
+        navigate('/admin/compliance/compilance-summary');
     };
 
     return {
