@@ -21,7 +21,7 @@ import {
     Lock,
     Unlock
 } from 'lucide-react';
-import { LoadScriptNext } from '@react-google-maps/api';
+import { useJsApiLoader } from '@react-google-maps/api';
 import type { Libraries } from '@react-google-maps/api';
 import { getSocket } from "../../../../socket/socketClient";
 import { listTrailers } from '../../../../axios/api/trailerTracking';
@@ -107,21 +107,39 @@ declare global {
 }
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
-const GOOGLE_MAPS_LIBRARIES: Libraries = ["places"];
+const GOOGLE_MAPS_LIBRARIES = ["marker", "places"] as Libraries;
+const LEGACY_SCRIPT_IDS = ["truck-tracker-map-script", "trailer-tracker-map-script"];
+const GOOGLE_MAPS_MAP_ID = import.meta.env.VITE_GOOGLE_MAP_ID?.trim() || undefined;
+
+if (typeof window !== "undefined") {
+    LEGACY_SCRIPT_IDS.forEach((id) => {
+        const script = document.getElementById(id);
+        if (script && script.parentNode) {
+            script.parentNode.removeChild(script);
+        }
+    });
+}
 
 const ProfessionalTrailerTracker: React.FC = () => {
+    const { isLoaded, loadError } = useJsApiLoader({
+        id: 'google-maps-api',
+        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+        libraries: GOOGLE_MAPS_LIBRARIES,
+    });
+
     const [trailers, setTrailers] = useState<Trailer[]>([]);
     const [selectedTrailer, setSelectedTrailer] = useState<Trailer | null>(null);
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [showRoutes, setShowRoutes] = useState<boolean>(true);
     const [mapLoaded, setMapLoaded] = useState<boolean>(false);
-    const [map, setMap] = useState<any>(null);
+    const [map, setMap] = useState<google.maps.Map | null>(null);
     const [markers, setMarkers] = useState<any[]>([]);
     const [directionsRenderers, setDirectionsRenderers] = useState<any[]>([]);
     const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+    const [advancedMarkersEnabled, setAdvancedMarkersEnabled] = useState<boolean>(false);
 
     const socket = useMemo(() => getSocket(), []);
 
@@ -220,12 +238,28 @@ const ProfessionalTrailerTracker: React.FC = () => {
         };
     }, [socket]);
 
+    useEffect(() => {
+        if (isLoaded) {
+            setMapLoaded(true);
+        } else if (loadError) {
+            setMapLoaded(false);
+        }
+    }, [isLoaded, loadError]);
+
+    useEffect(() => {
+        if (mapLoaded && !GOOGLE_MAPS_MAP_ID) {
+            console.warn(
+                'Google Maps mapId is not configured (VITE_GOOGLE_MAP_ID). Falling back to standard markers.'
+            );
+        }
+    }, [mapLoaded]);
+
     // Initialize map
     useEffect(() => {
         if (mapLoaded && !map && window.google && window.google.maps) {
             const mapElement = document.getElementById('trailer-google-map');
             if (mapElement) {
-                const newMap = new window.google.maps.Map(mapElement, {
+                const mapOptions: google.maps.MapOptions = {
                     center: { lat: 28.6139, lng: 77.2090 },
                     zoom: 11,
                     mapTypeId: window.google.maps.MapTypeId.ROADMAP,
@@ -244,9 +278,16 @@ const ProfessionalTrailerTracker: React.FC = () => {
                     mapTypeControl: false,
                     fullscreenControl: false,
                     streetViewControl: false
-                });
+                };
+
+                if (GOOGLE_MAPS_MAP_ID) {
+                    mapOptions.mapId = GOOGLE_MAPS_MAP_ID;
+                }
+
+                const newMap = new window.google.maps.Map(mapElement, mapOptions);
 
                 setMap(newMap);
+                setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
 
                 newMap.addListener('click', () => {
                     setSelectedTrailer(null);
@@ -259,35 +300,76 @@ const ProfessionalTrailerTracker: React.FC = () => {
     useEffect(() => {
         if (map && window.google && window.google.maps) {
             // Clear existing markers and routes
-            markers.forEach(marker => marker.setMap(null));
+            markers.forEach(existingMarker => {
+                if (!existingMarker) return;
+                if (typeof existingMarker.setMap === 'function') {
+                    existingMarker.setMap(null);
+                } else if ('map' in existingMarker) {
+                    (existingMarker as { map: google.maps.Map | null }).map = null;
+                }
+            });
             directionsRenderers.forEach(renderer => renderer.setMap(null));
 
             const newMarkers: any[] = [];
             const newDirectionsRenderers: any[] = [];
 
             trailers.forEach((trailer) => {
-                // Create trailer marker
-                const marker = new window.google.maps.Marker({
-                    position: {
-                        lat: trailer.currentLocation.latitude,
-                        lng: trailer.currentLocation.longitude
-                    },
-                    map: map,
-                    title: `${trailer.plateNumber} - ${trailer.operationStatus || trailer.status}`,
-                    icon: {
-                        path: 'M2 6h20v12H2z M6 4v2 M18 4v2 M2 10h20 M6 18v2 M18 18v2',
-                        scale: 1.2,
-                        fillColor: getMarkerColor(trailer.operationStatus || trailer.status),
-                        fillOpacity: 1,
-                        strokeColor: '#ffffff',
-                        strokeWeight: 2,
-                        anchor: new window.google.maps.Point(12, 12)
-                    }
-                });
+                const lat = Number(trailer.currentLocation.latitude);
+                const lng = Number(trailer.currentLocation.longitude);
+
+                if (isNaN(lat) || isNaN(lng)) {
+                    console.error('❌ Invalid coordinates for trailer:', trailer.plateNumber, lat, lng);
+                    return;
+                }
+
+                const marker = advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement
+                    ? (() => {
+                        const markerElement = document.createElement('div');
+                        markerElement.style.width = '22px';
+                        markerElement.style.height = '22px';
+                        markerElement.style.borderRadius = '50%';
+                        markerElement.style.backgroundColor = getMarkerColor(trailer.operationStatus || trailer.status);
+                        markerElement.style.border = '2px solid #ffffff';
+                        markerElement.style.boxShadow = '0 6px 12px rgba(0,0,0,0.25)';
+                        markerElement.style.display = 'flex';
+                        markerElement.style.alignItems = 'center';
+                        markerElement.style.justifyContent = 'center';
+
+                        const innerDot = document.createElement('div');
+                        innerDot.style.width = '6px';
+                        innerDot.style.height = '6px';
+                        innerDot.style.borderRadius = '50%';
+                        innerDot.style.backgroundColor = '#ffffff';
+                        markerElement.appendChild(innerDot);
+
+                        return new window.google.maps.marker.AdvancedMarkerElement({
+                            position: { lat, lng },
+                            map,
+                            title: `${trailer.plateNumber} - ${trailer.operationStatus || trailer.status}`,
+                            content: markerElement
+                        });
+                    })()
+                    : new window.google.maps.Marker({
+                        position: { lat, lng },
+                        map,
+                        title: `${trailer.plateNumber} - ${trailer.operationStatus || trailer.status}`,
+                        icon: {
+                            path: 'M2 6h20v12H2z M6 4v2 M18 4v2 M2 10h20 M6 18v2 M18 18v2',
+                            scale: 1.2,
+                            fillColor: getMarkerColor(trailer.operationStatus || trailer.status),
+                            fillOpacity: 1,
+                            strokeColor: '#ffffff',
+                            strokeWeight: 2,
+                            anchor: new window.google.maps.Point(12, 12)
+                        }
+                    });
 
                 marker.addListener('click', () => {
                     setSelectedTrailer(trailer);
-                    map.setCenter(marker.getPosition());
+                    const markerPosition = marker.position as google.maps.LatLng | google.maps.LatLngLiteral | null | undefined;
+                    if (markerPosition) {
+                        map.setCenter(markerPosition as google.maps.LatLng | google.maps.LatLngLiteral);
+                    }
                     map.setZoom(15);
                 });
 
@@ -295,62 +377,125 @@ const ProfessionalTrailerTracker: React.FC = () => {
 
                 // Add route using Directions API if destination exists
                 if (trailer.destination && showRoutes && (trailer.operationStatus === 'in_transit' || trailer.status === 'moving')) {
-                    const directionsService = new window.google.maps.DirectionsService();
-                    const directionsRenderer = new window.google.maps.DirectionsRenderer({
-                        suppressMarkers: true,
-                        draggable: false,
-                        polylineOptions: {
-                            strokeColor: '#22c55e',
-                            strokeOpacity: 0.8,
-                            strokeWeight: 4,
-                        }
-                    });
+                    const destLat = Number(trailer.destination.latitude);
+                    const destLng = Number(trailer.destination.longitude);
 
-                    directionsRenderer.setMap(map);
+                    if (isNaN(destLat) || isNaN(destLng)) {
+                        console.warn('⚠️ Destination coordinates invalid for trailer:', trailer.plateNumber);
+                    } else {
+                        const directionsService = new window.google.maps.DirectionsService();
+                        const directionsRenderer = new window.google.maps.DirectionsRenderer({
+                            suppressMarkers: true,
+                            draggable: false,
+                            polylineOptions: {
+                                strokeColor: '#22c55e',
+                                strokeOpacity: 0.8,
+                                strokeWeight: 4,
+                            }
+                        });
 
-                    directionsService.route({
-                        origin: {
-                            lat: trailer.currentLocation.latitude,
-                            lng: trailer.currentLocation.longitude
-                        },
-                        destination: {
-                            lat: trailer.destination.latitude,
-                            lng: trailer.destination.longitude
-                        },
-                        travelMode: window.google.maps.TravelMode.DRIVING,
-                        optimizeWaypoints: true,
-                        avoidHighways: false,
-                        avoidTolls: false
-                    }, (result: any, status: any) => {
-                        if (status === 'OK') {
-                            directionsRenderer.setDirections(result);
-                        }
-                    });
+                        directionsRenderer.setMap(map);
 
-                    newDirectionsRenderers.push(directionsRenderer);
+                        directionsService.route({
+                            origin: {
+                                lat,
+                                lng
+                            },
+                            destination: {
+                                lat: destLat,
+                                lng: destLng
+                            },
+                            travelMode: window.google.maps.TravelMode.DRIVING,
+                            optimizeWaypoints: true,
+                            avoidHighways: false,
+                            avoidTolls: false
+                        }, (result: any, status: any) => {
+                            if (status === 'OK') {
+                                directionsRenderer.setDirections(result);
+                            }
+                        });
 
-                    // Add destination marker
-                    const destinationMarker = new window.google.maps.Marker({
-                        position: {
-                            lat: trailer.destination.latitude,
-                            lng: trailer.destination.longitude
-                        },
-                        map: map,
-                        title: `Destination: ${trailer.destination.address}`,
-                        icon: {
-                            path: 'M12 2L13.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L10.91 8.26L12 2Z',
-                            scale: 0.6,
-                            fillColor: '#3b82f6',
-                            fillOpacity: 0.9,
-                            strokeColor: '#ffffff',
-                            strokeWeight: 1,
-                            anchor: new window.google.maps.Point(12, 12)
-                        }
-                    });
+                        newDirectionsRenderers.push(directionsRenderer);
 
-                    newMarkers.push(destinationMarker);
+                        const destinationMarker = advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement
+                            ? (() => {
+                                const destinationMarkerElement = document.createElement('div');
+                                destinationMarkerElement.style.padding = '6px 10px';
+                                destinationMarkerElement.style.borderRadius = '9999px';
+                                destinationMarkerElement.style.backgroundColor = '#3b82f6';
+                                destinationMarkerElement.style.color = '#ffffff';
+                                destinationMarkerElement.style.fontSize = '10px';
+                                destinationMarkerElement.style.fontWeight = '600';
+                                destinationMarkerElement.style.boxShadow = '0 6px 12px rgba(59,130,246,0.35)';
+                                destinationMarkerElement.textContent = 'DEST';
+
+                                return new window.google.maps.marker.AdvancedMarkerElement({
+                                    position: {
+                                        lat: destLat,
+                                        lng: destLng
+                                    },
+                                    map,
+                                    title: `Destination: ${trailer.destination.address}`,
+                                    content: destinationMarkerElement
+                                });
+                            })()
+                            : new window.google.maps.Marker({
+                                position: {
+                                    lat: destLat,
+                                    lng: destLng
+                                },
+                                map,
+                                title: `Destination: ${trailer.destination.address}`,
+                                icon: {
+                                    path: 'M12 2L13.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L10.91 8.26L12 2Z',
+                                    scale: 0.6,
+                                    fillColor: '#3b82f6',
+                                    fillOpacity: 0.9,
+                                    strokeColor: '#ffffff',
+                                    strokeWeight: 1,
+                                    anchor: new window.google.maps.Point(12, 12)
+                                }
+                            });
+
+                        newMarkers.push(destinationMarker);
+                    }
                 }
             });
+
+            if (newMarkers.length === 0) {
+                const testMarker = advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement
+                    ? (() => {
+                        const fallbackElement = document.createElement('div');
+                        fallbackElement.style.width = '24px';
+                        fallbackElement.style.height = '24px';
+                        fallbackElement.style.borderRadius = '50%';
+                        fallbackElement.style.background = 'linear-gradient(135deg, #6366f1, #8b5cf6)';
+                        fallbackElement.style.border = '2px solid #ffffff';
+                        fallbackElement.style.boxShadow = '0 8px 16px rgba(99,102,241,0.4)';
+
+                        return new window.google.maps.marker.AdvancedMarkerElement({
+                            position: { lat: 28.6139, lng: 77.209 },
+                            map,
+                            title: 'Test Marker - No trailers found',
+                            content: fallbackElement
+                        });
+                    })()
+                    : new window.google.maps.Marker({
+                        position: { lat: 28.6139, lng: 77.209 },
+                        map,
+                        title: 'Test Marker - No trailers found',
+                        icon: {
+                            path: window.google.maps.SymbolPath.CIRCLE,
+                            scale: 10,
+                            fillColor: '#6366f1',
+                            fillOpacity: 0.8,
+                            strokeColor: '#ffffff',
+                            strokeWeight: 2
+                        }
+                    });
+
+                newMarkers.push(testMarker);
+            }
 
             setMarkers(newMarkers);
             setDirectionsRenderers(newDirectionsRenderers);
@@ -523,8 +668,8 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                             setSelectedTrailer(trailer);
                                             if (map) {
                                                 map.setCenter({
-                                                    lat: trailer.currentLocation.latitude,
-                                                    lng: trailer.currentLocation.longitude
+                                                    lat: Number(trailer.currentLocation.latitude),
+                                                    lng: Number(trailer.currentLocation.longitude)
                                                 });
                                                 map.setZoom(15);
                                             }
@@ -643,31 +788,25 @@ const ProfessionalTrailerTracker: React.FC = () => {
 
                 {/* Map */}
                 <div className="absolute inset-0 pt-20">
-                    <LoadScriptNext
-                        googleMapsApiKey={GOOGLE_MAPS_API_KEY}
-                        libraries={GOOGLE_MAPS_LIBRARIES}
-                        onLoad={() => setMapLoaded(true)}
-                        onError={() => setMapLoaded(false)}
-                        loadingElement={
-                            <div className="flex items-center justify-center h-full bg-gray-100">
-                                <div className="text-center">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-                                    <p className="text-gray-600">Loading Google Maps...</p>
-                                </div>
+                    {!isLoaded && !loadError && (
+                        <div className="flex items-center justify-center h-full bg-gray-100">
+                            <div className="text-center">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+                                <p className="text-gray-600">Loading Google Maps...</p>
                             </div>
-                        }
-                    >
-                        {mapLoaded ? (
-                            <div id="trailer-google-map" className="w-full h-full"></div>
-                        ) : (
-                            <div className="flex items-center justify-center h-full bg-gray-100">
-                                <div className="text-center">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-                                    <p className="text-gray-600">Loading Google Maps...</p>
-                                </div>
+                        </div>
+                    )}
+                    {loadError && (
+                        <div className="flex items-center justify-center h-full bg-gray-100">
+                            <div className="text-center text-gray-600 space-y-2">
+                                <div className="font-semibold text-red-500">Failed to load Google Maps</div>
+                                <p className="text-sm">Please check your network connection and try again.</p>
                             </div>
-                        )}
-                    </LoadScriptNext>
+                        </div>
+                    )}
+                    {isLoaded && (
+                        <div id="trailer-google-map" className="w-full h-full"></div>
+                    )}
                 </div>
 
                 {/* Trailer Details Panel */}

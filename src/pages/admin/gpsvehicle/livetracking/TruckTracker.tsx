@@ -16,7 +16,7 @@ import {
     ExternalLink,
     ChevronLeft
 } from 'lucide-react';
-import { LoadScriptNext } from '@react-google-maps/api';
+import { useJsApiLoader } from '@react-google-maps/api';
 import type { Libraries } from '@react-google-maps/api';
 import { getSocket } from "../../../../socket/socketClient";
 import { listTrucks } from '../../../../axios/api/truckTracking';
@@ -128,16 +128,33 @@ declare global {
 }
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
-const GOOGLE_MAPS_LIBRARIES: Libraries = ["places"];
+const GOOGLE_MAPS_LIBRARIES = ["marker", "places"] as Libraries;
+const LEGACY_SCRIPT_IDS = ["truck-tracker-map-script", "trailer-tracker-map-script"];
+const GOOGLE_MAPS_MAP_ID = import.meta.env.VITE_GOOGLE_MAP_ID?.trim() || undefined;
+
+if (typeof window !== "undefined") {
+    LEGACY_SCRIPT_IDS.forEach((id) => {
+        const script = document.getElementById(id);
+        if (script && script.parentNode) {
+            script.parentNode.removeChild(script);
+        }
+    });
+}
 
 const ProfessionalTruckTracker: React.FC = () => {
+    const { isLoaded, loadError } = useJsApiLoader({
+        id: 'google-maps-api',
+        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+        libraries: GOOGLE_MAPS_LIBRARIES,
+    });
+
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [showRoutes, setShowRoutes] = useState<boolean>(true);
     const [mapLoaded, setMapLoaded] = useState<boolean>(false);
-    const [map, setMap] = useState<any>(null);
+    const [map, setMap] = useState<google.maps.Map | null>(null);
     const [markers, setMarkers] = useState<any[]>([]);
     const [directionsRenderers, setDirectionsRenderers] = useState<any[]>([]);
     const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
@@ -145,8 +162,25 @@ const ProfessionalTruckTracker: React.FC = () => {
     const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
     const [, setLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+    const [advancedMarkersEnabled, setAdvancedMarkersEnabled] = useState<boolean>(false);
 
     const socket = useMemo(() => getSocket(), []);
+
+    useEffect(() => {
+        if (isLoaded) {
+            setMapLoaded(true);
+        } else if (loadError) {
+            setMapLoaded(false);
+        }
+    }, [isLoaded, loadError]);
+
+    useEffect(() => {
+        if (mapLoaded && !GOOGLE_MAPS_MAP_ID) {
+            console.warn(
+                'Google Maps mapId is not configured (VITE_GOOGLE_MAP_ID). Falling back to standard markers.'
+            );
+        }
+    }, [mapLoaded]);
 
     // Handle vehicle selection
     const handleVehicleClick = useCallback((vehicle: Vehicle) => {
@@ -303,6 +337,37 @@ const ProfessionalTruckTracker: React.FC = () => {
         }));
     };
 
+    // Load Google Maps
+    useEffect(() => {
+        const loadGoogleMaps = () => {
+            if (window.google && window.google.maps) {
+                setMapLoaded(true);
+                return;
+            }
+
+            const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+            if (existingScript) {
+                existingScript.remove();
+            }
+
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4&libraries=places,directions`;
+            script.async = true;
+            script.defer = true;
+            script.onload = () => {
+                setMapLoaded(true);
+            };
+
+            document.head.appendChild(script);
+        };
+
+        loadGoogleMaps();
+
+        return () => {
+            (window as any).initMap = undefined;
+        };
+    }, []);
+
     // Initialize map
     useEffect(() => {
         if (mapLoaded && window.google && window.google.maps) {
@@ -324,20 +389,28 @@ const ProfessionalTruckTracker: React.FC = () => {
                     console.log('📍 Centering map on first vehicle:', firstVehicle.plateNumber, center);
                 }
                 
-                const newMap = new window.google.maps.Map(mapElement, {
-                    center: center,
-                    zoom: zoom,
-                    styles: [
-                        {
-                            featureType: 'poi',
-                            elementType: 'labels',
-                            stylers: [{ visibility: 'off' }]
-                        }
-                    ]
-                });
+                const mapOptions: google.maps.MapOptions = {
+                    center,
+                    zoom,
+                    styles: [{
+                        featureType: 'poi',
+                        elementType: 'labels',
+                        stylers: [{ visibility: 'off' }]
+                    }],
+                    mapTypeId: window.google.maps.MapTypeId.ROADMAP,
+                    clickableIcons: true,
+                    gestureHandling: 'greedy',
+                };
+
+                if (GOOGLE_MAPS_MAP_ID) {
+                    mapOptions.mapId = GOOGLE_MAPS_MAP_ID;
+                }
+
+                const newMap = new window.google.maps.Map(mapElement, mapOptions);
                 
                 console.log('✅ Google Map initialized successfully');
                 setMap(newMap);
+                setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
             }
         }
     }, [mapLoaded, vehicles, map]);
@@ -349,7 +422,14 @@ const ProfessionalTruckTracker: React.FC = () => {
             console.log('🔍 Current filter status:', filterStatus);
             
             // Clear existing markers and directions
-            markers.forEach(marker => marker.setMap(null));
+            markers.forEach(existingMarker => {
+                if (!existingMarker) return;
+                if (typeof existingMarker.setMap === 'function') {
+                    existingMarker.setMap(null);
+                } else if ('map' in existingMarker) {
+                    (existingMarker as { map: google.maps.Map | null }).map = null;
+                }
+            });
             directionsRenderers.forEach(renderer => renderer.setMap(null));
 
             const newMarkers: any[] = [];
@@ -380,31 +460,56 @@ const ProfessionalTruckTracker: React.FC = () => {
                     return;
                 }
 
-                // Create marker with truck icon
-                const marker = new window.google.maps.Marker({
-                    position: {
-                        lat: lat,
-                        lng: lng
-                    },
-                    map: map,
-                    title: `${vehicle.plateNumber} - ${vehicle.status}`,
-                    // Use truck icon
-                    icon: {
-                        path: 'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H5V21H19V9Z',
-                        scale: 1.5,
-                        fillColor: getMarkerColor(vehicle.status),
-                        fillOpacity: 0.9,
-                        strokeColor: '#ffffff',
-                        strokeWeight: 2,
-                        anchor: new window.google.maps.Point(12, 12)
-                    }
-                });
+                const marker = advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement
+                    ? (() => {
+                        const markerElement = document.createElement('div');
+                        markerElement.style.width = '22px';
+                        markerElement.style.height = '22px';
+                        markerElement.style.borderRadius = '50%';
+                        markerElement.style.backgroundColor = getMarkerColor(vehicle.status);
+                        markerElement.style.border = '2px solid #ffffff';
+                        markerElement.style.boxShadow = '0 6px 12px rgba(0,0,0,0.25)';
+                        markerElement.style.display = 'flex';
+                        markerElement.style.alignItems = 'center';
+                        markerElement.style.justifyContent = 'center';
+
+                        const innerDot = document.createElement('div');
+                        innerDot.style.width = '6px';
+                        innerDot.style.height = '6px';
+                        innerDot.style.borderRadius = '50%';
+                        innerDot.style.backgroundColor = '#ffffff';
+                        markerElement.appendChild(innerDot);
+
+                        return new window.google.maps.marker.AdvancedMarkerElement({
+                            position: { lat, lng },
+                            map,
+                            title: `${vehicle.plateNumber} - ${vehicle.status}`,
+                            content: markerElement
+                        });
+                    })()
+                    : new window.google.maps.Marker({
+                        position: { lat, lng },
+                        map,
+                        title: `${vehicle.plateNumber} - ${vehicle.status}`,
+                        icon: {
+                            path: 'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H5V21H19V9Z',
+                            scale: 1.5,
+                            fillColor: getMarkerColor(vehicle.status),
+                            fillOpacity: 0.9,
+                            strokeColor: '#ffffff',
+                            strokeWeight: 2,
+                            anchor: new window.google.maps.Point(12, 12)
+                        }
+                    });
 
                 marker.addListener('click', () => {
                     console.log('📍 Marker clicked for vehicle:', vehicle.plateNumber);
                     handleVehicleClick(vehicle);
                     // Center map on clicked vehicle
-                    map.setCenter(marker.getPosition()!);
+                    const markerPosition = marker.position as google.maps.LatLng | google.maps.LatLngLiteral | null | undefined;
+                    if (markerPosition) {
+                        map.setCenter(markerPosition as google.maps.LatLng | google.maps.LatLngLiteral);
+                    }
                     map.setZoom(15);
                 });
 
@@ -444,23 +549,45 @@ const ProfessionalTruckTracker: React.FC = () => {
                     newDirectionsRenderers.push(directionsRenderer);
 
                     // Add destination marker
-                    const destinationMarker = new window.google.maps.Marker({
-                        position: {
-                            lat: Number(vehicle.destination.latitude),
-                            lng: Number(vehicle.destination.longitude)
-                        },
-                        map: map,
-                        title: `Destination: ${vehicle.destination.address}`,
-                        icon: {
-                            path: 'M12 2L13.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L10.91 8.26L12 2Z',
-                            scale: 0.6,
-                            fillColor: '#3b82f6',
-                            fillOpacity: 1,
-                            strokeColor: '#ffffff',
-                            strokeWeight: 1,
-                            anchor: new window.google.maps.Point(12, 12)
-                        }
-                    });
+                    const destinationMarker = advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement
+                        ? (() => {
+                            const destinationMarkerElement = document.createElement('div');
+                            destinationMarkerElement.style.padding = '6px 10px';
+                            destinationMarkerElement.style.borderRadius = '9999px';
+                            destinationMarkerElement.style.backgroundColor = '#3b82f6';
+                            destinationMarkerElement.style.color = '#ffffff';
+                            destinationMarkerElement.style.fontSize = '10px';
+                            destinationMarkerElement.style.fontWeight = '600';
+                            destinationMarkerElement.style.boxShadow = '0 6px 12px rgba(59,130,246,0.35)';
+                            destinationMarkerElement.textContent = 'DEST';
+
+                            return new window.google.maps.marker.AdvancedMarkerElement({
+                                position: {
+                                    lat: Number(vehicle.destination.latitude),
+                                    lng: Number(vehicle.destination.longitude)
+                                },
+                                map,
+                                title: `Destination: ${vehicle.destination.address}`,
+                                content: destinationMarkerElement
+                            });
+                        })()
+                        : new window.google.maps.Marker({
+                            position: {
+                                lat: Number(vehicle.destination.latitude),
+                                lng: Number(vehicle.destination.longitude)
+                            },
+                            map,
+                            title: `Destination: ${vehicle.destination.address}`,
+                            icon: {
+                                path: 'M12 2L13.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L10.91 8.26L12 2Z',
+                                scale: 0.6,
+                                fillColor: '#3b82f6',
+                                fillOpacity: 1,
+                                strokeColor: '#ffffff',
+                                strokeWeight: 1,
+                                anchor: new window.google.maps.Point(12, 12)
+                            }
+                        });
 
                     newMarkers.push(destinationMarker);
                 }
@@ -469,19 +596,36 @@ const ProfessionalTruckTracker: React.FC = () => {
             // If no vehicles, add a test marker to verify map is working
             if (newMarkers.length === 0) {
                 console.log('⚠️ No vehicles found, adding test marker');
-                const testMarker = new window.google.maps.Marker({
-                    position: { lat: 20.5937, lng: 78.9629 },
-                    map: map,
-                    title: 'Test Marker - No vehicles found',
-                    icon: {
-                        path: window.google.maps.SymbolPath.CIRCLE,
-                        scale: 10,
-                        fillColor: '#ff0000',
-                        fillOpacity: 0.8,
-                        strokeColor: '#ffffff',
-                        strokeWeight: 2
-                    }
-                });
+                const testMarker = advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement
+                    ? (() => {
+                        const fallbackElement = document.createElement('div');
+                        fallbackElement.style.width = '24px';
+                        fallbackElement.style.height = '24px';
+                        fallbackElement.style.borderRadius = '50%';
+                        fallbackElement.style.background = 'linear-gradient(135deg, #6366f1, #8b5cf6)';
+                        fallbackElement.style.border = '2px solid #ffffff';
+                        fallbackElement.style.boxShadow = '0 8px 16px rgba(99,102,241,0.4)';
+
+                        return new window.google.maps.marker.AdvancedMarkerElement({
+                            position: { lat: 20.5937, lng: 78.9629 },
+                            map,
+                            title: 'Test Marker - No vehicles found',
+                            content: fallbackElement
+                        });
+                    })()
+                    : new window.google.maps.Marker({
+                        position: { lat: 20.5937, lng: 78.9629 },
+                        map,
+                        title: 'Test Marker - No vehicles found',
+                        icon: {
+                            path: window.google.maps.SymbolPath.CIRCLE,
+                            scale: 10,
+                            fillColor: '#6366f1',
+                            fillOpacity: 0.8,
+                            strokeColor: '#ffffff',
+                            strokeWeight: 2
+                        }
+                    });
                 newMarkers.push(testMarker);
             }
 
@@ -875,33 +1019,27 @@ const ProfessionalTruckTracker: React.FC = () => {
 
             {/* Right Map */}
             <div className="flex-1 relative">
-                <LoadScriptNext
-                    googleMapsApiKey={GOOGLE_MAPS_API_KEY}
-                    libraries={GOOGLE_MAPS_LIBRARIES}
-                    onLoad={() => setMapLoaded(true)}
-                    onError={() => setMapLoaded(false)}
-                    loadingElement={
+                <div className="w-full h-full relative">
+                    {!isLoaded && !loadError && (
                         <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                             <div className="text-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                                 <p className="text-gray-600">Loading Google Maps...</p>
                             </div>
                         </div>
-                    }
-                >
-                    <div className="w-full h-full relative">
-                        {mapLoaded ? (
-                            <div id="truck-google-map" className="w-full h-full"></div>
-                        ) : (
-                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                <div className="text-center">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                                    <p className="text-gray-600">Loading Google Maps...</p>
-                                </div>
+                    )}
+                    {loadError && (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                            <div className="text-center text-gray-600 space-y-2">
+                                <div className="font-semibold text-red-500">Failed to load Google Maps</div>
+                                <p className="text-sm">Please check your network connection and try again.</p>
                             </div>
-                        )}
-                    </div>
-                </LoadScriptNext>
+                        </div>
+                    )}
+                    {isLoaded && (
+                        <div id="truck-google-map" className="w-full h-full"></div>
+                    )}
+                </div>
 
                 {/* Status Legend */}
                 <div className="absolute top-4 left-4 bg-white p-3 rounded-lg shadow-lg text-xs">
