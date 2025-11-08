@@ -12,10 +12,46 @@ const ServicePage = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedService, setSelectedService] = useState(null);
+  const [selectedService, setSelectedService] = useState<any>(null);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
-  const [updateData, setUpdateData] = useState({});
+  const [updateForm, setUpdateForm] = useState({
+    serviceName: "",
+    orderType: "",
+    price: "",
+    rateCalculationMethod: "",
+    duration: "",
+    cashOnDeliver: false,
+    cashOnDeliverMethod: "",
+    peakHours: false,
+    peakHoursStart: "",
+    peakHoursEnd: "",
+    peakHoursMethod: "",
+    serviceRestriction: "",
+    tags: "",
+  });
+  const [updateSubmitting, setUpdateSubmitting] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<any>(null);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+  const closeSidebar = () => setSidebarOpen(false);
+
+  const resetUpdateForm = () =>
+    setUpdateForm({
+      serviceName: "",
+      orderType: "",
+      price: "",
+      rateCalculationMethod: "",
+      duration: "",
+      cashOnDeliver: false,
+      cashOnDeliverMethod: "",
+      peakHours: false,
+      peakHoursStart: "",
+      peakHoursEnd: "",
+      peakHoursMethod: "",
+      serviceRestriction: "",
+      tags: "",
+    });
 
   // Fetch services from API
   const fetchServices = async () => {
@@ -39,54 +75,144 @@ const ServicePage = () => {
     setLoading(false);
   };
 
+  const handleServiceCreated = () => {
+    fetchServices();
+    closeSidebar();
+  };
+
+  const closeUpdateModal = () => {
+    setUpdateModalOpen(false);
+    setSelectedService(null);
+    resetUpdateForm();
+    setUpdateSubmitting(false);
+  };
+
   useEffect(() => {
     fetchServices();
   }, []);
 
+  const openDeleteModal = (service) => {
+    setServiceToDelete(service);
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setServiceToDelete(null);
+    setDeleteSubmitting(false);
+  };
+
   // Handle delete
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this service?")) return;
-    
-      const res = await deleteServiceRate(id);
-      if (res.success) {
+  const handleDelete = async () => {
+    if (!serviceToDelete?._id) return;
+    setDeleteSubmitting(true);
+    try {
+      const res = await deleteServiceRate(serviceToDelete._id);
+      if (res?.success) {
         message.success(res.message || "Deleted successfully");
         fetchServices();
+        closeDeleteModal();
       } else {
-        message.error(res.message || "Delete failed");
+        message.error(res?.message || "Delete failed");
       }
-    
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || "Delete failed");
+    } finally {
+      setDeleteSubmitting(false);
+    }
+  };
+
+  const handleUpdateChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type, checked } = e.target;
+    setUpdateForm((prev) => {
+      const updated = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+
+      if (name === "cashOnDeliver" && !checked) {
+        updated.cashOnDeliverMethod = "";
+      }
+
+      if (name === "peakHours" && !checked) {
+        updated.peakHoursStart = "";
+        updated.peakHoursEnd = "";
+        updated.peakHoursMethod = "";
+      }
+
+      return updated;
+    });
   };
 
   // Handle update
   const handleUpdate = async () => {
-    
-      const res = await updateServiceRate(selectedService._id, updateData);
-      if (res.success) {
+    if (!selectedService?._id) return;
+    setUpdateSubmitting(true);
+
+    const payload: any = {
+      serviceName: updateForm.serviceName,
+      orderType: updateForm.orderType,
+      price: updateForm.price,
+      rateCalculationMethod: updateForm.rateCalculationMethod,
+      duration: updateForm.duration,
+      cashOnDeliver: updateForm.cashOnDeliver,
+      cashOnDeliverMethod: updateForm.cashOnDeliver ? updateForm.cashOnDeliverMethod : "",
+      serviceRestriction: updateForm.serviceRestriction,
+      tags: updateForm.tags
+        ? updateForm.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+        : [],
+    };
+
+    if (updateForm.peakHours) {
+      payload.peekHoursPricing = {
+        peakHoursStart: updateForm.peakHoursStart,
+        peakHoursEnd: updateForm.peakHoursEnd,
+        peakHoursMethod: updateForm.peakHoursMethod,
+      };
+    } else {
+      payload.peekHoursPricing = undefined;
+    }
+
+    try {
+      const res = await updateServiceRate(selectedService._id, payload);
+      if (res?.success) {
         message.success(res.message || "Updated successfully");
-        setUpdateModalOpen(false);
-        setSelectedService(null);
         fetchServices();
+        closeUpdateModal();
       } else {
-        message.error(res.message || "Update failed");
+        message.error(res?.message || "Update failed");
       }
-    
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || "Update failed");
+    } finally {
+      setUpdateSubmitting(false);
+    }
   };
 
   const openUpdateModal = (service) => {
+    if (!service) return;
     setSelectedService(service);
-    setUpdateData({
-      serviceName: service.serviceName,
-      price: service.price,
-      duration: service.duration,
-      tags: service.tags?.join(", "),
-      orderType: service.orderType,
-      rateCalculationMethod: service.rateCalculationMethod,
-      cashOnDeliver: service.cashOnDeliver,
-      cashOnDeliverMethod: service.cashOnDeliverMethod,
-      peekHoursStart: service.peekHoursPricing?.peakHoursStart,
-      peekHoursEnd: service.peekHoursPricing?.peakHoursEnd,
-      peekHoursMethod: service.peekHoursPricing?.peakHoursMethod,
-      serviceRestriction: service.serviceRestriction,
+    setUpdateForm({
+      serviceName: service.serviceName || "",
+      orderType: service.orderType || "",
+      price: service.price ? String(service.price) : "",
+      rateCalculationMethod: service.rateCalculationMethod || "",
+      duration: service.duration || "",
+      cashOnDeliver: Boolean(service.cashOnDeliver),
+      cashOnDeliverMethod: service.cashOnDeliverMethod || "",
+      peakHours: Boolean(service.peekHoursPricing),
+      peakHoursStart: service.peekHoursPricing?.peakHoursStart || "",
+      peakHoursEnd: service.peekHoursPricing?.peakHoursEnd || "",
+      peakHoursMethod: service.peekHoursPricing?.peakHoursMethod || "",
+      serviceRestriction: service.serviceRestriction || "",
+      tags: Array.isArray(service.tags)
+        ? service.tags.join(", ")
+        : typeof service.tags === "string"
+        ? service.tags
+        : "",
     });
     setUpdateModalOpen(true);
   };
@@ -204,7 +330,7 @@ const ServicePage = () => {
                       </button>
                       <button
                         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                        onClick={() => handleDelete(service._id)}
+                        onClick={() => openDeleteModal(service)}
                       >
                         Delete
                       </button>
@@ -223,13 +349,13 @@ const ServicePage = () => {
           sidebarOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <NewService onClose={() => setSidebarOpen(false)} />
+        <NewService onClose={closeSidebar} onSuccess={handleServiceCreated} />
       </div>
 
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm transition-all duration-500"
-          onClick={() => setSidebarOpen(false)}
+          onClick={closeSidebar}
         />
       )}
 
@@ -268,108 +394,311 @@ const ServicePage = () => {
 
       {/* Update Modal */}
       {updateModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg p-6 w-full max-w-xl shadow-lg relative">
-            <h2 className="text-xl font-bold mb-4">Update Service</h2>
-
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Service Name"
-                value={updateData.serviceName || ""}
-                onChange={(e) => setUpdateData({ ...updateData, serviceName: e.target.value })}
-                className="border rounded p-2"
-              />
-              <input
-                type="text"
-                placeholder="Price"
-                value={updateData.price || ""}
-                onChange={(e) => setUpdateData({ ...updateData, price: e.target.value })}
-                className="border rounded p-2"
-              />
-              <input
-                type="text"
-                placeholder="Duration"
-                value={updateData.duration || ""}
-                onChange={(e) => setUpdateData({ ...updateData, duration: e.target.value })}
-                className="border rounded p-2"
-              />
-              <input
-                type="text"
-                placeholder="Tags (comma separated)"
-                value={updateData.tags || ""}
-                onChange={(e) => setUpdateData({ ...updateData, tags: e.target.value })}
-                className="border rounded p-2"
-              />
-              <input
-                type="text"
-                placeholder="Order Type"
-                value={updateData.orderType || ""}
-                onChange={(e) => setUpdateData({ ...updateData, orderType: e.target.value })}
-                className="border rounded p-2"
-              />
-              <input
-                type="text"
-                placeholder="Rate Method"
-                value={updateData.rateCalculationMethod || ""}
-                onChange={(e) =>
-                  setUpdateData({ ...updateData, rateCalculationMethod: e.target.value })
-                }
-                className="border rounded p-2"
-              />
-              <input
-                type="text"
-                placeholder="COD Method"
-                value={updateData.cashOnDeliverMethod || ""}
-                onChange={(e) =>
-                  setUpdateData({ ...updateData, cashOnDeliverMethod: e.target.value })
-                }
-                className="border rounded p-2"
-              />
-              <input
-                type="text"
-                placeholder="Peak Start"
-                value={updateData.peekHoursStart || ""}
-                onChange={(e) => setUpdateData({ ...updateData, peekHoursStart: e.target.value })}
-                className="border rounded p-2"
-              />
-              <input
-                type="text"
-                placeholder="Peak End"
-                value={updateData.peekHoursEnd || ""}
-                onChange={(e) => setUpdateData({ ...updateData, peekHoursEnd: e.target.value })}
-                className="border rounded p-2"
-              />
-              <input
-                type="text"
-                placeholder="Peak Method"
-                value={updateData.peekHoursMethod || ""}
-                onChange={(e) => setUpdateData({ ...updateData, peekHoursMethod: e.target.value })}
-                className="border rounded p-2"
-              />
-              <input
-                type="text"
-                placeholder="Restriction"
-                value={updateData.serviceRestriction || ""}
-                onChange={(e) =>
-                  setUpdateData({ ...updateData, serviceRestriction: e.target.value })
-                }
-                className="border rounded p-2"
-              />
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="text-xl font-bold text-gray-900">Update Service</h2>
+              <button
+                onClick={closeUpdateModal}
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-all duration-200"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
-            <div className="mt-4 flex justify-end gap-3">
+            <div className="max-h-[75vh] overflow-y-auto p-6 space-y-6">
+              <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-3">
+                  Basic Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Service Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="serviceName"
+                      value={updateForm.serviceName}
+                      onChange={handleUpdateChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                      placeholder="Enter service name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Service Order Type <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="orderType"
+                      value={updateForm.orderType}
+                      onChange={handleUpdateChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-white"
+                    >
+                      <option value="">Select order type</option>
+                      <option value="transport">Transport</option>
+                      <option value="storefront">Storefront</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tags <span className="text-gray-400 text-xs">(comma separated)</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="tags"
+                    value={updateForm.tags}
+                    onChange={handleUpdateChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                    placeholder="e.g. priority, fragile"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-3">
+                  Pricing Configuration
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Base Fee / Price <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                        S$
+                      </span>
+                      <input
+                        type="text"
+                        name="price"
+                        value={updateForm.price}
+                        onChange={handleUpdateChange}
+                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rate Calculation Method <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="rateCalculationMethod"
+                      value={updateForm.rateCalculationMethod}
+                      onChange={handleUpdateChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-white"
+                    >
+                      <option value="">Select calculation method</option>
+                      <option value="fixed-meter">Fixed Meter</option>
+                      <option value="per-meter">Per Meter</option>
+                      <option value="per-dropoff">Per DropOff</option>
+                      <option value="algorithm">Algorithm</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Duration Terms</label>
+                    <input
+                      type="text"
+                      name="duration"
+                      value={updateForm.duration}
+                      onChange={handleUpdateChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                      placeholder="Enter duration terms if applicable"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Service Restriction
+                    </label>
+                    <select
+                      name="serviceRestriction"
+                      value={updateForm.serviceRestriction}
+                      onChange={handleUpdateChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-white"
+                    >
+                      <option value="">Select restriction</option>
+                      <option value="service-area">Restrict to service area</option>
+                      <option value="city">City Level</option>
+                      <option value="region">Regional Level</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Cash on Delivery</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Allow customers to pay upon delivery and define the fee.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="cashOnDeliver"
+                      checked={updateForm.cashOnDeliver}
+                      onChange={handleUpdateChange}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+                {updateForm.cashOnDeliver && (
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        COD Fee Calculation Method <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        name="cashOnDeliverMethod"
+                        value={updateForm.cashOnDeliverMethod}
+                        onChange={handleUpdateChange}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-white"
+                      >
+                        <option value="">Select COD calculation method</option>
+                        <option value="flat">Flat Fee</option>
+                        <option value="percentage">Percentage of Order Value</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Peak Hours Pricing</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Apply additional charges during peak hours for this service.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="peakHours"
+                      checked={updateForm.peakHours}
+                      onChange={handleUpdateChange}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+                {updateForm.peakHours && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Peak Hours Start <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="time"
+                          name="peakHoursStart"
+                          value={updateForm.peakHoursStart}
+                          onChange={handleUpdateChange}
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Peak Hours End <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="time"
+                          name="peakHoursEnd"
+                          value={updateForm.peakHoursEnd}
+                          onChange={handleUpdateChange}
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Peak Hours Fee Calculation Method <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        name="peakHoursMethod"
+                        value={updateForm.peakHoursMethod}
+                        onChange={handleUpdateChange}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-white"
+                      >
+                        <option value="">Select peak hours method</option>
+                        <option value="flat">Flat Additional Fee</option>
+                        <option value="multiplier">Rate Multiplier</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
               <button
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                onClick={() => setUpdateModalOpen(false)}
+                onClick={closeUpdateModal}
+                className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200 font-medium"
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                 onClick={handleUpdate}
+                disabled={updateSubmitting}
+                className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 focus:bg-blue-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Update
+                {updateSubmitting ? "Updating..." : "Update Service"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center gap-3 px-6 py-4 bg-red-50 border-b border-red-100">
+              <div className="p-2 bg-red-100 rounded-full">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M9.38 4.59l-6.6 11.41A1 1 0 003.62 18h16.76a1 1 0 00.86-1.5l-6.6-11.41a1 1 0 00-1.72 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-red-800">Delete Service</h3>
+                <p className="text-sm text-red-600">
+                  This action cannot be undone. Please confirm to proceed.
+                </p>
+              </div>
+            </div>
+            <div className="px-6 py-5 space-y-3">
+              <p className="text-gray-700">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold text-gray-900">
+                  {serviceToDelete?.serviceName || "this service"}
+                </span>
+                ?
+              </p>
+              <p className="text-sm text-gray-500">
+                The service rate will be permanently removed and will no longer be available for selection.
+              </p>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleteSubmitting}
+                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleteSubmitting}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {deleteSubmitting ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

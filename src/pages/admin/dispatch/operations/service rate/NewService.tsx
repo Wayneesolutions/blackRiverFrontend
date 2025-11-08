@@ -4,9 +4,10 @@ import { message } from "antd";
 
 interface NewServiceProps {
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-const NewService: React.FC<NewServiceProps> = ({ onClose }) => {
+const NewService: React.FC<NewServiceProps> = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     serviceName: "",
     orderType: "",
@@ -57,6 +58,7 @@ const NewService: React.FC<NewServiceProps> = ({ onClose }) => {
 
       if (res.success) {
         message.success(res.message || "Service Rate created successfully");
+        onSuccess?.();
         onClose();
       } else {
         message.error(res.message || "Failed to create service rate");
