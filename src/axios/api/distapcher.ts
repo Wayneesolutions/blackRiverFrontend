@@ -300,6 +300,15 @@ export const createVehicle = async (data: any) =>{
     return (error as Error).response?.data;
   }
 }
+export const updateVehicle = async (id: string, data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`dispatcher/vehicle/${id}`, data);
+    console.log('==res ', res);
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
 export const deleteServiceRate = async (id:string) =>{
     try {
     const res: AxiosResponse = await apiClient.delete(`dispatcher/service-rate/${id}`);

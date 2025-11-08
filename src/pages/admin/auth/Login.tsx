@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Truck, Eye, EyeOff, Mail, Lock, ArrowRight, MapPin, Users, Shield, AlertCircle } from "lucide-react";
 import { login } from "../../../axios/api/auth";
+import { getCompany } from "../../../axios/api/admin";
 import { useNavigate, useLocation } from "react-router-dom";
 import { message } from 'antd';
 import { setUserCredentials } from "../../../redux/slices/userSlice";
@@ -108,22 +109,67 @@ export default function LoginPage() {
         localStorage.removeItem('adminToken');
         localStorage.removeItem('userRole');
         localStorage.removeItem('userData');
+
+        // Persist the new token immediately so subsequent API calls succeed
+        localStorage.setItem("token", token);
+        sessionStorage.setItem("tokenSetTime", Date.now().toString());
         
         // Normalize user data
+        const rawCompany =
+          userData.company ||
+          userData.companyId ||
+          userData.companyInfo ||
+          userData.companyData ||
+          userData?.userData?.company;
+
+        let normalizedCompany: any = undefined;
+        if (rawCompany) {
+          if (typeof rawCompany === 'string') {
+            normalizedCompany = { _id: rawCompany };
+          } else if (typeof rawCompany === 'object') {
+            const companyId = rawCompany._id || rawCompany.id;
+            normalizedCompany = {
+              _id: companyId,
+              companyName: rawCompany.companyName || rawCompany.name,
+              ...rawCompany,
+            };
+          }
+        } else if (userData.role && userData.role !== 'superadmin') {
+          try {
+            const companyResponse = await getCompany();
+            if (companyResponse?.success && companyResponse?.data?._id) {
+              const companyData = companyResponse.data;
+              normalizedCompany = {
+                _id: companyData._id,
+                companyName: companyData.companyName || companyData.name,
+                ...companyData,
+              };
+            }
+          } catch (companyError) {
+            console.warn('Unable to fetch company details during login:', companyError);
+          }
+        }
+
         const normalizedUserData = {
           _id: userData._id || userData.id,
-          name: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.email,
+          name:
+            userData.name ||
+            `${userData.firstName || ''} ${userData.lastName || ''}`.trim() ||
+            userData.email,
           email: userData.email,
           role: userData.role,
-          status: userStatus // Use the checked status
+          status: userStatus, // Use the checked status
+          company: normalizedCompany,
         };
         
-        const userInfoPayload = { userData: normalizedUserData };
+        const userInfoPayload = {
+          userData: normalizedUserData,
+          role: normalizedUserData.role,
+          company: normalizedUserData.company,
+        };
         
         // Store authentication data
-        localStorage.setItem("token", token);
         localStorage.setItem("userInfo", JSON.stringify(userInfoPayload));
-        sessionStorage.setItem("tokenSetTime", Date.now().toString());
         
         // Update Redux
         dispatch(setUserCredentials(userInfoPayload));

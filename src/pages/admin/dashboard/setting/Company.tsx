@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Building, Mail, Phone, MapPin, Bell, Upload, Save, Edit, Check, X, AlertCircle } from 'lucide-react';
 import { getCompany } from '../../../../axios/api/admin';
 import { updateCompany } from '../../../../axios/api/admin';
+import { useDispatch } from 'react-redux';
+import { setUserCredentials } from '../../../../redux/slices/userSlice';
 
 interface CompanyInfo {
   companyName: string;
@@ -19,6 +21,7 @@ interface NotificationPreferences {
 }
 
 const Company = () => {
+  const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -44,7 +47,8 @@ const Company = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
 
-  const updateStoredUserCompany = useCallback((companyId: string | null) => {
+  const updateStoredUserCompany = useCallback(
+    (company: { _id: string; companyName?: string } | null) => {
     try {
       const stored = localStorage.getItem('userInfo');
       if (!stored) {
@@ -60,15 +64,19 @@ const Company = () => {
         ...parsed,
         userData: {
           ...parsed.userData,
-          company: companyId || undefined
-        }
+          company: company || undefined
+        },
+        role: parsed.userData?.role || parsed.role,
+        company: company || undefined,
       };
 
       localStorage.setItem('userInfo', JSON.stringify(updated));
+      dispatch(setUserCredentials(updated));
     } catch (err) {
       console.error('Error updating stored userInfo with company details:', err);
     }
-  }, []);
+  },
+  [dispatch]);
 
   // Fetch company data on component mount
   useEffect(() => {
@@ -97,7 +105,7 @@ const Company = () => {
         setCompanyInfo(companyData);
         setEditForm(companyData);
         if (data._id) {
-          updateStoredUserCompany(data._id);
+          updateStoredUserCompany({ _id: data._id, companyName: data.companyName || '' });
         }
         
         // Handle notification preferences
@@ -174,7 +182,9 @@ const Company = () => {
         setIsEditing(false);
         setSelectedFile(null);
         if (response.data?._id) {
-          updateStoredUserCompany(response.data._id);
+          updateStoredUserCompany({ _id: response.data._id, companyName: response.data.companyName || '' });
+        } else {
+          updateStoredUserCompany(null);
         }
         
         // Update logo URL if returned in response

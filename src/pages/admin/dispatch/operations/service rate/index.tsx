@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import NewService from "./NewService";
 import {
   listServiceRate,
@@ -7,14 +7,50 @@ import {
 } from "../../../../../axios/api/distapcher";
 import { message } from "antd";
 
+interface PeekHoursPricing {
+  peakHoursStart?: string;
+  peakHoursEnd?: string;
+  peakHoursMethod?: string;
+}
+
+interface ServiceRateItem {
+  _id: string;
+  serviceName: string;
+  price: number | string;
+  duration?: string;
+  orderType?: string;
+  rateCalculationMethod?: string;
+  cashOnDeliver?: boolean;
+  cashOnDeliverMethod?: string;
+  peekHoursPricing?: PeekHoursPricing;
+  serviceRestriction?: string;
+  tags?: string[] | string;
+}
+
+interface UpdateFormState {
+  serviceName: string;
+  orderType: string;
+  price: string;
+  rateCalculationMethod: string;
+  duration: string;
+  cashOnDeliver: boolean;
+  cashOnDeliverMethod: string;
+  peakHours: boolean;
+  peakHoursStart: string;
+  peakHoursEnd: string;
+  peakHoursMethod: string;
+  serviceRestriction: string;
+  tags: string;
+}
+
 const ServicePage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [services, setServices] = useState([]);
+  const [services, setServices] = useState<ServiceRateItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedService, setSelectedService] = useState<any>(null);
+  const [selectedService, setSelectedService] = useState<ServiceRateItem | null>(null);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
-  const [updateForm, setUpdateForm] = useState({
+  const [updateForm, setUpdateForm] = useState<UpdateFormState>({
     serviceName: "",
     orderType: "",
     price: "",
@@ -32,11 +68,12 @@ const ServicePage = () => {
   const [updateSubmitting, setUpdateSubmitting] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
-  const [serviceToDelete, setServiceToDelete] = useState<any>(null);
+  const [serviceToDelete, setServiceToDelete] = useState<ServiceRateItem | null>(null);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
-  const closeSidebar = () => setSidebarOpen(false);
+  const isCancelledRef = useRef(false);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), [setSidebarOpen]);
 
-  const resetUpdateForm = () =>
+  const resetUpdateForm = useCallback(() => {
     setUpdateForm({
       serviceName: "",
       orderType: "",
@@ -52,13 +89,18 @@ const ServicePage = () => {
       serviceRestriction: "",
       tags: "",
     });
+  }, [setUpdateForm]);
 
   // Fetch services from API
-  const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
     setLoading(true);
     try {
       const res = await listServiceRate();
-      if (res.success) {
+      if (isCancelledRef.current) {
+        return;
+      }
+
+      if (res?.success) {
         if (res.message && (!res.data || res.data.length === 0)) {
           setServices([]);
           setEmptyStateMessage(res.message);
@@ -67,31 +109,40 @@ const ServicePage = () => {
           setEmptyStateMessage(null);
         }
       } else {
-        alert(res.message || "Failed to fetch services");
+        message.error(res?.message || "Failed to fetch services");
       }
-    } catch (err) {
-      alert(err.message || "Something went wrong");
+    } catch (err: any) {
+      if (!isCancelledRef.current) {
+        message.error(err?.message || "Something went wrong while fetching services");
+      }
+    } finally {
+      if (!isCancelledRef.current) {
+        setLoading(false);
+      }
     }
-    setLoading(false);
-  };
+  }, []);
 
-  const handleServiceCreated = () => {
-    fetchServices();
+  const handleServiceCreated = useCallback(async () => {
     closeSidebar();
-  };
+    await fetchServices();
+  }, [closeSidebar, fetchServices]);
 
-  const closeUpdateModal = () => {
+  const closeUpdateModal = useCallback(() => {
     setUpdateModalOpen(false);
     setSelectedService(null);
     resetUpdateForm();
     setUpdateSubmitting(false);
-  };
+  }, [resetUpdateForm, setSelectedService, setUpdateModalOpen, setUpdateSubmitting]);
 
   useEffect(() => {
+    isCancelledRef.current = false;
     fetchServices();
-  }, []);
+    return () => {
+      isCancelledRef.current = true;
+    };
+  }, [fetchServices]);
 
-  const openDeleteModal = (service) => {
+  const openDeleteModal = (service: ServiceRateItem) => {
     setServiceToDelete(service);
     setDeleteModalOpen(true);
   };
@@ -110,8 +161,8 @@ const ServicePage = () => {
       const res = await deleteServiceRate(serviceToDelete._id);
       if (res?.success) {
         message.success(res.message || "Deleted successfully");
-        fetchServices();
         closeDeleteModal();
+        await fetchServices();
       } else {
         message.error(res?.message || "Delete failed");
       }
@@ -123,18 +174,22 @@ const ServicePage = () => {
   };
 
   const handleUpdateChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type, checked } = e.target;
+    const target = e.target;
+    const fieldName = target.name as keyof UpdateFormState;
+    const isCheckbox = target instanceof HTMLInputElement && target.type === "checkbox";
+    const nextValue = (isCheckbox ? target.checked : target.value) as UpdateFormState[keyof UpdateFormState];
+
     setUpdateForm((prev) => {
-      const updated = {
+      const updated: UpdateFormState = {
         ...prev,
-        [name]: type === "checkbox" ? checked : value,
+        [fieldName]: nextValue,
       };
 
-      if (name === "cashOnDeliver" && !checked) {
+      if (fieldName === "cashOnDeliver" && !updated.cashOnDeliver) {
         updated.cashOnDeliverMethod = "";
       }
 
-      if (name === "peakHours" && !checked) {
+      if (fieldName === "peakHours" && !updated.peakHours) {
         updated.peakHoursStart = "";
         updated.peakHoursEnd = "";
         updated.peakHoursMethod = "";
@@ -180,8 +235,8 @@ const ServicePage = () => {
       const res = await updateServiceRate(selectedService._id, payload);
       if (res?.success) {
         message.success(res.message || "Updated successfully");
-        fetchServices();
         closeUpdateModal();
+        await fetchServices();
       } else {
         message.error(res?.message || "Update failed");
       }
@@ -192,7 +247,7 @@ const ServicePage = () => {
     }
   };
 
-  const openUpdateModal = (service) => {
+  const openUpdateModal = (service: ServiceRateItem) => {
     if (!service) return;
     setSelectedService(service);
     setUpdateForm({
@@ -320,7 +375,9 @@ const ServicePage = () => {
                       {service.peekHoursPricing?.peakHoursStart} - {service.peekHoursPricing?.peakHoursEnd} ({service.peekHoursPricing?.peakHoursMethod})
                     </td>
                     <td className="px-6 py-4 border-r border-gray-100">{service.serviceRestriction}</td>
-                    <td className="px-6 py-4 border-r border-gray-100 italic">{service.tags?.join(", ") || "No tags"}</td>
+                    <td className="px-6 py-4 border-r border-gray-100 italic">
+                      {Array.isArray(service.tags) ? service.tags.join(", ") : service.tags || "No tags"}
+                    </td>
                     <td className="px-6 py-4 flex gap-2">
                       <button
                         className=" text-white px-3 py-1 rounded bg-blue-500 hover:bg-blue-600"

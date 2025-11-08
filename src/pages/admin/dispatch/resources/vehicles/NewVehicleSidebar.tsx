@@ -1,67 +1,99 @@
-import React, { useState, useEffect } from 'react';
-import { X, MapPin, Truck, Image as ImageIcon } from 'lucide-react';
-import type { FC } from "react";
-import { listDriver, createVehicle,listTrailers } from '../../../../../axios/api/distapcher';
+import { useState, useEffect } from 'react';
+import { X, Image as ImageIcon } from 'lucide-react';
+import type { FC, ChangeEvent } from 'react';
+import { message } from 'antd';
+interface VehicleInitialData {
+  _id?: string;
+  internalId?: string;
+  plateNumber?: string;
+  vinNumber?: string;
+  make?: string;
+  model?: string;
+  year?: string;
+  status?: string;
+  address?: string;
+}
 
 interface NewVehicleSidebarProps {
   isOpen: boolean;
+  mode: 'create' | 'edit';
+  initialData?: VehicleInitialData | null;
   onClose: () => void;
+  onSubmit: (payload: FormData, vehicleId?: string) => Promise<void> | void;
 }
 
-interface Driver {
-  _id: string;
-  name: string;
+interface FormState {
+  internalId: string;
+  plateNumber: string;
+  vinNumber: string;
+  make: string;
+  model: string;
+  year: string;
+  status: string;
+  address: string;
+  vehicleImages: File[];
 }
 
-interface Trailer {
-  _id: string;
-  trailer: string;
-}
+const initialFormState: FormState = {
+  internalId: '',
+  plateNumber: '',
+  vinNumber: '',
+  make: '',
+  model: '',
+  year: '',
+  status: 'stopped',
+  address: '',
+  vehicleImages: [],
+};
 
-const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({ isOpen, onClose }) => {
-  const [formData, setFormData] = useState({
-    internalId: '',
-    plateNumber: '',
-    vinNumber: '',
-    make: '',
-    model: '',
-    year: '',
-    driverId: '',
-    status: 'stopped',
-    address: '',
-    trailerId: '',
-    vehicleImages: [] as File[],
-  });
-
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [trailers, setTrailers] = useState<Trailer[]>([]);
+const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({
+  isOpen,
+  mode,
+  initialData,
+  onClose,
+  onSubmit,
+}) => {
+  const [formData, setFormData] = useState<FormState>(initialFormState);
+  const [submitting, setSubmitting] = useState(false);
+  const [editingVehicleId, setEditingVehicleId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    const fetchDrivers = async () => {
-      try {
-        const res = await listDriver();
-        const tra = await listTrailers()
-        if (res.success) setDrivers(res.data);
-        if(res.success) setTrailers(tra.data)
-      } catch (err) {
-        console.error('Error fetching drivers', err);
-      }
-    };
-    fetchDrivers();
-  }, []);
+    if (!isOpen) {
+      setFormData(initialFormState);
+      setSubmitting(false);
+      setEditingVehicleId(undefined);
+      return;
+    }
 
+    if (mode === 'edit' && initialData) {
+      setFormData({
+        internalId: initialData.internalId || '',
+        plateNumber: initialData.plateNumber || '',
+        vinNumber: initialData.vinNumber || '',
+        make: initialData.make || '',
+        model: initialData.model || '',
+        year: initialData.year ? String(initialData.year) : '',
+        status: initialData.status || 'stopped',
+        address: initialData.address || '',
+        vehicleImages: [],
+      });
+      setEditingVehicleId(initialData._id);
+    } else {
+      setFormData(initialFormState);
+      setEditingVehicleId(undefined);
+    }
+  }, [isOpen, mode, initialData]);
 
-
-  const handleInputChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { files } = e.target;
+  const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const { files } = event.target;
     if (files) {
       const fileArray = Array.from(files);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         vehicleImages: [...prev.vehicleImages, ...fileArray],
       }));
@@ -69,67 +101,76 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({ isOpen, onClose }) => {
   };
 
   const removeImage = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      vehicleImages: prev.vehicleImages.filter((_, i) => i !== index),
+      vehicleImages: prev.vehicleImages.filter((_, idx) => idx !== index),
     }));
   };
 
   const handleSubmit = async () => {
+    if (submitting) return;
+
+    if (!formData.internalId.trim() || !formData.plateNumber.trim()) {
+      message.warning('Please provide both Internal ID and Plate Number.');
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      // Prepare form data for backend
-      const data = new FormData();
-      data.append('internalId', formData.internalId);
-      data.append('plateNumber', formData.plateNumber);
-      data.append('vinNumber', formData.vinNumber);
-      data.append('make', formData.make);
-      data.append('model', formData.model);
-      data.append('year', formData.year.toString());
-      data.append('driverId', formData.driverId);
-      data.append('status', formData.status);
-      data.append('address', formData.address);
-      data.append('trailer', formData.trailerId);
+      const payload = new FormData();
+      payload.append('internalId', formData.internalId.trim());
+      payload.append('plateNumber', formData.plateNumber.trim());
+      payload.append('vinNumber', formData.vinNumber.trim());
+      payload.append('make', formData.make.trim());
+      payload.append('model', formData.model.trim());
+      payload.append('year', formData.year ? String(formData.year).trim() : '');
+      payload.append('status', formData.status);
+      payload.append('address', formData.address.trim());
 
       formData.vehicleImages.forEach((file) => {
-        data.append('vehicleImages', file);
+        payload.append('vehicleImages', file);
       });
 
-      const res = await createVehicle(data);
-      if (res.success) {
-        alert('Vehicle created successfully!');
-        onClose();
-      } else {
-        alert('Error: ' + res.message);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Something went wrong!');
+      await onSubmit(payload, mode === 'edit' ? editingVehicleId : undefined);
+      setFormData(initialFormState);
+      setEditingVehicleId(undefined);
+    } catch (error) {
+      console.error('Error submitting vehicle form:', error);
+      message.error('Something went wrong while saving vehicle');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <>
-      {/* Backdrop */}
       <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={onClose}></div>
 
-      {/* Sidebar */}
       <div className="fixed right-0 top-0 h-full w-126 bg-white border-l border-gray-200 shadow-lg z-[101] flex flex-col">
-        {/* Header */}
         <div className="p-4 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">New Vehicle</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {mode === 'edit' ? 'Update Vehicle' : 'New Vehicle'}
+            </h2>
+            <button
+              onClick={() => {
+                onClose();
+                setFormData(initialFormState);
+                setEditingVehicleId(undefined);
+              }}
+              className="text-gray-400 hover:text-gray-600"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20">
           <div className="bg-gray-50 p-4 rounded-md space-y-4">
-            {/* Basic Info */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Internal ID</label>
@@ -205,41 +246,21 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Driver Assigned</label>
-                <select
-                  name="driverId"
-                  value={formData.driverId}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Driver</option>
-                  {drivers.map(driver => (
-                    <option key={driver._id} value={driver._id}>
-                      {driver.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="stopped">Stopped</option>
-                  <option value="moving">Moving</option>
-                  <option value="idle">Idle</option>
-                  <option value="maintenance">Maintenance</option>
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="stopped">Stopped</option>
+                <option value="moving">Moving</option>
+                <option value="idle">Idle</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
             </div>
 
-            {/* Address */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
               <input
@@ -252,23 +273,6 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({ isOpen, onClose }) => {
               />
             </div>
 
-            {/* Trailer Dropdown */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Trailer</label>
-              <select
-                name="trailerId"
-                value={formData.trailerId}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select Trailer</option>
-                {trailers?.map(trailer => (
-                  <option key={trailer._id} value={trailer._id}>{trailer.trailer}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Vehicle Images */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Images</label>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
@@ -313,7 +317,6 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="p-4 border-t border-gray-200 flex-shrink-0 bg-white sticky bottom-0 z-[102] shadow-lg">
           <div className="flex justify-end space-x-2">
             <button
@@ -326,9 +329,16 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={handleSubmit}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              disabled={submitting}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Create Vehicle
+              {submitting
+                ? mode === 'edit'
+                  ? 'Updating…'
+                  : 'Saving…'
+                : mode === 'edit'
+                ? 'Update Vehicle'
+                : 'Create Vehicle'}
             </button>
           </div>
         </div>

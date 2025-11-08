@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Filter, Trash2, MoreVertical, Search } from 'lucide-react';
+import { Plus, Filter, Trash2, Search, Pencil } from 'lucide-react';
+import { message } from 'antd';
 import NewVehicleSidebar from './NewVehicleSidebar';
-import { listVehicle, deleteVehicle } from '../../../../../axios/api/distapcher';
+import { listVehicle, deleteVehicle, updateVehicle, createVehicle } from '../../../../../axios/api/distapcher';
 
-interface Vehicle {
+export interface Vehicle {
   _id: string;
   internalId?: string;
   plateNumber?: string;
@@ -12,17 +13,19 @@ interface Vehicle {
   model?: string;
   year?: string;
   status?: string;
-  driver?: { name?: string };
   currentLocation?: { address?: string };
   vehicleImage?: Array<{ imageUrl: string }>;
-  trailer?: { serialNumber?: string };
 }
 
 const VehiclesTable = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [sidebarMode, setSidebarMode] = useState<'create' | 'edit'>('create');
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Vehicle | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userInfo, setUserInfo] = useState<any>(() => {
@@ -43,21 +46,6 @@ const VehiclesTable = () => {
   const fetchVehicles = useCallback(async () => {
     setLoading(true);
     try {
-      if (!userInfo) {
-        setVehicles([]);
-        setEmptyStateMessage(null);
-        return;
-      }
-
-      const isSuperadmin = userInfo?.role === 'superadmin';
-      const hasCompany = Boolean(userInfo?.company);
-
-      if (!isSuperadmin && !hasCompany) {
-        setVehicles([]);
-        setEmptyStateMessage(null);
-        return;
-      }
-
       const res = await listVehicle();
       const message = sanitizeMessage(res?.message || null);
 
@@ -127,16 +115,6 @@ const VehiclesTable = () => {
     }
   };
 
-  const handleDelete = async (vehicleId: string) => {
-    if (!window.confirm('Are you sure you want to delete this vehicle?')) return;
-    try {
-      const res = await deleteVehicle(vehicleId);
-      if (res.success) fetchVehicles();
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
 const filteredVehicles = useMemo(() => {
   if (!searchQuery.trim()) {
     return vehicles;
@@ -148,17 +126,117 @@ const filteredVehicles = useMemo(() => {
     const plateNumber = vehicle.plateNumber || '';
     const make = vehicle.make || '';
     const model = vehicle.model || '';
-    const driver = vehicle.driver?.name || '';
 
     return (
       internalId.toLowerCase().includes(query) ||
       plateNumber.toLowerCase().includes(query) ||
       make.toLowerCase().includes(query) ||
-      model.toLowerCase().includes(query) ||
-      driver.toLowerCase().includes(query)
+      model.toLowerCase().includes(query)
     );
   });
 }, [vehicles, searchQuery]);
+
+const canCreateVehicle = userInfo?.role === 'superadmin' || Boolean(userInfo?.company);
+
+const handleOpenCreateSidebar = useCallback(() => {
+  if (!canCreateVehicle) {
+    message.warning('Assign a company to this account or use a superadmin role to create vehicles.');
+  }
+  setSidebarMode('create');
+  setEditingVehicle(null);
+  setIsSidebarOpen(true);
+}, [canCreateVehicle]);
+
+const handleEditVehicle = useCallback((vehicle: Vehicle) => {
+  setSidebarMode('edit');
+  setEditingVehicle(vehicle);
+  setIsSidebarOpen(true);
+}, []);
+
+const handleSidebarSubmit = useCallback(
+  async (vehiclePayload: FormData, vehicleId?: string) => {
+    try {
+      const response =
+        sidebarMode === 'edit' && vehicleId
+          ? await updateVehicle(vehicleId, vehiclePayload)
+          : await createVehicle(vehiclePayload);
+
+      if (response?.success) {
+        message.success(
+          response?.message ||
+            (sidebarMode === 'edit'
+              ? 'Vehicle updated successfully'
+              : 'Vehicle created successfully')
+        );
+        setIsSidebarOpen(false);
+        setEditingVehicle(null);
+        setSidebarMode('create');
+        fetchVehicles();
+      } else {
+        message.error(response?.message || 'Failed to save vehicle');
+      }
+    } catch (error: any) {
+      const rawMessage = error?.response?.data?.message || error?.message;
+      if (rawMessage?.toLowerCase()?.includes('permission')) {
+        message.error('You do not have permission to update this vehicle. Please contact an administrator.');
+      } else {
+        message.error(rawMessage || 'Failed to save vehicle');
+      }
+    }
+  },
+  [fetchVehicles, sidebarMode]
+);
+
+const openDeleteModal = useCallback((vehicle: Vehicle) => {
+  setDeleteTarget(vehicle);
+  setDeleteModalOpen(true);
+}, []);
+
+const closeDeleteModal = useCallback(() => {
+  setDeleteModalOpen(false);
+  setDeleteTarget(null);
+  setDeleteLoading(false);
+}, []);
+
+const handleConfirmDelete = useCallback(async () => {
+  if (!deleteTarget) return;
+  setDeleteLoading(true);
+  try {
+    const res = await deleteVehicle(deleteTarget._id);
+    if (res?.success) {
+      message.success(res?.message || 'Vehicle deleted successfully');
+      setVehicles(prev => prev.filter(vehicle => vehicle._id !== deleteTarget._id));
+      closeDeleteModal();
+    } else {
+      message.error(res?.message || 'Failed to delete vehicle');
+    }
+  } catch (error: any) {
+    message.error(error?.message || 'Failed to delete vehicle');
+  } finally {
+    setDeleteLoading(false);
+  }
+}, [deleteTarget, closeDeleteModal]);
+
+const handleSidebarClose = useCallback(() => {
+  setIsSidebarOpen(false);
+  setEditingVehicle(null);
+  setSidebarMode('create');
+}, []);
+
+const sidebarInitialData = useMemo(() => {
+  if (!editingVehicle) return undefined;
+  return {
+    _id: editingVehicle._id,
+    internalId: editingVehicle.internalId || '',
+    plateNumber: editingVehicle.plateNumber || '',
+    vinNumber: editingVehicle.vinNumber || '',
+    make: editingVehicle.make || '',
+    model: editingVehicle.model || '',
+    year: editingVehicle.year || '',
+    status: editingVehicle.status || 'stopped',
+    address: (editingVehicle as any)?.address || editingVehicle.currentLocation?.address || '',
+  };
+}, [editingVehicle]);
 
 if (loading) {
   return (
@@ -167,8 +245,6 @@ if (loading) {
     </div>
   );
 }
-
-const canCreateVehicle = userInfo?.role === 'superadmin' || Boolean(userInfo?.company);
 
 return (
   <div className="min-h-screen bg-gray-50">
@@ -190,15 +266,15 @@ return (
         <button className="p-2 text-gray-400 hover:text-gray-600">
           <Filter className="w-5 h-5" />
         </button>
-        {canCreateVehicle && (
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Vehicle</span>
-          </button>
-        )}
+        <button
+          onClick={handleOpenCreateSidebar}
+          className={`px-4 py-2 rounded-md flex items-center space-x-2 transition-colors ${
+            canCreateVehicle ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+          }`}
+        >
+          <Plus className="w-4 h-4" />
+          <span>Create Vehicle</span>
+        </button>
       </div>
     </div>
 
@@ -220,11 +296,9 @@ return (
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Make</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Images</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trailer</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -250,7 +324,6 @@ return (
                     <td className="px-6 py-4 text-sm text-gray-500">{vehicle.make}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{vehicle.model}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{vehicle.year}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{vehicle.driver?.name || '-'}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(vehicle.status || '')}`}>
                         {vehicle.status || 'unknown'}
@@ -271,28 +344,20 @@ return (
                         </div>
                       ) : '-'}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{vehicle.trailer?.serialNumber || '-'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 relative">
-                      <div className="relative">
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={() => setOpenMenuId(openMenuId === vehicle._id ? null : vehicle._id)}
-                          className="p-1 hover:bg-gray-100 rounded-full"
+                          onClick={() => handleEditVehicle(vehicle)}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors"
                         >
-                          <MoreVertical className="w-5 h-5" />
+                          <Pencil className="w-4 h-4" /> Update
                         </button>
-                        {openMenuId === vehicle._id && (
-                          <div className="absolute right-0 mt-2 w-28 bg-white border rounded shadow-md z-10">
-                            <button
-                              onClick={() => {
-                                handleDelete(vehicle._id);
-                                setOpenMenuId(null);
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
-                            >
-                              <Trash2 className="w-4 h-4 mr-1" /> Delete
-                            </button>
-                          </div>
-                        )}
+                        <button
+                          onClick={() => openDeleteModal(vehicle)}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" /> Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -305,9 +370,57 @@ return (
 
       {/* Sidebar */}
       <NewVehicleSidebar
-        isOpen={isSidebarOpen && canCreateVehicle}
-        onClose={() => setIsSidebarOpen(false)}
+        isOpen={isSidebarOpen}
+        mode={sidebarMode}
+        initialData={sidebarInitialData}
+        onClose={handleSidebarClose}
+        onSubmit={handleSidebarSubmit}
       />
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center gap-3 px-6 py-4 bg-red-50 border-b border-red-100">
+              <div className="p-2 bg-red-100 rounded-full">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-red-800">Delete Vehicle</h3>
+                <p className="text-sm text-red-600">
+                  This action cannot be undone. Please confirm to delete this vehicle.
+                </p>
+              </div>
+            </div>
+            <div className="px-6 py-5 space-y-3">
+              <p className="text-gray-700">
+                Are you sure you want to delete{' '}
+                <span className="font-semibold text-gray-900">{deleteTarget?.internalId || deleteTarget?.plateNumber || 'this vehicle'}</span>
+                ?
+              </p>
+              <p className="text-sm text-gray-500">
+                The vehicle record will be permanently removed and cannot be recovered.
+              </p>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleteLoading}
+                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={deleteLoading}
+                className="px-5 py-2.5 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
