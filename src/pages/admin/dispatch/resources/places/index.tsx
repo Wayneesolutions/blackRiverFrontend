@@ -1,13 +1,6 @@
-import React, { useState, useEffect } from "react";
-import {
-  Plus,
-  Search,
-  MoreVertical,
-  Filter,
-  Edit,
-  Trash2,
-  RefreshCw,
-} from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Plus, Search, Filter } from "lucide-react";
+import { message } from "antd";
 import NewPlacesSidebar from "./NewPlacesSidebar";
 import {
   listPlace,
@@ -16,80 +9,140 @@ import {
   updatePlace,
 } from "../../../../../axios/api/dispatcher.places";
 
+interface Place {
+  _id: string;
+  name: string;
+  street1?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  status?: string;
+  createdAt: string;
+  [key: string]: any;
+}
+
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [places, setPlaces] = useState<any[]>([]);
+  const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [message, setMessage] = useState<{ type: string; text: string } | null>(
-    null
-  );
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editData, setEditData] = useState<Place | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
 
-  // For update modal
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editData, setEditData] = useState<any>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Place | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // Fetch places from API
-  const fetchPlaces = async () => {
+  const fetchPlaces = useCallback(async () => {
     setLoading(true);
-    const res = await listPlace();
-    if (res?.success) {
-      setPlaces(res.data);
-    } else {
-      setMessage({ type: "error", text: res?.message || "Failed to fetch places" });
+    try {
+      const res = await listPlace();
+      if (res?.success) {
+        setPlaces(Array.isArray(res.data) ? res.data : []);
+      } else {
+        message.error(res?.message || "Failed to fetch places");
+      }
+    } catch (error: any) {
+      console.error("Error fetching places:", error);
+      message.error(error?.message || "Failed to fetch places");
+      setPlaces([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchPlaces();
+  }, [fetchPlaces]);
+
+  const openEditModal = useCallback((place: Place) => {
+    setEditData({ ...place });
+    setEditModalOpen(true);
   }, []);
 
-  // Delete handler
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this place?")) return;
-    const res = await deletePlace(id);
-    if (res?.success) {
-      setMessage({ type: "success", text: res.message });
-      fetchPlaces();
-    } else {
-      setMessage({ type: "error", text: res?.message || "Delete failed" });
-    }
-  };
+  const closeEditModal = useCallback(() => {
+    setEditModalOpen(false);
+    setEditData(null);
+    setEditLoading(false);
+  }, []);
 
-  // Status update handler
-  const handleStatusUpdate = async (id: string) => {
-    const res = await updateStatusPlace(id);
-    if (res?.success) {
-      setMessage({ type: "success", text: res.message });
-      fetchPlaces();
-    } else {
-      setMessage({ type: "error", text: res?.message || "Status update failed" });
-    }
-  };
-
-  // Edit Modal Open
-  const handleEdit = (place: any) => {
-    setEditData({ ...place });
-    setIsEditModalOpen(true);
-  };
-
-  // Edit Modal Save
-  const handleEditSave = async () => {
+  const handleEditSave = useCallback(async () => {
     if (!editData) return;
-    const res = await updatePlace(editData._id, editData);
-    if (res?.success) {
-      setMessage({ type: "success", text: res.message });
-      setIsEditModalOpen(false);
-      fetchPlaces();
-    } else {
-      setMessage({ type: "error", text: res?.message || "Update failed" });
+    setEditLoading(true);
+    try {
+      const res = await updatePlace(editData._id, editData);
+      if (res?.success) {
+        message.success(res.message || "Place updated successfully");
+        closeEditModal();
+        fetchPlaces();
+      } else {
+        message.error(res?.message || "Update failed");
+      }
+    } catch (error: any) {
+      console.error("Error updating place:", error);
+      message.error(error?.message || "Update failed");
+    } finally {
+      setEditLoading(false);
     }
-  };
+  }, [editData, closeEditModal, fetchPlaces]);
 
-  // Simple filtering
-  const filteredPlaces = places.filter((place) =>
-    place?.name?.toLowerCase().includes(search.toLowerCase())
+  const openDeleteModal = useCallback((place: Place) => {
+    setDeleteTarget(place);
+    setDeleteModalOpen(true);
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModalOpen(false);
+    setDeleteTarget(null);
+    setDeleteLoading(false);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    try {
+      const res = await deletePlace(deleteTarget._id);
+      if (res?.success) {
+        message.success(res.message || "Place deleted successfully");
+        closeDeleteModal();
+        fetchPlaces();
+      } else {
+        message.error(res?.message || "Delete failed");
+      }
+    } catch (error: any) {
+      console.error("Error deleting place:", error);
+      message.error(error?.message || "Delete failed");
+    } finally {
+      setDeleteLoading(false);
+    }
+  }, [deleteTarget, closeDeleteModal, fetchPlaces]);
+
+  const handleStatusUpdate = useCallback(
+    async (id: string) => {
+      try {
+        const res = await updateStatusPlace(id);
+        if (res?.success) {
+          message.success(res.message || "Status updated");
+          fetchPlaces();
+        } else {
+          message.error(res?.message || "Status update failed");
+        }
+      } catch (error: any) {
+        console.error("Error updating status:", error);
+        message.error(error?.message || "Status update failed");
+      }
+    },
+    [fetchPlaces]
+  );
+
+  const filteredPlaces = useMemo(
+    () =>
+      places.filter((place) =>
+        place?.name?.toLowerCase().includes(search.toLowerCase())
+      ),
+    [places, search]
   );
 
   return (
@@ -113,12 +166,6 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <button
-                onClick={fetchPlaces}
-                className="p-2 text-gray-400 hover:text-gray-600"
-              >
-                <RefreshCw className="w-5 h-5" />
-              </button>
               <button className="p-2 text-gray-400 hover:text-gray-600">
                 <Filter className="w-5 h-5" />
               </button>
@@ -179,22 +226,21 @@ const Index = () => {
                           <td className="px-6 py-4 text-sm text-gray-500">
                             {new Date(place.createdAt).toLocaleDateString()}
                           </td>
-                          <td className="px-6 py-4 text-sm flex space-x-3">
-                            <button
-                              className="text-blue-500 hover:text-blue-700"
-                              onClick={() => handleEdit(place)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              className="text-red-500 hover:text-red-700"
-                              onClick={() => handleDelete(place._id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                            <button className="text-gray-400 hover:text-gray-600">
-                              <MoreVertical className="w-4 h-4" />
-                            </button>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+                              <button
+                                className="inline-flex items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                                onClick={() => openEditModal(place)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="inline-flex items-center justify-center rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                                onClick={() => openDeleteModal(place)}
+                              >
+                                Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -220,106 +266,137 @@ const Index = () => {
         refreshPlaces={fetchPlaces}
       />
 
-      {/* Edit Modal */}
-     {isEditModalOpen && editData && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center  bg-opacity-50 transition-opacity">
-    <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 animate-fadeIn">
-      {/* Modal Header */}
-      <div className="flex items-center justify-between border-b pb-3 mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Edit Place</h2>
-        <button
-          onClick={() => setIsEditModalOpen(false)}
-          className="text-gray-400 hover:text-gray-600"
-        >
-          ✕
-        </button>
-      </div>
+      {editModalOpen && editData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between border-b pb-3">
+              <h2 className="text-lg font-semibold text-gray-900">Edit Place</h2>
+              <button
+                onClick={closeEditModal}
+                disabled={editLoading}
+                className="text-gray-400 transition-colors hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                ✕
+              </button>
+            </div>
 
-      {/* Modal Body */}
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Name</label>
-          <input
-            type="text"
-            value={editData.name || ""}
-            onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-            className="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          />
-        </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  value={editData.name || ""}
+                  onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Street</label>
+                <input
+                  type="text"
+                  value={editData.street1 || ""}
+                  onChange={(e) => setEditData({ ...editData, street1: e.target.value })}
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">City</label>
+                  <input
+                    type="text"
+                    value={editData.city || ""}
+                    onChange={(e) => setEditData({ ...editData, city: e.target.value })}
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">State</label>
+                  <input
+                    type="text"
+                    value={editData.state || ""}
+                    onChange={(e) => setEditData({ ...editData, state: e.target.value })}
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Postal Code</label>
+                  <input
+                    type="text"
+                    value={editData.postalCode || ""}
+                    onChange={(e) => setEditData({ ...editData, postalCode: e.target.value })}
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Country</label>
+                  <input
+                    type="text"
+                    value={editData.country || ""}
+                    onChange={(e) => setEditData({ ...editData, country: e.target.value })}
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Street</label>
-          <input
-            type="text"
-            value={editData.street1 || ""}
-            onChange={(e) => setEditData({ ...editData, street1: e.target.value })}
-            className="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">City</label>
-            <input
-              type="text"
-              value={editData.city || ""}
-              onChange={(e) => setEditData({ ...editData, city: e.target.value })}
-              className="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closeEditModal}
+                disabled={editLoading}
+                className="rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditSave}
+                disabled={editLoading}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {editLoading ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">State</label>
-            <input
-              type="text"
-              value={editData.state || ""}
-              onChange={(e) => setEditData({ ...editData, state: e.target.value })}
-              className="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
+        </div>
+      )}
+
+      {deleteModalOpen && deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between border-b pb-3">
+              <h2 className="text-lg font-semibold text-red-600">Delete Place</h2>
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleteLoading}
+                className="text-gray-400 transition-colors hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-gray-900">{deleteTarget.name}</span>? This action cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleteLoading}
+                className="rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={deleteLoading}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deleteLoading ? "Deleting..." : "Delete"}
+              </button>
+            </div>
           </div>
         </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Postal Code</label>
-            <input
-              type="text"
-              value={editData.postalCode || ""}
-              onChange={(e) =>
-                setEditData({ ...editData, postalCode: e.target.value })
-              }
-              className="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Country</label>
-            <input
-              type="text"
-              value={editData.country || ""}
-              onChange={(e) => setEditData({ ...editData, country: e.target.value })}
-              className="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Modal Footer */}
-      <div className="mt-6 flex justify-end space-x-3">
-        <button
-          onClick={() => setIsEditModalOpen(false)}
-          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleEditSave}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Save Changes
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
     </div>
   );

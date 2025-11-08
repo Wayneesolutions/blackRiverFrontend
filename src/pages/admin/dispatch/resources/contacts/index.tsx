@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, type ChangeEvent } from "react";
-import { Plus, Search, X, Filter } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo, type ChangeEvent } from "react";
+import { Plus, Search, Filter, Edit, Trash2, X } from "lucide-react";
+import { message } from "antd";
 import NewContactSidebar from "./NewContactSidebar";
 import NewCustomerSidebar from "./NewCustomerSidebar";
 import {
@@ -61,6 +62,11 @@ const Index = () => {
     phone: "",
     country: "",
   });
+  const [editLoading, setEditLoading] = useState(false);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ item: Contact | Customer; type: "contact" | "customer" } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const canCreate = userInfo?.role === 'superadmin' || Boolean(userInfo?.company);
 
@@ -90,6 +96,7 @@ const Index = () => {
       } else if (res?.message) {
         setContacts([]);
         updateEmptyState(res.message, customers.length > 0);
+        message.warning(res.message);
       } else {
         setContacts([]);
       }
@@ -97,8 +104,9 @@ const Index = () => {
       console.error('Error fetching contacts:', error);
       setContacts([]);
       updateEmptyState(error?.message, customers.length > 0);
+      message.error(error?.message || "Failed to fetch contacts");
     }
-  }, [customers.length]);
+  }, [customers.length, updateEmptyState]);
 
   const fetchCustomers = useCallback(async () => {
     try {
@@ -110,6 +118,7 @@ const Index = () => {
       } else if (res?.message) {
         setCustomers([]);
         updateEmptyState(res.message, contacts.length > 0);
+        message.warning(res.message);
       } else {
         setCustomers([]);
       }
@@ -117,8 +126,9 @@ const Index = () => {
       console.error('Error fetching customers:', error);
       setCustomers([]);
       updateEmptyState(error?.message, contacts.length > 0);
+      message.error(error?.message || "Failed to fetch customers");
     }
-  }, [contacts.length]);
+  }, [contacts.length, updateEmptyState]);
 
   const fetchAllData = useCallback(async () => {
     setLoading(true);
@@ -166,19 +176,42 @@ const Index = () => {
   }, [fetchAllData]);
 
   // Delete item
-  const handleDelete = async (id: string, type: "contact" | "customer") => {
-    if (!window.confirm(`Are you sure you want to delete this ${type}?`)) return;
-    const res =
-      type === "contact" ? await deleteContact(id) : await deleteCustomer(id);
-    if (res?.success) {
-      type === "contact" ? fetchContacts() : fetchCustomers();
-    } else {
-      alert(res?.message || "Delete failed");
+  const openDeleteModal = useCallback((item: Contact | Customer, type: "contact" | "customer") => {
+    setDeleteTarget({ item, type });
+    setDeleteModalOpen(true);
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModalOpen(false);
+    setDeleteTarget(null);
+    setDeleteLoading(false);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    try {
+      const res =
+        deleteTarget.type === "contact"
+          ? await deleteContact(deleteTarget.item._id)
+          : await deleteCustomer(deleteTarget.item._id);
+      if (res?.success) {
+        message.success(res.message || `${deleteTarget.type === "contact" ? "Contact" : "Customer"} deleted successfully`);
+        deleteTarget.type === "contact" ? fetchContacts() : fetchCustomers();
+        closeDeleteModal();
+      } else {
+        message.error(res?.message || "Delete failed");
+      }
+    } catch (error: any) {
+      console.error("Error deleting item:", error);
+      message.error(error?.message || "Delete failed");
+    } finally {
+      setDeleteLoading(false);
     }
-  };
+  }, [deleteTarget, fetchContacts, fetchCustomers, closeDeleteModal]);
 
   // Open edit modal
-  const handleEdit = (item: Contact | Customer) => {
+  const handleEdit = useCallback((item: Contact | Customer) => {
     setEditItem(item);
     setEditForm({
       internalId: item.internalId,
@@ -188,7 +221,7 @@ const Index = () => {
       country: item.country,
     });
     setIsEditModalOpen(true);
-  };
+  }, []);
 
   // Input change in edit modal
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -197,39 +230,61 @@ const Index = () => {
   };
 
   // Update item
-  const handleUpdate = async () => {
+  const handleUpdate = useCallback(async () => {
     if (!editItem) return;
     const type = activeTab === "contacts" ? "contact" : "customer";
-    const res =
-      type === "contact"
-        ? await updateContact(editItem._id, editForm)
-        : await updateCustomer(editItem._id, editForm);
+    setEditLoading(true);
+    try {
+      const res =
+        type === "contact"
+          ? await updateContact(editItem._id, editForm)
+          : await updateCustomer(editItem._id, editForm);
 
-    if (res?.success) {
-      type === "contact" ? fetchContacts() : fetchCustomers();
-      setIsEditModalOpen(false);
-    } else {
-      alert(res?.message || "Update failed");
+      if (res?.success) {
+        message.success(res.message || `${type === "contact" ? "Contact" : "Customer"} updated successfully`);
+        type === "contact" ? fetchContacts() : fetchCustomers();
+        setIsEditModalOpen(false);
+        setEditItem(null);
+      } else {
+        message.error(res?.message || "Update failed");
+      }
+    } catch (error: any) {
+      console.error("Error updating item:", error);
+      message.error(error?.message || "Update failed");
+    } finally {
+      setEditLoading(false);
     }
-  };
+  }, [activeTab, editItem, editForm, fetchContacts, fetchCustomers]);
 
   // Search
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  const filteredContacts = contacts.filter(
-    (c) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.internalId.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredContacts = useMemo(
+    () =>
+      contacts.filter((c) => {
+        const term = searchQuery.toLowerCase();
+        return (
+          c.name.toLowerCase().includes(term) ||
+          c.email.toLowerCase().includes(term) ||
+          c.internalId.toLowerCase().includes(term)
+        );
+      }),
+    [contacts, searchQuery]
   );
 
-  const filteredCustomers = customers.filter(
-    (c) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.internalId.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCustomers = useMemo(
+    () =>
+      customers.filter((c) => {
+        const term = searchQuery.toLowerCase();
+        return (
+          c.name.toLowerCase().includes(term) ||
+          c.email.toLowerCase().includes(term) ||
+          c.internalId.toLowerCase().includes(term)
+        );
+      }),
+    [customers, searchQuery]
   );
 
   const handleSidebarClose = () => {
@@ -357,19 +412,25 @@ const Index = () => {
                       <td className="px-6 py-4">{item.country}</td>
                       <td className="px-6 py-4">{item.role}</td>
                       <td className="px-6 py-4">{new Date(item.createdAt).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 flex space-x-5">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="text-blue-500 hover:text-blue-700"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item._id, activeTab === "contacts" ? "contact" : "customer")}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          Delete
-                        </button>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+                          <button
+                            onClick={() => handleEdit(item)}
+                            className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() =>
+                              openDeleteModal(item, activeTab === "contacts" ? "contact" : "customer")
+                            }
+                            className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -473,16 +534,57 @@ const Index = () => {
 
             <div className="mt-6 flex justify-end space-x-3">
               <button
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition disabled:opacity-60 disabled:cursor-not-allowed"
                 onClick={() => setIsEditModalOpen(false)}
+                disabled={editLoading}
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
                 onClick={handleUpdate}
+                disabled={editLoading}
               >
-                Update
+                {editLoading ? "Updating..." : "Update"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteModalOpen && deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between border-b pb-3">
+              <h2 className="text-lg font-semibold text-red-600">
+                Delete {deleteTarget.type === "contact" ? "Contact" : "Customer"}
+              </h2>
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleteLoading}
+                className="text-gray-400 transition-colors hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-gray-900">{deleteTarget.item.name}</span>? This action cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleteLoading}
+                className="rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={deleteLoading}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deleteLoading ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

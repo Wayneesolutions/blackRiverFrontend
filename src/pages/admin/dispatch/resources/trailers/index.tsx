@@ -1,18 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Plus, Search, MoreVertical, Truck, Filter, Trash2 } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { Plus, Search, Truck, Filter, Trash2, Pencil } from 'lucide-react';
+import { message } from 'antd';
 import NewTrailerSidebar from './NewTrailerSidebar';
-import { 
-    listTrailers, 
-    deleteTrailer, 
-    searchTrailers, 
-    getTrailerStats
+import {
+  listTrailers,
+  deleteTrailer,
+  searchTrailers,
+  getTrailerStats,
+  createTrailer,
+  updateTrailer,
 } from '../../../../../axios/api/distapcher';
 
 interface Trailer {
     _id: string;
     trailer: string;
     internalId: string;
+    make?: string;
+    model?: string;
+    year?: number | string;
     plateNumber: string;
+    vinNumber?: string;
     type: string;
     operationStatus: string;
     status: string;
@@ -44,80 +51,72 @@ interface Trailer {
     updatedAt: string;
 }
 
+interface TrailerStats {
+  total: number;
+  available: number;
+  inTransit: number;
+  maintenance: number;
+  loading: number;
+  idle: number;
+}
+
 const TrailersTable = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [sidebarMode, setSidebarMode] = useState<'create' | 'edit'>('create');
     const [trailers, setTrailers] = useState<Trailer[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<TrailerStats | null>(null);
+    const [editingTrailer, setEditingTrailer] = useState<Trailer | null>(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<Trailer | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const trailersRef = useRef<Trailer[]>([]);
+
+    const computeStats = useCallback((data: Trailer[]): TrailerStats => ({
+        total: data.length,
+        available: data.filter((t: Trailer) => t.operationStatus === 'available').length,
+        inTransit: data.filter((t: Trailer) => t.operationStatus === 'in_transit').length,
+        maintenance: data.filter((t: Trailer) => t.operationStatus === 'maintenance').length,
+        loading: data.filter((t: Trailer) => t.operationStatus === 'loading').length,
+        idle: data.filter((t: Trailer) => t.operationStatus === 'idle').length,
+    }), []);
 
     // Fetch trailers data
-    const fetchTrailers = async () => {
+    const fetchTrailers = useCallback(async () => {
         try {
             setLoading(true);
             const response = await listTrailers();
             if (response.success) {
-                // API returns data as array directly, not nested under trailers
                 const trailersData = response.data || [];
+                trailersRef.current = trailersData;
                 setTrailers(trailersData);
-                
-                // Calculate stats from trailers data as fallback
-                const calculatedStats = {
-                    total: trailersData.length,
-                    available: trailersData.filter((t: Trailer) => t.operationStatus === 'available').length,
-                    inTransit: trailersData.filter((t: Trailer) => t.operationStatus === 'in_transit').length,
-                    maintenance: trailersData.filter((t: Trailer) => t.operationStatus === 'maintenance').length,
-                    loading: trailersData.filter((t: Trailer) => t.operationStatus === 'loading').length,
-                    idle: trailersData.filter((t: Trailer) => t.operationStatus === 'idle').length
-                };
-                
-                // If stats API failed, use calculated stats
-                if (!stats) {
-                    setStats(calculatedStats);
-                }
+                setStats((prev: TrailerStats | null) => prev ?? computeStats(trailersData));
             }
         } catch (error) {
             console.error('Error fetching trailers:', error);
         } finally {
             setLoading(false);
         }
-    };
+    }, [computeStats]);
 
     // Fetch trailer stats
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         try {
             const response = await getTrailerStats();
             if (response.success) {
-                setStats(response.data);
+                setStats(response.data as TrailerStats);
             } else {
-                // Fallback: calculate stats from trailers data
-                const calculatedStats = {
-                    total: trailers.length,
-                    available: trailers.filter((t: Trailer) => t.operationStatus === 'available').length,
-                    inTransit: trailers.filter((t: Trailer) => t.operationStatus === 'in_transit').length,
-                    maintenance: trailers.filter((t: Trailer) => t.operationStatus === 'maintenance').length,
-                    loading: trailers.filter((t: Trailer) => t.operationStatus === 'loading').length,
-                    idle: trailers.filter((t: Trailer) => t.operationStatus === 'idle').length
-                };
-                setStats(calculatedStats);
+                setStats(computeStats(trailersRef.current));
             }
         } catch (error) {
             console.error('Error fetching trailer stats:', error);
-            // Fallback: calculate stats from trailers data
-            const calculatedStats = {
-                total: trailers.length,
-                available: trailers.filter((t: Trailer) => t.operationStatus === 'available').length,
-                inTransit: trailers.filter((t: Trailer) => t.operationStatus === 'in_transit').length,
-                maintenance: trailers.filter((t: Trailer) => t.operationStatus === 'maintenance').length,
-                loading: trailers.filter((t: Trailer) => t.operationStatus === 'loading').length,
-                idle: trailers.filter((t: Trailer) => t.operationStatus === 'idle').length
-            };
-            setStats(calculatedStats);
+            setStats(computeStats(trailersRef.current));
         }
-    };
+    }, [computeStats]);
 
     // Search trailers
-    const handleSearch = async (query: string) => {
+    const handleSearch = useCallback(async (query: string) => {
         if (query.trim()) {
             try {
                 const response = await searchTrailers(query);
@@ -131,33 +130,122 @@ const TrailersTable = () => {
         } else {
             fetchTrailers();
         }
-    };
+    }, [fetchTrailers]);
 
     // Delete trailer
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this trailer?')) {
-            try {
-                const response = await deleteTrailer(id);
-                if (response.success) {
-                    setTrailers(trailers.filter(trailer => trailer._id !== id));
-                    fetchStats(); // Refresh stats
-                } else {
-                    alert('Failed to delete trailer');
-                }
-            } catch (error) {
-                console.error('Error deleting trailer:', error);
-                alert('Error deleting trailer');
-            }
+    const openDeleteModal = useCallback((trailer: Trailer) => {
+      setDeleteTarget(trailer);
+      setDeleteModalOpen(true);
+    }, []);
+
+    const closeDeleteModal = useCallback(() => {
+      setDeleteModalOpen(false);
+      setDeleteTarget(null);
+      setDeleteLoading(false);
+    }, []);
+
+    const handleConfirmDelete = useCallback(async () => {
+      if (!deleteTarget) return;
+      setDeleteLoading(true);
+      try {
+        const response = await deleteTrailer(deleteTarget._id);
+        if (response.success) {
+          setTrailers(prev => prev.filter(trailer => trailer._id !== deleteTarget._id));
+          closeDeleteModal();
+          fetchStats();
+        } else {
+          message.error(response?.message || 'Failed to delete trailer');
         }
-    };
+      } catch (error: any) {
+        console.error('Error deleting trailer:', error);
+        message.error(error?.message || 'Error deleting trailer');
+      } finally {
+        setDeleteLoading(false);
+      }
+    }, [deleteTarget, closeDeleteModal]);
 
 
     // Handle sidebar close
-    const handleSidebarClose = () => {
-        setIsSidebarOpen(false);
-        fetchTrailers();
-        fetchStats();
-    };
+    const handleOpenCreateSidebar = useCallback(() => {
+      setSidebarMode('create');
+      setEditingTrailer(null);
+      setIsSidebarOpen(true);
+    }, []);
+
+    const handleEditTrailer = useCallback((trailer: Trailer) => {
+      setSidebarMode('edit');
+      setEditingTrailer(trailer);
+      setIsSidebarOpen(true);
+    }, []);
+
+    const handleSidebarClose = useCallback(() => {
+      setIsSidebarOpen(false);
+      setEditingTrailer(null);
+      setSidebarMode('create');
+    }, []);
+
+    const handleSidebarSubmit = useCallback(
+      async (payload: any, trailerId?: string) => {
+        try {
+          const response =
+            sidebarMode === 'edit' && trailerId
+              ? await updateTrailer(trailerId, payload)
+              : await createTrailer(payload);
+
+          if (response?.success) {
+            message.success(
+              response?.message ||
+                (sidebarMode === 'edit' ? 'Trailer updated successfully' : 'Trailer created successfully')
+            );
+
+            if (sidebarMode === 'edit' && trailerId) {
+              setTrailers(prev => prev.map(trailer => (trailer._id === trailerId ? { ...trailer, ...response.data } : trailer)));
+            } else if (response?.data) {
+              const createdTrailer = response.data;
+              setTrailers(prev => {
+                if (prev.some(trailer => trailer._id === createdTrailer._id)) {
+                  return prev;
+                }
+                return [createdTrailer, ...prev];
+              });
+            }
+
+            setIsSidebarOpen(false);
+            setEditingTrailer(null);
+            setSidebarMode('create');
+            fetchTrailers();
+            fetchStats();
+            return true;
+          }
+
+          message.error(response?.message || 'Failed to save trailer');
+          return false;
+        } catch (error: any) {
+          message.error(error?.message || 'Failed to save trailer');
+          return false;
+        }
+      },
+      [sidebarMode, fetchTrailers, fetchStats]
+    );
+
+    const sidebarInitialData = useMemo(() => {
+      if (!editingTrailer) return undefined;
+      return {
+        _id: editingTrailer._id,
+        internalId: editingTrailer.internalId || '',
+        trailer: editingTrailer.trailer || '',
+        make: editingTrailer.make || '',
+        model: editingTrailer.model || '',
+        year: editingTrailer.year ? String(editingTrailer.year) : '',
+        plateNumber: editingTrailer.plateNumber || '',
+        vinNumber: editingTrailer.vinNumber || '',
+        capacity: editingTrailer.capacity || '',
+        type: editingTrailer.type || 'dry_van',
+        status: editingTrailer.status || 'stopped',
+        operationStatus: editingTrailer.operationStatus || 'available',
+        address: editingTrailer.currentLocation?.address || '',
+      };
+    }, [editingTrailer]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -165,29 +253,20 @@ const TrailersTable = () => {
             await fetchStats();
         };
         loadData();
-    }, []);
+    }, [fetchTrailers, fetchStats]);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             handleSearch(searchQuery);
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [searchQuery]);
+    }, [searchQuery, handleSearch]);
 
-    // Recalculate stats when trailers data changes
     useEffect(() => {
         if (trailers.length > 0) {
-            const calculatedStats = {
-                total: trailers.length,
-                available: trailers.filter((t: Trailer) => t.operationStatus === 'available').length,
-                inTransit: trailers.filter((t: Trailer) => t.operationStatus === 'in_transit').length,
-                maintenance: trailers.filter((t: Trailer) => t.operationStatus === 'maintenance').length,
-                loading: trailers.filter((t: Trailer) => t.operationStatus === 'loading').length,
-                idle: trailers.filter((t: Trailer) => t.operationStatus === 'idle').length
-            };
-            setStats(calculatedStats);
+            setStats((prev: TrailerStats | null) => prev ?? computeStats(trailers));
         }
-    }, [trailers]);
+    }, [trailers, computeStats]);
 
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
@@ -246,7 +325,7 @@ const TrailersTable = () => {
                                 <Filter className="w-5 h-5" />
                             </button>
                             <button
-                                onClick={() => setIsSidebarOpen(true)}
+                                onClick={handleOpenCreateSidebar}
                                 className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
                             >
                                 <Plus className="w-4 h-4" />
@@ -389,19 +468,20 @@ const TrailersTable = () => {
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                         {trailer.currentLocation?.address || 'No location'}
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                        <div className="flex items-center space-x-2">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                        <div className="flex items-center gap-2">
                                                             <button
-                                                                onClick={() => handleDelete(trailer._id)}
-                                                                className="text-red-600 hover:text-red-900"
+                                                              onClick={() => handleEditTrailer(trailer)}
+                                                              className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors"
                                                             >
-                                                                <Trash2 className="w-4 h-4" />
+                                                              <Pencil className="w-4 h-4" /> Update
                                                             </button>
-                                                            <div className="relative">
-                                                                <button className="text-gray-600 hover:text-gray-900">
-                                                                    <MoreVertical className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
+                                                            <button
+                                                              onClick={() => openDeleteModal(trailer)}
+                                                              className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                                                            >
+                                                              <Trash2 className="w-4 h-4" /> Delete
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -416,11 +496,58 @@ const TrailersTable = () => {
             </div>
 
             {/* Sidebar */}
-            {isSidebarOpen && (
-                <NewTrailerSidebar
-                    isOpen={isSidebarOpen}
-                    onClose={handleSidebarClose}
-                />
+            <NewTrailerSidebar
+              isOpen={isSidebarOpen}
+              mode={sidebarMode}
+              initialData={sidebarInitialData}
+              onClose={handleSidebarClose}
+              onSubmit={handleSidebarSubmit}
+            />
+
+            {deleteModalOpen && (
+              <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 px-4">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                  <div className="flex items-center gap-3 px-6 py-4 bg-red-50 border-b border-red-100">
+                    <div className="p-2 bg-red-100 rounded-full">
+                      <Trash2 className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-red-800">Delete Trailer</h3>
+                      <p className="text-sm text-red-600">
+                        This action cannot be undone. Please confirm to delete this trailer.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="px-6 py-5 space-y-3">
+                    <p className="text-gray-700">
+                      Are you sure you want to delete{' '}
+                      <span className="font-semibold text-gray-900">
+                        {deleteTarget?.trailer || deleteTarget?.internalId || 'this trailer'}
+                      </span>
+                      ?
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      The trailer record will be permanently removed and cannot be recovered.
+                    </p>
+                  </div>
+                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+                    <button
+                      onClick={closeDeleteModal}
+                      disabled={deleteLoading}
+                      className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleConfirmDelete}
+                      disabled={deleteLoading}
+                      className="px-5 py-2.5 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {deleteLoading ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
         </div>
     );

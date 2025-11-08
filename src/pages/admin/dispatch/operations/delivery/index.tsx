@@ -94,14 +94,14 @@ const Delivery = () => {
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>(null);
 
-  const addNotification = (type: NotificationType, message: string) => {
+  const addNotification = useCallback((type: NotificationType, message: string) => {
     const id = Date.now();
     setNotifications((prev) => [...prev, { id, type, message }]);
-  };
+  }, []);
 
-  const removeNotification = (id: number) => {
+  const removeNotification = useCallback((id: number) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
+  }, []);
 
   useEffect(() => {
     const syncUser = () => {
@@ -129,78 +129,85 @@ const Delivery = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchLoads = useCallback(async () => {
-    setLoading(true);
-    try {
-      const stored = localStorage.getItem('userInfo');
-      let parsedUser = userInfo;
-      if (stored) {
-        try {
-          parsedUser = JSON.parse(stored);
-          setUserInfo(parsedUser);
-        } catch (error) {
-          console.error('Error parsing userInfo during fetch:', error);
+  const fetchLoads = useCallback(
+    async (options?: { suppressLoading?: boolean }) => {
+      if (!options?.suppressLoading) {
+        setLoading(true);
+      }
+      try {
+        let currentUser = userInfo;
+        if (!currentUser) {
+          const stored = localStorage.getItem('userInfo');
+          if (stored) {
+            try {
+              currentUser = JSON.parse(stored);
+            } catch (error) {
+              console.error('Error parsing userInfo during fetch:', error);
+            }
+          }
         }
-      }
 
-      const isSuperadmin = parsedUser?.role === 'superadmin';
-      const hasCompany = Boolean(parsedUser?.company);
+        const isSuperadmin = currentUser?.role === 'superadmin';
+        const hasCompany = Boolean(currentUser?.company);
 
-      if (!isSuperadmin && !hasCompany) {
-        setLoads([]);
-        setEmptyStateMessage(null);
-        return;
-      }
-
-      const response = await getDeliveryLoads();
-      const message = response?.message || null;
-      const data = response?.data;
-
-      if (response?.success && Array.isArray(data)) {
-        if (data.length === 0) {
+        if (!isSuperadmin && !hasCompany) {
           setLoads([]);
-          setEmptyStateMessage(message || 'No delivery loads available.');
+          setEmptyStateMessage(null);
           return;
         }
-        // Transform data to match frontend interface
-        const transformedLoads = data.map((load: any) => ({
-          _id: load._id,
-          loadNumber: load.loadNumber || load._id,
-          orderNumber: load.orderNumber || load._id,
-          customer: load.customerName || load.customer,
-          customerName: load.customerName || load.customer,
-          amount: load.amount || load.rate || 0,
-          rate: load.rate || 0,
-          status: load.status,
-          paymentStatus: load.paymentStatus || 'pending',
-          deliveryDate: load.deliveryDate || load.completedAt,
-          completedAt: load.completedAt,
-          documents: {
-            bol: !!load.deliveryDocuments?.bol?.url,
-            billOfSale: !!load.deliveryDocuments?.billOfSale?.url,
-            pod: !!load.deliveryDocuments?.pod?.url
-          },
-          deliveryDocuments: load.deliveryDocuments || {},
-          route: load.route || {}
-        }));
-        setLoads(transformedLoads);
-        setEmptyStateMessage(null);
-      } else {
-        const fallbackMessage = message || 'Failed to fetch delivery loads';
-        addNotification('error', fallbackMessage);
+
+        const response = await getDeliveryLoads();
+        const message = response?.message || null;
+        const data = response?.data;
+
+        if (response?.success && Array.isArray(data)) {
+          if (data.length === 0) {
+            setLoads([]);
+            setEmptyStateMessage(message || 'No delivery loads available.');
+            return;
+          }
+          // Transform data to match frontend interface
+          const transformedLoads = data.map((load: any) => ({
+            _id: load._id,
+            loadNumber: load.loadNumber || load._id,
+            orderNumber: load.orderNumber || load._id,
+            customer: load.customerName || load.customer,
+            customerName: load.customerName || load.customer,
+            amount: load.amount || load.rate || 0,
+            rate: load.rate || 0,
+            status: load.status,
+            paymentStatus: load.paymentStatus || 'pending',
+            deliveryDate: load.deliveryDate || load.completedAt,
+            completedAt: load.completedAt,
+            documents: {
+              bol: !!load.deliveryDocuments?.bol?.url,
+              billOfSale: !!load.deliveryDocuments?.billOfSale?.url,
+              pod: !!load.deliveryDocuments?.pod?.url
+            },
+            deliveryDocuments: load.deliveryDocuments || {},
+            route: load.route || {}
+          }));
+          setLoads(transformedLoads);
+          setEmptyStateMessage(null);
+        } else {
+          const fallbackMessage = message || 'Failed to fetch delivery loads';
+          addNotification('error', fallbackMessage);
+          setLoads([]);
+          setEmptyStateMessage(fallbackMessage);
+        }
+      } catch (error) {
+        console.error('Error fetching delivery loads:', error);
+        addNotification('error', 'Error fetching delivery loads');
         setLoads([]);
-        setEmptyStateMessage(fallbackMessage);
+        setEmptyStateMessage('Error fetching delivery loads');
+      } finally {
+        if (!options?.suppressLoading) {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      console.error('Error fetching delivery loads:', error);
-      addNotification('error', 'Error fetching delivery loads');
-      setLoads([]);
-      setEmptyStateMessage('Error fetching delivery loads');
-    } finally {
-      setLoading(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    },
+    [addNotification, userInfo]
+  );
 
   useEffect(() => {
     fetchLoads();
@@ -235,7 +242,7 @@ const Delivery = () => {
         }
         
         // Update the loads list in background
-        await fetchLoads();
+        await fetchLoads({ suppressLoading: true });
       } else {
         addNotification('error', response?.message || 'Failed to upload document');
       }
@@ -272,7 +279,7 @@ const Delivery = () => {
         setPaymentMethod('');
         setPaymentReference('');
         setPaymentNotes('');
-        await fetchLoads(); // Refresh data
+        await fetchLoads({ suppressLoading: true }); // Refresh data
       } else {
         addNotification('error', response?.message || 'Failed to mark payment');
       }

@@ -72,118 +72,127 @@ const AllDispatch = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchLoads = useCallback(async () => {
-    setLoading(true);
-    try {
-      const stored = localStorage.getItem('userInfo');
-      let parsedUser = userInfo;
-      if (stored) {
-        try {
-          parsedUser = JSON.parse(stored);
-          setUserInfo(parsedUser);
-        } catch (err) {
-          console.error('Error parsing userInfo from localStorage during fetch:', err);
+  const fetchLoads = useCallback(
+    async (options?: { suppressLoading?: boolean; search?: string }) => {
+      if (!options?.suppressLoading) {
+        setLoading(true);
+      }
+      try {
+        let currentUser = userInfo;
+        if (!currentUser) {
+          const stored = localStorage.getItem('userInfo');
+          if (stored) {
+            try {
+              currentUser = JSON.parse(stored);
+            } catch (err) {
+              console.error('Error parsing userInfo from localStorage during fetch:', err);
+            }
+          }
         }
-      }
 
-      const isSuperadmin = parsedUser?.role === 'superadmin';
-      const hasCompany = Boolean(parsedUser?.company);
+        const isSuperadmin = currentUser?.role === 'superadmin';
+        const hasCompany = Boolean(currentUser?.company);
 
-      if (!isSuperadmin && !hasCompany) {
-        setLoads([]);
-        setEmptyStateMessage(null);
-        return;
-      }
-
-      const response = await listLoad();
-      const message = response?.message || null;
-      const data = response?.data;
-
-      if (response?.success && Array.isArray(data)) {
-        if (data.length === 0) {
+        if (!isSuperadmin && !hasCompany) {
           setLoads([]);
-          setEmptyStateMessage(message || 'No loads available.');
+          setEmptyStateMessage(null);
           return;
         }
 
-        const formattedLoads = data.map((load: any) => {
-          // Extract shipper city/state - from pickup location
-          let shipperCity = '';
-          let shipperState = '';
-          if (load.route?.multipleDropOffs && load.route?.wayPoints) {
-            // Find first pickup waypoint
-            const pickupWaypoint = load.route.wayPoints.find((wp: any) => wp.pickup);
-            if (pickupWaypoint) {
-              const address = typeof pickupWaypoint.address === 'string' 
-                ? pickupWaypoint.address 
-                : pickupWaypoint.address?.place || '';
-              const parts = address.split(',').map((p: string) => p.trim());
+        const response = await listLoad();
+        const message = response?.message || null;
+        const data = response?.data;
+
+        if (response?.success && Array.isArray(data)) {
+          if (data.length === 0) {
+            setLoads([]);
+            setEmptyStateMessage(message || 'No loads available.');
+            return;
+          }
+
+          const formattedLoads = data.map((load: any) => {
+            // Extract shipper city/state - from pickup location
+            let shipperCity = '';
+            let shipperState = '';
+            if (load.route?.multipleDropOffs && load.route?.wayPoints) {
+              // Find first pickup waypoint
+              const pickupWaypoint = load.route.wayPoints.find((wp: any) => wp.pickup);
+              if (pickupWaypoint) {
+                const address =
+                  typeof pickupWaypoint.address === 'string'
+                    ? pickupWaypoint.address
+                    : pickupWaypoint.address?.place || '';
+                const parts = address.split(',').map((p: string) => p.trim());
+                shipperCity = parts[0] || '';
+                shipperState = parts[1] || '';
+              }
+            } else if (load.route?.selectPickup?.place) {
+              const parts = load.route.selectPickup.place.split(',').map((p: string) => p.trim());
               shipperCity = parts[0] || '';
               shipperState = parts[1] || '';
             }
-          } else if (load.route?.selectPickup?.place) {
-            const parts = load.route.selectPickup.place.split(',').map((p: string) => p.trim());
-            shipperCity = parts[0] || '';
-            shipperState = parts[1] || '';
-          }
 
-          // Extract receiver city/state - from dropoff location
-          let receiverCity = '';
-          let receiverState = '';
-          if (load.route?.multipleDropOffs && load.route?.wayPoints) {
-            // Find last dropoff waypoint
-            const dropoffWaypoints = load.route.wayPoints.filter((wp: any) => wp.dropOff);
-            if (dropoffWaypoints.length > 0) {
-              const lastDropoff = dropoffWaypoints[dropoffWaypoints.length - 1];
-              const address = typeof lastDropoff.address === 'string' 
-                ? lastDropoff.address 
-                : lastDropoff.address?.place || '';
-              const parts = address.split(',').map((p: string) => p.trim());
+            // Extract receiver city/state - from dropoff location
+            let receiverCity = '';
+            let receiverState = '';
+            if (load.route?.multipleDropOffs && load.route?.wayPoints) {
+              // Find last dropoff waypoint
+              const dropoffWaypoints = load.route.wayPoints.filter((wp: any) => wp.dropOff);
+              if (dropoffWaypoints.length > 0) {
+                const lastDropoff = dropoffWaypoints[dropoffWaypoints.length - 1];
+                const address =
+                  typeof lastDropoff.address === 'string'
+                    ? lastDropoff.address
+                    : lastDropoff.address?.place || '';
+                const parts = address.split(',').map((p: string) => p.trim());
+                receiverCity = parts[0] || '';
+                receiverState = parts[1] || '';
+              }
+            } else if (load.route?.selectDropOff?.place) {
+              const parts = load.route.selectDropOff.place.split(',').map((p: string) => p.trim());
               receiverCity = parts[0] || '';
               receiverState = parts[1] || '';
             }
-          } else if (load.route?.selectDropOff?.place) {
-            const parts = load.route.selectDropOff.place.split(',').map((p: string) => p.trim());
-            receiverCity = parts[0] || '';
-            receiverState = parts[1] || '';
-          }
 
-          return {
-            _id: load._id,
-            loadNumber: load.loadNumber || load.details?.internalId || load._id,
-            orderNumber: load.orderNumber || load.details?.internalId || load._id,
-            customer: load.customerName || load.details?.customer?.name || 'N/A',
-            customerName: load.customerName || load.details?.customer?.name || 'N/A',
-            amount: load.amount || load.details?.amount || load.rate || load.details?.rate || 0,
-            rate: load.rate || load.details?.rate || load.amount || load.details?.amount || 0,
-            status: load.status || 'planned',
-            assignedDriver: load.details?.driver?.name || load.driverName || null,
-            assignedTruck: load.details?.vehicle?.plateNumber || load.vehiclePlate || null,
-            route: load.route || {},
-            receiver: load.details?.receiver || load.receiver || null,
-            customerEmail: load.details?.customer?.email || load.customerEmail || null,
-            shipperCity,
-            shipperState,
-            receiverCity,
-            receiverState,
-            plannedDate: load.assignedAt ? new Date(load.assignedAt).toISOString().split('T')[0] : undefined,
-          };
-        });
-        setLoads(formattedLoads);
-        setEmptyStateMessage(null);
-      } else {
+            return {
+              _id: load._id,
+              loadNumber: load.loadNumber || load.details?.internalId || load._id,
+              orderNumber: load.orderNumber || load.details?.internalId || load._id,
+              customer: load.customerName || load.details?.customer?.name || 'N/A',
+              customerName: load.customerName || load.details?.customer?.name || 'N/A',
+              amount: load.amount || load.details?.amount || load.rate || load.details?.rate || 0,
+              rate: load.rate || load.details?.rate || load.amount || load.details?.amount || 0,
+              status: load.status || 'planned',
+              assignedDriver: load.details?.driver?.name || load.driverName || null,
+              assignedTruck: load.details?.vehicle?.plateNumber || load.vehiclePlate || null,
+              route: load.route || {},
+              receiver: load.details?.receiver || load.receiver || null,
+              customerEmail: load.details?.customer?.email || load.customerEmail || null,
+              shipperCity,
+              shipperState,
+              receiverCity,
+              receiverState,
+              plannedDate: load.assignedAt ? new Date(load.assignedAt).toISOString().split('T')[0] : undefined,
+            };
+          });
+          setLoads(formattedLoads);
+          setEmptyStateMessage(null);
+        } else {
+          setLoads([]);
+          setEmptyStateMessage(message || 'Failed to fetch loads.');
+        }
+      } catch (error) {
+        console.error('Error fetching loads:', error);
         setLoads([]);
-        setEmptyStateMessage(message || 'Failed to fetch loads.');
+        setEmptyStateMessage('Failed to fetch loads: ' + (error as any)?.message);
+      } finally {
+        if (!options?.suppressLoading) {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      console.error('Error fetching loads:', error);
-      setLoads([]);
-      setEmptyStateMessage('Failed to fetch loads: ' + (error as any)?.message);
-    } finally {
-      setLoading(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    },
+    [userInfo]
+  );
 
   useEffect(() => {
     fetchLoads();
@@ -194,7 +203,7 @@ const AllDispatch = () => {
       const response = await assignDriverTruck(loadId, driverId, truckId, trailerId, planDate);
       if (response && response.success) {
         // Refresh the loads list after successful assignment
-        await fetchLoads();
+      await fetchLoads({ suppressLoading: true });
         setShowAssignModal(false);
         setSelectedLoad(null);
       } else {

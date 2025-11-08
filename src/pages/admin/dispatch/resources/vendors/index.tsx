@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Plus,
   Search,
@@ -6,8 +6,8 @@ import {
   Filter,
   Edit,
   Trash2,
-  X,
 } from "lucide-react";
+import { message } from "antd";
 import NewVendorSidebar from "./NewVendorSidebar";
 import {
   listVendor,
@@ -34,30 +34,42 @@ const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
 
   // Edit modal state
   const [editVendor, setEditVendor] = useState<Vendor | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Vendor>>({});
+  const [editLoading, setEditLoading] = useState(false);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Vendor | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Fetch vendors
-  const fetchVendors = async () => {
+  const fetchVendors = useCallback(async () => {
     setLoading(true);
-    const res = await listVendor();
-    if (res?.success) {
-      setVendors(res.data || []);
-    } else {
-      alert(res?.message || "Failed to fetch vendors");
+    try {
+      const res = await listVendor();
+      if (res?.success) {
+        setVendors(Array.isArray(res.data) ? res.data : []);
+      } else {
+        message.error(res?.message || "Failed to fetch vendors");
+      }
+    } catch (error: any) {
+      console.error("Error fetching vendors:", error);
+      message.error(error?.message || "Error fetching vendors");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchVendors();
-  }, []);
+  }, [fetchVendors]);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+  const getStatusColor = (status?: string) => {
+    switch (status?.toLowerCase()) {
       case "active":
         return "bg-green-100 text-green-800";
       case "inactive":
@@ -68,50 +80,97 @@ const Index = () => {
   };
 
   // Delete
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this vendor?")) return;
-    const res = await deleteVendor(id);
-    if (res?.success) {
-      alert(res.message);
-      fetchVendors();
-    } else {
-      alert(res?.message || "Failed to delete vendor");
+  const openDeleteModal = useCallback((vendor: Vendor) => {
+    setDeleteTarget(vendor);
+    setDeleteModalOpen(true);
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModalOpen(false);
+    setDeleteTarget(null);
+    setDeleteLoading(false);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    try {
+      const res = await deleteVendor(deleteTarget._id);
+      if (res?.success) {
+        message.success(res.message || "Vendor deleted successfully");
+        closeDeleteModal();
+        fetchVendors();
+      } else {
+        message.error(res?.message || "Failed to delete vendor");
+      }
+    } catch (error: any) {
+      console.error("Error deleting vendor:", error);
+      message.error(error?.message || "Failed to delete vendor");
+    } finally {
+      setDeleteLoading(false);
     }
-  };
+  }, [deleteTarget, closeDeleteModal, fetchVendors]);
 
   // Status Toggle
-  const handleStatusToggle = async (vendor: Vendor) => {
-    const newStatus =
-      vendor.status.toLowerCase() === "active" ? "inactive" : "active";
-    const res = await updateStatusVendor(vendor._id, { status: newStatus });
-    if (res?.success) {
-      alert(res.message);
-      fetchVendors();
-    } else {
-      alert(res?.message || "Failed to update status");
-    }
-  };
+  const handleStatusToggle = useCallback(
+    async (vendor: Vendor) => {
+      const newStatus =
+        vendor.status.toLowerCase() === "active" ? "inactive" : "active";
+      try {
+        const res = await updateStatusVendor(vendor._id, { status: newStatus });
+        if (res?.success) {
+          message.success(res.message || "Status updated");
+          fetchVendors();
+        } else {
+          message.error(res?.message || "Failed to update status");
+        }
+      } catch (error: any) {
+        console.error("Error updating status:", error);
+        message.error(error?.message || "Failed to update status");
+      }
+    },
+    [fetchVendors]
+  );
 
   // Open Edit Modal
-  const handleEdit = (vendor: Vendor) => {
+  const handleEdit = useCallback((vendor: Vendor) => {
     setEditVendor(vendor);
     setEditForm(vendor); // pre-fill
     setIsEditModalOpen(true);
-  };
+  }, []);
 
   // Save Edit
-  const handleUpdateVendor = async () => {
+  const handleUpdateVendor = useCallback(async () => {
     if (!editVendor) return;
-    const res = await updateVendor(editVendor._id, editForm);
-    if (res?.success) {
-      alert(res.message);
-      setIsEditModalOpen(false);
-      setEditVendor(null);
-      fetchVendors();
-    } else {
-      alert(res?.message || "Failed to update vendor");
+    setEditLoading(true);
+    try {
+      const res = await updateVendor(editVendor._id, editForm);
+      if (res?.success) {
+        message.success(res.message || "Vendor updated successfully");
+        setIsEditModalOpen(false);
+        setEditVendor(null);
+        fetchVendors();
+      } else {
+        message.error(res?.message || "Failed to update vendor");
+      }
+    } catch (error: any) {
+      console.error("Error updating vendor:", error);
+      message.error(error?.message || "Failed to update vendor");
+    } finally {
+      setEditLoading(false);
     }
-  };
+  }, [editVendor, editForm, fetchVendors]);
+
+  const filteredVendors = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return vendors;
+    return vendors.filter((vendor) => {
+      const nameMatch = vendor.name?.toLowerCase().includes(query);
+      const emailMatch = vendor.email?.toLowerCase().includes(query);
+      const typeMatch = vendor.type?.toLowerCase().includes(query);
+      return nameMatch || emailMatch || typeMatch;
+    });
+  }, [vendors, search]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -127,6 +186,8 @@ const Index = () => {
                 <input
                   type="text"
                   placeholder="Search Vendors"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -179,8 +240,8 @@ const Index = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {vendors.length > 0 ? (
-                      vendors.map((vendor) => (
+                    {filteredVendors.length > 0 ? (
+                      filteredVendors.map((vendor) => (
                         <tr key={vendor._id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
@@ -200,7 +261,7 @@ const Index = () => {
                           <td className="px-6 py-4 text-sm font-mono text-gray-500">
                             {vendor.internalId}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
+                          <td className="px-6 py-4 text-sm text-gray-500 capitalize">
                             {vendor.type}
                           </td>
                           <td className="px-6 py-4">
@@ -216,19 +277,23 @@ const Index = () => {
                           <td className="px-6 py-4 text-sm text-gray-500">
                             {new Date(vendor.createdAt).toLocaleDateString()}
                           </td>
-                          <td className="px-6 py-4 text-sm flex space-x-2">
-                            <button
-                              onClick={() => handleEdit(vendor)}
-                              className="text-blue-500 hover:text-blue-700"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(vendor._id)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+                              <button
+                                onClick={() => handleEdit(vendor)}
+                                className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                              >
+                                <Edit className="h-3.5 w-3.5" />
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => openDeleteModal(vendor)}
+                                className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -260,90 +325,122 @@ const Index = () => {
       />
 
       {/* Edit Modal */}
-     {isEditModalOpen && editVendor && (
-  <div className="fixed inset-0 flex items-center justify-center z-50  bg-opacity-20">
-    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative border border-gray-200">
-      {/* Close Button */}
-      <button
-        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-        onClick={() => setIsEditModalOpen(false)}
-      >
-        <X className="w-5 h-5" />
-      </button>
+      {isEditModalOpen && editVendor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between border-b pb-3">
+              <h2 className="text-lg font-semibold text-gray-900">Edit Vendor</h2>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-gray-400 transition-colors hover:text-gray-600"
+                disabled={editLoading}
+              >
+                ✕
+              </button>
+            </div>
 
-      {/* Modal Header */}
-      <h2 className="text-xl font-semibold text-gray-900 mb-5">Edit Vendor</h2>
+            <div className="grid grid-cols-1 gap-4">
+              <input
+                type="text"
+                placeholder="Name"
+                value={editForm.name || ""}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                value={editForm.email || ""}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Phone"
+                value={editForm.phone || ""}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Website"
+                value={editForm.website || ""}
+                onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
+                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Type"
+                value={editForm.type || ""}
+                onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
+                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <textarea
+                placeholder="Address"
+                value={editForm.address || ""}
+                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={3}
+              />
+            </div>
 
-      {/* Form */}
-      <div className="grid grid-cols-1 gap-4">
-        <input
-          type="text"
-          placeholder="Name"
-          value={editForm.name || ""}
-          onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={editForm.email || ""}
-          onChange={(e) =>
-            setEditForm({ ...editForm, email: e.target.value })
-          }
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-        <input
-          type="text"
-          placeholder="Phone"
-          value={editForm.phone || ""}
-          onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-        <input
-          type="text"
-          placeholder="Website"
-          value={editForm.website || ""}
-          onChange={(e) =>
-            setEditForm({ ...editForm, website: e.target.value })
-          }
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-        <input
-          type="text"
-          placeholder="Type"
-          value={editForm.type || ""}
-          onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-        <input
-          type="text"
-          placeholder="Address"
-          value={editForm.address || ""}
-          onChange={(e) =>
-            setEditForm({ ...editForm, address: e.target.value })
-          }
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-      </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                disabled={editLoading}
+                className="rounded-md border border-gray-200 px-5 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateVendor}
+                disabled={editLoading}
+                className="rounded-md bg-blue-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {editLoading ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Modal Footer */}
-      <div className="mt-6 flex justify-end space-x-3">
-        <button
-          onClick={() => setIsEditModalOpen(false)}
-          className="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleUpdateVendor}
-          className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          Save Changes
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      {/* Delete confirmation */}
+      {deleteModalOpen && deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between border-b pb-3">
+              <h2 className="text-lg font-semibold text-red-600">Delete Vendor</h2>
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleteLoading}
+                className="text-gray-400 transition-colors hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-gray-900">{deleteTarget.name}</span>? This action cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleteLoading}
+                className="rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={deleteLoading}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deleteLoading ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

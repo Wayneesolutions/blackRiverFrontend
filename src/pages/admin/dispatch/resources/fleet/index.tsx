@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Plus,
   Search,
-  MoreVertical,
   Truck,
   Filter,
   Edit,
   Trash2,
   RefreshCw,
 } from "lucide-react";
+import { message } from "antd";
 import NewFleetSidebar from "./NewFleetSidebar";
 import {
   listFleet,
@@ -17,76 +17,129 @@ import {
   updateStatusFleet,
 } from "../../../../../axios/api/distapcher";
 
+interface Fleet {
+  _id: string;
+  name: string;
+  serviceArea?: string;
+  parentFleet?: string;
+  vendor?: string;
+  zone?: string;
+  manPower?: number | string;
+  activeManPower?: number | string;
+  task?: string;
+  status?: string;
+  createdAt: string;
+  [key: string]: any;
+}
+
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [fleets, setFleets] = useState<any[]>([]);
+  const [fleets, setFleets] = useState<Fleet[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
   // For edit modal
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editFleet, setEditFleet] = useState<any>(null);
+  const [editFleet, setEditFleet] = useState<Fleet | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
 
-  // For dropdown action menu
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Fleet | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Fetch fleet list
-  const fetchFleets = async () => {
+  const fetchFleets = useCallback(async () => {
     setLoading(true);
     try {
       const res = await listFleet();
       if (res.success) {
-        setFleets(res.data);
+        setFleets(Array.isArray(res.data) ? res.data : []);
       } else {
-        alert(res.message || "Failed to fetch fleets");
+        message.error(res.message || "Failed to fetch fleets");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching fleets:", error);
-      alert("Error fetching fleets");
+      message.error(error?.message || "Error fetching fleets");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchFleets();
+  }, [fetchFleets]);
+
+  const openDeleteModal = useCallback((fleet: Fleet) => {
+    setDeleteTarget(fleet);
+    setDeleteModalOpen(true);
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this fleet?")) return;
-    const res = await deleteFleet(id);
-    if (res.success) {
-      alert(res.message || "Fleet deleted successfully");
-      fetchFleets();
-    } else {
-      alert(res.message || "Delete failed");
-    }
-  };
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModalOpen(false);
+    setDeleteTarget(null);
+    setDeleteLoading(false);
+  }, []);
 
-  const handleStatusUpdate = async (id: string) => {
-    const res = await updateStatusFleet(id);
-    if (res.success) {
-      alert(res.message || "Status updated");
-      fetchFleets();
-    } else {
-      alert(res.message || "Failed to update status");
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    try {
+      const res = await deleteFleet(deleteTarget._id);
+      if (res.success) {
+        message.success(res.message || "Fleet deleted successfully");
+        closeDeleteModal();
+        fetchFleets();
+      } else {
+        message.error(res.message || "Failed to delete fleet");
+      }
+    } catch (error: any) {
+      console.error("Error deleting fleet:", error);
+      message.error(error?.message || "Error deleting fleet");
+    } finally {
+      setDeleteLoading(false);
     }
-  };
+  }, [deleteTarget, closeDeleteModal, fetchFleets]);
 
-  const handleUpdate = async () => {
+  const handleStatusUpdate = useCallback(
+    async (id: string) => {
+      try {
+        const res = await updateStatusFleet(id);
+        if (res.success) {
+          message.success(res.message || "Status updated");
+          fetchFleets();
+        } else {
+          message.error(res.message || "Failed to update status");
+        }
+      } catch (error: any) {
+        console.error("Error updating status:", error);
+        message.error(error?.message || "Failed to update status");
+      }
+    },
+    [fetchFleets]
+  );
+
+  const handleUpdate = useCallback(async () => {
     if (!editFleet) return;
-    const res = await updateFleet(editFleet._id, editFleet);
-    if (res.success) {
-      alert(res.message || "Fleet updated successfully");
-      setEditModalOpen(false);
-      setEditFleet(null);
-      fetchFleets();
-    } else {
-      alert(res.message || "Update failed");
+    setEditLoading(true);
+    try {
+      const res = await updateFleet(editFleet._id, editFleet);
+      if (res.success) {
+        message.success(res.message || "Fleet updated successfully");
+        setEditModalOpen(false);
+        setEditFleet(null);
+        fetchFleets();
+      } else {
+        message.error(res.message || "Failed to update fleet");
+      }
+    } catch (error: any) {
+      console.error("Error updating fleet:", error);
+      message.error(error?.message || "Failed to update fleet");
+    } finally {
+      setEditLoading(false);
     }
-  };
+  }, [editFleet, fetchFleets]);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status?: string) => {
     switch (status?.toLowerCase()) {
       case "active":
         return "bg-green-100 text-green-800";
@@ -97,8 +150,12 @@ const Index = () => {
     }
   };
 
-  const filteredFleets = fleets.filter((fleet) =>
-    fleet.name?.toLowerCase().includes(search.toLowerCase())
+  const filteredFleets = useMemo(
+    () =>
+      fleets.filter((fleet) =>
+        (fleet.name ?? "").toLowerCase().includes(search.toLowerCase())
+      ),
+    [fleets, search]
   );
 
   return (
@@ -233,60 +290,34 @@ const Index = () => {
                         <td className="px-6 py-4 text-sm text-gray-500">
                           {new Date(fleet.createdAt).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 relative">
-  <div className="relative inline-block text-left">
-    <button
-      onClick={() =>
-        setOpenMenu(openMenu === fleet._id ? null : fleet._id)
-      }
-      className="p-1 rounded hover:bg-gray-100"
-    >
-      <MoreVertical className="w-5 h-5 text-gray-600" />
-    </button>
-
-    {openMenu === fleet._id && (
-      <div
-        className="absolute right-0 mt-2 w-40 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
-      >
-        <div className="py-1">
-          <button
-            onClick={() => {
-              setEditFleet(fleet);
-              setEditModalOpen(true);
-              setOpenMenu(null);
-            }}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
-          >
-            <Edit className="w-4 h-4 text-blue-600" />
-            Edit
-          </button>
-
-          <button
-            onClick={() => {
-              handleDelete(fleet._id);
-              setOpenMenu(null);
-            }}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
-          >
-            <Trash2 className="w-4 h-4 text-red-600" />
-            Delete
-          </button>
-
-          <button
-            onClick={() => {
-              handleStatusUpdate(fleet._id);
-              setOpenMenu(null);
-            }}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
-          >
-            <RefreshCw className="w-4 h-4 text-green-600" />
-            Update Status
-          </button>
-        </div>
-      </div>
-    )}
-  </div>
-</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setEditFleet({ ...fleet });
+                                setEditModalOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(fleet)}
+                              className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </button>
+                            <button
+                              onClick={() => handleStatusUpdate(fleet._id)}
+                              className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-100 transition-colors"
+                            >
+                              <RefreshCw className="h-3.5 w-3.5" />
+                              Update Status
+                            </button>
+                          </div>
+                        </td>
 
                       </tr>
                     ))
@@ -377,9 +408,49 @@ const Index = () => {
               </button>
               <button
                 onClick={handleUpdate}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                disabled={editLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Update
+                {editLoading ? "Updating..." : "Update"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteModalOpen && deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg">
+            <div className="flex items-center justify-between border-b pb-3 mb-4">
+              <h2 className="text-lg font-semibold text-red-600">Delete Fleet</h2>
+              <button
+                onClick={closeDeleteModal}
+                className="text-gray-400 hover:text-gray-600"
+                disabled={deleteLoading}
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-gray-900">{deleteTarget.name}</span>? This action cannot be undone.
+            </p>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleteLoading}
+                className="px-4 py-2 border rounded-md hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={deleteLoading}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {deleteLoading ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

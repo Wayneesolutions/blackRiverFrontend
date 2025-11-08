@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight, Calendar, Clock, User, Truck, Trash2 } from "lucide-react";
 import { listLoad, updateLoad } from "../../../../../axios/api/distapcher";
 
@@ -26,71 +26,78 @@ const SchedulerPage = () => {
     const [selectedLoad, setSelectedLoad] = useState<Load | null>(null);
     const [draggedLoad, setDraggedLoad] = useState<Load | null>(null);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
-    const [userInfo, setUserInfo] = useState<any>(null);
+    const userInfoRef = useRef<any>(null);
 
     // Fetch loads data
-    const fetchLoads = useCallback(async () => {
-        try {
-            setLoading(true);
+    const fetchLoads = useCallback(
+        async (options?: { suppressLoading?: boolean }) => {
+            if (!options?.suppressLoading) {
+                setLoading(true);
+            }
 
-            let currentUser = userInfo;
-            if (!currentUser) {
-                const stored = localStorage.getItem('userInfo');
-                if (stored) {
-                    try {
-                        currentUser = JSON.parse(stored);
-                        setUserInfo(currentUser);
-                    } catch (error) {
-                        console.error('Error parsing userInfo during fetch:', error);
+            try {
+                let currentUser = userInfoRef.current;
+                if (!currentUser) {
+                    const stored = localStorage.getItem('userInfo');
+                    if (stored) {
+                        try {
+                            currentUser = JSON.parse(stored);
+                            userInfoRef.current = currentUser;
+                        } catch (error) {
+                            console.error('Error parsing userInfo during fetch:', error);
+                        }
                     }
                 }
-            }
 
-            const isSuperadmin = currentUser?.role === 'superadmin';
-            const hasCompany = Boolean(currentUser?.company);
+                const isSuperadmin = currentUser?.role === 'superadmin';
+                const hasCompany = Boolean(currentUser?.company);
 
-            if (!isSuperadmin && !hasCompany) {
-                setLoads([]);
-                setEmptyStateMessage(null);
-                return;
-            }
-
-            const response = await listLoad();
-            const message = response?.message || null;
-            const data = response?.data;
-
-            if (response.success && Array.isArray(data)) {
-                if (data.length === 0) {
+                if (!isSuperadmin && !hasCompany) {
                     setLoads([]);
-                    setEmptyStateMessage(message || 'No loads available.');
+                    setEmptyStateMessage(null);
                     return;
                 }
 
-                const loadsWithDates = data.map((load: any) => ({
-                    ...load,
-                    scheduledDate: load.assignedAt ? new Date(load.assignedAt) : null
-                }));
-                setLoads(loadsWithDates);
-                setEmptyStateMessage(null);
-            } else {
+                const response = await listLoad();
+                const message = response?.message || null;
+                const data = response?.data;
+
+                if (response.success && Array.isArray(data)) {
+                    if (data.length === 0) {
+                        setLoads([]);
+                        setEmptyStateMessage(message || 'No loads available.');
+                        return;
+                    }
+
+                    const loadsWithDates = data.map((load: any) => ({
+                        ...load,
+                        scheduledDate: load.assignedAt ? new Date(load.assignedAt) : null
+                    }));
+                    setLoads(loadsWithDates);
+                    setEmptyStateMessage(null);
+                } else {
+                    setLoads([]);
+                    setEmptyStateMessage(message || 'Failed to fetch loads.');
+                }
+            } catch (error) {
+                console.error('Error fetching loads:', error);
                 setLoads([]);
-                setEmptyStateMessage(message || 'Failed to fetch loads.');
+                setEmptyStateMessage('Error fetching loads.');
+            } finally {
+                if (!options?.suppressLoading) {
+                    setLoading(false);
+                }
             }
-        } catch (error) {
-            console.error('Error fetching loads:', error);
-            setLoads([]);
-            setEmptyStateMessage('Error fetching loads.');
-        } finally {
-            setLoading(false);
-        }
-    }, [userInfo]);
+        },
+        []
+    );
 
     useEffect(() => {
         const syncUser = () => {
             try {
                 const stored = localStorage.getItem('userInfo');
                 if (stored) {
-                    setUserInfo(JSON.parse(stored));
+                    userInfoRef.current = JSON.parse(stored);
                 }
             } catch (error) {
                 console.error('Error parsing userInfo from localStorage:', error);
@@ -167,7 +174,7 @@ const SchedulerPage = () => {
             };
             const response = await updateLoad(load._id, updateData);
             if (response.success) {
-                fetchLoads(); // Refresh the loads
+                fetchLoads({ suppressLoading: true }); // Refresh the loads
             }
         } catch (error) {
             console.error('Error scheduling load:', error);
@@ -182,7 +189,7 @@ const SchedulerPage = () => {
             };
             const response = await updateLoad(load._id, updateData);
             if (response.success) {
-                fetchLoads(); // Refresh the loads
+                fetchLoads({ suppressLoading: true }); // Refresh the loads
             }
         } catch (error) {
             console.error('Error unscheduling load:', error);

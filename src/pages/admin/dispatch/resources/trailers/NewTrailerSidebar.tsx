@@ -1,104 +1,141 @@
 import { useState, useEffect } from 'react';
 import { X, Truck, MapPin, Calendar, Hash, Tag } from 'lucide-react';
-import { createTrailer } from '../../../../../axios/api/distapcher';
 
-interface NewTrailerSidebarProps {
-    isOpen: boolean;
-    onClose: () => void;
+interface TrailerInitialData {
+  _id?: string;
+  internalId?: string;
+  trailer?: string;
+  make?: string;
+  model?: string;
+  year?: string | number;
+  plateNumber?: string;
+  vinNumber?: string;
+  capacity?: string;
+  type?: string;
+  status?: string;
+  operationStatus?: string;
+  address?: string;
 }
 
-const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({ isOpen, onClose }) => {
-    const [formData, setFormData] = useState({
-        internalId: '',
-        trailer: '',
-        make: '',
-        model: '',
-        year: new Date().getFullYear(),
-        plateNumber: '',
-        vinNumber: '',
-        capacity: '',
-        type: 'dry_van',
-        status: 'stopped',
-        operationStatus: 'available',
-        address: ''
-    });
-    const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<Record<string, string>>({});
+interface NewTrailerSidebarProps {
+  isOpen: boolean;
+  mode: 'create' | 'edit';
+  initialData?: TrailerInitialData;
+  onClose: () => void;
+  onSubmit: (payload: any, trailerId?: string) => Promise<boolean> | boolean;
+}
 
-    // Reset form when sidebar opens
-    useEffect(() => {
-        if (isOpen) {
-            setFormData({
-                internalId: '',
-                trailer: '',
-                make: '',
-                model: '',
-                year: new Date().getFullYear(),
-                plateNumber: '',
-                vinNumber: '',
-                capacity: '',
-                type: 'dry_van',
-                status: 'stopped',
-                operationStatus: 'available',
-                address: ''
-            });
-            setErrors({});
-        }
-    }, [isOpen]);
+const defaultFormState = {
+  internalId: '',
+  trailer: '',
+  make: '',
+  model: '',
+  year: new Date().getFullYear().toString(),
+  plateNumber: '',
+  vinNumber: '',
+  capacity: '',
+  type: 'dry_van',
+  status: 'stopped',
+  operationStatus: 'available',
+  address: '',
+};
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target;
-        
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
-                    type === 'number' ? parseInt(value) || 0 : value
-        }));
-        
-        // Clear error when user starts typing
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: '' }));
-        }
-    };
+const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
+  isOpen,
+  mode,
+  initialData,
+  onClose,
+  onSubmit,
+}) => {
+  const [formData, setFormData] = useState({ ...defaultFormState });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [editingId, setEditingId] = useState<string | undefined>(undefined);
 
-    const validateForm = () => {
-        const newErrors: Record<string, string> = {};
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData({ ...defaultFormState });
+      setErrors({});
+      setLoading(false);
+      setEditingId(undefined);
+      return;
+    }
 
-        if (!formData.internalId.trim()) newErrors.internalId = 'Internal ID is required';
-        if (!formData.trailer.trim()) newErrors.trailer = 'Trailer name is required';
-        if (!formData.make.trim()) newErrors.make = 'Make is required';
-        if (!formData.model.trim()) newErrors.model = 'Model is required';
-        if (!formData.plateNumber.trim()) newErrors.plateNumber = 'Plate number is required';
-        if (!formData.vinNumber.trim()) newErrors.vinNumber = 'VIN number is required';
-        if (!formData.capacity.trim()) newErrors.capacity = 'Capacity is required';
+    if (mode === 'edit' && initialData) {
+      setFormData({
+        internalId: initialData.internalId || '',
+        trailer: initialData.trailer || '',
+        make: initialData.make || '',
+        model: initialData.model || '',
+        year: initialData.year ? String(initialData.year) : defaultFormState.year,
+        plateNumber: initialData.plateNumber || '',
+        vinNumber: initialData.vinNumber || '',
+        capacity: initialData.capacity || '',
+        type: initialData.type || 'dry_van',
+        status: initialData.status || 'stopped',
+        operationStatus: initialData.operationStatus || 'available',
+        address: initialData.address || '',
+      });
+      setEditingId(initialData._id);
+    } else {
+      setFormData({ ...defaultFormState });
+      setEditingId(undefined);
+    }
+    setErrors({});
+  }, [isOpen, mode, initialData]);
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        if (!validateForm()) {
-            return;
-        }
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
 
-        setLoading(true);
-        try {
-            const response = await createTrailer(formData);
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
 
-            if (response.success) {
-                onClose();
-            } else {
-                alert(response.message || 'Failed to create trailer');
-            }
-        } catch (error) {
-            console.error('Error creating trailer:', error);
-            alert('Error creating trailer');
-        } finally {
-            setLoading(false);
-        }
-    };
+    if (!formData.internalId.trim()) newErrors.internalId = 'Internal ID is required';
+    if (!formData.trailer.trim()) newErrors.trailer = 'Trailer name is required';
+    if (!formData.make.trim()) newErrors.make = 'Make is required';
+    if (!formData.model.trim()) newErrors.model = 'Model is required';
+    if (!formData.plateNumber.trim()) newErrors.plateNumber = 'Plate number is required';
+    if (!formData.vinNumber.trim()) newErrors.vinNumber = 'VIN number is required';
+    if (!formData.capacity.trim()) newErrors.capacity = 'Capacity is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        ...formData,
+        year: formData.year ? Number(formData.year) : undefined,
+      };
+
+      const success = await onSubmit(payload, mode === 'edit' ? editingId : undefined);
+      if (success) {
+        setFormData({ ...defaultFormState });
+        setEditingId(undefined);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
     if (!isOpen) return null;
 
@@ -115,7 +152,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({ isOpen, onClose }
                                 <Truck className="h-6 w-6 text-blue-600" />
                             </div>
                             <h2 className="text-lg font-semibold text-gray-900">
-                                Add New Trailer
+                              {mode === 'edit' ? 'Update Trailer' : 'Add New Trailer'}
                             </h2>
                         </div>
                         <button
@@ -389,7 +426,13 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({ isOpen, onClose }
                                 disabled={loading}
                                 className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                             >
-                                {loading ? 'Creating...' : 'Create Trailer'}
+                                {loading
+                                  ? mode === 'edit'
+                                    ? 'Updating...'
+                                    : 'Creating...'
+                                  : mode === 'edit'
+                                    ? 'Update Trailer'
+                                    : 'Create Trailer'}
                             </button>
                         </div>
                     </div>
