@@ -2,10 +2,8 @@ import  { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import ExpiringDocumentsPopup from "../common/ExpiringDocumentsPopup";
 import ExpiringDriverDocumentsPopup from "../common/ExpiringDriverDocumentsPopup";
 import ErrorBoundary from "../common/ErrorBoundary";
-import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
 import { useExpiringDriverDocuments } from "../../hooks/useExpiringDriverDocuments";
 
 // Wrapper to log route changes and catch rendering issues
@@ -24,7 +22,6 @@ const Layout = () => {
     
     // Hooks MUST be called unconditionally at top level (React Rules of Hooks)
     // ErrorBoundary will catch any errors from these hooks
-    const { showExpiringPopup, handleClosePopup, handleViewDocuments } = useExpiringDocuments();
     const { 
         showExpiringPopup: showDriverExpiringPopup, 
         handleClosePopup: handleCloseDriverPopup, 
@@ -82,17 +79,6 @@ const Layout = () => {
                 <footer className="bg-[#9793E4] text-center text-white py-4 text-md fixed bottom-0 left-0 w-full z-50">
                     Logistics All rights reserved
                 </footer>
-                
-                {/* Global Expiring Documents Popup */}
-                <ErrorBoundary>
-                    <ExpiringDocumentsPopup
-                        isOpen={showExpiringPopup}
-                        onClose={handleClosePopup}
-                        onViewDocuments={handleViewDocuments}
-                        daysThreshold={30}
-                        showOnlyOnce={false}
-                    />
-                </ErrorBoundary>
                 
                 {/* Global Expiring Driver Documents Popup */}
                 <ErrorBoundary>

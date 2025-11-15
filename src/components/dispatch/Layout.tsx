@@ -2,14 +2,11 @@ import  { useState } from "react";
 import { Outlet } from "react-router-dom";
 import DispatchSidebar from "./Sidebar";
 import DispatchHeader from "./Header";
-import ExpiringDocumentsPopup from "../common/ExpiringDocumentsPopup";
 import ExpiringDriverDocumentsPopup from "../common/ExpiringDriverDocumentsPopup";
-import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
 import { useExpiringDriverDocuments } from "../../hooks/useExpiringDriverDocuments";
 
 const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const { showExpiringPopup, handleClosePopup, handleViewDocuments } = useExpiringDocuments();
     const { 
         showExpiringPopup: showDriverExpiringPopup, 
         handleClosePopup: handleCloseDriverPopup, 
@@ -42,15 +39,6 @@ const Layout = () => {
                     <Outlet />
                 </main>
             </div>
-            
-            {/* Global Expiring Documents Popup */}
-            <ExpiringDocumentsPopup
-                isOpen={showExpiringPopup}
-                onClose={handleClosePopup}
-                onViewDocuments={handleViewDocuments}
-                daysThreshold={30}
-                showOnlyOnce={false}
-            />
             
             {/* Global Expiring Driver Documents Popup */}
             <ExpiringDriverDocumentsPopup

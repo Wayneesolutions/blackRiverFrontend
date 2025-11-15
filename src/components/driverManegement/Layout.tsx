@@ -3,12 +3,12 @@ import  { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Header from './Header'
 import Sidebar from './Sidebar'
-import ExpiringDocumentsPopup from "../common/ExpiringDocumentsPopup";
+import ExpiringDocumentsToast from "../common/ExpiringDocumentsToast";
 import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
 
 function Layout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const { showExpiringPopup, handleClosePopup, handleViewDocuments } = useExpiringDocuments();
+  const { showExpiringToast, expiringDocuments, handleCloseToast, handleViewDocuments } = useExpiringDocuments();
 
     const toggleSidebar = () => {
         setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -37,13 +37,12 @@ function Layout() {
                 </main>
             </div>
             
-            {/* Global Expiring Documents Popup */}
-            <ExpiringDocumentsPopup
-                isOpen={showExpiringPopup}
-                onClose={handleClosePopup}
+            {/* Expiring Documents Toast (HR Panel Only) */}
+            <ExpiringDocumentsToast
+                isOpen={showExpiringToast}
+                onClose={handleCloseToast}
                 onViewDocuments={handleViewDocuments}
-                daysThreshold={30}
-                showOnlyOnce={false}
+                count={expiringDocuments.length}
             />
         </div>
     );

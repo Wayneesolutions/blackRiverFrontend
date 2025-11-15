@@ -1,32 +1,33 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import type { RootState } from '../redux/store';
 
 export const useExpiringDocuments = () => {
-    const [showExpiringPopup, setShowExpiringPopup] = useState(false);
-    const [, setExpiringDocuments] = useState<any[]>([]);
+    const [showExpiringToast, setShowExpiringToast] = useState(false);
+    const [expiringDocuments, setExpiringDocuments] = useState<any[]>([]);
     const navigate = useNavigate();
+    const location = useLocation();
     
     const { userInfo } = useSelector((state: RootState) => state.userAuth);
     
     // Type assertion to handle the nested userData structure
     const userData = (userInfo as any)?.userData;
 
-    // Check for expiring documents continuously
+    // Check if we're in HR panel routes
+    const isHRPanel = location.pathname.startsWith('/Management') || location.pathname.startsWith('/accounts');
+
+    // Check for expiring documents continuously (only in HR panel)
     useEffect(() => {
-        console.log('🔍 useExpiringDocuments useEffect triggered');
-        console.log('🔍 userInfo:', userInfo);
-        console.log('🔍 userData:', userData);
-        console.log('🔍 userData.role:', userData?.role);
+        // Only check if we're in HR panel routes
+        if (!isHRPanel) {
+            setShowExpiringToast(false);
+            return;
+        }
+
+        console.log('🔍 useExpiringDocuments useEffect triggered (HR panel only)');
         
         const checkExpiringDocuments = async () => {
-            console.log('🔍 checkExpiringDocuments called');
-            console.log('🔍 userInfo check:', userInfo);
-            console.log('🔍 userData check:', userData);
-            console.log('🔍 role check:', userData?.role);
-            console.log('🔍 authorized roles check:', ['admin', 'hr', 'superadmin'].includes(userData?.role || ''));
-            
             // Check both Redux and localStorage for userInfo (fallback for timing issues)
             let effectiveUserInfo = userInfo;
             let effectiveUserData = userData;
@@ -39,7 +40,6 @@ export const useExpiringDocuments = () => {
                         if (parsed && parsed.userData) {
                             effectiveUserInfo = parsed;
                             effectiveUserData = parsed.userData;
-                            console.log('✅ Using userInfo from localStorage as fallback');
                         }
                     }
                 } catch (e) {
@@ -48,77 +48,60 @@ export const useExpiringDocuments = () => {
             }
             
             if (!effectiveUserInfo || !effectiveUserData || !['admin', 'hr', 'superadmin'].includes(effectiveUserData.role)) {
-                console.log('❌ User not authorized or no userInfo');
                 return;
             }
 
             try {
-                console.log('🔍 Making API call to get expiring documents...');
                 // Import the API function dynamically to avoid circular imports
                 const { getExpiringDocuments } = await import('../axios/api/employeeDocument');
                 const response = await getExpiringDocuments(30); // Check for documents expiring in next 30 days
                 
-                console.log('🔍 API Response:', response);
-                console.log('🔍 Response success:', response?.success);
-                console.log('🔍 Response data:', response?.data);
-                console.log('🔍 Data length:', response?.data?.length);
-                
                 if (response && response.success && response.data && response.data.length > 0) {
-                    console.log('✅ Found expiring documents, setting popup to true');
                     setExpiringDocuments(response.data);
-                    setShowExpiringPopup(true);
-                    console.log('🚨 Showing toast for expiring documents:', response.data.length);
+                    setShowExpiringToast(true);
                 } else {
-                    console.log('❌ No expiring documents found or API failed');
-                    setShowExpiringPopup(false);
+                    setShowExpiringToast(false);
                 }
             } catch (error: any) {
                 // Silently handle errors - don't crash the app for background checks
-                // Only log if it's not a 403/401 (those are handled by interceptor)
                 if (error?.response?.status !== 403 && error?.response?.status !== 401) {
                     console.error('❌ Error checking expiring documents:', error);
                 }
-                setShowExpiringPopup(false);
+                setShowExpiringToast(false);
             }
         };
 
         // Add a small delay before first check to allow Redux state to update after login
-        // This prevents race conditions where API calls happen before auth state is ready
-        console.log('🔍 Starting initial check with delay...');
         const initialCheckTimeout = setTimeout(() => {
             checkExpiringDocuments();
-        }, 500); // 500ms delay to allow Redux state to update
+        }, 500); // 500ms delay
 
         // Set up interval to check every 30 seconds
-        console.log('🔍 Setting up 30-second interval...');
         const interval = setInterval(() => {
-            console.log('⏰ 30-second interval triggered');
             checkExpiringDocuments();
         }, 30 * 1000); // 30 seconds
 
         // Cleanup interval and timeout on unmount
         return () => {
-            console.log('🔍 Cleaning up interval and timeout');
             clearInterval(interval);
             clearTimeout(initialCheckTimeout);
         };
-    }, [userInfo, userData]);
+    }, [userInfo, userData, isHRPanel]);
 
-    const handleClosePopup = () => {
-        setShowExpiringPopup(false);
-        // Popup will show again in next check if documents are still expiring
+    const handleCloseToast = () => {
+        setShowExpiringToast(false);
     };
 
     const handleViewDocuments = () => {
-        // Navigate to employee documents page using React Router
-        setShowExpiringPopup(false);
-        navigate('/admin/Management/documents');
+        setShowExpiringToast(false);
+        navigate('/Management/documents');
     };
 
     return {
-        showExpiringPopup,
-        setShowExpiringPopup,
-        handleClosePopup,
+        showExpiringToast,
+        expiringDocuments,
+        setShowExpiringToast,
+        handleCloseToast,
         handleViewDocuments
     };
 };
