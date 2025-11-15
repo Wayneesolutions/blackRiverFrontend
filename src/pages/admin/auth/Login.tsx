@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { message } from 'antd';
 import { setUserCredentials } from "../../../redux/slices/userSlice";
 import { useDispatch } from "react-redux";
+import Logo from "../../../assets/FleetGo.png"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -229,12 +230,7 @@ export default function LoginPage() {
           <div className="space-y-8 text-center lg:text-left">
             <div>
               <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
-                <div className="p-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-lg">
-                  <Truck className="w-10 h-10 text-white" />
-                </div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  Logistics
-                </h1>
+              <img src={Logo} alt="FleetGo Logo" className="w-40 h-auto" />
               </div>
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
                 Welcome Back
@@ -368,7 +364,7 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 text-sm font-semibold text-white shadow-lg transition-all duration-200 ${
+                    className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 text-sm font-semibold !text-white shadow-lg transition-all duration-200 ${
                       loading
                         ? "bg-indigo-400 cursor-not-allowed"
                         : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl transform hover:-translate-y-0.5"
@@ -420,7 +416,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="mt-12 text-center text-sm text-gray-500">
-          © 2025 Logistics Platform. All rights reserved.
+          © 2025 Logistiq Platform. All rights reserved.
         </div>
       </div>
     </div>

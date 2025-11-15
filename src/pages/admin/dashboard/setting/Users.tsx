@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, X, Users as UsersIcon, Filter, Search, Truck, Mail, CreditCard, FileText, AlertCircle } from 'lucide-react';
-import { Select, Tag, message, notification } from "antd";
+import { Plus, Edit, Trash2, Eye, X, Users as UsersIcon, Filter, Search, Truck, Mail, CreditCard, FileText } from 'lucide-react';
+import { Select, Tag } from "antd";
+import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { 
   getAllEmployees, 
   createEmployee, 
@@ -90,8 +91,7 @@ interface User {
   };
 }
 
-type Role = "driver" | "dispatcher" | "hr" | "contact" | "customer" | 
-"reporter" | "Maintenance Crew (Mechanics)" | "Fleet Maintenance Manager" | "Compliance Manager";
+type Role = "driver" | "dispatcher" | "hr" | "contact" | "customer" | "reporter" | "Maintenance Crew (Mechanics)" | "Fleet Maintenance Manager" | "Safety Manager";
 
 // Driver-specific form data interface
 interface DriverFormData {
@@ -152,6 +152,54 @@ interface DriverFormData {
   isDefault: boolean;
 }
 
+// Add Notification types and component
+type NotificationType = 'success' | 'error' | 'info' | 'warning';
+
+interface ToastNotification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+// Notification Component
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />,
+    warning: <FaExclamationCircle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
+
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedRole, setSelectedRole] = useState<Role | 'all'>('all');
@@ -164,9 +212,17 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [showDriverPanel, setShowDriverPanel] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
-  const [toastError, setToastError] = useState<string | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; userId: string | null }>({ show: false, userId: null });
 
-  const roleOptions: Role[] = ['driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', 'Maintenance Crew (Mechanics)', 'Fleet Maintenance Manager', 'Compliance Manager'];
+  // Available roles including drive
+  const rolesWithLoginAccess: Role[] = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Safety Manager'];
+  
+  // Roles without login access (only basic information)
+  const rolesWithoutLoginAccess: Role[] = ['contact', 'customer', 'reporter', 'Maintenance Crew (Mechanics)'];
+
+  const roleOptions: Role[] = ['driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', "Maintenance Crew (Mechanics)", "Fleet Maintenance Manager", "Safety Manager"];
 
   const [formData, setFormData] = useState({
     name: '',
@@ -242,6 +298,15 @@ const Users = () => {
     isDefault: false
   });
 
+  const addNotification = (type: NotificationType, message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -251,18 +316,15 @@ const Users = () => {
         
         // Show message if company setup is required
         if (response.requiresCompanySetup && response.message) {
-          message.warning({
-            content: response.message,
-            duration: 6,
-          });
+          addNotification('warning', response.message);
         }
       } else {
         console.error(response?.message || 'Error fetching users');
-        message.error(response?.message || 'Error fetching users');
+        addNotification('error', response?.message || 'Error fetching users');
       }
     } catch (error) {
       console.error(error);
-      message.error('Failed to fetch users');
+      addNotification('error', 'Failed to fetch users');
     } finally {
       setLoading(false);
     }
@@ -331,27 +393,6 @@ const Users = () => {
     setActiveTab('basic');
   };
 
-  // Configure message and notification defaults on mount
-  useEffect(() => {
-    // Configure message defaults with high z-index to appear above modals
-    message.config({
-      top: 100,
-      duration: 8,
-      maxCount: 3,
-      rtl: false,
-    });
-    
-    // Configure notification defaults with high z-index to appear above modals
-    notification.config({
-      placement: 'topRight',
-      top: 24,
-      bottom: 24,
-      duration: 8,
-      rtl: false,
-      getContainer: () => document.body, // Ensure it's rendered in body, not inside modal
-    });
-  }, []);
-
   // Frontend validation function - matches backend validation
   const validateForm = (): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
@@ -379,7 +420,6 @@ const Users = () => {
     if (!formData.phone?.trim()) {
       errors.push('Phone is required');
     } else {
-      // Basic phone validation - accepts common formats
       const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
       if (!phoneRegex.test(formData.phone.trim())) {
         errors.push('Please provide a valid phone number');
@@ -426,15 +466,18 @@ const Users = () => {
       }
     }
 
-    // Internal ID validation (required, 3-20 chars, uppercase letters, numbers, hyphens, underscores)
-    if (!formData.internalId?.trim()) {
-      errors.push('Internal ID is required');
-    } else {
-      const internalIdTrimmed = formData.internalId.trim().toUpperCase();
-      if (internalIdTrimmed.length < 3 || internalIdTrimmed.length > 20) {
-        errors.push('Internal ID must be between 3 and 20 characters');
-      } else if (!/^[A-Z0-9_-]+$/.test(internalIdTrimmed)) {
-        errors.push('Internal ID can only contain uppercase letters, numbers, hyphens, and underscores');
+    // Internal ID validation - only required for roles with login access
+    const requiresLoginAccess = rolesWithLoginAccess.includes(formData.role);
+    if (requiresLoginAccess) {
+      if (!formData.internalId?.trim()) {
+        errors.push('Internal ID is required');
+      } else {
+        const internalIdTrimmed = formData.internalId.trim().toUpperCase();
+        if (internalIdTrimmed.length < 3 || internalIdTrimmed.length > 20) {
+          errors.push('Internal ID must be between 3 and 20 characters');
+        } else if (!/^[A-Z0-9_-]+$/.test(internalIdTrimmed)) {
+          errors.push('Internal ID can only contain uppercase letters, numbers, hyphens, and underscores');
+        }
       }
     }
 
@@ -446,25 +489,26 @@ const Users = () => {
       }
     }
 
-    // Password validation (optional for new users, but if provided must be min 6 chars)
-    // Note: Backend provides default password if not provided, but we'll validate if user provides one
-    if (!isEditing && formData.password?.trim()) {
-      if (formData.password.length < 6) {
+    // Password validation - only required for roles with login access
+    if (requiresLoginAccess) {
+      if (!isEditing && !formData.password?.trim()) {
+        // For new users with login access, password is optional (backend provides default)
+        // But if provided, must be at least 6 chars
+        if (formData.password && formData.password.length < 6) {
+          errors.push('Password must be at least 6 characters long');
+        }
+      }
+      // For updates, password is optional
+      if (isEditing && formData.password?.trim() && formData.password.length < 6) {
         errors.push('Password must be at least 6 characters long');
       }
-    }
-    // For updates, password is optional
-    if (isEditing && formData.password?.trim() && formData.password.length < 6) {
-      errors.push('Password must be at least 6 characters long');
     }
 
     // Role validation (required, must be in allowed list)
     if (!formData.role) {
       errors.push('Role is required');
     } else {
-      const allowedRoles = ['driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', 
-        'Maintenance Crew (Mechanics)', 'Fleet Maintenance Manager', 'Compliance Manager'];
-      if (!allowedRoles.includes(formData.role)) {
+      if (!roleOptions.includes(formData.role)) {
         errors.push('Invalid role selected');
       }
     }
@@ -482,7 +526,7 @@ const Users = () => {
       errors.push('Status must be either active or inactive');
     }
 
-    // Driver-specific validations (employeeCode is optional in backend, but we'll keep it for consistency)
+    // Driver-specific validations
     if (formData.role === 'driver') {
       // Employee code is optional but recommended
       // No strict validation needed as backend handles it
@@ -502,8 +546,8 @@ const Users = () => {
     if (!validation.isValid) {
       const errorMsg = validation.errors.join(', ');
       console.log('Validation errors:', errorMsg);
-      setToastError(errorMsg);
-      setTimeout(() => setToastError(null), 8000);
+      setModalError(errorMsg);
+      addNotification('error', errorMsg);
       return;
     }
 
@@ -552,10 +596,8 @@ const Users = () => {
         
         // Check if response exists and has success property
         if (response && response.success === true) {
-          message.success({
-            content: response.message || 'User updated successfully',
-            duration: 3,
-          });
+          setModalError(null); // Clear any error messages
+          addNotification('success', response.message || 'User updated successfully');
           await fetchUsers();
           resetForm();
           setShowCreateModal(false);
@@ -596,13 +638,8 @@ const Users = () => {
           }
           
           console.log('❌ Update user error - Response:', JSON.stringify(response, null, 2));
-          console.log('❌ Error message to show:', errorMessage);
-          
-          // Show custom toast notification
-          setToastError(errorMessage);
-          setTimeout(() => setToastError(null), 8000);
-          
-          // Don't close modal or reset form on error
+          setModalError(errorMessage);
+          addNotification('error', errorMessage);
         }
       } else {
         response = await createEmployee(submitData);
@@ -610,10 +647,8 @@ const Users = () => {
         
         // Check if response exists and has success property
         if (response && response.success === true) {
-          message.success({
-            content: response.message || 'User created successfully',
-            duration: 3,
-          });
+          setModalError(null); // Clear any error messages
+          addNotification('success', response.message || 'User created successfully');
           await fetchUsers();
           resetForm();
           setShowCreateModal(false);
@@ -654,13 +689,8 @@ const Users = () => {
           }
           
           console.log('❌ Create user error - Response:', JSON.stringify(response, null, 2));
-          console.log('❌ Error message to show:', errorMessage);
-          
-          // Show custom toast notification
-          setToastError(errorMessage);
-          setTimeout(() => setToastError(null), 8000);
-          
-          // Don't close modal or reset form on error
+          setModalError(errorMessage);
+          addNotification('error', errorMessage);
         }
       }
     } catch (error: any) {
@@ -712,13 +742,8 @@ const Users = () => {
       }
       
       console.log('❌ Catch error message to show:', errorMessage);
-      console.log('❌ Full error object:', JSON.stringify(errorData || error, null, 2));
-      
-      // Show custom toast notification
-      setToastError(errorMessage);
-      setTimeout(() => setToastError(null), 8000);
-      
-      // Don't close modal or reset form on error
+      setModalError(errorMessage);
+      addNotification('error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -898,23 +923,28 @@ const Users = () => {
   };
 
   const handleDelete = async (userId: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      setLoading(true);
-      try {
-        const response = await deleteEmployee(userId);
-        if (response && response.success) {
-          message.success(response.message || 'User deleted successfully');
-          await fetchUsers();
-        } else {
-          const errorMessage = response?.message || response?.error?.message || 'Failed to delete user';
-          message.error(errorMessage);
-        }
-      } catch (error: any) {
-        console.error('Error deleting user:', error);
-        message.error(error?.message || 'Failed to delete user');
-      } finally {
-        setLoading(false);
+    setDeleteConfirm({ show: true, userId });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.userId) return;
+    
+    setLoading(true);
+    try {
+      const response = await deleteEmployee(deleteConfirm.userId);
+      if (response && response.success) {
+        addNotification('success', response.message || 'User deleted successfully');
+        await fetchUsers();
+      } else {
+        const errorMessage = response?.message || response?.error?.message || 'Failed to delete user';
+        addNotification('error', errorMessage);
       }
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      addNotification('error', error?.message || 'Failed to delete user');
+    } finally {
+      setLoading(false);
+      setDeleteConfirm({ show: false, userId: null });
     }
   };
 
@@ -929,14 +959,14 @@ const Users = () => {
             ? { ...user, status: newStatus }
             : user
         ));
-        message.success(response.message || `User status updated to ${newStatus}`);
+        addNotification('success', response.message || `User status updated to ${newStatus}`);
       } else {
         const errorMessage = response?.message || response?.error?.message || 'Failed to update user status';
-        message.error(errorMessage);
+        addNotification('error', errorMessage);
       }
     } catch (error: any) {
       console.error('Error updating user status:', error);
-      message.error(error?.message || 'Failed to update user status');
+      addNotification('error', error?.message || 'Failed to update user status');
     } finally {
       setLoading(false);
     }
@@ -950,9 +980,9 @@ const Users = () => {
       contact: "bg-teal-50 text-teal-700 border-teal-200",
       customer: "bg-cyan-50 text-cyan-700 border-cyan-200",
       reporter: "bg-yellow-50 text-yellow-700 border-yellow-200",
-      "Maintenance Crew (Mechanics)": "bg-lime-50 text-lime-700 border-lime-200",
       "Fleet Maintenance Manager": "bg-violet-50 text-violet-700 border-violet-200",
-      "Compliance Manager": "bg-red-50 text-red-700 border-red-200",
+      "Safety Manager": "bg-red-50 text-red-700 border-red-200",
+      "Maintenance Crew (Mechanics)": "bg-lime-50 text-lime-700 border-lime-200",
     };
     return colors[role] || "bg-gray-50 text-gray-700 border-gray-200";
   };
@@ -968,28 +998,18 @@ const Users = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 relative">
-      {/* Custom Toast Notification */}
-      {toastError && (
-        <div 
-          className="fixed top-4 right-4 z-[10002] animate-slide-in-right"
-          style={{ zIndex: 10002 }}
-        >
-          <div className="bg-red-50 border-2 border-red-300 rounded-lg shadow-2xl p-4 flex items-start gap-3 min-w-[400px] max-w-[600px]">
-            <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={24} />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-red-800 mb-1">Error</p>
-              <p className="text-sm text-red-700">{toastError}</p>
-            </div>
-            <button
-              onClick={() => setToastError(null)}
-              className="text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen bg-gray-50 px-6">
+      {/* Toast Notifications Container - High z-index to be above sidebar */}
+      <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-3 max-w-md">
+        {notifications.map(notification => (
+          <ToastNotification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
+
       <div className="py-8">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -1129,7 +1149,7 @@ const Users = () => {
                       </td>
                       <td className="px-3 py-4">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border capitalize ${getRoleColor(user.role)}`}>
-                          {user.role}
+                          {user.role === 'hr' ? 'hr' : user.role}
                         </span>
                       </td>
                       <td className="px-3 py-4 text-sm text-gray-900">
@@ -1191,7 +1211,7 @@ const Users = () => {
 
       {/* Create/Edit Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 modal-backdrop">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
           <div className={`bg-white rounded-xl ${showDriverPanel ? 'max-w-6xl' : 'max-w-2xl'} w-full max-h-[90vh] overflow-y-auto shadow-2xl`}>
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
@@ -1252,7 +1272,7 @@ const Users = () => {
                       />
                     </div>
 
-                    {!isEditing && (
+                    {!isEditing && rolesWithLoginAccess.includes(formData.role) && (
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Password <span className="text-gray-500 text-xs">(optional - default will be set if not provided)</span></label>
                         <input
@@ -1267,22 +1287,24 @@ const Users = () => {
                       </div>
                     )}
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Internal ID <span className="text-red-500">*</span></label>
-                      <input
-                        type="text"
-                        name="internalId"
-                        value={formData.internalId}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all uppercase"
-                        placeholder="EMP-001 (uppercase letters, numbers, hyphens, underscores only)"
-                        minLength={3}
-                        maxLength={20}
-                        pattern="[A-Z0-9_-]+"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">3-20 characters, uppercase letters, numbers, hyphens, and underscores only</p>
-                    </div>
+                    {rolesWithLoginAccess.includes(formData.role) && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Internal ID <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          name="internalId"
+                          value={formData.internalId}
+                          onChange={handleInputChange}
+                          required={rolesWithLoginAccess.includes(formData.role)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all uppercase"
+                          placeholder="EMP-001 (uppercase letters, numbers, hyphens, underscores only)"
+                          minLength={3}
+                          maxLength={20}
+                          pattern="[A-Z0-9_-]+"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">3-20 characters, uppercase letters, numbers, hyphens, and underscores only</p>
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Join Date <span className="text-red-500">*</span></label>
@@ -1711,7 +1733,7 @@ const Users = () => {
 
       {/* View Modal */}
       {showViewModal && selectedUser && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl max-w-lg w-full shadow-2xl">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
@@ -1813,6 +1835,48 @@ const Users = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Confirm Delete</h2>
+              <p className="text-gray-600 mb-6">Are you sure you want to delete this user? This action cannot be undone.</p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setDeleteConfirm({ show: false, userId: null })}
+                  className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };

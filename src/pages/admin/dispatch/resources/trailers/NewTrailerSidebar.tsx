@@ -416,7 +416,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="px-4 py-2 text-sm !mr-4 font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 Cancel
                             </button>
@@ -424,7 +424,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                 type="submit"
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                                className="px-6 py-2 text-sm font-medium !text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                             >
                                 {loading
                                   ? mode === 'edit'

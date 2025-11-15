@@ -4,11 +4,55 @@ import { createLoad, listCustomer, listFaciliator, listDriver } from "../../../a
 import { useVehicles } from "../../../customHooks/useVehicles";
 import { Section } from './settings/Section';
 import { Toggle } from './settings/Section';
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 
 interface NewLoadProps {
     onClose: () => void;
 }
 
+type NotificationType = 'success' | 'error' | 'warning';
+
+interface ToastNotification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    warning: <FaExclamationCircle className="text-yellow-500" size={24} />,
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    warning: 'bg-yellow-50 border-yellow-200',
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
     // Use custom hook for vehicles
@@ -78,6 +122,16 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
     // State for documents
     const [documents, setDocuments] = useState<File[]>([]);
+    const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+
+    const addNotification = (type: NotificationType, message: string) => {
+        const id = Date.now();
+        setNotifications(prev => [...prev, { id, type, message }]);
+    };
+
+    const removeNotification = (id: number) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    };
 
     // Dummy images for demonstration
     const dummyImages = [
@@ -257,7 +311,8 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
         // Validate form
         const validationErrors = validateForm();
         if (validationErrors.length > 0) {
-            alert("Please fix the following errors:\n" + validationErrors.join("\n"));
+            // Replace alert with notification
+            addNotification('warning', "Please fix the following errors:\n" + validationErrors.join("\n"));
             return;
         }
 
@@ -340,14 +395,20 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
             const response = await createLoad(formData);
             if (response.success) {
-                alert("Load created successfully!");
-                onClose();
+                // Replace alert with notification
+                addNotification('success', "Load created successfully!");
+                // Close after a short delay to show the notification
+                setTimeout(() => {
+                    onClose();
+                }, 1000);
             } else {
-                alert("Error creating load: " + response.message);
+                // Replace alert with notification
+                addNotification('error', "Error creating load: " + response.message);
             }
         } catch (error) {
             console.error("Error creating load:", error);
-            alert("Error creating load. Please try again.");
+            // Replace alert with notification
+            addNotification('error', "Error creating load. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -355,6 +416,17 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
     return (
         <>
+            {/* Toast Notifications Container - High z-index to be above sidebar */}
+            <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-3 max-w-md">
+                {notifications.map(notification => (
+                    <ToastNotification
+                        key={notification.id}
+                        notification={notification}
+                        onClose={removeNotification}
+                    />
+                ))}
+            </div>
+
             <div className="h-full flex flex-col bg-white">
                 {/* Fixed Header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white flex-shrink-0">
@@ -425,7 +497,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                 disabled={loading}
                                 required
                             >
-                                <option value="">Select Driver *</option>
+                                <option value="">Select Driver</option>
                                 {drivers.map((driver) => (
                                     <option key={driver._id} value={driver._id}>
                                         {driver.name}
@@ -440,7 +512,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
                                 disabled={loading || vehiclesLoading}
                                 required
                             >
-                                <option value="">Select Vehicle *</option>
+                                <option value="">Select Vehicle</option>
                                 {vehiclesError && <option disabled>Error loading vehicles</option>}
                                 {vehiclesLoading && <option disabled>Loading vehicles...</option>}
                                 {vehicles.length > 0 && vehicles.map((vehicle) => (

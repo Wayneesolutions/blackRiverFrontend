@@ -165,6 +165,7 @@ const AllDispatch = () => {
               status: load.status || 'planned',
               assignedDriver: load.details?.driver?.name || load.driverName || null,
               assignedTruck: load.details?.vehicle?.plateNumber || load.vehiclePlate || null,
+              assignedTrailer: load.details?.trailer?.plateNumber || load.trailerPlate || null,
               route: load.route || {},
               receiver: load.details?.receiver || load.receiver || null,
               customerEmail: load.details?.customer?.email || load.customerEmail || null,
@@ -200,10 +201,16 @@ const AllDispatch = () => {
 
   const handleAssign = async (loadId: string, driverId: string, truckId: string, trailerId?: string, planDate?: string) => {
     try {
+      // Check if the selected load is in 'planned' status
+      if (selectedLoad?.status !== 'planned') {
+        alert('Only loads with "Planned" status can be assigned a driver and truck.');
+        return;
+      }
+  
       const response = await assignDriverTruck(loadId, driverId, truckId, trailerId, planDate);
       if (response && response.success) {
         // Refresh the loads list after successful assignment
-      await fetchLoads({ suppressLoading: true });
+        await fetchLoads({ suppressLoading: true });
         setShowAssignModal(false);
         setSelectedLoad(null);
       } else {
@@ -216,6 +223,7 @@ const AllDispatch = () => {
   };
 
   const handleLoadClick = (load: Load) => {
+    // Open modal for all statuses to view details
     setSelectedLoad(load);
     setShowAssignModal(true);
   };
@@ -417,20 +425,21 @@ const AllDispatch = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleLoadClick(load)}
-                        className="px-3 py-1.5 bg-blue-600 !text-white text-sm rounded-lg hover:bg-blue-700 flex items-center gap-1"
-                      >
-                        {load.status === 'planned' ? (
-                          <>
-                            <FaCheck size={12} /> Assign Driver & Truck
-                          </>
-                        ) : (
-                          <>
-                            <FaEye size={12} /> View / Edit
-                          </>
-                        )}
-                      </button>
+                      {load.status === 'planned' ? (
+                        <button
+                          onClick={() => handleLoadClick(load)}
+                          className="px-3 py-1.5 bg-blue-600 !text-white text-sm rounded-lg hover:bg-blue-700 flex items-center gap-1 transition-colors"
+                        >
+                          <FaCheck size={12} /> Assign Driver & Truck
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleLoadClick(load)}
+                          className="px-3 py-1.5 bg-gray-600 !text-white text-sm rounded-lg hover:bg-gray-700 flex items-center gap-1 transition-colors"
+                        >
+                          <FaEye size={12} /> View Details
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -440,10 +449,11 @@ const AllDispatch = () => {
         </div>
       </div>
 
-      {/* Assign Modal */}
+      {/* Assign Modal - Shows for all statuses but assignment only allowed for 'planned' */}
       {showAssignModal && selectedLoad && (
         <AssignDriverTruckModal
           load={selectedLoad}
+          isReadOnly={selectedLoad.status !== 'planned'}
           onClose={() => {
             setShowAssignModal(false);
             setSelectedLoad(null);
@@ -456,4 +466,3 @@ const AllDispatch = () => {
 };
 
 export default AllDispatch;
-

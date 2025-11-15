@@ -3,6 +3,7 @@ import { Truck, MapPin, Users, Shield, CheckCircle, Eye, EyeOff } from "lucide-r
 import { registerAdmin } from "../../../axios/api/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { message } from 'antd';
+import Logo from "../../../assets/FleetGo.png"
 
 export default function RegistrationPage() {
   const [name, setName] = useState("");
@@ -117,10 +118,9 @@ export default function RegistrationPage() {
             <div className="relative bg-white p-8 text-center">
               <div className="relative">
                 <div className="flex items-center justify-center gap-3 mb-4">
-                  <div className="p-3">
-                    <Truck className="w-8 h-8 text-black" />
-                  </div>
-                  <h1 className="text-3xl font-bold text-black">Logistics</h1>
+               
+                  <img src={Logo} alt="Logo" className="w-40 h-auto" />
+              
                 </div>
                 <p className="text-black max-w-md mx-auto">
                   Create your admin account and start your 7-day free trial
@@ -336,7 +336,7 @@ export default function RegistrationPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className={`inline-flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-200 ${
+                      className={`inline-flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-semibold !text-white shadow-lg transition-all duration-200 ${
                         loading 
                           ? "bg-indigo-400 cursor-not-allowed" 
                           : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl transform hover:-translate-y-0.5"
@@ -363,7 +363,7 @@ export default function RegistrationPage() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
-          © 2025 Logistics Platform. All rights reserved.
+          © 2025 Logistiq Platform. All rights reserved.
         </div>
       </div>
 

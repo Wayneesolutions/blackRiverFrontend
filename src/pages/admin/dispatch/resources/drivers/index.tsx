@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Search, MoreVertical, User, Filter } from 'lucide-react';
-import NewDriverSidebar from './NewDriverSidebar';
+import { Search, User } from 'lucide-react';
 import { listDriver } from '../../../../../axios/api/distapcher';
 
 interface Driver {
@@ -14,10 +13,13 @@ interface Driver {
   vehicle?: string;
   licenceNumber?: string;
   createdAt?: string;
+  joinDate?: string;
+  status?: string;
+  role?: string;
+  country?: string;
 }
 
 const DriversTable = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
@@ -115,14 +117,33 @@ const DriversTable = () => {
       const email = driver.email || '';
       const internalId = driver.internalId || '';
       const phone = driver.phone || '';
+      const country = driver.country || '';
       return (
         name.toLowerCase().includes(query) ||
         email.toLowerCase().includes(query) ||
         internalId.toLowerCase().includes(query) ||
-        phone.toLowerCase().includes(query)
+        phone.toLowerCase().includes(query) ||
+        country.toLowerCase().includes(query)
       );
     });
   }, [drivers, searchQuery]);
+
+  const getStatusBadge = (status?: string) => {
+    if (!status) return null;
+    
+    const statusConfig: Record<string, { bg: string; text: string }> = {
+      active: { bg: 'bg-green-100', text: 'text-green-800' },
+      inactive: { bg: 'bg-gray-100', text: 'text-gray-800' },
+      suspended: { bg: 'bg-red-100', text: 'text-red-800' },
+    };
+
+    const config = statusConfig[status.toLowerCase()] || statusConfig.active;
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </span>
+    );
+  };
 
   if (loading) {
     return (
@@ -131,8 +152,6 @@ const DriversTable = () => {
       </div>
     );
   }
-
-  const canCreateDriver = userInfo?.role === 'superadmin' || Boolean(userInfo?.company);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -152,20 +171,6 @@ const DriversTable = () => {
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <button className="p-2 text-gray-400 hover:text-gray-600">
-                <Filter className="w-5 h-5" />
-              </button>
-              {canCreateDriver && (
-                <button
-                  onClick={() => setIsSidebarOpen(true)}
-                  className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Create Driver</span>
-                </button>
-              )}
-            </div>
           </div>
         </div>
 
@@ -182,51 +187,96 @@ const DriversTable = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Internal ID</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Internal ID
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Phone
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Country
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Join Date
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredDrivers.length > 0 ? (
                     filteredDrivers.map((driver) => (
-                      <tr key={driver._id} className="hover:bg-gray-50">
+                      <tr key={driver._id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              <User className="w-4 h-4 text-gray-500" />
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                              <User className="w-4 h-4 text-white" />
                             </div>
                             <div className="ml-3">
-                              <div className="text-sm font-medium text-gray-900">{driver.name || 'N/A'}</div>
-                              {driver.email && <div className="text-xs text-gray-500">{driver.email}</div>}
+                              <div className="text-sm font-medium text-gray-900">
+                                {driver.name || 'N/A'}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {driver.role ? driver.role.charAt(0).toUpperCase() + driver.role.slice(1) : 'Driver'}
+                              </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.email || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{driver.internalId || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.phone || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {driver.createdAt ? new Date(driver.createdAt).toLocaleDateString() : 'N/A'}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {driver.email || 'N/A'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <button className="text-gray-400 hover:text-gray-600">
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            {driver.internalId || 'N/A'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {driver.phone || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {driver.country || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {getStatusBadge(driver.status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {driver.joinDate 
+                            ? new Date(driver.joinDate).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })
+                            : driver.createdAt 
+                              ? new Date(driver.createdAt).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })
+                              : 'N/A'
+                          }
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                        <div className="flex flex-col items-center space-y-2">
-                          <User className="w-10 h-10 text-gray-300" />
-                          <p>No drivers found.</p>
-                          {emptyStateMessage && (
-                            <p className="text-xs text-gray-400">{emptyStateMessage}</p>
-                          )}
+                      <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                        <div className="flex flex-col items-center space-y-3">
+                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                            <User className="w-8 h-8 text-gray-300" />
+                          </div>
+                          <div>
+                            <p className="text-base font-medium text-gray-700">No drivers found</p>
+                            {emptyStateMessage && (
+                              <p className="text-sm text-gray-400 mt-1">{emptyStateMessage}</p>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -237,11 +287,6 @@ const DriversTable = () => {
           </div>
         </div>
       </div>
-
-      <NewDriverSidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
     </div>
   );
 };
