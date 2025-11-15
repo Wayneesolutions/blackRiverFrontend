@@ -1,0 +1,54 @@
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Suspense, lazy } from "react";
+import React from "react";
+import Loading from "../components/common/Loading";
+import ErrorBoundary from "../components/common/ErrorBoundary";
+import { getUserRole } from "../utils/auth";
+
+const HRManagementRoutes = lazy(() => import("./AdminFeatures/HRManagementRoutes"));
+const AccountsRoutes = lazy(() => import("./AdminFeatures/AccountsRoutes"));
+
+// Debug wrapper to log route changes
+const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
+  React.useEffect(() => {
+    console.log('📍 HR route:', window.location.pathname);
+  }, [window.location.pathname]);
+  return <>{children}</>;
+};
+
+function HRRoute() {
+  const location = useLocation();
+  // Check if user is HR
+  const userRole = getUserRole();
+  
+  // If not HR, redirect to login
+  if (userRole !== 'hr') {
+    return <Navigate to="/" replace />;
+  }
+
+  // Determine which route component to render based on pathname
+  const isAccountsRoute = location.pathname.startsWith('/accounts');
+
+  return (
+    <Suspense fallback={<Loading />}>
+      <RouteDebugger>
+        <Routes>
+          {/* Management Routes - matches /Management/* */}
+          <Route 
+            path="*" 
+            element={
+              isAccountsRoute ? (
+                <ErrorBoundary><AccountsRoutes /></ErrorBoundary>
+              ) : (
+                <ErrorBoundary><HRManagementRoutes /></ErrorBoundary>
+              )
+            } 
+          />
+        </Routes>
+      </RouteDebugger>
+    </Suspense>
+  );
+}
+
+export default HRRoute;
+

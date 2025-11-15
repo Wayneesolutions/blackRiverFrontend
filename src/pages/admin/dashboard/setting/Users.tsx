@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, X, Users as UsersIcon, Filter, Search, Truck, Mail, CreditCard, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, X, Users as UsersIcon, Filter, Search, Truck, Mail, CreditCard, FileText, AlertCircle } from 'lucide-react';
 import { Select, Tag, message, notification } from "antd";
 import { 
   getAllEmployees, 
@@ -90,7 +90,8 @@ interface User {
   };
 }
 
-type Role = "admin" | "superadmin" | "driver" | "dispatcher" | "hr" | "employee" | "contact" | "customer" | "reporter" | "fleetmanager" | "safetyofficer" | "operationsstaff" | "maintenancecrew" | "administrative";
+type Role = "driver" | "dispatcher" | "hr" | "contact" | "customer" | 
+"reporter" | "Maintenance Crew (Mechanics)" | "Fleet Maintenance Manager" | "Compliance Manager";
 
 // Driver-specific form data interface
 interface DriverFormData {
@@ -163,9 +164,9 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [showDriverPanel, setShowDriverPanel] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
-  const [modalError, setModalError] = useState<string | null>(null);
+  const [toastError, setToastError] = useState<string | null>(null);
 
-  const roleOptions: Role[] = ['admin', 'superadmin', 'driver', 'dispatcher', 'hr', 'employee', 'contact', 'customer', 'reporter', 'fleetmanager', 'safetyofficer', 'operationsstaff', 'maintenancecrew', 'administrative'];
+  const roleOptions: Role[] = ['driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', 'Maintenance Crew (Mechanics)', 'Fleet Maintenance Manager', 'Compliance Manager'];
 
   const [formData, setFormData] = useState({
     name: '',
@@ -330,16 +331,24 @@ const Users = () => {
     setActiveTab('basic');
   };
 
-  // Configure message defaults on mount
+  // Configure message and notification defaults on mount
   useEffect(() => {
-    // Test message to ensure it's working
-    // message.info('Message system initialized', 1);
-    
+    // Configure message defaults with high z-index to appear above modals
     message.config({
       top: 100,
-      duration: 4,
+      duration: 8,
       maxCount: 3,
       rtl: false,
+    });
+    
+    // Configure notification defaults with high z-index to appear above modals
+    notification.config({
+      placement: 'topRight',
+      top: 24,
+      bottom: 24,
+      duration: 8,
+      rtl: false,
+      getContainer: () => document.body, // Ensure it's rendered in body, not inside modal
     });
   }, []);
 
@@ -453,8 +462,8 @@ const Users = () => {
     if (!formData.role) {
       errors.push('Role is required');
     } else {
-      const allowedRoles = ['employee', 'driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', 
-        'fleetmanager', 'safetyofficer', 'operationsstaff', 'maintenancecrew', 'administrative'];
+      const allowedRoles = ['driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', 
+        'Maintenance Crew (Mechanics)', 'Fleet Maintenance Manager', 'Compliance Manager'];
       if (!allowedRoles.includes(formData.role)) {
         errors.push('Invalid role selected');
       }
@@ -488,19 +497,13 @@ const Users = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Clear any previous error messages
-    setModalError(null);
-    
     // Frontend validation
     const validation = validateForm();
     if (!validation.isValid) {
       const errorMsg = validation.errors.join(', ');
       console.log('Validation errors:', errorMsg);
-      setModalError(errorMsg);
-      message.error({
-        content: errorMsg,
-        duration: 4,
-      });
+      setToastError(errorMsg);
+      setTimeout(() => setToastError(null), 8000);
       return;
     }
 
@@ -549,7 +552,6 @@ const Users = () => {
         
         // Check if response exists and has success property
         if (response && response.success === true) {
-          setModalError(null); // Clear any error messages
           message.success({
             content: response.message || 'User updated successfully',
             duration: 3,
@@ -560,8 +562,9 @@ const Users = () => {
         } else {
           // Handle both success: false and error responses
           // Prioritize detailed errors from errors array over generic message
-          let errorMessage = 'Failed to update user';
+          let errorMessage = 'Failed to update user. Please try again.';
           
+          // Check for validation errors array
           if (Array.isArray(response?.errors) && response.errors.length > 0) {
             // Extract detailed validation errors
             const errorDetails = response.errors.map((e: any) => {
@@ -570,30 +573,35 @@ const Users = () => {
               return field ? `${field}: ${msg}` : msg;
             }).join('; ');
             errorMessage = errorDetails || response?.message || 'Validation failed';
-          } else if (response?.message) {
+          } 
+          // Check for error message in various locations
+          else if (response?.message) {
             errorMessage = response.message;
-          } else if (response?.error?.message) {
+          } 
+          else if (response?.error?.message) {
             errorMessage = response.error.message;
-          } else if (typeof response?.error === 'string') {
+          } 
+          else if (typeof response?.error === 'string') {
             errorMessage = response.error;
+          }
+          // Check for error in data property
+          else if (response?.data?.message) {
+            errorMessage = response.data.message;
+          }
+          // Check for error in response.data.error
+          else if (response?.data?.error) {
+            errorMessage = typeof response.data.error === 'string' 
+              ? response.data.error 
+              : response.data.error.message || 'An error occurred';
           }
           
           console.log('❌ Update user error - Response:', JSON.stringify(response, null, 2));
           console.log('❌ Error message to show:', errorMessage);
           
-          // Set error message in modal
-          setModalError(errorMessage);
+          // Show custom toast notification
+          setToastError(errorMessage);
+          setTimeout(() => setToastError(null), 8000);
           
-          // Also show notification for better visibility
-          notification.error({
-            message: 'Error Updating User',
-            description: errorMessage,
-            duration: 8, // Longer duration for important messages
-            placement: 'topRight',
-            style: {
-              zIndex: 9999, // Ensure it's above modal
-            },
-          });
           // Don't close modal or reset form on error
         }
       } else {
@@ -602,7 +610,6 @@ const Users = () => {
         
         // Check if response exists and has success property
         if (response && response.success === true) {
-          setModalError(null); // Clear any error messages
           message.success({
             content: response.message || 'User created successfully',
             duration: 3,
@@ -613,8 +620,9 @@ const Users = () => {
         } else {
           // Handle both success: false and error responses
           // Prioritize detailed errors from errors array over generic message
-          let errorMessage = 'Failed to create user';
+          let errorMessage = 'Failed to create user. Please try again.';
           
+          // Check for validation errors array
           if (Array.isArray(response?.errors) && response.errors.length > 0) {
             // Extract detailed validation errors
             const errorDetails = response.errors.map((e: any) => {
@@ -623,30 +631,35 @@ const Users = () => {
               return field ? `${field}: ${msg}` : msg;
             }).join('; ');
             errorMessage = errorDetails || response?.message || 'Validation failed';
-          } else if (response?.message) {
+          } 
+          // Check for error message in various locations
+          else if (response?.message) {
             errorMessage = response.message;
-          } else if (response?.error?.message) {
+          } 
+          else if (response?.error?.message) {
             errorMessage = response.error.message;
-          } else if (typeof response?.error === 'string') {
+          } 
+          else if (typeof response?.error === 'string') {
             errorMessage = response.error;
+          }
+          // Check for error in data property
+          else if (response?.data?.message) {
+            errorMessage = response.data.message;
+          }
+          // Check for error in response.data.error
+          else if (response?.data?.error) {
+            errorMessage = typeof response.data.error === 'string' 
+              ? response.data.error 
+              : response.data.error.message || 'An error occurred';
           }
           
           console.log('❌ Create user error - Response:', JSON.stringify(response, null, 2));
           console.log('❌ Error message to show:', errorMessage);
           
-          // Set error message in modal
-          setModalError(errorMessage);
+          // Show custom toast notification
+          setToastError(errorMessage);
+          setTimeout(() => setToastError(null), 8000);
           
-          // Also show notification for better visibility
-          notification.error({
-            message: 'Error Creating User',
-            description: errorMessage,
-            duration: 8, // Longer duration for important messages
-            placement: 'topRight',
-            style: {
-              zIndex: 9999, // Ensure it's above modal
-            },
-          });
           // Don't close modal or reset form on error
         }
       }
@@ -655,10 +668,15 @@ const Users = () => {
       
       // Extract error message from various possible locations
       // Prioritize detailed errors from errors array over generic message
-      let errorMessage = 'Failed to save user';
+      let errorMessage = 'Failed to save user. Please check your connection and try again.';
       const errorData = error?.response?.data;
       
-      if (Array.isArray(errorData?.errors) && errorData.errors.length > 0) {
+      // Check for network errors
+      if (!error?.response) {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      }
+      // Check for validation errors array
+      else if (Array.isArray(errorData?.errors) && errorData.errors.length > 0) {
         // Extract detailed validation errors
         const errorDetails = errorData.errors.map((e: any) => {
           const field = e.path || e.field || '';
@@ -666,32 +684,40 @@ const Users = () => {
           return field ? `${field}: ${msg}` : msg;
         }).join('; ');
         errorMessage = errorDetails || errorData?.message || 'Validation failed';
-      } else if (errorData?.message) {
+      } 
+      // Check for error message in various locations
+      else if (errorData?.message) {
         errorMessage = errorData.message;
-      } else if (errorData?.error?.message) {
+      } 
+      else if (errorData?.error?.message) {
         errorMessage = errorData.error.message;
-      } else if (typeof errorData?.error === 'string') {
+      } 
+      else if (typeof errorData?.error === 'string') {
         errorMessage = errorData.error;
-      } else if (error?.message) {
+      } 
+      else if (error?.message) {
         errorMessage = error.message;
+      }
+      // Check for HTTP status code specific messages
+      else if (error?.response?.status === 400) {
+        errorMessage = 'Invalid request. Please check your input and try again.';
+      } else if (error?.response?.status === 401) {
+        errorMessage = 'Unauthorized. Please login again.';
+      } else if (error?.response?.status === 403) {
+        errorMessage = 'You do not have permission to perform this action.';
+      } else if (error?.response?.status === 404) {
+        errorMessage = 'Resource not found. Please refresh and try again.';
+      } else if (error?.response?.status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
       }
       
       console.log('❌ Catch error message to show:', errorMessage);
       console.log('❌ Full error object:', JSON.stringify(errorData || error, null, 2));
       
-      // Set error message in modal
-      setModalError(errorMessage);
+      // Show custom toast notification
+      setToastError(errorMessage);
+      setTimeout(() => setToastError(null), 8000);
       
-      // Also show notification for better visibility
-      notification.error({
-        message: 'Error Saving User',
-        description: errorMessage,
-        duration: 8, // Longer duration for important messages
-        placement: 'topRight',
-        style: {
-          zIndex: 9999, // Ensure it's above modal
-        },
-      });
       // Don't close modal or reset form on error
     } finally {
       setLoading(false);
@@ -699,7 +725,6 @@ const Users = () => {
   };
 
   const resetForm = () => {
-    setModalError(null); // Clear error when resetting form
     setFormData({
       name: '',
       email: '',
@@ -779,7 +804,6 @@ const Users = () => {
   };
 
   const handleEdit = (user: User) => {
-    setModalError(null); // Clear any previous errors
     setFormData({
       name: user.name,
       email: user.email,
@@ -920,20 +944,15 @@ const Users = () => {
 
   const getRoleColor = (role: Role) => {
     const colors: Partial<Record<Role, string>> = {
-      admin: "bg-blue-50 text-blue-700 border-blue-200",
-      superadmin: "bg-purple-50 text-purple-700 border-purple-200",
       driver: "bg-green-50 text-green-700 border-green-200",
       dispatcher: "bg-orange-50 text-orange-700 border-orange-200",
       hr: "bg-pink-50 text-pink-700 border-pink-200",
-      employee: "bg-indigo-50 text-indigo-700 border-indigo-200",
       contact: "bg-teal-50 text-teal-700 border-teal-200",
       customer: "bg-cyan-50 text-cyan-700 border-cyan-200",
       reporter: "bg-yellow-50 text-yellow-700 border-yellow-200",
-      fleetmanager: "bg-violet-50 text-violet-700 border-violet-200",
-      safetyofficer: "bg-red-50 text-red-700 border-red-200",
-      operationsstaff: "bg-amber-50 text-amber-700 border-amber-200",
-      maintenancecrew: "bg-lime-50 text-lime-700 border-lime-200",
-      administrative: "bg-slate-50 text-slate-700 border-slate-200",
+      "Maintenance Crew (Mechanics)": "bg-lime-50 text-lime-700 border-lime-200",
+      "Fleet Maintenance Manager": "bg-violet-50 text-violet-700 border-violet-200",
+      "Compliance Manager": "bg-red-50 text-red-700 border-red-200",
     };
     return colors[role] || "bg-gray-50 text-gray-700 border-gray-200";
   };
@@ -949,7 +968,28 @@ const Users = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6">
+    <div className="min-h-screen bg-gray-50 px-6 relative">
+      {/* Custom Toast Notification */}
+      {toastError && (
+        <div 
+          className="fixed top-4 right-4 z-[10002] animate-slide-in-right"
+          style={{ zIndex: 10002 }}
+        >
+          <div className="bg-red-50 border-2 border-red-300 rounded-lg shadow-2xl p-4 flex items-start gap-3 min-w-[400px] max-w-[600px]">
+            <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={24} />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-red-800 mb-1">Error</p>
+              <p className="text-sm text-red-700">{toastError}</p>
+            </div>
+            <button
+              onClick={() => setToastError(null)}
+              className="text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+      )}
       <div className="py-8">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -960,7 +1000,6 @@ const Users = () => {
             </div>
             <button
               onClick={() => {
-                setModalError(null); // Clear any previous errors
                 resetForm();
                 setShowCreateModal(true);
               }}
@@ -1090,7 +1129,7 @@ const Users = () => {
                       </td>
                       <td className="px-3 py-4">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border capitalize ${getRoleColor(user.role)}`}>
-                          {user.role === 'superadmin' ? 'super' : user.role}
+                          {user.role}
                         </span>
                       </td>
                       <td className="px-3 py-4 text-sm text-gray-900">
@@ -1152,7 +1191,7 @@ const Users = () => {
 
       {/* Create/Edit Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 modal-backdrop">
           <div className={`bg-white rounded-xl ${showDriverPanel ? 'max-w-6xl' : 'max-w-2xl'} w-full max-h-[90vh] overflow-y-auto shadow-2xl`}>
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
@@ -1163,39 +1202,12 @@ const Users = () => {
                   onClick={() => {
                     setShowCreateModal(false);
                     resetForm();
-                    setModalError(null); // Clear error when closing modal
                   }}
                   className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <X size={24} />
                 </button>
               </div>
-
-              {/* Error Message Display */}
-              {modalError && (
-                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <h3 className="text-sm font-medium text-red-800">Error</h3>
-                      <p className="mt-1 text-sm text-red-700">{modalError}</p>
-                    </div>
-                    <div className="ml-auto pl-3">
-                      <button
-                        type="button"
-                        onClick={() => setModalError(null)}
-                        className="inline-flex text-red-400 hover:text-red-600 focus:outline-none"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

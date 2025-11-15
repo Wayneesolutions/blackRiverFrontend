@@ -311,10 +311,10 @@ const EmployeesPage = () => {
     isDefault: false
   });
 
-  // Available roles including driver
+  // Available roles
   const roles = [
-    'employee', 'dispatcher', 'hr', 'contact', 'customer', 'reporter',
-    'fleetmanager', 'safetyofficer', 'operationsstaff', 'maintenancecrew', 'administrative', 'driver'
+    'driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter',
+    'Maintenance Crew (Mechanics)', 'Fleet Maintenance Manager', 'Compliance Manager'
   ];
 
 

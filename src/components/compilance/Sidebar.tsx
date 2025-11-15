@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { CompilanceSidebarLinks } from '../../utils/CompilanceSidebarLinks';
 import { NavLink, useLocation } from "react-router-dom";
 import { FaChevronDown, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
-import Logo from "../../assets/FleetGo.png"
+import Logo from "../../assets/FleetGo.png";
+import { getUserRole } from "../../utils/auth";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -14,6 +15,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const [, setHoveredMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const userRole = getUserRole();
+  const isComplianceManager = userRole === 'Compliance Manager';
+
+  // Transform sidebar links based on role (for future use if needed)
+  const transformedLinks = useMemo(() => {
+    return CompilanceSidebarLinks;
+  }, []);
 
   // Toggle expand/collapse for parent menus
   const toggleMenu = (key: string) => {
@@ -24,10 +32,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
   // Helper function to check if route is active
   const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
-    if (linkKey === "/admin/gpsvehicle") {
+    const basePath = isComplianceManager ? "/compliance" : "/admin/compliance";
+    if (linkKey === 'compilance-summary') {
       return (
-        pathname === "/admin/gpsvehicle" ||
-        pathname === "/admin/gpsvehicle/dashboard"
+        pathname === basePath ||
+        pathname === `${basePath}/` ||
+        pathname === `${basePath}/compilance-summary`
       );
     }
     return isActive;
@@ -72,7 +82,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
         <div className="flex-1 mx-3 mb-3 bg-white shadow-lg rounded-lg flex flex-col relative overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
             <ul className="space-y-1 p-3 relative">
-              {CompilanceSidebarLinks.map((link) => (
+              {transformedLinks.map((link) => (
                 <li key={link.key || link.label} className="relative">
                   {link.children ? (
                     // --- PARENT MENU (same as before) ---
@@ -106,10 +116,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                       {/* Expanded children (unchanged) */}
                       {!isCollapsed && openMenus.includes(link.key) && (
                         <ul className="ml-6 mt-2 space-y-1 border-l-2 border-purple-100 pl-4">
-                          {link.children.map((child) => (
+                          {link.children.map((child: any) => (
                             <li key={child.key}>
                               <NavLink
-                                to={`/admin/compliance/${child.key}`}
+                                to={isComplianceManager ? `/compliance/${child.key}` : `/admin/compliance/${child.key}`}
                                 className={({ isActive }) => {
                                   const pathname = location.pathname;
                                   const activeState = isActiveLink(
@@ -125,7 +135,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                                     }`;
                                 }}
                                 onClick={() => {
-                                  console.log('🔗 Compliance Sidebar navigation to:', `/admin/compliance/${child.key}`);
+                                  const targetPath = isComplianceManager ? `/compliance/${child.key}` : `/admin/compliance/${child.key}`;
+                                  console.log('🔗 Compliance Sidebar navigation to:', targetPath);
                                 }}
                               >
                                 <span className="text-base group-hover:scale-110 transition-transform duration-200">
@@ -154,10 +165,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                   ) : (
                     // --- NORMAL LINK (same as before) ---
                     <NavLink
-                      to={`/admin/compliance/${link.key}`}
+                      to={
+                        link.key === 'compilance-summary' 
+                          ? (isComplianceManager ? '/compliance' : '/admin/compliance')
+                          : (isComplianceManager ? `/compliance/${link.key}` : `/admin/compliance/${link.key}`)
+                      }
                       className={({ isActive }) => {
                         const pathname = location.pathname;
-                        const activeState = isActiveLink(
+                        const basePath = isComplianceManager ? "/compliance" : "/admin/compliance";
+                        // For compilance-summary, check if we're on the index route
+                        const isDashboardActive = link.key === 'compilance-summary' && (pathname === basePath || pathname === `${basePath}/`);
+                        const activeState = isDashboardActive || isActiveLink(
                           link.key,
                           isActive,
                           pathname
@@ -171,7 +189,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                       }}
                       title={isCollapsed ? link.label : ''}
                       onClick={() => {
-                        console.log('🔗 Compliance Sidebar navigation to:', `/admin/compliance/${link.key}`);
+                        const basePath = isComplianceManager ? '/compliance' : '/admin/compliance';
+                        const targetPath = link.key === 'compilance-summary' ? basePath : `${basePath}/${link.key}`;
+                        console.log('🔗 Compliance Sidebar navigation to:', targetPath);
                       }}
                     >
                       <span className={`${isCollapsed ? 'text-2xl' : 'text-xl'} transition-all duration-200 group-hover:scale-110`}>

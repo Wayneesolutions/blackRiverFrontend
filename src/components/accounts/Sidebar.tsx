@@ -1,8 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { AccountSidebarlinks } from '../../utils/AccountSidebarlinks'
 import { NavLink } from "react-router-dom";
 import { FaChevronDown, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
-import Logo from "../../assets/FleetGo.png"
+import { FaUsers } from "react-icons/fa";
+import Logo from "../../assets/FleetGo.png";
+import { getUserRole } from "../../utils/auth";
 
 interface SidebarProps {
     isCollapsed: boolean;
@@ -13,6 +15,44 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
     const [openMenus, setOpenMenus] = useState<string[]>([]);
     const [, setHoveredMenu] = useState<string | null>(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const userRole = getUserRole();
+    const isHR = userRole === 'hr';
+
+    // Transform paths based on user role
+    const transformPath = (path: string): string => {
+        if (isHR) {
+            // Remove /admin prefix for HR
+            return path.replace(/^\/admin\//, '/');
+        }
+        return path;
+    };
+
+    // Transform sidebar links based on role
+    const transformedLinks = useMemo(() => {
+        const transformLink = (link: any): any => {
+            const transformed = {
+                ...link,
+                key: link.action ? link.key : transformPath(link.key),
+            };
+            if (link.children) {
+                transformed.children = link.children.map(transformLink);
+            }
+            return transformed;
+        };
+
+        const links = AccountSidebarlinks.map(transformLink);
+        
+        // Add Management link for HR
+        if (isHR) {
+            links.unshift({
+                key: "/Management",
+                icon: <FaUsers />,
+                label: "Management",
+            });
+        }
+        
+        return links;
+    }, [isHR]);
 
     // Toggle expand/collapse for parent menus
     const toggleMenu = (key: string) => {
@@ -23,10 +63,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
     // Helper function to check if route is active
     const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
-        if (linkKey === "/admin/accounts") {
+        const basePath = isHR ? "/accounts" : "/admin/accounts";
+        if (linkKey === basePath) {
             return (
-                pathname === "/admin/accounts" ||
-                pathname === "/admin/accounts/dashboard"
+                pathname === basePath ||
+                pathname === `${basePath}/dashboard`
             );
         }
         return isActive;
@@ -69,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                 <div className="flex-1 mx-3 mb-3 bg-white shadow-lg rounded-lg flex flex-col relative overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                     <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                         <ul className="space-y-1 p-3 relative">
-                            {AccountSidebarlinks.map((link) => (
+                            {transformedLinks.map((link) => (
                                 <li key={link.key || link.label} className="relative">
                                     {link.children ? (
                                         // --- PARENT MENU (same as before) ---
@@ -103,7 +144,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                                             {/* Expanded children (unchanged) */}
                                             {!isCollapsed && openMenus.includes(link.key) && (
                                                 <ul className="ml-6 mt-2 space-y-1 border-l-2 border-purple-100 pl-4">
-                                                    {link.children.map((child) => (
+                                                    {link.children.map((child: any) => (
                                                         <li key={child.key}>
                                                             <NavLink
                                                                 to={child.key}

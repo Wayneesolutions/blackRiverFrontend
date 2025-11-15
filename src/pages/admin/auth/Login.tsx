@@ -25,11 +25,23 @@ export default function LoginPage() {
     const storedUserInfo = localStorage.getItem('userInfo');
     
     // Only redirect if we have both token and userInfo, and user is active
-    if (location.pathname === '/admin/login' && token && storedUserInfo) {
+    if (location.pathname === '/' && token && storedUserInfo) {
       try {
         const parsed = JSON.parse(storedUserInfo);
         if (parsed && parsed.userData && parsed.userData.role && parsed.userData.status === 'active') {
-          navigate('/admin/dashboard', { replace: true });
+          // Redirect based on role
+          const userRole = parsed.userData.role;
+          if (userRole === 'dispatcher') {
+            navigate('/dispatch', { replace: true });
+          } else if (userRole === 'hr') {
+            navigate('/Management', { replace: true });
+          } else if (userRole === 'Fleet Maintenance Manager') {
+            navigate('/fleetmaintenance', { replace: true });
+          } else if (userRole === 'Compliance Manager') {
+            navigate('/compliance', { replace: true });
+          } else {
+            navigate('/admin/dashboard', { replace: true });
+          }
         } else if (parsed && parsed.userData && parsed.userData.status !== 'active') {
           // Clear inactive user's data
           localStorage.removeItem('token');
@@ -180,8 +192,19 @@ export default function LoginPage() {
         setRememberMe(false);
         message.success(response.message || "Login successful");
         
-        // Navigate to dashboard
-        navigate('/admin/dashboard', { replace: true });
+        // Navigate based on user role
+        const userRole = normalizedUserData.role || userData.role;
+        if (userRole === 'dispatcher') {
+          navigate('/dispatch', { replace: true });
+        } else if (userRole === 'hr') {
+          navigate('/Management', { replace: true });
+        } else if (userRole === 'Fleet Maintenance Manager') {
+          navigate('/fleetmaintenance', { replace: true });
+        } else if (userRole === 'Compliance Manager') {
+          navigate('/compliance', { replace: true });
+        } else {
+          navigate('/admin/dashboard', { replace: true });
+        }
         setLoading(false);
       }
     } catch (error: any) {

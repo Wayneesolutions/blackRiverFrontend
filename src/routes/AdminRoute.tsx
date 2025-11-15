@@ -1,14 +1,10 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import React from "react";
 import Layout from "../components/admin/Layout";
 import Loading from "../components/common/Loading";
-import PublicRoute from "../components/auth/PublicRoute";
 import ErrorBoundary from "../components/common/ErrorBoundary";
-
-
-const Register = lazy(() => import("../pages/admin/auth/Register"));
-const Login = lazy(() => import("../pages/admin/auth/Login"));
+import { getUserRole } from "../utils/auth";
 
 const Dashboard = lazy(() => import("../pages/admin/dashboard/index"));
 const Profile = lazy(() => import("../pages/admin/dashboard/Profile/index"));
@@ -39,26 +35,42 @@ const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
 };
 
 function AdminRoute() {
+  // Check if user is dispatcher or HR - redirect to appropriate routes
+  const userRole = getUserRole();
+  
+  // If dispatcher tries to access admin routes, redirect to dispatcher routes
+  if (userRole === 'dispatcher') {
+    return <Navigate to="/dispatch" replace />;
+  }
+  
+  // If HR tries to access admin routes, redirect to Management routes
+  if (userRole === 'hr') {
+    return <Navigate to="/Management" replace />;
+  }
+  
+  // If Fleet Maintenance Manager tries to access admin routes, redirect to fleetmaintenance routes
+  if (userRole === 'Fleet Maintenance Manager') {
+    return <Navigate to="/fleetmaintenance" replace />;
+  }
+  
+  // If Compliance Manager tries to access admin routes, redirect to compliance routes
+  if (userRole === 'Compliance Manager') {
+    return <Navigate to="/compliance" replace />;
+  }
+
   return (
     <Suspense fallback={<Loading />}>
       <RouteDebugger>
         <Routes>
-        {/* Public Routes - Auth Pages */}
-        <Route 
-          path="register" 
-          element={
-            <PublicRoute>
-              <Register />
-            </PublicRoute>
-          } 
-        />
+        {/* Redirect /admin/login to root login page */}
         <Route 
           path="login" 
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          } 
+          element={<Navigate to="/" replace />} 
+        />
+        {/* Redirect /admin/register to root register page */}
+        <Route 
+          path="register" 
+          element={<Navigate to="/register" replace />} 
         />
         
         {/* Protected Routes - Main Admin Layout Routes */}

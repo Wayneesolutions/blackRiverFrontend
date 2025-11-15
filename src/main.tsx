@@ -10,7 +10,15 @@ import { store } from "./redux/store.tsx";
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-    <ConfigProvider>
+    <ConfigProvider
+      notification={{
+        placement: 'topRight',
+        top: 24,
+        bottom: 24,
+        duration: 8,
+        getContainer: () => document.body,
+      }}
+    >
       <App />
     </ConfigProvider>
     </Provider>

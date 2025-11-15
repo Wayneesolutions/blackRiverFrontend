@@ -9,58 +9,32 @@ interface Error {
   }
 }
 
-// ✅ Login
-export const login = async (data:{email:string,password:string}) =>{
+export const login = async (data: { email: string; password: string }) => {
   try {
-    const res: AxiosResponse = await apiClient.post(`login`,data);
-    console.log('==res ', res)
+    const res: AxiosResponse = await apiClient.post('admin/login', data);
     return res.data;
   } catch (error) {
     console.log(error);
     return (error as Error).response?.data;
   }
-}
+};
 
-// ✅ Get Current User Profile
-export const getCurrentUserProfile = async () => {
+export const registerAdmin = async (data: {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  address?: string;
+  policies?: string;
+}) => {
   try {
-    const res: AxiosResponse = await apiClient.get(`auth/me`);
+    const res: AxiosResponse = await apiClient.post('admin/register', data);
     return res.data;
   } catch (error) {
     console.log(error);
     return (error as Error).response?.data;
   }
-}
-
-// ✅ Update Current User Profile
-export const updateCurrentUserProfile = async (data: any) => {
-  try {
-    const res: AxiosResponse = await apiClient.put(`auth/me`, data);
-    return res.data;
-  } catch (error) {
-    console.log(error);
-    return (error as Error).response?.data;
-  }
-}
-
-// ✅ Change Password
-export const changePassword = async (data: {newPassword: string}) => {
-  try {
-    const res: AxiosResponse = await apiClient.put(`auth/change-password`, data);
-    return res.data;
-  } catch (error) {
-    console.log(error);
-    return (error as Error).response?.data;
-  }
-}
-
-// ✅ Super Admin Login
-export const loginSuperAdmin = async (data: {email: string, password: string}) => {
-  try {
-    const res: AxiosResponse = await apiClient.post(`superadmin/login`, data);
-    return res.data;
-  } catch (error) {
-    console.log(error);
-    return (error as Error).response?.data;
-  }
-}
+};

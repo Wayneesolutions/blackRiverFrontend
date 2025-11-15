@@ -270,9 +270,19 @@ export const deleteVehicle = async (id:string) =>{
   }
 }
 
-export const listVehicle = async () =>{
+export const listVehicle = async (params?: { page?: number; limit?: number; search?: string; sortBy?: string; sortOrder?: string }) => {
     try {
-    const res: AxiosResponse = await apiClient.get(`dispatcher/vehicle`);
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    
+    const queryString = queryParams.toString();
+    const url = `dispatcher/vehicle${queryString ? `?${queryString}` : ''}`;
+    
+    const res: AxiosResponse = await apiClient.get(url);
     console.log('==res ', res)
     return res.data;
   } catch (error: any) {

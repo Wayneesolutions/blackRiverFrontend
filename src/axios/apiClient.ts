@@ -32,7 +32,7 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     // Don't redirect if already on login page or if error is from a background request
-    const isLoginPage = window.location.pathname === '/admin/login' || 
+    const isLoginPage = window.location.pathname === '/' || 
                        window.location.pathname === '/admin/adminLogin';
     const isBackgroundRequest = error.config?.url?.includes('expiring') || 
                                 error.config?.url?.includes('notification');
@@ -60,7 +60,7 @@ apiClient.interceptors.response.use(
         if (!isLoginPage) {
           // Use setTimeout to avoid redirect loop
           setTimeout(() => {
-            window.location.href = '/admin/login';
+            window.location.href = '/';
           }, 100);
         }
         return Promise.reject(error);

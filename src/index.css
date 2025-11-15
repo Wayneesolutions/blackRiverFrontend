@@ -3,3 +3,94 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Custom toast notification animation - slide in from right */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Ensure Ant Design notifications appear above modals */
+.ant-notification {
+  z-index: 10001 !important;
+  position: fixed !important;
+  pointer-events: auto !important;
+}
+
+.ant-notification-topRight {
+  z-index: 10001 !important;
+  position: fixed !important;
+  top: 24px !important;
+  right: 24px !important;
+  pointer-events: auto !important;
+}
+
+.ant-notification-notice {
+  z-index: 10001 !important;
+  position: relative !important;
+  pointer-events: auto !important;
+}
+
+/* Error notification specific styling */
+.error-notification {
+  z-index: 10001 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure notification container is positioned correctly */
+.ant-notification-topRight > .ant-notification-notice-wrapper {
+  z-index: 10001 !important;
+  position: relative !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure notification notice content has proper z-index */
+.ant-notification-notice-content {
+  z-index: 10001 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure message notifications appear above modals */
+.ant-message {
+  z-index: 10001 !important;
+  position: fixed !important;
+  pointer-events: none !important;
+}
+
+.ant-message-notice {
+  z-index: 10001 !important;
+  pointer-events: auto !important;
+}
+
+.ant-message-notice-content {
+  z-index: 10001 !important;
+  pointer-events: auto !important;
+}
+
+/* Override any modal z-index that might block notifications */
+.ant-modal-mask {
+  z-index: 1000 !important;
+}
+
+.ant-modal-wrap {
+  z-index: 1000 !important;
+}
+
+.ant-modal {
+  z-index: 1000 !important;
+}
+
+/* Ensure custom modals don't block notifications - target modal backdrop */
+.modal-backdrop {
+  z-index: 100 !important;
+}

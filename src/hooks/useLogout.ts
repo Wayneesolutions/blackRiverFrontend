@@ -14,7 +14,7 @@ export const useLogout = () => {
     try {
       // Determine redirect path based on current route
       const isSuperAdmin = location.pathname.startsWith('/superadmin');
-      const redirectPath = isSuperAdmin ? '/superadmin/login' : '/admin/login';
+      const redirectPath = isSuperAdmin ? '/superadmin/login' : '/';
       
       // Clear user data from Redux store (admin and superadmin)
       dispatch(userLogOut());
@@ -33,7 +33,7 @@ export const useLogout = () => {
       message.error('Error during logout');
       // Ensure auth is cleared even on error
       clearAuth();
-      navigate('/admin/login');
+      navigate('/');
     }
   };
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Filter, Trash2, Search, Pencil } from 'lucide-react';
+import { Plus, Filter, Trash2, Search, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
 import { message } from 'antd';
 import NewVehicleSidebar from './NewVehicleSidebar';
 import { listVehicle, deleteVehicle, updateVehicle, createVehicle } from '../../../../../axios/api/distapcher';
@@ -26,8 +26,11 @@ const VehiclesTable = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Vehicle | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [userInfo, setUserInfo] = useState<any>(() => {
     try {
       const stored = localStorage.getItem('userInfo');
@@ -38,16 +41,16 @@ const VehiclesTable = () => {
     }
   });
 
-  const sanitizeMessage = useCallback((message?: string | null) => {
-    if (!message) return null;
-    return message.toLowerCase().includes('no company assigned') ? null : message;
-  }, []);
-
-  const fetchVehicles = useCallback(async () => {
+  const fetchVehicles = useCallback(async (page: number, limit: number, search: string) => {
     setLoading(true);
     try {
-      const res = await listVehicle();
-      const message = sanitizeMessage(res?.message || null);
+      const res = await listVehicle({
+        page,
+        limit,
+        search: search.trim() || undefined,
+        sortBy: 'createdAt',
+        sortOrder: 'desc'
+      });
 
       if (res?.success) {
         const data = Array.isArray(res?.data?.vehicles)
@@ -57,23 +60,27 @@ const VehiclesTable = () => {
             : [];
 
         setVehicles(data);
-        if (data.length === 0) {
-          setEmptyStateMessage(message || 'No vehicles found.');
-        } else {
-          setEmptyStateMessage(null);
+        
+        // Update pagination info
+        if (res?.pagination) {
+          setTotal(res.pagination.total || 0);
+          setTotalPages(res.pagination.pages || 0);
+          setCurrentPage(res.pagination.current || 1);
         }
       } else {
         setVehicles([]);
-        setEmptyStateMessage(message || 'Failed to fetch vehicles.');
+        setTotal(0);
+        setTotalPages(0);
       }
     } catch (error: any) {
       console.error('Error fetching vehicles:', error);
       setVehicles([]);
-      setEmptyStateMessage(sanitizeMessage(error?.message) || 'Failed to fetch vehicles.');
+      setTotal(0);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
-  }, [userInfo, sanitizeMessage]);
+  }, []);
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
@@ -91,8 +98,23 @@ const VehiclesTable = () => {
   }, []);
 
   useEffect(() => {
-    fetchVehicles();
-  }, [fetchVehicles]);
+    fetchVehicles(currentPage, pageSize, searchQuery);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize, userInfo]);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (currentPage === 1) {
+        fetchVehicles(1, pageSize, searchQuery);
+      } else {
+        setCurrentPage(1); // Reset to first page on search
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
   const getStatusColor = (status: string) => {
   if (!status) {
@@ -115,26 +137,8 @@ const VehiclesTable = () => {
     }
   };
 
-const filteredVehicles = useMemo(() => {
-  if (!searchQuery.trim()) {
-    return vehicles;
-  }
-
-  const query = searchQuery.toLowerCase();
-  return vehicles.filter((vehicle) => {
-    const internalId = vehicle.internalId || '';
-    const plateNumber = vehicle.plateNumber || '';
-    const make = vehicle.make || '';
-    const model = vehicle.model || '';
-
-    return (
-      internalId.toLowerCase().includes(query) ||
-      plateNumber.toLowerCase().includes(query) ||
-      make.toLowerCase().includes(query) ||
-      model.toLowerCase().includes(query)
-    );
-  });
-}, [vehicles, searchQuery]);
+// Server-side search is now handled, so we just use vehicles directly
+const displayedVehicles = vehicles;
 
 const canCreateVehicle = userInfo?.role === 'superadmin' || Boolean(userInfo?.company);
 
@@ -171,7 +175,7 @@ const handleSidebarSubmit = useCallback(
         setIsSidebarOpen(false);
         setEditingVehicle(null);
         setSidebarMode('create');
-        fetchVehicles();
+        fetchVehicles(currentPage, pageSize, searchQuery);
       } else {
         message.error(response?.message || 'Failed to save vehicle');
       }
@@ -204,9 +208,10 @@ const handleConfirmDelete = useCallback(async () => {
   try {
     const res = await deleteVehicle(deleteTarget._id);
     if (res?.success) {
-      message.success(res?.message || 'Vehicle deleted successfully');
-      setVehicles(prev => prev.filter(vehicle => vehicle._id !== deleteTarget._id));
-      closeDeleteModal();
+        message.success(res?.message || 'Vehicle deleted successfully');
+        // Refresh the current page after deletion
+        fetchVehicles(currentPage, pageSize, searchQuery);
+        closeDeleteModal();
     } else {
       message.error(res?.message || 'Failed to delete vehicle');
     }
@@ -278,13 +283,6 @@ return (
       </div>
     </div>
 
-    {emptyStateMessage && filteredVehicles.length === 0 && (
-      <div className="mx-6 mt-4 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3">
-        🚚
-        <span className="text-sm">{emptyStateMessage}</span>
-      </div>
-    )}
-
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-auto">
         <table className="w-full min-w-[1200px]">
@@ -303,20 +301,8 @@ return (
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredVehicles.length === 0 ? (
-                <tr>
-                  <td colSpan={12} className="text-center py-12 text-gray-500">
-                    <div className="flex flex-col items-center space-y-2">
-                      <div className="text-5xl text-gray-300">🚚</div>
-                      <p>No vehicles found.</p>
-                      {emptyStateMessage && (
-                        <p className="text-xs text-gray-400">{emptyStateMessage}</p>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredVehicles.map((vehicle) => (
+              {displayedVehicles.length > 0 && (
+                displayedVehicles.map((vehicle) => (
                   <tr key={vehicle._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-500 font-mono">{vehicle.internalId}</td>
                     <td className="px-6 py-4 text-sm text-gray-500 font-mono">{vehicle.plateNumber}</td>
@@ -366,6 +352,98 @@ return (
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalPages > 0 && (
+          <div className="mt-6 flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200">
+            <div className="flex items-center gap-2 text-sm text-gray-700">
+              <span>Showing</span>
+              <span className="font-medium">
+                {((currentPage - 1) * pageSize) + 1}
+              </span>
+              <span>to</span>
+              <span className="font-medium">
+                {Math.min(currentPage * pageSize, total)}
+              </span>
+              <span>of</span>
+              <span className="font-medium">{total}</span>
+              <span>vehicles</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (currentPage > 1) {
+                    setCurrentPage(currentPage - 1);
+                  }
+                }}
+                disabled={currentPage === 1 || loading}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 7) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 4) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 3) {
+                    pageNum = totalPages - 6 + i;
+                  } else {
+                    pageNum = currentPage - 3 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      disabled={loading}
+                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                        currentPage === pageNum
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <button
+                onClick={() => {
+                  if (currentPage < totalPages) {
+                    setCurrentPage(currentPage + 1);
+                  }
+                }}
+                disabled={currentPage === totalPages || loading}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                disabled={loading}
+                className="ml-4 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value={10}>10 per page</option>
+                <option value={25}>25 per page</option>
+                <option value={50}>50 per page</option>
+                <option value={100}>100 per page</option>
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Sidebar */}
