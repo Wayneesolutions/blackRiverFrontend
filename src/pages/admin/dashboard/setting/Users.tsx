@@ -211,14 +211,8 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [showDriverPanel, setShowDriverPanel] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
-<<<<<<< HEAD
   const [toastError, setToastError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-=======
-  const [modalError, setModalError] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; userId: string | null }>({ show: false, userId: null });
->>>>>>> e8bacca64667109b50643a73bb662bb6fdf76612
 
   // Available roles including drive
   const rolesWithLoginAccess: Role[] = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Safety Manager'];

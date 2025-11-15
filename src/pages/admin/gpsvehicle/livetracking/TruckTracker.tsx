@@ -1,83 +1,16 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import {
-    MapPin,
-    Truck,
-    Gauge,
-    Filter,
-    Search,
-    Navigation,
-    Route,
-    RefreshCw,
-    X,
-    ChevronRight,
-    ChevronDown,
-    Fuel,
-    User,
-    ExternalLink,
-    ChevronLeft
-} from 'lucide-react';
+import { RefreshCw, Truck, Search, ChevronLeft, ChevronRight, MapPin, User, Gauge, Fuel, X } from 'lucide-react';
 import { useJsApiLoader } from '@react-google-maps/api';
 import type { Libraries } from '@react-google-maps/api';
 import { getSocket } from "../../../../socket/socketClient";
 import { listTrucks } from '../../../../axios/api/truckTracking';
 
 // Type definitions
-interface Location {
-    address: string;
-    longitude: number;
-    latitude: number;
-    updatedAt: Date;
-}
-
-interface RoutePoint {
-    latitude: number;
-    longitude: number;
-    timestamp: string;
-}
-
-interface CargoDetails {
-    type: string;
-    weight: number;
-    capacity: number;
-    description: string;
-    temperature?: number;
-    isRefrigerated: boolean;
-}
-
-interface AttachedTrailer {
-    _id: string;
-    plateNumber: string;
-    type: string;
-    capacity: string;
-}
-
-interface VehicleSensors {
-    doorStatus: 'locked' | 'unlocked' | 'open';
-    temperature: number;
-    humidity: number;
-    shockDetection: boolean;
-    tilting: boolean;
-    fuelLevel: number;
-    engineOn: boolean;
-    batteryVoltage: number;
-}
-
-interface MaintenanceInfo {
-    lastService: Date;
-    nextService: Date;
-    tyreCondition: 'good' | 'fair' | 'poor';
-    brakeCondition: 'good' | 'fair' | 'poor';
-    engineHealth: 'good' | 'fair' | 'poor';
-    issues: string[];
-}
-
 interface Driver {
     _id: string;
     name: string;
     email: string;
     phone: string;
-    licenseNumber: string;
-    status: 'active' | 'inactive';
 }
 
 interface Vehicle {
@@ -87,59 +20,43 @@ interface Vehicle {
     make: string;
     model: string;
     year: number;
-    vinNumber: string;
     status: 'moving' | 'idle' | 'stopped' | 'maintenance';
-    operationStatus: 'in_transit' | 'loading' | 'idle' | 'maintenance' | 'available';
-    isAttached: boolean;
-    attachedTrailer?: AttachedTrailer;
-    driver?: Driver;
+    speed: number;
+    fuelLevel: number;
+    odometer: number;
+    engineOn: boolean;
     currentLocation: {
         address: string;
         longitude: string | number;
         latitude: string | number;
         updatedAt: string | Date;
     };
-    route: RoutePoint[];
-    destination?: Location;
-    cargoDetails: CargoDetails;
-    sensors: VehicleSensors;
-    maintenance: MaintenanceInfo;
-    speed: number;
-    odometer: number;
-    fuelLevel: number;
-    engineOn: boolean;
-    driverBehaviour: {
-        harshBraking: number;
-        speedingEvents: number;
-        idlingDuration: number;
-    };
-    engineHealth: {
-        faultCodes: Array<{ code: string; description: string }>;
-        batteryVoltage: number;
-        engineHours: number;
-    };
+    driver?: Driver;
 }
 
 declare global {
     interface Window {
         google: any;
-        initMap: () => void;
     }
 }
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
-const GOOGLE_MAPS_LIBRARIES = ["marker", "places"] as Libraries;
-const LEGACY_SCRIPT_IDS = ["truck-tracker-map-script", "trailer-tracker-map-script"];
-const GOOGLE_MAPS_MAP_ID = import.meta.env.VITE_GOOGLE_MAP_ID?.trim() || undefined;
+const GOOGLE_MAPS_LIBRARIES: Libraries = ["marker", "places"];
+const GOOGLE_MAPS_MAP_ID = import.meta.env.VITE_GOOGLE_MAP_ID?.trim() || "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
 
-if (typeof window !== "undefined") {
-    LEGACY_SCRIPT_IDS.forEach((id) => {
-        const script = document.getElementById(id);
-        if (script && script.parentNode) {
-            script.parentNode.removeChild(script);
-        }
-    });
-}
+const statusColors: Record<string, string> = {
+    moving: "#10b981",
+    idle: "#f59e0b",
+    stopped: "#ef4444",
+    maintenance: "#6b7280",
+};
+
+const statusBgColors: Record<string, string> = {
+    moving: "#d1fae5",
+    idle: "#fef3c7",
+    stopped: "#fee2e2",
+    maintenance: "#f3f4f6",
+};
 
 const ProfessionalTruckTracker: React.FC = () => {
     const { isLoaded, loadError } = useJsApiLoader({
@@ -150,87 +67,16 @@ const ProfessionalTruckTracker: React.FC = () => {
 
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-    const [filterStatus, setFilterStatus] = useState<string>('all');
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [showRoutes, setShowRoutes] = useState<boolean>(true);
-    const [mapLoaded, setMapLoaded] = useState<boolean>(false);
-    const [map, setMap] = useState<google.maps.Map | null>(null);
-    const [markers, setMarkers] = useState<any[]>([]);
-    const [directionsRenderers, setDirectionsRenderers] = useState<any[]>([]);
     const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
-    const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
-    const [, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+    const [map, setMap] = useState<google.maps.Map | null>(null);
+    const [markers, setMarkers] = useState<any[]>([]);
     const [advancedMarkersEnabled, setAdvancedMarkersEnabled] = useState<boolean>(false);
 
     const socket = useMemo(() => getSocket(), []);
 
-    useEffect(() => {
-        if (isLoaded) {
-            setMapLoaded(true);
-        } else if (loadError) {
-            setMapLoaded(false);
-        }
-    }, [isLoaded, loadError]);
-
-    useEffect(() => {
-        if (mapLoaded && !GOOGLE_MAPS_MAP_ID) {
-            console.warn(
-                'Google Maps mapId is not configured (VITE_GOOGLE_MAP_ID). Falling back to standard markers.'
-            );
-        }
-    }, [mapLoaded]);
-
-    // Handle vehicle selection
-    const handleVehicleClick = useCallback((vehicle: Vehicle) => {
-        console.log('🚛 Vehicle selected:', vehicle.plateNumber);
-        setSelectedVehicle(vehicle);
-        
-        // Set location for map centering
-        const lat = Number(vehicle.currentLocation?.latitude);
-        const lng = Number(vehicle.currentLocation?.longitude);
-        if (!isNaN(lat) && !isNaN(lng)) {
-            setLocation({ lat, lng });
-            console.log('📍 Setting location for map centering:', { lat, lng });
-            
-            // Immediately center map on selected vehicle
-            if (map) {
-                map.setCenter({ lat, lng });
-                map.setZoom(15);
-                console.log('🗺️ Map centered on selected vehicle');
-            }
-        }
-        
-        // Leave previous vehicle updates
-        socket.emit("leaveVehicle");
-        
-        // Join new vehicle updates
-        socket.emit("joinVehicle", vehicle._id);
-        
-        // Listen for vehicle updates
-        socket.off("vehicleLocation");
-        socket.on("vehicleLocation", (data) => {
-            setVehicles((prev) =>
-                prev.map((v) => (v._id === data._id ? { ...v, ...data } : v))
-            );
-            
-            if (vehicle._id === data._id) {
-                setSelectedVehicle({ ...vehicle, ...data });
-                // Update location if this is the selected vehicle
-                const newLat = Number(data.currentLocation?.latitude);
-                const newLng = Number(data.currentLocation?.longitude);
-                if (!isNaN(newLat) && !isNaN(newLng)) {
-                    setLocation({ lat: newLat, lng: newLng });
-                    // Update map center for real-time tracking
-                    if (map) {
-                        map.setCenter({ lat: newLat, lng: newLng });
-                    }
-                }
-            }
-        });
-    }, [socket, map]);
-
+    // Fetch vehicles from backend
     const fetchVehiclesData = useCallback(async () => {
         setLoading(true);
         try {
@@ -246,21 +92,12 @@ const ProfessionalTruckTracker: React.FC = () => {
 
             if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
                 setVehicles([]);
-                setSelectedVehicle(null);
-                setEmptyStateMessage(null);
                 return;
             }
 
             const res = await listTrucks();
             if (res?.success) {
                 const data = res.data?.vehicles || [];
-                if (data.length === 0) {
-                    setVehicles([]);
-                    setSelectedVehicle(null);
-                    setEmptyStateMessage(res?.message || 'No trucks found for the current company.');
-                    return;
-                }
-
                 const formatted = data.map((v: any) => ({
                     ...v,
                     currentLocation: {
@@ -268,135 +105,96 @@ const ProfessionalTruckTracker: React.FC = () => {
                         latitude: Number(v.currentLocation?.latitude ?? 0),
                         longitude: Number(v.currentLocation?.longitude ?? 0),
                         updatedAt: v.currentLocation?.updatedAt || new Date().toISOString()
-                    },
-                    route: v.route || [],
-                    cargoDetails: v.cargoDetails || {
-                        type: 'General',
-                        weight: 0,
-                        capacity: 0,
-                        description: 'No cargo',
-                        isRefrigerated: false
-                    },
-                    sensors: v.sensors || {
-                        doorStatus: 'locked',
-                        temperature: 20,
-                        humidity: 50,
-                        shockDetection: false,
-                        tilting: false,
-                        fuelLevel: v.fuelLevel || 0,
-                        engineOn: v.engineOn || false,
-                        batteryVoltage: 12.5
-                    },
-                    maintenance: v.maintenance || {
-                        lastService: new Date(),
-                        nextService: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                        tyreCondition: 'good',
-                        brakeCondition: 'good',
-                        engineHealth: 'good',
-                        issues: []
-                    },
-                    driverBehaviour: v.driverBehaviour || {
-                        harshBraking: 0,
-                        speedingEvents: 0,
-                        idlingDuration: 0
-                    },
-                    engineHealth: v.engineHealth || {
-                        faultCodes: [],
-                        batteryVoltage: 12.5,
-                        engineHours: 0
                     }
                 }));
                 setVehicles(formatted);
-                setEmptyStateMessage(null);
-                handleVehicleClick(formatted[0]);
+                if (formatted.length > 0 && !selectedVehicle) {
+                    handleVehicleClick(formatted[0]);
+                }
             } else {
-                const message = res?.message || 'Failed to fetch trucks.';
                 setVehicles([]);
-                setSelectedVehicle(null);
-                setEmptyStateMessage(message);
             }
         } catch (err) {
             console.error('Error fetching vehicles:', err);
             setVehicles([]);
-            setSelectedVehicle(null);
-            setEmptyStateMessage((err as any)?.message || 'Failed to fetch trucks.');
         } finally {
             setLoading(false);
         }
-    }, [handleVehicleClick]);
+    }, [selectedVehicle]);
 
     useEffect(() => {
         fetchVehiclesData();
     }, [fetchVehiclesData]);
 
-    // Toggle section expansion
-    const toggleSection = (section: string) => {
-        setExpandedSections(prev => ({
-            ...prev,
-            [section]: !prev[section]
-        }));
-    };
-
-    // Load Google Maps
-    useEffect(() => {
-        const loadGoogleMaps = () => {
-            if (window.google && window.google.maps) {
-                setMapLoaded(true);
-                return;
+    // Handle vehicle selection
+    const handleVehicleClick = useCallback((vehicle: Vehicle) => {
+        console.log('🚛 Vehicle selected:', vehicle.plateNumber);
+        setSelectedVehicle(vehicle);
+        
+        // Center map on selected vehicle
+        const lat = Number(vehicle.currentLocation?.latitude);
+        const lng = Number(vehicle.currentLocation?.longitude);
+        if (!isNaN(lat) && !isNaN(lng) && map) {
+            map.setCenter({ lat, lng });
+            map.setZoom(15);
+            console.log('🗺️ Map centered on selected vehicle');
+        }
+        
+        // Leave previous vehicle updates
+        socket.emit("leaveVehicle");
+        
+        // Join new vehicle updates
+        socket.emit("joinVehicle", vehicle._id);
+        
+        // Listen for vehicle updates
+        socket.off("vehicleLocation");
+        socket.on("vehicleLocation", (data) => {
+            console.log('📍 Vehicle location update:', data.plateNumber);
+            setVehicles((prev) =>
+                prev.map((v) => (v._id === data._id ? { ...v, ...data } : v))
+            );
+            
+            if (vehicle._id === data._id) {
+                setSelectedVehicle((prev) => prev ? { ...prev, ...data } : data);
+                
+                // Update map center for real-time tracking
+                const newLat = Number(data.currentLocation?.latitude);
+                const newLng = Number(data.currentLocation?.longitude);
+                if (!isNaN(newLat) && !isNaN(newLng) && map) {
+                    map.setCenter({ lat: newLat, lng: newLng });
+                }
+                
+                // Update marker position
+                updateMarkers();
             }
-
-            const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-            if (existingScript) {
-                existingScript.remove();
-            }
-
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4&libraries=places,directions`;
-            script.async = true;
-            script.defer = true;
-            script.onload = () => {
-                setMapLoaded(true);
-            };
-
-            document.head.appendChild(script);
-        };
-
-        loadGoogleMaps();
-
-        return () => {
-            (window as any).initMap = undefined;
-        };
-    }, []);
+        });
+    }, [socket, map]);
 
     // Initialize map
     useEffect(() => {
-        if (mapLoaded && window.google && window.google.maps) {
+        if (isLoaded && window.google && window.google.maps) {
             const mapElement = document.getElementById('truck-google-map');
             if (mapElement && !map) {
                 console.log('🗺️ Initializing Google Map...');
                 
-                // Use first vehicle location as center if available
+                // Use first vehicle location as center if available, otherwise use default
                 let center = { lat: 20.5937, lng: 78.9629 }; // Default to India
                 let zoom = 5;
                 
                 if (vehicles.length > 0 && vehicles[0].currentLocation) {
                     const firstVehicle = vehicles[0];
-                    center = {
-                        lat: Number(firstVehicle.currentLocation.latitude),
-                        lng: Number(firstVehicle.currentLocation.longitude)
-                    };
-                    zoom = 12;
-                    console.log('📍 Centering map on first vehicle:', firstVehicle.plateNumber, center);
+                    const lat = Number(firstVehicle.currentLocation.latitude);
+                    const lng = Number(firstVehicle.currentLocation.longitude);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        center = { lat, lng };
+                        zoom = 12;
+                        console.log('📍 Centering map on first vehicle:', firstVehicle.plateNumber, center);
+                    }
                 }
                 
                 const mapOptions: google.maps.MapOptions = {
                     center,
                     zoom,
-                    styles: [{
-                        featureType: 'poi',
-                        elementType: 'labels',
-                        stylers: [{ visibility: 'off' }]
-                    }],
                     mapTypeId: window.google.maps.MapTypeId.ROADMAP,
                     clickableIcons: true,
                     gestureHandling: 'greedy',
@@ -404,460 +202,148 @@ const ProfessionalTruckTracker: React.FC = () => {
 
                 if (GOOGLE_MAPS_MAP_ID) {
                     mapOptions.mapId = GOOGLE_MAPS_MAP_ID;
+                    console.log('✅ Using Google Maps Map ID:', GOOGLE_MAPS_MAP_ID);
+                } else {
+                    mapOptions.styles = [{
+                        featureType: 'poi',
+                        elementType: 'labels',
+                        stylers: [{ visibility: 'off' }]
+                    }];
+                    console.warn('⚠️ VITE_GOOGLE_MAP_ID not set, using standard map');
                 }
 
-                const newMap = new window.google.maps.Map(mapElement, mapOptions);
-                
-                console.log('✅ Google Map initialized successfully');
-                setMap(newMap);
-                setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
+                try {
+                    const rect = mapElement.getBoundingClientRect();
+                    console.log('📐 Map element dimensions:', { width: rect.width, height: rect.height });
+                    
+                    if (rect.width === 0 || rect.height === 0) {
+                        setTimeout(() => {
+                            const newMap = new window.google.maps.Map(mapElement, mapOptions);
+                            console.log('✅ Google Map initialized successfully (delayed)');
+                            setMap(newMap);
+                            setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
+                            setTimeout(() => {
+                                window.google.maps.event.trigger(newMap, 'resize');
+                            }, 200);
+                        }, 200);
+                    } else {
+                        const newMap = new window.google.maps.Map(mapElement, mapOptions);
+                        console.log('✅ Google Map initialized successfully');
+                        setMap(newMap);
+                        setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
+                        setTimeout(() => {
+                            window.google.maps.event.trigger(newMap, 'resize');
+                        }, 200);
+                    }
+                } catch (error) {
+                    console.error('❌ Error initializing map:', error);
+                }
+            } else if (map && vehicles.length > 0 && vehicles[0].currentLocation) {
+                // Re-center map when vehicles are loaded
+                const firstVehicle = vehicles[0];
+                const lat = Number(firstVehicle.currentLocation.latitude);
+                const lng = Number(firstVehicle.currentLocation.longitude);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    map.setCenter({ lat, lng });
+                    map.setZoom(12);
+                    console.log('📍 Map re-centered on first vehicle:', firstVehicle.plateNumber);
+                }
             }
         }
-    }, [mapLoaded, vehicles, map]);
+    }, [isLoaded, map, vehicles]);
 
-    // Update markers and routes
-    useEffect(() => {
-        if (map && window.google && window.google.maps) {
-            console.log('🗺️ Updating markers for vehicles:', vehicles.length);
-            console.log('🔍 Current filter status:', filterStatus);
+    // Update markers on map
+    const updateMarkers = useCallback(() => {
+        if (!map || !window.google || !window.google.maps) return;
+
+        // Clear existing markers
+        markers.forEach(marker => {
+            if (marker && typeof marker.setMap === 'function') {
+                marker.setMap(null);
+            }
+        });
+
+        const newMarkers: any[] = [];
+
+        vehicles.forEach((vehicle) => {
+            const lat = Number(vehicle.currentLocation?.latitude);
+            const lng = Number(vehicle.currentLocation?.longitude);
             
-            // Clear existing markers and directions
-            markers.forEach(existingMarker => {
-                if (!existingMarker) return;
-                if (typeof existingMarker.setMap === 'function') {
-                    existingMarker.setMap(null);
-                } else if ('map' in existingMarker) {
-                    (existingMarker as { map: google.maps.Map | null }).map = null;
-                }
-            });
-            directionsRenderers.forEach(renderer => renderer.setMap(null));
+            if (isNaN(lat) || isNaN(lng)) {
+                console.error('❌ Invalid coordinates for vehicle:', vehicle.plateNumber);
+                return;
+            }
 
-            const newMarkers: any[] = [];
-            const newDirectionsRenderers: any[] = [];
+            const markerColor = statusColors[vehicle.status] || '#6b7280';
 
-            // Filter vehicles based on status
-            const vehiclesToShow = vehicles.filter(vehicle => {
-                if (filterStatus === 'all') return true;
-                return vehicle.status === filterStatus;
-            });
+            try {
+                let marker;
+                if (advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement) {
+                    const markerElement = document.createElement('div');
+                    markerElement.style.width = '24px';
+                    markerElement.style.height = '24px';
+                    markerElement.style.borderRadius = '50%';
+                    markerElement.style.background = markerColor;
+                    markerElement.style.border = '3px solid white';
+                    markerElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+                    markerElement.style.cursor = 'pointer';
 
-            console.log('🚛 Vehicles to show on map:', vehiclesToShow.length);
-
-            vehiclesToShow.forEach((vehicle, index) => {
-                console.log(`🚛 Creating marker for vehicle ${index + 1}:`, {
-                    plateNumber: vehicle.plateNumber,
-                    lat: vehicle.currentLocation.latitude,
-                    lng: vehicle.currentLocation.longitude,
-                    status: vehicle.status
-                });
-
-                // Validate coordinates
-                const lat = Number(vehicle.currentLocation.latitude);
-                const lng = Number(vehicle.currentLocation.longitude);
-                
-                if (isNaN(lat) || isNaN(lng)) {
-                    console.error('❌ Invalid coordinates for vehicle:', vehicle.plateNumber, lat, lng);
-                    return;
-                }
-
-                const marker = advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement
-                    ? (() => {
-                        const markerElement = document.createElement('div');
-                        markerElement.style.width = '22px';
-                        markerElement.style.height = '22px';
-                        markerElement.style.borderRadius = '50%';
-                        markerElement.style.backgroundColor = getMarkerColor(vehicle.status);
-                        markerElement.style.border = '2px solid #ffffff';
-                        markerElement.style.boxShadow = '0 6px 12px rgba(0,0,0,0.25)';
-                        markerElement.style.display = 'flex';
-                        markerElement.style.alignItems = 'center';
-                        markerElement.style.justifyContent = 'center';
-
-                        const innerDot = document.createElement('div');
-                        innerDot.style.width = '6px';
-                        innerDot.style.height = '6px';
-                        innerDot.style.borderRadius = '50%';
-                        innerDot.style.backgroundColor = '#ffffff';
-                        markerElement.appendChild(innerDot);
-
-                        return new window.google.maps.marker.AdvancedMarkerElement({
-                            position: { lat, lng },
-                            map,
-                            title: `${vehicle.plateNumber} - ${vehicle.status}`,
-                            content: markerElement
-                        });
-                    })()
-                    : new window.google.maps.Marker({
+                    marker = new window.google.maps.marker.AdvancedMarkerElement({
+                        position: { lat, lng },
+                        map,
+                        title: `${vehicle.plateNumber} - ${vehicle.status}`,
+                        content: markerElement
+                    });
+                } else {
+                    marker = new window.google.maps.Marker({
                         position: { lat, lng },
                         map,
                         title: `${vehicle.plateNumber} - ${vehicle.status}`,
                         icon: {
-                            path: 'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H5V21H19V9Z',
-                            scale: 1.5,
-                            fillColor: getMarkerColor(vehicle.status),
-                            fillOpacity: 0.9,
-                            strokeColor: '#ffffff',
-                            strokeWeight: 2,
-                            anchor: new window.google.maps.Point(12, 12)
-                        }
-                    });
-
-                marker.addListener('click', () => {
-                    console.log('📍 Marker clicked for vehicle:', vehicle.plateNumber);
-                    handleVehicleClick(vehicle);
-                    // Center map on clicked vehicle
-                    const markerPosition = marker.position as google.maps.LatLng | google.maps.LatLngLiteral | null | undefined;
-                    if (markerPosition) {
-                        map.setCenter(markerPosition as google.maps.LatLng | google.maps.LatLngLiteral);
-                    }
-                    map.setZoom(15);
-                });
-
-                newMarkers.push(marker);
-
-                // Add route if destination exists
-                if (vehicle.destination && showRoutes && vehicle.status === 'moving') {
-                    const directionsService = new window.google.maps.DirectionsService();
-                    const directionsRenderer = new window.google.maps.DirectionsRenderer({
-                        suppressMarkers: true,
-                        draggable: false,
-                        polylineOptions: {
-                            strokeColor: '#22c55e',
-                            strokeOpacity: 0.8,
-                            strokeWeight: 4,
-                        }
-                    });
-
-                    directionsRenderer.setMap(map);
-
-                    directionsService.route({
-                        origin: {
-                            lat: Number(vehicle.currentLocation.latitude),
-                            lng: Number(vehicle.currentLocation.longitude)
-                        },
-                        destination: {
-                            lat: Number(vehicle.destination.latitude),
-                            lng: Number(vehicle.destination.longitude)
-                        },
-                        travelMode: window.google.maps.TravelMode.DRIVING
-                    }, (result: any, status: any) => {
-                        if (status === window.google.maps.DirectionsStatus.OK) {
-                            directionsRenderer.setDirections(result);
-                        }
-                    });
-
-                    newDirectionsRenderers.push(directionsRenderer);
-
-                    // Add destination marker
-                    const destinationMarker = advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement
-                        ? (() => {
-                            const destinationMarkerElement = document.createElement('div');
-                            destinationMarkerElement.style.padding = '6px 10px';
-                            destinationMarkerElement.style.borderRadius = '9999px';
-                            destinationMarkerElement.style.backgroundColor = '#3b82f6';
-                            destinationMarkerElement.style.color = '#ffffff';
-                            destinationMarkerElement.style.fontSize = '10px';
-                            destinationMarkerElement.style.fontWeight = '600';
-                            destinationMarkerElement.style.boxShadow = '0 6px 12px rgba(59,130,246,0.35)';
-                            destinationMarkerElement.textContent = 'DEST';
-
-                            return new window.google.maps.marker.AdvancedMarkerElement({
-                                position: {
-                                    lat: Number(vehicle.destination.latitude),
-                                    lng: Number(vehicle.destination.longitude)
-                                },
-                                map,
-                                title: `Destination: ${vehicle.destination.address}`,
-                                content: destinationMarkerElement
-                            });
-                        })()
-                        : new window.google.maps.Marker({
-                            position: {
-                                lat: Number(vehicle.destination.latitude),
-                                lng: Number(vehicle.destination.longitude)
-                            },
-                            map,
-                            title: `Destination: ${vehicle.destination.address}`,
-                            icon: {
-                                path: 'M12 2L13.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L10.91 8.26L12 2Z',
-                                scale: 0.6,
-                                fillColor: '#3b82f6',
-                                fillOpacity: 1,
-                                strokeColor: '#ffffff',
-                                strokeWeight: 1,
-                                anchor: new window.google.maps.Point(12, 12)
-                            }
-                        });
-
-                    newMarkers.push(destinationMarker);
-                }
-            });
-
-            // If no vehicles, add a test marker to verify map is working
-            if (newMarkers.length === 0) {
-                console.log('⚠️ No vehicles found, adding test marker');
-                const testMarker = advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement
-                    ? (() => {
-                        const fallbackElement = document.createElement('div');
-                        fallbackElement.style.width = '24px';
-                        fallbackElement.style.height = '24px';
-                        fallbackElement.style.borderRadius = '50%';
-                        fallbackElement.style.background = 'linear-gradient(135deg, #6366f1, #8b5cf6)';
-                        fallbackElement.style.border = '2px solid #ffffff';
-                        fallbackElement.style.boxShadow = '0 8px 16px rgba(99,102,241,0.4)';
-
-                        return new window.google.maps.marker.AdvancedMarkerElement({
-                            position: { lat: 20.5937, lng: 78.9629 },
-                            map,
-                            title: 'Test Marker - No vehicles found',
-                            content: fallbackElement
-                        });
-                    })()
-                    : new window.google.maps.Marker({
-                        position: { lat: 20.5937, lng: 78.9629 },
-                        map,
-                        title: 'Test Marker - No vehicles found',
-                        icon: {
                             path: window.google.maps.SymbolPath.CIRCLE,
                             scale: 10,
-                            fillColor: '#6366f1',
+                            fillColor: markerColor,
                             fillOpacity: 0.8,
                             strokeColor: '#ffffff',
                             strokeWeight: 2
                         }
                     });
-                newMarkers.push(testMarker);
+                }
+
+                // Add click listener
+                marker.addListener('click', () => {
+                    handleVehicleClick(vehicle);
+                });
+
+                newMarkers.push(marker);
+            } catch (error) {
+                console.error('❌ Error creating marker:', error);
             }
+        });
 
-            setMarkers(newMarkers);
-            setDirectionsRenderers(newDirectionsRenderers);
-            
-            console.log('✅ Markers created:', newMarkers.length);
+        setMarkers(newMarkers);
+        console.log('✅ Markers updated:', newMarkers.length);
+    }, [map, vehicles, advancedMarkersEnabled, handleVehicleClick]);
+
+    // Update markers when vehicles or map changes
+    useEffect(() => {
+        if (map && vehicles.length > 0) {
+            updateMarkers();
         }
-    }, [map, vehicles, showRoutes, filterStatus]);
+    }, [map, vehicles, updateMarkers]);
 
-    // Filter vehicles
+    // Filter vehicles by search
     const filteredVehicles = vehicles.filter(vehicle => {
-        const matchesSearch = vehicle.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            (vehicle.driver?.name && vehicle.driver.name.toLowerCase().includes(searchTerm.toLowerCase()));
-        
-        const matchesStatus = filterStatus === 'all' || vehicle.status === filterStatus;
-        
-        return matchesSearch && matchesStatus;
+        const searchLower = searchTerm.toLowerCase();
+        return (
+            vehicle.plateNumber.toLowerCase().includes(searchLower) ||
+            vehicle.make.toLowerCase().includes(searchLower) ||
+            vehicle.model.toLowerCase().includes(searchLower) ||
+            (vehicle.driver?.name && vehicle.driver.name.toLowerCase().includes(searchLower))
+        );
     });
 
-    // Status colors
-    const statusColors: Record<string, string> = {
-        moving: "#10b981",
-        idle: "#f59e0b", 
-        stopped: "#ef4444",
-        maintenance: "#6b7280",
-    };
-
-    const statusBgColors: Record<string, string> = {
-        moving: "#d1fae5",
-        idle: "#fef3c7",
-        stopped: "#fee2e2", 
-        maintenance: "#f3f4f6",
-    };
-
-    const getMarkerColor = (status: string): string => {
-        switch (status) {
-            case 'moving': return '#22c55e';
-            case 'idle': return '#eab308';
-            case 'maintenance': return '#ef4444';
-            case 'stopped': return '#8b5cf6';
-            default: return '#6b7280';
-        }
-    };
-
-    // Open vehicle in new tab
-    const openVehicleInNewTab = (vehicle: Vehicle) => {
-        const lat = Number(vehicle.currentLocation?.latitude);
-        const lng = Number(vehicle.currentLocation?.longitude);
-        
-        const mapUrl = `https://www.google.com/maps?q=${lat},${lng}&z=15`;
-        
-        const vehicleContent = `
-            <!DOCTYPE html>
-            <html>
-                <head>
-                    <title>Truck Tracker - ${vehicle.plateNumber}</title>
-                    <style>
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body { 
-                            font-family: system-ui, -apple-system, sans-serif; 
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            min-height: 100vh;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            padding: 20px;
-                        }
-                        .container { 
-                            max-width: 900px; 
-                            width: 100%;
-                            background: white; 
-                            border-radius: 20px; 
-                            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                            overflow: hidden;
-                        }
-                        .header {
-                            background: linear-gradient(135deg, ${statusColors[vehicle.status]}, ${statusColors[vehicle.status]}dd);
-                            color: white;
-                            padding: 30px;
-                            text-align: center;
-                        }
-                        .header h1 { font-size: 32px; margin-bottom: 10px; }
-                        .header p { opacity: 0.9; font-size: 16px; }
-                        .content { padding: 40px; }
-                        .status-badge {
-                            display: inline-block;
-                            padding: 8px 20px;
-                            border-radius: 25px;
-                            font-size: 14px;
-                            font-weight: 700;
-                            margin: 20px 0;
-                            background: ${statusBgColors[vehicle.status]};
-                            color: ${statusColors[vehicle.status]};
-                        }
-                        .metrics {
-                            display: grid;
-                            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                            gap: 20px;
-                            margin: 30px 0;
-                        }
-                        .metric-card {
-                            background: #f9fafb;
-                            padding: 20px;
-                            border-radius: 12px;
-                            border-left: 4px solid ${statusColors[vehicle.status]};
-                        }
-                        .metric-label {
-                            color: #6b7280;
-                            font-size: 12px;
-                            font-weight: 600;
-                            text-transform: uppercase;
-                            letter-spacing: 0.5px;
-                            margin-bottom: 8px;
-                        }
-                        .metric-value {
-                            color: #1f2937;
-                            font-size: 24px;
-                            font-weight: 700;
-                        }
-                        .info-section {
-                            background: #f9fafb;
-                            padding: 25px;
-                            border-radius: 12px;
-                            margin: 20px 0;
-                        }
-                        .info-row {
-                            display: flex;
-                            justify-content: space-between;
-                            padding: 15px 0;
-                            border-bottom: 1px solid #e5e7eb;
-                        }
-                        .info-row:last-child { border-bottom: none; }
-                        .label { color: #6b7280; font-weight: 600; }
-                        .value { color: #1f2937; font-weight: 700; text-align: right; }
-                        .map-button {
-                            display: inline-block;
-                            background: ${statusColors[vehicle.status]};
-                            color: white;
-                            padding: 15px 30px;
-                            border-radius: 10px;
-                            text-decoration: none;
-                            font-weight: 600;
-                            margin-top: 20px;
-                            transition: transform 0.2s, box-shadow 0.2s;
-                        }
-                        .map-button:hover {
-                            transform: translateY(-2px);
-                            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-                        }
-                        .timestamp {
-                            text-align: center;
-                            color: #9ca3af;
-                            font-size: 14px;
-                            margin-top: 30px;
-                            padding-top: 20px;
-                            border-top: 1px solid #e5e7eb;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h1>🚛 ${vehicle.plateNumber}</h1>
-                            <p>${vehicle.make} ${vehicle.model} (${vehicle.year})</p>
-                            <div class="status-badge">${vehicle.status.toUpperCase()}</div>
-                        </div>
-                        
-                        <div class="content">
-                            <div class="metrics">
-                                <div class="metric-card">
-                                    <div class="metric-label">Speed</div>
-                                    <div class="metric-value">${vehicle.speed} <span style="font-size: 16px;">km/h</span></div>
-                                </div>
-                                <div class="metric-card">
-                                    <div class="metric-label">Fuel Level</div>
-                                    <div class="metric-value">${vehicle.fuelLevel} <span style="font-size: 16px;">%</span></div>
-                                </div>
-                                <div class="metric-card">
-                                    <div class="metric-label">Odometer</div>
-                                    <div class="metric-value">${(vehicle.odometer / 1000).toFixed(1)} <span style="font-size: 16px;">k km</span></div>
-                                </div>
-                            </div>
-
-                            <div class="info-section">
-                                <div class="info-row">
-                                    <span class="label">Engine Status</span>
-                                    <span class="value" style="color: ${vehicle.engineOn ? '#10b981' : '#ef4444'}">
-                                        ${vehicle.engineOn ? '✓ Running' : '✗ Off'}
-                                    </span>
-                                </div>
-                                ${vehicle.driver ? `
-                                <div class="info-row">
-                                    <span class="label">Driver</span>
-                                    <span class="value">${vehicle.driver.name}</span>
-                                </div>
-                                ` : ''}
-                                <div class="info-row">
-                                    <span class="label">Internal ID</span>
-                                    <span class="value">${vehicle.internalId}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="label">Current Location</span>
-                                    <span class="value" style="max-width: 60%; text-align: right;">${vehicle.currentLocation?.address}</span>
-                                </div>
-                            </div>
-
-                            <div style="text-align: center;">
-                                <a href="${mapUrl}" target="_blank" class="map-button">
-                                    📍 View on Google Maps
-                                </a>
-                            </div>
-
-                            <div class="timestamp">
-                                Last updated: ${new Date(vehicle.currentLocation?.updatedAt).toLocaleString()}
-                            </div>
-                        </div>
-                    </div>
-                </body>
-            </html>
-        `;
-        
-        const newWindow = window.open('', '_blank', 'width=1000,height=800');
-        if (newWindow) {
-            newWindow.document.write(vehicleContent);
-            newWindow.document.close();
-        }
-    };
-
-    if (loading && !emptyStateMessage) {
+    if (loading && vehicles.length === 0) {
         return (
             <div className="flex items-center justify-center h-screen bg-gray-100">
                 <div className="text-center">
@@ -869,7 +355,7 @@ const ProfessionalTruckTracker: React.FC = () => {
     }
 
     return (
-        <div className="flex h-screen bg-gray-100">
+        <div className="flex h-screen bg-gray-100 overflow-hidden">
             {/* Left Sidebar */}
             <div
                 className={`bg-white shadow-xl transition-all duration-300 ease-in-out ${
@@ -893,7 +379,7 @@ const ProfessionalTruckTracker: React.FC = () => {
                         </div>
                         
                         {/* Search Bar */}
-                        <div className="relative mb-4">
+                        <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
@@ -903,100 +389,63 @@ const ProfessionalTruckTracker: React.FC = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-
-                        {/* Filter */}
-                        <div className="flex items-center gap-2">
-                            <Filter className="w-4 h-4" />
-                            <select
-                                value={filterStatus}
-                                onChange={(e) => setFilterStatus(e.target.value)}
-                                className="flex-1 px-3 py-2 rounded-lg bg-white/90 text-gray-800 focus:outline-none focus:ring-2 focus:ring-white/50"
-                            >
-                                <option value="all">All Status ({vehicles.length})</option>
-                                <option value="moving">Moving ({vehicles.filter(v => v.status === 'moving').length})</option>
-                                <option value="idle">Idle ({vehicles.filter(v => v.status === 'idle').length})</option>
-                                <option value="stopped">Stopped ({vehicles.filter(v => v.status === 'stopped').length})</option>
-                                <option value="maintenance">Maintenance ({vehicles.filter(v => v.status === 'maintenance').length})</option>
-                            </select>
-                        </div>
                     </div>
 
                     {/* Vehicle List */}
                     <div className="flex-1 overflow-y-auto p-4">
-                        {!loading && emptyStateMessage && (
-                            <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-700">
-                                {emptyStateMessage}
-                            </div>
-                        )}
                         {filteredVehicles.length === 0 ? (
                             <div className="text-center py-8">
                                 <p className="text-gray-500">No vehicles found</p>
-                                {!loading && emptyStateMessage && (
-                                    <p className="mt-1 text-sm text-gray-400">{emptyStateMessage}</p>
-                                )}
                             </div>
                         ) : (
                             <div className="space-y-3">
                                 {filteredVehicles.map((v) => (
                                     <div
                                         key={v._id}
-                                        className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 relative group ${
+                                        onClick={() => handleVehicleClick(v)}
+                                        className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 ${
                                             selectedVehicle?._id === v._id
                                                 ? "bg-blue-50 border-blue-400 shadow-md"
                                                 : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm"
                                         }`}
                                     >
-                                        {/* Open in New Tab Button */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                openVehicleInNewTab(v);
-                                            }}
-                                            className="absolute top-2 right-2 p-2 bg-white rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-50 z-10"
-                                            title="Open in new tab"
-                                        >
-                                            <ExternalLink className="w-4 h-4 text-blue-600" />
-                                        </button>
+                                        {/* Plate Number & Status */}
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h3 className="font-bold text-lg text-gray-800">
+                                                {v.plateNumber}
+                                            </h3>
+                                            <span
+                                                className="px-3 py-1 rounded-full text-xs font-semibold"
+                                                style={{
+                                                    backgroundColor: statusBgColors[v.status],
+                                                    color: statusColors[v.status],
+                                                }}
+                                            >
+                                                {v.status.toUpperCase()}
+                                            </span>
+                                        </div>
 
-                                        <div onClick={() => handleVehicleClick(v)}>
-                                            {/* Plate Number & Status */}
-                                            <div className="flex items-center justify-between mb-3">
-                                                <h3 className="font-bold text-lg text-gray-800">
-                                                    {v.plateNumber}
-                                                </h3>
-                                                <span
-                                                    className="px-3 py-1 rounded-full text-xs font-semibold"
-                                                    style={{
-                                                        backgroundColor: statusBgColors[v.status],
-                                                        color: statusColors[v.status],
-                                                    }}
-                                                >
-                                                    {v.status.toUpperCase()}
+                                        {/* Vehicle Details */}
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex items-center gap-2 text-gray-600">
+                                                <User className="w-4 h-4" />
+                                                <span>
+                                                    {v.driver ? v.driver.name : "No driver assigned"}
                                                 </span>
                                             </div>
-
-                                            {/* Vehicle Details */}
-                                            <div className="space-y-2 text-sm">
-                                                <div className="flex items-center gap-2 text-gray-600">
-                                                    <User className="w-4 h-4" />
-                                                    <span>
-                                                        {v.driver ? v.driver.name : "No driver assigned"}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-gray-600">
-                                                    <MapPin className="w-4 h-4" />
-                                                    <span className="truncate">{v.currentLocation?.address}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between text-gray-500 mt-2 pt-2 border-t border-gray-200">
-                                                    <span className="flex items-center gap-1">
-                                                        <Gauge className="w-4 h-4" />
-                                                        {v.speed} km/h
-                                                    </span>
-                                                    <span className="flex items-center gap-1">
-                                                        <Fuel className="w-4 h-4" />
-                                                        {v.fuelLevel}%
-                                                    </span>
-                                                </div>
+                                            <div className="flex items-center gap-2 text-gray-600">
+                                                <MapPin className="w-4 h-4" />
+                                                <span className="truncate">{v.currentLocation?.address || 'Location unavailable'}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-gray-500 mt-2 pt-2 border-t border-gray-200">
+                                                <span className="flex items-center gap-1">
+                                                    <Gauge className="w-4 h-4" />
+                                                    {v.speed} km/h
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <Fuel className="w-4 h-4" />
+                                                    {v.fuelLevel}%
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -1018,144 +467,57 @@ const ProfessionalTruckTracker: React.FC = () => {
             )}
 
             {/* Right Map */}
-            <div className="flex-1 relative">
-                <div className="w-full h-full relative">
-                    {!isLoaded && !loadError && (
-                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                            <div className="text-center">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                                <p className="text-gray-600">Loading Google Maps...</p>
-                            </div>
-                        </div>
-                    )}
-                    {loadError && (
-                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                            <div className="text-center text-gray-600 space-y-2">
-                                <div className="font-semibold text-red-500">Failed to load Google Maps</div>
-                                <p className="text-sm">Please check your network connection and try again.</p>
-                            </div>
-                        </div>
-                    )}
-                    {isLoaded && (
-                        <div id="truck-google-map" className="w-full h-full"></div>
-                    )}
-                </div>
-
-                {/* Status Legend */}
-                <div className="absolute top-4 left-4 bg-white p-3 rounded-lg shadow-lg text-xs">
-                    <div className="font-semibold mb-2">Vehicle Status Legend:</div>
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#22c55e'}}></div>
-                            <span>Moving ({vehicles.filter(v => v.status === 'moving').length})</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#f59e0b'}}></div>
-                            <span>Idle ({vehicles.filter(v => v.status === 'idle').length})</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#ef4444'}}></div>
-                            <span>Stopped ({vehicles.filter(v => v.status === 'stopped').length})</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#8b5cf6'}}></div>
-                            <span>Maintenance ({vehicles.filter(v => v.status === 'maintenance').length})</span>
+            <div className="flex-1 relative" style={{ height: '100vh', minHeight: '100vh' }}>
+                {!isLoaded && !loadError && (
+                    <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-10">
+                        <div className="text-center text-gray-600 space-y-2">
+                            <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+                            <p className="text-sm">Loading Google Maps...</p>
                         </div>
                     </div>
-                    <div className="mt-3 pt-2 border-t border-gray-200">
-                        <div className="text-xs text-gray-500">
-                            Filter: {filterStatus} | Selected: {selectedVehicle ? selectedVehicle.plateNumber : 'None'}
+                )}
+                {loadError && (
+                    <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-10">
+                        <div className="text-center text-gray-600 space-y-2">
+                            <div className="font-semibold text-red-500">Failed to load Google Maps</div>
+                            <p className="text-sm">Please check your network connection and try again.</p>
+                            <p className="text-xs text-gray-500 mt-2">Error: {loadError.message || 'Unknown error'}</p>
                         </div>
                     </div>
-                </div>
+                )}
+                {isLoaded && (
+                    <div 
+                        id="truck-google-map" 
+                        className="absolute inset-0 w-full h-full"
+                        style={{ 
+                            width: '100%', 
+                            height: '100%',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0
+                        }}
+                    ></div>
+                )}
 
-                {/* Debug Panel */}
-                <div className="absolute top-4 right-4 bg-white p-3 rounded-lg shadow-lg text-xs">
-                    <div className="font-semibold mb-2">Debug Info:</div>
-                    <div>Map Loaded: {mapLoaded ? '✅' : '❌'}</div>
-                    <div>Map Instance: {map ? '✅' : '❌'}</div>
-                    <div>Vehicles: {vehicles.length}</div>
-                    <div>Markers: {markers.length}</div>
-                    {vehicles.length > 0 && (
-                        <div className="mt-2">
-                            <div>First Vehicle:</div>
-                            <div className="text-xs text-gray-600">
-                                {vehicles[0].plateNumber} - {vehicles[0].status}
-                            </div>
-                            <div className="text-xs text-gray-600">
-                                Lat: {vehicles[0].currentLocation?.latitude}
-                            </div>
-                            <div className="text-xs text-gray-600">
-                                Lng: {vehicles[0].currentLocation?.longitude}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Map Controls */}
-                <div className="absolute top-4 left-80 flex flex-col gap-2">
-                    <button
-                        onClick={() => setShowRoutes(!showRoutes)}
-                        className={`p-3 rounded-lg shadow-lg transition-colors ${
-                            showRoutes 
-                                ? 'bg-blue-600 text-white' 
-                                : 'bg-white text-gray-600 hover:bg-gray-50'
-                        }`}
-                        title={showRoutes ? 'Hide Routes' : 'Show Routes'}
-                    >
-                        <Route className="w-5 h-5" />
-                    </button>
-                    
-                    {selectedVehicle && (
-                        <button
-                            onClick={() => {
-                                if (map && selectedVehicle) {
-                                    const lat = Number(selectedVehicle.currentLocation.latitude);
-                                    const lng = Number(selectedVehicle.currentLocation.longitude);
-                                    map.setCenter({ lat, lng });
-                                    map.setZoom(15);
-                                }
-                            }}
-                            className="p-3 bg-white text-gray-600 rounded-lg shadow-lg hover:bg-gray-50 transition-colors"
-                            title="Center on Selected Vehicle"
-                        >
-                            <Navigation className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
-
-                {/* Advanced Info Panel */}
+                {/* Selected Vehicle Info Panel */}
                 {selectedVehicle && (
-                    <div className="absolute top-6 right-6 bg-white rounded-2xl shadow-2xl w-96 overflow-hidden border border-gray-200">
-                        {/* Header */}
-                        <div
-                            className="p-4 text-white"
-                            style={{
-                                background: `linear-gradient(135deg, ${statusColors[selectedVehicle.status]}, ${statusColors[selectedVehicle.status]}dd)`,
-                            }}
-                        >
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-xl font-bold">{selectedVehicle.plateNumber}</h3>
-                                <button
-                                    onClick={() => setSelectedVehicle(null)}
-                                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                                    title="Close"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
-                            <p className="text-sm opacity-90">
-                                {selectedVehicle.make} {selectedVehicle.model} ({selectedVehicle.year})
-                            </p>
+                    <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm z-10">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-lg font-bold text-gray-800">{selectedVehicle.plateNumber}</h3>
+                            <button
+                                onClick={() => setSelectedVehicle(null)}
+                                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
                         </div>
-
-                        {/* Content */}
-                        <div className="p-5 space-y-4 max-h-96 overflow-y-auto">
-                            {/* Status Row */}
-                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <span className="text-gray-600 font-medium">Status</span>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex items-center justify-between">
+                                <span className="text-gray-600">Status</span>
                                 <span
-                                    className="px-3 py-1 rounded-full text-xs font-bold"
+                                    className="px-2 py-1 rounded-full text-xs font-semibold"
                                     style={{
                                         backgroundColor: statusBgColors[selectedVehicle.status],
                                         color: statusColors[selectedVehicle.status],
@@ -1164,164 +526,51 @@ const ProfessionalTruckTracker: React.FC = () => {
                                     {selectedVehicle.status.toUpperCase()}
                                 </span>
                             </div>
-
-                            {/* Metrics Grid */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="p-3 bg-blue-50 rounded-lg">
-                                    <div className="flex items-center gap-2 text-blue-600 mb-1">
-                                        <Gauge className="w-4 h-4" />
-                                        <span className="text-xs font-medium">Speed</span>
-                                    </div>
-                                    <p className="text-xl font-bold text-gray-800">
-                                        {selectedVehicle.speed} <span className="text-sm">km/h</span>
-                                    </p>
-                                </div>
-
-                                <div className="p-3 bg-green-50 rounded-lg">
-                                    <div className="flex items-center gap-2 text-green-600 mb-1">
-                                        <Fuel className="w-4 h-4" />
-                                        <span className="text-xs font-medium">Fuel</span>
-                                    </div>
-                                    <p className="text-xl font-bold text-gray-800">
-                                        {selectedVehicle.fuelLevel} <span className="text-sm">%</span>
-                                    </p>
-                                </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-gray-600">Speed</span>
+                                <span className="font-medium">{selectedVehicle.speed} km/h</span>
                             </div>
-
-                            {/* Expandable Sections */}
-                            <div className="space-y-2">
-                                {/* Driver Information */}
-                                {selectedVehicle.driver && (
-                                    <div className="border border-gray-200 rounded-lg">
-                                        <button
-                                            onClick={() => toggleSection('driver')}
-                                            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                                        >
-                                            <span className="font-medium text-gray-700">Driver Information</span>
-                                            {expandedSections.driver ? (
-                                                <ChevronDown className="w-4 h-4" />
-                                            ) : (
-                                                <ChevronRight className="w-4 h-4" />
-                                            )}
-                                        </button>
-                                        {expandedSections.driver && (
-                                            <div className="px-3 pb-3 space-y-2">
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600">Name</span>
-                                                    <span className="font-medium">{selectedVehicle.driver.name}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600">Phone</span>
-                                                    <span className="font-medium">{selectedVehicle.driver.phone}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600">License</span>
-                                                    <span className="font-medium">{selectedVehicle.driver.licenseNumber}</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Vehicle Details */}
-                                <div className="border border-gray-200 rounded-lg">
-                                    <button
-                                        onClick={() => toggleSection('vehicle')}
-                                        className="w-full p-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                                    >
-                                        <span className="font-medium text-gray-700">Vehicle Details</span>
-                                        {expandedSections.vehicle ? (
-                                            <ChevronDown className="w-4 h-4" />
-                                        ) : (
-                                            <ChevronRight className="w-4 h-4" />
-                                        )}
-                                    </button>
-                                    {expandedSections.vehicle && (
-                                        <div className="px-3 pb-3 space-y-2">
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">VIN</span>
-                                                <span className="font-medium text-xs">{selectedVehicle.vinNumber}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Internal ID</span>
-                                                <span className="font-medium">{selectedVehicle.internalId}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Odometer</span>
-                                                <span className="font-medium">{selectedVehicle.odometer.toLocaleString()} km</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Engine</span>
-                                                <span className={`font-medium ${selectedVehicle.engineOn ? 'text-green-600' : 'text-red-600'}`}>
-                                                    {selectedVehicle.engineOn ? 'On' : 'Off'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Maintenance */}
-                                <div className="border border-gray-200 rounded-lg">
-                                    <button
-                                        onClick={() => toggleSection('maintenance')}
-                                        className="w-full p-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                                    >
-                                        <span className="font-medium text-gray-700">Maintenance</span>
-                                        {expandedSections.maintenance ? (
-                                            <ChevronDown className="w-4 h-4" />
-                                        ) : (
-                                            <ChevronRight className="w-4 h-4" />
-                                        )}
-                                    </button>
-                                    {expandedSections.maintenance && (
-                                        <div className="px-3 pb-3 space-y-2">
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Tyre Condition</span>
-                                                <span className={`font-medium ${
-                                                    selectedVehicle.maintenance.tyreCondition === 'good' ? 'text-green-600' :
-                                                    selectedVehicle.maintenance.tyreCondition === 'fair' ? 'text-yellow-600' : 'text-red-600'
-                                                }`}>
-                                                    {selectedVehicle.maintenance.tyreCondition}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Brake Condition</span>
-                                                <span className={`font-medium ${
-                                                    selectedVehicle.maintenance.brakeCondition === 'good' ? 'text-green-600' :
-                                                    selectedVehicle.maintenance.brakeCondition === 'fair' ? 'text-yellow-600' : 'text-red-600'
-                                                }`}>
-                                                    {selectedVehicle.maintenance.brakeCondition}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Engine Health</span>
-                                                <span className={`font-medium ${
-                                                    selectedVehicle.maintenance.engineHealth === 'good' ? 'text-green-600' :
-                                                    selectedVehicle.maintenance.engineHealth === 'fair' ? 'text-yellow-600' : 'text-red-600'
-                                                }`}>
-                                                    {selectedVehicle.maintenance.engineHealth}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-gray-600">Fuel</span>
+                                <span className="font-medium">{selectedVehicle.fuelLevel}%</span>
                             </div>
-
-                            {/* Location */}
-                            <div className="py-2">
-                                <div className="flex items-start gap-2">
-                                    <MapPin className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
-                                    <div>
-                                        <p className="text-xs text-gray-500 mb-1">Current Location</p>
-                                        <p className="text-sm text-gray-800">
-                                            {selectedVehicle.currentLocation?.address}
-                                        </p>
-                                    </div>
+                            {selectedVehicle.driver && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-gray-600">Driver</span>
+                                    <span className="font-medium">{selectedVehicle.driver.name}</span>
                                 </div>
+                            )}
+                            <div className="pt-2 border-t border-gray-200">
+                                <p className="text-xs text-gray-500 truncate">
+                                    {selectedVehicle.currentLocation?.address || 'Location unavailable'}
+                                </p>
                             </div>
                         </div>
                     </div>
                 )}
+
+                {/* Status Legend */}
+                <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg text-xs z-10">
+                    <div className="font-semibold mb-2">Vehicle Status:</div>
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#10b981'}}></div>
+                            <span>Moving</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#f59e0b'}}></div>
+                            <span>Idle</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#ef4444'}}></div>
+                            <span>Stopped</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#6b7280'}}></div>
+                            <span>Maintenance</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
