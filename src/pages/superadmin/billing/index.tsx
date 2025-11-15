@@ -626,7 +626,7 @@ const Billing = () => {
                     <div className="space-y-3 mb-4">
                       {plan.monthly.fullApp.enabled && (
                         <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-100">
-                          <div className="text-xs text-gray-600 mb-1">Full App</div>
+                          <div className="text-xs text-gray-600 mb-1">Monthly Price</div>
                           <div className="text-2xl font-bold text-gray-900">
                             {formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency)}<span className="text-sm font-normal text-gray-600">/mo</span>
                           </div>
@@ -724,7 +724,7 @@ const Billing = () => {
                         )}
                         {plan.planType === 'monthly' && plan.monthly?.fullApp && (
                           <div>
-                            <span className="text-gray-600">Full App: </span>
+                            <span className="text-gray-600">Monthly Price: </span>
                             <span className="font-semibold text-gray-900">
                               {formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency)}/mo
                             </span>
@@ -917,44 +917,26 @@ const Billing = () => {
             <div className="space-y-4 border p-4 rounded-lg">
               <h4 className="font-medium text-gray-900 mb-3">Monthly Pricing</h4>
               
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">Full App</label>
-                  <Switch
-                    checked={formData.monthly.fullApp.enabled}
-                    onChange={(checked) => setFormData({
-                      ...formData,
-                      monthly: {
-                        ...formData.monthly,
-                        fullApp: {
-                          ...formData.monthly.fullApp,
-                          enabled: checked
-                        }
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Price (CAD) *</label>
+                <Input
+                  type="number"
+                  value={formData.monthly.fullApp.price}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    monthly: {
+                      ...formData.monthly,
+                      fullApp: {
+                        ...formData.monthly.fullApp,
+                        price: parseFloat(e.target.value) || 0,
+                        enabled: true
                       }
-                    })}
-                  />
-                </div>
-                {formData.monthly.fullApp.enabled && (
-                  <Input
-                    type="number"
-                    value={formData.monthly.fullApp.price}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      monthly: {
-                        ...formData.monthly,
-                        fullApp: {
-                          ...formData.monthly.fullApp,
-                          price: parseFloat(e.target.value) || 0
-                        }
-                      }
-                    })}
-                    placeholder="699"
-                    addonAfter="CAD/month"
-                  />
-                )}
+                    }
+                  })}
+                  placeholder="699"
+                  addonAfter="CAD/month"
+                />
               </div>
-
-          
             </div>
           )}
 
@@ -1154,44 +1136,26 @@ const Billing = () => {
             <div className="space-y-4 border p-4 rounded-lg">
               <h4 className="font-medium text-gray-900 mb-3">Monthly Pricing</h4>
               
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">Full App</label>
-                  <Switch
-                    checked={formData.monthly.fullApp.enabled}
-                    onChange={(checked) => setFormData({
-                      ...formData,
-                      monthly: {
-                        ...formData.monthly,
-                        fullApp: {
-                          ...formData.monthly.fullApp,
-                          enabled: checked
-                        }
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Price (CAD) *</label>
+                <Input
+                  type="number"
+                  value={formData.monthly.fullApp.price}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    monthly: {
+                      ...formData.monthly,
+                      fullApp: {
+                        ...formData.monthly.fullApp,
+                        price: parseFloat(e.target.value) || 0,
+                        enabled: true
                       }
-                    })}
-                  />
-                </div>
-                {formData.monthly.fullApp.enabled && (
-                  <Input
-                    type="number"
-                    value={formData.monthly.fullApp.price}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      monthly: {
-                        ...formData.monthly,
-                        fullApp: {
-                          ...formData.monthly.fullApp,
-                          price: parseFloat(e.target.value) || 0
-                        }
-                      }
-                    })}
-                    placeholder="699"
-                    addonAfter="CAD/month"
-                  />
-                )}
+                    }
+                  })}
+                  placeholder="699"
+                  addonAfter="CAD/month"
+                />
               </div>
-
-          
             </div>
           )}
 
@@ -1360,7 +1324,7 @@ const Billing = () => {
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-5 rounded-xl border-2 border-green-200">
                       <div className="flex items-center justify-between">
                     <div>
-                          <p className="text-sm text-gray-600 mb-1">Full Application Access</p>
+                          <p className="text-sm text-gray-600 mb-1">Monthly Pricing</p>
                           <p className="text-3xl font-bold text-gray-900">
                             {formatPrice(selectedPlan.monthly.fullApp.price, selectedPlan.monthly.fullApp.currency)}
                             <span className="text-lg font-normal text-gray-600">/month</span>
@@ -1498,7 +1462,7 @@ const Billing = () => {
                     })}
                   </tr>
                   <tr className="border-b border-gray-100">
-                    <td className="p-3 font-medium text-gray-700">Monthly Price (Full App)</td>
+                    <td className="p-3 font-medium text-gray-700">Monthly Price</td>
                     {selectedPlans.map(planId => {
                       const plan = plans.find(p => p._id === planId);
                       return plan ? (

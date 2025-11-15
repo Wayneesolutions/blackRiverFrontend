@@ -1,9 +1,9 @@
-import  { useState } from 'react';
+import  { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import type { FC } from "react";
 import { useDrivers } from '../../../../../customHooks/useDrivers';
 import { useVehicles } from '../../../../../customHooks/useVehicles';
-import { createFuelReport } from '../../../../../axios/api/dispatcher.places';
+import { createFuelReport, getReporters } from '../../../../../axios/api/dispatcher.places';
 
 interface NewFuelReportSidebarProps {
     isOpen: boolean;
@@ -25,10 +25,36 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
 
     const [openDetails, setOpenDetails] = useState(true);
     const [loadingSubmit, setLoadingSubmit] = useState(false);
+    const [reporters, setReporters] = useState<any[]>([]);
+    const [loadingReporters, setLoadingReporters] = useState(false);
 
     // Fetch drivers and vehicles
     const { drivers, loading: loadingDrivers } = useDrivers();
     const { vehicles, loading: loadingVehicles } = useVehicles();
+
+    // Fetch reporters from backend
+    useEffect(() => {
+        const fetchReporters = async () => {
+            setLoadingReporters(true);
+            try {
+                const response = await getReporters();
+                if (response.success && response.data) {
+                    setReporters(response.data);
+                } else {
+                    setReporters([]);
+                }
+            } catch (error) {
+                console.error('Error fetching reporters:', error);
+                setReporters([]);
+            } finally {
+                setLoadingReporters(false);
+            }
+        };
+
+        if (isOpen) {
+            fetchReporters();
+        }
+    }, [isOpen]);
 
     const handleInputChange = (e: any) => {
         const { name, value } = e.target;
@@ -105,9 +131,15 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose }
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Select Reporter</option>
-                                            <option value="raman">Raman's Beauty Lounge</option>
-                                            <option value="alice">Alice Johnson</option>
-                                            <option value="bob">Bob Smith</option>
+                                            {loadingReporters ? (
+                                                <option>Loading reporters...</option>
+                                            ) : (
+                                                reporters.map((reporter) => (
+                                                    <option key={reporter._id} value={reporter._id}>
+                                                        {reporter.name} {reporter.role ? `(${reporter.role})` : ''}
+                                                    </option>
+                                                ))
+                                            )}
                                         </select>
                                     </div>
 

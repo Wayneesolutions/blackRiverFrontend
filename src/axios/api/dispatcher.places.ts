@@ -19,6 +19,15 @@ export const createFuelReport = async (data) =>{
   }
 }
 
+export const getReporters = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/fuel-report/reporters`);
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
 export const createPlace = async (data) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/place`,data);

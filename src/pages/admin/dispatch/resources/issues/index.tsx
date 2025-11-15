@@ -62,8 +62,6 @@ const Issues: React.FC = () => {
     total: 0,
     limit: 10
   });
-  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
-
   // Fetch issues
   const fetchIssues = async (page: number = 1) => {
     setLoading(true);
@@ -72,17 +70,7 @@ const Issues: React.FC = () => {
       console.log('Issues API Response:', response);
       
       if (response.success) {
-        const message = (response as any)?.message;
         const data = response.issues || [];
-
-        if (message && data.length === 0) {
-          setEmptyStateMessage(message);
-          setIssues([]);
-          setPagination({ current: 1, pages: 0, total: 0, limit: 10 });
-          return;
-        }
-
-        setEmptyStateMessage(null);
         setIssues(data);
         setPagination({
           current: response.page || 1,
@@ -92,9 +80,13 @@ const Issues: React.FC = () => {
         });
       } else {
         console.error('API returned success: false', response);
+        setIssues([]);
+        setPagination({ current: 1, pages: 0, total: 0, limit: 10 });
       }
     } catch (error) {
       console.error('Error fetching issues:', error);
+      setIssues([]);
+      setPagination({ current: 1, pages: 0, total: 0, limit: 10 });
     } finally {
       setLoading(false);
     }
@@ -113,17 +105,7 @@ const Issues: React.FC = () => {
       console.log('Search API Response:', response);
       
       if (response.success) {
-        const message = (response as any)?.message;
         const data = response.issues || [];
-
-        if (message && data.length === 0) {
-          setEmptyStateMessage(message);
-          setIssues([]);
-          setPagination({ current: 1, pages: 0, total: 0, limit: 10 });
-          return;
-        }
-
-        setEmptyStateMessage(null);
         setIssues(data);
         setPagination({
           current: 1,
@@ -133,9 +115,13 @@ const Issues: React.FC = () => {
         });
       } else {
         console.error('Search API returned success: false', response);
+        setIssues([]);
+        setPagination({ current: 1, pages: 0, total: 0, limit: 10 });
       }
     } catch (error) {
       console.error('Error searching issues:', error);
+      setIssues([]);
+      setPagination({ current: 1, pages: 0, total: 0, limit: 10 });
     } finally {
       setLoading(false);
     }
@@ -202,18 +188,6 @@ const Issues: React.FC = () => {
   useEffect(() => {
     fetchIssues();
   }, []);
-
-  if (!loading && emptyStateMessage) {
-    return (
-      <div className="p-6 h-full flex flex-col items-center justify-center text-center space-y-4">
-        <MdInfo className="text-4xl text-gray-400" />
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-xl font-semibold text-gray-800">No issues to display</h2>
-          <p className="text-gray-500">{emptyStateMessage}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6">

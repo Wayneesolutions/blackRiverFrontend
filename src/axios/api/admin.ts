@@ -247,3 +247,21 @@ export const deleteTicket = async (id: string) => {
     return (error as Error).response?.data;
   }
 };
+
+// Shift API Functions
+export const getShifts = async (params?: { driverId?: string; startDate?: string; endDate?: string }) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.driverId) queryParams.append('driverId', params.driverId);
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    
+    const queryString = queryParams.toString();
+    const url = `admin/shift${queryString ? `?${queryString}` : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};

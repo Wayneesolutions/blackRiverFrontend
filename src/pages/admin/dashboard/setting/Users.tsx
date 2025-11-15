@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, X, Users as UsersIcon, Filter, Search, Truck, Mail, CreditCard, FileText, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, X, Users as UsersIcon, Filter, Search, Truck, Mail, CreditCard, FileText, AlertCircle } from 'lucide-react';
 import { Select, Tag, message, notification } from "antd";
 import { 
   getAllEmployees, 
@@ -165,6 +165,7 @@ const Users = () => {
   const [showDriverPanel, setShowDriverPanel] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   const [toastError, setToastError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const roleOptions: Role[] = ['driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', 'Maintenance Crew (Mechanics)', 'Fleet Maintenance Manager', 'Compliance Manager'];
 
@@ -801,6 +802,7 @@ const Users = () => {
     setSelectedUser(null);
     setShowDriverPanel(false);
     setActiveTab('basic');
+    setShowPassword(false);
   };
 
   const handleEdit = (user: User) => {
@@ -1255,15 +1257,25 @@ const Users = () => {
                     {!isEditing && (
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Password <span className="text-gray-500 text-xs">(optional - default will be set if not provided)</span></label>
-                        <input
-                          type="password"
-                          name="password"
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder="Enter password (min 6 characters)"
-                          minLength={6}
-                        />
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            placeholder="Enter password (min 6 characters)"
+                            minLength={6}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            tabIndex={-1}
+                          >
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
                       </div>
                     )}
 
