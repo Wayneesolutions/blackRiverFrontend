@@ -10,6 +10,7 @@ import {
   createTrailer,
   updateTrailer,
 } from '../../../../../axios/api/distapcher';
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 
 interface Trailer {
     _id: string;
@@ -60,6 +61,48 @@ interface TrailerStats {
   idle: number;
 }
 
+type NotificationType = 'success' | 'error';
+
+interface ToastNotification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
+
 const TrailersTable = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [sidebarMode, setSidebarMode] = useState<'create' | 'edit'>('create');
@@ -72,6 +115,7 @@ const TrailersTable = () => {
     const [deleteTarget, setDeleteTarget] = useState<Trailer | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const trailersRef = useRef<Trailer[]>([]);
+    const [notifications, setNotifications] = useState<ToastNotification[]>([]);
 
     const computeStats = useCallback((data: Trailer[]): TrailerStats => ({
         total: data.length,
@@ -153,16 +197,17 @@ const TrailersTable = () => {
           setTrailers(prev => prev.filter(trailer => trailer._id !== deleteTarget._id));
           closeDeleteModal();
           fetchStats();
+          setNotifications(prev => [...prev, { id: Date.now(), type: 'success', message: response?.message || 'Trailer deleted successfully' }]);
         } else {
-          message.error(response?.message || 'Failed to delete trailer');
+          setNotifications(prev => [...prev, { id: Date.now(), type: 'error', message: response?.message || 'Failed to delete trailer' }]);
         }
       } catch (error: any) {
         console.error('Error deleting trailer:', error);
-        message.error(error?.message || 'Error deleting trailer');
+        setNotifications(prev => [...prev, { id: Date.now(), type: 'error', message: error?.message || 'Error deleting trailer' }]);
       } finally {
         setDeleteLoading(false);
       }
-    }, [deleteTarget, closeDeleteModal]);
+    }, [deleteTarget, closeDeleteModal, fetchStats, setNotifications]);
 
 
     // Handle sidebar close
@@ -193,10 +238,10 @@ const TrailersTable = () => {
               : await createTrailer(payload);
 
           if (response?.success) {
-            message.success(
+            setNotifications(prev => [...prev, { id: Date.now(), type: 'success', message:
               response?.message ||
                 (sidebarMode === 'edit' ? 'Trailer updated successfully' : 'Trailer created successfully')
-            );
+            }]);
 
             if (sidebarMode === 'edit' && trailerId) {
               setTrailers(prev => prev.map(trailer => (trailer._id === trailerId ? { ...trailer, ...response.data } : trailer)));
@@ -218,14 +263,14 @@ const TrailersTable = () => {
             return true;
           }
 
-          message.error(response?.message || 'Failed to save trailer');
+          setNotifications(prev => [...prev, { id: Date.now(), type: 'error', message: response?.message || 'Failed to save trailer' }]);
           return false;
         } catch (error: any) {
-          message.error(error?.message || 'Failed to save trailer');
+          setNotifications(prev => [...prev, { id: Date.now(), type: 'error', message: error?.message || 'Failed to save trailer' }]);
           return false;
         }
       },
-      [sidebarMode, fetchTrailers, fetchStats]
+      [sidebarMode, fetchTrailers, fetchStats, setNotifications]
     );
 
     const sidebarInitialData = useMemo(() => {
@@ -321,9 +366,7 @@ const TrailersTable = () => {
                             </div>
                         </div>
                         <div className="flex items-center space-x-3">
-                            <button className="p-2 text-gray-400 hover:text-gray-600">
-                                <Filter className="w-5 h-5" />
-                            </button>
+                         
                             <button
                                 onClick={handleOpenCreateSidebar}
                                 className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
@@ -505,7 +548,7 @@ const TrailersTable = () => {
             />
 
             {deleteModalOpen && (
-              <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 px-4">
+              <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/40 px-4">
                 <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
                   <div className="flex items-center gap-3 px-6 py-4 bg-red-50 border-b border-red-100">
                     <div className="p-2 bg-red-100 rounded-full">
@@ -541,7 +584,7 @@ const TrailersTable = () => {
                     <button
                       onClick={handleConfirmDelete}
                       disabled={deleteLoading}
-                      className="px-5 py-2.5 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="px-5 py-2.5 bg-red-600 !text-white font-semibold rounded-md hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       {deleteLoading ? 'Deleting...' : 'Delete'}
                     </button>
@@ -549,6 +592,33 @@ const TrailersTable = () => {
                 </div>
               </div>
             )}
+
+            {/* Toast Notifications Container - High z-index */}
+            <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-3 max-w-md">
+              {notifications.map(notification => (
+                <ToastNotification
+                  key={notification.id}
+                  notification={notification}
+                  onClose={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
+                />
+              ))}
+            </div>
+
+            <style>{`
+              @keyframes slide-in {
+                from {
+                  transform: translateX(100%);
+                  opacity: 0;
+                }
+                to {
+                  transform: translateX(0);
+                  opacity: 1;
+                }
+              }
+              .animate-slide-in {
+                animation: slide-in 0.3s ease-out;
+              }
+            `}</style>
         </div>
     );
 };

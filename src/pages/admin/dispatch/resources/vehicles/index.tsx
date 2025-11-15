@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Filter, Trash2, Search, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
-import { message } from 'antd';
+import { Plus, Filter, Trash2, Search, Pencil } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes, } from 'react-icons/fa';
 import NewVehicleSidebar from './NewVehicleSidebar';
 import { listVehicle, deleteVehicle, updateVehicle, createVehicle } from '../../../../../axios/api/distapcher';
 
@@ -16,6 +17,50 @@ export interface Vehicle {
   currentLocation?: { address?: string };
   vehicleImage?: Array<{ imageUrl: string }>;
 }
+
+type NotificationType = 'success' | 'error' | 'warning';
+
+interface ToastNotification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    warning: <FaInfoCircle className="text-yellow-500" size={24} />,
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    warning: 'bg-yellow-50 border-yellow-200',
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const VehiclesTable = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -40,6 +85,16 @@ const VehiclesTable = () => {
       return null;
     }
   });
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+
+  const addNotification = useCallback((type: NotificationType, message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  }, []);
+
+  const removeNotification = useCallback((id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
 
   const fetchVehicles = useCallback(async (page: number, limit: number, search: string) => {
     setLoading(true);
@@ -144,12 +199,13 @@ const canCreateVehicle = userInfo?.role === 'superadmin' || Boolean(userInfo?.co
 
 const handleOpenCreateSidebar = useCallback(() => {
   if (!canCreateVehicle) {
-    message.warning('Assign a company to this account or use a superadmin role to create vehicles.');
+    addNotification('warning', 'Assign a company to this account or use a superadmin role to create vehicles.');
+    return;
   }
   setSidebarMode('create');
   setEditingVehicle(null);
   setIsSidebarOpen(true);
-}, [canCreateVehicle]);
+}, [canCreateVehicle, addNotification]);
 
 const handleEditVehicle = useCallback((vehicle: Vehicle) => {
   setSidebarMode('edit');
@@ -166,7 +222,7 @@ const handleSidebarSubmit = useCallback(
           : await createVehicle(vehiclePayload);
 
       if (response?.success) {
-        message.success(
+        addNotification('success',
           response?.message ||
             (sidebarMode === 'edit'
               ? 'Vehicle updated successfully'
@@ -177,18 +233,18 @@ const handleSidebarSubmit = useCallback(
         setSidebarMode('create');
         fetchVehicles(currentPage, pageSize, searchQuery);
       } else {
-        message.error(response?.message || 'Failed to save vehicle');
+        addNotification('error', response?.message || 'Failed to save vehicle');
       }
     } catch (error: any) {
       const rawMessage = error?.response?.data?.message || error?.message;
       if (rawMessage?.toLowerCase()?.includes('permission')) {
-        message.error('You do not have permission to update this vehicle. Please contact an administrator.');
+        addNotification('error', 'You do not have permission to update this vehicle. Please contact an administrator.');
       } else {
-        message.error(rawMessage || 'Failed to save vehicle');
+        addNotification('error', rawMessage || 'Failed to save vehicle');
       }
     }
   },
-  [fetchVehicles, sidebarMode]
+  [fetchVehicles, sidebarMode, addNotification]
 );
 
 const openDeleteModal = useCallback((vehicle: Vehicle) => {
@@ -208,19 +264,18 @@ const handleConfirmDelete = useCallback(async () => {
   try {
     const res = await deleteVehicle(deleteTarget._id);
     if (res?.success) {
-        message.success(res?.message || 'Vehicle deleted successfully');
-        // Refresh the current page after deletion
-        fetchVehicles(currentPage, pageSize, searchQuery);
-        closeDeleteModal();
+      addNotification('success', res?.message || 'Vehicle deleted successfully');
+      setVehicles(prev => prev.filter(vehicle => vehicle._id !== deleteTarget._id));
+      closeDeleteModal();
     } else {
-      message.error(res?.message || 'Failed to delete vehicle');
+      addNotification('error', res?.message || 'Failed to delete vehicle');
     }
   } catch (error: any) {
-    message.error(error?.message || 'Failed to delete vehicle');
+    addNotification('error', error?.message || 'Failed to delete vehicle');
   } finally {
     setDeleteLoading(false);
   }
-}, [deleteTarget, closeDeleteModal]);
+}, [deleteTarget, closeDeleteModal, addNotification]);
 
 const handleSidebarClose = useCallback(() => {
   setIsSidebarOpen(false);
@@ -253,6 +308,17 @@ if (loading) {
 
 return (
   <div className="min-h-screen bg-gray-50">
+    {/* Toast Notifications Container - High z-index */}
+    <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-3 max-w-md">
+      {notifications.map(notification => (
+        <ToastNotification
+          key={notification.id}
+          notification={notification}
+          onClose={removeNotification}
+        />
+      ))}
+    </div>
+
     <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
       <div className="flex items-center space-x-4">
         <h1 className="text-2xl font-semibold text-gray-900">Vehicles</h1>
@@ -268,13 +334,11 @@ return (
         </div>
       </div>
       <div className="flex items-center space-x-3">
-        <button className="p-2 text-gray-400 hover:text-gray-600">
-          <Filter className="w-5 h-5" />
-        </button>
+        
         <button
           onClick={handleOpenCreateSidebar}
           className={`px-4 py-2 rounded-md flex items-center space-x-2 transition-colors ${
-            canCreateVehicle ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+            canCreateVehicle ? 'bg-blue-600 !text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
           }`}
         >
           <Plus className="w-4 h-4" />
@@ -457,7 +521,7 @@ return (
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 px-4">
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="flex items-center gap-3 px-6 py-4 bg-red-50 border-b border-red-100">
               <div className="p-2 bg-red-100 rounded-full">
@@ -491,7 +555,7 @@ return (
               <button
                 onClick={handleConfirmDelete}
                 disabled={deleteLoading}
-                className="px-5 py-2.5 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 bg-red-600 !text-white font-semibold rounded-md hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {deleteLoading ? 'Deleting...' : 'Delete'}
               </button>

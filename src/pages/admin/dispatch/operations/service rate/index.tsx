@@ -314,12 +314,7 @@ const ServicePage = () => {
             Service Rate
           </h2>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setFiltersOpen(true)}
-              className="bg-white hover:bg-gray-100 text-gray-700 font-medium px-5 py-2 rounded-lg shadow border border-gray-300 transition-all duration-200 backdrop-blur-sm"
-            >
-              Filters
-            </button>
+        
             <button
               onClick={() => setSidebarOpen(true)}
               className="bg-blue-500 hover:bg-blue-600 !text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm border border-blue-400"
@@ -380,13 +375,13 @@ const ServicePage = () => {
                     </td>
                     <td className="px-6 py-4 flex gap-2">
                       <button
-                        className=" text-white px-3 py-1 rounded bg-blue-500 hover:bg-blue-600"
+                        className=" !text-white px-3 py-1 rounded bg-blue-500 hover:bg-blue-600"
                         onClick={() => openUpdateModal(service)}
                       >
                         Update
                       </button>
                       <button
-                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                        className="bg-red-500 !text-white px-3 py-1 rounded hover:bg-red-600"
                         onClick={() => openDeleteModal(service)}
                       >
                         Delete
@@ -416,38 +411,6 @@ const ServicePage = () => {
         />
       )}
 
-      {/* Filters Sidebar */}
-      <div
-        className={`fixed top-0 right-0 h-full max-w-md w-full bg-white bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${
-          filtersOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="p-6">
-          <h3 className="text-lg font-bold mb-4">Filters</h3>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Status</label>
-            <select className="w-full mt-1 border rounded-lg p-2">
-              <option>All</option>
-              <option>In Transit</option>
-              <option>Delivered</option>
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Customer</label>
-            <input
-              type="text"
-              className="w-full mt-1 border rounded-lg p-2"
-              placeholder="Enter customer"
-            />
-          </div>
-          <button
-            className=" text-white px-4 py-2 rounded-lg shadow bg-blue-500 hover:bg-blue-600"
-            onClick={() => setFiltersOpen(false)}
-          >
-            Apply
-          </button>
-        </div>
-      </div>
 
       {/* Update Modal */}
       {updateModalOpen && (
@@ -704,7 +667,7 @@ const ServicePage = () => {
               <button
                 onClick={handleUpdate}
                 disabled={updateSubmitting}
-                className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 focus:bg-blue-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 focus:bg-blue-700 !text-white font-medium rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {updateSubmitting ? "Updating..." : "Update Service"}
               </button>
@@ -753,7 +716,7 @@ const ServicePage = () => {
               <button
                 onClick={handleDelete}
                 disabled={deleteSubmitting}
-                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 !text-white font-semibold rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {deleteSubmitting ? "Deleting..." : "Delete"}
               </button>

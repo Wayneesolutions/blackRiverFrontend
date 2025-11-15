@@ -316,9 +316,14 @@ const EmployeesPage = () => {
   // Available roles
   const roles = [
     'driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter',
-    'Maintenance Crew (Mechanics)', 'Fleet Maintenance Manager', 'Compliance Manager'
+    'Fleet Maintenance Manager', 'Safety Manager', 'Maintenance Crew (Mechanics)'
   ];
 
+  // Roles that require login access (ID, username, password)
+  const rolesWithLoginAccess = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Safety Manager'];
+  
+  // Roles without login access (only basic information)
+  const rolesWithoutLoginAccess = ['contact', 'customer', 'reporter', 'Maintenance Crew (Mechanics)'];
 
   // Fetch employees data
   useEffect(() => {
@@ -720,20 +725,26 @@ const EmployeesPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this employee?')) {
-      try {
-        const response = await deleteEmployee(id);
-        if (response.success) {
-          addNotification('success', response.message || 'Employee deleted successfully');
-          fetchEmployees();
-        } else {
-          const errorMessage = response?.message || response?.error?.message || 'Failed to delete employee';
-          addNotification('error', errorMessage);
-        }
-      } catch (error: any) {
-        console.error('Error deleting employee:', error);
-        addNotification('error', error?.message || 'An unexpected error occurred while deleting employee');
+    setDeleteConfirm({ show: true, employeeId: id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.employeeId) return;
+    
+    try {
+      const response = await deleteEmployee(deleteConfirm.employeeId);
+      if (response.success) {
+        addNotification('success', response.message || 'Employee deleted successfully');
+        fetchEmployees();
+      } else {
+        const errorMessage = response?.message || response?.error?.message || 'Failed to delete employee';
+        addNotification('error', errorMessage);
       }
+    } catch (error: any) {
+      console.error('Error deleting employee:', error);
+      addNotification('error', error?.message || 'An unexpected error occurred while deleting employee');
+    } finally {
+      setDeleteConfirm({ show: false, employeeId: null });
     }
   };
 
@@ -1633,8 +1644,8 @@ const EmployeesPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      {/* Notifications Container */}
-      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-3 max-w-md">
+      {/* Notifications Container - Updated z-index to be above sidebar */}
+      <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-3 max-w-md">
         {notifications.map(notification => (
           <Notification
             key={notification.id}
@@ -1888,7 +1899,7 @@ const EmployeesPage = () => {
       )}
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-[10001] p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
             <div className="bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -1951,16 +1962,20 @@ const EmployeesPage = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Internal ID <span className="text-red-500">*</span>
+                      Internal ID {rolesWithLoginAccess.includes(formData.role) && <span className="text-red-500">*</span>}
                     </label>
                     <input
                       type="text"
                       name="internalId"
                       value={formData.internalId}
                       onChange={handleInputChange}
+                      required={rolesWithLoginAccess.includes(formData.role)}
                       placeholder="EMP-001"
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
+                    {!rolesWithLoginAccess.includes(formData.role) && (
+                      <p className="text-xs text-gray-500 mt-1">Not required for this role</p>
+                    )}
                   </div>
 
                   <div>
@@ -1992,8 +2007,9 @@ const EmployeesPage = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Password {!editingEmployee && <span className="text-red-500">*</span>}
+                      Password {!editingEmployee && rolesWithLoginAccess.includes(formData.role) && <span className="text-red-500">*</span>}
                     </label>
+<<<<<<< HEAD
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
@@ -2012,8 +2028,22 @@ const EmployeesPage = () => {
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
+=======
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required={!editingEmployee && rolesWithLoginAccess.includes(formData.role)}
+                      placeholder={editingEmployee ? "Leave empty to keep current password" : rolesWithLoginAccess.includes(formData.role) ? "Leave empty for default password" : "Not required for this role"}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+>>>>>>> e8bacca64667109b50643a73bb662bb6fdf76612
                     {editingEmployee && (
                       <p className="text-xs text-gray-500 mt-1">Leave empty to keep the current password unchanged</p>
+                    )}
+                    {!rolesWithLoginAccess.includes(formData.role) && (
+                      <p className="text-xs text-gray-500 mt-1">Password not required for this role</p>
                     )}
                   </div>
                 </div>
@@ -2202,6 +2232,32 @@ const EmployeesPage = () => {
               >
                 {editingEmployee ? 'Update Employee' : 'Add Employee'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Confirm Delete</h2>
+              <p className="text-gray-600 mb-6">Are you sure you want to delete this employee? This action cannot be undone.</p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setDeleteConfirm({ show: false, employeeId: null })}
+                  className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         </div>
