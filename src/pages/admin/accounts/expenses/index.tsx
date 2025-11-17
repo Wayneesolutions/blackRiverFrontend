@@ -117,7 +117,17 @@ const ExpensesPage = () => {
     setLoading(true);
     try {
       const userInfo: any = getLocalUserInfo();
-      if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+      
+      // Handle different userInfo structures (userData.company or direct company)
+      const userRole = userInfo?.role || userInfo?.userData?.role;
+      const userCompany = userInfo?.company || userInfo?.userData?.company;
+      const isSuperadmin = userRole === 'superadmin';
+      const isHR = userRole === 'hr';
+      const hasCompany = Boolean(userCompany);
+
+      // Allow HR and dispatchers to call API even if company is not visible in localStorage
+      // The backend will handle company filtering based on the authenticated user
+      if (!isSuperadmin && !isHR && !hasCompany) {
         setEmptyStateMessage(null);
         setExpenses([]);
         return;
@@ -151,7 +161,17 @@ const ExpensesPage = () => {
   const fetchEmployees = async () => {
     try {
       const userInfo: any = getLocalUserInfo();
-      if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+      
+      // Handle different userInfo structures (userData.company or direct company)
+      const userRole = userInfo?.role || userInfo?.userData?.role;
+      const userCompany = userInfo?.company || userInfo?.userData?.company;
+      const isSuperadmin = userRole === 'superadmin';
+      const isHR = userRole === 'hr';
+      const hasCompany = Boolean(userCompany);
+
+      // Allow HR and dispatchers to call API even if company is not visible in localStorage
+      // The backend will handle company filtering based on the authenticated user
+      if (!isSuperadmin && !isHR && !hasCompany) {
         setEmployees([]);
         return;
       }
@@ -435,7 +455,7 @@ const ExpensesPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Expenses</p>
-                <p className="text-2xl font-bold text-gray-900">₹{totalAmount.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">${totalAmount.toLocaleString()}</p>
               </div>
               <div className="bg-blue-100 p-3 rounded-full">
                 <DollarSign className="text-blue-600" size={24} />
@@ -448,7 +468,7 @@ const ExpensesPage = () => {
               <div>
                 <p className="text-gray-600 text-sm">Fuel Expenses</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ₹{expenses.filter(e => e.type && e.type.includes('Fuel')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
+                  ${expenses.filter(e => e.type && e.type.includes('Fuel')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-blue-100 p-3 rounded-full">
@@ -462,7 +482,7 @@ const ExpensesPage = () => {
               <div>
                 <p className="text-gray-600 text-sm">Maintenance</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ₹{expenses.filter(e => e.type && (e.type.includes('Repair') || e.type.includes('Maintenance'))).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
+                  ${expenses.filter(e => e.type && (e.type.includes('Repair') || e.type.includes('Maintenance'))).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-green-100 p-3 rounded-full">
@@ -476,7 +496,7 @@ const ExpensesPage = () => {
               <div>
                 <p className="text-gray-600 text-sm">Cash Expenses</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ₹{expenses.filter(e => e.type && e.type.includes('Cash')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
+                  ${expenses.filter(e => e.type && e.type.includes('Cash')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-purple-100 p-3 rounded-full">
@@ -556,7 +576,7 @@ const ExpensesPage = () => {
                                   {expense.type}
                                 </span>
                                 <span className="text-lg font-semibold text-gray-900">
-                                  ₹{(expense.amount || 0).toLocaleString()}
+                                  ${(expense.amount || 0).toLocaleString()}
                                 </span>
                               </div>
                               <p className="text-gray-600 text-sm mb-1">{expense.description || 'No description'}</p>
@@ -667,7 +687,7 @@ const ExpensesPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Amount (₹) *
+                        Amount ($) *
                       </label>
                       <input
                         type="number"
@@ -794,7 +814,7 @@ const ExpensesPage = () => {
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Amount</p>
                   <p className="text-3xl font-bold text-gray-900">
-                    ₹{(viewingExpense.amount || 0).toLocaleString()}
+                    ${(viewingExpense.amount || 0).toLocaleString()}
                   </p>
                 </div>
               </div>

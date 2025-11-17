@@ -187,7 +187,17 @@ const PayrollManagement = () => {
     const fetchEmployees = async () => {
         try {
             const userInfo: any = getLocalUserInfo();
-            if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+            
+            // Handle different userInfo structures (userData.company or direct company)
+            const userRole = userInfo?.role || userInfo?.userData?.role;
+            const userCompany = userInfo?.company || userInfo?.userData?.company;
+            const isSuperadmin = userRole === 'superadmin';
+            const isHR = userRole === 'hr';
+            const hasCompany = Boolean(userCompany);
+
+            // Allow HR and dispatchers to call API even if company is not visible in localStorage
+            // The backend will handle company filtering based on the authenticated user
+            if (!isSuperadmin && !isHR && !hasCompany) {
                 setEmployees([]);
                 return;
             }
@@ -207,7 +217,17 @@ const PayrollManagement = () => {
         setLoading(true);
         try {
             const userInfo: any = getLocalUserInfo();
-            if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+            
+            // Handle different userInfo structures (userData.company or direct company)
+            const userRole = userInfo?.role || userInfo?.userData?.role;
+            const userCompany = userInfo?.company || userInfo?.userData?.company;
+            const isSuperadmin = userRole === 'superadmin';
+            const isHR = userRole === 'hr';
+            const hasCompany = Boolean(userCompany);
+
+            // Allow HR and dispatchers to call API even if company is not visible in localStorage
+            // The backend will handle company filtering based on the authenticated user
+            if (!isSuperadmin && !isHR && !hasCompany) {
                 setPayrollData([]);
                 setEmptyStateMessage(null);
                 return;
@@ -244,7 +264,17 @@ const PayrollManagement = () => {
         setLoadingLoads(true);
         try {
             const userInfo: any = getLocalUserInfo();
-            if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+            
+            // Handle different userInfo structures (userData.company or direct company)
+            const userRole = userInfo?.role || userInfo?.userData?.role;
+            const userCompany = userInfo?.company || userInfo?.userData?.company;
+            const isSuperadmin = userRole === 'superadmin';
+            const isHR = userRole === 'hr';
+            const hasCompany = Boolean(userCompany);
+
+            // Allow HR and dispatchers to call API even if company is not visible in localStorage
+            // The backend will handle company filtering based on the authenticated user
+            if (!isSuperadmin && !isHR && !hasCompany) {
                 setDriverLoads([]);
                 setDriverPayrollSummary(null);
                 return;

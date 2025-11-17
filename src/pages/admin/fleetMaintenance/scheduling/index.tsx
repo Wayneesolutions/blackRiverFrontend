@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Clock, AlertTriangle, Truck, Wrench, CheckCircle, Search, Bell, Plus, X, FileText, Edit, Trash2 } from 'lucide-react';
+import { FaCheckCircle, FaExclamationCircle, FaTimes, FaInfoCircle } from 'react-icons/fa';
 import { getMaintenanceSchedule, getMaintenanceCostReport } from "../../../../axios/api/fleet.maintenance"
 import { 
     createVehicleService, 
@@ -12,6 +13,7 @@ import {
     type ServiceFilters,
     type VehicleServiceResponse 
 } from "../../../../axios/api/vehicleService"
+import { listUsers } from "../../../../axios/api/admin"
 
 // Type Definitions
 interface UpcomingService {
@@ -76,6 +78,59 @@ interface Alert {
     };
 }
 
+interface Mechanic {
+    _id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+}
+
+type NotificationType = 'success' | 'error' | 'info';
+
+interface ToastNotification {
+    id: number;
+    type: NotificationType;
+    message: string;
+}
+
+// Toast Notification Component
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+    const icons = {
+        success: <FaCheckCircle className="text-green-500" size={24} />,
+        error: <FaExclamationCircle className="text-red-500" size={24} />,
+        info: <FaInfoCircle className="text-blue-500" size={24} />
+    };
+
+    const bgColors = {
+        success: 'bg-green-50 border-green-200',
+        error: 'bg-red-50 border-red-200',
+        info: 'bg-blue-50 border-blue-200'
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            onClose(notification.id);
+        }, 5000);
+
+        return () => clearTimeout(timer);
+    }, [notification.id, onClose]);
+
+    return (
+        <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+            <div className="flex-shrink-0 mt-0.5">
+                {icons[notification.type]}
+            </div>
+            <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+            <button
+                onClick={() => onClose(notification.id)}
+                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+                <FaTimes size={16} />
+            </button>
+        </div>
+    );
+};
+
 const MaintenanceSchedule = () => {
     const [showScheduleForm, setShowScheduleForm] = useState<boolean>(false);
     const [showAlertDetails, setShowAlertDetails] = useState<Alert | null>(null);
@@ -92,6 +147,10 @@ const MaintenanceSchedule = () => {
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
     const [userInfo, setUserInfo] = useState<any>(null);
     const [userInfoReady, setUserInfoReady] = useState<boolean>(false);
+    const [mechanics, setMechanics] = useState<Mechanic[]>([]);
+    const [loadingMechanics, setLoadingMechanics] = useState<boolean>(false);
+    const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+    const notificationIdRef = useRef<number>(0);
 
     const sanitizeMessage = useCallback((message?: string | null) => {
         if (!message) return null;
@@ -103,6 +162,15 @@ const MaintenanceSchedule = () => {
         if (!sanitized) return;
         setEmptyStateMessage(prev => prev || sanitized);
     }, [sanitizeMessage]);
+
+    const addNotification = (type: NotificationType, message: string) => {
+        const id = ++notificationIdRef.current;
+        setNotifications(prev => [...prev, { id, type, message }]);
+    };
+
+    const removeNotification = (id: number) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    };
 
     const [scheduleForm, setScheduleForm] = useState({
         vehicle: '',
@@ -152,6 +220,7 @@ const MaintenanceSchedule = () => {
         fetchMaintenanceData();
         fetchVehicleServices();
         fetchCostReport();
+        fetchMechanics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfoReady, userInfo]);
 
@@ -319,7 +388,7 @@ const MaintenanceSchedule = () => {
     const handleCreateService = async () => {
         if (!scheduleForm.vehicle || !scheduleForm.serviceType || !scheduleForm.dueDate || !scheduleForm.assignedMechanic) {
             console.error('Please fill in all required fields');
-            alert('Please fill in all required fields: Vehicle, Service Type, Due Date, and Assigned Mechanic');
+            addNotification('error', 'Please fill in all required fields: Vehicle, Service Type, Due Date, and Assigned Mechanic');
             return;
         }
 
@@ -348,6 +417,7 @@ const MaintenanceSchedule = () => {
 
         const result = await createService(serviceData);
         if (result?.success) {
+            addNotification('success', result?.message || 'Service created successfully!');
             setShowScheduleForm(false);
             // Reset form
             setScheduleForm({
@@ -365,7 +435,7 @@ const MaintenanceSchedule = () => {
             });
         } else {
             console.error('Failed to create service:', result?.message);
-            alert(`Failed to create service: ${result?.message || 'Unknown error'}`);
+            addNotification('error', `Failed to create service: ${result?.message || 'Unknown error'}`);
         }
     };
 
@@ -382,8 +452,11 @@ const MaintenanceSchedule = () => {
 
         const result = await updateService(serviceId, updateData);
         if (result?.success) {
+            addNotification('success', result?.message || 'Service updated successfully!');
             setShowScheduleForm(false);
             setEditingService(null);
+        } else {
+            addNotification('error', `Failed to update service: ${result?.message || 'Unknown error'}`);
         }
     };
 
@@ -406,15 +479,31 @@ const MaintenanceSchedule = () => {
     };
 
     const handleStatusChange = async (serviceId: string, newStatus: 'pending' | 'in-progress' | 'completed') => {
-        await updateServiceStatusAPI(serviceId, newStatus);
+        const result = await updateServiceStatusAPI(serviceId, newStatus);
+        if (result?.success) {
+            addNotification('success', result?.message || 'Service status updated successfully!');
+        } else {
+            addNotification('error', `Failed to update service status: ${result?.message || 'Unknown error'}`);
+        }
     };
 
-    const mechanics = [
-        { id: 1, name: 'John Smith', specialty: 'Engine & Transmission' },
-        { id: 2, name: 'Mike Johnson', specialty: 'Safety & Inspection' },
-        { id: 3, name: 'Sarah Wilson', specialty: 'Tires & Wheels' },
-        { id: 4, name: 'Tom Brown', specialty: 'Refrigeration Systems' }
-    ];
+    const fetchMechanics = async () => {
+        setLoadingMechanics(true);
+        try {
+            const res = await listUsers('Maintenance Crew (Mechanics)');
+            if (res?.success && Array.isArray(res.data)) {
+                setMechanics(res.data);
+            } else {
+                console.error('Failed to fetch mechanics:', res?.message);
+                setMechanics([]);
+            }
+        } catch (err: any) {
+            console.error("Error fetching mechanics:", err);
+            setMechanics([]);
+        } finally {
+            setLoadingMechanics(false);
+        }
+    };
 
     const serviceTypes = [
         'oil_change', 'tire_rotation', 'brake_inspection', 'general_maintenance', 'other'
@@ -832,11 +921,12 @@ const MaintenanceSchedule = () => {
                                         value={scheduleForm.assignedMechanic}
                                         onChange={(e) => handleFormChange('assignedMechanic', e.target.value)}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        disabled={loadingMechanics}
                                     >
-                                        <option value="">Auto-assign based on specialty</option>
+                                        <option value="">{loadingMechanics ? 'Loading mechanics...' : 'Select Mechanic'}</option>
                                         {mechanics.map((mechanic) => (
-                                            <option key={mechanic.id} value={mechanic.name}>
-                                                {mechanic.name} - {mechanic.specialty}
+                                            <option key={mechanic._id} value={mechanic._id}>
+                                                {mechanic.name}
                                             </option>
                                         ))}
                                     </select>
@@ -976,8 +1066,8 @@ const MaintenanceSchedule = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                                 <option value="">All Mechanics</option>
-                                {mechanics.map((mechanic: any) => (
-                                    <option key={mechanic.id} value={mechanic.name}>
+                                {mechanics.map((mechanic) => (
+                                    <option key={mechanic._id} value={mechanic._id}>
                                         {mechanic.name}
                                     </option>
                                 ))}
@@ -1083,12 +1173,21 @@ const MaintenanceSchedule = () => {
                                             {new Date(service.dueDate).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {typeof service.assignedMechanic === 'string' 
-                                                ? service.assignedMechanic 
-                                                : service.assignedMechanic 
-                                                    ? `${service.assignedMechanic.first_name} ${service.assignedMechanic.last_name}`
-                                                    : 'N/A'
-                                            }
+                                            {(() => {
+                                                const mechanic = service.assignedMechanic as any;
+                                                if (!mechanic) return 'N/A';
+                                                if (typeof mechanic === 'string') {
+                                                    return mechanics.find(m => m._id === mechanic)?.name || mechanic;
+                                                }
+                                                // Handle populated object
+                                                if (mechanic.name) {
+                                                    return mechanic.name;
+                                                }
+                                                if (mechanic.first_name || mechanic.last_name) {
+                                                    return `${mechanic.first_name || ''} ${mechanic.last_name || ''}`.trim() || 'N/A';
+                                                }
+                                                return 'N/A';
+                                            })()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex items-center gap-2">
@@ -1100,7 +1199,16 @@ const MaintenanceSchedule = () => {
                                                     <Edit size={16} />
                                                 </button>
                                                 <button
-                                                    onClick={() => deleteService(service._id)}
+                                                    onClick={async () => {
+                                                        if (window.confirm('Are you sure you want to delete this service?')) {
+                                                            const result = await deleteService(service._id);
+                                                            if (result?.success) {
+                                                                addNotification('success', result?.message || 'Service deleted successfully!');
+                                                            } else {
+                                                                addNotification('error', `Failed to delete service: ${result?.message || 'Unknown error'}`);
+                                                            }
+                                                        }
+                                                    }}
                                                     className="text-red-600 hover:text-red-900"
                                                     title="Delete Service"
                                                 >
@@ -1120,6 +1228,17 @@ const MaintenanceSchedule = () => {
                 alert={showAlertDetails}
                 onClose={() => setShowAlertDetails(null)}
             />
+
+            {/* Toast Notifications Container */}
+            <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
+                {notifications.map(notification => (
+                    <ToastNotification
+                        key={notification.id}
+                        notification={notification}
+                        onClose={removeNotification}
+                    />
+                ))}
+            </div>
         </div>
     );
 };

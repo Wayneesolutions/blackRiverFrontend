@@ -7,6 +7,7 @@ import {
     deleteWorkOrder
 } from "../../../../axios/api/fleet.workorder";
 import { useVehicles } from "../../../../customHooks/useVehicles";
+import { listUsers } from "../../../../axios/api/admin";
 
 // Types
 interface Vehicle {
@@ -64,6 +65,13 @@ interface Notification {
 interface DeleteConfirmation {
     show: boolean;
     orderId: string | null;
+}
+
+interface Mechanic {
+    _id: string;
+    name: string;
+    email?: string;
+    phone?: string;
 }
 
 // Notification Component
@@ -129,14 +137,8 @@ function WorkOrdersPage() {
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
     const [userInfo, setUserInfo] = useState<any>(null);
     const [userInfoReady, setUserInfoReady] = useState<boolean>(false);
-
-    const [mechanics] = useState<string[]>([
-        'John Doe',
-        'Jane Smith',
-        'Mike Johnson',
-        'Sarah Wilson',
-        'Robert Brown'
-    ]);
+    const [mechanics, setMechanics] = useState<Mechanic[]>([]);
+    const [loadingMechanics, setLoadingMechanics] = useState<boolean>(false);
 
     // Use refs to store form data
     const createFormRef = useRef<CreateForm>({
@@ -205,6 +207,24 @@ function WorkOrdersPage() {
         setLoading(false);
     };
 
+    const fetchMechanics = async () => {
+        setLoadingMechanics(true);
+        try {
+            const res = await listUsers('Maintenance Crew (Mechanics)');
+            if (res?.success && Array.isArray(res.data)) {
+                setMechanics(res.data);
+            } else {
+                console.error('Failed to fetch mechanics:', res?.message);
+                setMechanics([]);
+            }
+        } catch (err: any) {
+            console.error("Error fetching mechanics:", err);
+            setMechanics([]);
+        } finally {
+            setLoadingMechanics(false);
+        }
+    };
+
     useEffect(() => {
         if (!userInfoReady) {
             return;
@@ -221,6 +241,7 @@ function WorkOrdersPage() {
         }
 
         fetchAllWorkOrders();
+        fetchMechanics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfoReady, userInfo]);
 
@@ -645,11 +666,12 @@ function WorkOrdersPage() {
                                         defaultValue={createFormRef.current.assignedMechanic}
                                         onChange={(e) => createFormRef.current.assignedMechanic = e.target.value}
                                         className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        disabled={loadingMechanics}
                                     >
-                                        <option value="">Select Mechanic</option>
+                                        <option value="">{loadingMechanics ? 'Loading mechanics...' : 'Select Mechanic'}</option>
                                         {mechanics.map(mechanic => (
-                                            <option key={mechanic} value={mechanic}>
-                                                {mechanic}
+                                            <option key={mechanic._id} value={mechanic.name}>
+                                                {mechanic.name}
                                             </option>
                                         ))}
                                     </select>
@@ -779,11 +801,12 @@ function WorkOrdersPage() {
                                         defaultValue={updateFormRef.current.assignedMechanic}
                                         onChange={(e) => updateFormRef.current.assignedMechanic = e.target.value}
                                         className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        disabled={loadingMechanics}
                                     >
                                         <option value="">Keep current mechanic</option>
                                         {mechanics.map(mechanic => (
-                                            <option key={mechanic} value={mechanic}>
-                                                {mechanic}
+                                            <option key={mechanic._id} value={mechanic.name}>
+                                                {mechanic.name}
                                             </option>
                                         ))}
                                     </select>

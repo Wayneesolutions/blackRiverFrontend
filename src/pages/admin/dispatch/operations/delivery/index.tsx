@@ -35,7 +35,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
   }, [notification.id, onClose]);
 
   return (
-    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-50 ${bgColors[notification.type]} animate-slide-in`}>
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10002] ${bgColors[notification.type]} animate-slide-in`}>
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
@@ -521,7 +521,7 @@ const Delivery = () => {
 
       {/* Document Upload Modal */}
       {showDocumentModal && selectedLoad && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[10001] p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
               <div>
@@ -708,7 +708,7 @@ const Delivery = () => {
 
       {/* Payment Modal */}
       {showPaymentModal && selectedLoad && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[10001] p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
             <div className="p-6 border-b">
               <h3 className="text-xl font-bold text-gray-800">Mark as Paid</h3>

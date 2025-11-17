@@ -8,7 +8,6 @@ import {
   AlertCircle,
   Calendar,
   FileText,
-  Building2,
 } from 'lucide-react';
 import { listInvoices } from '../../../axios/api/account.invoices';
 import { listExpenses } from '../../../axios/api/account.expense';
@@ -62,7 +61,6 @@ const Dashboard = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [payrolls, setPayrolls] = useState<Payroll[]>([]);
   const [loading, setLoading] = useState(true);
-  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -71,24 +69,6 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const userInfoString = localStorage.getItem('userInfo');
-      let userInfo: any = null;
-      if (userInfoString) {
-        try {
-          userInfo = JSON.parse(userInfoString);
-        } catch (err) {
-          console.error('Error parsing userInfo from localStorage:', err);
-        }
-      }
-
-      if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
-        setInvoices([]);
-        setExpenses([]);
-        setPayrolls([]);
-        setEmptyStateMessage('Assign this account to a company to start tracking invoices, expenses, and payroll.');
-        return;
-      }
-
       const [invoicesRes, expensesRes, payrollsRes] = await Promise.all([
         listInvoices(),
         listExpenses(),
@@ -102,18 +82,8 @@ const Dashboard = () => {
       setInvoices(invoicesData);
       setExpenses(expensesData);
       setPayrolls(payrollsData);
-
-      const responseMessage = invoicesRes?.message || expensesRes?.message || payrollsRes?.message;
-      const hasData = invoicesData.length > 0 || expensesData.length > 0 || payrollsData.length > 0;
-
-      if (responseMessage && !hasData) {
-        setEmptyStateMessage(responseMessage);
-      } else {
-        setEmptyStateMessage(null);
-      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      setEmptyStateMessage('Failed to load accounts data. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -199,24 +169,6 @@ const StatCard = ({
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        {emptyStateMessage && (
-          <div className="mb-8">
-            <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 shadow-sm">
-              <Building2 className="h-5 w-5 mt-0.5 text-blue-500" />
-              <div className="flex-1">
-                <p className="font-semibold text-blue-900">Accounts data unavailable</p>
-                <p className="mt-1">{emptyStateMessage}</p>
-                <button
-                  onClick={fetchDashboardData}
-                  className="mt-3 inline-flex items-center rounded-lg border border-blue-400 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition"
-                >
-                  Refresh Data
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Fleet Management Dashboard</h1>

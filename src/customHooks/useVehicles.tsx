@@ -62,10 +62,16 @@ export const useVehicles = () => {
       return;
     }
 
-    const isSuperadmin = userInfo?.role === 'superadmin';
-    const hasCompany = Boolean(userInfo?.company);
+    // Handle different userInfo structures (userData.company or direct company)
+    const userRole = userInfo?.role || userInfo?.userData?.role;
+    const userCompany = userInfo?.company || userInfo?.userData?.company;
+    const isSuperadmin = userRole === 'superadmin';
+    const isDispatcher = userRole === 'dispatcher';
+    const hasCompany = Boolean(userCompany);
 
-    if (!isSuperadmin && !hasCompany) {
+    // Allow dispatchers to call API even if company is not visible in localStorage
+    // The backend will handle company filtering based on the authenticated user
+    if (!isSuperadmin && !isDispatcher && !hasCompany) {
       setVehicles([]);
       setEmptyMessage('No company assigned to the current admin.');
       setLoading(false);
