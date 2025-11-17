@@ -195,7 +195,14 @@ const VehiclesTable = () => {
 // Server-side search is now handled, so we just use vehicles directly
 const displayedVehicles = vehicles;
 
-const canCreateVehicle = userInfo?.role === 'superadmin' || Boolean(userInfo?.company);
+// Handle different userInfo structures (userData.company or direct company)
+const userRole = userInfo?.role || userInfo?.userData?.role;
+const userCompany = userInfo?.company || userInfo?.userData?.company;
+const isSuperadmin = userRole === 'superadmin';
+const isDispatcher = userRole === 'dispatcher';
+const hasCompany = Boolean(userCompany);
+// Allow dispatchers to create vehicles - backend will use their company from database
+const canCreateVehicle = isSuperadmin || hasCompany || isDispatcher;
 
 const handleOpenCreateSidebar = useCallback(() => {
   if (!canCreateVehicle) {

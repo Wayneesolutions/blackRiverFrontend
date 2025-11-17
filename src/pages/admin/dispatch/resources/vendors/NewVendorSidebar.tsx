@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 import type { FC } from "react";
 import { createVendor } from "../../../../../axios/api/distapcher";
@@ -6,9 +6,10 @@ import { createVendor } from "../../../../../axios/api/distapcher";
 interface NewVendorSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onNotification?: (type: 'success' | 'error', message: string) => void;
 }
 
-const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose }) => {
+const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose, onNotification }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,7 +24,6 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose }) => {
 
   const [openDetails, setOpenDetails] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
@@ -35,21 +35,20 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = async () => {
     setLoading(true);
-    setMessage(null);
 
     try {
       const res = await createVendor(formData);
 
       if (res?.success) {
-        setMessage({ type: "success", text: res.message || "Vendor created successfully!" });
+        onNotification?.('success', res.message || "Vendor created successfully!");
         setTimeout(() => {
           onClose();
         }, 1200);
       } else {
-        setMessage({ type: "error", text: res?.message || "Something went wrong!" });
+        onNotification?.('error', res?.message || "Something went wrong!");
       }
     } catch (err: any) {
-      setMessage({ type: "error", text: err.message || "Failed to create vendor" });
+      onNotification?.('error', err.message || "Failed to create vendor");
     } finally {
       setLoading(false);
     }
@@ -264,15 +263,6 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Fixed Footer */}
         <div className="p-4 border-t border-gray-200 flex-shrink-0 bg-white sticky bottom-0 z-[102] shadow-lg">
-          {message && (
-            <div
-              className={`mb-2 text-sm ${
-                message.type === "success" ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {message.text}
-            </div>
-          )}
           <div className="flex justify-end space-x-2">
             <button
               type="button"

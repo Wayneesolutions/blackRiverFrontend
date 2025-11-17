@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
   Plus,
   Search,
@@ -7,7 +7,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
-import { message } from "antd";
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import NewVendorSidebar from "./NewVendorSidebar";
 import {
   listVendor,
@@ -30,6 +30,47 @@ interface Vendor {
   createdAt: string;
 }
 
+// Toast Notification Types
+type NotificationType = 'success' | 'error' | 'info' | 'warning';
+
+interface ToastNotification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+// Toast Notification Component
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  const icons = {
+    success: <FaCheckCircle className="text-green-600" size={20} />,
+    error: <FaExclamationCircle className="text-red-600" size={20} />,
+    info: <FaExclamationCircle className="text-blue-600" size={20} />,
+    warning: <FaExclamationCircle className="text-yellow-600" size={20} />
+  };
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
+
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -45,6 +86,21 @@ const Index = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Vendor | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const notificationIdRef = useRef(0);
+
+  const addNotification = useCallback((type: NotificationType, message: string) => {
+    const id = ++notificationIdRef.current;
+    setNotifications((prev) => [...prev, { id, type, message }]);
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      removeNotification(id);
+    }, 5000);
+  }, []);
+
+  const removeNotification = useCallback((id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
 
   // Fetch vendors
   const fetchVendors = useCallback(async () => {
@@ -54,15 +110,15 @@ const Index = () => {
       if (res?.success) {
         setVendors(Array.isArray(res.data) ? res.data : []);
       } else {
-        message.error(res?.message || "Failed to fetch vendors");
+        addNotification('error', res?.message || "Failed to fetch vendors");
       }
     } catch (error: any) {
       console.error("Error fetching vendors:", error);
-      message.error(error?.message || "Error fetching vendors");
+      addNotification('error', error?.message || "Error fetching vendors");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [addNotification]);
 
   useEffect(() => {
     fetchVendors();
@@ -97,19 +153,19 @@ const Index = () => {
     try {
       const res = await deleteVendor(deleteTarget._id);
       if (res?.success) {
-        message.success(res.message || "Vendor deleted successfully");
+        addNotification('success', res.message || "Vendor deleted successfully");
         closeDeleteModal();
         fetchVendors();
       } else {
-        message.error(res?.message || "Failed to delete vendor");
+        addNotification('error', res?.message || "Failed to delete vendor");
       }
     } catch (error: any) {
       console.error("Error deleting vendor:", error);
-      message.error(error?.message || "Failed to delete vendor");
+      addNotification('error', error?.message || "Failed to delete vendor");
     } finally {
       setDeleteLoading(false);
     }
-  }, [deleteTarget, closeDeleteModal, fetchVendors]);
+  }, [deleteTarget, closeDeleteModal, fetchVendors, addNotification]);
 
   // Status Toggle
   const handleStatusToggle = useCallback(
@@ -119,17 +175,17 @@ const Index = () => {
       try {
         const res = await updateStatusVendor(vendor._id, { status: newStatus });
         if (res?.success) {
-          message.success(res.message || "Status updated");
+          addNotification('success', res.message || "Status updated");
           fetchVendors();
         } else {
-          message.error(res?.message || "Failed to update status");
+          addNotification('error', res?.message || "Failed to update status");
         }
       } catch (error: any) {
         console.error("Error updating status:", error);
-        message.error(error?.message || "Failed to update status");
+        addNotification('error', error?.message || "Failed to update status");
       }
     },
-    [fetchVendors]
+    [fetchVendors, addNotification]
   );
 
   // Open Edit Modal
@@ -146,20 +202,20 @@ const Index = () => {
     try {
       const res = await updateVendor(editVendor._id, editForm);
       if (res?.success) {
-        message.success(res.message || "Vendor updated successfully");
+        addNotification('success', res.message || "Vendor updated successfully");
         setIsEditModalOpen(false);
         setEditVendor(null);
         fetchVendors();
       } else {
-        message.error(res?.message || "Failed to update vendor");
+        addNotification('error', res?.message || "Failed to update vendor");
       }
     } catch (error: any) {
       console.error("Error updating vendor:", error);
-      message.error(error?.message || "Failed to update vendor");
+      addNotification('error', error?.message || "Failed to update vendor");
     } finally {
       setEditLoading(false);
     }
-  }, [editVendor, editForm, fetchVendors]);
+  }, [editVendor, editForm, fetchVendors, addNotification]);
 
   const filteredVendors = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -174,6 +230,16 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast Notifications Container - High z-index to be above modal */}
+      <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
+        {notifications.map(notification => (
+          <ToastNotification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
       {/* Main Content */}
       <div className="flex-1">
         {/* Header */}
@@ -322,6 +388,7 @@ const Index = () => {
           setIsSidebarOpen(false);
           fetchVendors();
         }}
+        onNotification={(type, message) => addNotification(type, message)}
       />
 
       {/* Edit Modal */}
