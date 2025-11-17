@@ -1,6 +1,6 @@
 // components/Header.jsx
 import { useState, useRef, useEffect } from "react";
-import { FaUserCircle, FaSignOutAlt, FaUser, FaCog } from "react-icons/fa";
+import { FaUserCircle, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -31,11 +31,6 @@ const Header = () => {
 
     const handleProfileClick = () => {
         navigate('/admin/profile');
-        setIsUserDropdownOpen(false);
-    };
-
-    const handleSettingsClick = () => {
-        navigate('/admin/company');
         setIsUserDropdownOpen(false);
     };
 
@@ -72,13 +67,6 @@ const Header = () => {
                                 >
                                     <FaUser size={14} />
                                     Profile
-                                </button>
-                                <button
-                                    onClick={handleSettingsClick}
-                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                                >
-                                    <FaCog size={14} />
-                                    Settings
                                 </button>
                                 <div className="border-t border-gray-200 my-1"></div>
                                 <button

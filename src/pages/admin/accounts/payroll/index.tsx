@@ -270,17 +270,24 @@ const PayrollManagement = () => {
             const userCompany = userInfo?.company || userInfo?.userData?.company;
             const isSuperadmin = userRole === 'superadmin';
             const isHR = userRole === 'hr';
+            const isDispatcher = userRole === 'dispatcher';
             const hasCompany = Boolean(userCompany);
 
-            // Allow HR and dispatchers to call API even if company is not visible in localStorage
+            console.log('🔍 Fetching driver loads:', { driverId, startDate, endDate, userRole, hasCompany });
+
+            // Allow HR, dispatchers, and users with company to call API
             // The backend will handle company filtering based on the authenticated user
-            if (!isSuperadmin && !isHR && !hasCompany) {
+            if (!isSuperadmin && !isHR && !isDispatcher && !hasCompany) {
+                console.warn('⚠️ User does not have permission or company to fetch loads');
                 setDriverLoads([]);
                 setDriverPayrollSummary(null);
+                setLoadingLoads(false);
                 return;
             }
 
+            console.log('📡 Calling API: getDriverCompletedLoads');
             const response = await getDriverCompletedLoads(driverId, startDate, endDate);
+            console.log('📥 API Response:', response);
             
             if (response?.success) {
                 const loads: Load[] = (response.data || []).map((load: any) => ({
@@ -288,10 +295,12 @@ const PayrollManagement = () => {
                     selected: false
                 }));
                 
+                console.log(`✅ Loaded ${loads.length} loads for driver`);
                 setDriverLoads(loads);
 
                 // Set summary data if available from backend
                 if (response.summary) {
+                    console.log('📊 Summary from backend:', response.summary);
                     setDriverPayrollSummary(response.summary);
                     
                     // Update form data with calculated values (use 0 if no earnings)
@@ -308,23 +317,33 @@ const PayrollManagement = () => {
                     const totalMiles = loads.reduce((sum, load) => sum + (load.distanceInMiles || 0), 0);
                     const totalEarnings = loads.reduce((sum, load) => sum + parseFloat(load.earnings || '0'), 0);
                     
-                    setDriverPayrollSummary({
+                    const fallbackSummary = {
                         totalLoads: loads.length,
                         totalDistanceKm: loads.reduce((sum, load) => sum + (load.distance || 0), 0),
                         totalDistanceMiles: totalMiles,
                         totalEarnings: totalEarnings,
                         ratePerMile: loads[0]?.mileRate || 0
-                    });
+                    };
                     
-            setFormData(prev => ({
-                ...prev,
-                totalMiles: totalMiles.toString(),
-                tripEarnings: totalEarnings.toString(),
+                    console.log('📊 Fallback summary:', fallbackSummary);
+                    setDriverPayrollSummary(fallbackSummary);
+                    
+                    setFormData(prev => ({
+                        ...prev,
+                        totalMiles: totalMiles.toString(),
+                        tripEarnings: totalEarnings.toString(),
                         baseSalary: totalEarnings.toString()
                     }));
                 }
+                
+                // Show info message if no loads found
+                if (loads.length === 0) {
+                    console.log('ℹ️ No loads found for the selected date range');
+                }
             } else {
-                showNotification('error', response?.message || 'Failed to fetch driver loads');
+                const errorMsg = response?.message || 'Failed to fetch driver loads';
+                console.error('❌ API Error:', errorMsg, response);
+                showNotification('error', errorMsg);
                 setDriverLoads([]);
                 setDriverPayrollSummary(null);
                 // Reset baseSalary to 0 if no loads
@@ -333,8 +352,10 @@ const PayrollManagement = () => {
                     baseSalary: '0'
                 }));
             }
-        } catch (error) {
-            showNotification('error', 'Error fetching driver loads');
+        } catch (error: any) {
+            console.error('❌ Exception fetching driver loads:', error);
+            const errorMsg = error?.response?.data?.message || error?.message || 'Error fetching driver loads';
+            showNotification('error', errorMsg);
             setDriverLoads([]);
             setDriverPayrollSummary(null);
         } finally {
@@ -1301,14 +1322,33 @@ const PayrollManagement = () => {
                                         {/* Loading State */}
                                         {loadingLoads && (
                                             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
-                                                <div className="text-sm text-blue-600">Loading load data...</div>
+                                                <div className="text-sm text-blue-600 font-medium">Loading load data...</div>
+                                                <div className="text-xs text-blue-500 mt-1">Please wait while we fetch driver loads...</div>
                                             </div>
                                         )}
 
                                         {/* No Loads Message */}
-                                        {!loadingLoads && driverLoads.length === 0 && formData.startDate && formData.endDate && (
-                                            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-center">
-                                                <div className="text-sm text-yellow-600">No loads found for the selected date range.</div>
+                                        {!loadingLoads && driverLoads.length === 0 && formData.startDate && formData.endDate && selectedEmployee && (
+                                            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <AlertCircle className="text-yellow-600" size={18} />
+                                                    <div className="text-sm font-medium text-yellow-800">No loads found</div>
+                                                </div>
+                                                <div className="text-xs text-yellow-700">
+                                                    No loads found for <strong>{selectedEmployee.name}</strong> between <strong>{formData.startDate}</strong> and <strong>{formData.endDate}</strong>.
+                                                </div>
+                                                <div className="text-xs text-yellow-600 mt-1">
+                                                    Try adjusting the date range or check if the driver has completed any loads.
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* No Date Range Selected */}
+                                        {!loadingLoads && driverLoads.length === 0 && (!formData.startDate || !formData.endDate) && selectedEmployee && (
+                                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                                <div className="text-sm text-gray-600">
+                                                    Please select a date range to view driver loads.
+                                                </div>
                                             </div>
                                         )}
                                     </div>
