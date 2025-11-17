@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Download, Edit, Trash2, Eye, Building2 } from 'lucide-react';
+import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Trash2, Eye, Building2 } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { createExpense, listExpenses, updateExpense, deleteExpense } from "../../../../axios/api/account.expense";
 import { getEmployees } from "../../../../axios/api/account.payroll";
@@ -551,11 +551,6 @@ const ExpensesPage = () => {
                       </select>
                     </div>
                   </div>
-
-                  <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                    <Download size={16} />
-                    Export
-                  </button>
                 </div>
 
                 {/* Expense List */}

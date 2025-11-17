@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, X, Calendar, User, Clock, CheckCircle, ExternalLink } from 'lucide-react';
 import { getExpiringDocuments } from '../../axios/api/employeeDocument';
 
@@ -44,6 +45,7 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
   showOnlyOnce = false,
   autoCloseDelay = 0
 }) => {
+  const navigate = useNavigate();
   const [expiringDocuments, setExpiringDocuments] = useState<ExpiringDocumentWithEmployee[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasShown, setHasShown] = useState(false);
@@ -237,18 +239,19 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
               <span className="text-xs text-gray-600">Review documents urgently</span>
             </div>
             
-            {onViewDocuments && (
-              <button
-                onClick={() => {
+            <button
+              onClick={() => {
+                if (onViewDocuments) {
                   onViewDocuments();
-                  handleClose();
-                }}
-                className="flex items-center gap-1 px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-xs font-medium"
-              >
-                <ExternalLink className="w-3 h-3" />
-                View All
-              </button>
-            )}
+                }
+                navigate('/Management/documents');
+                handleClose();
+              }}
+              className="flex items-center gap-1 px-3 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-xs font-medium text-white"
+            >
+              <ExternalLink className="w-3 h-3 text-white stroke-white" />
+              <span className="text-white">View All</span>
+            </button>
           </div>
         </div>
       </div>

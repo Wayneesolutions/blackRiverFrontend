@@ -4,7 +4,6 @@ import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react
 import { 
   Search, 
   Filter, 
-  Download, 
   Edit, 
   Trash2, 
   Plus, 
@@ -1772,10 +1771,6 @@ const EmployeesPage = () => {
               </>
             )}
           </div>
-          <button className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
-            <Download className="w-4 h-4" />
-            <span>Export</span>
-          </button>
         </div>
       </div>
 

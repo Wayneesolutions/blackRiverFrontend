@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { ComponentType } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   DollarSign,
   Users,
@@ -57,6 +58,7 @@ interface StatCardProps {
 }
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [payrolls, setPayrolls] = useState<Payroll[]>([]);
@@ -270,7 +272,10 @@ const StatCard = ({
               ) : (
                 <div className="text-center py-4 text-gray-500">No expenses found</div>
               )}
-              <button className="w-full mt-4 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+              <button 
+                onClick={() => navigate('/accounts/expenses')}
+                className="w-full mt-4 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
                 View All Expenses
               </button>
             </div>

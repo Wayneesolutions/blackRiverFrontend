@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   CheckCircle,
   XCircle,
   Plus,
   Users,
-  Download,
   Edit,
   Trash2,
   Search,
   Clock as ClockIcon
 } from 'lucide-react';
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 
 import { listAttendance as apiListAttendance, upsertAttendance as apiUpsertAttendance, deleteAttendance as apiDeleteAttendance } from '../../../../axios/api/attendance';
 import { getAllEmployees as apiGetEmployees } from '../../../../axios/api/employee';
@@ -24,6 +24,14 @@ interface AttendanceRecord {
   status: 'present' | 'absent' | 'late' | 'leave';
 }
 
+type NotificationType = 'success' | 'error' | 'info';
+
+interface ToastNotification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
 const AttendanceTracking = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null);
@@ -33,6 +41,8 @@ const AttendanceTracking = () => {
   const [employees, setEmployees] = useState<{_id: string; name: string}[]>([]);
 
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const notificationIdRef = useRef<number>(0);
 
   const [attendanceForm, setAttendanceForm] = useState({
     employeeId: '',
@@ -84,9 +94,21 @@ const AttendanceTracking = () => {
     return (totalMinutes / 60).toFixed(1);
   };
 
+  const addNotification = (type: NotificationType, message: string) => {
+    const id = ++notificationIdRef.current;
+    setNotifications(prev => [...prev, { id, type, message }]);
+    setTimeout(() => {
+      removeNotification(id);
+    }, 5000);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
   const handleAddAttendance = async () => {
     if (!attendanceForm.employeeId || !attendanceForm.date) {
-      alert('Please fill employee name and date');
+      addNotification('error', 'Please fill employee name and date');
       return;
     }
 
@@ -101,20 +123,24 @@ const AttendanceTracking = () => {
       } as any;
       const res = await apiUpsertAttendance(payload);
       if (res?.success) {
+        addNotification('success', editingRecord ? 'Attendance record updated successfully' : 'Attendance record added successfully');
         await fetchAttendance();
         setEditingRecord(null);
+        // Reset form
+        setAttendanceForm({
+          employeeId: '',
+          date: new Date().toISOString().split('T')[0],
+          checkIn: '',
+          checkOut: '',
+          status: 'present'
+        });
+        setShowAddModal(false);
+      } else {
+        addNotification('error', res?.message || 'Failed to save attendance record');
       }
-    } catch (e) {}
-
-    // Reset form
-    setAttendanceForm({
-      employeeId: '',
-      date: new Date().toISOString().split('T')[0],
-      checkIn: '',
-      checkOut: '',
-      status: 'present'
-    });
-    setShowAddModal(false);
+    } catch (e: any) {
+      addNotification('error', e?.response?.data?.message || e?.message || 'Error saving attendance record');
+    }
   };
 
   const handleEdit = (record: AttendanceRecord) => {
@@ -132,8 +158,17 @@ const AttendanceTracking = () => {
   const handleDelete = async (id?: string) => {
     if (!id) return;
     if (!window.confirm('Are you sure you want to delete this attendance record?')) return;
-    const res = await apiDeleteAttendance(id);
-    if (res?.success) await fetchAttendance();
+    try {
+      const res = await apiDeleteAttendance(id);
+      if (res?.success) {
+        addNotification('success', 'Attendance record deleted successfully');
+        await fetchAttendance();
+      } else {
+        addNotification('error', res?.message || 'Failed to delete attendance record');
+      }
+    } catch (e: any) {
+      addNotification('error', e?.response?.data?.message || e?.message || 'Error deleting attendance record');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -155,6 +190,39 @@ const AttendanceTracking = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      {/* Toast Notifications Container */}
+      <div className="fixed top-4 right-4 z-[10002] space-y-2">
+        {notifications.map((notification) => (
+          <div
+            key={notification.id}
+            className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg min-w-[300px] max-w-md animate-slide-in ${
+              notification.type === 'success'
+                ? 'bg-green-50 border-green-200'
+                : notification.type === 'error'
+                ? 'bg-red-50 border-red-200'
+                : 'bg-blue-50 border-blue-200'
+            }`}
+          >
+            <div className="flex-shrink-0 mt-0.5">
+              {notification.type === 'success' ? (
+                <FaCheckCircle className="text-green-500" size={24} />
+              ) : notification.type === 'error' ? (
+                <FaExclamationCircle className="text-red-500" size={24} />
+              ) : (
+                <FaExclamationCircle className="text-blue-500" size={24} />
+              )}
+            </div>
+            <p className="flex-1 text-sm font-medium text-gray-900">{notification.message}</p>
+            <button
+              onClick={() => removeNotification(notification.id)}
+              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <FaTimes size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
+
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -323,12 +391,8 @@ const AttendanceTracking = () => {
           </div>
 
           {filteredRecords.length > 0 && (
-            <div className="p-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="p-4 border-t border-gray-200">
               <p className="text-sm text-gray-600">Showing {filteredRecords.length} records</p>
-              <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-2">
-                <Download size={16} />
-                Export Report
-              </button>
             </div>
           )}
         </div>

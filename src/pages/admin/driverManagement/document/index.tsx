@@ -296,12 +296,6 @@ const EmployeeDocumentsPage = () => {
               <Upload className="w-4 h-4" />
               <span>Upload Document</span>
             </button>
-            <button 
-              onClick={() => setSelectedEmployee(null)}
-              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50"
-            >
-              View All
-            </button>
           </div>
         </div>
 
