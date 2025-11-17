@@ -171,7 +171,7 @@ const Company = () => {
       
       // Add logo file if selected
       if (selectedFile) {
-        formData.append('logo', selectedFile);
+        formData.append('file', selectedFile);
       }
       
       const response = await updateCompany(formData);
