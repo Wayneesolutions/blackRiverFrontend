@@ -973,7 +973,7 @@ const Users = () => {
     } finally {
       setLoading(false);
     }
-  };
+    };
 
   const getRoleColor = (role: Role) => {
     const colors: Partial<Record<Role, string>> = {

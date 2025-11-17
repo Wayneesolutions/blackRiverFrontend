@@ -539,44 +539,41 @@ function VehicleDocument() {
     return { all, trailers };
   }, [vehicleDocuments, fallbackEntries, activeTab]);
 
-  const DocumentModal = () => {
-    const currentAssetType = formData.assetType;
-    const selectableAssets = getSelectableAssets(currentAssetType);
-    const selectedAssetId = currentAssetType === "trailer" ? formData.trailerId : formData.vehicleId;
-    const selectedAsset = selectableAssets.find((asset) => asset._id === selectedAssetId);
-    const assetInfo = getVehicleTypeInfo(currentAssetType);
+const DocumentModal = () => {
+  const currentAssetType = formData.assetType;
+  const selectableAssets = getSelectableAssets(currentAssetType);
+  const selectedAssetId = currentAssetType === "trailer" ? formData.trailerId : formData.vehicleId;
+  const selectedAsset = selectableAssets.find((asset) => asset._id === selectedAssetId);
+  const assetInfo = getVehicleTypeInfo(currentAssetType);
 
-    return (
-      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
-          {/* Modal Header */}
-          <div
-            className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between rounded-t-2xl ${
-              currentAssetType === "trailer" ? "bg-green-50 border-green-200" : "bg-[#9793E4]/5 border-[#9793E4]/20"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              {getVehicleTypeIcon(currentAssetType)}
-              <h3
-                className={`text-xl font-bold ${currentAssetType === "trailer" ? "text-green-800" : "text-gray-800"}`}
-              >
+  return (
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative max-h-[90vh] flex flex-col">
+        {/* Modal Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl flex-shrink-0">
+          <div className="flex items-center gap-3">
+            {getVehicleTypeIcon(currentAssetType)}
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">
                 {editingDoc ? "Update Document" : "Add New Document"}
-                <span className="text-sm font-normal ml-2">
-                  ({assetInfo.name} Documents)
-                </span>
               </h3>
+              <p className="text-sm text-gray-500 mt-0.5">
+                {assetInfo.name} Documents
+              </p>
             </div>
-            <button
-              onClick={() => setShowDocModal(false)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              disabled={submitting}
-            >
-              <FaTimes className="text-gray-500" size={20} />
-            </button>
           </div>
+          <button
+            onClick={() => setShowDocModal(false)}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+            disabled={submitting}
+          >
+            <FaTimes className="text-gray-500" size={20} />
+          </button>
+        </div>
 
-        {/* Modal Body */}
-        <div className="p-6 space-y-5">
+        {/* Modal Body - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+          {/* Asset Type Selector */}
           {activeTab === "all" && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -623,6 +620,7 @@ function VehicleDocument() {
             </div>
           </div>
 
+          {/* Select Vehicle/Trailer */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Select {currentAssetType === "trailer" ? "Trailer" : "Vehicle"} <span className="text-red-500">*</span>
@@ -689,6 +687,7 @@ function VehicleDocument() {
             )}
           </div>
 
+          {/* Document Type */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Document Type <span className="text-red-500">*</span>
@@ -723,6 +722,7 @@ function VehicleDocument() {
             </select>
           </div>
 
+          {/* Document Number */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Document Number <span className="text-red-500">*</span>
@@ -738,6 +738,7 @@ function VehicleDocument() {
             />
           </div>
 
+          {/* Issued Date & Expiry Date */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -768,6 +769,7 @@ function VehicleDocument() {
             </div>
           </div>
 
+          {/* Upload Document */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Upload Document
@@ -788,8 +790,8 @@ function VehicleDocument() {
           </div>
         </div>
 
-        {/* Modal Footer */}
-        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+        {/* Modal Footer - Fixed at bottom */}
+        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl flex-shrink-0">
           <button
             type="button"
             className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
@@ -810,7 +812,7 @@ function VehicleDocument() {
       </div>
     </div>
   );
-  };
+};
 
   const ViewDocumentModal = () => (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">

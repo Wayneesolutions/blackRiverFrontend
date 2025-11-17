@@ -393,12 +393,7 @@ const MonthlyReport: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-800">Monthly Compliance Report</h1>
           <p className="text-gray-600 mt-1">Analytics and insights for CVSA inspections</p>
         </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">
-            <FaDownload size={16} />
-            Export Report
-          </button>
-        </div>
+      
       </div>
 
       {/* Filters */}

@@ -432,9 +432,9 @@ function WorkOrdersPage() {
                     <p className="text-gray-600 mt-1">Manage vehicle maintenance and repair work orders</p>
                 </div>
                 <button
-                    onClick={() => setShowCreateModal(true)}
+                   onClick={() => setShowCreateModal(true)}
                     className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] shadow-lg hover:shadow-xl transition-all font-medium"
-                    disabled={Boolean(vehiclesEmptyMessage)}
+                   
                 >
                     <FaPlus /> Create Work Order
                 </button>

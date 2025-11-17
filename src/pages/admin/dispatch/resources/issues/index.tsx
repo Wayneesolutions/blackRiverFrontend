@@ -199,7 +199,7 @@ const Issues: React.FC = () => {
         </div>
         <button
           onClick={() => setShowNewIssueSidebar(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 bg-blue-600 !text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
           <MdAdd className="text-xl" />
           Add Issue
@@ -222,7 +222,7 @@ const Issues: React.FC = () => {
           </div>
           <button
             onClick={handleSearch}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 bg-blue-600 !text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
             <MdSearch />
             Search
@@ -232,7 +232,7 @@ const Issues: React.FC = () => {
               setSearchQuery('');
               fetchIssues();
             }}
-            className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-2 bg-gray-600 !text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
           >
             <FaFilter />
             Clear

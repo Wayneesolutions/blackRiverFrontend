@@ -418,8 +418,8 @@ const DocumentManagement: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Company Settings Required</h3>
                 <p className="text-gray-600 mb-4">{errorMessage}</p>
                 <button
-                  onClick={() => window.location.href = '/admin/company-settings'}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  onClick={() => window.location.href = '/admin/company'}
+                  className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   Go to Company Settings
                 </button>

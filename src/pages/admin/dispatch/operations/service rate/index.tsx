@@ -287,7 +287,7 @@ const ServicePage = () => {
         <p className="text-gray-500 max-w-md">{emptyStateMessage}</p>
         <button
           onClick={() => setSidebarOpen(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg shadow-lg"
+          className="bg-blue-500 hover:bg-blue-600 !text-white font-semibold px-6 py-3 rounded-lg shadow-lg"
         >
           + New Service
         </button>

@@ -372,7 +372,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
               <button
                 type="button"
                 onClick={handleAddTag}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700"
               >
                 Add
               </button>
@@ -426,7 +426,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               <MdSave />
               {loading ? 'Saving...' : (issue ? 'Update Issue' : 'Create Issue')}
