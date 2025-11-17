@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import type { ReactNode } from "react";
 import { FaCar, FaPlus, FaEdit, FaTrash, FaFileUpload, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaEye, FaDownload, FaTrailer } from "react-icons/fa";
 import {
@@ -150,6 +150,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 function VehicleDocument() {
   const { vehicles } = useVehicles();
   const { trailers } = useTrailers();
+  const modalBodyRef = useRef<HTMLDivElement>(null);
 
   const [vehicleDocuments, setVehicleDocuments] = useState<VehicleDocument[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -364,27 +365,58 @@ function VehicleDocument() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    // Save scroll position before state update
+    const scrollPosition = modalBodyRef.current?.scrollTop || 0;
+    
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    
+    // Restore scroll position after state update
+    setTimeout(() => {
+      if (modalBodyRef.current) {
+        modalBodyRef.current.scrollTop = scrollPosition;
+      }
+    }, 0);
   };
 
   const handleAssetTypeChange = (assetType: AssetType) => {
+    // Save scroll position before state update
+    const scrollPosition = modalBodyRef.current?.scrollTop || 0;
+    
     setFormData((prev) => ({
       ...prev,
       assetType,
       vehicleId: assetType === "vehicle" ? prev.vehicleId : "",
       trailerId: assetType === "trailer" ? prev.trailerId : "",
     }));
+    
+    // Restore scroll position after state update
+    setTimeout(() => {
+      if (modalBodyRef.current) {
+        modalBodyRef.current.scrollTop = scrollPosition;
+      }
+    }, 0);
   };
 
-  const handleAssetSelectChange = (value: string) => {
+  const handleAssetSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // Save scroll position before state update
+    const scrollPosition = modalBodyRef.current?.scrollTop || 0;
+    const value = e.target.value;
+    
     setFormData((prev) => ({
       ...prev,
       vehicleId: prev.assetType === "vehicle" ? value : "",
       trailerId: prev.assetType === "trailer" ? value : "",
     }));
+    
+    // Restore scroll position after state update
+    setTimeout(() => {
+      if (modalBodyRef.current) {
+        modalBodyRef.current.scrollTop = scrollPosition;
+      }
+    }, 0);
   };
 
   const handleSubmitDocument = async () => {
@@ -548,8 +580,19 @@ const DocumentModal = () => {
   const assetInfo = getVehicleTypeInfo(currentAssetType);
 
   return (
-    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative max-h-[90vh] flex flex-col">
+    <div 
+      className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          setShowDocModal(false);
+        }
+      }}
+      onScroll={(e) => e.stopPropagation()}
+    >
+      <div 
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Modal Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -573,7 +616,12 @@ const DocumentModal = () => {
         </div>
 
         {/* Modal Body - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <div 
+          ref={modalBodyRef}
+          className="flex-1 overflow-y-auto p-6 space-y-5"
+          style={{ scrollBehavior: 'auto' }}
+          onScroll={(e) => e.stopPropagation()}
+        >
           {/* Asset Type Selector */}
           {activeTab === "all" && (
             <div>
@@ -588,7 +636,11 @@ const DocumentModal = () => {
                     <button
                       key={type}
                       type="button"
-                      onClick={() => handleAssetTypeChange(type)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAssetTypeChange(type);
+                      }}
                       className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
                         isActive
                           ? `${info.bgColor} shadow-sm`
@@ -634,8 +686,20 @@ const DocumentModal = () => {
             <select
               className="w-full border border-gray-300 rounded-lg p-3 bg-white focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
               value={selectedAssetId}
-              onChange={(e) => handleAssetSelectChange(e.target.value)}
+              onChange={handleAssetSelectChange}
               required
+              onFocus={(e) => {
+                e.stopPropagation();
+                // Prevent scroll on focus
+                if (modalBodyRef.current) {
+                  const currentScroll = modalBodyRef.current.scrollTop;
+                  setTimeout(() => {
+                    if (modalBodyRef.current) {
+                      modalBodyRef.current.scrollTop = currentScroll;
+                    }
+                  }, 0);
+                }
+              }}
             >
               <option value="">-- Choose an {currentAssetType === "trailer" ? "Trailer" : "Asset"} --</option>
               {selectableAssets.length === 0 ? (
@@ -703,6 +767,18 @@ const DocumentModal = () => {
               className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
               value={formData.documentType}
               onChange={handleInputChange}
+              onFocus={(e) => {
+                e.stopPropagation();
+                // Prevent scroll on focus
+                if (modalBodyRef.current) {
+                  const currentScroll = modalBodyRef.current.scrollTop;
+                  setTimeout(() => {
+                    if (modalBodyRef.current) {
+                      modalBodyRef.current.scrollTop = currentScroll;
+                    }
+                  }, 0);
+                }
+              }}
             >
               <option value="insurance">Insurance Certificate</option>
               <option value="permit">Operating Permit</option>
@@ -728,15 +804,27 @@ const DocumentModal = () => {
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Document Number <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              name="documentNumber"
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
-              value={formData.documentNumber}
-              onChange={handleInputChange}
-              placeholder="Enter document number"
-              required
-            />
+              <input
+                type="text"
+                name="documentNumber"
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                value={formData.documentNumber}
+                onChange={handleInputChange}
+                onFocus={(e) => {
+                  e.stopPropagation();
+                  // Prevent scroll on focus
+                  if (modalBodyRef.current) {
+                    const currentScroll = modalBodyRef.current.scrollTop;
+                    setTimeout(() => {
+                      if (modalBodyRef.current) {
+                        modalBodyRef.current.scrollTop = currentScroll;
+                      }
+                    }, 0);
+                  }
+                }}
+                placeholder="Enter document number"
+                required
+              />
           </div>
 
           {/* Issued Date & Expiry Date */}
@@ -751,6 +839,18 @@ const DocumentModal = () => {
                 className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                 value={formData.issuedAt}
                 onChange={handleInputChange}
+                onFocus={(e) => {
+                  e.stopPropagation();
+                  // Prevent scroll on focus
+                  if (modalBodyRef.current) {
+                    const currentScroll = modalBodyRef.current.scrollTop;
+                    setTimeout(() => {
+                      if (modalBodyRef.current) {
+                        modalBodyRef.current.scrollTop = currentScroll;
+                      }
+                    }, 0);
+                  }
+                }}
                 required
               />
             </div>
@@ -765,6 +865,18 @@ const DocumentModal = () => {
                 className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                 value={formData.expiryDate}
                 onChange={handleInputChange}
+                onFocus={(e) => {
+                  e.stopPropagation();
+                  // Prevent scroll on focus
+                  if (modalBodyRef.current) {
+                    const currentScroll = modalBodyRef.current.scrollTop;
+                    setTimeout(() => {
+                      if (modalBodyRef.current) {
+                        modalBodyRef.current.scrollTop = currentScroll;
+                      }
+                    }, 0);
+                  }
+                }}
                 required
               />
             </div>
@@ -780,6 +892,7 @@ const DocumentModal = () => {
                 type="file"
                 className="w-full border border-gray-300 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#9793E4]/10 file:text-[#9793E4] hover:file:bg-[#9793E4]/20 transition-all"
                 onChange={handleFileChange}
+                onFocus={(e) => e.stopPropagation()}
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
               />
             </div>

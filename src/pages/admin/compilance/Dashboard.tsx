@@ -51,10 +51,13 @@ function Dashboard() {
       return;
     }
 
-    const isSuperadmin = userInfo?.role === 'superadmin';
-    const hasCompany = Boolean(userInfo?.company);
+    const userRole = userInfo?.role || userInfo?.userData?.role;
+    const userCompany = userInfo?.company || userInfo?.userData?.company;
+    const isSuperadmin = userRole === 'superadmin';
+    const isComplianceManager = userRole === 'Compliance Manager';
+    const hasCompany = Boolean(userCompany);
 
-    if (!isSuperadmin && !hasCompany) {
+    if (!isSuperadmin && !hasCompany && !isComplianceManager) {
       setComplianceData({
         vehicles: { total: 0, valid: 0, expired: 0, expiringSoon: 0, complianceRate: 0 },
         drivers: { total: 0, valid: 0, expired: 0, expiringSoon: 0, complianceRate: 0 },

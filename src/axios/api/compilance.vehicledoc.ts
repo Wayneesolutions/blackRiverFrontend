@@ -57,3 +57,18 @@ export const deleteVehicleDocument = async (id: string) => {
         return err.response?.data;
     }
 };
+
+export const getExpiringVehicleDocuments = async (days: number = 30) => {
+  try {
+    const response: AxiosResponse<{
+      success: boolean;
+      data: any[];
+    }> = await apiClient.get(`/hr/vehicle-document/expiring?days=${days}`);
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching expiring vehicle documents:', error);
+    // Return error structure instead of throwing
+    return error?.response?.data || { success: false, message: error?.message || 'Failed to fetch expiring vehicle documents', data: [] };
+  }
+};

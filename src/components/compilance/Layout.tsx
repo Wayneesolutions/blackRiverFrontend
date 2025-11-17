@@ -2,12 +2,12 @@ import  { useState } from "react";
 import { Outlet } from "react-router-dom";
 import CompilanceSidebar from "./Sidebar";
 import CompilanceHeader from "./Header";
-import ExpiringDocumentsPopup from "../common/ExpiringDocumentsPopup";
-import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
+import ExpiringVehicleDocumentsToast from "../common/ExpiringVehicleDocumentsToast";
+import { useExpiringVehicleDocuments } from "../../hooks/useExpiringVehicleDocuments";
 
 const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const { showExpiringPopup, handleClosePopup, handleViewDocuments } = useExpiringDocuments();
+    const { showExpiringToast, expiringDocuments, handleCloseToast, handleViewDocuments } = useExpiringVehicleDocuments();
 
     const toggleSidebar = () => {
         setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -36,13 +36,12 @@ const Layout = () => {
                 </main>
             </div>
             
-            {/* Global Expiring Documents Popup */}
-            <ExpiringDocumentsPopup
-                isOpen={showExpiringPopup}
-                onClose={handleClosePopup}
+            {/* Global Expiring Vehicle Documents Toast */}
+            <ExpiringVehicleDocumentsToast
+                isOpen={showExpiringToast}
+                onClose={handleCloseToast}
                 onViewDocuments={handleViewDocuments}
-                daysThreshold={30}
-                showOnlyOnce={false}
+                count={expiringDocuments.length}
             />
         </div>
     );
