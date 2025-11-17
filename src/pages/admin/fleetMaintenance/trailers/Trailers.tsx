@@ -66,10 +66,13 @@ function Trailers() {
       return;
     }
 
-    const isSuperadmin = userInfo?.role === 'superadmin';
-    const hasCompany = Boolean(userInfo?.company);
+    const userRole = userInfo?.role || userInfo?.userData?.role;
+    const userCompany = userInfo?.company || userInfo?.userData?.company;
+    const isSuperadmin = userRole === 'superadmin';
+    const isFleetManager = userRole === 'Fleet Maintenance Manager';
+    const hasCompany = Boolean(userCompany);
 
-    if (!isSuperadmin && !hasCompany) {
+    if (!isSuperadmin && !hasCompany && !isFleetManager) {
       setEmptyMessage(null);
       setTrailers([]);
       setLoading(false);

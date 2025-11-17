@@ -205,10 +205,13 @@ const MaintenanceSchedule = () => {
             return;
         }
 
-        const isSuperadmin = userInfo?.role === 'superadmin';
-        const hasCompany = Boolean(userInfo?.company);
+        const userRole = userInfo?.role || userInfo?.userData?.role;
+        const userCompany = userInfo?.company || userInfo?.userData?.company;
+        const isSuperadmin = userRole === 'superadmin';
+        const isFleetManager = userRole === 'Fleet Maintenance Manager';
+        const hasCompany = Boolean(userCompany);
 
-        if (!isSuperadmin && !hasCompany) {
+        if (!isSuperadmin && !hasCompany && !isFleetManager) {
             setVehicles([]);
             setVehicleServices([]);
             setCostReport([]);

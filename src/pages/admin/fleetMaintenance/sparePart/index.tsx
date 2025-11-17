@@ -246,10 +246,13 @@ const SparePartsInventory = () => {
             return;
         }
 
-        const isSuperadmin = userInfo?.role === 'superadmin';
-        const hasCompany = Boolean(userInfo?.company);
+        const userRole = userInfo?.role || userInfo?.userData?.role;
+        const userCompany = userInfo?.company || userInfo?.userData?.company;
+        const isSuperadmin = userRole === 'superadmin';
+        const isFleetManager = userRole === 'Fleet Maintenance Manager';
+        const hasCompany = Boolean(userCompany);
 
-        if (!isSuperadmin && !hasCompany) {
+        if (!isSuperadmin && !hasCompany && !isFleetManager) {
             setSpareParts([]);
             setSuppliers([]);
             setWorkOrders([]);
@@ -262,6 +265,13 @@ const SparePartsInventory = () => {
         fetchSpareParts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfoReady, userInfo]);
+
+    // Fetch suppliers when add or edit modal opens
+    useEffect(() => {
+        if (showAddModal || showEditModal) {
+            fetchSuppliers();
+        }
+    }, [showAddModal, showEditModal]);
 
     // Fetch work orders when usage modal opens
     useEffect(() => {
@@ -561,6 +571,16 @@ const SparePartsInventory = () => {
             if (res?.success) {
                 addNotification('success', res.message || 'Supplier added successfully');
                 setShowSupplierModal(false);
+                
+                // Refresh suppliers list
+                await fetchSuppliers();
+                
+                // Auto-select the newly created supplier in the form
+                if (res.data && res.data._id) {
+                    newPartRef.current.supplier = res.data._id;
+                }
+                
+                // Reset supplier form
                 newSupplierRef.current = {
                     name: '',
                     contact: '',
@@ -568,7 +588,6 @@ const SparePartsInventory = () => {
                     phone: '',
                     address: ''
                 };
-                await fetchSuppliers();
             } else {
                 addNotification('error', res?.message || 'Failed to add supplier');
             }
@@ -706,19 +725,14 @@ const SparePartsInventory = () => {
                 </button>
 
                 {showDropdown && (
-                    <>
-                        <div
-                            className="fixed inset-0 z-[100]"
-                            onClick={() => setShowDropdown(false)}
-                        ></div>
-                        <div
-                            ref={dropdownRef}
-                            className="fixed w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-[101]"
-                            style={{
-                                top: `${position.top}px`,
-                                right: `${position.right}px`
-                            }}
-                        >
+                    <div
+                        ref={dropdownRef}
+                        className="fixed w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-[101]"
+                        style={{
+                            top: `${position.top}px`,
+                            right: `${position.right}px`
+                        }}
+                    >
                             <button
                                 onClick={() => {
                                     setSelectedPart(part);
@@ -791,7 +805,6 @@ const SparePartsInventory = () => {
                                 Delete Part
                             </button>
                         </div>
-                    </>
                 )}
             </div>
         );
@@ -980,7 +993,7 @@ const SparePartsInventory = () => {
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                         <h3 className="text-lg font-bold text-gray-900 mb-4">Add New Spare Part</h3>
-                        <form onSubmit={handleAddPart} className="space-y-4">
+                        <form onSubmit={handleAddPart} className="space-y-4" key="add-form">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1149,8 +1162,16 @@ const SparePartsInventory = () => {
                                         Supplier
                                     </label>
                                     <select
-                                        defaultValue={newPartRef.current.supplier}
-                                        onChange={(e) => newPartRef.current.supplier = e.target.value}
+                                        value={newPartRef.current.supplier}
+                                        onChange={(e) => {
+                                            if (e.target.value === '__create_new__') {
+                                                setShowSupplierModal(true);
+                                                // Reset to empty to show placeholder
+                                                newPartRef.current.supplier = '';
+                                            } else {
+                                                newPartRef.current.supplier = e.target.value;
+                                            }
+                                        }}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
                                         <option value="">Select Supplier</option>
@@ -1159,6 +1180,9 @@ const SparePartsInventory = () => {
                                                 {supplier.name}
                                             </option>
                                         ))}
+                                        <option value="__create_new__" className="text-blue-600 font-semibold">
+                                            + Create New Supplier
+                                        </option>
                                     </select>
                                 </div>
                             </div>
@@ -1218,7 +1242,7 @@ const SparePartsInventory = () => {
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                         <h3 className="text-lg font-bold text-gray-900 mb-4">Edit Spare Part</h3>
-                        <form onSubmit={handleEditPart} className="space-y-4">
+                        <form onSubmit={handleEditPart} className="space-y-4" key="edit-form">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1387,8 +1411,16 @@ const SparePartsInventory = () => {
                                         Supplier
                                     </label>
                                     <select
-                                        defaultValue={newPartRef.current.supplier}
-                                        onChange={(e) => newPartRef.current.supplier = e.target.value}
+                                        value={newPartRef.current.supplier}
+                                        onChange={(e) => {
+                                            if (e.target.value === '__create_new__') {
+                                                setShowSupplierModal(true);
+                                                // Reset to empty to show placeholder
+                                                newPartRef.current.supplier = '';
+                                            } else {
+                                                newPartRef.current.supplier = e.target.value;
+                                            }
+                                        }}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
                                         <option value="">Select Supplier</option>
@@ -1397,6 +1429,9 @@ const SparePartsInventory = () => {
                                                 {supplier.name}
                                             </option>
                                         ))}
+                                        <option value="__create_new__" className="text-blue-600 font-semibold">
+                                            + Create New Supplier
+                                        </option>
                                     </select>
                                 </div>
                             </div>
