@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, ChevronDown, ChevronUp } from 'lucide-react';
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import { createPlace } from '../../../../../axios/api/dispatcher.places';
 
 interface NewPlaceSidebarProps {
@@ -13,6 +14,46 @@ interface Country {
   flag: string;
   dialCode: string;
 }
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error';
+  message: string;
+}
+
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const NewPlacesSidebar: React.FC<NewPlaceSidebarProps> = ({ isOpen, onClose }) => {
   const [openDetails, setOpenDetails] = useState(true);
@@ -30,6 +71,18 @@ const NewPlacesSidebar: React.FC<NewPlaceSidebarProps> = ({ isOpen, onClose }) =
     country: '',
     phone: '',
   });
+
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const notificationIdRef = useRef(0);
+
+  const showToast = (type: 'success' | 'error', message: string) => {
+    const id = notificationIdRef.current++;
+    setNotifications((prev) => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
 
   // Fetch countries data
   useEffect(() => {
@@ -75,13 +128,15 @@ const NewPlacesSidebar: React.FC<NewPlaceSidebarProps> = ({ isOpen, onClose }) =
     try {
       const res = await createPlace(formData);
       if (res.success) {
-        alert('Place created successfully');
-        onClose();
+        showToast('success', res.message || 'Place created successfully');
+        setTimeout(() => {
+          onClose();
+        }, 500);
       } else {
-        alert(`Error: ${res.message}`);
+        showToast('error', res.message || 'Error creating place');
       }
-    } catch (err) {
-      alert('Something went wrong!');
+    } catch (err: any) {
+      showToast('error', err?.message || 'Something went wrong!');
     }
   };
 
@@ -89,6 +144,17 @@ const NewPlacesSidebar: React.FC<NewPlaceSidebarProps> = ({ isOpen, onClose }) =
 
   return (
     <>
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10000] space-y-2">
+        {notifications.map((notification) => (
+          <ToastNotification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
+
       {/* Backdrop */}
       <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={onClose}></div>
 

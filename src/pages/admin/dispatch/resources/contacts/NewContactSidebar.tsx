@@ -1,6 +1,47 @@
-import React, { useState, ChangeEvent, FC } from "react";
+import { useState, useEffect, useRef, type ChangeEvent, type FC } from "react";
 import { X } from "lucide-react";
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import { createContact } from "../../../../../axios/api/distapcher";
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error';
+  message: string;
+}
+
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 interface NewContactSidebarProps {
   isOpen: boolean;
@@ -19,6 +60,17 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const notificationIdRef = useRef(0);
+
+  const showToast = (type: 'success' | 'error', message: string) => {
+    const id = notificationIdRef.current++;
+    setNotifications((prev) => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -34,14 +86,16 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
       const res = await createContact(formData);
 
       if (res?.success) {
-        alert(res.message || "Contact created successfully!");
-        onClose();
+        showToast('success', res.message || "Contact created successfully!");
+        setTimeout(() => {
+          onClose();
+        }, 500);
       } else {
-        alert(res?.message || "Failed to create contact");
+        showToast('error', res?.message || "Failed to create contact");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Something went wrong while creating the contact");
+      showToast('error', error?.message || "Something went wrong while creating the contact");
     } finally {
       setLoading(false);
     }
@@ -51,6 +105,17 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
 
   return (
     <>
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10000] space-y-2">
+        {notifications.map((notification) => (
+          <ToastNotification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
+
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-[100]"

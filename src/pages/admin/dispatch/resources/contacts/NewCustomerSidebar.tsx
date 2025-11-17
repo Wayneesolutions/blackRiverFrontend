@@ -1,7 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import type { FC } from "react";
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import { createtCustomer } from '../../../../../axios/api/distapcher';
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error';
+  message: string;
+}
+
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 interface NewCustomerSidebarProps {
     isOpen: boolean;
@@ -19,6 +60,17 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
         internalId: ''
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+    const notificationIdRef = useRef(0);
+
+    const showToast = (type: 'success' | 'error', message: string) => {
+        const id = notificationIdRef.current++;
+        setNotifications((prev) => [...prev, { id, type, message }]);
+    };
+
+    const removeNotification = (id: number) => {
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -33,6 +85,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
 
             if (response?.success) {
                 console.log('Customer created successfully:', response);
+                showToast('success', response.message || 'Customer created successfully!');
                 setFormData({
                     name: '',
                     email: '',
@@ -42,14 +95,16 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                     city: '',
                     internalId: ''
                 });
-                onClose();
+                setTimeout(() => {
+                    onClose();
+                }, 500);
             } else {
                 console.error('Error creating customer:', response);
-                alert('Error creating customer. Please try again.');
+                showToast('error', response?.message || 'Error creating customer. Please try again.');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating customer:', error);
-            alert('Error creating customer. Please try again.');
+            showToast('error', error?.message || 'Error creating customer. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -59,6 +114,17 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
 
     return (
         <>
+            {/* Toast Notifications */}
+            <div className="fixed top-4 right-4 z-[10000] space-y-2">
+                {notifications.map((notification) => (
+                    <ToastNotification
+                        key={notification.id}
+                        notification={notification}
+                        onClose={removeNotification}
+                    />
+                ))}
+            </div>
+
             {/* Backdrop */}
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={onClose}></div>
 

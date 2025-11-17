@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import { updatePlace } from "../../../../../axios/api/dispatcher.places";
 
 interface Props {
@@ -6,6 +7,46 @@ interface Props {
   onClose: () => void;
   onSave: (place: any) => void;
 }
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error';
+  message: string;
+}
+
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const PlaceModal: React.FC<Props> = ({ place, onClose, onSave }) => {
   const [formData, setFormData] = useState<any>({
@@ -21,6 +62,17 @@ const PlaceModal: React.FC<Props> = ({ place, onClose, onSave }) => {
     securityAccessCodepostalCode: "",
   });
   const [loading, setLoading] = useState(false);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const notificationIdRef = useRef(0);
+
+  const showToast = (type: 'success' | 'error', message: string) => {
+    const id = notificationIdRef.current++;
+    setNotifications((prev) => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
 
   useEffect(() => {
     if (place) setFormData(place);
@@ -36,17 +88,34 @@ const PlaceModal: React.FC<Props> = ({ place, onClose, onSave }) => {
       const res = await updatePlace(formData._id, formData);
       setLoading(false);
       if (res.success) {
+        showToast('success', res.message || "Place updated successfully");
         onSave(res.data);
-        onClose();
-      } else alert(res.message || "Failed to update place");
-    } catch (err) {
+        setTimeout(() => {
+          onClose();
+        }, 500);
+      } else {
+        showToast('error', res.message || "Failed to update place");
+      }
+    } catch (err: any) {
       setLoading(false);
-      alert("Error updating place");
+      showToast('error', err?.message || "Error updating place");
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <>
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10000] space-y-2">
+        {notifications.map((notification) => (
+          <ToastNotification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
+
+      <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg w-[600px] max-w-full p-6 relative">
         <h2 className="text-xl font-semibold mb-4">
           {place ? "Edit Place" : "Create Place"}
@@ -91,7 +160,8 @@ const PlaceModal: React.FC<Props> = ({ place, onClose, onSave }) => {
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

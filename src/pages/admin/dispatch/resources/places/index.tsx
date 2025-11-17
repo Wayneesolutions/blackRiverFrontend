@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Plus, Search, Filter } from "lucide-react";
-import { message } from "antd";
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import NewPlacesSidebar from "./NewPlacesSidebar";
 import {
   listPlace,
@@ -13,14 +13,67 @@ interface Place {
   _id: string;
   name: string;
   street1?: string;
+  street2?: string;
+  neighbourHood?: string;
+  building?: string;
   city?: string;
   state?: string;
-  postalCode?: string;
   country?: string;
+  phone?: string;
   status?: string;
+  postalCode?: string;
+  securityAccessCodepostalCode?: string;
+  currentLocation?: {
+    address?: string;
+    longitude?: number | null;
+    latitude?: number | null;
+  };
   createdAt: string;
+  updatedAt?: string;
   [key: string]: any;
 }
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'warning';
+  message: string;
+}
+
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    warning: <FaExclamationCircle className="text-yellow-500" size={24} />,
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    warning: 'bg-yellow-50 border-yellow-200',
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -35,6 +88,18 @@ const Index = () => {
   const [deleteTarget, setDeleteTarget] = useState<Place | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const notificationIdRef = useRef(0);
+
+  const showToast = useCallback((type: 'success' | 'error' | 'warning', message: string) => {
+    const id = notificationIdRef.current++;
+    setNotifications((prev) => [...prev, { id, type, message }]);
+  }, []);
+
+  const removeNotification = useCallback((id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
   const fetchPlaces = useCallback(async () => {
     setLoading(true);
     try {
@@ -42,16 +107,16 @@ const Index = () => {
       if (res?.success) {
         setPlaces(Array.isArray(res.data) ? res.data : []);
       } else {
-        message.error(res?.message || "Failed to fetch places");
+        showToast('error', res?.message || "Failed to fetch places");
       }
     } catch (error: any) {
       console.error("Error fetching places:", error);
-      message.error(error?.message || "Failed to fetch places");
+      showToast('error', error?.message || "Failed to fetch places");
       setPlaces([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     fetchPlaces();
@@ -74,19 +139,19 @@ const Index = () => {
     try {
       const res = await updatePlace(editData._id, editData);
       if (res?.success) {
-        message.success(res.message || "Place updated successfully");
+        showToast('success', res.message || "Place updated successfully");
         closeEditModal();
         fetchPlaces();
       } else {
-        message.error(res?.message || "Update failed");
+        showToast('error', res?.message || "Update failed");
       }
     } catch (error: any) {
       console.error("Error updating place:", error);
-      message.error(error?.message || "Update failed");
+      showToast('error', error?.message || "Update failed");
     } finally {
       setEditLoading(false);
     }
-  }, [editData, closeEditModal, fetchPlaces]);
+  }, [editData, closeEditModal, fetchPlaces, showToast]);
 
   const openDeleteModal = useCallback((place: Place) => {
     setDeleteTarget(place);
@@ -105,48 +170,76 @@ const Index = () => {
     try {
       const res = await deletePlace(deleteTarget._id);
       if (res?.success) {
-        message.success(res.message || "Place deleted successfully");
+        showToast('success', res.message || "Place deleted successfully");
         closeDeleteModal();
         fetchPlaces();
       } else {
-        message.error(res?.message || "Delete failed");
+        showToast('error', res?.message || "Delete failed");
       }
     } catch (error: any) {
       console.error("Error deleting place:", error);
-      message.error(error?.message || "Delete failed");
+      showToast('error', error?.message || "Delete failed");
     } finally {
       setDeleteLoading(false);
     }
-  }, [deleteTarget, closeDeleteModal, fetchPlaces]);
+  }, [deleteTarget, closeDeleteModal, fetchPlaces, showToast]);
 
   const handleStatusUpdate = useCallback(
     async (id: string) => {
       try {
         const res = await updateStatusPlace(id);
         if (res?.success) {
-          message.success(res.message || "Status updated");
+          showToast('success', res.message || "Status updated");
           fetchPlaces();
         } else {
-          message.error(res?.message || "Status update failed");
+          showToast('error', res?.message || "Status update failed");
         }
       } catch (error: any) {
         console.error("Error updating status:", error);
-        message.error(error?.message || "Status update failed");
+        showToast('error', error?.message || "Status update failed");
       }
     },
-    [fetchPlaces]
+    [fetchPlaces, showToast]
   );
 
   const filteredPlaces = useMemo(
-    () =>
-      places.filter((place) =>
-        place?.name?.toLowerCase().includes(search.toLowerCase())
-      ),
+    () => {
+      if (!search) return places;
+      const searchLower = search.toLowerCase();
+      return places.filter((place) => {
+        const searchableFields = [
+          place?.name,
+          place?.street1,
+          place?.street2,
+          place?.neighbourHood,
+          place?.building,
+          place?.city,
+          place?.state,
+          place?.country,
+          place?.phone,
+          place?.postalCode,
+          place?.securityAccessCodepostalCode,
+          place?.currentLocation?.address,
+        ].filter(Boolean).join(" ").toLowerCase();
+        return searchableFields.includes(searchLower);
+      });
+    },
     [places, search]
   );
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10000] space-y-2">
+        {notifications.map((notification) => (
+          <ToastNotification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
+
       {/* Main Content */}
       <div className="flex-1">
         {/* Header */}
@@ -193,8 +286,8 @@ const Index = () => {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Name</th>
-                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Address</th>
-                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Postal Code</th>
+                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Full Address</th>
+                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Phone</th>
                       <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Country</th>
                       <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Status</th>
                       <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Created At</th>
@@ -203,14 +296,41 @@ const Index = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {filteredPlaces.length > 0 ? (
-                      filteredPlaces.map((place) => (
+                      filteredPlaces.map((place) => {
+                        // Build full address from all available fields
+                        const addressParts = [
+                          place.street1,
+                          place.street2,
+                          place.neighbourHood,
+                          place.building,
+                          place.city,
+                          place.state,
+                        ].filter(Boolean);
+                        
+                        const fullAddress = addressParts.length > 0 
+                          ? addressParts.join(", ")
+                          : place.currentLocation?.address || "N/A";
+                        
+                        const postalCode = place.postalCode || place.securityAccessCodepostalCode || "N/A";
+                        
+                        return (
                         <tr key={place._id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm text-gray-900">{place.name}</td>
+                          <td className="px-6 py-4 text-sm text-gray-900 font-medium">{place.name || "N/A"}</td>
                           <td className="px-6 py-4 text-sm text-gray-500">
-                            {`${place.street1 || ""}, ${place.city || ""}, ${place.state || ""}`}
+                            <div className="max-w-xs">
+                              <div className="font-medium text-gray-700 mb-1">{fullAddress}</div>
+                              {postalCode !== "N/A" && (
+                                <div className="text-xs text-gray-400">Postal: {postalCode}</div>
+                              )}
+                              {place.currentLocation?.address && fullAddress !== place.currentLocation.address && (
+                                <div className="text-xs text-gray-400 mt-1">
+                                  Location: {place.currentLocation.address}
+                                </div>
+                              )}
+                            </div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{place.postalCode}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{place.country}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{place.phone || "N/A"}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{place.country || "N/A"}</td>
                           <td className="px-6 py-4 text-sm">
                             <span
                               onClick={() => handleStatusUpdate(place._id)}
@@ -220,11 +340,11 @@ const Index = () => {
                                   : "bg-red-100 text-red-800"
                               }`}
                             >
-                              {place.status}
+                              {place.status || "N/A"}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-500">
-                            {new Date(place.createdAt).toLocaleDateString()}
+                            {place.createdAt ? new Date(place.createdAt).toLocaleDateString() : "N/A"}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-500">
                             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
@@ -243,7 +363,8 @@ const Index = () => {
                             </div>
                           </td>
                         </tr>
-                      ))
+                        );
+                      })
                     ) : (
                       <tr>
                         <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
@@ -262,8 +383,10 @@ const Index = () => {
       {/* Sidebar Component */}
       <NewPlacesSidebar
         isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        refreshPlaces={fetchPlaces}
+        onClose={() => {
+          setIsSidebarOpen(false);
+          fetchPlaces();
+        }}
       />
 
       {editModalOpen && editData && (
@@ -280,24 +403,54 @@ const Index = () => {
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-sm font-medium text-gray-700">Name *</label>
                 <input
                   type="text"
                   value={editData.name || ""}
                   onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Street</label>
+                <label className="block text-sm font-medium text-gray-700">Street 1</label>
                 <input
                   type="text"
                   value={editData.street1 || ""}
                   onChange={(e) => setEditData({ ...editData, street1: e.target.value })}
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Street 2</label>
+                <input
+                  type="text"
+                  value={editData.street2 || ""}
+                  onChange={(e) => setEditData({ ...editData, street2: e.target.value })}
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Neighbourhood</label>
+                  <input
+                    type="text"
+                    value={editData.neighbourHood || ""}
+                    onChange={(e) => setEditData({ ...editData, neighbourHood: e.target.value })}
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Building</label>
+                  <input
+                    type="text"
+                    value={editData.building || ""}
+                    onChange={(e) => setEditData({ ...editData, building: e.target.value })}
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -321,11 +474,15 @@ const Index = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Postal Code</label>
+                  <label className="block text-sm font-medium text-gray-700">Postal Code / Security Access Code</label>
                   <input
                     type="text"
-                    value={editData.postalCode || ""}
-                    onChange={(e) => setEditData({ ...editData, postalCode: e.target.value })}
+                    value={editData.postalCode || editData.securityAccessCodepostalCode || ""}
+                    onChange={(e) => setEditData({ 
+                      ...editData, 
+                      postalCode: e.target.value,
+                      securityAccessCodepostalCode: e.target.value 
+                    })}
                     className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -338,6 +495,15 @@ const Index = () => {
                     className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Phone</label>
+                <input
+                  type="text"
+                  value={editData.phone || ""}
+                  onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
             </div>
 

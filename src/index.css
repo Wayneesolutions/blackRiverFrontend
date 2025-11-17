@@ -20,6 +20,10 @@ html {
   animation: slide-in-right 0.3s ease-out;
 }
 
+.animate-slide-in {
+  animation: slide-in-right 0.3s ease-out;
+}
+
 /* Ensure Ant Design notifications appear above modals */
 .ant-notification {
   z-index: 10001 !important;

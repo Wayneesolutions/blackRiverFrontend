@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useMemo, type ChangeEvent } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent } from "react";
 import { Plus, Search, Filter, Edit, Trash2, X } from "lucide-react";
-import { message } from "antd";
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import NewContactSidebar from "./NewContactSidebar";
 import NewCustomerSidebar from "./NewCustomerSidebar";
 import {
@@ -33,6 +33,48 @@ interface Customer {
   role: string;
   createdAt: string;
 }
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'warning';
+  message: string;
+}
+
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    warning: <FaExclamationCircle className="text-yellow-500" size={24} />,
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    warning: 'bg-yellow-50 border-yellow-200',
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -68,7 +110,19 @@ const Index = () => {
   const [deleteTarget, setDeleteTarget] = useState<{ item: Contact | Customer; type: "contact" | "customer" } | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const notificationIdRef = useRef(0);
+
   const canCreate = userInfo?.role === 'superadmin' || Boolean(userInfo?.company);
+
+  const showToast = useCallback((type: 'success' | 'error' | 'warning', message: string) => {
+    const id = notificationIdRef.current++;
+    setNotifications((prev) => [...prev, { id, type, message }]);
+  }, []);
+
+  const removeNotification = useCallback((id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
 
   const normalizeEmptyMessage = useCallback((message?: string | null) => {
     if (!message) return null;
@@ -96,7 +150,7 @@ const Index = () => {
       } else if (res?.message) {
         setContacts([]);
         updateEmptyState(res.message, customers.length > 0);
-        message.warning(res.message);
+        showToast('warning', res.message);
       } else {
         setContacts([]);
       }
@@ -104,9 +158,9 @@ const Index = () => {
       console.error('Error fetching contacts:', error);
       setContacts([]);
       updateEmptyState(error?.message, customers.length > 0);
-      message.error(error?.message || "Failed to fetch contacts");
+      showToast('error', error?.message || "Failed to fetch contacts");
     }
-  }, [customers.length, updateEmptyState]);
+  }, [customers.length, updateEmptyState, showToast]);
 
   const fetchCustomers = useCallback(async () => {
     try {
@@ -118,7 +172,7 @@ const Index = () => {
       } else if (res?.message) {
         setCustomers([]);
         updateEmptyState(res.message, contacts.length > 0);
-        message.warning(res.message);
+        showToast('warning', res.message);
       } else {
         setCustomers([]);
       }
@@ -126,9 +180,9 @@ const Index = () => {
       console.error('Error fetching customers:', error);
       setCustomers([]);
       updateEmptyState(error?.message, contacts.length > 0);
-      message.error(error?.message || "Failed to fetch customers");
+      showToast('error', error?.message || "Failed to fetch customers");
     }
-  }, [contacts.length, updateEmptyState]);
+  }, [contacts.length, updateEmptyState, showToast]);
 
   const fetchAllData = useCallback(async () => {
     setLoading(true);
@@ -196,19 +250,19 @@ const Index = () => {
           ? await deleteContact(deleteTarget.item._id)
           : await deleteCustomer(deleteTarget.item._id);
       if (res?.success) {
-        message.success(res.message || `${deleteTarget.type === "contact" ? "Contact" : "Customer"} deleted successfully`);
+        showToast('success', res.message || `${deleteTarget.type === "contact" ? "Contact" : "Customer"} deleted successfully`);
         deleteTarget.type === "contact" ? fetchContacts() : fetchCustomers();
         closeDeleteModal();
       } else {
-        message.error(res?.message || "Delete failed");
+        showToast('error', res?.message || "Delete failed");
       }
     } catch (error: any) {
       console.error("Error deleting item:", error);
-      message.error(error?.message || "Delete failed");
+      showToast('error', error?.message || "Delete failed");
     } finally {
       setDeleteLoading(false);
     }
-  }, [deleteTarget, fetchContacts, fetchCustomers, closeDeleteModal]);
+  }, [deleteTarget, fetchContacts, fetchCustomers, closeDeleteModal, showToast]);
 
   // Open edit modal
   const handleEdit = useCallback((item: Contact | Customer) => {
@@ -241,20 +295,20 @@ const Index = () => {
           : await updateCustomer(editItem._id, editForm);
 
       if (res?.success) {
-        message.success(res.message || `${type === "contact" ? "Contact" : "Customer"} updated successfully`);
+        showToast('success', res.message || `${type === "contact" ? "Contact" : "Customer"} updated successfully`);
         type === "contact" ? fetchContacts() : fetchCustomers();
         setIsEditModalOpen(false);
         setEditItem(null);
       } else {
-        message.error(res?.message || "Update failed");
+        showToast('error', res?.message || "Update failed");
       }
     } catch (error: any) {
       console.error("Error updating item:", error);
-      message.error(error?.message || "Update failed");
+      showToast('error', error?.message || "Update failed");
     } finally {
       setEditLoading(false);
     }
-  }, [activeTab, editItem, editForm, fetchContacts, fetchCustomers]);
+  }, [activeTab, editItem, editForm, fetchContacts, fetchCustomers, showToast]);
 
   // Search
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
@@ -305,6 +359,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10000] space-y-2">
+        {notifications.map((notification) => (
+          <ToastNotification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
+
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-6">
