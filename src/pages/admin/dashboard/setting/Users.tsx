@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, EyeOff, X, Users as UsersIcon, Filter, Search, Truck, Mail, CreditCard, FileText, AlertCircle } from 'lucide-react';
 import { Select, Tag, message, notification } from "antd";
+import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { 
   getAllEmployees, 
   createEmployee, 
@@ -213,6 +214,9 @@ const Users = () => {
   const [activeTab, setActiveTab] = useState('basic');
   const [toastError, setToastError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; userId: string | null }>({ show: false, userId: null });
 
   // Available roles including drive
   const rolesWithLoginAccess: Role[] = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Safety Manager'];
