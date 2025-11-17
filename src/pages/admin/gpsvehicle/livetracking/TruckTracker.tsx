@@ -90,7 +90,16 @@ const ProfessionalTruckTracker: React.FC = () => {
                 }
             }
 
-            if (userInfo && userInfo.role !== 'superadmin' && !userInfo.company) {
+            // Handle different userInfo structures (userData.company or direct company)
+            const userRole = userInfo?.role || userInfo?.userData?.role;
+            const userCompany = userInfo?.company || userInfo?.userData?.company;
+            const isSuperadmin = userRole === 'superadmin';
+            const isDispatcher = userRole === 'dispatcher';
+            const hasCompany = Boolean(userCompany);
+
+            // Allow dispatchers to call API even if company is not visible in localStorage
+            // The backend will handle company filtering based on the authenticated user
+            if (userInfo && !isSuperadmin && !isDispatcher && !hasCompany) {
                 setVehicles([]);
                 return;
             }
