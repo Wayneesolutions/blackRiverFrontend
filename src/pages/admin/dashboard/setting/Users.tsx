@@ -91,7 +91,7 @@ interface User {
   };
 }
 
-type Role = "driver" | "dispatcher" | "hr" | "contact" | "customer" | "reporter" | "Maintenance Crew (Mechanics)" | "Fleet Maintenance Manager" | "Safety Manager";
+type Role = "driver" | "dispatcher" | "hr" | "contact" | "customer" | "reporter" | "Maintenance Crew (Mechanics)" | "Fleet Maintenance Manager" | "Compliance Manager";
 
 // Driver-specific form data interface
 interface DriverFormData {
@@ -219,12 +219,12 @@ const Users = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; userId: string | null }>({ show: false, userId: null });
 
   // Available roles including drive
-  const rolesWithLoginAccess: Role[] = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Safety Manager'];
+  const rolesWithLoginAccess: Role[] = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Compliance Manager'];
   
   // Roles without login access (only basic information)
   const rolesWithoutLoginAccess: Role[] = ['contact', 'customer', 'reporter', 'Maintenance Crew (Mechanics)'];
 
-  const roleOptions: Role[] = ['driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', "Maintenance Crew (Mechanics)", "Fleet Maintenance Manager", "Safety Manager"];
+  const roleOptions: Role[] = ['driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', "Maintenance Crew (Mechanics)", "Fleet Maintenance Manager", "Compliance Manager"];
 
   const [formData, setFormData] = useState({
     name: '',
@@ -982,7 +982,7 @@ const Users = () => {
       customer: "bg-cyan-50 text-cyan-700 border-cyan-200",
       reporter: "bg-yellow-50 text-yellow-700 border-yellow-200",
       "Fleet Maintenance Manager": "bg-violet-50 text-violet-700 border-violet-200",
-      "Safety Manager": "bg-red-50 text-red-700 border-red-200",
+      "Compliance Manager": "bg-red-50 text-red-700 border-red-200",
       "Maintenance Crew (Mechanics)": "bg-lime-50 text-lime-700 border-lime-200",
     };
     return colors[role] || "bg-gray-50 text-gray-700 border-gray-200";
