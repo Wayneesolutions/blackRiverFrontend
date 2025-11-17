@@ -258,7 +258,7 @@ export default function QuickStatsUI() {
           <div className="text-red-600 text-xl font-semibold mb-2">{error}</div>
           <button
             onClick={fetchDashboardData}
-            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-flex items-center gap-2"
+            className="mt-4 px-6 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-flex items-center gap-2"
           >
             <RefreshCw className="h-4 w-4" />
             Retry

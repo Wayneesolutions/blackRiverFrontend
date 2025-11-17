@@ -369,7 +369,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+              className="px-6 py-3 border border-gray-300 !mr-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
             >
               Cancel
             </button>
@@ -377,7 +377,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
               type="button"
               disabled={loading}
               onClick={handleSubmit}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading 
                 ? (mode === 'edit' ? "Updating..." : "Creating...") 
