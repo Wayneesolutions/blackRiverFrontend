@@ -529,14 +529,15 @@ function VehicleDocument() {
     if (activeTab === "trailer") {
       return docs.filter((item) => item.assetType === "trailer");
     }
-    return docs;
+    // When activeTab is "all", only show vehicles (exclude trailers)
+    return docs.filter((item) => item.assetType === "vehicle");
   };
 
   const tabStats = useMemo(() => {
     const docs = getDocumentsWithFallback();
-    const all = docs.length;
+    const vehicles = docs.filter((item) => item.assetType === "vehicle").length;
     const trailers = docs.filter((item) => item.assetType === "trailer").length;
-    return { all, trailers };
+    return { vehicles, trailers };
   }, [vehicleDocuments, fallbackEntries, activeTab]);
 
 const DocumentModal = () => {
@@ -1011,7 +1012,7 @@ const DocumentModal = () => {
               <FaCar className="text-gray-600" size={24} />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-800">{tabStats.all}</h3>
+              <h3 className="text-2xl font-bold text-gray-800">{tabStats.vehicles}</h3>
               <p className="text-gray-600 text-sm font-medium">Total Vehicles</p>
             </div>
           </div>
@@ -1044,7 +1045,7 @@ const DocumentModal = () => {
               <FaCar className="text-gray-500" size={16} />
               All Vehicles
               <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
-                {tabStats.all}
+                {tabStats.vehicles}
               </span>
             </div>
           </button>

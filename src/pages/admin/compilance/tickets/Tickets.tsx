@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FaTicketAlt, 
   FaPlus, 
@@ -14,9 +14,13 @@ import {
   FaEnvelope,
   FaCheckCircle,
   FaTimesCircle,
+  FaExclamationCircle,
+  FaInfoCircle,
+  FaExclamationTriangle,
   FaSort,
   FaSortUp,
-  FaSortDown
+  FaSortDown,
+  FaTimes
 } from 'react-icons/fa';
 import {
   getTickets,
@@ -98,6 +102,46 @@ interface TicketStats {
   fightAmount: number;
 }
 
+// Toast Notification Types
+type NotificationType = 'success' | 'error' | 'info' | 'warning';
+
+interface ToastNotification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+// Toast Notification Component
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  const icons = {
+    success: <FaCheckCircle className="text-green-600" size={20} />,
+    error: <FaExclamationCircle className="text-red-600" size={20} />,
+    info: <FaInfoCircle className="text-blue-600" size={20} />,
+    warning: <FaExclamationTriangle className="text-yellow-600" size={20} />
+  };
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const Tickets: React.FC = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -140,6 +184,8 @@ const Tickets: React.FC = () => {
     notes: '',
     lawyerDetails: undefined
   });
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const notificationIdRef = useRef(0);
 
   // Fetch vehicles and drivers
   useEffect(() => {
@@ -370,6 +416,19 @@ const Tickets: React.FC = () => {
     setShowDeleteModal(true);
   };
 
+  const addNotification = (type: NotificationType, message: string) => {
+    const id = ++notificationIdRef.current;
+    setNotifications((prev) => [...prev, { id, type, message }]);
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      removeNotification(id);
+    }, 5000);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
   const validateForm = () => {
     const basicValid = !!ticketForm.violationType &&
       !!ticketForm.violationDescription &&
@@ -395,7 +454,7 @@ const Tickets: React.FC = () => {
 
   const saveNewTicket = async () => {
     if (!validateForm()) {
-      alert('Please fill all required fields');
+      addNotification('error', 'Please fill all required fields');
       return;
     }
 
@@ -421,15 +480,16 @@ const Tickets: React.FC = () => {
 
       const res = await createTicket(payload);
       if (res?.success) {
+        addNotification('success', res.message || 'Ticket created successfully');
         await refreshData(true);
-    setShowAddModal(false);
-    resetForm();
+        setShowAddModal(false);
+        resetForm();
       } else {
-        alert(res?.message || 'Failed to create ticket');
+        addNotification('error', res?.message || 'Failed to create ticket');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating ticket:', error);
-      alert('Failed to create ticket');
+      addNotification('error', error?.message || 'Failed to create ticket');
     } finally {
       setLoading(false);
     }
@@ -438,7 +498,7 @@ const Tickets: React.FC = () => {
   const updateTicketData = async () => {
     if (!selectedTicket) return;
     if (!validateForm()) {
-      alert('Please fill all required fields');
+      addNotification('error', 'Please fill all required fields');
       return;
     }
 
@@ -464,16 +524,17 @@ const Tickets: React.FC = () => {
 
       const res = await updateTicket(selectedTicket._id, payload);
       if (res?.success) {
+        addNotification('success', res.message || 'Ticket updated successfully');
         await refreshData(true);
         setShowEditModal(false);
         setSelectedTicket(null);
         resetForm();
       } else {
-        alert(res?.message || 'Failed to update ticket');
+        addNotification('error', res?.message || 'Failed to update ticket');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating ticket:', error);
-      alert('Failed to update ticket');
+      addNotification('error', error?.message || 'Failed to update ticket');
     } finally {
       setLoading(false);
     }
@@ -486,15 +547,16 @@ const Tickets: React.FC = () => {
     try {
       const res = await deleteTicket(ticketToDelete._id);
       if (res?.success) {
+        addNotification('success', res.message || 'Ticket deleted successfully');
         await refreshData(true);
-    setShowDeleteModal(false);
-    setTicketToDelete(null);
+        setShowDeleteModal(false);
+        setTicketToDelete(null);
       } else {
-        alert(res?.message || 'Failed to delete ticket');
+        addNotification('error', res?.message || 'Failed to delete ticket');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting ticket:', error);
-      alert('Failed to delete ticket');
+      addNotification('error', error?.message || 'Failed to delete ticket');
     } finally {
       setLoading(false);
     }
@@ -523,6 +585,16 @@ const Tickets: React.FC = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
+      {/* Toast Notifications Container - High z-index to be above modal */}
+      <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
+        {notifications.map(notification => (
+          <ToastNotification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>

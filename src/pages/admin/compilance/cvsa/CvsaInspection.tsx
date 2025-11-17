@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FaClipboardCheck,
   FaMapMarkerAlt,
@@ -6,6 +6,8 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaExclamationTriangle,
+  FaExclamationCircle,
+  FaInfoCircle,
   FaBan,
   FaEdit,
   FaTrash,
@@ -13,7 +15,8 @@ import {
   FaFilter,
   FaSearch,
   FaFlag,
-  FaFlagUsa
+  FaFlagUsa,
+  FaTimes
 } from 'react-icons/fa';
 import {
   getCvsaInspections,
@@ -82,6 +85,46 @@ interface InspectionStats {
   outOfService: number;
 }
 
+// Toast Notification Types
+type NotificationType = 'success' | 'error' | 'info' | 'warning';
+
+interface ToastNotification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+// Toast Notification Component
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  const icons = {
+    success: <FaCheckCircle className="text-green-600" size={20} />,
+    error: <FaExclamationCircle className="text-red-600" size={20} />,
+    info: <FaInfoCircle className="text-blue-600" size={20} />,
+    warning: <FaExclamationTriangle className="text-yellow-600" size={20} />
+  };
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const CvsaInspection: React.FC = () => {
   const [inspections, setInspections] = useState<Inspection[]>([]);
@@ -116,6 +159,8 @@ const CvsaInspection: React.FC = () => {
     warning: 0,
     outOfService: 0
   });
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const notificationIdRef = useRef(0);
 
   // Fetch vehicles and drivers
   useEffect(() => {
@@ -316,6 +361,19 @@ const CvsaInspection: React.FC = () => {
     return driver?.name || '';
   };
 
+  const addNotification = (type: NotificationType, message: string) => {
+    const id = ++notificationIdRef.current;
+    setNotifications((prev) => [...prev, { id, type, message }]);
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      removeNotification(id);
+    }, 5000);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
   const validateForm = () => {
     return (
       !!inspectionForm.country &&
@@ -330,7 +388,7 @@ const CvsaInspection: React.FC = () => {
 
   const saveNewInspection = async () => {
     if (!validateForm()) {
-      alert('Please fill all required fields');
+      addNotification('error', 'Please fill all required fields');
       return;
     }
 
@@ -350,16 +408,17 @@ const CvsaInspection: React.FC = () => {
 
       const res = await createCvsaInspection(payload);
       if (res?.success) {
+        addNotification('success', res.message || 'Inspection created successfully');
         // Refresh both inspections and stats
         await refreshData(true);
-    setShowAddModal(false);
-    resetForm();
+        setShowAddModal(false);
+        resetForm();
       } else {
-        alert(res?.message || 'Failed to create inspection');
+        addNotification('error', res?.message || 'Failed to create inspection');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating inspection:', error);
-      alert('Failed to create inspection');
+      addNotification('error', error?.message || 'Failed to create inspection');
     } finally {
       setLoading(false);
     }
@@ -368,7 +427,7 @@ const CvsaInspection: React.FC = () => {
   const updateInspection = async () => {
     if (!selectedInspection) return;
     if (!validateForm()) {
-      alert('Please fill all required fields');
+      addNotification('error', 'Please fill all required fields');
       return;
     }
 
@@ -383,22 +442,23 @@ const CvsaInspection: React.FC = () => {
         driver: inspectionForm.driver,
         inspectorName: inspectionForm.inspectorName,
         violations: inspectionForm.violations || [],
-      notes: inspectionForm.notes || ''
+        notes: inspectionForm.notes || ''
       };
 
       const res = await updateCvsaInspection(selectedInspection._id, payload);
       if (res?.success) {
+        addNotification('success', res.message || 'Inspection updated successfully');
         // Refresh both inspections and stats
         await refreshData(true);
-    setShowEditModal(false);
-    setSelectedInspection(null);
-    resetForm();
+        setShowEditModal(false);
+        setSelectedInspection(null);
+        resetForm();
       } else {
-        alert(res?.message || 'Failed to update inspection');
+        addNotification('error', res?.message || 'Failed to update inspection');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating inspection:', error);
-      alert('Failed to update inspection');
+      addNotification('error', error?.message || 'Failed to update inspection');
     } finally {
       setLoading(false);
     }
@@ -411,16 +471,17 @@ const CvsaInspection: React.FC = () => {
     try {
       const res = await deleteCvsaInspection(inspectionToDelete._id);
       if (res?.success) {
+        addNotification('success', res.message || 'Inspection deleted successfully');
         // Refresh both inspections and stats
         await refreshData(true);
-    setShowDeleteModal(false);
-    setInspectionToDelete(null);
+        setShowDeleteModal(false);
+        setInspectionToDelete(null);
       } else {
-        alert(res?.message || 'Failed to delete inspection');
+        addNotification('error', res?.message || 'Failed to delete inspection');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting inspection:', error);
-      alert('Failed to delete inspection');
+      addNotification('error', error?.message || 'Failed to delete inspection');
     } finally {
       setLoading(false);
     }
@@ -442,6 +503,16 @@ const CvsaInspection: React.FC = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
+      {/* Toast Notifications Container - High z-index to be above modal */}
+      <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
+        {notifications.map(notification => (
+          <ToastNotification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
