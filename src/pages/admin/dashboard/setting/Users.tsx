@@ -468,18 +468,15 @@ const Users = () => {
       }
     }
 
-    // Internal ID validation - only required for roles with login access
-    const requiresLoginAccess = rolesWithLoginAccess.includes(formData.role);
-    if (requiresLoginAccess) {
-      if (!formData.internalId?.trim()) {
-        errors.push('Internal ID is required');
-      } else {
-        const internalIdTrimmed = formData.internalId.trim().toUpperCase();
-        if (internalIdTrimmed.length < 3 || internalIdTrimmed.length > 20) {
-          errors.push('Internal ID must be between 3 and 20 characters');
-        } else if (!/^[A-Z0-9_-]+$/.test(internalIdTrimmed)) {
-          errors.push('Internal ID can only contain uppercase letters, numbers, hyphens, and underscores');
-        }
+    // Internal ID validation - required for all roles
+    if (!formData.internalId?.trim()) {
+      errors.push('Internal ID is required');
+    } else {
+      const internalIdTrimmed = formData.internalId.trim().toUpperCase();
+      if (internalIdTrimmed.length < 3 || internalIdTrimmed.length > 20) {
+        errors.push('Internal ID must be between 3 and 20 characters');
+      } else if (!/^[A-Z0-9_-]+$/.test(internalIdTrimmed)) {
+        errors.push('Internal ID can only contain uppercase letters, numbers, hyphens, and underscores');
       }
     }
 
@@ -492,6 +489,7 @@ const Users = () => {
     }
 
     // Password validation - only required for roles with login access
+    const requiresLoginAccess = rolesWithLoginAccess.includes(formData.role);
     if (requiresLoginAccess) {
       if (!isEditing && !formData.password?.trim()) {
         // For new users with login access, password is optional (backend provides default)
@@ -1002,8 +1000,8 @@ const Users = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 px-6">
-      {/* Toast Notifications Container - High z-index to be above sidebar */}
-      <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-3 max-w-md">
+      {/* Toast Notifications Container - High z-index to be above modal */}
+      <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
         {notifications.map(notification => (
           <ToastNotification
             key={notification.id}
@@ -1300,24 +1298,22 @@ const Users = () => {
                       </div>
                     )}
 
-                    {rolesWithLoginAccess.includes(formData.role) && (
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Internal ID <span className="text-red-500">*</span></label>
-                        <input
-                          type="text"
-                          name="internalId"
-                          value={formData.internalId}
-                          onChange={handleInputChange}
-                          required={rolesWithLoginAccess.includes(formData.role)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all uppercase"
-                          placeholder="EMP-001 (uppercase letters, numbers, hyphens, underscores only)"
-                          minLength={3}
-                          maxLength={20}
-                          pattern="[A-Z0-9_-]+"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">3-20 characters, uppercase letters, numbers, hyphens, and underscores only</p>
-                      </div>
-                    )}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Internal ID <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        name="internalId"
+                        value={formData.internalId}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all uppercase"
+                        placeholder="EMP-001 (uppercase letters, numbers, hyphens, underscores only)"
+                        minLength={3}
+                        maxLength={20}
+                        pattern="[A-Z0-9_-]+"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">3-20 characters, uppercase letters, numbers, hyphens, and underscores only</p>
+                    </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Join Date <span className="text-red-500">*</span></label>
