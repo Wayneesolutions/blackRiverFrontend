@@ -147,12 +147,18 @@ const Delivery = () => {
           }
         }
 
-        const isSuperadmin = currentUser?.role === 'superadmin';
-        const hasCompany = Boolean(currentUser?.company);
+        // Handle different userInfo structures (userData.company or direct company)
+        const userRole = currentUser?.role || currentUser?.userData?.role;
+        const userCompany = currentUser?.company || currentUser?.userData?.company;
+        const isSuperadmin = userRole === 'superadmin';
+        const isDispatcher = userRole === 'dispatcher';
+        const hasCompany = Boolean(userCompany);
 
-        if (!isSuperadmin && !hasCompany) {
+        // Allow dispatchers to call API even if company is not visible in localStorage
+        // The backend will handle company filtering based on the authenticated user
+        if (!isSuperadmin && !isDispatcher && !hasCompany) {
           setLoads([]);
-          setEmptyStateMessage(null);
+          setEmptyStateMessage('No company assigned. Please complete company settings to view delivery loads.');
           return;
         }
 
