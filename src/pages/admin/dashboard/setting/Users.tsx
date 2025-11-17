@@ -1327,7 +1327,7 @@ const Users = () => {
                       />
                     </div>
 
-                    <div>
+                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Role</label>
                       <select
                         name="role"
@@ -1336,6 +1336,11 @@ const Users = () => {
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       >
+                        {/* Not selected by default, just visible in dropdown */}
+                        <option value="" disabled>
+                          Select role
+                        </option>
+
                         {roleOptions.map((role) => (
                           <option key={role} value={role} className="capitalize">
                             {role}
@@ -1406,7 +1411,7 @@ const Users = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Address <span className="text-gray-500 text-xs">(optional)</span></label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Address</label>
                       <textarea
                         name="address"
                         value={formData.address}
@@ -1420,7 +1425,7 @@ const Users = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Policies <span className="text-gray-500 text-xs">(optional)</span></label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Policies</label>
                       <textarea
                         name="policies"
                         value={formData.policies}
