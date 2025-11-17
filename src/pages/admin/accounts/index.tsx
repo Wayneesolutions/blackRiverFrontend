@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  DollarSign,
-  Users,
-  Gauge,
   TrendingUp,
   AlertCircle,
   Calendar,
@@ -51,8 +47,6 @@ interface RecentExpense {
 interface StatCardProps {
   title: string;
   value: string;
-  icon: ComponentType<{ size?: number; className?: string }>;
-  color?: 'green' | 'orange' | 'blue' | 'purple' | 'gray';
   subtitle?: string;
   trend?: TrendInfo | null;
 }
@@ -119,19 +113,9 @@ const Dashboard = () => {
 const StatCard = ({
   title,
   value,
-  icon: Icon,
-  color = 'blue',
   subtitle = '',
   trend = null,
 }: StatCardProps) => {
-    const colorMap: Record<string, { bg: string; text: string }> = {
-      green: { bg: 'bg-green-100', text: 'text-green-600' },
-      orange: { bg: 'bg-orange-100', text: 'text-orange-600' },
-      blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
-      purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
-      gray: { bg: 'bg-gray-100', text: 'text-gray-600' },
-    };
-    const palette = colorMap[color] || colorMap.gray;
 
     return (
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -150,9 +134,6 @@ const StatCard = ({
                 <span>{trend.value}</span>
               </div>
             ) : null}
-          </div>
-          <div className={`p-3 rounded-full flex-shrink-0 ${palette.bg}`}>
-            <Icon className={palette.text} size={24} />
           </div>
         </div>
       </div>
@@ -182,29 +163,21 @@ const StatCard = ({
           <StatCard 
             title="Total Revenue" 
             value={`$${totalRevenue.toLocaleString()}`} 
-            icon={DollarSign} 
-            color="green"
             subtitle={`${invoices.length} invoices`}
           />
           <StatCard 
             title="Total Expenses" 
             value={`$${totalExpenses.toLocaleString()}`} 
-            icon={Gauge} 
-            color="orange"
             subtitle={`${expenses.length} transactions`}
           />
           <StatCard 
             title="Total Payroll" 
             value={`$${totalPayroll.toLocaleString()}`} 
-            icon={Users} 
-            color="blue"
             subtitle={`${totalEmployees} employees`}
           />
           <StatCard 
             title="Net Profit" 
             value={`$${(totalRevenue - totalExpenses - totalPayroll).toLocaleString()}`} 
-            icon={TrendingUp} 
-            color="purple"
             subtitle="Revenue - Expenses - Payroll"
           />
         </div>
