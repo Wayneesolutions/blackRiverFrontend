@@ -5,7 +5,8 @@ import {
   getVehicleDocument,
   createVehicleDocument,
   updateVehicleDocument,
-  deleteVehicleDocument
+  deleteVehicleDocument,
+  getSignedVehicleDocumentUrl
 } from "../../../../axios/api/compilance.vehicledoc";
 import { useVehicles } from "../../../../customHooks/useVehicles";
 import { useTrailers } from "../../../../customHooks/useTrailers";
@@ -165,6 +166,10 @@ function VehicleDocument() {
   });
   const [showViewModal, setShowViewModal] = useState<boolean>(false);
   const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
+  const [viewingFile, setViewingFile] = useState<any>(null);
+  const [signedFileUrl, setSignedFileUrl] = useState<string | null>(null);
+  const [loadingFileUrl, setLoadingFileUrl] = useState<boolean>(false);
+  const [viewerError, setViewerError] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'all' | 'trailer'>('all');
   const [formData, setFormData] = useState<FormData>({
     vehicleId: "",
@@ -930,22 +935,27 @@ const DocumentModal = () => {
 
   const ViewDocumentModal = () => (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl relative max-h-[90vh] flex flex-col">
         {/* Modal Header */}
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl">
+        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl z-10 flex-shrink-0">
           <h3 className="text-xl font-bold text-gray-800">
             Document Details: {getDocumentTypeDisplayName(viewingDoc?.documentType || '')}
           </h3>
           <button
-            onClick={() => setShowViewModal(false)}
+            onClick={() => {
+              setShowViewModal(false);
+              setViewingFile(null);
+              setSignedFileUrl(null);
+            }}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <FaTimes className="text-gray-500" size={20} />
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6 space-y-6">
+        {/* Modal Body - Scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6 space-y-6">
           {/* Document Information */}
           <div className="bg-gray-50 rounded-xl p-6">
             <h4 className="text-lg font-bold text-gray-800 mb-4">Document Information</h4>
@@ -1002,18 +1012,91 @@ const DocumentModal = () => {
                       <div className="flex gap-2">
                         <button
                           className="p-2.5 text-[#9793E4] hover:bg-[#9793E4]/10 rounded-lg transition-all border border-[#9793E4]/30"
-                          onClick={() => window.open(file.fileUrl, '_blank')}
+                          onClick={async () => {
+                            try {
+                              if (!viewingDoc?._id) return;
+                              const fileIndex = viewingDoc.files?.findIndex((f: any) => f.fileUrl === file.fileUrl || f._id === file._id) ?? 0;
+                              
+                              // Get file extension to determine how to open it
+                              const fileExt = file.fileName?.split('.').pop()?.toLowerCase() || file.fileType?.split('/').pop()?.toLowerCase() || '';
+                              const isPdf = fileExt === 'pdf' || file.fileType?.toLowerCase().includes('pdf');
+                              const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt) || file.fileType?.toLowerCase().startsWith('image/');
+                              
+                              if (isPdf || isImage) {
+                                // For PDFs and images, set the file to view and fetch signed URL
+                                setViewingFile(file);
+                                setLoadingFileUrl(true);
+                                setSignedFileUrl(null);
+                                setViewerError(false);
+                                
+                                try {
+                                  const signedRes = await getSignedVehicleDocumentUrl(viewingDoc._id, fileIndex, 'inline');
+                                  if (!signedRes || !signedRes.success) {
+                                    console.error('❌ Failed to get signed URL:', signedRes);
+                                    addNotification('error', 'Failed to generate preview URL. Please try again.');
+                                    setLoadingFileUrl(false);
+                                    return;
+                                  }
+                                  const url = signedRes.url || file.fileUrl;
+                                  console.log('📄 PDF Signed URL for viewing:', url?.substring(0, 100) + '...');
+                                  console.log('📄 URL includes inline:', url?.includes('response-content-disposition=inline'));
+                                  setSignedFileUrl(url);
+                                  
+                                  // Set a timeout to detect if PDF doesn't load (10 seconds)
+                                  if (isPdf) {
+                                    setTimeout(() => {
+                                      // Check if iframe/object has loaded content
+                                      const iframe = document.querySelector('iframe[title="PDF Preview"]') as HTMLIFrameElement;
+                                      const object = document.querySelector('object[type="application/pdf"]') as HTMLObjectElement;
+                                      
+                                      if (iframe || object) {
+                                        // Try to detect if content loaded by checking if element is still in DOM
+                                        // If after 10 seconds and no error was set, assume it might be blank
+                                        // We'll let the onError handler manage this
+                                      }
+                                    }, 10000);
+                                  }
+                                } catch (error) {
+                                  console.error('Error getting signed URL:', error);
+                                  setSignedFileUrl(file.fileUrl);
+                                } finally {
+                                  setLoadingFileUrl(false);
+                                }
+                              } else {
+                                // For other file types (Office docs, etc.), show message that they need to download
+                                addNotification('info', 'This file type cannot be previewed in the browser. Please use the download button to view it.');
+                              }
+                            } catch (error) {
+                              console.error('Error viewing file:', error);
+                              addNotification('error', 'Error loading file. Please try again.');
+                            }
+                          }}
                           title="View File"
                         >
                           <FaEye size={16} />
                         </button>
                         <button
                           className="p-2.5 text-green-600 hover:bg-green-50 rounded-lg transition-all border border-green-200"
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = file.fileUrl;
-                            link.download = file.fileName;
-                            link.click();
+                          onClick={async () => {
+                            try {
+                              if (!viewingDoc?._id) return;
+                              const fileIndex = viewingDoc.files?.findIndex((f: any) => f.fileUrl === file.fileUrl || f._id === file._id) ?? 0;
+                              const signedRes = await getSignedVehicleDocumentUrl(viewingDoc._id, fileIndex, 'attachment');
+                              const url = signedRes?.success && signedRes?.url ? signedRes.url : file.fileUrl;
+                              const link = document.createElement('a');
+                              link.href = url;
+                              link.download = file.fileName;
+                              link.target = '_blank';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            } catch (error) {
+                              console.error('Error downloading file:', error);
+                              const link = document.createElement('a');
+                              link.href = file.fileUrl;
+                              link.download = file.fileName;
+                              link.click();
+                            }
                           }}
                           title="Download File"
                         >
@@ -1031,22 +1114,273 @@ const DocumentModal = () => {
                 {viewingDoc?.documentLocation && (
                   <button
                     className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] transition-colors"
-                    onClick={() => window.open(viewingDoc.documentLocation, '_blank')}
+                    onClick={async () => {
+                      try {
+                        if (!viewingDoc?._id) return;
+                        const signedRes = await getSignedVehicleDocumentUrl(viewingDoc._id, 0, 'inline');
+                        const url = signedRes?.success && signedRes?.url ? signedRes.url : viewingDoc.documentLocation;
+                        
+                        // Get file extension from documentLocation
+                        const urlMatch = url.match(/\.([^.?#]+)(\?|#|$)/);
+                        const fileExt = urlMatch ? urlMatch[1].toLowerCase() : '';
+                        const isPdf = fileExt === 'pdf';
+                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+                        
+                        if (isPdf || isImage) {
+                          // Create a link without download attribute to open in browser
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.target = '_blank';
+                          link.rel = 'noopener noreferrer';
+                          // Explicitly do NOT set download attribute
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        } else {
+                          // For other file types, show message
+                          addNotification('info', 'This file type cannot be previewed in the browser. Please use the download button to view it.');
+                        }
+                      } catch (error) {
+                        console.error('Error getting signed URL:', error);
+                        // Fallback: try to open original URL
+                        if (viewingDoc?.documentLocation) {
+                          const urlMatch = viewingDoc.documentLocation.match(/\.([^.?#]+)(\?|#|$)/);
+                          const fileExt = urlMatch ? urlMatch[1].toLowerCase() : '';
+                          const isPdf = fileExt === 'pdf';
+                          const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+                          
+                          if (isPdf || isImage) {
+                            const link = document.createElement('a');
+                            link.href = viewingDoc.documentLocation;
+                            link.target = '_blank';
+                            link.rel = 'noopener noreferrer';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          } else {
+                            addNotification('info', 'This file type cannot be previewed in the browser. Please use the download button to view it.');
+                          }
+                        }
+                      }
+                    }}
                   >
                     <FaEye size={16} /> View Document
                   </button>
                 )}
               </div>
             )}
+            
+            {/* File Preview Section */}
+            {viewingFile && (
+              <div className="p-6 border-t border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-bold text-gray-800">Preview: {viewingFile.fileName}</h4>
+              <button
+                onClick={() => {
+                  setViewingFile(null);
+                  setSignedFileUrl(null);
+                  setViewerError(false);
+                }}
+                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+              >
+                <FaTimes className="text-gray-500" size={16} />
+              </button>
+            </div>
+            
+            {loadingFileUrl ? (
+              <div className="flex flex-col items-center justify-center h-[60vh] bg-white rounded-lg">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[#9793E4] mb-4"></div>
+                <p className="text-gray-600">Loading file...</p>
+              </div>
+            ) : !signedFileUrl ? (
+              <div className="flex flex-col items-center justify-center h-[60vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
+                <FaFileAlt className="text-gray-400 mb-4" size={48} />
+                <p className="text-sm text-gray-600 mb-4">No file URL available.</p>
+                <button
+                  onClick={async () => {
+                    try {
+                      if (!viewingDoc?._id) return;
+                      const fileIndex = viewingDoc.files?.findIndex((f: any) => f.fileUrl === viewingFile.fileUrl || f._id === viewingFile._id) ?? 0;
+                      const signedRes = await getSignedVehicleDocumentUrl(viewingDoc._id, fileIndex, 'inline');
+                      if (signedRes?.success && signedRes?.url) {
+                        setSignedFileUrl(signedRes.url);
+                      }
+                    } catch (error) {
+                      console.error('Error retrying signed URL:', error);
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  <span className="text-white">Retry Loading</span>
+                </button>
+              </div>
+            ) : (() => {
+              const fileExt = viewingFile.fileName?.split('.').pop()?.toLowerCase() || viewingFile.fileType?.split('/').pop()?.toLowerCase() || '';
+              const isPdf = fileExt === 'pdf' || viewingFile.fileType?.toLowerCase().includes('pdf');
+              const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt) || viewingFile.fileType?.toLowerCase().startsWith('image/');
+              
+              if (isPdf) {
+                // Use hash fragment for PDF viewer parameters (doesn't affect signature)
+                // Ensure we have a valid URL
+                if (!signedFileUrl) {
+                  return (
+                    <div className="flex flex-col items-center justify-center h-[60vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
+                      <FaFileAlt className="text-gray-400 mb-4" size={48} />
+                      <p className="text-sm text-gray-600 mb-4">No file URL available.</p>
+                    </div>
+                  );
+                }
+                
+                // Use hash fragment for PDF viewer parameters (doesn't affect signature)
+                const pdfUrl = `${signedFileUrl}#toolbar=0`;
+                console.log('🔍 Loading PDF in iframe. URL length:', pdfUrl.length);
+                console.log('🔍 URL starts with:', pdfUrl.substring(0, 50));
+                console.log('🔍 URL contains inline param:', pdfUrl.includes('response-content-disposition=inline'));
+                
+                return (
+                  <div className="relative w-full">
+                    <iframe
+                      title="PDF Preview"
+                      src={pdfUrl}
+                      className="w-full h-[60vh] border rounded-lg bg-white"
+                      style={{ minHeight: '60vh' }}
+                      onError={(e) => {
+                        console.error('❌ PDF iframe load error:', e);
+                        setViewerError(true);
+                      }}
+                      onLoad={(e) => {
+                        console.log('✅ PDF iframe onLoad triggered');
+                        setViewerError(false);
+                        // Additional verification after load
+                        setTimeout(() => {
+                          const iframe = e.currentTarget;
+                          if (iframe && iframe.contentWindow) {
+                            try {
+                              // Try to check if PDF loaded (CORS will block but that's expected)
+                              console.log('✅ PDF iframe contentWindow accessible');
+                            } catch (err) {
+                              // CORS error is expected for S3, but PDF should still display
+                              console.log('ℹ️ CORS check (expected for S3):', err);
+                            }
+                          }
+                        }, 500);
+                      }}
+                    />
+                    <div className="absolute bottom-4 right-4 flex gap-2">
+                      <button
+                        onClick={() => {
+                          window.open(signedFileUrl, '_blank', 'noopener,noreferrer');
+                        }}
+                        className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                      >
+                        <FaEye size={14} className="text-white" />
+                        <span className="text-white">Open in New Tab</span>
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            if (!viewingDoc?._id) return;
+                            const fileIndex = viewingDoc.files?.findIndex((f: any) => f.fileUrl === viewingFile.fileUrl || f._id === viewingFile._id) ?? 0;
+                            const signedRes = await getSignedVehicleDocumentUrl(viewingDoc._id, fileIndex, 'attachment');
+                            const url = signedRes?.success && signedRes?.url ? signedRes.url : signedFileUrl;
+                            const link = document.createElement('a');
+                            link.href = url || '';
+                            link.download = viewingFile.fileName;
+                            link.target = '_blank';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          } catch (error) {
+                            console.error('Download error:', error);
+                          }
+                        }}
+                        className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                      >
+                        <FaDownload size={14} className="text-white" />
+                        <span className="text-white">Download</span>
+                      </button>
+                    </div>
+                    {viewerError && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-lg">
+                        <div className="text-center p-4">
+                          <FaFileAlt className="text-yellow-500 mb-2 mx-auto" size={32} />
+                          <p className="text-sm text-gray-600 mb-3">PDF could not be displayed in viewer.</p>
+                          <button
+                            onClick={() => {
+                              window.open(signedFileUrl, '_blank', 'noopener,noreferrer');
+                            }}
+                            className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                          >
+                            <span className="text-white">Open in New Tab</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              } else if (isImage) {
+                return (
+                  <div className="flex flex-col items-center justify-center bg-white rounded-lg border p-4">
+                    <img
+                      src={signedFileUrl}
+                      alt={viewingFile.fileName}
+                      className="max-h-[60vh] w-auto mx-auto rounded-lg shadow-lg"
+                      onError={(e) => {
+                        console.error('Image load error:', e);
+                        const target = e.currentTarget;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="flex flex-col items-center justify-center h-[60vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
+                    <FaFileAlt className="text-gray-400 mb-4" size={48} />
+                    <p className="text-sm text-gray-600 mb-4">This file type cannot be previewed in the browser.</p>
+                    <button
+                      onClick={async () => {
+                        try {
+                          if (!viewingDoc?._id) return;
+                          const fileIndex = viewingDoc.files?.findIndex((f: any) => f.fileUrl === viewingFile.fileUrl || f._id === viewingFile._id) ?? 0;
+                          const signedRes = await getSignedVehicleDocumentUrl(viewingDoc._id, fileIndex, 'attachment');
+                          const url = signedRes?.success && signedRes?.url ? signedRes.url : viewingFile.fileUrl;
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = viewingFile.fileName;
+                          link.target = '_blank';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        } catch (error) {
+                          console.error('Download error:', error);
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                    >
+                      <FaDownload size={16} className="text-white" />
+                      <span className="text-white">Download to View</span>
+                    </button>
+                  </div>
+                );
+              }
+            })()}
+              </div>
+            )}
+          </div>
           </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl flex-shrink-0">
           <button
             type="button"
             className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-            onClick={() => setShowViewModal(false)}
+            onClick={() => {
+              setShowViewModal(false);
+              setViewingFile(null);
+              setSignedFileUrl(null);
+            }}
           >
             Close
           </button>

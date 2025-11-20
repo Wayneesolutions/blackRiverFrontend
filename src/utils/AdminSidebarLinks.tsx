@@ -10,11 +10,12 @@ import { BsPersonVcard } from "react-icons/bs";
 import { RiBillLine } from "react-icons/ri";
 import { RiFoldersLine } from "react-icons/ri";
 
-type AdminSidebarLink = {
+export type AdminSidebarLink = {
     key: string;
     icon: React.ReactNode;
     label: string;
     children?: AdminSidebarLink[];
+    action?: string;
 };
 
 export const AdminSidebarLinks: AdminSidebarLink[] = [

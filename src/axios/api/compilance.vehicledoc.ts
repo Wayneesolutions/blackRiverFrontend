@@ -72,3 +72,13 @@ export const getExpiringVehicleDocuments = async (days: number = 30) => {
     return error?.response?.data || { success: false, message: error?.message || 'Failed to fetch expiring vehicle documents', data: [] };
   }
 };
+
+export const getSignedVehicleDocumentUrl = async (id: string, fileIndex: number = 0, disposition: 'inline' | 'attachment' = 'inline') => {
+  try {
+    const res = await apiClient.get(`hr/vehicle-document/${id}/signed-url?fileIndex=${fileIndex}&disposition=${disposition}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};

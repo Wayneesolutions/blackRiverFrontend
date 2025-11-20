@@ -100,7 +100,7 @@ const NewPlacesSidebar: React.FC<NewPlaceSidebarProps> = ({ isOpen, onClose }) =
           .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
 
         setCountries(sortedCountries);
-        const defaultCountry = sortedCountries.find(c => c.code === 'US');
+        const defaultCountry = sortedCountries.find((c: Country) => c.code === 'US');
         if (defaultCountry) setSelectedCountry(defaultCountry.code);
       })
       .catch(() => {

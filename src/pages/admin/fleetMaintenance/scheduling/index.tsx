@@ -1135,9 +1135,13 @@ const MaintenanceSchedule = () => {
                                                 <Truck className="text-gray-400 mr-3" size={20} />
                                                 <div>
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        {service.vehicleId?.vehicleNumber || 'N/A'}
+                                                        {service.vehicleId?.plateNumber || service.vehicleId?.internalId || 'N/A'}
                                                     </div>
-                                                    <div className="text-sm text-gray-500">{service.vehicleId?.model || 'N/A'}</div>
+                                                    <div className="text-sm text-gray-500">
+                                                        {service.vehicleId?.make && service.vehicleId?.model 
+                                                            ? `${service.vehicleId.make} ${service.vehicleId.model}` 
+                                                            : service.vehicleId?.model || service.vehicleId?.year || ''}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>

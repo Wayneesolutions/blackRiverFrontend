@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { useVehicles } from "../../../../customHooks/useVehicles";
 
 interface Vehicle {
@@ -129,8 +129,3 @@ function Trucks() {
 
 export default Trucks;
 
-const TruckIcon = () => (
-  <div className="text-5xl text-gray-300">
-    🚛
-  </div>
-);

@@ -8,6 +8,7 @@ import {
   getAllEmployees,
   createEmployeeDocument,
   updateEmployeeDocument,
+  getSignedEmployeeDocumentUrl,
   type EmployeeWithDocuments,
   type EmployeeDocument,
   type DocumentStats
@@ -610,6 +611,7 @@ const EmployeeDocumentsPage = () => {
             setShowViewModal(false);
             handleEditDocument(doc);
           }}
+          addNotification={addNotification}
         />
       )}
 
@@ -633,13 +635,47 @@ const ViewDocumentModal = ({
   document,
   employeeName,
   onClose,
-  onEdit
+  onEdit,
+  addNotification
 }: {
   document: EmployeeDocument;
   employeeName: string;
   onClose: () => void;
   onEdit: (doc: EmployeeDocument) => void;
+  addNotification: (type: NotificationType, message: string) => void;
 }) => {
+  const [signedFileUrl, setSignedFileUrl] = useState<string | null>(null);
+  const [loadingFileUrl, setLoadingFileUrl] = useState<boolean>(false);
+  const [viewerError, setViewerError] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Fetch signed URL when modal opens
+    if (document.fileUrl) {
+      const isS3Url = document.fileUrl.includes('s3.amazonaws.com') || document.fileUrl.includes('.s3.');
+      if (isS3Url) {
+        setLoadingFileUrl(true);
+        getSignedEmployeeDocumentUrl(document._id, 'inline')
+          .then((res) => {
+            if (res?.success && res?.url) {
+              setSignedFileUrl(res.url);
+            } else {
+              setSignedFileUrl(document.fileUrl || null);
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching signed URL:', error);
+            setSignedFileUrl(document.fileUrl || null);
+            addNotification('error', 'Failed to load document preview. Please try again.');
+          })
+          .finally(() => {
+            setLoadingFileUrl(false);
+          });
+      } else {
+        setSignedFileUrl(document.fileUrl);
+      }
+    }
+  }, [document._id, document.fileUrl, addNotification]);
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -661,6 +697,28 @@ const ViewDocumentModal = ({
       default:
         return 'bg-gray-100 text-gray-700';
     }
+  };
+
+  const getFileExtension = () => {
+    if (document.fileName) {
+      return document.fileName.split('.').pop()?.toLowerCase() || '';
+    }
+    if (document.fileUrl) {
+      const match = document.fileUrl.match(/\.([^.?#]+)(\?|#|$)/);
+      return match ? match[1].toLowerCase() : '';
+    }
+    return '';
+  };
+
+  const isPdf = () => {
+    const ext = getFileExtension();
+    return ext === 'pdf' || document.mimeType?.toLowerCase().includes('pdf');
+  };
+
+  const isImage = () => {
+    const ext = getFileExtension();
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext) || 
+           document.mimeType?.toLowerCase().startsWith('image/');
   };
 
   return (
@@ -767,49 +825,170 @@ const ViewDocumentModal = ({
             <div>
               <p className="text-sm font-medium text-gray-600 mb-3">Document File</p>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-600 mb-1">File: {document.fileName || 'Document'}</p>
-                    <a
-                      href={document.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline text-sm"
-                    >
-                      Open Document
-                    </a>
+                {loadingFileUrl ? (
+                  <div className="flex flex-col items-center justify-center h-[60vh] bg-white rounded-lg">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mb-4"></div>
+                    <p className="text-gray-600">Loading document...</p>
                   </div>
-                  <button
-                    onClick={() => {
-                      const link = window.document.createElement('a');
-                      link.href = document.fileUrl!;
-                      link.download = document.fileName || 'document';
-                      link.click();
-                    }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download
-                  </button>
-                </div>
-                {document.fileUrl.match(/\.(jpg|jpeg|png|gif|webp|pdf)$/i) && (
-                  <div className="mt-4">
-                    {document.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                      <img
-                        src={document.fileUrl}
-                        alt="Document Preview"
-                        className="max-w-full h-auto rounded-lg border border-gray-200"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
+                ) : signedFileUrl ? (
+                  <>
+                    {isPdf() ? (
+                      <div className="relative w-full">
+                        <iframe
+                          title="PDF Preview"
+                          src={`${signedFileUrl}#toolbar=0`}
+                          className="w-full h-[60vh] border rounded-lg bg-white"
+                          style={{ minHeight: '60vh' }}
+                          onError={(e) => {
+                            console.error('❌ PDF iframe load error:', e);
+                            setViewerError(true);
+                          }}
+                          onLoad={() => {
+                            console.log('✅ PDF iframe loaded');
+                            setViewerError(false);
+                          }}
+                        />
+                        <div className="absolute bottom-4 right-4 flex gap-2">
+                          <button
+                            onClick={() => {
+                              window.open(signedFileUrl, '_blank', 'noopener,noreferrer');
+                            }}
+                            className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          >
+                            <Eye size={14} className="text-white" />
+                            <span className="text-white">Open in New Tab</span>
+                          </button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const signedRes = await getSignedEmployeeDocumentUrl(document._id, 'attachment');
+                                const url = signedRes?.success && signedRes?.url ? signedRes.url : signedFileUrl;
+                                const link = window.document.createElement('a');
+                                link.href = url || '';
+                                link.download = document.fileName || 'document';
+                                link.target = '_blank';
+                                window.document.body.appendChild(link);
+                                link.click();
+                                window.document.body.removeChild(link);
+                              } catch (error) {
+                                console.error('Download error:', error);
+                                addNotification('error', 'Download failed. Please try again.');
+                              }
+                            }}
+                            className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          >
+                            <Download size={14} className="text-white" />
+                            <span className="text-white">Download</span>
+                          </button>
+                        </div>
+                        {viewerError && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-lg">
+                            <div className="text-center p-4">
+                              <FileText className="text-yellow-500 mb-2 mx-auto" size={32} />
+                              <p className="text-sm text-gray-600 mb-3">PDF could not be displayed in viewer.</p>
+                              <button
+                                onClick={() => {
+                                  window.open(signedFileUrl, '_blank', 'noopener,noreferrer');
+                                }}
+                                className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                              >
+                                <span className="text-white">Open in New Tab</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : isImage() ? (
+                      <div className="flex flex-col items-center justify-center bg-white rounded-lg border p-4">
+                        <img
+                          src={signedFileUrl}
+                          alt={document.fileName || 'Document Preview'}
+                          className="max-h-[60vh] w-auto mx-auto rounded-lg shadow-lg"
+                          onError={(e) => {
+                            console.error('Image load error:', e);
+                            const target = e.currentTarget;
+                            target.style.display = 'none';
+                            addNotification('error', 'Failed to load image preview.');
+                          }}
+                        />
+                        <div className="mt-4 flex gap-2">
+                          <button
+                            onClick={() => {
+                              window.open(signedFileUrl, '_blank', 'noopener,noreferrer');
+                            }}
+                            className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2"
+                          >
+                            <Eye size={14} className="text-white" />
+                            <span className="text-white">Open in New Tab</span>
+                          </button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const signedRes = await getSignedEmployeeDocumentUrl(document._id, 'attachment');
+                                const url = signedRes?.success && signedRes?.url ? signedRes.url : signedFileUrl;
+                                const link = window.document.createElement('a');
+                                link.href = url || '';
+                                link.download = document.fileName || 'document';
+                                link.target = '_blank';
+                                window.document.body.appendChild(link);
+                                link.click();
+                                window.document.body.removeChild(link);
+                              } catch (error) {
+                                console.error('Download error:', error);
+                                addNotification('error', 'Download failed. Please try again.');
+                              }
+                            }}
+                            className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                          >
+                            <Download size={14} className="text-white" />
+                            <span className="text-white">Download</span>
+                          </button>
+                        </div>
+                      </div>
                     ) : (
-                      <iframe
-                        src={document.fileUrl}
-                        className="w-full h-96 rounded-lg border border-gray-200"
-                        title="Document Preview"
-                      />
+                      <div className="flex flex-col items-center justify-center h-[40vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
+                        <FileText className="text-gray-400 mb-4" size={48} />
+                        <p className="text-sm text-gray-600 mb-4">This file type cannot be previewed in the browser.</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              window.open(signedFileUrl, '_blank', 'noopener,noreferrer');
+                            }}
+                            className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2"
+                          >
+                            <Eye size={14} className="text-white" />
+                            <span className="text-white">Open in New Tab</span>
+                          </button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const signedRes = await getSignedEmployeeDocumentUrl(document._id, 'attachment');
+                                const url = signedRes?.success && signedRes?.url ? signedRes.url : signedFileUrl;
+                                const link = window.document.createElement('a');
+                                link.href = url || '';
+                                link.download = document.fileName || 'document';
+                                link.target = '_blank';
+                                window.document.body.appendChild(link);
+                                link.click();
+                                window.document.body.removeChild(link);
+                              } catch (error) {
+                                console.error('Download error:', error);
+                                addNotification('error', 'Download failed. Please try again.');
+                              }
+                            }}
+                            className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                          >
+                            <Download size={14} className="text-white" />
+                            <span className="text-white">Download</span>
+                          </button>
+                        </div>
+                      </div>
                     )}
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-[40vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
+                    <FileText className="text-gray-400 mb-4" size={48} />
+                    <p className="text-sm text-gray-600 mb-4">No file URL available.</p>
                   </div>
                 )}
               </div>

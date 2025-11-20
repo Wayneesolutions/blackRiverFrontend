@@ -101,8 +101,8 @@ const AccountsSection = () => {
       l._id === loadId 
         ? { 
             ...l, 
-            status: 'paid',
-            paymentStatus: 'paid',
+            status: 'paid' as const,
+            paymentStatus: 'paid' as const,
             paidDate: new Date().toISOString()
           } 
         : l

@@ -1,15 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { 
   Plus, 
   Edit, 
   Trash2, 
-  Search, 
-  Filter, 
-  Calendar, 
-  Clock, 
-  User, 
-  AlertTriangle,
-  CheckCircle,
+  Search,
   X
 } from 'lucide-react';
 import { message } from 'antd';
@@ -19,7 +13,6 @@ import {
   updateServiceStatus,
   deleteVehicleService,
   listVehicleServices,
-  getVehicleServiceById,
   type VehicleServiceData,
   type UpdateServiceData,
   type ServiceFilters,
@@ -250,7 +243,7 @@ const VehicleServiceManagement = () => {
   };
 
   const filteredServices = services.filter(service =>
-    service.vehicleId.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    service.vehicleId.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
     service.serviceType.toLowerCase().includes(searchTerm.toLowerCase()) ||
     service.assignedMechanic.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     service.assignedMechanic.last_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -355,9 +348,9 @@ const VehicleServiceManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {service.vehicleId.vehicleNumber}
+                            {service.vehicleId.plateNumber || service.vehicleId.internalId}
                           </div>
-                          <div className="text-sm text-gray-500">{service.vehicleId.model}</div>
+                          <div className="text-sm text-gray-500">{service.vehicleId.make} {service.vehicleId.model}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

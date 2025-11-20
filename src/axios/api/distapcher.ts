@@ -180,9 +180,23 @@ export const createFleet = async (data: any) =>{
     return (error as Error).response?.data;
   }
 }
-export const listTrailers = async () =>{
+export const listTrailers = async (params?: { page?: number; limit?: number; search?: string; status?: string; operationStatus?: string; type?: string; isAttached?: boolean; sortBy?: string; sortOrder?: string }) => {
     try {
-    const res: AxiosResponse = await apiClient.get(`dispatcher/trailer`);
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.operationStatus) queryParams.append('operationStatus', params.operationStatus);
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.isAttached !== undefined) queryParams.append('isAttached', params.isAttached.toString());
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    
+    const queryString = queryParams.toString();
+    const url = `dispatcher/trailer${queryString ? `?${queryString}` : ''}`;
+    
+    const res: AxiosResponse = await apiClient.get(url);
     console.log('==res ', res)
     return res.data;
   } catch (error) {
@@ -270,12 +284,13 @@ export const deleteVehicle = async (id:string) =>{
   }
 }
 
-export const listVehicle = async (params?: { page?: number; limit?: number; search?: string; sortBy?: string; sortOrder?: string }) => {
+export const listVehicle = async (params?: { page?: number; limit?: number; search?: string; status?: string; sortBy?: string; sortOrder?: string }) => {
     try {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
     
@@ -356,16 +371,25 @@ export const createServiceRate = async (data: any) =>{
   }
 }
 
-export const listLoad = async () =>{
+export const listLoad = async (params?: { page?: number; limit?: number; search?: string; status?: string; sortBy?: string; sortOrder?: string }) => {
     try {
-
-    const res: AxiosResponse = await apiClient.get(`dispatcher/load`);
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    
+    const queryString = queryParams.toString();
+    const url = `dispatcher/load${queryString ? `?${queryString}` : ''}`;
+    
+    const res: AxiosResponse = await apiClient.get(url);
     console.log('==res ', res)
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
-
-    return (error as Error).response?.data;
+    return error?.response?.data || { success: false, message: error?.message || 'Failed to fetch loads', data: null };
   }
 }
 export const createLoad = async (data: any) =>{
@@ -421,9 +445,20 @@ export const deleteLoad = async (id: string) => {
 }
 
 
-export const listDriver = async () =>{
+export const listDriver = async (params?: { page?: number; limit?: number; search?: string; status?: string; sortBy?: string; sortOrder?: string }) => {
     try {
-    const res: AxiosResponse = await apiClient.get(`dispatcher/driver`);
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    
+    const queryString = queryParams.toString();
+    const url = `dispatcher/driver${queryString ? `?${queryString}` : ''}`;
+    
+    const res: AxiosResponse = await apiClient.get(url);
     console.log('==res ', res)
     return res.data;
   } catch (error: any) {

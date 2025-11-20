@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { getSocket, disconnectSocket } from "../../../../socket/socketClient";
+import { getSocket } from "../../../../socket/socketClient";
 import { listVehicle } from "../../../../axios/api/distapcher";
-import { GoogleMap, LoadScriptNext, Marker, InfoWindow } from "@react-google-maps/api";
-import { ChevronLeft, ChevronRight, ExternalLink, X, Search, Fuel, Gauge, MapPin, User, Activity, ExternalLinkIcon } from "lucide-react";
+import { GoogleMap, LoadScriptNext, Marker } from "@react-google-maps/api";
+import { ChevronLeft, ChevronRight, ExternalLink, X, Search, Fuel, Gauge, MapPin, User, Activity } from "lucide-react";
 
 const containerStyle = { width: "100%", height: "100vh" };
 

@@ -185,9 +185,7 @@ const RevenueDashboard = () => {
         setShowViewModal(true);
     };
 
-    const handlePaymentActions = (_revenue: any) => {
-        message.info('Payment actions functionality coming soon');
-    };
+    
 
     const handleCopyId = (id: string) => {
         navigator.clipboard.writeText(id);

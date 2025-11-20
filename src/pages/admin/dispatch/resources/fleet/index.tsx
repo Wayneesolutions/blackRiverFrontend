@@ -3,7 +3,6 @@ import {
   Plus,
   Search,
   Truck,
-  Filter,
   Edit,
   Trash2,
   RefreshCw,

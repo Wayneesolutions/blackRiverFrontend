@@ -1,4 +1,3 @@
-import React from 'react';
 import { FileDown } from "lucide-react";
 import jsPDF from "jspdf";
 

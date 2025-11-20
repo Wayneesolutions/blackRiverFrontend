@@ -48,8 +48,8 @@ export const useExpiringVehicleDocuments = () => {
             }
             
             // Check for admin, superadmin, or Compliance Manager roles
-            const userRole = effectiveUserData?.role || effectiveUserInfo?.role;
-            if (!effectiveUserInfo || !['admin', 'Compliance Manager', 'superadmin'].includes(userRole)) {
+            const userRole = effectiveUserData?.role;
+            if (!effectiveUserInfo || !userRole || !['admin', 'Compliance Manager', 'superadmin'].includes(userRole)) {
                 return;
             }
 

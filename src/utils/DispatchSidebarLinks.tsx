@@ -3,20 +3,17 @@ import {
   MdMiscellaneousServices,
   MdEventNote,
   MdContacts,
-  MdErrorOutline,
   MdLocalShipping,
   MdOutlineMap,
 } from "react-icons/md";
 import {
   FaTruckMoving,
   FaUsers,
-  FaMapMarkerAlt,
   FaTrailer,
   FaUserTie,
   FaTruck,
   FaClipboardCheck,
 } from "react-icons/fa";
-import { RiOilLine } from "react-icons/ri";
 import { TbTruckDelivery, TbReportAnalytics } from "react-icons/tb";
 import { IoIosSend } from "react-icons/io";
 

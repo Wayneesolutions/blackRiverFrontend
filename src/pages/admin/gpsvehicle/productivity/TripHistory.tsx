@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Calendar, Download, Filter, Clock, MapPin, Users, Settings, BarChart3, FileText, History, Search, X, ChevronDown } from 'lucide-react';
+import  { useState } from 'react';
+import {  Filter,  MapPin,  Settings, BarChart3, FileText, History, Search, X, ChevronDown } from 'lucide-react';
 
 const TripHistory = () => {
   const [showOptionsModal, setShowOptionsModal] = useState(false);
@@ -10,7 +10,6 @@ const TripHistory = () => {
   const [excludeStops, setExcludeStops] = useState('Under');
   const [stopDuration, setStopDuration] = useState('5');
   const [overStopDuration, setOverStopDuration] = useState('5');
-  const [showTripCategories, setShowTripCategories] = useState(true);
   const [selectedGroup, setSelectedGroup] = useState('All Groups');
   const [searchTerm, setSearchTerm] = useState('');
 

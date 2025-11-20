@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, ChevronDown, MoreVertical, Settings } from 'lucide-react';
+import { Search, Filter, ChevronDown, MoreVertical } from 'lucide-react';
 
 const VehicleManagementTable = () => {
     // Sample data based on the image
@@ -46,7 +46,7 @@ const VehicleManagementTable = () => {
     ]);
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+    const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' });
     const [filterGroup, setFilterGroup] = useState('');
     const [filterInstallation, setFilterInstallation] = useState('');
     const [showFilters, setShowFilters] = useState(false);
@@ -71,10 +71,11 @@ const VehicleManagementTable = () => {
 
         if (sortConfig.key) {
             filtered.sort((a, b) => {
-                if (a[sortConfig.key] < b[sortConfig.key]) {
+                const key = sortConfig.key as keyof typeof a;
+                if (a[key] < b[key]) {
                     return sortConfig.direction === 'asc' ? -1 : 1;
                 }
-                if (a[sortConfig.key] > b[sortConfig.key]) {
+                if (a[key] > b[key]) {
                     return sortConfig.direction === 'asc' ? 1 : -1;
                 }
                 return 0;
@@ -91,7 +92,7 @@ const VehicleManagementTable = () => {
         }));
     };
 
-    const SortableHeader = ({ column, children }) => (
+    const SortableHeader = ({ column, children }: { column: string; children: React.ReactNode }) => (
         <th
             className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-50 select-none"
             onClick={() => handleSort(column)}

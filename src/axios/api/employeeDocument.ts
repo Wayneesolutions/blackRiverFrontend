@@ -276,3 +276,24 @@ export const getAllEmployees = async () => {
     throw error;
   }
 };
+
+// Get signed URL for employee document
+export const getSignedEmployeeDocumentUrl = async (
+  documentId: string,
+  disposition: 'inline' | 'attachment' = 'inline'
+) => {
+  try {
+    const response: AxiosResponse<{
+      success: boolean;
+      url: string;
+      expiresIn: number;
+    }> = await apiClient.get(`/employee-documents/${documentId}/signed-url`, {
+      params: { disposition }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching signed employee document URL:', error);
+    throw error;
+  }
+};

@@ -75,7 +75,7 @@ export const deleteDriverDocument = async (id: string) => {
 
 // Get expiring driver documents
 // NOTE: This endpoint is not implemented on backend. Returning empty data to avoid 404 errors.
-export const getExpiringDriverDocuments = async (days: number = 30) => {
+export const getExpiringDriverDocuments = async (_days: number = 30) => {
     try {
         // Endpoint doesn't exist - return empty data to avoid 404 errors
         console.log("⚠️ getExpiringDriverDocuments: Endpoint not implemented, returning empty data");
@@ -84,7 +84,6 @@ export const getExpiringDriverDocuments = async (days: number = 30) => {
             data: []
         };
     } catch (error: any) {
-        const err = error as Error;
         // Return empty data instead of error
         return {
             success: true,

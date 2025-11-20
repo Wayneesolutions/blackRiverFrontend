@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaDollarSign, FaFilter, FaTruck } from 'react-icons/fa';
-import PaymentStatusBadge from '../../../../../components/dispatch/PaymentStatusBadge';
+import PaymentStatusBadge from '../../../../components/dispatch/PaymentStatusBadge';
 
 interface Load {
   _id: string;

@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Plus, Search, Truck, Filter, Trash2, Pencil } from 'lucide-react';
-import { message } from 'antd';
+import { Plus, Search, Truck, Trash2, Pencil } from 'lucide-react';
 import NewTrailerSidebar from './NewTrailerSidebar';
 import {
   listTrailers,

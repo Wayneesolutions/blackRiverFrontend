@@ -1,837 +1,1099 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Truck, Calendar, TrendingUp, ChevronRight } from "lucide-react";
-import { listLoad, listDriver, updateLoad, getDispatcherDashboard } from "../../../../axios/api/distapcher"; 
-import type {
-  ProfessionalCircularProgressProps,StockChartProps ,
-  ProfessionalUtilizationGaugeProps,
-CandlestickBarChartProps,
-AnimatedCounterProps,Load} from "./helpers";
-const Index = () => {
-  const [animationTrigger, setAnimationTrigger] = useState(false);
-  
-  // Loads data state
-  const [loadsData, setLoadsData] = useState<Load[]>([]);
-  const [dashboardData, setDashboardData] = useState<any>(null);
-  const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+import { useState, useEffect } from "react";
+import { Truck, Users, Package, Loader2, Search, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
+import { 
+  getDispatcherDashboard, 
+  listDriver, 
+  listVehicle, 
+  listTrailers,
+  listLoad
+} from "../../../../axios/api/distapcher";
 
-  // Fetch loads function - memoized to prevent unnecessary re-renders
-  const fetchLoads = useCallback(async () => {
+interface DashboardStats {
+  vehicles: {
+    total: number;
+    active: number;
+    withDriver: number;
+  };
+  trailers: {
+    total: number;
+    active: number;
+    inUse: number;
+  };
+  drivers: {
+    total: number;
+    active: number;
+    onShift: number;
+  };
+  loads: {
+    total: number;
+    active: number;
+    completed: number;
+    today: number;
+    tomorrow: number;
+  };
+}
+
+interface Driver {
+  _id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  status?: string;
+  internalId?: string;
+  details?: {
+    vehicle?: any;
+    licenceNumber?: string;
+    employeeCode?: string;
+  };
+}
+
+interface Vehicle {
+  _id: string;
+  plateNumber?: string;
+  internalId?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  status?: string;
+  driver?: any;
+}
+
+interface Trailer {
+  _id: string;
+  trailer?: string;
+  type?: string;
+  status?: string;
+  operationStatus?: string;
+  isAttached?: boolean;
+}
+
+interface Load {
+  _id: string;
+  loadNumber?: string;
+  orderId?: string;
+  driverName?: string;
+  driverId?: string;
+  vehicleId?: string;
+  vehiclePlate?: string;
+  customerName?: string;
+  status?: string;
+  amount?: number;
+  route?: any;
+  assignedAt?: string;
+  startedAt?: string;
+  completedAt?: string;
+  details?: {
+    internalId?: string;
+    customer?: {
+      name?: string;
+      email?: string;
+    };
+    driver?: {
+      name?: string;
+      _id?: string;
+    };
+    vehicle?: {
+      plateNumber?: string;
+      _id?: string;
+    };
+    receiver?: any;
+  };
+}
+
+const Index = () => {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [trailers, setTrailers] = useState<Trailer[]>([]);
+  const [loads, setLoads] = useState<Load[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<"drivers" | "vehicles" | "trailers" | "loads">("drivers");
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  
+  // Filter state
+  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [operationStatusFilter, setOperationStatusFilter] = useState<string>("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [isAttachedFilter, setIsAttachedFilter] = useState<string>("");
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  // Initial fetch when component mounts and tab changes
+  useEffect(() => {
+    if (!loading) {
+      setCurrentPage(1);
+      setSearchTerm("");
+      setStatusFilter("");
+      setOperationStatusFilter("");
+      setTypeFilter("");
+      setIsAttachedFilter("");
+      fetchCurrentData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, loading]);
+
+  const fetchDashboardData = async () => {
     try {
-      const res = await listLoad();
+      setLoading(true);
+      
+      // Fetch dashboard stats
+      const dashboardRes = await getDispatcherDashboard();
+      
+      if (dashboardRes.success && dashboardRes.data) {
+        const data = dashboardRes.data;
+        
+        // Support both nested and flat structures
+        const totalVehicles = data.totalVehicles ?? data.truckUtilization?.total ?? 0;
+        const activeVehicles = data.activeVehicles ?? data.truckUtilization?.active ?? 0;
+        const totalTrailers = data.totalTrailers ?? data.trailerUtilization?.total ?? 0;
+        const activeTrailers = data.activeTrailers ?? data.trailerUtilization?.active ?? 0;
+        
+        setStats({
+          vehicles: {
+            total: totalVehicles,
+            active: activeVehicles,
+            withDriver: data.vehiclesWithDriver ?? 0,
+          },
+          trailers: {
+            total: totalTrailers,
+            active: activeTrailers,
+            inUse: data.trailersInUse ?? 0,
+          },
+          drivers: {
+            total: data.totalDrivers ?? 0,
+            active: data.activeDrivers ?? 0,
+            onShift: data.driversOnShift ?? 0,
+          },
+          loads: {
+            total: data.totalLoads ?? 0,
+            active: data.activeLoads ?? 0,
+            completed: data.completedLoads ?? 0,
+            today: data.todayLoads ?? 0,
+            tomorrow: data.tomorrowLoads ?? 0,
+          },
+        });
+      }
+
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+      // Fetch initial data for current tab after stats are loaded
+      setTimeout(() => {
+        fetchCurrentData();
+      }, 100);
+    }
+  };
+
+  const fetchDrivers = async (page: number = currentPage, search: string = searchTerm, status: string = statusFilter) => {
+    try {
+      const res = await listDriver({
+        page,
+        limit: itemsPerPage,
+        search: search || undefined,
+        status: status || undefined,
+        sortBy: 'createdAt',
+        sortOrder: 'desc'
+      });
       if (res.success) {
-        if (res.message && (!res.data || res.data.length === 0)) {
-          setLoadsData([]);
-          setEmptyStateMessage(res.message);
+        if (res.data) {
+          setDrivers(Array.isArray(res.data) ? res.data : []);
+          setTotalItems(res.pagination?.total || res.count || res.data.length || 0);
+          setTotalPages(res.pagination?.pages || Math.ceil((res.pagination?.total || res.count || res.data.length) / itemsPerPage) || 0);
         } else {
-          setLoadsData(res.data || []);
+          setDrivers([]);
+          setTotalItems(0);
+          setTotalPages(0);
         }
+      } else {
+        setDrivers([]);
+        setTotalItems(0);
+        setTotalPages(0);
+      }
+    } catch (error) {
+      console.error("Error fetching drivers:", error);
+      setDrivers([]);
+      setTotalItems(0);
+      setTotalPages(0);
+    }
+  };
+
+  const fetchVehicles = async (page: number = currentPage, search: string = searchTerm, status: string = statusFilter) => {
+    try {
+      const res = await listVehicle({
+        page,
+        limit: itemsPerPage,
+        search: search || undefined,
+        status: status || undefined,
+        sortBy: 'createdAt',
+        sortOrder: 'desc'
+      });
+      if (res.success && res.data) {
+        const vehicleData = res.data.vehicles || res.data || [];
+        setVehicles(Array.isArray(vehicleData) ? vehicleData : []);
+        setTotalItems(res.pagination?.total || res.data.count || vehicleData.length || 0);
+        setTotalPages(res.pagination?.pages || Math.ceil((res.pagination?.total || vehicleData.length) / itemsPerPage) || 0);
+      } else {
+        setVehicles([]);
+        setTotalItems(0);
+        setTotalPages(0);
+      }
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
+      setVehicles([]);
+      setTotalItems(0);
+      setTotalPages(0);
+    }
+  };
+
+  const fetchTrailers = async (page: number = currentPage, search: string = searchTerm, status: string = statusFilter, operationStatus: string = operationStatusFilter, type: string = typeFilter) => {
+    try {
+      const res = await listTrailers({
+        page,
+        limit: itemsPerPage,
+        search: search || undefined,
+        status: status || undefined,
+        operationStatus: operationStatus || undefined,
+        type: type || undefined,
+        isAttached: isAttachedFilter === "true" ? true : isAttachedFilter === "false" ? false : undefined,
+        sortBy: 'createdAt',
+        sortOrder: 'desc'
+      });
+      if (res.success && res.data) {
+        const trailerData = res.data.data || res.data || [];
+        setTrailers(Array.isArray(trailerData) ? trailerData : []);
+        setTotalItems(res.pagination?.total || res.data.length || trailerData.length || 0);
+        setTotalPages(res.pagination?.pages || Math.ceil((res.pagination?.total || trailerData.length) / itemsPerPage) || 0);
+      } else {
+        setTrailers([]);
+        setTotalItems(0);
+        setTotalPages(0);
+      }
+    } catch (error) {
+      console.error("Error fetching trailers:", error);
+      setTrailers([]);
+      setTotalItems(0);
+      setTotalPages(0);
+    }
+  };
+
+  // Handle tab change - reset pagination and filters
+  const handleTabChange = (tab: "drivers" | "vehicles" | "trailers" | "loads") => {
+    setActiveTab(tab);
+    setSearchTerm("");
+    setCurrentPage(1);
+    setStatusFilter("");
+    setOperationStatusFilter("");
+    setTypeFilter("");
+    setIsAttachedFilter("");
+    setShowFilters(false);
+  };
+
+  // Handle search with debounce
+  useEffect(() => {
+    if (loading) return; // Don't fetch while initial loading
+    const timer = setTimeout(() => {
+      setCurrentPage(1); // Reset to first page on search
+      fetchCurrentData();
+    }, 500);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, loading]);
+
+  // Handle filter changes
+  useEffect(() => {
+    if (loading) return; // Don't fetch while initial loading
+    setCurrentPage(1); // Reset to first page on filter change
+    fetchCurrentData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, operationStatusFilter, typeFilter, isAttachedFilter, itemsPerPage, loading]);
+
+  // Handle page change
+  useEffect(() => {
+    if (loading) return; // Don't fetch while initial loading
+    fetchCurrentData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, loading]);
+
+  const fetchLoads = async (page: number = currentPage, search: string = searchTerm, status: string = statusFilter) => {
+    try {
+      // Default to in-delivery if no status filter is set
+      const loadStatus = status || (activeTab === "loads" ? "in-delivery" : undefined);
+      
+      const res = await listLoad({
+        page,
+        limit: itemsPerPage,
+        search: search || undefined,
+        status: loadStatus || undefined,
+        sortBy: 'assignedAt',
+        sortOrder: 'desc'
+      });
+      if (res.success) {
+        if (res.data) {
+          const loadData = Array.isArray(res.data) ? res.data : (res.data.data || []);
+          setLoads(loadData);
+          setTotalItems(res.pagination?.total || res.count || loadData.length || 0);
+          setTotalPages(res.pagination?.pages || Math.ceil((res.pagination?.total || res.count || loadData.length) / itemsPerPage) || 0);
+        } else {
+          setLoads([]);
+          setTotalItems(0);
+          setTotalPages(0);
+        }
+      } else {
+        setLoads([]);
+        setTotalItems(0);
+        setTotalPages(0);
       }
     } catch (error) {
       console.error("Error fetching loads:", error);
+      setLoads([]);
+      setTotalItems(0);
+      setTotalPages(0);
     }
-  }, []);
+  };
 
-  // Fetch dashboard data
-  const fetchDashboardData = useCallback(async () => {
-    try {
-      const res = await getDispatcherDashboard();
-      if (res.success) {
-        if (res.message && !res.data) {
-          setDashboardData(null);
-          setEmptyStateMessage(res.message);
-        } else {
-          setDashboardData(res.data);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+  const fetchCurrentData = () => {
+    if (activeTab === "drivers") {
+      fetchDrivers(currentPage, searchTerm, statusFilter);
+    } else if (activeTab === "vehicles") {
+      fetchVehicles(currentPage, searchTerm, statusFilter);
+    } else if (activeTab === "trailers") {
+      fetchTrailers(currentPage, searchTerm, statusFilter, operationStatusFilter, typeFilter);
+    } else if (activeTab === "loads") {
+      fetchLoads(currentPage, searchTerm, statusFilter);
     }
-  }, []);
+  };
 
-  // Fetch loads and dashboard on component mount
-  useEffect(() => {
-    fetchLoads();
-    fetchDashboardData();
-  }, [fetchLoads, fetchDashboardData]);
+  // Use data directly from API (no client-side filtering needed)
+  const filteredDrivers = drivers;
+  const filteredVehicles = vehicles;
+  const filteredTrailers = trailers;
+  const filteredLoads = loads;
 
-  const today = new Date().toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-
-  // Trigger animations on mount
-  useEffect(() => {
-    const timer = setTimeout(() => setAnimationTrigger(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const hasAnyData = (loadsData && loadsData.length > 0) || Boolean(dashboardData);
-
-  useEffect(() => {
-    if (emptyStateMessage && hasAnyData) {
-      setEmptyStateMessage(null);
-    }
-  }, [emptyStateMessage, hasAnyData]);
-
-  if (emptyStateMessage && !hasAnyData) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center justify-center text-center space-y-4">
-        <Truck className="w-12 h-12 text-gray-400" />
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-xl font-semibold text-gray-800">No dispatch data available</h2>
-          <p className="text-gray-500">{emptyStateMessage}</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
-
-  const StockChart: React.FC<StockChartProps> = ({
-    data,
-    height = 60,
-    color = "#10b981",
-    label = "Revenue",
-  }) => {
-    const [animationTrigger, setAnimationTrigger] = useState(false);
-    const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
-
-    useEffect(() => {
-      const timer = setTimeout(() => setAnimationTrigger(true), 300);
-      return () => clearTimeout(timer);
-    }, []);
-
-    const maxValue = Math.max(...data);
-    const minValue = Math.min(...data);
-    const range = maxValue - minValue || 1;
-
-    const points = data.map((value, index) => {
-      const x = (index / (data.length - 1)) * 200;
-      const y = height - ((value - minValue) / range) * (height - 10);
-      return { x, y, value };
-    });
-
-    const pathData = points.map((point, index) =>
-      `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
-    ).join(' ');
-
     return (
-      <div className="w-full relative">
-        <svg width="200" height={height} className="w-full overflow-visible">
-          <defs>
-            <linearGradient id={`stockGradient-${label}`} x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-              <stop offset="50%" stopColor={color} stopOpacity="0.1" />
-              <stop offset="100%" stopColor={color} stopOpacity="0" />
-            </linearGradient>
-            <filter id={`stockGlow-${label}`}>
-              <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Dispatch Dashboard</h1>
+          <p className="text-gray-600 mt-1">Overview of drivers, trailers, vehicles</p>
+        </div>
 
-          {/* Grid lines */}
-          {[...Array(4)].map((_, i) => (
-            <line
-              key={i}
-              x1="0"
-              y1={i * (height / 3)}
-              x2="200"
-              y2={i * (height / 3)}
-              stroke="rgba(156, 163, 175, 0.2)"
-              strokeWidth="0.5"
-            />
-          ))}
-
-          {/* Area fill */}
-          <path
-            d={`M 0 ${height} L ${points.map(p => `${p.x} ${p.y}`).join(' L ')} L 200 ${height} Z`}
-            fill={`url(#stockGradient-${label})`}
-            opacity={animationTrigger ? 1 : 0}
-            style={{ transition: 'opacity 1s ease-out 0.5s' }}
-          />
-
-          {/* Main line with glow */}
-          <path
-            d={pathData}
-            fill="none"
-            stroke={color}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            filter={`url(#stockGlow-${label})`}
-            style={{
-              strokeDasharray: '500',
-              strokeDashoffset: animationTrigger ? '0' : '500',
-              transition: 'stroke-dashoffset 1.5s ease-out',
-            }}
-          />
-
-          {/* Data points */}
-          {points.map((point, index) => (
-            <g key={index}>
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r="3"
-                fill="white"
-                stroke={color}
-                strokeWidth="2"
-                className="opacity-0 cursor-pointer transition-all duration-200"
-                style={{
-                  animation: animationTrigger ? `fadeIn 0.3s ease-out ${1 + index * 0.05}s forwards` : 'none'
-                }}
-                onMouseEnter={() => setHoveredPoint(index)}
-                onMouseLeave={() => setHoveredPoint(null)}
-              />
-              {hoveredPoint === index && (
-                <g>
-                  <rect
-                    x={point.x - 25}
-                    y={point.y - 30}
-                    width="50"
-                    height="20"
-                    fill="rgba(17, 24, 39, 0.9)"
-                    rx="4"
-                  />
-                  <text
-                    x={point.x}
-                    y={point.y - 16}
-                    textAnchor="middle"
-                    fill="white"
-                    fontSize="11"
-                    fontWeight="500"
-                  >
-                    ${point.value.toFixed(2)}
-                  </text>
-                </g>
-              )}
-            </g>
-          ))}
-        </svg>
-        <style>{`
-        @keyframes fadeIn {
-          to { opacity: 1; }
-        }
-      `}</style>
-      </div>
-    );
-  };
-
-  // Enhanced Utilization Gauge with Individual Hover
-  const ProfessionalUtilizationGauge: React.FC<ProfessionalUtilizationGaugeProps> = ({
-    activeCount,
-    totalCount,
-    type = "Truck",
-    color = "#10b981",
-  }) => {
-    const [animationTrigger, setAnimationTrigger] = useState(false);
-    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
-    useEffect(() => {
-      const timer = setTimeout(() => setAnimationTrigger(true), 100);
-      return () => clearTimeout(timer);
-    }, []);
-
-    const utilization = (activeCount / totalCount) * 100;
-
-    return (
-      <div className="flex items-center space-x-4">
-        {/* Radial Progress */}
-        <div className="relative">
-          <svg width="80" height="80" className="transform -rotate-90">
-            <defs>
-              <radialGradient id={`radialGrad-${type}`} cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor={color} stopOpacity="0.1" />
-                <stop offset="70%" stopColor={color} stopOpacity="0.3" />
-                <stop offset="100%" stopColor={color} stopOpacity="0.8" />
-              </radialGradient>
-            </defs>
-            <circle
-              cx="40"
-              cy="40"
-              r="35"
-              stroke="rgba(156, 163, 175, 0.2)"
-              strokeWidth="8"
-              fill="transparent"
-            />
-            <circle
-              cx="40"
-              cy="40"
-              r="35"
-              stroke={`url(#radialGrad-${type})`}
-              strokeWidth="8"
-              fill="transparent"
-              strokeDasharray={2 * Math.PI * 35}
-              strokeDashoffset={animationTrigger ? 2 * Math.PI * 35 * (1 - utilization / 100) : 2 * Math.PI * 35}
-              strokeLinecap="round"
-              style={{ transition: 'stroke-dashoffset 2s ease-out 0.3s' }}
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-lg font-bold" style={{ color }}>
-                <AnimatedCounter value={activeCount} />
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          {/* Vehicles Card */}
+          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Truck className="w-6 h-6 text-blue-600" />
               </div>
-              <div className="text-xs text-gray-500">Active</div>
+            </div>
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Vehicles</h3>
+            <p className="text-3xl font-bold text-gray-800">{stats?.vehicles.total || 0}</p>
+            <div className="mt-4 flex gap-4 text-sm">
+              <div>
+                <span className="text-gray-500">Active:</span>
+                <span className="ml-1 font-semibold text-green-600">{stats?.vehicles.active || 0}</span>
+              </div>
+              <div>
+                <span className="text-gray-500">With Driver:</span>
+                <span className="ml-1 font-semibold text-blue-600">{stats?.vehicles.withDriver || 0}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Individual Status Bars */}
-        <div className="flex flex-col space-y-1">
-          {Array.from({ length: Math.min(6, totalCount) }, (_, i) => (
-            <div
-              key={i}
-              className="relative"
-              onMouseEnter={() => setHoveredIndex(i)}
-              onMouseLeave={() => setHoveredIndex(null)}
-            >
-              <div
-                className={`w-8 h-2 rounded-full transition-all duration-300 ${i < activeCount ? 'bg-gradient-to-r' : 'bg-gray-200'
-                  }`}
-                style={i < activeCount ? {
-                  backgroundImage: `linear-gradient(90deg, ${color}40, ${color})`
-                } : {}}
-              />
-              {hoveredIndex === i && (
-                <div className="absolute -right-16 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap z-20">
-                  {type} {i + 1}: {i < activeCount ? 'Active' : 'Idle'}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const CandlestickBarChart: React.FC<CandlestickBarChartProps> = ({
-    data,
-    height = 100,
-  }) => {
-    const [animationTrigger, setAnimationTrigger] = useState<boolean>(false);
-    const [hoveredBar, setHoveredBar] = useState<number | null>(null);
-
-    useEffect(() => {
-      const timer = setTimeout(() => setAnimationTrigger(true), 200);
-      return () => clearTimeout(timer);
-    }, []);
-
-    const maxValue = Math.max(...data.map(d => d.value));
-    const minValue = Math.min(...data.map(d => d.value));
-    const range = maxValue - minValue;
-    const padding = range * 0.1;
-    const chartMax = maxValue + padding;
-    const chartMin = minValue - padding;
-    const chartRange = chartMax - chartMin;
-
-    return (
-      <div className="flex items-end justify-between gap-1" style={{ height }}>
-        {data.map((item, index) => {
-          const barHeight = ((item.value - chartMin) / chartRange) * (height - 20);
-
-          return (
-            <div
-              key={index}
-              className="flex-1 flex flex-col items-center group cursor-pointer"
-              onMouseEnter={() => setHoveredBar(index)}
-              onMouseLeave={() => setHoveredBar(null)}
-            >
-              <div className="relative w-full flex justify-center items-end" style={{ height: height - 20 }}>
-                {/* Single animated bar */}
-                <div
-                  className="w-full max-w-8 rounded-t-sm transition-all duration-700 ease-out relative overflow-hidden"
-                  style={{
-                    height: animationTrigger ? `${barHeight}px` : '0px',
-                    background: `linear-gradient(0deg, ${item.color}80 0%, ${item.color}CC 50%, ${item.color} 100%)`,
-                    transitionDelay: `${index * 100}ms`,
-                    transform: hoveredBar === index ? 'scaleY(1.05) scaleX(1.1)' : 'scaleY(1) scaleX(1)',
-                    transformOrigin: 'bottom',
-                    boxShadow: hoveredBar === index
-                      ? `0 8px 25px -5px ${item.color}40, 0 0 0 1px ${item.color}20`
-                      : `0 2px 8px -2px ${item.color}30`,
-                    minHeight: animationTrigger ? '4px' : '0px'
-                  }}
-                >
-                  {/* Shine effect on hover */}
-                  <div
-                    className="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-white/40 transition-opacity duration-300"
-                    style={{
-                      opacity: hoveredBar === index ? 0.7 : 0
-                    }}
-                  />
-                </div>
-
-                {/* Hover tooltip */}
-                {hoveredBar === index && (
-                  <div className="absolute -top-14 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap z-20 shadow-xl">
-                    <div className="font-semibold">${item.value.toLocaleString()}</div>
-                    <div className="text-gray-300 text-center">{item.label}</div>
-                    {/* Tooltip arrow */}
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                  </div>
-                )}
-              </div>
-
-              {/* Label */}
-              <div className="text-xs text-center mt-2 font-medium text-gray-600 transition-colors duration-200"
-                style={{ color: hoveredBar === index ? item.color : '' }}>
-                {item.label}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-
-  // Enhanced Animated Counter with Professional Easing
-  const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
-    value,
-    duration = 2000,
-    prefix = "",
-    suffix = "",
-  }) => {
-    const [count, setCount] = useState(0);
-    const [animationTrigger, setAnimationTrigger] = useState(false);
-
-    useEffect(() => {
-      const timer = setTimeout(() => setAnimationTrigger(true), 100);
-      return () => clearTimeout(timer);
-    }, []);
-
-    useEffect(() => {
-      if (!animationTrigger) return;
-
-      let startTime: number | null = null;
-      const startValue = 0;
-      const endValue = parseFloat(value.toString().replace(/[^\d.]/g, ""));
-
-      const animate = (currentTime: number) => {
-        if (startTime === null) startTime = currentTime;
-        const progress = Math.min((currentTime - startTime) / duration, 1);
-
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        const currentValue = startValue + (endValue - startValue) * easeOut;
-
-        if (prefix === "$" && endValue > 100) {
-          setCount(Math.floor(currentValue));
-        } else {
-          // Ensure we store number, not string
-          setCount(
-            Number(
-              currentValue.toFixed(
-                value.toString().includes(".") ? 2 : 0
-              )
-            )
-          );
-        }
-
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        }
-      };
-
-      requestAnimationFrame(animate);
-    }, [animationTrigger, value, duration, prefix]);
-
-
-    const displayValue =
-      prefix === "$" && count > 100
-        ? Math.floor(count).toLocaleString()
-        : count.toString();
-
-    return <span>{prefix}{displayValue}{suffix}</span>;
-  };
-
-
-
-  const ProfessionalCircularProgress: React.FC<ProfessionalCircularProgressProps> = ({
-    percentage,
-    size = 140,
-    strokeWidth = 10,
-    color = "#16a34a",
-    backgroundColor = "#f1f5f9",
-    children,
-    delay = 0,
-  }) => {
-    const [animatedPercentage, setAnimatedPercentage] = useState<number>(0);
-    const [isHovered, setIsHovered] = useState<boolean>(false);
-    const [animationTrigger, setAnimationTrigger] = useState<boolean>(false);
-
-    useEffect(() => {
-      const timer = setTimeout(() => setAnimationTrigger(true), 100);
-      return () => clearTimeout(timer);
-    }, []);
-
-
-    const radius = (size - strokeWidth) / 2;
-    const circumference = radius * 2 * Math.PI;
-
-    useEffect(() => {
-      if (!animationTrigger) return;
-
-      const timer = setTimeout(() => {
-        let start: number | null = null;
-
-        const animate = (timestamp: number) => {
-          if (start === null) start = timestamp;
-          const progress = Math.min((timestamp - start) / 2000, 1);
-
-          // Smooth easing
-          const easeOut = 1 - Math.pow(1 - progress, 3);
-          setAnimatedPercentage(percentage * easeOut);
-
-          if (progress < 1) {
-            requestAnimationFrame(animate);
-          }
-        };
-
-        requestAnimationFrame(animate);
-      }, delay);
-
-      return () => clearTimeout(timer);
-    }, [animationTrigger, percentage, delay]);
-
-    const offset = circumference - (animatedPercentage / 100) * circumference;
-
-    return (
-      <div
-        className={`relative flex items-center justify-center transition-all duration-300 ${isHovered ? 'scale-105' : 'scale-100'
-          }`}
-        style={{ width: size, height: size }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <svg width={size} height={size} className="transform -rotate-90">
-          <defs>
-            <linearGradient id={`gradient-${Math.random()}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={color} />
-              <stop offset="100%" stopColor={color} stopOpacity="0.8" />
-            </linearGradient>
-            <filter id="progressGlow">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          {/* Background circle */}
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke={backgroundColor}
-            strokeWidth={strokeWidth}
-            fill="transparent"
-          />
-
-          {/* Progress circle */}
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke={color}
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            filter={isHovered ? "url(#progressGlow)" : "none"}
-            style={{
-              transition: 'stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease',
-            }}
-          />
-        </svg>
-
-        <div className="absolute inset-0 flex items-center justify-center">
-          {children}
-        </div>
-
-        {/* Percentage indicator on hover */}
-        {isHovered && (
-          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-2 py-1 rounded text-xs">
-            {Math.round(animatedPercentage)}%
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderDashboardMetrics = () => {
-    return (
-      <div className="space-y-8 mb-8">
-        {/* Top Row - Professional Metrics */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-          {/* Dispatch Efficiency */}
-          <div className="bg-gradient-to-br from-white via-gray-50 to-blue-50 rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative z-10">
+          {/* Drivers Card */}
+          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-gray-700 font-semibold text-sm">Dispatch Efficiency</h3>
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+              <div className="p-3 bg-green-100 rounded-lg">
+                <Users className="w-6 h-6 text-green-600" />
               </div>
-              <div className="space-y-3">
-                <div className="text-2xl font-bold text-gray-800">
-                  <AnimatedCounter 
-                    value={dashboardData?.truckUtilization?.active || 0} 
-                    suffix={`/${dashboardData?.truckUtilization?.total || 0}`} 
-                  />
+            </div>
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Drivers</h3>
+            <p className="text-3xl font-bold text-gray-800">{stats?.drivers.total || 0}</p>
+            <div className="mt-4 flex gap-4 text-sm">
+              <div>
+                <span className="text-gray-500">Active:</span>
+                <span className="ml-1 font-semibold text-green-600">{stats?.drivers.active || 0}</span>
                 </div>
-                <div className="text-xs text-gray-500">Truck Utilization</div>
-                <ProfessionalUtilizationGauge
-                  activeCount={dashboardData?.truckUtilization?.active || 0}
-                  totalCount={dashboardData?.truckUtilization?.total || 0}
-                  type="Truck"
-                  color="#3b82f6"
-                />
+              <div>
+                <span className="text-gray-500">On Shift:</span>
+                <span className="ml-1 font-semibold text-blue-600">{stats?.drivers.onShift || 0}</span>
               </div>
             </div>
           </div>
 
-          {/* Active Service */}
-          <div className="bg-gradient-to-br from-white via-gray-50 to-emerald-50 rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-gray-700 font-semibold text-sm">Active Service</h3>
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-500 transition-colors" />
-              </div>
-              <div className="space-y-3">
-                <div className="text-2xl font-bold text-gray-800">
-                  <AnimatedCounter 
-                    value={dashboardData?.trailerUtilization?.active || 0} 
-                    suffix={`/${dashboardData?.trailerUtilization?.total || 0}`} 
-                  />
-                </div>
-                <div className="text-xs text-gray-500">Trailer Utilization</div>
-                <ProfessionalUtilizationGauge
-                  activeCount={dashboardData?.trailerUtilization?.active || 0}
-                  totalCount={dashboardData?.trailerUtilization?.total || 0}
-                  type="Trailer"
-                  color="#10b981"
-                />
+          {/* Trailers Card */}
+          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <Package className="w-6 h-6 text-purple-600" />
               </div>
             </div>
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Trailers</h3>
+            <p className="text-3xl font-bold text-gray-800">{stats?.trailers.total || 0}</p>
+            <div className="mt-4 flex gap-4 text-sm">
+              <div>
+                <span className="text-gray-500">Active:</span>
+                <span className="ml-1 font-semibold text-green-600">{stats?.trailers.active || 0}</span>
           </div>
-
-          {/* Revenue Per Mile */}
-          <div className="bg-gradient-to-br from-white via-gray-50 to-green-50 rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-2xl font-bold text-gray-800">
-                  $<AnimatedCounter value={dashboardData?.revenuePerMile?.toFixed(2) || "0.00"} />
-                </div>
-                <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  10% ↗
-                </div>
-              </div>
-              <div className="text-xs text-gray-500 mb-3">Revenue Per Load</div>
-              <StockChart
-                data={dashboardData?.weeklyRevenueTrend || [0, 0, 0, 0, 0]}
-                height={50}
-                color="#16a34a"
-                label="rpm"
-              />
-            </div>
-          </div>
-
-          {/* Incoming Revenue */}
-          <div className="bg-gradient-to-br from-white via-gray-50 to-teal-50 rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative z-10">
-              <div className="text-right mb-4">
-                <div className="text-lg font-bold text-gray-800 mb-1">
-                  $<AnimatedCounter value={dashboardData?.totalRevenue || 0} /> INCOMING
-                </div>
-                <div className="text-xs text-gray-500 mb-3">30 Day Cashflow</div>
-              </div>
-              <CandlestickBarChart
-                data={dashboardData?.weeklyRevenueTrend?.map((value: number, idx: number) => ({
-                  label: `W${idx + 1}`,
-                  value,
-                  color: idx < 2 ? '#64748b' : idx < 4 ? '#14b8a6' : '#0f766e'
-                })) || []}
-                height={80}
-              />
+              <div>
+                <span className="text-gray-500">In Use:</span>
+                <span className="ml-1 font-semibold text-blue-600">{stats?.trailers.inUse || 0}</span>
             </div>
           </div>
         </div>
 
-        {/* Bottom Row - Billing Circles */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-          {/* Invoices Not Sent */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 group">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-gray-700 font-semibold">Billing</h3>
-              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-teal-500 transition-colors" />
+          {/* Loads Card */}
+          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-orange-100 rounded-lg">
+                <Truck className="w-6 h-6 text-orange-600" />
+              </div>
             </div>
-            <div className="flex items-center justify-center">
-              <ProfessionalCircularProgress
-                percentage={dashboardData?.invoicesNotSent?.count > 0 ? 75 : 0}
-                size={160}
-                strokeWidth={12}
-                color="#16a34a"
-                delay={200}
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Loads</h3>
+            <p className="text-3xl font-bold text-gray-800">{stats?.loads.total || 0}</p>
+            <div className="mt-4 flex flex-col gap-2 text-sm">
+              <div className="flex gap-4">
+                <div>
+                  <span className="text-gray-500">Active:</span>
+                  <span className="ml-1 font-semibold text-green-600">{stats?.loads.active || 0}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Completed:</span>
+                  <span className="ml-1 font-semibold text-blue-600">{stats?.loads.completed || 0}</span>
+                </div>
+              </div>
+              <div className="flex gap-4 pt-1 border-t border-gray-200">
+                <div>
+                  <span className="text-gray-500">Today:</span>
+                  <span className="ml-1 font-semibold text-orange-600">{stats?.loads.today || 0}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Tomorrow:</span>
+                  <span className="ml-1 font-semibold text-purple-600">{stats?.loads.tomorrow || 0}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tables Section */}
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          {/* Tabs */}
+          <div className="border-b border-gray-200">
+            <div className="flex">
+              <button
+                onClick={() => handleTabChange("drivers")}
+                className={`px-6 py-4 font-medium text-sm transition-colors ${
+                  activeTab === "drivers"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
               >
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-800">
-                    $<AnimatedCounter value={dashboardData?.invoicesNotSent?.amount || 0} />
-                  </div>
-                  <div className="text-xs text-gray-500">{dashboardData?.invoicesNotSent?.count || 0} loads</div>
-                  <div className="text-sm text-gray-600 font-medium mt-1">Invoices Not Sent</div>
-                </div>
-              </ProfessionalCircularProgress>
-            </div>
-          </div>
-
-
-          {/* Payment Status - Alternative Design */}
-          <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-8 shadow-xl border border-red-100 hover:shadow-2xl transition-all duration-300 group relative overflow-hidden">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-5">
-              <div className="absolute inset-0" style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23dc2626' fill-opacity='0.1'%3E%3Cpath d='M20 20c0-11.046 8.954-20 20-20s20 8.954 20 20-8.954 20-20 20-20-8.954-20-20z'/%3E%3C/g%3E%3C/svg%3E")`
-              }} />
-            </div>
-
-            <div className="relative z-10">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  <h3 className="text-red-700 font-semibold">Payment Status</h3>
-                </div>
-                <ChevronRight className="w-4 h-4 text-red-400 group-hover:text-red-600 transition-colors" />
-              </div>
-
-              {/* Main Content - Left/Right Layout */}
-              <div className="flex items-center justify-between">
-                {/* Left Side - Payment Info */}
-                <div className="flex-1">
-                  <div className="text-4xl font-bold text-gray-800 mb-2">
-                    $<AnimatedCounter value={dashboardData?.outstandingPayments?.amount || 0} />
-                  </div>
-                  <div className="text-sm text-gray-600">{dashboardData?.outstandingPayments?.count || 0} loads outstanding</div>
-                </div>
-
-                {/* Right Side - Line Chart */}
-                <div className="flex-1 max-w-xs">
-                  <div className="text-xs text-gray-500 mb-3">Payment Trend (Last 30 Days)</div>
-                  <StockChart
-                    data={dashboardData?.weeklyRevenueTrend || [0, 0, 0, 0, 0]}
-                    height={45}
-                    color="#dc2626"
-                    label="payments"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+                Drivers ({totalItems})
+              </button>
+              <button
+                onClick={() => handleTabChange("vehicles")}
+                className={`px-6 py-4 font-medium text-sm transition-colors ${
+                  activeTab === "vehicles"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                Vehicles ({totalItems})
+              </button>
+              <button
+                onClick={() => handleTabChange("trailers")}
+                className={`px-6 py-4 font-medium text-sm transition-colors ${
+                  activeTab === "trailers"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                Trailers ({totalItems})
+              </button>
+              <button
+                onClick={() => handleTabChange("loads")}
+                className={`px-6 py-4 font-medium text-sm transition-colors ${
+                  activeTab === "loads"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                In-Delivery Loads ({totalItems})
+              </button>
         </div>
-
-      </div>
-    )
-  }
-
-  return (
-    <div className="min-h-screen  flex flex-col relative overflow-hidden bg-gray-50 px-2">
-      
-      
-      {/* Enhanced Animated Background Pattern */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0">
-          {/* Primary pattern */}
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2316a34a' fill-opacity='0.15'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-              animation: 'float 8s ease-in-out infinite'
-            }}
-          />
-          {/* Secondary pattern */}
-          <div
-            className="absolute inset-0 opacity-5"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230ea5e9' fill-opacity='0.1'%3E%3Ccircle cx='60' cy='60' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-              animation: 'float 12s ease-in-out infinite reverse'
-            }}
-          />
-        </div>
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-teal-50/20" />
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 flex-1 p-6">
-        {/* Enhanced Header Row */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-md">
-                <Calendar className="w-5 h-5 text-blue-600" />
+          {/* Search and Filter Bar */}
+          <div className="p-4 border-b border-gray-200 space-y-3">
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder={`Search ${activeTab}...`}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
               </div>
-              <p className="text-sm font-medium text-gray-700 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-md border border-white/30 !mb-0">
-                Today: {today}
-              </p>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${
+                  showFilters || statusFilter || operationStatusFilter || typeFilter || isAttachedFilter
+                    ? "bg-blue-50 border-blue-500 text-blue-700"
+                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <Filter className="w-4 h-4" />
+                Filters
+                {(statusFilter || operationStatusFilter || typeFilter || isAttachedFilter) && (
+                  <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                    {[statusFilter, operationStatusFilter, typeFilter, isAttachedFilter].filter(Boolean).length}
+                  </span>
+                )}
+              </button>
             </div>
-            <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-md border border-white/30">
-              <div className="p-1 bg-green-100 rounded-full">
-                <TrendingUp className="w-4 h-4 text-green-600" />
+
+            {/* Filter Panel */}
+            {showFilters && (
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-gray-700">Filters</h4>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("");
+                      setOperationStatusFilter("");
+                      setTypeFilter("");
+                      setIsAttachedFilter("");
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                  >
+                    <X className="w-4 h-4" />
+                    Clear All
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {activeTab === "drivers" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </div>
+                  )}
+                  
+                  {activeTab === "vehicles" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">All Status</option>
+                        <option value="moving">Moving</option>
+                        <option value="idle">Idle</option>
+                        <option value="stopped">Stopped</option>
+                        <option value="maintenance">Maintenance</option>
+                      </select>
+                    </div>
+                  )}
+                  
+                  {activeTab === "loads" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="in-delivery">In-Delivery</option>
+                        <option value="dispatched">Dispatched</option>
+                        <option value="planned">Planned</option>
+                        <option value="completed">Completed</option>
+                        <option value="">All Status</option>
+                      </select>
+                    </div>
+                  )}
+                  
+                  {activeTab === "trailers" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">All Status</option>
+                          <option value="moving">Moving</option>
+                          <option value="idle">Idle</option>
+                          <option value="stopped">Stopped</option>
+                          <option value="maintenance">Maintenance</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Operation Status</label>
+                        <select
+                          value={operationStatusFilter}
+                          onChange={(e) => setOperationStatusFilter(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">All Operation Status</option>
+                          <option value="in_transit">In Transit</option>
+                          <option value="loading">Loading</option>
+                          <option value="idle">Idle</option>
+                          <option value="available">Available</option>
+                          <option value="maintenance">Maintenance</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                        <select
+                          value={typeFilter}
+                          onChange={(e) => setTypeFilter(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">All Types</option>
+                          <option value="dry_van">Dry Van</option>
+                          <option value="refrigerated">Refrigerated</option>
+                          <option value="flatbed">Flatbed</option>
+                          <option value="tanker">Tanker</option>
+                          <option value="container">Container</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Attached</label>
+                        <select
+                          value={isAttachedFilter}
+                          onChange={(e) => setIsAttachedFilter(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">All</option>
+                          <option value="true">Attached</option>
+                          <option value="false">Not Attached</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-              <span className="text-sm font-medium text-gray-700">
-                {dashboardData?.activeLoads || 0} Active Loads
+            )}
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            {activeTab === "drivers" && (
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Phone
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredDrivers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        No drivers found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredDrivers.map((driver) => (
+                      <tr key={driver._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{driver.name || "N/A"}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">{driver.email || "N/A"}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">{driver.phone || "N/A"}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">{driver.internalId || driver._id.slice(-8)}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              driver.status === "active"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {driver.status || "N/A"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {activeTab === "vehicles" && (
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Plate Number
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Internal ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Make & Model
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Year
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredVehicles.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        No vehicles found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredVehicles.map((vehicle) => (
+                      <tr key={vehicle._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {vehicle.plateNumber || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">{vehicle.internalId || "N/A"}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            {vehicle.make && vehicle.model
+                              ? `${vehicle.make} ${vehicle.model}`
+                              : vehicle.make || vehicle.model || "N/A"}
+              </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">{vehicle.year || "N/A"}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              vehicle.status === "moving" || vehicle.status === "idle"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {vehicle.status || "N/A"}
               </span>
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {activeTab === "loads" && (
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Load Number
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Driver
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Vehicle
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Assigned At
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredLoads.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                        No in-delivery loads found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredLoads.map((load) => (
+                      <tr key={load._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {load.loadNumber || load.details?.internalId || load._id.slice(-8).toUpperCase()}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            {load.driverName || load.details?.driver?.name || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            {load.vehiclePlate || load.details?.vehicle?.plateNumber || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            {load.customerName || load.details?.customer?.name || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              load.status === "in-delivery"
+                                ? "bg-blue-100 text-blue-800"
+                                : load.status === "dispatched"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : load.status === "completed"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {load.status || "N/A"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            ${load.amount || load.details?.amount || 0}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            {load.assignedAt
+                              ? new Date(load.assignedAt).toLocaleDateString()
+                              : "N/A"}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {activeTab === "trailers" && (
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Trailer Number
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Operation Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Attached
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredTrailers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        No trailers found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredTrailers.map((trailer) => (
+                      <tr key={trailer._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {trailer.trailer || trailer._id.slice(-8)}
             </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">{trailer.type || "N/A"}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              trailer.status === "active"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {trailer.status || "N/A"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              trailer.operationStatus === "in_transit" || trailer.operationStatus === "loading"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {trailer.operationStatus || "N/A"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              trailer.isAttached
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {trailer.isAttached ? "Yes" : "No"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
+
+          {/* Pagination */}
+          {(totalPages > 1 || totalItems > 0) && (
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-700">
+                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} results
+                </span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value={10}>10 per page</option>
+                  <option value={25}>25 per page</option>
+                  <option value={50}>50 per page</option>
+                  <option value={100}>100 per page</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className={`p-2 border rounded-lg transition-colors ${
+                    currentPage === 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                  }`}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                          currentPage === pageNum
+                            ? "bg-blue-600 text-white"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className={`p-2 border rounded-lg transition-colors ${
+                    currentPage === totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                  }`}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Enhanced Dashboard Metrics */}
-        {renderDashboardMetrics()}
       </div>
-
-      {/* Enhanced Styles */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          33% { transform: translateY(-8px) rotate(1deg); }
-          66% { transform: translateY(-4px) rotate(-1deg); }
-        }
-        
-        @keyframes pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.05); }
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .group:hover .animate-pulse {
-          animation: pulse 1s ease-in-out infinite;
-        }
-      `}</style>
-
     </div>
   );
 };
 
 export default Index;
-
-
-
-
-

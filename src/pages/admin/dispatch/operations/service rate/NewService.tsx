@@ -26,7 +26,8 @@ const NewService: React.FC<NewServiceProps> = ({ onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
+    const checked = e.target instanceof HTMLInputElement && e.target.type === 'checkbox' ? e.target.checked : false;
     setFormData(prev => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,

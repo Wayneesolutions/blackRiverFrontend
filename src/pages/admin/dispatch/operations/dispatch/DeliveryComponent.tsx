@@ -12,6 +12,11 @@ interface Load {
   rate?: number;
   status: 'available' | 'planned' | 'assigned' | 'in-delivery' | 'delivered' | 'paid';
   paymentStatus?: 'pending' | 'due' | 'paid';
+  documents?: {
+    bol?: boolean;
+    billOfSale?: boolean;
+    pod?: boolean;
+  };
 }
 
 interface DeliveryComponentProps {
@@ -27,7 +32,7 @@ const DeliveryComponent: React.FC<DeliveryComponentProps> = ({ load, onClose, on
     pod: { uploaded: load.documents?.pod || false, file: null as File | null }
   });
 
-  const [paymentStatus, setPaymentStatus] = useState<'due' | 'paid'>(load.paymentStatus || 'due');
+  const [paymentStatus] = useState<'due' | 'paid'>(load.paymentStatus === 'paid' ? 'paid' : 'due');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const handleFileUpload = (docType: 'bol' | 'billOfSale' | 'pod', file: File | null) => {

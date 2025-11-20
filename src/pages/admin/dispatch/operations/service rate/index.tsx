@@ -45,7 +45,6 @@ interface UpdateFormState {
 
 const ServicePage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [services, setServices] = useState<ServiceRateItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceRateItem | null>(null);

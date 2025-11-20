@@ -143,7 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                       {/* Expanded children (unchanged) */}
                       {!isCollapsed && openMenus.includes(link.key) && (
                         <ul className="ml-6 mt-2 space-y-1 border-l-2 border-purple-100 pl-4">
-                          {link.children.map((child) => (
+                          {link.children.map((child: any) => (
                             <li key={child.key}>
                               <NavLink
                                 to={child.key}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { listCompanyDocuments, uploadCompanyDocument, deleteCompanyDocument } from '../../../../axios/api/companyDocuments';
+import { listCompanyDocuments, uploadCompanyDocument, deleteCompanyDocument, getSignedDocumentUrl } from '../../../../axios/api/companyDocuments';
 import { message, notification } from 'antd';
 import {
   FolderOpen,
@@ -50,6 +50,11 @@ const DocumentManagement: React.FC = () => {
   });
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewDoc, setViewDoc] = useState<Document | null>(null);
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [loadingSignedUrl, setLoadingSignedUrl] = useState(false);
+  const [forceDirectView, setForceDirectView] = useState(false);
+  const [viewMode, setViewMode] = useState<'iframe' | 'newtab' | null>(null);
+  const [viewerError, setViewerError] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; id: string | null; name?: string }>({ open: false, id: null });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
@@ -84,17 +89,20 @@ const DocumentManagement: React.FC = () => {
   const getViewerUrl = (doc: Document) => {
     const ext = getExtension(doc);
     const encoded = encodeURIComponent(doc.url);
+    const isPublic = isPubliclyAccessible(doc.url);
     
-    // Only use external viewers if URL is publicly accessible
-    if (!isPubliclyAccessible(doc.url)) {
+    // Office formats via Microsoft viewer - try even for private URLs (might work)
+    const officeExts = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+    if (officeExts.includes(ext)) {
+      // Microsoft Office Online viewer - works best with public URLs but we'll try anyway
+      return `https://view.officeapps.live.com/op/embed.aspx?src=${encoded}`;
+    }
+    
+    // For other file types, only use external viewers if URL is publicly accessible
+    if (!isPublic) {
       return null; // Will trigger download/open instead
     }
     
-    // Office formats via Microsoft viewer
-    const officeExts = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
-    if (officeExts.includes(ext)) {
-      return `https://view.officeapps.live.com/op/embed.aspx?src=${encoded}`;
-    }
     // Fallback to Google viewer for other common docs (txt, csv, etc.)
     return `https://docs.google.com/gview?url=${encoded}&embedded=true`;
   };
@@ -152,17 +160,66 @@ const DocumentManagement: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
-  const handleView = (doc: Document) => {
+  const handleView = async (doc: Document) => {
+    const isS3Url = doc.url && (doc.url.includes('s3.amazonaws.com') || doc.url.includes('.s3.'));
+    
+    // Show modal for all file types
     setViewDoc(doc);
+    setForceDirectView(false); // Reset force direct view when opening new document
+    setViewMode(null); // Reset view mode
+    setViewerError(false); // Reset viewer error
+    setSignedUrl(null); // Reset signed URL
     setShowViewModal(true);
+    
+    // Check if URL is S3 and fetch signed URL
+    if (isS3Url) {
+      setLoadingSignedUrl(true);
+      try {
+        const res = await getSignedDocumentUrl(doc._id);
+        if (res?.success && res?.url) {
+          setSignedUrl(res.url);
+        } else {
+          // If signed URL fails, use original URL (will show error but user can try)
+          setSignedUrl(doc.url);
+        }
+      } catch (error) {
+        console.error('Error fetching signed URL:', error);
+        setSignedUrl(doc.url); // Fallback to original URL
+      } finally {
+        setLoadingSignedUrl(false);
+      }
+    } else {
+      // Not S3, use original URL
+      setSignedUrl(doc.url);
+    }
   };
 
   const handleDownload = async (doc: Document) => {
     try {
-      // Attempt to open in new tab; if blocked or cross-origin restricted, fallback to fetch+download
-      if (doc.url) {
+      let downloadUrl = doc.url;
+      
+      // Check if URL is S3 and fetch signed URL for download with 'attachment' disposition
+      const isS3Url = doc.url && (doc.url.includes('s3.amazonaws.com') || doc.url.includes('.s3.'));
+      if (isS3Url) {
+        try {
+          const res = await getSignedDocumentUrl(doc._id, 'attachment');
+          if (res?.success && res?.url) {
+            downloadUrl = res.url;
+          } else {
+            message.error('Failed to generate download link. Please try again.');
+            return;
+          }
+        } catch (error) {
+          console.error('Error fetching signed URL for download:', error);
+          message.error('Failed to generate download link. Please try again.');
+          return;
+        }
+      }
+      
+      // Create download link with signed URL
+      if (downloadUrl) {
         const a = document.createElement('a');
-        a.href = doc.url;
+        a.href = downloadUrl;
         a.download = doc.name || 'document';
         a.target = '_blank';
         document.body.appendChild(a);
@@ -171,6 +228,7 @@ const DocumentManagement: React.FC = () => {
       }
     } catch (e) {
       console.error('Download failed', e);
+      message.error('Download failed. Please try again.');
     }
   };
 
@@ -429,14 +487,21 @@ const DocumentManagement: React.FC = () => {
                 {filteredDocuments.map((doc) => (
                   <div
                     key={doc._id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all p-4"
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all p-4 cursor-pointer"
+                    onClick={(e) => {
+                      // Only open modal if clicking on the card itself, not on buttons
+                      if ((e.target as HTMLElement).closest('button')) {
+                        return;
+                      }
+                      handleView(doc);
+                    }}
                   >
                     <div className="flex items-start gap-3 mb-3">
                       <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
                         {getFileIcon(doc.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-900 truncate">{doc.name}</h4>
+                        <h4 className="font-semibold text-gray-900 truncate hover:text-blue-600 transition-colors">{doc.name}</h4>
                         <p className="text-xs text-gray-500 mt-1">
                           {formatFileSize(doc.size)} • {doc.type.toUpperCase()}
                         </p>
@@ -455,17 +520,18 @@ const DocumentManagement: React.FC = () => {
                       <span>{new Date(doc.uploadDate).toLocaleDateString()}</span>
                     </div>
                     
-                    <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                    <div className="flex items-center gap-2 pt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
                       <button onClick={() => handleView(doc)} className="flex-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center gap-1 text-sm font-medium">
                         <Eye size={16} />
-                        View
+                        Open
                       </button>
-                      <button onClick={() => handleDownload(doc)} className="px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
+                      <button onClick={(e) => { e.stopPropagation(); handleDownload(doc); }} className="px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors" title="Download">
                         <Download size={16} />
                       </button>
                       <button
-                        onClick={() => handleAskDelete(doc)}
+                        onClick={(e) => { e.stopPropagation(); handleAskDelete(doc); }}
                         className="px-3 py-1.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
+                        title="Delete"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -648,70 +714,111 @@ const DocumentManagement: React.FC = () => {
                 <XCircle size={22} />
               </button>
             </div>
-            <div className="p-4 overflow-auto bg-gray-50">
-              {(() => {
+            <div className="p-4 overflow-auto bg-gray-50 modal-content-iframe-container">
+              {loadingSignedUrl ? (
+                <div className="flex flex-col items-center justify-center h-[70vh]">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mb-4"></div>
+                  <p className="text-gray-600">Loading document...</p>
+                </div>
+              ) : (() => {
                 const ext = getExtension(viewDoc);
+                // Use signed URL if available, otherwise use original URL
+                const docUrl = signedUrl || viewDoc.url;
                 
-                // PDFs - use iframe
+                // PDFs - use iframe to display in modal
                 if (ext === 'pdf') {
                   return (
-                    <iframe 
-                      title="preview" 
-                      src={viewDoc.url} 
-                      className="w-full h-[70vh] border rounded-lg"
-                      onError={(e) => {
-                        console.error('PDF load error:', e);
-                      }}
-                    />
-                  );
-                }
-                
-                // Images - use img tag
-                if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
-                  return (
-                    <img 
-                      src={viewDoc.url} 
-                      alt={viewDoc.name} 
-                      className="max-h-[70vh] w-auto mx-auto rounded-lg border"
-                      onError={(e) => {
-                        console.error('Image load error:', e);
-                      }}
-                    />
-                  );
-                }
-                
-                // For Office documents and other file types
-                const viewerSrc = getViewerUrl(viewDoc);
-                
-                // If viewer URL is not available (private/local URL), show download option
-                if (!viewerSrc) {
-                  return (
-                    <div className="flex flex-col items-center justify-center h-[70vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
-                      <FileText className="text-gray-400 mb-4" size={64} />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Document Preview Not Available</h3>
-                      <p className="text-sm text-gray-600 mb-6 text-center max-w-md">
-                        This document cannot be previewed in the browser. Please download it to view.
-                      </p>
-                      <div className="flex gap-3">
+                    <div className="relative w-full">
+                      <iframe 
+                        title="preview" 
+                        src={`${docUrl}#toolbar=0`}
+                        className="w-full h-[70vh] border rounded-lg bg-white"
+                        onError={(e) => {
+                          console.error('PDF load error:', e);
+                          setViewerError(true);
+                        }}
+                        onLoad={() => {
+                          setViewerError(false);
+                        }}
+                      />
+                      <div className="absolute bottom-4 right-4 flex gap-2">
                         <button
                           onClick={() => {
-                            window.open(viewDoc.url, '_blank');
+                            window.open(docUrl, '_blank', 'noopener,noreferrer');
                           }}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                          className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                         >
-                          <Download size={18} />
-                          Open Document
+                          <Eye size={16} className="text-white" />
+                          <span className="text-white">Open in New Tab</span>
                         </button>
+                        <button
+                          onClick={async () => {
+                            // For download, fetch signed URL with 'attachment' disposition
+                            try {
+                              const downloadRes = await getSignedDocumentUrl(viewDoc._id, 'attachment');
+                              const downloadUrl = downloadRes?.success && downloadRes?.url ? downloadRes.url : docUrl;
+                              const a = document.createElement('a');
+                              a.href = downloadUrl;
+                              a.download = viewDoc.name || 'document';
+                              a.target = '_blank';
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                            } catch (error) {
+                              console.error('Download error:', error);
+                              message.error('Download failed. Please try again.');
+                            }
+                          }}
+                          className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                        >
+                          <Download size={16} className="text-white" />
+                          <span className="text-white">Download</span>
+                        </button>
+                      </div>
+                      {viewerError && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-lg">
+                          <div className="text-center p-4">
+                            <AlertCircle className="text-yellow-500 mb-2 mx-auto" size={32} />
+                            <p className="text-sm text-gray-600 mb-3">PDF could not be displayed in viewer.</p>
+                            <button
+                              onClick={() => window.open(docUrl, '_blank', 'noopener,noreferrer')}
+                              className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                            >
+                              <span className="text-white">Open in New Tab</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                
+                // Images - use img tag to display in UI
+                if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
+                  return (
+                    <div className="flex flex-col items-center justify-center">
+                      <img 
+                        src={docUrl} 
+                        alt={viewDoc.name} 
+                        className="max-h-[70vh] w-auto mx-auto rounded-lg border shadow-lg"
+                        onError={(e) => {
+                          console.error('Image load error:', e);
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                        }}
+                      />
+                      <div className="mt-4 flex gap-3">
                         <button
                           onClick={() => {
                             const a = document.createElement('a');
-                            a.href = viewDoc.url;
+                            a.href = docUrl;
                             a.download = viewDoc.name || 'document';
+                            a.target = '_blank';
                             document.body.appendChild(a);
                             a.click();
                             document.body.removeChild(a);
                           }}
-                          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium flex items-center gap-2"
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
                         >
                           <Download size={18} />
                           Download
@@ -721,26 +828,392 @@ const DocumentManagement: React.FC = () => {
                   );
                 }
                 
-                // Try to use external viewer (only if URL is publicly accessible)
+                // For Office documents and other file types
+                const viewerSrc = getViewerUrl(viewDoc);
+                const isPublic = isPubliclyAccessible(docUrl);
+                // Check if this is an S3 URL (signed URLs will have query params, but even base S3 URLs aren't publicly accessible for Office viewer)
+                const isS3Url = docUrl && (docUrl.includes('s3.amazonaws.com') || docUrl.includes('.s3.'));
+                
+                
+                // For Office documents (DOCX, XLSX, PPTX, etc.) - browsers can't display these natively
+                const officeExts = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+                if (officeExts.includes(ext)) {
+                  // S3 URLs (signed or not) and non-public URLs cannot be viewed with Microsoft Office Online viewer
+                  // The viewer requires publicly accessible URLs without authentication
+                  // Since we're using S3, we should always show download option for Office documents
+                  if (isS3Url || !isPublic) {
+                    return (
+                      <div className="flex flex-col items-center justify-center h-[70vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
+                        <div className="text-center mb-6">
+                          <FileText className="text-gray-400 mb-4 mx-auto" size={64} />
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Office Document Preview Unavailable</h3>
+                          <p className="text-sm text-gray-600 mb-4 max-w-md">
+                            This Office document cannot be previewed in the browser because it requires authentication. 
+                            The Microsoft Office Online viewer can only access publicly available files without authentication.
+                            Please download the file to view it in Microsoft Office or another compatible application.
+                          </p>
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={async () => {
+                              // Open in new tab - will trigger download
+                              window.open(docUrl, '_blank', 'noopener,noreferrer');
+                            }}
+                            className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                          >
+                            <Eye size={18} className="text-white" />
+                            <span className="text-white">Open File</span>
+                          </button>
+                          <button
+                            onClick={async () => {
+                              // For download, fetch signed URL with 'attachment' disposition
+                              try {
+                                const downloadRes = await getSignedDocumentUrl(viewDoc._id, 'attachment');
+                                const downloadUrl = downloadRes?.success && downloadRes?.url ? downloadRes.url : docUrl;
+                                const a = document.createElement('a');
+                                a.href = downloadUrl;
+                                a.download = viewDoc.name || 'document';
+                                a.target = '_blank';
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                              } catch (error) {
+                                console.error('Download error:', error);
+                                message.error('Download failed. Please try again.');
+                              }
+                            }}
+                            className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                          >
+                            <Download size={18} className="text-white" />
+                            <span className="text-white">Download</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  // If viewer error occurred, show message with options
+                  if (viewerError) {
+                    return (
+                      <div className="flex flex-col items-center justify-center h-[70vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
+                        <div className="text-center mb-6">
+                          <AlertCircle className="text-yellow-500 mb-4 mx-auto" size={64} />
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Viewer Error</h3>
+                          <p className="text-sm text-gray-600 mb-4 max-w-md">
+                            The Microsoft Office Online viewer could not load this document. 
+                            This may be due to CORS restrictions or authentication requirements.
+                          </p>
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => {
+                              window.open(docUrl, '_blank', 'noopener,noreferrer');
+                            }}
+                            className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                          >
+                            <Eye size={18} className="text-white" />
+                            <span className="text-white">Open in New Tab</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              const a = document.createElement('a');
+                              a.href = docUrl;
+                              a.download = viewDoc.name || 'document';
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                            }}
+                            className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                          >
+                            <Download size={18} className="text-white" />
+                            <span className="text-white">Download</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  // Try viewer (Microsoft Office Online viewer)
+                  // Use signed URL for viewer if available
+                  const viewerUrl = viewerSrc || `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(docUrl)}`;
+                  return (
+                    <div className="relative w-full">
+                      <iframe
+                        key={`office-viewer-${docUrl}`}
+                        title="preview"
+                        src={viewerUrl}
+                        className="w-full h-[70vh] border rounded-lg bg-white"
+                        onError={(e) => {
+                          console.error('Office viewer load error:', e);
+                          setViewerError(true);
+                        }}
+                      />
+                      <div className="absolute bottom-4 right-4 flex gap-2">
+                        <button
+                          onClick={() => {
+                            setViewerError(true); // Show error message with options
+                          }}
+                          className="px-3 py-2 bg-yellow-600 !text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                        >
+                          <AlertCircle size={16} className="text-white" />
+                          <span className="text-white">Viewer Not Working?</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            window.open(docUrl, '_blank', 'noopener,noreferrer');
+                          }}
+                          className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                        >
+                          <Eye size={16} className="text-white" />
+                          <span className="text-white">Open in New Tab</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            const a = document.createElement('a');
+                            a.href = docUrl;
+                            a.download = viewDoc.name || 'document';
+                            a.target = '_blank';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }}
+                          className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                        >
+                          <Download size={16} className="text-white" />
+                          <span className="text-white">Download</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+                
+                // For other file types - try direct iframe if publicly accessible
+                if (isPublic) {
+                  return (
+                    <div className="relative w-full">
+                      <iframe
+                        title="preview"
+                        src={docUrl}
+                        className="w-full h-[70vh] border rounded-lg bg-white"
+                        onError={(e) => {
+                          console.error('Direct iframe load error:', e);
+                        }}
+                      />
+                      <div className="absolute bottom-4 right-4 flex gap-2">
+                        {viewerSrc && (
+                          <button
+                            onClick={() => {
+                              const iframe = document.querySelector('iframe[title="preview"]') as HTMLIFrameElement;
+                              if (iframe) {
+                                iframe.src = viewerSrc;
+                              }
+                            }}
+                            className="px-3 py-2 bg-purple-600 !text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          >
+                            <Eye size={16} className="text-white" />
+                            <span className="text-white">Use Viewer</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            window.open(docUrl, '_blank', 'noopener,noreferrer');
+                          }}
+                          className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                        >
+                          <Eye size={16} className="text-white" />
+                          <span className="text-white">Open in New Tab</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            const a = document.createElement('a');
+                            a.href = docUrl;
+                            a.download = viewDoc.name || 'document';
+                            a.target = '_blank';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }}
+                          className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                        >
+                          <Download size={16} className="text-white" />
+                          <span className="text-white">Download</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+                
+                // If viewer URL is available, use it
+                if (viewerSrc) {
+                  return (
+                    <div className="relative w-full">
+                      <iframe
+                        title="preview"
+                        src={viewerSrc}
+                        className="w-full h-[70vh] border rounded-lg bg-white"
+                        onError={(e) => {
+                          console.error('Viewer load error:', e);
+                        }}
+                      />
+                      <div className="absolute bottom-4 right-4 flex gap-2">
+                        <button
+                          onClick={() => {
+                            window.open(docUrl, '_blank', 'noopener,noreferrer');
+                          }}
+                          className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                        >
+                          <Eye size={16} className="text-white" />
+                          <span className="text-white">Open in New Tab</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            const a = document.createElement('a');
+                            a.href = docUrl;
+                            a.download = viewDoc.name || 'document';
+                            a.target = '_blank';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }}
+                          className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                        >
+                          <Download size={16} className="text-white" />
+                          <span className="text-white">Download</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+                
+                // If no preview is available, show download option or try direct view
+                if (forceDirectView) {
+                  // If viewMode is set to 'newtab', show message that it opened
+                  if (viewMode === 'newtab') {
+                    return (
+                      <div className="flex flex-col items-center justify-center h-[70vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
+                        <div className="text-center mb-6">
+                          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Eye className="text-green-600" size={32} />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Document Opened</h3>
+                          <p className="text-sm text-gray-600 mb-4">
+                            The document should have opened in a new tab. If it didn't, click the button below.
+                          </p>
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => window.open(docUrl, '_blank', 'noopener,noreferrer')}
+                            className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                          >
+                            <Eye size={18} className="text-white" />
+                            <span className="text-white">Open in New Tab</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              const a = document.createElement('a');
+                              a.href = docUrl;
+                              a.download = viewDoc.name || 'document';
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                            }}
+                            className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                          >
+                            <Download size={18} className="text-white" />
+                            <span className="text-white">Download</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  // Try to display in iframe
+                  return (
+                    <div className="relative w-full">
+                      <iframe
+                        key={`iframe-${docUrl}`}
+                        title="preview"
+                        src={docUrl}
+                        className="w-full h-[70vh] border rounded-lg bg-white"
+                        style={{ border: 'none' }}
+                        onError={(e) => {
+                          console.error('Iframe load error:', e);
+                        }}
+                      />
+                      <div className="absolute bottom-4 right-4 flex gap-2">
+                        <button
+                          onClick={() => {
+                            window.open(docUrl, '_blank', 'noopener,noreferrer');
+                            setViewMode('newtab');
+                          }}
+                          className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                        >
+                          <Eye size={16} className="text-white" />
+                          <span className="text-white">Open in New Tab</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            const a = document.createElement('a');
+                            a.href = docUrl;
+                            a.download = viewDoc.name || 'document';
+                            a.target = '_blank';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }}
+                          className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                        >
+                          <Download size={16} className="text-white" />
+                          <span className="text-white">Download</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+                
+                // Show message with option to try viewing
                 return (
-                  <div className="relative">
-                    <iframe
-                      title="preview"
-                      src={viewerSrc}
-                      className="w-full h-[70vh] border rounded-lg bg-white"
-                      onError={(e) => {
-                        console.error('Viewer load error:', e);
-                      }}
-                    />
-                    <div className="absolute bottom-4 right-4">
+                  <div className="flex flex-col items-center justify-center h-[70vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
+                    <FileText className="text-gray-400 mb-4" size={64} />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Document Preview Not Available</h3>
+                    <p className="text-sm text-gray-600 mb-6 text-center max-w-md">
+                      This document cannot be previewed in the browser. Click "Try to View" to attempt displaying it, or download it to view.
+                    </p>
+                    <div className="flex gap-3">
                       <button
                         onClick={() => {
-                          window.open(viewDoc.url, '_blank');
+                          // First try iframe, but also provide option to open in new tab
+                          setForceDirectView(true);
+                          setViewMode('iframe'); // Start with iframe view
                         }}
-                        className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                        className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
                       >
-                        <Download size={16} />
-                        Open Directly
+                        <Eye size={18} className="text-white" />
+                        <span className="text-white">Try to View</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Directly open in new tab - this is more reliable
+                          window.open(docUrl, '_blank', 'noopener,noreferrer');
+                        }}
+                        className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                      >
+                        <Eye size={18} className="text-white" />
+                        <span className="text-white">Open in New Tab</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          const a = document.createElement('a');
+                          a.href = docUrl;
+                          a.download = viewDoc.name || 'document';
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                        }}
+                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium flex items-center gap-2"
+                      >
+                        <Download size={18} />
+                        Download
                       </button>
                     </div>
                   </div>

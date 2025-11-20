@@ -6,7 +6,6 @@ import {
   FaTimesCircle, 
   FaExclamationTriangle, 
   FaBan,
-  FaDownload,
   FaFlag,
   FaFlagUsa,
   FaTruck,
@@ -82,9 +81,9 @@ const MonthlyReport: React.FC = () => {
           setMonthlyData(sanitized);
           // Set selected month to current month if not set or if selected month doesn't exist in new data
           const currentSelectedMonth = selectedMonth;
-          if (!currentSelectedMonth || !sanitized.find(d => d.month === currentSelectedMonth)) {
+          if (!currentSelectedMonth || !sanitized.find((d: MonthlyStats) => d.month === currentSelectedMonth)) {
             const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
-            const monthExists = sanitized.find(d => d.month === currentMonthName);
+            const monthExists = sanitized.find((d: MonthlyStats) => d.month === currentMonthName);
             setSelectedMonth(monthExists ? currentMonthName : (sanitized[sanitized.length - 1]?.month || ''));
           }
         } else {

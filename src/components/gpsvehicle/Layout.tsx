@@ -1,4 +1,3 @@
-import React from 'react'
 import  { useState } from "react";
 import { Outlet } from "react-router-dom";
 import GpsHeader from './Header'
@@ -8,7 +7,7 @@ import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
 
 function Layout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const { showExpiringPopup, handleClosePopup, handleViewDocuments } = useExpiringDocuments();
+  const { showExpiringToast, handleCloseToast, handleViewDocuments } = useExpiringDocuments();
 
     const toggleSidebar = () => {
         setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -39,8 +38,8 @@ function Layout() {
             
             {/* Global Expiring Documents Popup */}
             <ExpiringDocumentsPopup
-                isOpen={showExpiringPopup}
-                onClose={handleClosePopup}
+                isOpen={showExpiringToast}
+                onClose={handleCloseToast}
                 onViewDocuments={handleViewDocuments}
                 daysThreshold={30}
                 showOnlyOnce={false}

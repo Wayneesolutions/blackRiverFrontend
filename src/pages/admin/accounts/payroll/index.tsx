@@ -656,7 +656,7 @@ const PayrollManagement = () => {
         return (
             <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center text-center space-y-5">
                 {notification && (
-                    <div className={`fixed top-4 right-4 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                    <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
                         {notification.type === 'success' ? (
                             <CheckCircle className="h-5 w-5 text-green-600" />
                         ) : (
@@ -689,7 +689,7 @@ const PayrollManagement = () => {
         <div className="min-h-screen bg-gray-50 px-6">
             <div className="py-8 max-w-7xl mx-auto">
                 {notification && (
-                    <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${
+                    <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${
                         notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
                     } text-white`}>
                         {notification.type === 'success' ? (
@@ -971,7 +971,7 @@ const PayrollManagement = () => {
                 </div>
 
                 {(showCreateModal || showEditModal) && (
-                    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center overflow-auto p-4">
+                    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
                         <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
                             <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
@@ -1422,7 +1422,7 @@ const PayrollManagement = () => {
                 )}
 
                 {showViewModal && selectedPayroll && (
-                    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center overflow-auto p-4">
+                    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
                         <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
                             <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
@@ -1676,7 +1676,7 @@ const PayrollManagement = () => {
                 )}
 
                 {showDeleteModal && selectedPayroll && (
-                    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                         <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">

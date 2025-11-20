@@ -48,3 +48,33 @@ export const loginSuperAdmin = async (data: { email: string; password: string })
     return (error as Error).response?.data;
   }
 };
+
+export const getCurrentUserProfile = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/profile');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const updateCurrentUserProfile = async (data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put('admin/profile', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const changePassword = async (data: { newPassword: string }) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('admin/change-password', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};

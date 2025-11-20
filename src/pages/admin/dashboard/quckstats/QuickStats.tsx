@@ -19,7 +19,6 @@ import { quickStats, loadsPerMonth, revenueTrend, fuelEfficiency, recentAlerts }
 import ExpiringDocumentsPopup from "../../../../components/common/ExpiringDocumentsPopup";
 
 const COLORS = ["#3b82f6", "#10b981"];
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 interface Stats {
   totalVehicles: number;

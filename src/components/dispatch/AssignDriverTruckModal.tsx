@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaUser, FaTruck, FaTrailer, FaCalendarAlt, FaTimes, FaCheck, FaInfoCircle } from 'react-icons/fa';
+import { FaUser, FaTruck, FaTrailer, FaCalendarAlt, FaTimes, FaCheck} from 'react-icons/fa';
 import StepTracker from './StepTracker';
 import { listDriver, listVehicle, listTrailers } from '../../axios/api/distapcher';
 

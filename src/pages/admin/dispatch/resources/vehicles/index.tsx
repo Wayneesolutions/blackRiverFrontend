@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Filter, Trash2, Search, Pencil } from 'lucide-react';
+import { Plus,  Trash2, Search, Pencil } from 'lucide-react';
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes, } from 'react-icons/fa';
 import NewVehicleSidebar from './NewVehicleSidebar';

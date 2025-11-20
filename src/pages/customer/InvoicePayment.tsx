@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { CreditCard, CheckCircle, XCircle, Clock, DollarSign, Calendar, User, Mail, Building, FileText, Loader2 } from 'lucide-react';
+import { CreditCard, CheckCircle, XCircle, Clock, Calendar, User, Mail, Building, Loader2 } from 'lucide-react';
 import { getPublicInvoice, createPaymentSession } from '../../axios/api/account.invoices';
 
 interface Invoice {

@@ -9,7 +9,7 @@ interface Error {
   }
 }
 
-export const createFuelReport = async (data) =>{
+export const createFuelReport = async (data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/fuel-report`,data);
     console.log('==res ', res)
@@ -28,7 +28,7 @@ export const getReporters = async () => {
   }
 }
 
-export const createPlace = async (data) =>{
+export const createPlace = async (data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/place`,data);
     console.log('==res ', res)
@@ -56,7 +56,7 @@ export const listPlace = async () =>{
   }
 }
 
-export const updatePlace = async (id:string,data) =>{
+export const updatePlace = async (id:string, data: any) =>{
     try {
     const res: AxiosResponse = await apiClient.put(`dispatcher/place/${id}`,data);
     console.log('==res ', res)

@@ -8,6 +8,7 @@ const publicApiClient = axios.create({
 });
 
 interface Error {
+    message?: string;
     response?: {
         data?: {
             message: string;

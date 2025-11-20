@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
-import { Calendar, Truck, DollarSign, Wrench, Filter, Download, TrendingUp, TrendingDown } from 'lucide-react';
+import {  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
+import { Calendar, Truck, DollarSign, Wrench, Filter, TrendingUp, TrendingDown } from 'lucide-react';
 
 // Type definitions
 interface CostReportItem {
@@ -442,7 +442,7 @@ const CostReports = () => {
                       }
                       labelLine={false}
                     >
-                      {vehicleBreakdown.map((entry, index) => (
+                      {vehicleBreakdown.map((_entry, index) => (
                         <Cell 
                           key={`cell-${index}`} 
                           fill={COLORS[index % COLORS.length]} 
@@ -450,7 +450,7 @@ const CostReports = () => {
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number, name: string, props: any) => [
+                      formatter={(value: number, _name: string, props: any) => [
                         `${value.toLocaleString()}`, 
                         props.payload.plateNumber
                       ]}

@@ -504,7 +504,9 @@ const DriverManagement = () => {
                                                         onError={(e) => {
                                                             console.error('Image load error:', driver.profileImageUrl);
                                                             e.currentTarget.style.display = 'none';
-                                                            e.currentTarget.nextSibling.style.display = 'block';
+                                                            if (e.currentTarget.nextSibling instanceof HTMLElement) {
+                                                                e.currentTarget.nextSibling.style.display = 'block';
+                                                            }
                                                         }}
                                                     />
                                                     <span className="text-gray-400 text-xs hidden">Failed to load</span>

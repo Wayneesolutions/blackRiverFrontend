@@ -64,21 +64,21 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
     // API data states
     const [customers, setCustomers] = useState<any[]>([]);
     const [drivers, setDrivers] = useState<any[]>([]);
-    const [facilator, setFaciliator] = useState<any[]>([]);
+    const [_facilitator, _setFacilitator] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
     // Form data states
     const [orderType, setOrderType] = useState("");
     const [internalId, setInternalId] = useState("");
     const [selectedCustomer, setSelectedCustomer] = useState("");
-    const [selectedFacilitator, setSelectedFacilitator] = useState("");
+    const [selectedFacilitator, _setSelectedFacilitator] = useState("");
     const [selectedDriver, setSelectedDriver] = useState("");
     const [selectedVehicle, setSelectedVehicle] = useState("");
     const [selectPickup, setSelectPickup] = useState("");
     const [selectDropoff, setSelectDropoff] = useState("");
     const [selectReturn, setSelectReturn] = useState("");
-    const [loadAmount, setLoadAmount] = useState("");
-    const [loadRate, setLoadRate] = useState("");
+    const [loadAmount, _setLoadAmount] = useState("");
+    const [loadRate, _setLoadRate] = useState("");
     // Receiver details
     const [receiverName, setReceiverName] = useState("");
     const [receiverEmail, setReceiverEmail] = useState("");
@@ -88,12 +88,12 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
     const [receiverNotes, setReceiverNotes] = useState("");
 
     // State for toggles and options
-    const [isAdhoc, setIsAdhoc] = useState(false);
-    const [adhocDistance, setAdhocDistance] = useState("");
-    const [addMisc, setAddMisc] = useState(false);
-    const [dispatchImmediately, setDispatchImmediately] = useState(false);
-    const [requireProof, setRequireProof] = useState(false);
-    const [proofType, setProofType] = useState("");
+    const [isAdhoc] = useState(false);
+    const [adhocDistance] = useState("");
+    const [addMisc] = useState(false);
+    const [dispatchImmediately, _setDispatchImmediately] = useState(false);
+    const [requireProof] = useState(false);
+    const [proofType] = useState("");
     const [multipleDropoffs, setMultipleDropoffs] = useState(false);
     const [applyServiceRate, setApplyServiceRate] = useState(false);
     const [notes, setNotes] = useState("");
@@ -152,7 +152,7 @@ const NewLoad: React.FC<NewLoadProps> = ({ onClose }) => {
 
                 setCustomers(lc.data || []);
                 setDrivers(ld.data || []);
-                setFaciliator(lf.data || []);
+                _setFacilitator(lf.data || []);
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {

@@ -20,7 +20,7 @@ export const compilancsummary = async () => {
   }
 };
 
-export const createUser = async (data) => {
+export const createUser = async (data: any) => {
   try {
     const res: AxiosResponse = await apiClient.post('admin/user', data);
     return res.data;
@@ -30,7 +30,7 @@ export const createUser = async (data) => {
   }
 };
 
-export const updateUser = async (id, data) => {
+export const updateUser = async (id: string, data: any) => {
   try {
     const res: AxiosResponse = await apiClient.put(`admin/user/${id}`, data);
     return res.data;
@@ -40,7 +40,7 @@ export const updateUser = async (id, data) => {
   }
 };
 
-export const deleteUser = async (id) => {
+export const deleteUser = async (id: string) => {
   try {
     const res: AxiosResponse = await apiClient.delete(`admin/user/${id}`);
     return res.data;
@@ -50,7 +50,7 @@ export const deleteUser = async (id) => {
   }
 };
 
-export const updateUserStatus = async (id, status) => {
+export const updateUserStatus = async (id: string, status: string) => {
   try {
     const res: AxiosResponse = await apiClient.patch(`admin/user/${id}/status`, { status });
     return res.data;
@@ -84,7 +84,7 @@ export const getCompany = async () =>{
   }
 }
 
-export const updateCompany = async (data) =>{
+export const updateCompany = async (data: any) =>{
   try {
     const res: AxiosResponse = await apiClient.post('admin/company',data);
     console.log('==res ', res)

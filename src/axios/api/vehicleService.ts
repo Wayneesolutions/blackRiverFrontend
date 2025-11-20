@@ -42,8 +42,11 @@ export interface VehicleServiceResponse {
   _id: string;
   vehicleId: {
     _id: string;
-    vehicleNumber: string;
-    model: string;
+    plateNumber: string;
+    internalId?: string;
+    model?: string;
+    make?: string;
+    year?: number;
   };
   serviceType: string;
   priority: string;

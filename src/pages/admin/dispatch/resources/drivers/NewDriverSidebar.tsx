@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import type { FC } from "react";
 import { X, Plus, Upload, ChevronDown, ChevronUp, User } from 'lucide-react';
-import { listDriver } from '../../../../../axios/api/distapcher';
 
 interface NewDriverSidebarProps {
     isOpen: boolean;

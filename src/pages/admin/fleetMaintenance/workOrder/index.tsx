@@ -113,7 +113,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 };
 
 function WorkOrdersPage() {
-    const { vehicles, emptyMessage: vehiclesEmptyMessage } = useVehicles();
+    const { vehicles } = useVehicles();
 
     const sanitizeMessage = useCallback((message?: string | null) => {
         if (!message) return null;

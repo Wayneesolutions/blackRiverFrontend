@@ -37,6 +37,16 @@ export const uploadCompanyDocument = async (payload: CompanyDocumentPayload) => 
   }
 };
 
+export const getSignedDocumentUrl = async (id: string, disposition: 'inline' | 'attachment' = 'inline') => {
+  try {
+    const res = await apiClient.get(`/company-documents/${id}/signed-url?disposition=${disposition}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
 export const deleteCompanyDocument = async (id: string) => {
   try {
     const res = await apiClient.delete(`/company-documents/${id}`);
