@@ -23,10 +23,6 @@ interface Issue {
   _id: string;
   reportedBy: string;
   assignedTo: string;
-  driver?: {
-    _id: string;
-    name: string;
-  };
   vehicle?: {
     _id: string;
     plateNumber: string;
@@ -56,6 +52,7 @@ const Issues: React.FC = () => {
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [loadingView, setLoadingView] = useState(false);
   const [pagination, setPagination] = useState({
     current: 1,
     pages: 1,
@@ -143,14 +140,40 @@ const Issues: React.FC = () => {
 
   // View issue details
   const handleView = async (id: string) => {
+    if (!id) {
+      console.error('No issue ID provided');
+      return;
+    }
+    
+    setLoadingView(true);
     try {
       const response = await getIssueById(id);
-      if (response.success) {
-        setSelectedIssue(response.issue);
-        setShowViewModal(true);
+      console.log('View issue response:', response);
+      
+      if (response?.success) {
+        // Handle different response structures
+        const issueData = response.issue || response.data || response;
+        if (issueData && issueData._id) {
+          setSelectedIssue(issueData);
+          setShowViewModal(true);
+        } else {
+          console.error('No issue data in response:', response);
+          alert('Failed to load issue details. Please try again.');
+        }
+      } else {
+        console.error('API returned success: false', response);
+        // Handle both old format { message: "..." } and new format { success: false, message: "..." }
+        const errorMsg = response?.message || 'Failed to load issue details. Please try again.';
+        alert(errorMsg);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching issue:', error);
+      // Handle error response structure
+      const errorResponse = error?.response?.data;
+      const errorMsg = errorResponse?.message || error?.message || 'Failed to load issue details. Please try again.';
+      alert(errorMsg);
+    } finally {
+      setLoadingView(false);
     }
   };
 
@@ -305,7 +328,7 @@ const Issues: React.FC = () => {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Driver/Vehicle
+                  Vehicle
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -315,13 +338,13 @@ const Issues: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
                     Loading issues...
                   </td>
                 </tr>
               ) : issues.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
                     No issues found
                   </td>
                 </tr>
@@ -363,17 +386,19 @@ const Issues: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
-                        {issue.driver ? issue.driver.name : 'No driver'}
-                      </div>
-                      <div className="text-sm text-gray-500">
                         {issue.vehicle ? `${issue.vehicle.make} ${issue.vehicle.model} (${issue.vehicle.plateNumber})` : 'No vehicle'}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleView(issue._id)}
-                          className="text-blue-600 hover:text-blue-800 p-1"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleView(issue._id);
+                          }}
+                          disabled={loadingView}
+                          className="text-blue-600 hover:text-blue-800 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
                           title="View Details"
                         >
                           <MdVisibility />

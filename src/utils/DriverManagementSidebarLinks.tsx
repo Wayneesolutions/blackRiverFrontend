@@ -6,6 +6,7 @@ import {
 } from "react-icons/md";
 import { FaUsers } from "react-icons/fa"; // Employee List
 import { RiCalendarScheduleFill } from "react-icons/ri"; // Scheduling
+import { FaFolderOpen } from "react-icons/fa"; // Company Documents
 
 type DriverSidebarLink = {
   key: string;
@@ -34,6 +35,11 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/documents",
     icon: <MdDocumentScanner />,
     label: "Documents",
+  },
+  {
+    key: "/admin/Management/company-documents",
+    icon: <FaFolderOpen />,
+    label: "Company Documents",
   },
   {
     key: "/admin/Management/attendence",

@@ -11,6 +11,7 @@ const EmployeeList = lazy(() => import("../../pages/admin/driverManagement/emplo
 const Documents = lazy(() => import("../../pages/admin/driverManagement/document/index"))
 const Attendence = lazy(() => import("../../pages/admin/driverManagement/Attendance/index"))
 const Issues = lazy(() => import("../../pages/admin/dispatch/resources/issues/index"))
+const CompanyDocuments = lazy(() => import("../../pages/admin/dashboard/documents/index"))
 
 
 function DriverManagementRoutes() {
@@ -23,6 +24,7 @@ function DriverManagementRoutes() {
                     <Route path="/scheduling" element={<Scheduling />} />
                     <Route path="/employeelist" element={<EmployeeList />} />
                     <Route path="/documents" element={<Documents />} />
+                    <Route path="/company-documents" element={<CompanyDocuments />} />
                     <Route path="/attendence" element={<Attendence />} />
                     <Route path="/issues" element={<Issues />} />
                 </Route>

@@ -30,6 +30,8 @@ interface DashboardStats {
     completed: number;
     today: number;
     tomorrow: number;
+    pickups: number;
+    deliveries: number;
   };
 }
 
@@ -179,6 +181,8 @@ const Index = () => {
             completed: data.completedLoads ?? 0,
             today: data.todayLoads ?? 0,
             tomorrow: data.tomorrowLoads ?? 0,
+            pickups: data.pickups ?? 0,
+            deliveries: data.deliveries ?? 0,
           },
         });
       }
@@ -396,7 +400,7 @@ const Index = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Dispatch Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
           <p className="text-gray-600 mt-1">Overview of drivers, trailers, vehicles</p>
         </div>
 
@@ -483,6 +487,16 @@ const Index = () => {
                 <div>
                   <span className="text-gray-500">Completed:</span>
                   <span className="ml-1 font-semibold text-blue-600">{stats?.loads.completed || 0}</span>
+                </div>
+              </div>
+              <div className="flex gap-4 pt-1 border-t border-gray-200">
+                <div>
+                  <span className="text-gray-500">Pickups:</span>
+                  <span className="ml-1 font-semibold text-indigo-600">{stats?.loads.pickups || 0}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Deliveries:</span>
+                  <span className="ml-1 font-semibold text-teal-600">{stats?.loads.deliveries || 0}</span>
                 </div>
               </div>
               <div className="flex gap-4 pt-1 border-t border-gray-200">
@@ -915,7 +929,7 @@ const Index = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            ${load.amount || load.details?.amount || 0}
+                            ${load.amount || 0}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

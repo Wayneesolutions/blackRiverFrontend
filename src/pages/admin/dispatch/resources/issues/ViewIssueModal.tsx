@@ -5,10 +5,6 @@ interface Issue {
   _id: string;
   reportedBy: string;
   assignedTo: string;
-  driver?: {
-    _id: string;
-    name: string;
-  };
   vehicle?: {
     _id: string;
     plateNumber: string;
@@ -68,8 +64,8 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-transparent z-[9999] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-2xl border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative z-[10000]" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-start">
@@ -107,23 +103,15 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
             </div>
           </div>
 
-          {/* Driver and Vehicle */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Driver</h3>
-              <p className="text-sm text-gray-900">
-                {issue.driver ? issue.driver.name : 'No driver assigned'}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Vehicle</h3>
-              <p className="text-sm text-gray-900">
-                {issue.vehicle 
-                  ? `${issue.vehicle.make} ${issue.vehicle.model} (${issue.vehicle.plateNumber})`
-                  : 'No vehicle assigned'
-                }
-              </p>
-            </div>
+          {/* Vehicle */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Vehicle</h3>
+            <p className="text-sm text-gray-900">
+              {issue.vehicle 
+                ? `${issue.vehicle.make} ${issue.vehicle.model} (${issue.vehicle.plateNumber})`
+                : 'No vehicle assigned'
+              }
+            </p>
           </div>
 
           {/* Issue Type and Category */}

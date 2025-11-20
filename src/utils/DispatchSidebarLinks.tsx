@@ -50,12 +50,12 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
       {
         key: "/admin/dispatch/operations/dispatch",
         icon: <MdLocalShipping />,
-        label: "Available Dispatch",
+        label: "Available",
       },
       {
         key: "/admin/dispatch/operations/all-dispatch",
         icon: <FaTruck />,
-        label: "All Dispatch",
+        label: "All",
       },
       {
         key: "/admin/dispatch/operations/delivery",

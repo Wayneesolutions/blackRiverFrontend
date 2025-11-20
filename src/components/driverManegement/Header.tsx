@@ -38,7 +38,7 @@ function Header() {
       <div className="flex items-center flex-1 gap-14 max-w-3xl">
         <QuickAction />
         <button className="px-4 py-2 rounded-md text-sm bg-gradient-to-r from-gray-200 to-blue-200 shadow-md hover:opacity-90 transition">
-          Driver Management
+          HR Human Resource
         </button>
       </div>
 

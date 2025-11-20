@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { createIssue, updateIssue, listDriver, listVehicle } from '../../../../../axios/api/distapcher';
+import { createIssue, updateIssue, listVehicle } from '../../../../../axios/api/distapcher';
 import { MdClose, MdSave } from 'react-icons/md';
 
 interface Issue {
   _id: string;
   reportedBy: string;
   assignedTo: string;
-  driver?: {
-    _id: string;
-    name: string;
-  } | string;
   vehicle?: {
     _id: string;
     plateNumber: string;
@@ -31,11 +27,6 @@ interface Issue {
   updatedAt?: string;
 }
 
-interface Driver {
-  _id: string;
-  name: string;
-}
-
 interface Vehicle {
   _id: string;
   plateNumber: string;
@@ -53,7 +44,6 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
   const [formData, setFormData] = useState({
     reportedBy: '',
     assignedTo: '',
-    driver: '',
     vehicle: '',
     issueType: 'maintanance' as 'maintanance' | 'operational' | 'accident' | 'compilance',
     issueCategory: 'engine' as 'engine' | 'fuel' | 'paper-work' | 'minor-damage',
@@ -64,29 +54,21 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
     address: ''
   });
 
-  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(false);
   const [tagInput, setTagInput] = useState('');
 
-  // Fetch drivers and vehicles
+  // Fetch vehicles
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [driversResponse, vehiclesResponse] = await Promise.all([
-          listDriver(),
-          listVehicle()
-        ]);
-
-        if (driversResponse.success) {
-          setDrivers(driversResponse.data || []);
-        }
+        const vehiclesResponse = await listVehicle();
 
         if (vehiclesResponse.success) {
           setVehicles(vehiclesResponse.data?.vehicles || []);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching vehicles:', error);
       }
     };
 
@@ -99,7 +81,6 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
       setFormData({
         reportedBy: issue.reportedBy || '',
         assignedTo: issue.assignedTo || '',
-        driver: typeof issue.driver === 'string' ? issue.driver : issue.driver?._id || '',
         vehicle: typeof issue.vehicle === 'string' ? issue.vehicle : issue.vehicle?._id || '',
         issueType: issue.issueType,
         issueCategory: issue.issueCategory,
@@ -145,7 +126,6 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
     try {
       const issueData = {
         ...formData,
-        driver: formData.driver || undefined,
         vehicle: formData.vehicle || undefined
       };
 
@@ -222,45 +202,24 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
             </div>
           </div>
 
-          {/* Driver and Vehicle */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Driver
-              </label>
-              <select
-                name="driver"
-                value={formData.driver}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select Driver</option>
-                {drivers.map((driver) => (
-                  <option key={driver._id} value={driver._id}>
-                    {driver.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Vehicle
-              </label>
-              <select
-                name="vehicle"
-                value={formData.vehicle}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select Vehicle</option>
-                {vehicles.map((vehicle) => (
-                  <option key={vehicle._id} value={vehicle._id}>
-                    {vehicle.make} {vehicle.model} ({vehicle.plateNumber})
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Vehicle */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Vehicle
+            </label>
+            <select
+              name="vehicle"
+              value={formData.vehicle}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select Vehicle</option>
+              {vehicles.map((vehicle) => (
+                <option key={vehicle._id} value={vehicle._id}>
+                  {vehicle.make} {vehicle.model} ({vehicle.plateNumber})
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Issue Type and Category */}

@@ -66,3 +66,14 @@ export const getSafetyStats = async () => {
     return (error as any).response?.data;
   }
 };
+
+// HR Dashboard Statistics
+export const getHRDashboard = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('hr/dashboard');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};

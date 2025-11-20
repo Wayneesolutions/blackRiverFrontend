@@ -2,31 +2,26 @@ import {
   Users, 
   Truck, 
   Shield, 
-  Star
+  FileText,
+  UserPlus,
+  Activity
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { 
-  getDriverStats, 
-  getLoadStats, 
-  getSafetyStats, 
+  getHRDashboard,
   getDriverActivities 
 } from '../../../axios/api/driverDashboard';
 
-interface DriverStats {
-  totalDrivers: number;
+interface HRDashboardStats {
+  recentDriverActivity: {
+    active: number;
+    inactive: number;
+  };
+  pendingDocumentRenewals: number;
+  totalEmployees: number;
   activeDrivers: number;
-  totalDriversChange: number;
-  activeDriversChange: number;
-}
-
-interface LoadStats {
   totalLoads: number;
-  totalLoadsChange: number;
-}
-
-interface SafetyStats {
-  avgSafetyScore: number;
-  safetyScoreChange: number;
+  newJoinersThisMonth: number;
 }
 
 interface DriverActivity {
@@ -51,9 +46,7 @@ interface DriverActivity {
 }
 
 const index = () => {
-  const [driverStats, setDriverStats] = useState<DriverStats | null>(null);
-  const [loadStats, setLoadStats] = useState<LoadStats | null>(null);
-  const [safetyStats, setSafetyStats] = useState<SafetyStats | null>(null);
+  const [dashboardStats, setDashboardStats] = useState<HRDashboardStats | null>(null);
   const [activities, setActivities] = useState<DriverActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,17 +58,13 @@ const index = () => {
     try {
       setLoading(true);
       
-      // Fetch all dashboard data in parallel
-      const [driverStatsRes, loadStatsRes, safetyStatsRes, activitiesRes] = await Promise.all([
-        getDriverStats(),
-        getLoadStats(),
-        getSafetyStats(),
+      // Fetch HR dashboard data and activities in parallel
+      const [dashboardRes, activitiesRes] = await Promise.all([
+        getHRDashboard(),
         getDriverActivities()
       ]);
 
-      setDriverStats(driverStatsRes.success && driverStatsRes.data ? driverStatsRes.data : null);
-      setLoadStats(loadStatsRes.success && loadStatsRes.data ? loadStatsRes.data : null);
-      setSafetyStats(safetyStatsRes.success && safetyStatsRes.data ? safetyStatsRes.data : null);
+      setDashboardStats(dashboardRes.success && dashboardRes.data ? dashboardRes.data : null);
       setActivities(activitiesRes.success && Array.isArray(activitiesRes.data) ? activitiesRes.data : []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -146,84 +135,105 @@ const index = () => {
   return (
      <div className="space-y-6 bg-gray-50 p-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Recent Driver Activity */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm font-medium">Total Drivers</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {driverStats?.totalDrivers || 0}
-              </p>
+              <p className="text-gray-500 text-sm font-medium">Recent Driver Activity</p>
+              <div className="mt-2 flex items-center gap-4">
+                <div>
+                  <p className="text-xs text-gray-400">Active</p>
+                  <p className="text-xl font-bold text-green-600">
+                    {dashboardStats?.recentDriverActivity?.active || 0}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Inactive</p>
+                  <p className="text-xl font-bold text-red-600">
+                    {dashboardStats?.recentDriverActivity?.inactive || 0}
+                  </p>
+                </div>
+              </div>
             </div>
             <div className="bg-blue-50 p-3 rounded-lg">
-              <Users className="h-6 w-6 text-blue-600" />
+              <Activity className="h-6 w-6 text-blue-600" />
             </div>
-          </div>
-          <div className="mt-4 flex items-center text-sm">
-            <span className={`font-medium ${(driverStats?.totalDriversChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {driverStats?.totalDriversChange ? (driverStats.totalDriversChange >= 0 ? '+' : '') + driverStats.totalDriversChange + '%' : '0%'}
-            </span>
-            <span className="text-gray-500 ml-1">vs last month</span>
           </div>
         </div>
 
+        {/* Pending Document Renewals */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm font-medium">Pending Document Renewals</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {dashboardStats?.pendingDocumentRenewals || 0}
+              </p>
+            </div>
+            <div className="bg-orange-50 p-3 rounded-lg">
+              <FileText className="h-6 w-6 text-orange-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Total Employees */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm font-medium">Total Employees</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {dashboardStats?.totalEmployees || 0}
+              </p>
+            </div>
+            <div className="bg-purple-50 p-3 rounded-lg">
+              <Users className="h-6 w-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Active Drivers */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm font-medium">Active Drivers</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                {driverStats?.activeDrivers || 0}
+                {dashboardStats?.activeDrivers || 0}
               </p>
             </div>
             <div className="bg-green-50 p-3 rounded-lg">
               <Shield className="h-6 w-6 text-green-600" />
             </div>
           </div>
-          <div className="mt-4 flex items-center text-sm">
-            <span className={`font-medium ${(driverStats?.activeDriversChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {driverStats?.activeDriversChange ? (driverStats.activeDriversChange >= 0 ? '+' : '') + driverStats.activeDriversChange + '%' : '0%'}
-            </span>
-            <span className="text-gray-500 ml-1">vs last month</span>
-          </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-500 text-sm font-medium">Avg Safety Score</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {safetyStats?.avgSafetyScore || 0}
-              </p>
-            </div>
-            <div className="bg-yellow-50 p-3 rounded-lg">
-              <Star className="h-6 w-6 text-yellow-600" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center text-sm">
-            <span className={`font-medium ${(safetyStats?.safetyScoreChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {safetyStats?.safetyScoreChange ? (safetyStats.safetyScoreChange >= 0 ? '+' : '') + safetyStats.safetyScoreChange + '%' : '0%'}
-            </span>
-            <span className="text-gray-500 ml-1">vs last month</span>
-          </div>
-        </div>
-
+        {/* Total Loads */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm font-medium">Total Loads</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                {loadStats?.totalLoads || 0}
+                {dashboardStats?.totalLoads || 0}
               </p>
             </div>
-            <div className="bg-purple-50 p-3 rounded-lg">
-              <Truck className="h-6 w-6 text-purple-600" />
+            <div className="bg-indigo-50 p-3 rounded-lg">
+              <Truck className="h-6 w-6 text-indigo-600" />
             </div>
           </div>
-          <div className="mt-4 flex items-center text-sm">
-            <span className={`font-medium ${(loadStats?.totalLoadsChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {loadStats?.totalLoadsChange ? (loadStats.totalLoadsChange >= 0 ? '+' : '') + loadStats.totalLoadsChange + '%' : '0%'}
-            </span>
-            <span className="text-gray-500 ml-1">vs last month</span>
+        </div>
+
+        {/* New Joiners This Month */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm font-medium">New Joiners This Month</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {dashboardStats?.newJoinersThisMonth || 0}
+              </p>
+            </div>
+            <div className="bg-pink-50 p-3 rounded-lg">
+              <UserPlus className="h-6 w-6 text-pink-600" />
+            </div>
           </div>
         </div>
       </div>
