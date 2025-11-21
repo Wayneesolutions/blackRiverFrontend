@@ -741,7 +741,7 @@ const Index = () => {
 
       {/* New Load Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full max-w-5xl w-full sm:w-[42rem] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed top-0 right-0 h-full max-w-5xl w-full  bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
           }`}
       >
         <NewLoad onClose={handleLoadAdded} />
