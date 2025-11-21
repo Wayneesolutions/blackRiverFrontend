@@ -66,14 +66,16 @@ export const useVehicles = () => {
     const userRole = userInfo?.role || userInfo?.userData?.role;
     const userCompany = userInfo?.company || userInfo?.userData?.company;
     const isSuperadmin = userRole === 'superadmin';
+    const isAdmin = userRole === 'admin';
+    const isHR = userRole === 'hr';
     const isDispatcher = userRole === 'dispatcher';
     const isFleetManager = userRole === 'Fleet Maintenance Manager';
     const isComplianceManager = userRole === 'Compliance Manager';
     const hasCompany = Boolean(userCompany);
 
-    // Allow dispatchers, fleet managers, and compliance managers to call API even if company is not visible in localStorage
+    // Allow superadmin, admin, hr, dispatchers, fleet managers, and compliance managers to call API even if company is not visible in localStorage
     // The backend will handle company filtering based on the authenticated user
-    if (!isSuperadmin && !isDispatcher && !isFleetManager && !isComplianceManager && !hasCompany) {
+    if (!isSuperadmin && !isAdmin && !isHR && !isDispatcher && !isFleetManager && !isComplianceManager && !hasCompany) {
       setVehicles([]);
       setEmptyMessage('No company assigned to the current admin.');
       setLoading(false);

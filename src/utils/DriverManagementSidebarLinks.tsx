@@ -4,7 +4,7 @@ import {
   MdAccessTime, // Attendance Tracking
   MdErrorOutline, // Issues
 } from "react-icons/md";
-import { FaUsers } from "react-icons/fa"; // Employee List
+import { FaUsers, FaCar } from "react-icons/fa"; // Employee List, Vehicle Documents
 import { RiCalendarScheduleFill } from "react-icons/ri"; // Scheduling
 import { FaFolderOpen } from "react-icons/fa"; // Company Documents
 
@@ -40,6 +40,11 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/company-documents",
     icon: <FaFolderOpen />,
     label: "Company Documents",
+  },
+  {
+    key: "/admin/Management/vehicle-documents",
+    icon: <FaCar />,
+    label: "Vehicle Documents",
   },
   {
     key: "/admin/Management/attendence",

@@ -6,6 +6,8 @@ import type { RootState } from '../redux/store';
 export const useExpiringDocuments = () => {
     const [showExpiringToast, setShowExpiringToast] = useState(false);
     const [expiringDocuments, setExpiringDocuments] = useState<any[]>([]);
+    const [showVehicleExpiringToast, setShowVehicleExpiringToast] = useState(false);
+    const [expiringVehicleDocuments, setExpiringVehicleDocuments] = useState<any[]>([]);
     const navigate = useNavigate();
     const location = useLocation();
     
@@ -22,6 +24,7 @@ export const useExpiringDocuments = () => {
         // Only check if we're in HR panel routes
         if (!isHRPanel) {
             setShowExpiringToast(false);
+            setShowVehicleExpiringToast(false);
             return;
         }
 
@@ -52,15 +55,26 @@ export const useExpiringDocuments = () => {
             }
 
             try {
-                // Import the API function dynamically to avoid circular imports
-                const { getExpiringDocuments } = await import('../axios/api/employeeDocument');
-                const response = await getExpiringDocuments(30); // Check for documents expiring in next 30 days
+                // Check both employee and vehicle documents
+                const [employeeDocsRes, vehicleDocsRes] = await Promise.all([
+                    import('../axios/api/employeeDocument').then(m => m.getExpiringDocuments(30)),
+                    import('../axios/api/compilance.vehicledoc').then(m => m.getExpiringVehicleDocuments(30))
+                ]);
                 
-                if (response && response.success && response.data && response.data.length > 0) {
-                    setExpiringDocuments(response.data);
+                // Handle employee documents
+                if (employeeDocsRes && employeeDocsRes.success && employeeDocsRes.data && employeeDocsRes.data.length > 0) {
+                    setExpiringDocuments(employeeDocsRes.data);
                     setShowExpiringToast(true);
                 } else {
                     setShowExpiringToast(false);
+                }
+
+                // Handle vehicle documents
+                if (vehicleDocsRes && vehicleDocsRes.success && vehicleDocsRes.data && vehicleDocsRes.data.length > 0) {
+                    setExpiringVehicleDocuments(vehicleDocsRes.data);
+                    setShowVehicleExpiringToast(true);
+                } else {
+                    setShowVehicleExpiringToast(false);
                 }
             } catch (error: any) {
                 // Silently handle errors - don't crash the app for background checks
@@ -68,6 +82,7 @@ export const useExpiringDocuments = () => {
                     console.error('❌ Error checking expiring documents:', error);
                 }
                 setShowExpiringToast(false);
+                setShowVehicleExpiringToast(false);
             }
         };
 
@@ -92,9 +107,18 @@ export const useExpiringDocuments = () => {
         setShowExpiringToast(false);
     };
 
+    const handleCloseVehicleToast = () => {
+        setShowVehicleExpiringToast(false);
+    };
+
     const handleViewDocuments = () => {
         setShowExpiringToast(false);
         navigate('/Management/documents');
+    };
+
+    const handleViewVehicleDocuments = () => {
+        setShowVehicleExpiringToast(false);
+        navigate('/Management/vehicle-documents');
     };
 
     return {
@@ -102,6 +126,11 @@ export const useExpiringDocuments = () => {
         expiringDocuments,
         setShowExpiringToast,
         handleCloseToast,
-        handleViewDocuments
+        handleViewDocuments,
+        showVehicleExpiringToast,
+        expiringVehicleDocuments,
+        setShowVehicleExpiringToast,
+        handleCloseVehicleToast,
+        handleViewVehicleDocuments
     };
 };

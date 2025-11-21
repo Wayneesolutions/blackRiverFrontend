@@ -3,11 +3,21 @@ import { Outlet } from "react-router-dom";
 import Header from './Header'
 import Sidebar from './Sidebar'
 import ExpiringDocumentsToast from "../common/ExpiringDocumentsToast";
+import ExpiringVehicleDocumentsToast from "../common/ExpiringVehicleDocumentsToast";
 import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
 
 function Layout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const { showExpiringToast, expiringDocuments, handleCloseToast, handleViewDocuments } = useExpiringDocuments();
+  const { 
+    showExpiringToast, 
+    expiringDocuments, 
+    handleCloseToast, 
+    handleViewDocuments,
+    showVehicleExpiringToast,
+    expiringVehicleDocuments,
+    handleCloseVehicleToast,
+    handleViewVehicleDocuments
+  } = useExpiringDocuments();
 
     const toggleSidebar = () => {
         setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -36,12 +46,20 @@ function Layout() {
                 </main>
             </div>
             
-            {/* Expiring Documents Toast (HR Panel Only) */}
+            {/* Expiring Employee Documents Toast (HR Panel Only) */}
             <ExpiringDocumentsToast
                 isOpen={showExpiringToast}
                 onClose={handleCloseToast}
                 onViewDocuments={handleViewDocuments}
                 count={expiringDocuments.length}
+            />
+            
+            {/* Expiring Vehicle Documents Toast (HR Panel Only) */}
+            <ExpiringVehicleDocumentsToast
+                isOpen={showVehicleExpiringToast}
+                onClose={handleCloseVehicleToast}
+                onViewDocuments={handleViewVehicleDocuments}
+                count={expiringVehicleDocuments.length}
             />
         </div>
     );

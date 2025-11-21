@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { AlertTriangle, X, ExternalLink } from 'lucide-react';
+import { X, ExternalLink, Truck } from 'lucide-react';
 
 interface ExpiringVehicleDocumentsToastProps {
   isOpen: boolean;
@@ -29,20 +29,20 @@ const ExpiringVehicleDocumentsToast: React.FC<ExpiringVehicleDocumentsToastProps
   }
 
   return (
-    <div className="fixed top-4 right-4 z-[9999] max-w-md w-full animate-slide-in">
-      <div className="bg-white rounded-lg shadow-xl border-l-4 border-orange-500 overflow-hidden">
+    <div className="fixed top-24 right-4 z-[9999] max-w-md w-full animate-slide-in">
+      <div className="bg-white rounded-lg shadow-xl border-l-4 border-red-500 overflow-hidden">
         <div className="p-4">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3 flex-1">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
+              <div className="p-2 bg-red-100 rounded-lg">
+                <Truck className="w-5 h-5 text-red-600" />
               </div>
               <div className="flex-1">
                 <h3 className="text-sm font-semibold text-gray-900 mb-1">
                   Vehicle Documents Expiring Soon
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {count} document{count !== 1 ? 's' : ''} {count === 1 ? 'is' : 'are'} expiring within 30 days
+                  {count} vehicle document{count !== 1 ? 's' : ''} {count === 1 ? 'is' : 'are'} expiring within 30 days
                 </p>
               </div>
             </div>
@@ -65,7 +65,7 @@ const ExpiringVehicleDocumentsToast: React.FC<ExpiringVehicleDocumentsToastProps
                 style={{ color: 'white' }}
               >
                 <ExternalLink className="w-3 h-3 text-white" style={{ color: 'white', stroke: 'white' }} />
-                <span className="text-white" style={{ color: 'white' }}>View Documents</span>
+                <span className="text-white" style={{ color: 'white' }}>View Vehicle Documents</span>
               </button>
             </div>
           )}
@@ -104,4 +104,3 @@ if (typeof document !== 'undefined') {
     document.head.appendChild(styleSheet);
   }
 }
-

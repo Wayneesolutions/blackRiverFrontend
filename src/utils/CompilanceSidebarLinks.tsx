@@ -1,7 +1,6 @@
 import {
     MdDashboard,
 } from "react-icons/md";
-import { BsPersonVcard } from "react-icons/bs";
 import { RiBillLine } from "react-icons/ri";
 import { FaClipboardCheck, FaChartBar, FaTicketAlt } from "react-icons/fa";
 import { RiOilLine } from "react-icons/ri";
@@ -20,21 +19,6 @@ export const CompilanceSidebarLinks: CompilanceSidebarLink[] = [
         icon: <MdDashboard />,
         label: "Compilance Summary",
     },
-    {
-        key: "vehicle-documents",
-        icon: <BsPersonVcard />,
-        label: "Vehicle Documents",
-    },
-    // {
-    //     key: "member",
-    //     icon: <HiOutlineUsers />,
-    //     label: "Member",
-    // },
-    // {
-    //     key: "slots",
-    //     icon: <RiBarChart2Fill />,
-    //     label: "Slots",
-    // },
     {
         key: "hos-eld",
         icon: <RiBillLine />,
