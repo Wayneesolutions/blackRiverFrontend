@@ -13,6 +13,8 @@ import {
   FaUserTie,
   FaTruck,
   FaClipboardCheck,
+  FaList,
+  FaLayerGroup,
 } from "react-icons/fa";
 import { TbTruckDelivery, TbReportAnalytics } from "react-icons/tb";
 import { IoIosSend } from "react-icons/io";
@@ -22,7 +24,7 @@ type DispatchSidebarLinks = {
   icon: React.ReactNode;
   label: string;
   children?: DispatchSidebarLinks[];
-  action?: "open-new-load";
+  action?: "open-new-load" | "open-new-order";
 };
 
 export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
@@ -41,6 +43,16 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
         key: "/admin/dispatch/operations/dashboard",
         icon: <MdDashboard />,
         label: "Dashboard",
+      },
+      {
+        key: "/admin/dispatch/operations/order-list",
+        icon: <FaList />,
+        label: "Order List",
+      },
+      {
+        key: "/admin/dispatch/operations/bulk-order",
+        icon: <FaLayerGroup />,
+        label: "Bulk Order",
       },
       {
         key: "/admin/dispatch/operations/service-rates",

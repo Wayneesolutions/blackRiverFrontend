@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Layout from "../../components/dispatch/Layout";
@@ -10,6 +11,8 @@ const AllDispatch = lazy(() => import("../../pages/admin/dispatch/operations/all
 const Delivery = lazy(() => import("../../pages/admin/dispatch/operations/delivery/index"))
 const Scheduler = lazy(() => import("../../pages/admin/dispatch/operations/schedular/index"))
 const OrderConfig = lazy(() => import("../../pages/admin/dispatch/operations/orderConfig/index"))
+const OrderList = lazy(() => import("../../pages/admin/dispatch/operations/order-list/index"))
+const BulkOrder = lazy(() => import("../../pages/admin/dispatch/operations/bulk-order/index"))
 
 const DriversPage = lazy(() => import("../../pages/admin/dispatch/resources/drivers"))
 const Vehicle = lazy(() => import("../../pages/admin/dispatch/resources/vehicles/index"))
@@ -32,6 +35,8 @@ function DispatchRoutes() {
 
           <Route index element={<DispatchDashboard />} />
           <Route path="operations/dashboard" element={<DispatchDashboard />} />
+          <Route path="operations/order-list" element={<OrderList />} />
+          <Route path="operations/bulk-order" element={<BulkOrder />} />
           <Route path="operations/service-rates" element={<ServiceRate />} />
           <Route path="operations/dispatch" element={<Dispatch />} />
           <Route path="operations/all-dispatch" element={<AllDispatch />} />
