@@ -183,8 +183,42 @@ const MaintenanceSchedule = () => {
         estimatedTime: '',
         description: '',
         recurringService: false,
-        recurringInterval: ''
+        recurringInterval: '',
+        // Service Type Configuration
+        mileageInterval: '', // Service interval in km
+        timeInterval: '', // Service interval in days
+        useMileageInterval: true,
+        useTimeInterval: true,
+        // New fields
+        serviceDate: '',
+        unitNumber: '',
+        makeModel: '',
+        vinLicensePlate: '',
+        odometer: '',
+        parts: '',
+        notes: '',
+        serviceProvider: '',
+        invoiceNumber: ''
     });
+
+    // Service Type Configuration - Default intervals for each service type
+    const serviceTypeIntervals: { [key: string]: { mileage: number; days: number } } = {
+        'oil-change': { mileage: 15000, days: 90 },
+        'tire-rotation': { mileage: 10000, days: 180 },
+        'brake-inspection': { mileage: 25000, days: 365 },
+        'general-maintenance': { mileage: 20000, days: 180 },
+        'other': { mileage: 0, days: 0 }
+    };
+
+    // State to store last completed service data for next due calculation
+    const [lastServiceData, setLastServiceData] = useState<{
+        odometerReading?: number;
+        completionDate?: string;
+        serviceType?: string;
+    } | null>(null);
+
+    // State for vehicle's current odometer
+    const [currentOdometer, setCurrentOdometer] = useState<number | null>(null);
 
     // Fetch data on component mount
     useEffect(() => {
@@ -406,14 +440,34 @@ const MaintenanceSchedule = () => {
 
         const validServiceType = serviceTypeMap[scheduleForm.serviceType] || scheduleForm.serviceType;
 
-        const serviceData: VehicleServiceData = {
+        const serviceData: VehicleServiceData & {
+            serviceDate?: string;
+            unitNumber?: string;
+            makeModel?: string;
+            vinLicensePlate?: string;
+            odometer?: number;
+            parts?: string;
+            notes?: string;
+            serviceProvider?: string;
+            invoiceNumber?: string;
+        } = {
             vehicleId: scheduleForm.vehicle,
             serviceType: validServiceType as any,
             priority: scheduleForm.priority as any,
             dueDate: scheduleForm.dueDate,
             dueMileage: parseInt(scheduleForm.dueMileage) || 0,
             assignedMechanic: scheduleForm.assignedMechanic, // This should be an ObjectId string
-            description: scheduleForm.description
+            description: scheduleForm.description,
+            // Additional fields
+            serviceDate: scheduleForm.serviceDate || undefined,
+            unitNumber: scheduleForm.unitNumber || undefined,
+            makeModel: scheduleForm.makeModel || undefined,
+            vinLicensePlate: scheduleForm.vinLicensePlate || undefined,
+            odometer: parseInt(scheduleForm.odometer) || undefined,
+            parts: scheduleForm.parts || undefined,
+            notes: scheduleForm.notes || undefined,
+            serviceProvider: scheduleForm.serviceProvider || undefined,
+            invoiceNumber: scheduleForm.invoiceNumber || undefined
         };
 
         console.log('Creating service with data:', serviceData);
@@ -434,7 +488,20 @@ const MaintenanceSchedule = () => {
                 estimatedTime: '',
                 description: '',
                 recurringService: false,
-                recurringInterval: ''
+                recurringInterval: '',
+                mileageInterval: '',
+                timeInterval: '',
+                useMileageInterval: true,
+                useTimeInterval: true,
+                serviceDate: '',
+                unitNumber: '',
+                makeModel: '',
+                vinLicensePlate: '',
+                odometer: '',
+                parts: '',
+                notes: '',
+                serviceProvider: '',
+                invoiceNumber: ''
             });
         } else {
             console.error('Failed to create service:', result?.message);
@@ -443,14 +510,34 @@ const MaintenanceSchedule = () => {
     };
 
     const handleUpdateService = async (serviceId: string) => {
-        const updateData: UpdateServiceData = {
+        const updateData: UpdateServiceData & {
+            serviceDate?: string;
+            unitNumber?: string;
+            makeModel?: string;
+            vinLicensePlate?: string;
+            odometer?: number;
+            parts?: string;
+            notes?: string;
+            serviceProvider?: string;
+            invoiceNumber?: string;
+        } = {
             vehicleId: scheduleForm.vehicle,
             serviceType: scheduleForm.serviceType as any,
             priority: scheduleForm.priority as any,
             dueDate: scheduleForm.dueDate,
             dueMileage: parseInt(scheduleForm.dueMileage) || 0,
             assignedMechanic: scheduleForm.assignedMechanic,
-            description: scheduleForm.description
+            description: scheduleForm.description,
+            // Additional fields
+            serviceDate: scheduleForm.serviceDate || undefined,
+            unitNumber: scheduleForm.unitNumber || undefined,
+            makeModel: scheduleForm.makeModel || undefined,
+            vinLicensePlate: scheduleForm.vinLicensePlate || undefined,
+            odometer: parseInt(scheduleForm.odometer) || undefined,
+            parts: scheduleForm.parts || undefined,
+            notes: scheduleForm.notes || undefined,
+            serviceProvider: scheduleForm.serviceProvider || undefined,
+            invoiceNumber: scheduleForm.invoiceNumber || undefined
         };
 
         const result = await updateService(serviceId, updateData);
@@ -474,9 +561,25 @@ const MaintenanceSchedule = () => {
             assignedMechanic: service.assignedMechanic?._id || '',
             estimatedCost: '',
             estimatedTime: '',
-            description: service.description,
+            description: service.description || '',
             recurringService: false,
-            recurringInterval: ''
+            recurringInterval: '',
+            mileageInterval: '',
+            timeInterval: '',
+            useMileageInterval: true,
+            useTimeInterval: true,
+            // New fields - can be populated from service data if available
+            serviceDate: (service as any).serviceDate?.split('T')[0] || '',
+            unitNumber: service.vehicleId?.plateNumber || (service as any).unitNumber || '',
+            makeModel: service.vehicleId?.make && service.vehicleId?.model 
+                ? `${service.vehicleId.make} ${service.vehicleId.model}` 
+                : (service as any).makeModel || '',
+            vinLicensePlate: (service as any).vinLicensePlate || service.vehicleId?.plateNumber || '',
+            odometer: (service as any).odometer?.toString() || '',
+            parts: (service as any).parts || '',
+            notes: (service as any).notes || '',
+            serviceProvider: (service as any).serviceProvider || '',
+            invoiceNumber: (service as any).invoiceNumber || ''
         });
         setShowScheduleForm(true);
     };
@@ -608,6 +711,107 @@ const MaintenanceSchedule = () => {
     const handleFormChange = (field: string, value: string | boolean): void => {
         setScheduleForm(prev => ({ ...prev, [field]: value }));
     };
+
+    // Static mock work orders data for next due calculation
+    const staticWorkOrders = [
+        {
+            _id: 'wo1',
+            vehicleId: { _id: 'v1' },
+            status: 'completed',
+            issue: 'Oil Change',
+            description: 'Routine oil change service',
+            odometerReading: 145000,
+            completionDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days ago
+            createdAt: new Date(Date.now() - 70 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+            _id: 'wo2',
+            vehicleId: { _id: 'v1' },
+            status: 'completed',
+            issue: 'Tire Rotation',
+            description: 'Regular tire rotation',
+            odometerReading: 140000,
+            completionDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days ago
+            createdAt: new Date(Date.now() - 95 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+            _id: 'wo3',
+            vehicleId: { _id: 'v2' },
+            status: 'completed',
+            issue: 'Brake Inspection',
+            description: 'Full brake system inspection',
+            odometerReading: 180000,
+            completionDate: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(), // 120 days ago
+            createdAt: new Date(Date.now() - 125 * 24 * 60 * 60 * 1000).toISOString()
+        }
+    ];
+
+    // Function to calculate next due date and mileage based on last completed service (using static data)
+    const calculateNextDue = useCallback((vehicleId: string, serviceType: string, intervals: { mileage: number; days: number }) => {
+        try {
+            // Use static work orders data instead of API call
+            const completedOrders = staticWorkOrders
+                .filter((order: any) => 
+                    order.vehicleId?._id === vehicleId && 
+                    order.status === 'completed' &&
+                    order.odometerReading &&
+                    (order.issue?.toLowerCase().includes(serviceType.replace(/_/g, ' ').toLowerCase()) || 
+                     order.description?.toLowerCase().includes(serviceType.replace(/_/g, ' ').toLowerCase()))
+                )
+                .sort((a: any, b: any) => {
+                    const dateA = new Date(a.completionDate || a.createdAt || '');
+                    const dateB = new Date(b.completionDate || b.createdAt || '');
+                    return dateB.getTime() - dateA.getTime(); // Sort descending
+                });
+
+            // Get vehicle's current odometer
+            const selectedVehicle = vehicles.find(v => v._id === vehicleId);
+            const currentOdo = selectedVehicle?.odometer || selectedVehicle?.currentOdometer || 0;
+            setCurrentOdometer(currentOdo);
+
+            let lastOdometer = currentOdo;
+            let lastCompletionDate: Date | null = null;
+
+            if (completedOrders.length > 0) {
+                const lastOrder = completedOrders[0];
+                lastOdometer = lastOrder.odometerReading || currentOdo;
+                lastCompletionDate = new Date(lastOrder.completionDate || lastOrder.createdAt);
+                setLastServiceData({
+                    odometerReading: lastOdometer,
+                    completionDate: lastCompletionDate.toISOString(),
+                    serviceType: serviceType
+                });
+            } else {
+                // No completed orders found, use vehicle's current odometer
+                setLastServiceData({
+                    odometerReading: currentOdo,
+                    serviceType: serviceType
+                });
+                lastCompletionDate = new Date(); // Use today as base if no previous service
+            }
+
+            // Calculate next due mileage
+            if (scheduleForm.useMileageInterval && intervals.mileage > 0) {
+                const nextDueMileage = lastOdometer + intervals.mileage;
+                setScheduleForm(prev => ({ ...prev, dueMileage: nextDueMileage.toString() }));
+            }
+
+            // Calculate next due date
+            if (scheduleForm.useTimeInterval && intervals.days > 0 && lastCompletionDate) {
+                const nextDueDate = new Date(lastCompletionDate);
+                nextDueDate.setDate(nextDueDate.getDate() + intervals.days);
+                
+                // Format date as YYYY-MM-DD for input
+                const formattedDate = nextDueDate.toISOString().split('T')[0];
+                setScheduleForm(prev => ({ ...prev, dueDate: formattedDate }));
+            }
+
+            addNotification('info', `Next due calculated based on last service at ${lastOdometer.toLocaleString()} km`);
+        } catch (error) {
+            console.error('Error calculating next due:', error);
+            addNotification('error', 'Failed to calculate next due date/mileage');
+        }
+    }, [vehicles, scheduleForm.useMileageInterval, scheduleForm.useTimeInterval, addNotification]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
@@ -854,24 +1058,71 @@ const MaintenanceSchedule = () => {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle *</label>
                                     <select
                                         value={scheduleForm.vehicle}
-                                        onChange={(e) => handleFormChange('vehicle', e.target.value)}
+                                        onChange={(e) => {
+                                            const vehicleId = e.target.value;
+                                            handleFormChange('vehicle', vehicleId);
+                                            
+                                            // Auto-populate vehicle-related fields
+                                            const selectedVehicle = vehicles.find(v => v._id === vehicleId);
+                                            if (selectedVehicle) {
+                                                setCurrentOdometer(selectedVehicle.odometer || selectedVehicle.currentOdometer || 0);
+                                                // Auto-populate unit number, make/model, VIN/license plate, and odometer
+                                                setScheduleForm(prev => ({
+                                                    ...prev,
+                                                    unitNumber: selectedVehicle.plateNumber || prev.unitNumber,
+                                                    makeModel: `${selectedVehicle.make || ''} ${selectedVehicle.model || ''}`.trim() || prev.makeModel,
+                                                    vinLicensePlate: selectedVehicle.vinNumber || selectedVehicle.plateNumber || prev.vinLicensePlate,
+                                                    odometer: (selectedVehicle.odometer || selectedVehicle.currentOdometer || 0).toString()
+                                                }));
+                                            }
+                                            
+                                            // Auto-calculate next due if service type is selected
+                                            if (vehicleId && scheduleForm.serviceType) {
+                                                const intervals = serviceTypeIntervals[scheduleForm.serviceType];
+                                                if (intervals) {
+                                                    calculateNextDue(vehicleId, scheduleForm.serviceType, intervals);
+                                                }
+                                            }
+                                        }}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required
                                     >
                                         <option value="">Select a vehicle</option>
                                         {vehicles.map((vehicle: Vehicle) => (
                                             <option key={vehicle._id} value={vehicle._id}>
-                                                {vehicle.plateNumber} {vehicle.make && vehicle.model ? `- ${vehicle.make} ${vehicle.model}` : ''}
+                                                {vehicle.plateNumber} {vehicle.make && vehicle.model ? `- ${vehicle.make} ${vehicle.model}` : ''} 
+                                                {(vehicle.odometer || vehicle.currentOdometer) ? ` (${(vehicle.odometer || vehicle.currentOdometer || 0).toLocaleString()} km)` : ''}
                                             </option>
                                         ))}
                                     </select>
+                                    {currentOdometer !== null && (
+                                        <p className="text-xs text-gray-500 mt-1">Current Odometer: {currentOdometer.toLocaleString()} km</p>
+                                    )}
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Service Type *</label>
                                     <select
                                         value={scheduleForm.serviceType}
-                                        onChange={(e) => handleFormChange('serviceType', e.target.value)}
+                                        onChange={(e) => {
+                                            const selectedType = e.target.value;
+                                            handleFormChange('serviceType', selectedType);
+                                            
+                                            // Auto-populate service intervals based on service type
+                                            const intervals = serviceTypeIntervals[selectedType];
+                                            if (intervals) {
+                                                setScheduleForm(prev => ({
+                                                    ...prev,
+                                                    mileageInterval: intervals.mileage.toString(),
+                                                    timeInterval: intervals.days.toString()
+                                                }));
+                                                
+                                                // Auto-calculate next due if vehicle is selected
+                                                if (scheduleForm.vehicle) {
+                                                    calculateNextDue(scheduleForm.vehicle, selectedType, intervals);
+                                                }
+                                            }
+                                        }}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required
                                     >
@@ -883,6 +1134,91 @@ const MaintenanceSchedule = () => {
                                         ))}
                                     </select>
                                 </div>
+
+                                {/* Service Type Configuration */}
+                                {scheduleForm.serviceType && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+                                        <h3 className="text-sm font-semibold text-blue-900 mb-2">Service Interval Configuration</h3>
+                                        
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={scheduleForm.useMileageInterval}
+                                                        onChange={(e) => handleFormChange('useMileageInterval', e.target.checked)}
+                                                        className="mr-2"
+                                                    />
+                                                    Mileage Interval (km)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={scheduleForm.mileageInterval}
+                                                    onChange={(e) => {
+                                                        handleFormChange('mileageInterval', e.target.value);
+                                                        if (scheduleForm.vehicle && scheduleForm.serviceType) {
+                                                            const intervals = serviceTypeIntervals[scheduleForm.serviceType];
+                                                            calculateNextDue(scheduleForm.vehicle, scheduleForm.serviceType, {
+                                                                mileage: parseInt(e.target.value) || intervals.mileage,
+                                                                days: parseInt(scheduleForm.timeInterval) || intervals.days
+                                                            });
+                                                        }
+                                                    }}
+                                                    placeholder="e.g., 15000"
+                                                    disabled={!scheduleForm.useMileageInterval}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                                    min="0"
+                                                />
+                                            </div>
+                                            
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={scheduleForm.useTimeInterval}
+                                                        onChange={(e) => handleFormChange('useTimeInterval', e.target.checked)}
+                                                        className="mr-2"
+                                                    />
+                                                    Time Interval (days)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={scheduleForm.timeInterval}
+                                                    onChange={(e) => {
+                                                        handleFormChange('timeInterval', e.target.value);
+                                                        if (scheduleForm.vehicle && scheduleForm.serviceType) {
+                                                            const intervals = serviceTypeIntervals[scheduleForm.serviceType];
+                                                            calculateNextDue(scheduleForm.vehicle, scheduleForm.serviceType, {
+                                                                mileage: parseInt(scheduleForm.mileageInterval) || intervals.mileage,
+                                                                days: parseInt(e.target.value) || intervals.days
+                                                            });
+                                                        }
+                                                    }}
+                                                    placeholder="e.g., 90"
+                                                    disabled={!scheduleForm.useTimeInterval}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                                    min="0"
+                                                />
+                                            </div>
+                                        </div>
+                                        
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (scheduleForm.vehicle && scheduleForm.serviceType) {
+                                                    const intervals = serviceTypeIntervals[scheduleForm.serviceType];
+                                                    calculateNextDue(scheduleForm.vehicle, scheduleForm.serviceType, {
+                                                        mileage: parseInt(scheduleForm.mileageInterval) || intervals.mileage,
+                                                        days: parseInt(scheduleForm.timeInterval) || intervals.days
+                                                    });
+                                                }
+                                            }}
+                                            className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                                        >
+                                            Calculate Next Due
+                                        </button>
+                                    </div>
+                                )}
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
@@ -935,14 +1271,119 @@ const MaintenanceSchedule = () => {
                                     </select>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                                    <textarea
-                                        value={scheduleForm.description}
-                                        onChange={(e) => handleFormChange('description', e.target.value)}
-                                        rows={3}
-                                        placeholder="Describe any specific requirements or issues..."
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                                {/* New Fields Section */}
+                                <div className="border-t pt-6 mt-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Service Details</h3>
+                                    
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Service Date</label>
+                                            <input
+                                                type="date"
+                                                value={scheduleForm.serviceDate}
+                                                onChange={(e) => handleFormChange('serviceDate', e.target.value)}
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Unit Number</label>
+                                            <input
+                                                type="text"
+                                                value={scheduleForm.unitNumber}
+                                                onChange={(e) => handleFormChange('unitNumber', e.target.value)}
+                                                placeholder="Unit Number"
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Make/Model</label>
+                                            <input
+                                                type="text"
+                                                value={scheduleForm.makeModel}
+                                                onChange={(e) => handleFormChange('makeModel', e.target.value)}
+                                                placeholder="Make/Model"
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">VIN/License Plate</label>
+                                            <input
+                                                type="text"
+                                                value={scheduleForm.vinLicensePlate}
+                                                onChange={(e) => handleFormChange('vinLicensePlate', e.target.value)}
+                                                placeholder="VIN or License Plate"
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Odometer</label>
+                                            <input
+                                                type="number"
+                                                value={scheduleForm.odometer}
+                                                onChange={(e) => handleFormChange('odometer', e.target.value)}
+                                                placeholder="Current Odometer Reading"
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Service Provider</label>
+                                            <input
+                                                type="text"
+                                                value={scheduleForm.serviceProvider}
+                                                onChange={(e) => handleFormChange('serviceProvider', e.target.value)}
+                                                placeholder="Service Provider/Shop Name"
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Number</label>
+                                            <input
+                                                type="text"
+                                                value={scheduleForm.invoiceNumber}
+                                                onChange={(e) => handleFormChange('invoiceNumber', e.target.value)}
+                                                placeholder="Invoice Number"
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">PARTS</label>
+                                            <textarea
+                                                value={scheduleForm.parts}
+                                                onChange={(e) => handleFormChange('parts', e.target.value)}
+                                                rows={3}
+                                                placeholder="List parts used or required..."
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">DESCRIPTION</label>
+                                            <textarea
+                                                value={scheduleForm.description}
+                                                onChange={(e) => handleFormChange('description', e.target.value)}
+                                                rows={3}
+                                                placeholder="Describe any specific requirements or issues..."
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                                            <textarea
+                                                value={scheduleForm.notes}
+                                                onChange={(e) => handleFormChange('notes', e.target.value)}
+                                                rows={3}
+                                                placeholder="Additional notes..."
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="flex gap-3 pt-4">

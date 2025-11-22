@@ -489,7 +489,7 @@ const Trips = () => {
                           {trip.status === 'planned' && (
                             <button
                               onClick={() => handleStartTrip(trip)}
-                              className="px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded transition-colors"
+                              className="px-3 py-1.5 text-xs font-medium !text-white bg-green-600 hover:bg-green-700 rounded transition-colors"
                               title="Start Trip"
                             >
                               Start
@@ -498,7 +498,7 @@ const Trips = () => {
                           {trip.status === 'in-progress' && (
                             <button
                               onClick={() => handleCompleteTrip(trip)}
-                              className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                              className="px-3 py-1.5 text-xs font-medium !text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors"
                               title="Complete Trip"
                             >
                               Complete

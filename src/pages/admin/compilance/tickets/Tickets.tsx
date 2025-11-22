@@ -31,17 +31,21 @@ import {
 } from '../../../../axios/api/admin';
 import { listVehicle } from '../../../../axios/api/distapcher';
 import { listDriver } from '../../../../axios/api/distapcher';
+import { listTrailers } from '../../../../axios/api/distapcher';
 
 // Types
 interface Ticket {
   _id: string;
   ticketNumber: string;
+  country: 'usa' | 'canada';
   violationType: string;
   violationDescription: string;
   dateIssued: string;
-  location: string;
-  amount: number;
-  status: 'paid' | 'unpaid' | 'fight';
+  location: string; // Province (Canada) or State (USA)
+  amount: number; // Fine Amount
+  finalAmount?: number; // Final amount after reduction
+  status: 'paid' | 'unpaid' | 'fight' | 'dismissed' | 'reduced';
+  outcome?: 'paid' | 'reduced' | 'dismissed' | 'on fight' | 'unpaid';
   driver: {
     _id: string;
     name?: string;
@@ -55,8 +59,12 @@ interface Ticket {
     model?: string;
     year?: number;
   } | string;
+  unitNumber?: string; // Unit number (separate from vehicle)
+  trailerNumber?: string; // Trailer number
   officerName: string;
   dueDate: string;
+  courtDate?: string;
+  fightingBy?: 'company' | 'lawyer'; // Who is fighting the ticket
   lawyerDetails?: LawyerDetails;
   notes?: string;
   paidDate?: string;
@@ -80,6 +88,13 @@ interface Driver {
   email: string;
 }
 
+interface Trailer {
+  _id: string;
+  trailer: string;
+  internalId?: string;
+  plateNumber?: string;
+}
+
 interface LawyerDetails {
   name: string;
   firm: string;
@@ -96,10 +111,16 @@ interface TicketStats {
   paid: number;
   unpaid: number;
   fight: number;
+  dismissed: number;
+  reduced: number;
   totalAmount: number;
   paidAmount: number;
   unpaidAmount: number;
   fightAmount: number;
+  dismissedAmount: number;
+  reducedAmount: number;
+  usaTotal?: number;
+  canadaTotal?: number;
 }
 
 // Toast Notification Types
@@ -149,6 +170,8 @@ const Tickets: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [trailers, setTrailers] = useState<Trailer[]>([]);
+  const [activeTab, setActiveTab] = useState<'usa' | 'canada' | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortField, setSortField] = useState<string>('dateIssued');
@@ -164,30 +187,46 @@ const Tickets: React.FC = () => {
     paid: 0,
     unpaid: 0,
     fight: 0,
+    dismissed: 0,
+    reduced: 0,
     totalAmount: 0,
     paidAmount: 0,
     unpaidAmount: 0,
-    fightAmount: 0
+    fightAmount: 0,
+    dismissedAmount: 0,
+    reducedAmount: 0,
+    usaTotal: 0,
+    canadaTotal: 0
   });
 
   const [ticketForm, setTicketForm] = useState<Partial<Ticket>>({
+    country: 'usa',
     violationType: '',
     violationDescription: '',
     dateIssued: '',
     location: '',
     amount: 0,
+    finalAmount: undefined,
     status: 'unpaid',
+    outcome: 'unpaid',
     driver: '',
     vehicle: '',
+    unitNumber: '',
+    trailerNumber: '',
     officerName: '',
     dueDate: '',
+    courtDate: '',
+    fightingBy: undefined,
     notes: '',
-    lawyerDetails: undefined
+    lawyerDetails: undefined,
+    paidDate: '',
+    paymentMethod: '',
+    paymentReference: ''
   });
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const notificationIdRef = useRef(0);
 
-  // Fetch vehicles and drivers
+  // Fetch vehicles, drivers, and trailers
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
@@ -214,18 +253,28 @@ const Tickets: React.FC = () => {
       }
     };
 
+    const fetchTrailers = async () => {
+      try {
+        const res = await listTrailers();
+        if (res?.success && res?.data) {
+          const trailerList = Array.isArray(res.data) ? res.data : (res.data?.trailers || []);
+          setTrailers(trailerList);
+        }
+      } catch (error) {
+        console.error('Error fetching trailers:', error);
+      }
+    };
+
     fetchVehicles();
     fetchDrivers();
+    fetchTrailers();
   }, []);
 
   // Function to refresh tickets and stats
-  const refreshData = async (useFilters = true) => {
+  const refreshData = async () => {
     try {
       const [ticketsRes, statsRes] = await Promise.all([
-        getTickets({ 
-          status: useFilters && statusFilter !== 'all' ? statusFilter : undefined, 
-          search: useFilters && searchQuery ? searchQuery : undefined 
-        }),
+        getTickets(), // Fetch all tickets, filtering done client-side
         getTicketStats()
       ]);
 
@@ -250,12 +299,12 @@ const Tickets: React.FC = () => {
     }
   };
 
-  // Fetch tickets and stats
+  // Fetch tickets and stats on mount
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        await refreshData(true);
+        await refreshData();
       } catch (error) {
         console.error('Error fetching tickets:', error);
       } finally {
@@ -265,18 +314,58 @@ const Tickets: React.FC = () => {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, searchQuery]);
+  }, []);
 
-  // Filter and sort tickets (client-side for sorting)
+  // Filter and sort tickets (client-side for filtering and sorting)
   useEffect(() => {
     let filtered = [...tickets];
+
+    // Apply country filter (tab-based)
+    if (activeTab !== 'all') {
+      filtered = filtered.filter(ticket => ticket.country === activeTab);
+    }
+
+    // Apply status filter (client-side backup)
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(ticket => ticket.status === statusFilter);
+    }
+
+    // Apply search filter (client-side)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(ticket => {
+        const ticketNumber = ticket.ticketNumber?.toLowerCase() || '';
+        const violationType = ticket.violationType?.toLowerCase() || '';
+        const violationDescription = ticket.violationDescription?.toLowerCase() || '';
+        const location = ticket.location?.toLowerCase() || '';
+        const officerName = ticket.officerName?.toLowerCase() || '';
+        const driverName = getDriverName(ticket.driver).toLowerCase();
+        const vehicleInfo = getVehicleInfo(ticket.vehicle).toLowerCase();
+        const amount = ticket.amount?.toString() || '';
+        const unitNumber = ticket.unitNumber?.toLowerCase() || '';
+        const trailerNumber = ticket.trailerNumber?.toLowerCase() || '';
+        
+        return (
+          ticketNumber.includes(query) ||
+          violationType.includes(query) ||
+          violationDescription.includes(query) ||
+          location.includes(query) ||
+          officerName.includes(query) ||
+          driverName.includes(query) ||
+          vehicleInfo.includes(query) ||
+          amount.includes(query) ||
+          unitNumber.includes(query) ||
+          trailerNumber.includes(query)
+        );
+      });
+    }
 
     // Sort tickets
     filtered.sort((a, b) => {
       let aValue: any = a[sortField as keyof Ticket];
       let bValue: any = b[sortField as keyof Ticket];
 
-      if (sortField === 'dateIssued' || sortField === 'dueDate') {
+      if (sortField === 'dateIssued' || sortField === 'dueDate' || sortField === 'paidDate' || sortField === 'courtDate') {
         aValue = new Date(aValue).getTime();
         bValue = new Date(bValue).getTime();
       }
@@ -289,7 +378,7 @@ const Tickets: React.FC = () => {
     });
 
     setFilteredTickets(filtered);
-  }, [tickets, sortField, sortDirection]);
+  }, [tickets, sortField, sortDirection, statusFilter, searchQuery, activeTab, vehicles, drivers]);
 
   const getVehicleInfo = (vehicle: Ticket['vehicle']): string => {
     if (typeof vehicle === 'string') {
@@ -318,6 +407,10 @@ const Tickets: React.FC = () => {
         return <FaTimesCircle className="text-red-600" size={20} />;
       case 'fight':
         return <FaGavel className="text-orange-600" size={20} />;
+      case 'dismissed':
+        return <FaCheckCircle className="text-blue-600" size={20} />;
+      case 'reduced':
+        return <FaExclamationTriangle className="text-yellow-600" size={20} />;
       default:
         return <FaTicketAlt className="text-gray-600" size={20} />;
     }
@@ -331,6 +424,10 @@ const Tickets: React.FC = () => {
         return 'bg-red-100 text-red-800 border-red-200';
       case 'fight':
         return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'dismissed':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'reduced':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -367,18 +464,28 @@ const Tickets: React.FC = () => {
 
   const resetForm = () => {
     setTicketForm({
+      country: 'usa',
       violationType: '',
       violationDescription: '',
       dateIssued: '',
       location: '',
       amount: 0,
+      finalAmount: undefined,
       status: 'unpaid',
+      outcome: 'unpaid',
       driver: '',
       vehicle: '',
+      unitNumber: '',
+      trailerNumber: '',
       officerName: '',
       dueDate: '',
+      courtDate: '',
+      fightingBy: undefined,
       notes: '',
-      lawyerDetails: undefined
+      lawyerDetails: undefined,
+      paidDate: '',
+      paymentMethod: '',
+      paymentReference: ''
     });
   };
 
@@ -390,18 +497,28 @@ const Tickets: React.FC = () => {
   const handleEditTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setTicketForm({
+      country: ticket.country || 'usa',
       violationType: ticket.violationType,
       violationDescription: ticket.violationDescription,
       dateIssued: ticket.dateIssued ? new Date(ticket.dateIssued).toISOString().split('T')[0] : '',
       location: ticket.location,
       amount: ticket.amount,
+      finalAmount: ticket.finalAmount,
       status: ticket.status,
+      outcome: ticket.outcome || ticket.status === 'fight' ? 'on fight' : ticket.status,
       driver: typeof ticket.driver === 'string' ? ticket.driver : ticket.driver?._id || '',
       vehicle: typeof ticket.vehicle === 'string' ? ticket.vehicle : ticket.vehicle?._id || '',
+      unitNumber: ticket.unitNumber || '',
+      trailerNumber: ticket.trailerNumber || '',
       officerName: ticket.officerName,
       dueDate: ticket.dueDate ? new Date(ticket.dueDate).toISOString().split('T')[0] : '',
+      courtDate: ticket.courtDate ? new Date(ticket.courtDate).toISOString().split('T')[0] : '',
+      fightingBy: ticket.fightingBy,
       notes: ticket.notes || '',
-      lawyerDetails: ticket.lawyerDetails ? { ...ticket.lawyerDetails } : undefined
+      lawyerDetails: ticket.lawyerDetails ? { ...ticket.lawyerDetails } : undefined,
+      paidDate: ticket.paidDate ? new Date(ticket.paidDate).toISOString().split('T')[0] : '',
+      paymentMethod: ticket.paymentMethod || '',
+      paymentReference: ticket.paymentReference || ''
     });
     setShowEditModal(true);
   };
@@ -449,6 +566,9 @@ const Tickets: React.FC = () => {
         !!ticketForm.lawyerDetails?.address;
     }
     
+    // If status is 'paid', payment information should be provided (optional but recommended)
+    // Note: We're not making it required, but it's best practice
+    
     return basicValid;
   };
 
@@ -461,27 +581,45 @@ const Tickets: React.FC = () => {
     setLoading(true);
     try {
       const payload: any = {
+        country: ticketForm.country || 'usa',
         violationType: ticketForm.violationType,
         violationDescription: ticketForm.violationDescription,
         dateIssued: ticketForm.dateIssued,
         location: ticketForm.location,
         amount: ticketForm.amount,
         status: ticketForm.status,
+        outcome: ticketForm.outcome,
         driver: ticketForm.driver,
         vehicle: ticketForm.vehicle,
+        unitNumber: ticketForm.unitNumber || '',
+        trailerNumber: ticketForm.trailerNumber || '',
         officerName: ticketForm.officerName,
         dueDate: ticketForm.dueDate,
+        courtDate: ticketForm.courtDate || '',
+        fightingBy: ticketForm.fightingBy,
         notes: ticketForm.notes || ''
       };
+
+      // Add final amount if status is reduced
+      if (ticketForm.status === 'reduced' && ticketForm.finalAmount) {
+        payload.finalAmount = ticketForm.finalAmount;
+      }
 
       if (ticketForm.status === 'fight' && ticketForm.lawyerDetails) {
         payload.lawyerDetails = ticketForm.lawyerDetails;
       }
 
+      // Add payment information if status is paid
+      if (ticketForm.status === 'paid') {
+        if (ticketForm.paidDate) payload.paidDate = ticketForm.paidDate;
+        if (ticketForm.paymentMethod) payload.paymentMethod = ticketForm.paymentMethod;
+        if (ticketForm.paymentReference) payload.paymentReference = ticketForm.paymentReference;
+      }
+
       const res = await createTicket(payload);
       if (res?.success) {
         addNotification('success', res.message || 'Ticket created successfully');
-        await refreshData(true);
+        await refreshData();
         setShowAddModal(false);
         resetForm();
       } else {
@@ -505,27 +643,52 @@ const Tickets: React.FC = () => {
     setLoading(true);
     try {
       const payload: any = {
+        country: ticketForm.country || 'usa',
         violationType: ticketForm.violationType,
         violationDescription: ticketForm.violationDescription,
         dateIssued: ticketForm.dateIssued,
         location: ticketForm.location,
         amount: ticketForm.amount,
         status: ticketForm.status,
+        outcome: ticketForm.outcome,
         driver: ticketForm.driver,
         vehicle: ticketForm.vehicle,
+        unitNumber: ticketForm.unitNumber || '',
+        trailerNumber: ticketForm.trailerNumber || '',
         officerName: ticketForm.officerName,
         dueDate: ticketForm.dueDate,
+        courtDate: ticketForm.courtDate || '',
+        fightingBy: ticketForm.fightingBy,
         notes: ticketForm.notes || ''
       };
+
+      // Add final amount if status is reduced
+      if (ticketForm.status === 'reduced' && ticketForm.finalAmount) {
+        payload.finalAmount = ticketForm.finalAmount;
+      } else {
+        payload.finalAmount = undefined;
+      }
 
       if (ticketForm.status === 'fight' && ticketForm.lawyerDetails) {
         payload.lawyerDetails = ticketForm.lawyerDetails;
       }
 
+      // Add payment information if status is paid
+      if (ticketForm.status === 'paid') {
+        if (ticketForm.paidDate) payload.paidDate = ticketForm.paidDate;
+        if (ticketForm.paymentMethod) payload.paymentMethod = ticketForm.paymentMethod;
+        if (ticketForm.paymentReference) payload.paymentReference = ticketForm.paymentReference;
+      } else {
+        // Clear payment info if status is not paid
+        payload.paidDate = undefined;
+        payload.paymentMethod = undefined;
+        payload.paymentReference = undefined;
+      }
+
       const res = await updateTicket(selectedTicket._id, payload);
       if (res?.success) {
         addNotification('success', res.message || 'Ticket updated successfully');
-        await refreshData(true);
+        await refreshData();
         setShowEditModal(false);
         setSelectedTicket(null);
         resetForm();
@@ -548,7 +711,7 @@ const Tickets: React.FC = () => {
       const res = await deleteTicket(ticketToDelete._id);
       if (res?.success) {
         addNotification('success', res.message || 'Ticket deleted successfully');
-        await refreshData(true);
+        await refreshData();
         setShowDeleteModal(false);
         setTicketToDelete(null);
       } else {
@@ -596,21 +759,57 @@ const Tickets: React.FC = () => {
         ))}
       </div>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Tickets (Fines & Penalties)</h1>
-          <p className="text-gray-600 mt-1">Manage traffic violations and legal disputes</p>
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Tickets (Fines & Penalties)</h1>
+            <p className="text-gray-600 mt-1">Manage traffic violations and legal disputes for USA & Canada</p>
+          </div>
+          <button
+            onClick={handleAddTicket}
+            className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] shadow-lg hover:shadow-xl transition-all font-medium"
+          >
+            <FaPlus /> Add Ticket
+          </button>
         </div>
-        <button
-          onClick={handleAddTicket}
-          className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] shadow-lg hover:shadow-xl transition-all font-medium"
-        >
-          <FaPlus /> Add Ticket
-        </button>
+
+        {/* Country Tabs */}
+        <div className="flex gap-2 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === 'all'
+                ? 'border-b-2 border-[#9793E4] text-[#9793E4]'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            All Tickets ({tickets.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('usa')}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === 'usa'
+                ? 'border-b-2 border-[#9793E4] text-[#9793E4]'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            USA Tickets ({tickets.filter(t => t.country === 'usa').length})
+          </button>
+          <button
+            onClick={() => setActiveTab('canada')}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === 'canada'
+                ? 'border-b-2 border-[#9793E4] text-[#9793E4]'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            Canada Tickets ({tickets.filter(t => t.country === 'canada').length})
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         <StatCard
           title="Total Tickets"
           value={stats.total}
@@ -632,11 +831,25 @@ const Tickets: React.FC = () => {
           subtitle={formatCurrency(stats.unpaidAmount)}
         />
         <StatCard
-          title="Fight"
+          title="On Fight"
           value={stats.fight}
           color="bg-orange-50 border-orange-200"
           icon={<FaGavel className="text-orange-600" size={24} />}
           subtitle={formatCurrency(stats.fightAmount)}
+        />
+        <StatCard
+          title="Dismissed"
+          value={stats.dismissed}
+          color="bg-blue-50 border-blue-200"
+          icon={<FaCheckCircle className="text-blue-600" size={24} />}
+          subtitle={formatCurrency(stats.dismissedAmount)}
+        />
+        <StatCard
+          title="Reduced"
+          value={stats.reduced}
+          color="bg-yellow-50 border-yellow-200"
+          icon={<FaExclamationTriangle className="text-yellow-600" size={24} />}
+          subtitle={formatCurrency(stats.reducedAmount)}
         />
       </div>
 
@@ -665,7 +878,9 @@ const Tickets: React.FC = () => {
               <option value="all">All Status</option>
               <option value="paid">Paid</option>
               <option value="unpaid">Unpaid</option>
-              <option value="fight">Fight</option>
+              <option value="fight">On Fight</option>
+              <option value="dismissed">Dismissed</option>
+              <option value="reduced">Reduced</option>
             </select>
           </div>
         </div>
@@ -703,6 +918,9 @@ const Tickets: React.FC = () => {
                       Ticket #
                       {getSortIcon('ticketNumber')}
                     </button>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Country
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <button
@@ -761,6 +979,17 @@ const Tickets: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          ticket.country === 'usa' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {ticket.country === 'usa' ? 'USA' : 'Canada'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
                         <div className="font-medium">{ticket.violationType}</div>
                         <div className="text-gray-600 text-xs">{ticket.violationDescription}</div>
                       </div>
@@ -781,11 +1010,20 @@ const Tickets: React.FC = () => {
                       <div className="text-sm text-gray-900">
                         <div className="font-medium">{getDriverName(ticket.driver)}</div>
                         <div className="text-gray-600 text-xs">{getVehicleInfo(ticket.vehicle)}</div>
+                        {ticket.unitNumber && (
+                          <div className="text-gray-600 text-xs">Unit: {ticket.unitNumber}</div>
+                        )}
+                        {ticket.trailerNumber && (
+                          <div className="text-gray-600 text-xs">Trailer: {ticket.trailerNumber}</div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         <div className="font-bold text-lg">{formatCurrency(ticket.amount)}</div>
+                        {ticket.finalAmount && ticket.finalAmount !== ticket.amount && (
+                          <div className="text-green-600 text-xs">Final: {formatCurrency(ticket.finalAmount)}</div>
+                        )}
                         <div className="text-gray-600 text-xs">Due: {formatDate(ticket.dueDate)}</div>
                       </div>
                     </td>
@@ -793,9 +1031,12 @@ const Tickets: React.FC = () => {
                       <div className="flex items-center gap-2">
                         {getStatusIcon(ticket.status)}
                         <span className={`text-sm px-2 py-1 rounded-full font-medium border ${getStatusBadgeColor(ticket.status)}`}>
-                          {ticket.status.toUpperCase()}
+                          {ticket.status === 'fight' ? 'ON FIGHT' : ticket.status.toUpperCase()}
                         </span>
                       </div>
+                      {ticket.outcome && ticket.outcome !== ticket.status && (
+                        <div className="text-xs text-gray-500 mt-1">Outcome: {ticket.outcome}</div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {ticket.status === 'fight' && ticket.lawyerDetails ? (
@@ -880,6 +1121,17 @@ const Tickets: React.FC = () => {
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Country <span className="text-red-500">*</span></label>
+                  <select
+                    value={ticketForm.country || 'usa'}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, country: e.target.value as 'usa' | 'canada' }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="usa">USA</option>
+                    <option value="canada">Canada</option>
+                  </select>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Violation Type <span className="text-red-500">*</span></label>
                   <input
                     type="text"
@@ -930,10 +1182,12 @@ const Tickets: React.FC = () => {
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {ticketForm.country === 'canada' ? 'Province' : 'State'} <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    placeholder="Location where violation occurred"
+                    placeholder={ticketForm.country === 'canada' ? 'Province (e.g., MB, AB, ON, BC, QC)' : 'State (e.g., California, Texas, New York)'}
                     value={ticketForm.location || ''}
                     onChange={(e) => setTicketForm(prev => ({ ...prev, location: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
@@ -968,6 +1222,31 @@ const Tickets: React.FC = () => {
                   </select>
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit Number</label>
+                  <input
+                    type="text"
+                    placeholder="Unit number (e.g., 1001, 1002)"
+                    value={ticketForm.unitNumber || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, unitNumber: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Trailer Number</label>
+                  <select
+                    value={ticketForm.trailerNumber || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, trailerNumber: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="">Select Trailer</option>
+                    {trailers.map((trailer) => (
+                      <option key={trailer._id} value={trailer.trailer || trailer._id}>
+                        {trailer.trailer || trailer.plateNumber || trailer.internalId || trailer._id}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Officer Name <span className="text-red-500">*</span></label>
                   <input
                     type="text"
@@ -981,14 +1260,65 @@ const Tickets: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
                   <select
                     value={ticketForm.status}
-                    onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value as 'paid' | 'unpaid' | 'fight' }))}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value as 'paid' | 'unpaid' | 'fight' | 'dismissed' | 'reduced' }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
                   >
                     <option value="unpaid">Unpaid</option>
                     <option value="paid">Paid</option>
-                    <option value="fight">Fight</option>
+                    <option value="fight">On Fight</option>
+                    <option value="dismissed">Dismissed</option>
+                    <option value="reduced">Reduced</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Outcome</label>
+                  <select
+                    value={ticketForm.outcome || 'unpaid'}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, outcome: e.target.value as 'paid' | 'reduced' | 'dismissed' | 'on fight' | 'unpaid' }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="unpaid">Unpaid</option>
+                    <option value="paid">Paid</option>
+                    <option value="reduced">Reduced</option>
+                    <option value="dismissed">Dismissed</option>
+                    <option value="on fight">On Fight</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Court Date</label>
+                  <input
+                    type="date"
+                    value={ticketForm.courtDate || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, courtDate: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Fighting By</label>
+                  <select
+                    value={ticketForm.fightingBy || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, fightingBy: e.target.value as 'company' | 'lawyer' | undefined }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="">Select Option</option>
+                    <option value="company">Company</option>
+                    <option value="lawyer">Lawyer</option>
+                  </select>
+                </div>
+                {ticketForm.status === 'reduced' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Final Amount</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="Final amount after reduction"
+                      value={ticketForm.finalAmount || ''}
+                      onChange={(e) => setTicketForm(prev => ({ ...prev, finalAmount: parseFloat(e.target.value) || undefined }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                )}
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                   <textarea
@@ -1000,6 +1330,54 @@ const Tickets: React.FC = () => {
                   />
                 </div>
               </div>
+
+              {/* Payment Information Section - Only show if status is 'paid' */}
+              {ticketForm.status === 'paid' && (
+                <div className="bg-green-50 rounded-xl p-6 border border-green-200">
+                  <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <FaCheckCircle className="text-green-600" size={20} />
+                    Payment Information
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Paid Date</label>
+                      <input
+                        type="date"
+                        value={ticketForm.paidDate || ''}
+                        onChange={(e) => setTicketForm(prev => ({ ...prev, paidDate: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                      <select
+                        value={ticketForm.paymentMethod || ''}
+                        onChange={(e) => setTicketForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      >
+                        <option value="">Select Payment Method</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Check">Check</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Online Payment">Online Payment</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Payment Reference</label>
+                      <input
+                        type="text"
+                        placeholder="Transaction ID, check number, or reference number"
+                        value={ticketForm.paymentReference || ''}
+                        onChange={(e) => setTicketForm(prev => ({ ...prev, paymentReference: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Lawyer Details Section - Only show if status is 'fight' */}
               {ticketForm.status === 'fight' && (
@@ -1188,6 +1566,17 @@ const Tickets: React.FC = () => {
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Country <span className="text-red-500">*</span></label>
+                  <select
+                    value={ticketForm.country || 'usa'}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, country: e.target.value as 'usa' | 'canada' }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="usa">USA</option>
+                    <option value="canada">Canada</option>
+                  </select>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Violation Type <span className="text-red-500">*</span></label>
                   <input
                     type="text"
@@ -1238,10 +1627,12 @@ const Tickets: React.FC = () => {
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {ticketForm.country === 'canada' ? 'Province' : 'State'} <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    placeholder="Location where violation occurred"
+                    placeholder={ticketForm.country === 'canada' ? 'Province (e.g., MB, AB, ON, BC, QC)' : 'State (e.g., California, Texas, New York)'}
                     value={ticketForm.location || ''}
                     onChange={(e) => setTicketForm(prev => ({ ...prev, location: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
@@ -1276,6 +1667,31 @@ const Tickets: React.FC = () => {
                   </select>
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit Number</label>
+                  <input
+                    type="text"
+                    placeholder="Unit number (e.g., 1001, 1002)"
+                    value={ticketForm.unitNumber || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, unitNumber: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Trailer Number</label>
+                  <select
+                    value={ticketForm.trailerNumber || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, trailerNumber: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="">Select Trailer</option>
+                    {trailers.map((trailer) => (
+                      <option key={trailer._id} value={trailer.trailer || trailer._id}>
+                        {trailer.trailer || trailer.plateNumber || trailer.internalId || trailer._id}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Officer Name <span className="text-red-500">*</span></label>
                   <input
                     type="text"
@@ -1289,14 +1705,65 @@ const Tickets: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
                   <select
                     value={ticketForm.status}
-                    onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value as 'paid' | 'unpaid' | 'fight' }))}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value as 'paid' | 'unpaid' | 'fight' | 'dismissed' | 'reduced' }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
                   >
                     <option value="unpaid">Unpaid</option>
                     <option value="paid">Paid</option>
-                    <option value="fight">Fight</option>
+                    <option value="fight">On Fight</option>
+                    <option value="dismissed">Dismissed</option>
+                    <option value="reduced">Reduced</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Outcome</label>
+                  <select
+                    value={ticketForm.outcome || 'unpaid'}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, outcome: e.target.value as 'paid' | 'reduced' | 'dismissed' | 'on fight' | 'unpaid' }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="unpaid">Unpaid</option>
+                    <option value="paid">Paid</option>
+                    <option value="reduced">Reduced</option>
+                    <option value="dismissed">Dismissed</option>
+                    <option value="on fight">On Fight</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Court Date</label>
+                  <input
+                    type="date"
+                    value={ticketForm.courtDate || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, courtDate: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Fighting By</label>
+                  <select
+                    value={ticketForm.fightingBy || ''}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, fightingBy: e.target.value as 'company' | 'lawyer' | undefined }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  >
+                    <option value="">Select Option</option>
+                    <option value="company">Company</option>
+                    <option value="lawyer">Lawyer</option>
+                  </select>
+                </div>
+                {ticketForm.status === 'reduced' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Final Amount</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="Final amount after reduction"
+                      value={ticketForm.finalAmount || ''}
+                      onChange={(e) => setTicketForm(prev => ({ ...prev, finalAmount: parseFloat(e.target.value) || undefined }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                )}
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                   <textarea
@@ -1308,6 +1775,54 @@ const Tickets: React.FC = () => {
                   />
                 </div>
               </div>
+
+              {/* Payment Information Section - Only show if status is 'paid' */}
+              {ticketForm.status === 'paid' && (
+                <div className="bg-green-50 rounded-xl p-6 border border-green-200">
+                  <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <FaCheckCircle className="text-green-600" size={20} />
+                    Payment Information
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Paid Date</label>
+                      <input
+                        type="date"
+                        value={ticketForm.paidDate || ''}
+                        onChange={(e) => setTicketForm(prev => ({ ...prev, paidDate: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                      <select
+                        value={ticketForm.paymentMethod || ''}
+                        onChange={(e) => setTicketForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      >
+                        <option value="">Select Payment Method</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Check">Check</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Online Payment">Online Payment</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Payment Reference</label>
+                      <input
+                        type="text"
+                        placeholder="Transaction ID, check number, or reference number"
+                        value={ticketForm.paymentReference || ''}
+                        onChange={(e) => setTicketForm(prev => ({ ...prev, paymentReference: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Lawyer Details Section - Only show if status is 'fight' */}
               {ticketForm.status === 'fight' && (
@@ -1517,22 +2032,43 @@ const Tickets: React.FC = () => {
                     <p className="text-lg font-semibold text-gray-800">{selectedTicket.ticketNumber}</p>
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Country</label>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedTicket.country === 'usa' 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {selectedTicket.country === 'usa' ? 'USA' : 'Canada'}
+                    </span>
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Violation Type</label>
                     <p className="text-lg font-semibold text-gray-800">{selectedTicket.violationType}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Amount</label>
-                    <p className="text-lg font-semibold text-gray-800">{formatCurrency(selectedTicket.amount)}</p>
+                    <p className="text-lg font-semibold text-gray-800">
+                      {formatCurrency(selectedTicket.amount)}
+                      {selectedTicket.finalAmount && selectedTicket.finalAmount !== selectedTicket.amount && (
+                        <span className="text-green-600 text-sm ml-2">(Final: {formatCurrency(selectedTicket.finalAmount)})</span>
+                      )}
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Status</label>
                     <div className="flex items-center gap-2">
                       {getStatusIcon(selectedTicket.status)}
                       <span className={`text-sm px-3 py-1 rounded-full font-semibold border ${getStatusBadgeColor(selectedTicket.status)}`}>
-                        {selectedTicket.status.toUpperCase()}
+                        {selectedTicket.status === 'fight' ? 'ON FIGHT' : selectedTicket.status.toUpperCase()}
                       </span>
                     </div>
                   </div>
+                  {selectedTicket.outcome && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Outcome</label>
+                      <p className="text-lg font-semibold text-gray-800 capitalize">{selectedTicket.outcome}</p>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Date Issued</label>
                     <p className="text-lg font-semibold text-gray-800">{formatDate(selectedTicket.dateIssued)}</p>
@@ -1541,9 +2077,23 @@ const Tickets: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-600 mb-1">Due Date</label>
                     <p className="text-lg font-semibold text-gray-800">{formatDate(selectedTicket.dueDate)}</p>
                   </div>
+                  {selectedTicket.courtDate && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Court Date</label>
+                      <p className="text-lg font-semibold text-gray-800">{formatDate(selectedTicket.courtDate)}</p>
+                    </div>
+                  )}
+                  {selectedTicket.fightingBy && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Fighting By</label>
+                      <p className="text-lg font-semibold text-gray-800 capitalize">{selectedTicket.fightingBy}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Location</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    {selectedTicket.country === 'canada' ? 'Province' : 'State'}
+                  </label>
                   <p className="text-lg font-semibold text-gray-800">{selectedTicket.location}</p>
                 </div>
                 <div className="mt-4">
@@ -1564,12 +2114,54 @@ const Tickets: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-600 mb-1">Vehicle</label>
                     <p className="text-lg font-semibold text-gray-800">{getVehicleInfo(selectedTicket.vehicle)}</p>
                   </div>
+                  {selectedTicket.unitNumber && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Unit Number</label>
+                      <p className="text-lg font-semibold text-gray-800">{selectedTicket.unitNumber}</p>
+                    </div>
+                  )}
+                  {selectedTicket.trailerNumber && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Trailer Number</label>
+                      <p className="text-lg font-semibold text-gray-800">{selectedTicket.trailerNumber}</p>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Officer</label>
                     <p className="text-lg font-semibold text-gray-800">{selectedTicket.officerName}</p>
                   </div>
                 </div>
               </div>
+
+              {/* Payment Information - Only show if status is 'paid' */}
+              {selectedTicket.status === 'paid' && (
+                <div className="bg-green-50 rounded-xl p-6 border border-green-200">
+                  <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <FaCheckCircle className="text-green-600" size={20} />
+                    Payment Information
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedTicket.paidDate && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Paid Date</label>
+                        <p className="text-lg font-semibold text-gray-800">{formatDate(selectedTicket.paidDate)}</p>
+                      </div>
+                    )}
+                    {selectedTicket.paymentMethod && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Payment Method</label>
+                        <p className="text-lg font-semibold text-gray-800">{selectedTicket.paymentMethod}</p>
+                      </div>
+                    )}
+                    {selectedTicket.paymentReference && (
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Payment Reference</label>
+                        <p className="text-lg font-semibold text-gray-800">{selectedTicket.paymentReference}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Lawyer Details - Only show if status is 'fight' */}
               {selectedTicket.status === 'fight' && selectedTicket.lawyerDetails && (

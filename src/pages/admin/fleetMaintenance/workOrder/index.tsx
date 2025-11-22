@@ -34,6 +34,13 @@ interface WorkOrder {
     estimatedTime: string;
     repairUpdates: RepairUpdate[];
     createdAt: string;
+    // Additional fields from Excel Maintenance Log
+    unitNumber?: string; // Unit/Vehicle ID from Unit Number column
+    completionDate?: string; // Service Date from Excel
+    odometerReading?: number; // Odometer from Excel
+    partsUsed?: string[] | string; // Parts from Excel (array or comma-separated string)
+    serviceProvider?: string; // Service Provider/Shop from Excel
+    invoiceReference?: string; // Invoice Number from Excel
 }
 
 interface CreateForm {
@@ -43,6 +50,13 @@ interface CreateForm {
     assignedMechanic: string;
     estimatedCost: string;
     estimatedTime: string;
+    // Additional fields from Excel Maintenance Log
+    unitNumber?: string;
+    completionDate?: string;
+    odometerReading?: string;
+    partsUsed?: string; // Comma-separated or single part
+    serviceProvider?: string;
+    invoiceReference?: string;
 }
 
 interface UpdateForm {
@@ -52,6 +66,13 @@ interface UpdateForm {
     estimatedCost: string;
     estimatedTime: string;
     repairUpdate: string;
+    // Additional fields from Excel Maintenance Log
+    unitNumber?: string;
+    completionDate?: string;
+    odometerReading?: string;
+    partsUsed?: string;
+    serviceProvider?: string;
+    invoiceReference?: string;
 }
 
 type NotificationType = 'success' | 'error' | 'info';
@@ -147,7 +168,13 @@ function WorkOrdersPage() {
         description: '',
         assignedMechanic: '',
         estimatedCost: '',
-        estimatedTime: ''
+        estimatedTime: '',
+        unitNumber: '',
+        completionDate: '',
+        odometerReading: '',
+        partsUsed: '',
+        serviceProvider: '',
+        invoiceReference: ''
     });
 
     const updateFormRef = useRef<UpdateForm>({
@@ -283,7 +310,7 @@ function WorkOrdersPage() {
 
         setSubmitting(true);
 
-        const data = {
+        const data: any = {
             vehicleId: formData.vehicleId,
             issue: formData.issue,
             description: formData.description,
@@ -291,6 +318,19 @@ function WorkOrdersPage() {
             estimatedCost: formData.estimatedCost ? parseFloat(formData.estimatedCost) : undefined,
             estimatedTime: formData.estimatedTime
         };
+
+        // Add Excel Maintenance Log fields
+        if (formData.unitNumber) data.unitNumber = formData.unitNumber;
+        if (formData.completionDate) data.completionDate = formData.completionDate;
+        if (formData.odometerReading) data.odometerReading = parseFloat(formData.odometerReading);
+        if (formData.partsUsed) {
+            // Convert comma-separated string to array if needed
+            data.partsUsed = typeof formData.partsUsed === 'string' 
+                ? formData.partsUsed.split(',').map(p => p.trim()).filter(Boolean)
+                : formData.partsUsed;
+        }
+        if (formData.serviceProvider) data.serviceProvider = formData.serviceProvider;
+        if (formData.invoiceReference) data.invoiceReference = formData.invoiceReference;
 
         try {
             const res = await createWorkOrder(data);
@@ -303,7 +343,13 @@ function WorkOrdersPage() {
                     description: '',
                     assignedMechanic: '',
                     estimatedCost: '',
-                    estimatedTime: ''
+                    estimatedTime: '',
+                    unitNumber: '',
+                    completionDate: '',
+                    odometerReading: '',
+                    partsUsed: '',
+                    serviceProvider: '',
+                    invoiceReference: ''
                 };
                 fetchAllWorkOrders();
             } else {
@@ -525,12 +571,12 @@ function WorkOrdersPage() {
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Work Order ID</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Vehicle</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Issue</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Unit/Vehicle</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Service Type</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Completion Date</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Odometer (km)</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Service Provider</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Mechanic</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Est. Cost</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
@@ -542,26 +588,28 @@ function WorkOrdersPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div>
-                                                <div className="text-sm font-semibold text-gray-900">{order.vehicleId?.internalId || 'N/A'}</div>
-                                                <div className="text-sm text-gray-500">{order.vehicleId?.plateNumber || 'N/A'}</div>
+                                                <div className="text-sm font-semibold text-gray-900">
+                                                    {order.unitNumber || order.vehicleId?.internalId || 'N/A'}
+                                                </div>
+                                                <div className="text-xs text-gray-500">{order.vehicleId?.plateNumber || ''}</div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {order.issue}
+                                            {order.issue || order.description || 'N/A'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {order.completionDate ? formatDate(order.completionDate) : order.createdAt ? formatDate(order.createdAt) : 'N/A'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {order.odometerReading ? order.odometerReading.toLocaleString() : 'N/A'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {order.serviceProvider || order.assignedMechanic || 'N/A'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusColor(order.status)}`}>
                                                 {order.status === 'inprogress' ? 'In Progress' : order.status}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {order.assignedMechanic || 'Unassigned'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            ${order.estimatedCost || 0}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {formatDate(order.createdAt)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex gap-2">
@@ -663,6 +711,73 @@ function WorkOrdersPage() {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Unit Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        defaultValue={createFormRef.current.unitNumber}
+                                        onChange={(e) => createFormRef.current.unitNumber = e.target.value}
+                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        placeholder="e.g., 1001, 1002"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Completion Date (Service Date)
+                                    </label>
+                                    <input
+                                        type="date"
+                                        defaultValue={createFormRef.current.completionDate}
+                                        onChange={(e) => createFormRef.current.completionDate = e.target.value}
+                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Odometer Reading (km)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        defaultValue={createFormRef.current.odometerReading}
+                                        onChange={(e) => createFormRef.current.odometerReading = e.target.value}
+                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        placeholder="e.g., 150000"
+                                        min="0"
+                                        step="1"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Parts Used (comma-separated)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        defaultValue={createFormRef.current.partsUsed}
+                                        onChange={(e) => createFormRef.current.partsUsed = e.target.value}
+                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        placeholder="e.g., Oil Filter, Brake Pads, Air Filter"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Parts will be updated in Spare Parts Inventory</p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Service Provider/Shop
+                                    </label>
+                                    <input
+                                        type="text"
+                                        defaultValue={createFormRef.current.serviceProvider}
+                                        onChange={(e) => createFormRef.current.serviceProvider = e.target.value}
+                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        placeholder="e.g., ABC Auto Shop, Internal Shop"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Assigned Mechanic
                                     </label>
                                     <select
@@ -678,6 +793,19 @@ function WorkOrdersPage() {
                                             </option>
                                         ))}
                                     </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Invoice Reference/Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        defaultValue={createFormRef.current.invoiceReference}
+                                        onChange={(e) => createFormRef.current.invoiceReference = e.target.value}
+                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        placeholder="e.g., INV-2024-001"
+                                    />
                                 </div>
 
                                 <div>
