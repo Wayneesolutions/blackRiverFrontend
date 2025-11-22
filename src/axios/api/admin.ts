@@ -248,6 +248,77 @@ export const deleteTicket = async (id: string) => {
   }
 };
 
+// Incident API Functions
+export const getIncidents = async (params?: { status?: string; type?: string; location?: string; driver?: string; search?: string; page?: number; limit?: number }) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.location) queryParams.append('location', params.location);
+    if (params?.driver) queryParams.append('driver', params.driver);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const url = `admin/incidents${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const getIncidentById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`admin/incidents/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const getIncidentStats = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/incidents/stats');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const createIncident = async (data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('admin/incidents', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const updateIncident = async (id: string, data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`admin/incidents/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const deleteIncident = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`admin/incidents/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
 // Shift API Functions
 export const getShifts = async (params?: { driverId?: string; startDate?: string; endDate?: string }) => {
   try {

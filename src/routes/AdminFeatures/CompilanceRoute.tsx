@@ -9,6 +9,7 @@ const HosAndEld = lazy(()=>import('../../pages/admin/compilance/host/HosAndEld')
 const CvsaInspection = lazy(()=>import('../../pages/admin/compilance/cvsa/CvsaInspection'))
 const MonthlyReport = lazy(()=>import('../../pages/admin/compilance/reports/MonthlyReport'))
 const Tickets = lazy(()=>import('../../pages/admin/compilance/tickets/Tickets'))
+const Incidents = lazy(()=>import('../../pages/admin/compilance/incidents/Incidents'))
 const FuelReports = lazy(()=>import('../../pages/admin/dispatch/resources/fuel-reports/index'))
 function CompilanceRoute() {
   return (
@@ -22,6 +23,7 @@ function CompilanceRoute() {
           <Route path="cvsa-inspection" element={<ErrorBoundary><CvsaInspection /></ErrorBoundary>} />
           <Route path="monthly-report" element={<ErrorBoundary><MonthlyReport /></ErrorBoundary>} />
           <Route path="tickets" element={<ErrorBoundary><Tickets /></ErrorBoundary>} />
+          <Route path="incidents" element={<ErrorBoundary><Incidents /></ErrorBoundary>} />
           <Route path="fuel-reports" element={<ErrorBoundary><FuelReports /></ErrorBoundary>} />
           
         </Route>

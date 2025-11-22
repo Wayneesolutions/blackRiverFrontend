@@ -297,15 +297,22 @@ const Dashboard = () => {
           <div className="text-3xl font-bold text-gray-900">{dashboardStats.activeWorkOrders}</div>
           <p className="text-sm text-gray-500 mt-1">Currently in progress</p>
         </div>
-
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">Maintenance</h3>
+            <Wrench className="h-6 w-6 text-red-600" />
+          </div>
+          <div className="text-3xl font-bold text-gray-900">{dashboardStats.trailersMaintenance}</div>
+          <p className="text-sm text-gray-500 mt-1">Under repair</p>
+        </div>
+        {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Monthly Costs</h3>
             <DollarSign className="h-6 w-6 text-green-600" />
           </div>
           <div className="text-3xl font-bold text-gray-900">${dashboardStats.totalCosts.toLocaleString()}</div>
           <p className="text-sm text-gray-500 mt-1">This month's expenses</p>
-        </div>
+        </div> */}
       </div>
 
       {/* Trailer Status Cards */}
@@ -328,23 +335,16 @@ const Dashboard = () => {
           <p className="text-sm text-gray-500 mt-1">Currently moving</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Attached Trailers</h3>
             <Truck className="h-6 w-6 text-indigo-600" />
           </div>
           <div className="text-3xl font-bold text-gray-900">{dashboardStats.trailersAttached}</div>
           <p className="text-sm text-gray-500 mt-1">Connected to vehicles</p>
-        </div>
+        </div> */}
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Maintenance</h3>
-            <Wrench className="h-6 w-6 text-red-600" />
-          </div>
-          <div className="text-3xl font-bold text-gray-900">{dashboardStats.trailersMaintenance}</div>
-          <p className="text-sm text-gray-500 mt-1">Under repair</p>
-        </div>
+       
       </div>
 
       {/* Alert Cards */}

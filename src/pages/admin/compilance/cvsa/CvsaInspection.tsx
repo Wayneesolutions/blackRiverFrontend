@@ -53,6 +53,21 @@ interface Inspection {
   violations?: Violation[];
   notes?: string;
   createdAt: string;
+  // OFFICIAL DOCUMENT NUMBERS
+  reportNumber?: string; // The unique identifier of the physical inspection document
+  inspectionLevel?: 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII'; // The official CVSA inspection level
+  jurisdiction?: string; // The state or province (e.g., 'ON', 'TX') that conducted the inspection
+  // DRIVER & CARRIER SPECIFIC IDs
+  driverLicenseNumber?: string; // The driver's license number
+  carrierUSDOTNumber?: string; // The Carrier's USDOT Number (Crucial for USA FMCSA records)
+  carrierMotorCarrierNumber?: string; // The Carrier's MC Number (if applicable)
+  // TIME & DOCUMENTATION
+  timeOfInspection?: string; // To capture the exact time on the report
+  documentLink?: string; // URL link to the scanned PDF/image of the physical report
+  // OUT-OF-SERVICE SPECIFICS (Critical for tracking repairs)
+  outOfServiceIssued?: boolean; // Whether an OOS order was explicitly issued (Yes/No)
+  outOfServiceReleaseDate?: string; // Date and time the OOS order was lifted (if applicable)
+  defectRepairNeeded?: boolean; // Indicates if mechanical defects must be repaired
 }
 
 interface Vehicle {
@@ -150,7 +165,19 @@ const CvsaInspection: React.FC = () => {
     driver: '',
     inspectorName: '',
     violations: [],
-    notes: ''
+    notes: '',
+    // New required fields
+    reportNumber: '',
+    inspectionLevel: 'I',
+    jurisdiction: '',
+    driverLicenseNumber: '',
+    carrierUSDOTNumber: '',
+    carrierMotorCarrierNumber: '',
+    timeOfInspection: '',
+    documentLink: '',
+    outOfServiceIssued: false,
+    outOfServiceReleaseDate: '',
+    defectRepairNeeded: false
   });
   const [stats, setStats] = useState<InspectionStats>({
     total: 0,
@@ -312,7 +339,19 @@ const CvsaInspection: React.FC = () => {
       driver: '',
       inspectorName: '',
       violations: [],
-      notes: ''
+      notes: '',
+      // New required fields
+      reportNumber: '',
+      inspectionLevel: 'I',
+      jurisdiction: '',
+      driverLicenseNumber: '',
+      carrierUSDOTNumber: '',
+      carrierMotorCarrierNumber: '',
+      timeOfInspection: '',
+      documentLink: '',
+      outOfServiceIssued: false,
+      outOfServiceReleaseDate: '',
+      defectRepairNeeded: false
     });
   };
 
@@ -332,7 +371,19 @@ const CvsaInspection: React.FC = () => {
       driver: typeof inspection.driver === 'string' ? inspection.driver : inspection.driver?._id || '',
       inspectorName: inspection.inspectorName,
       violations: inspection.violations || [],
-      notes: inspection.notes || ''
+      notes: inspection.notes || '',
+      // New required fields
+      reportNumber: inspection.reportNumber || '',
+      inspectionLevel: inspection.inspectionLevel || 'I',
+      jurisdiction: inspection.jurisdiction || '',
+      driverLicenseNumber: inspection.driverLicenseNumber || '',
+      carrierUSDOTNumber: inspection.carrierUSDOTNumber || '',
+      carrierMotorCarrierNumber: inspection.carrierMotorCarrierNumber || '',
+      timeOfInspection: inspection.timeOfInspection || '',
+      documentLink: inspection.documentLink || '',
+      outOfServiceIssued: inspection.outOfServiceIssued || false,
+      outOfServiceReleaseDate: inspection.outOfServiceReleaseDate ? new Date(inspection.outOfServiceReleaseDate).toISOString().split('T')[0] : '',
+      defectRepairNeeded: inspection.defectRepairNeeded || false
     });
     setShowEditModal(true);
   };
@@ -403,7 +454,19 @@ const CvsaInspection: React.FC = () => {
         driver: inspectionForm.driver,
         inspectorName: inspectionForm.inspectorName,
         violations: inspectionForm.violations || [],
-        notes: inspectionForm.notes || ''
+        notes: inspectionForm.notes || '',
+        // New required fields
+        reportNumber: inspectionForm.reportNumber || '',
+        inspectionLevel: inspectionForm.inspectionLevel || 'I',
+        jurisdiction: inspectionForm.jurisdiction || '',
+        driverLicenseNumber: inspectionForm.driverLicenseNumber || '',
+        carrierUSDOTNumber: inspectionForm.carrierUSDOTNumber || '',
+        carrierMotorCarrierNumber: inspectionForm.carrierMotorCarrierNumber || '',
+        timeOfInspection: inspectionForm.timeOfInspection || '',
+        documentLink: inspectionForm.documentLink || '',
+        outOfServiceIssued: inspectionForm.outOfServiceIssued || false,
+        outOfServiceReleaseDate: inspectionForm.outOfServiceReleaseDate || '',
+        defectRepairNeeded: inspectionForm.defectRepairNeeded || false
       };
 
       const res = await createCvsaInspection(payload);
@@ -442,7 +505,19 @@ const CvsaInspection: React.FC = () => {
         driver: inspectionForm.driver,
         inspectorName: inspectionForm.inspectorName,
         violations: inspectionForm.violations || [],
-        notes: inspectionForm.notes || ''
+        notes: inspectionForm.notes || '',
+        // New required fields
+        reportNumber: inspectionForm.reportNumber || '',
+        inspectionLevel: inspectionForm.inspectionLevel || 'I',
+        jurisdiction: inspectionForm.jurisdiction || '',
+        driverLicenseNumber: inspectionForm.driverLicenseNumber || '',
+        carrierUSDOTNumber: inspectionForm.carrierUSDOTNumber || '',
+        carrierMotorCarrierNumber: inspectionForm.carrierMotorCarrierNumber || '',
+        timeOfInspection: inspectionForm.timeOfInspection || '',
+        documentLink: inspectionForm.documentLink || '',
+        outOfServiceIssued: inspectionForm.outOfServiceIssued || false,
+        outOfServiceReleaseDate: inspectionForm.outOfServiceReleaseDate || '',
+        defectRepairNeeded: inspectionForm.defectRepairNeeded || false
       };
 
       const res = await updateCvsaInspection(selectedInspection._id, payload);
@@ -788,8 +863,145 @@ const CvsaInspection: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-600 mb-1">Inspector</label>
                     <p className="text-lg font-semibold text-gray-800">{selectedInspection.inspectorName}</p>
                   </div>
+                  {selectedInspection.reportNumber && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Report Number</label>
+                      <p className="text-lg font-semibold text-gray-800">{selectedInspection.reportNumber}</p>
+                    </div>
+                  )}
+                  {selectedInspection.inspectionLevel && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Inspection Level</label>
+                      <p className="text-lg font-semibold text-gray-800">Level {selectedInspection.inspectionLevel}</p>
+                    </div>
+                  )}
+                  {selectedInspection.jurisdiction && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Jurisdiction</label>
+                      <p className="text-lg font-semibold text-gray-800">{selectedInspection.jurisdiction}</p>
+                    </div>
+                  )}
+                  {selectedInspection.timeOfInspection && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Time of Inspection</label>
+                      <p className="text-lg font-semibold text-gray-800">{selectedInspection.timeOfInspection}</p>
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* Official Document Information */}
+              {(selectedInspection.reportNumber || selectedInspection.inspectionLevel || selectedInspection.jurisdiction || selectedInspection.timeOfInspection) && (
+                <div className="bg-blue-50 rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-gray-800 mb-4">Official Document Information</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedInspection.reportNumber && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Report Number</label>
+                        <p className="text-lg font-semibold text-gray-800">{selectedInspection.reportNumber}</p>
+                      </div>
+                    )}
+                    {selectedInspection.inspectionLevel && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Inspection Level</label>
+                        <p className="text-lg font-semibold text-gray-800">Level {selectedInspection.inspectionLevel}</p>
+                      </div>
+                    )}
+                    {selectedInspection.jurisdiction && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Jurisdiction (State/Province)</label>
+                        <p className="text-lg font-semibold text-gray-800">{selectedInspection.jurisdiction}</p>
+                      </div>
+                    )}
+                    {selectedInspection.timeOfInspection && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Time of Inspection</label>
+                        <p className="text-lg font-semibold text-gray-800">{selectedInspection.timeOfInspection}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Driver & Carrier Information */}
+              {(selectedInspection.driverLicenseNumber || selectedInspection.carrierUSDOTNumber || selectedInspection.carrierMotorCarrierNumber) && (
+                <div className="bg-green-50 rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-gray-800 mb-4">Driver & Carrier Information</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedInspection.driverLicenseNumber && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Driver License Number</label>
+                        <p className="text-lg font-semibold text-gray-800">{selectedInspection.driverLicenseNumber}</p>
+                      </div>
+                    )}
+                    {selectedInspection.carrierUSDOTNumber && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Carrier USDOT Number</label>
+                        <p className="text-lg font-semibold text-gray-800">{selectedInspection.carrierUSDOTNumber}</p>
+                      </div>
+                    )}
+                    {selectedInspection.carrierMotorCarrierNumber && (
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Carrier MC Number</label>
+                        <p className="text-lg font-semibold text-gray-800">{selectedInspection.carrierMotorCarrierNumber}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Out-of-Service Information */}
+              {(selectedInspection.outOfServiceIssued || selectedInspection.defectRepairNeeded || selectedInspection.outOfServiceReleaseDate) && (
+                <div className="bg-red-50 rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-gray-800 mb-4">Out-of-Service Information</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Out-of-Service Order Issued</label>
+                      <p className="text-lg font-semibold text-gray-800">
+                        {selectedInspection.outOfServiceIssued ? (
+                          <span className="text-red-600">Yes</span>
+                        ) : (
+                          <span className="text-green-600">No</span>
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Defect Repair Needed</label>
+                      <p className="text-lg font-semibold text-gray-800">
+                        {selectedInspection.defectRepairNeeded ? (
+                          <span className="text-red-600">Yes</span>
+                        ) : (
+                          <span className="text-green-600">No</span>
+                        )}
+                      </p>
+                    </div>
+                    {selectedInspection.outOfServiceReleaseDate && (
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Out-of-Service Release Date</label>
+                        <p className="text-lg font-semibold text-gray-800">{formatDate(selectedInspection.outOfServiceReleaseDate)}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Documentation */}
+              {selectedInspection.documentLink && (
+                <div className="bg-purple-50 rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-gray-800 mb-4">Documentation</h4>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Document Link</label>
+                    <a
+                      href={selectedInspection.documentLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-lg font-semibold text-blue-600 hover:text-blue-800 underline break-all"
+                    >
+                      {selectedInspection.documentLink}
+                    </a>
+                  </div>
+                </div>
+              )}
 
               {/* Vehicle & Driver Info */}
               <div className="bg-blue-50 rounded-xl p-6">
@@ -960,6 +1172,151 @@ const CvsaInspection: React.FC = () => {
                   />
                 </div>
               </div>
+
+              {/* Official Document Numbers Section */}
+              <div className="border-t pt-6 mt-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-4">Official Document Information</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Report Number <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      placeholder="Inspection Report Number"
+                      value={inspectionForm.reportNumber || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, reportNumber: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Inspection Level <span className="text-red-500">*</span></label>
+                    <select
+                      value={inspectionForm.inspectionLevel || 'I'}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectionLevel: e.target.value as 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII' }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    >
+                      <option value="I">Level I</option>
+                      <option value="II">Level II</option>
+                      <option value="III">Level III</option>
+                      <option value="IV">Level IV</option>
+                      <option value="V">Level V</option>
+                      <option value="VI">Level VI</option>
+                      <option value="VII">Level VII</option>
+                      <option value="VIII">Level VIII</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Jurisdiction (State/Province)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., ON, TX, CA"
+                      value={inspectionForm.jurisdiction || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, jurisdiction: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Time of Inspection</label>
+                    <input
+                      type="time"
+                      value={inspectionForm.timeOfInspection || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, timeOfInspection: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Driver & Carrier Information Section */}
+              <div className="border-t pt-6 mt-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-4">Driver & Carrier Information</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Driver License Number</label>
+                    <input
+                      type="text"
+                      placeholder="Driver's License Number"
+                      value={inspectionForm.driverLicenseNumber || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, driverLicenseNumber: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Carrier USDOT Number</label>
+                    <input
+                      type="text"
+                      placeholder="USDOT Number (USA only)"
+                      value={inspectionForm.carrierUSDOTNumber || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, carrierUSDOTNumber: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Carrier MC Number</label>
+                    <input
+                      type="text"
+                      placeholder="Motor Carrier Number (if applicable)"
+                      value={inspectionForm.carrierMotorCarrierNumber || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, carrierMotorCarrierNumber: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Out-of-Service Information Section */}
+              <div className="border-t pt-6 mt-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-4">Out-of-Service Information</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                      <input
+                        type="checkbox"
+                        checked={inspectionForm.outOfServiceIssued || false}
+                        onChange={(e) => setInspectionForm(prev => ({ ...prev, outOfServiceIssued: e.target.checked }))}
+                        className="rounded border-gray-300 text-[#9793E4] focus:ring-[#9793E4]"
+                      />
+                      Out-of-Service Order Issued
+                    </label>
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                      <input
+                        type="checkbox"
+                        checked={inspectionForm.defectRepairNeeded || false}
+                        onChange={(e) => setInspectionForm(prev => ({ ...prev, defectRepairNeeded: e.target.checked }))}
+                        className="rounded border-gray-300 text-[#9793E4] focus:ring-[#9793E4]"
+                      />
+                      Defect Repair Needed
+                    </label>
+                  </div>
+                  {inspectionForm.outOfServiceIssued && (
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Out-of-Service Release Date</label>
+                      <input
+                        type="date"
+                        value={inspectionForm.outOfServiceReleaseDate || ''}
+                        onChange={(e) => setInspectionForm(prev => ({ ...prev, outOfServiceReleaseDate: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Document Link Section */}
+              <div className="border-t pt-6 mt-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-4">Documentation</h4>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Document Link (PDF/Image URL)</label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/inspection-report.pdf"
+                    value={inspectionForm.documentLink || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, documentLink: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
@@ -1050,6 +1407,151 @@ const CvsaInspection: React.FC = () => {
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                   <textarea value={inspectionForm.notes || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, notes: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" rows={3} />
+                </div>
+              </div>
+
+              {/* Official Document Numbers Section */}
+              <div className="border-t pt-6 mt-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-4">Official Document Information</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Report Number <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      placeholder="Inspection Report Number"
+                      value={inspectionForm.reportNumber || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, reportNumber: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Inspection Level <span className="text-red-500">*</span></label>
+                    <select
+                      value={inspectionForm.inspectionLevel || 'I'}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectionLevel: e.target.value as 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII' }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    >
+                      <option value="I">Level I</option>
+                      <option value="II">Level II</option>
+                      <option value="III">Level III</option>
+                      <option value="IV">Level IV</option>
+                      <option value="V">Level V</option>
+                      <option value="VI">Level VI</option>
+                      <option value="VII">Level VII</option>
+                      <option value="VIII">Level VIII</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Jurisdiction (State/Province)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., ON, TX, CA"
+                      value={inspectionForm.jurisdiction || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, jurisdiction: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Time of Inspection</label>
+                    <input
+                      type="time"
+                      value={inspectionForm.timeOfInspection || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, timeOfInspection: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Driver & Carrier Information Section */}
+              <div className="border-t pt-6 mt-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-4">Driver & Carrier Information</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Driver License Number</label>
+                    <input
+                      type="text"
+                      placeholder="Driver's License Number"
+                      value={inspectionForm.driverLicenseNumber || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, driverLicenseNumber: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Carrier USDOT Number</label>
+                    <input
+                      type="text"
+                      placeholder="USDOT Number (USA only)"
+                      value={inspectionForm.carrierUSDOTNumber || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, carrierUSDOTNumber: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Carrier MC Number</label>
+                    <input
+                      type="text"
+                      placeholder="Motor Carrier Number (if applicable)"
+                      value={inspectionForm.carrierMotorCarrierNumber || ''}
+                      onChange={(e) => setInspectionForm(prev => ({ ...prev, carrierMotorCarrierNumber: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Out-of-Service Information Section */}
+              <div className="border-t pt-6 mt-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-4">Out-of-Service Information</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                      <input
+                        type="checkbox"
+                        checked={inspectionForm.outOfServiceIssued || false}
+                        onChange={(e) => setInspectionForm(prev => ({ ...prev, outOfServiceIssued: e.target.checked }))}
+                        className="rounded border-gray-300 text-[#9793E4] focus:ring-[#9793E4]"
+                      />
+                      Out-of-Service Order Issued
+                    </label>
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                      <input
+                        type="checkbox"
+                        checked={inspectionForm.defectRepairNeeded || false}
+                        onChange={(e) => setInspectionForm(prev => ({ ...prev, defectRepairNeeded: e.target.checked }))}
+                        className="rounded border-gray-300 text-[#9793E4] focus:ring-[#9793E4]"
+                      />
+                      Defect Repair Needed
+                    </label>
+                  </div>
+                  {inspectionForm.outOfServiceIssued && (
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Out-of-Service Release Date</label>
+                      <input
+                        type="date"
+                        value={inspectionForm.outOfServiceReleaseDate || ''}
+                        onChange={(e) => setInspectionForm(prev => ({ ...prev, outOfServiceReleaseDate: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Document Link Section */}
+              <div className="border-t pt-6 mt-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-4">Documentation</h4>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Document Link (PDF/Image URL)</label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/inspection-report.pdf"
+                    value={inspectionForm.documentLink || ''}
+                    onChange={(e) => setInspectionForm(prev => ({ ...prev, documentLink: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  />
                 </div>
               </div>
             </div>
