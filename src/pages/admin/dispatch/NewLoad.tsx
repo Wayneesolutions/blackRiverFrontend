@@ -1,11 +1,36 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Plus, ChevronDown, ChevronUp, Search, Pencil } from "lucide-react";
+import { listPlace } from "../../../axios/api/dispatcher.places";
+import { listCustomer, createLoad } from "../../../axios/api/distapcher";
 
-const NewLoad = ({ onClose }) => {
+interface Place {
+    _id: string;
+    name?: string;
+    city?: string;
+    state?: string;
+    currentLocation?: {
+        address?: string;
+        latitude?: string | number;
+        longitude?: string | number;
+    };
+}
+
+interface Customer {
+    _id?: string;
+    id?: string | number;
+    name?: string;
+    address?: string;
+}
+
+interface NewLoadProps {
+    onClose: () => void;
+}
+
+const NewLoad = ({ onClose }: NewLoadProps) => {
     const [loading, setLoading] = useState(false);
     
     // Form states
-    const [selectedCustomer, setSelectedCustomer] = useState(null);
+    const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [customerSearch, setCustomerSearch] = useState("");
     const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
     const [customerOrderNo, setCustomerOrderNo] = useState("");
@@ -16,7 +41,7 @@ const NewLoad = ({ onClose }) => {
     const [commodity, setCommodity] = useState("");
     const [valueOfGoods, setValueOfGoods] = useState("");
     const [valueOfGoodsCurrency, setValueOfGoodsCurrency] = useState("");
-    const [selectedEquipment, setSelectedEquipment] = useState([]);
+    const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
     const [equipmentDropdownOpen, setEquipmentDropdownOpen] = useState(false);
     const [noOfPackages, setNoOfPackages] = useState("");
     const [noOfPackagesType, setNoOfPackagesType] = useState("");
@@ -30,18 +55,30 @@ const NewLoad = ({ onClose }) => {
     const [dimensionB, setDimensionB] = useState("");
     const [dimensionH, setDimensionH] = useState("");
     const [dimensionUnit, setDimensionUnit] = useState("");
-    const [pickupLocation, setPickupLocation] = useState("");
+    // Pickup location states
+    const [pickupPlaces, setPickupPlaces] = useState<Place[]>([]);
+    const [selectedPickupPlace, setSelectedPickupPlace] = useState<Place | null>(null);
+    const [pickupSearch, setPickupSearch] = useState("");
+    const [pickupDropdownOpen, setPickupDropdownOpen] = useState(false);
     const [pickupRefNo, setPickupRefNo] = useState("");
-    const [pickupDate, setPickupDate] = useState("2025-11-21");
+    const [pickupDate, setPickupDate] = useState(new Date().toISOString().split('T')[0]);
     const [pickupTime, setPickupTime] = useState("12:00");
     const [pickupAppointment, setPickupAppointment] = useState("No");
     const [pickupNote, setPickupNote] = useState("");
-    const [deliveryLocation, setDeliveryLocation] = useState("");
+    
+    // Delivery location states
+    const [deliveryPlaces, setDeliveryPlaces] = useState<Place[]>([]);
+    const [selectedDeliveryPlace, setSelectedDeliveryPlace] = useState<Place | null>(null);
+    const [deliverySearch, setDeliverySearch] = useState("");
+    const [deliveryDropdownOpen, setDeliveryDropdownOpen] = useState(false);
     const [deliveryRefNo, setDeliveryRefNo] = useState("");
-    const [deliveryDate, setDeliveryDate] = useState("2025-11-21");
+    const [deliveryDate, setDeliveryDate] = useState(new Date().toISOString().split('T')[0]);
     const [deliveryTime, setDeliveryTime] = useState("12:00");
     const [deliveryAppointment, setDeliveryAppointment] = useState("No");
     const [deliveryNote, setDeliveryNote] = useState("");
+    
+    // Customers state
+    const [customers, setCustomers] = useState<Customer[]>([]);
     const [distance, setDistance] = useState("");
     const [additionalInfo, setAdditionalInfo] = useState({
         CSA: false,
@@ -52,12 +89,34 @@ const NewLoad = ({ onClose }) => {
         OverDimension: false
     });
 
-    // Sample data - replace with actual API calls
-    const customers = [
-        { id: 1, name: "CS-1 Transportation Inc.", address: "5026 South Service Road, Burlington, ON, L7L 5Y7, Canada", country: "United States" },
-        { id: 2, name: "customer", address: "2313, Alert Bay, BC, 54321, Canada", country: "United States" },
-        { id: 3, name: "CVC Sling Shot Transportation Inc", address: "2880 45 Avenue Southeast Bay 100 Southeast Calgary, Calgary, AB, T2B", country: "United States" }
-    ];
+    // Fetch places and customers on component mount
+    useEffect(() => {
+        fetchPlaces();
+        fetchCustomers();
+    }, []);
+
+    const fetchPlaces = async () => {
+        try {
+            const response = await listPlace();
+            if (response?.success && response?.data) {
+                setPickupPlaces(response.data);
+                setDeliveryPlaces(response.data);
+            }
+        } catch (error) {
+            console.error("Error fetching places:", error);
+        }
+    };
+
+    const fetchCustomers = async () => {
+        try {
+            const response = await listCustomer();
+            if (response?.success && response?.data) {
+                setCustomers(response.data || []);
+            }
+        } catch (error) {
+            console.error("Error fetching customers:", error);
+        }
+    };
 
     const packageTypes = ["Bag", "Bale", "Barrel", "Basket", "Bin", "Bing Chest", "Box", "Bucket", "Bundle", "Cage", "Carton", "Case", "Chest", "Container", "Crate", "Drum", "Envelope", "Package", "Pallet", "Parcel", "Piece", "Reel", "Roll", "Sack", "Skid", "Tank", "Tote", "Tray", "Tub", "Unit"];
     
@@ -70,13 +129,15 @@ const NewLoad = ({ onClose }) => {
         { value: "USD", label: "USD - US Dollar" }
     ];
 
-    const customerDropdownRef = useRef(null);
-    const equipmentDropdownRef = useRef(null);
-    const packagesDropdownRef = useRef(null);
+    const customerDropdownRef = useRef<HTMLDivElement>(null);
+    const equipmentDropdownRef = useRef<HTMLDivElement>(null);
+    const packagesDropdownRef = useRef<HTMLDivElement>(null);
+    const pickupDropdownRef = useRef<HTMLDivElement>(null);
+    const deliveryDropdownRef = useRef<HTMLDivElement>(null);
 
     // Close dropdowns when clicking outside
     useEffect(() => {
-        const handleClickOutside = (event) => {
+        const handleClickOutside = (event: MouseEvent) => {
             if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target)) {
                 setCustomerDropdownOpen(false);
             }
@@ -86,21 +147,41 @@ const NewLoad = ({ onClose }) => {
             if (packagesDropdownRef.current && !packagesDropdownRef.current.contains(event.target)) {
                 setNoOfPackagesDropdownOpen(false);
             }
+            if (pickupDropdownRef.current && !pickupDropdownRef.current.contains(event.target)) {
+                setPickupDropdownOpen(false);
+            }
+            if (deliveryDropdownRef.current && !deliveryDropdownRef.current.contains(event.target)) {
+                setDeliveryDropdownOpen(false);
+            }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const filteredCustomers = customers.filter(customer =>
-        customer.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-        customer.address.toLowerCase().includes(customerSearch.toLowerCase())
+        (customer.name || '').toLowerCase().includes(customerSearch.toLowerCase()) ||
+        (customer.address || '').toLowerCase().includes(customerSearch.toLowerCase())
     );
 
     const filteredPackages = packageTypes.filter(pkg =>
         pkg.toLowerCase().includes(noOfPackagesSearch.toLowerCase())
     );
 
-    const handleEquipmentToggle = (equipment) => {
+    const filteredPickupPlaces = pickupPlaces.filter(place =>
+        !pickupSearch || 
+        (place.name || '').toLowerCase().includes(pickupSearch.toLowerCase()) ||
+        (place.currentLocation?.address || '').toLowerCase().includes(pickupSearch.toLowerCase()) ||
+        (place.city || '').toLowerCase().includes(pickupSearch.toLowerCase())
+    );
+
+    const filteredDeliveryPlaces = deliveryPlaces.filter(place =>
+        !deliverySearch ||
+        (place.name || '').toLowerCase().includes(deliverySearch.toLowerCase()) ||
+        (place.currentLocation?.address || '').toLowerCase().includes(deliverySearch.toLowerCase()) ||
+        (place.city || '').toLowerCase().includes(deliverySearch.toLowerCase())
+    );
+
+    const handleEquipmentToggle = (equipment: string) => {
         setSelectedEquipment(prev =>
             prev.includes(equipment)
                 ? prev.filter(e => e !== equipment)
@@ -108,8 +189,123 @@ const NewLoad = ({ onClose }) => {
         );
     };
 
-    const handleAdditionalInfoToggle = (key) => {
+    const handleAdditionalInfoToggle = (key: keyof typeof additionalInfo) => {
         setAdditionalInfo(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const handleSaveLoad = async () => {
+        // Validation
+        if (!selectedCustomer) {
+            alert("Please select a customer");
+            return;
+        }
+        if (!selectedPickupPlace) {
+            alert("Please select a pickup location");
+            return;
+        }
+        if (!selectedDeliveryPlace) {
+            alert("Please select a delivery location");
+            return;
+        }
+        if (!customerOrderNo) {
+            alert("Please enter customer order number");
+            return;
+        }
+        if (!commodity) {
+            alert("Please enter commodity");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // Combine pickup date and time
+            const pickupDateTime = pickupDate && pickupTime 
+                ? new Date(`${pickupDate}T${pickupTime}`).toISOString()
+                : null;
+            
+            // Combine delivery date and time
+            const deliveryDateTime = deliveryDate && deliveryTime
+                ? new Date(`${deliveryDate}T${deliveryTime}`).toISOString()
+                : null;
+
+            // Build route data
+            const routeData = {
+                multipleDropOffs: false,
+                selectPickup: {
+                    place: selectedPickupPlace.currentLocation?.address || `${selectedPickupPlace.name || ''}, ${selectedPickupPlace.city || ''}, ${selectedPickupPlace.state || ''}`,
+                    latitude: selectedPickupPlace.currentLocation?.latitude?.toString() || '',
+                    longitude: selectedPickupPlace.currentLocation?.longitude?.toString() || '',
+                    placeId: selectedPickupPlace._id
+                },
+                selectDropOff: {
+                    place: selectedDeliveryPlace.currentLocation?.address || `${selectedDeliveryPlace.name || ''}, ${selectedDeliveryPlace.city || ''}, ${selectedDeliveryPlace.state || ''}`,
+                    latitude: selectedDeliveryPlace.currentLocation?.latitude?.toString() || '',
+                    longitude: selectedDeliveryPlace.currentLocation?.longitude?.toString() || '',
+                    placeId: selectedDeliveryPlace._id
+                }
+            };
+
+            // Build payloads (at least one is required)
+            const payloads = [{
+                itemName: commodity || "General Freight",
+                internalId: `ITEM_${Date.now()}`,
+                description: orderNotes || '',
+                measurementAndWeight: {
+                    weight: weight ? parseFloat(weight) : 0,
+                    length: dimensionL ? parseFloat(dimensionL) : 0,
+                    width: dimensionB ? parseFloat(dimensionB) : 0,
+                    height: dimensionH ? parseFloat(dimensionH) : 0
+                },
+                priceAndValues: {
+                    price: valueOfGoods ? parseFloat(valueOfGoods) : 0
+                }
+            }];
+
+            // Build load data
+            const loadData = {
+                details: {
+                    orderType: loadType || "FTL",
+                    internalId: customerOrderNo || `LOAD_${Date.now()}`,
+                    customer: selectedCustomer._id || selectedCustomer.id,
+                    amount: valueOfGoods ? parseFloat(valueOfGoods) : 0,
+                    rate: valueOfGoods ? parseFloat(valueOfGoods) : 0
+                },
+                route: routeData,
+                payloads: payloads,
+                services: {
+                    applyServiceRate: false
+                },
+                notes: orderNotes || '',
+                status: 'planned',
+                // Pickup and delivery scheduling
+                pickupDate: pickupDateTime,
+                pickupTime: pickupTime,
+                pickupAppointment: pickupAppointment === "Yes",
+                pickupRefNo: pickupRefNo || '',
+                pickupNote: pickupNote || '',
+                deliveryDate: deliveryDateTime,
+                deliveryTime: deliveryTime,
+                deliveryAppointment: deliveryAppointment === "Yes",
+                deliveryRefNo: deliveryRefNo || '',
+                deliveryNote: deliveryNote || ''
+            };
+
+            const response = await createLoad(loadData);
+            
+            if (response?.success) {
+                alert("Load created successfully!");
+                if (onClose) {
+                    onClose();
+                }
+            } else {
+                alert(response?.message || "Failed to create load");
+            }
+        } catch (error) {
+            console.error("Error creating load:", error);
+            alert("Failed to create load. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -598,19 +794,81 @@ const NewLoad = ({ onClose }) => {
                                 </div>
                                 
                                 <div className="space-y-3">
-                                    <div>
+                                    <div className="relative" ref={pickupDropdownRef}>
                                         <label className="block text-xs font-medium text-gray-700 mb-1">Location *</label>
-                                        <div className="flex gap-1">
-                                            <select
-                                                value={pickupLocation}
-                                                onChange={(e) => setPickupLocation(e.target.value)}
-                                                className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                                        <div className="relative">
+                                            <div
+                                                onClick={() => setPickupDropdownOpen(!pickupDropdownOpen)}
+                                                className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                             >
-                                                <option value="">Select</option>
-                                                <option value="warehouse-a">Warehouse A</option>
-                                                <option value="warehouse-b">Warehouse B</option>
-                                            </select>
-                                            <button className="px-2 text-blue-500 hover:bg-blue-50 rounded text-xl leading-none flex-shrink-0">+</button>
+                                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
+                                                <input
+                                                    type="text"
+                                                    value={selectedPickupPlace ? `${selectedPickupPlace.name || ''} | ${selectedPickupPlace.currentLocation?.address || ''}` : pickupSearch}
+                                                    onChange={(e) => {
+                                                        setPickupSearch(e.target.value);
+                                                        setPickupDropdownOpen(true);
+                                                    }}
+                                                    onFocus={() => setPickupDropdownOpen(true)}
+                                                    placeholder="Search pickup location..."
+                                                    className="flex-1 outline-none text-sm min-w-0"
+                                                    readOnly={!!selectedPickupPlace}
+                                                />
+                                                {selectedPickupPlace && (
+                                                    <>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedPickupPlace(null);
+                                                                setPickupSearch("");
+                                                            }}
+                                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                        >
+                                                            <X className="w-4 h-4 text-gray-400" />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                            
+                                            {pickupDropdownOpen && (
+                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                    <div className="p-2 border-b border-gray-200">
+                                                        <div className="relative">
+                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                            <input
+                                                                type="text"
+                                                                value={pickupSearch}
+                                                                onChange={(e) => setPickupSearch(e.target.value)}
+                                                                placeholder="Search places..."
+                                                                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                                autoFocus
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="overflow-y-auto max-h-48">
+                                                        {filteredPickupPlaces.length > 0 ? (
+                                                            filteredPickupPlaces.map((place) => (
+                                                                <div
+                                                                    key={place._id}
+                                                                    onClick={() => {
+                                                                        setSelectedPickupPlace(place);
+                                                                        setPickupSearch("");
+                                                                        setPickupDropdownOpen(false);
+                                                                    }}
+                                                                    className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${
+                                                                        selectedPickupPlace?._id === place._id ? 'bg-blue-50' : ''
+                                                                    }`}
+                                                                >
+                                                                    <div className="font-medium text-blue-600">{place.name || 'Unnamed Place'}</div>
+                                                                    <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div className="px-3 py-2 text-sm text-gray-500">No places found</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div>
@@ -692,17 +950,82 @@ const NewLoad = ({ onClose }) => {
                                 </div>
                                 
                                 <div className="space-y-3">
-                                    <div>
+                                    <div className="relative" ref={deliveryDropdownRef}>
                                         <label className="block text-xs font-medium text-gray-700 mb-1">Location *</label>
-                                        <select
-                                            value={deliveryLocation}
-                                            onChange={(e) => setDeliveryLocation(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white"
-                                        >
-                                            <option value="">Select</option>
-                                            <option value="location-a">Location A</option>
-                                            <option value="location-b">Location B</option>
-                                        </select>
+                                        <div className="relative">
+                                            <div
+                                                onClick={() => setDeliveryDropdownOpen(!deliveryDropdownOpen)}
+                                                className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                                            >
+                                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${deliveryDropdownOpen ? 'rotate-180' : ''}`} />
+                                                <input
+                                                    type="text"
+                                                    value={selectedDeliveryPlace ? `${selectedDeliveryPlace.name || ''} | ${selectedDeliveryPlace.currentLocation?.address || ''}` : deliverySearch}
+                                                    onChange={(e) => {
+                                                        setDeliverySearch(e.target.value);
+                                                        setDeliveryDropdownOpen(true);
+                                                    }}
+                                                    onFocus={() => setDeliveryDropdownOpen(true)}
+                                                    placeholder="Search delivery location..."
+                                                    className="flex-1 outline-none text-sm min-w-0"
+                                                    readOnly={!!selectedDeliveryPlace}
+                                                />
+                                                {selectedDeliveryPlace && (
+                                                    <>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedDeliveryPlace(null);
+                                                                setDeliverySearch("");
+                                                            }}
+                                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                        >
+                                                            <X className="w-4 h-4 text-gray-400" />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                            
+                                            {deliveryDropdownOpen && (
+                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                    <div className="p-2 border-b border-gray-200">
+                                                        <div className="relative">
+                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                            <input
+                                                                type="text"
+                                                                value={deliverySearch}
+                                                                onChange={(e) => setDeliverySearch(e.target.value)}
+                                                                placeholder="Search places..."
+                                                                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                                autoFocus
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="overflow-y-auto max-h-48">
+                                                        {filteredDeliveryPlaces.length > 0 ? (
+                                                            filteredDeliveryPlaces.map((place) => (
+                                                                <div
+                                                                    key={place._id}
+                                                                    onClick={() => {
+                                                                        setSelectedDeliveryPlace(place);
+                                                                        setDeliverySearch("");
+                                                                        setDeliveryDropdownOpen(false);
+                                                                    }}
+                                                                    className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${
+                                                                        selectedDeliveryPlace?._id === place._id ? 'bg-blue-50' : ''
+                                                                    }`}
+                                                                >
+                                                                    <div className="font-medium text-blue-600">{place.name || 'Unnamed Place'}</div>
+                                                                    <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div className="px-3 py-2 text-sm text-gray-500">No places found</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                     <div>
                                         <label className="block text-xs font-medium text-gray-700 mb-1">Reference No.</label>
@@ -794,7 +1117,7 @@ const NewLoad = ({ onClose }) => {
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-1">Additional Info</label>
                                 <div className="flex flex-wrap gap-3">
-                                    {Object.keys(additionalInfo).map((key) => (
+                                    {(Object.keys(additionalInfo) as Array<keyof typeof additionalInfo>).map((key) => (
                                         <label key={key} className="flex items-center gap-1 cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -822,6 +1145,7 @@ const NewLoad = ({ onClose }) => {
                         Cancel
                     </button>
                     <button
+                        onClick={handleSaveLoad}
                         disabled={loading}
                         className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded transition-colors disabled:opacity-50"
                     >

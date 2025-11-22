@@ -15,6 +15,7 @@ import {
   FaClipboardCheck,
   FaList,
   FaLayerGroup,
+  FaRoute,
 } from "react-icons/fa";
 import { TbTruckDelivery, TbReportAnalytics } from "react-icons/tb";
 import { IoIosSend } from "react-icons/io";
@@ -53,6 +54,11 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
         key: "/admin/dispatch/operations/bulk-order",
         icon: <FaLayerGroup />,
         label: "Bulk Order",
+      },
+      {
+        key: "/admin/dispatch/operations/trips",
+        icon: <FaRoute />,
+        label: "Trips",
       },
       {
         key: "/admin/dispatch/operations/service-rates",

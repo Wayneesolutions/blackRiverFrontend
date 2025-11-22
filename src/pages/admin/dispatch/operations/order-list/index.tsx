@@ -1,6 +1,65 @@
-import React, { useState, useMemo } from "react";
-import { Search, Filter, ChevronDown, ChevronUp, MoreVertical, Edit, Trash2, Plus, X } from "lucide-react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { MoreVertical, Edit, Trash2, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import NewOrderSidebar from "./NewOrderSidebar";
+import { listOrder, deleteOrder, getOrderById } from "../../../../../axios/api/distapcher";
+import { listPlace } from "../../../../../axios/api/dispatcher.places";
+
+interface Place {
+  _id: string;
+  name?: string;
+  city?: string;
+  state?: string;
+  currentLocation?: {
+    address?: string;
+    latitude?: string | number;
+    longitude?: string | number;
+  };
+}
+
+type NotificationType = 'success' | 'error' | 'warning';
+
+interface ToastNotification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    warning: <FaExclamationCircle className="text-yellow-500" size={24} />,
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    warning: 'bg-yellow-50 border-yellow-200',
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in min-w-[300px] max-w-[500px]`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 interface Order {
   id: string;
@@ -27,104 +86,168 @@ interface Order {
 }
 
 const OrderList = () => {
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: "1",
-      orderNo: "TORD005555",
-      custOrderNo: "",
-      tripNo: "",
-      orderDate: "11/21/2025 05:41 AM",
-      orderType: "Regular",
-      totalItems: 0,
-      companyName: "Black River Logistics Ltd",
-      customerName: "3 Rivers Logistics Inc",
-      pickupDate: "",
-      pickupLocation: "",
-      pickupRefNo: "",
-      deliveryDate: "",
-      deliveryLocation: "",
-      deliveryRefNo: "",
-      totalAmount: "0.00",
-      currency: "CAD",
-      status: "QUOTED",
-      driver: "",
-      truckNo: "",
-      trailerNo: "",
-    },
-    {
-      id: "2",
-      orderNo: "TORD005554",
-      custOrderNo: "44322",
-      tripNo: "",
-      orderDate: "11/21/2025 12:11 AM",
-      orderType: "Regular",
-      totalItems: 0,
-      companyName: "Black River Logistics Ltd",
-      customerName: "3909973 MANITOBA INC D...",
-      pickupDate: "",
-      pickupLocation: "",
-      pickupRefNo: "",
-      deliveryDate: "",
-      deliveryLocation: "",
-      deliveryRefNo: "",
-      totalAmount: "0.00",
-      currency: "CAD",
-      status: "QUOTED",
-      driver: "",
-      truckNo: "",
-      trailerNo: "",
-    },
-    {
-      id: "3",
-      orderNo: "5531",
-      custOrderNo: "1234",
-      tripNo: "8761",
-      orderDate: "11/14/2025 02:11 AM",
-      orderType: "Regular",
-      totalItems: 1,
-      companyName: "Black River Logistics Ltd",
-      customerName: "3 Rivers Logistics Inc",
-      pickupDate: "11/14/2025 12:00 AM",
-      pickupLocation: "ADM MATSUTANI AMERICA - CAMANCHE",
-      pickupRefNo: "308 21st Street, Camanche, IA",
-      deliveryDate: "11/17/2025 02:00 PM",
-      deliveryLocation: "VERSA COLD - CLIVEDEN",
-      deliveryRefNo: "836 Cliveden Avenue, Delta, BC",
-      totalAmount: "0.00",
-      currency: "USD",
-      status: "CONFIRMED",
-      driver: "John Doe",
-      truckNo: "TRK-001",
-      trailerNo: "TRL-001",
-    },
-    {
-      id: "4",
-      orderNo: "TORD005552",
-      custOrderNo: "",
-      tripNo: "",
-      orderDate: "10/27/2025 06:23 AM",
-      orderType: "Regular",
-      totalItems: 0,
-      companyName: "Black River Logistics Ltd",
-      customerName: "3 Rivers Logistics Inc",
-      pickupDate: "",
-      pickupLocation: "",
-      pickupRefNo: "",
-      deliveryDate: "",
-      deliveryLocation: "",
-      deliveryRefNo: "",
-      totalAmount: "0.00",
-      currency: "CAD",
-      status: "QUOTED",
-      driver: "",
-      truckNo: "",
-      trailerNo: "",
-    },
-  ]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
+
+  // Places state for search dropdowns
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [pickupLocationSearch, setPickupLocationSearch] = useState("");
+  const [pickupLocationDropdownOpen, setPickupLocationDropdownOpen] = useState(false);
+  const [deliveryLocationSearch, setDeliveryLocationSearch] = useState("");
+  const [deliveryLocationDropdownOpen, setDeliveryLocationDropdownOpen] = useState(false);
+  const pickupLocationDropdownRef = useRef<HTMLDivElement>(null);
+  const deliveryLocationDropdownRef = useRef<HTMLDivElement>(null);
+
+  const addNotification = useCallback((type: NotificationType, message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  }, []);
+
+  const removeNotification = useCallback((id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        setUserInfo(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Error parsing userInfo from localStorage:', error);
+    }
+    fetchOrders();
+    fetchPlaces();
+  }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (pickupLocationDropdownRef.current && target && !pickupLocationDropdownRef.current.contains(target)) {
+        setPickupLocationDropdownOpen(false);
+      }
+      if (deliveryLocationDropdownRef.current && target && !deliveryLocationDropdownRef.current.contains(target)) {
+        setDeliveryLocationDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const fetchPlaces = async () => {
+    try {
+      const response = await listPlace();
+      if (response?.success && response?.data) {
+        setPlaces(response.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching places:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [userInfo?.company]);
+
+  // Helper function to safely extract location string
+  const extractLocationString = (location: any): string => {
+    if (!location) return '';
+    if (typeof location === 'string') return location;
+    if (typeof location !== 'object') return '';
+    
+    try {
+      // Try different paths to get the location string
+      // First check if place field exists
+      if (location.place && typeof location.place === 'string') {
+        return location.place;
+      }
+      
+      // Check if placeId is populated (object) with currentLocation
+      if (location.placeId) {
+        if (typeof location.placeId === 'object' && location.placeId !== null) {
+          // Check for populated Place object
+          if (location.placeId.currentLocation?.address && typeof location.placeId.currentLocation.address === 'string') {
+            return location.placeId.currentLocation.address;
+          }
+          if (location.placeId.name && typeof location.placeId.name === 'string') {
+            return location.placeId.name;
+          }
+        }
+      }
+      
+      // Fallback to other fields
+      if (location.address && typeof location.address === 'string') {
+        return location.address;
+      }
+      if (location.name && typeof location.name === 'string') {
+        return location.name;
+      }
+    } catch (error) {
+      console.error('Error extracting location string:', error);
+    }
+    
+    return '';
+  };
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const response = await listOrder({
+        page: currentPage,
+        limit: itemsPerPage,
+        status: orderStatus || undefined,
+        orderType: orderType || undefined
+      });
+      
+      if (response?.success && response?.data) {
+        const formattedOrders = response.data.map((order: any) => ({
+          id: order._id,
+          orderNo: order.orderNumber || order._id,
+          custOrderNo: order.customerOrderNo || '',
+          tripNo: order.tripNo || '',
+          orderDate: order.orderDate ? new Date(order.orderDate).toLocaleString('en-US', {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          }) : '',
+          orderType: order.orderType || 'Regular',
+          totalItems: order.noOfPackages || 0,
+          companyName: "Black River Logistics Ltd", // You might want to fetch this from company settings
+          customerName: order.customer?.name || 'N/A',
+          pickupDate: order.pickupDate ? new Date(order.pickupDate).toLocaleDateString('en-US') : '',
+          pickupLocation: extractLocationString(order.pickupLocation) || '',
+          pickupRefNo: order.pickupRefNo || '',
+          deliveryDate: order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString('en-US') : '',
+          deliveryLocation: extractLocationString(order.deliveryLocation) || '',
+          deliveryRefNo: order.deliveryRefNo || '',
+          totalAmount: order.totalAmount?.toFixed(2) || '0.00',
+          currency: order.currency || 'CAD',
+          status: order.status || 'QUOTED',
+          driver: order.driver?.name || '',
+          truckNo: order.truck?.plateNumber || order.truck?.internalId || '',
+          trailerNo: order.trailer?.plateNumber || ''
+        }));
+        setOrders(formattedOrders);
+      } else {
+        setOrders([]);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Filter states
   const [orderType, setOrderType] = useState("");
@@ -153,11 +276,14 @@ const OrderList = () => {
       const matchesCustOrderNo = !custOrderNo || order.custOrderNo.toLowerCase().includes(custOrderNo.toLowerCase());
       const matchesTripNo = !tripNo || order.tripNo.toLowerCase().includes(tripNo.toLowerCase());
       const matchesPickupDeliveryRef = !pickupDeliveryRef || 
-        order.pickupRefNo.toLowerCase().includes(pickupDeliveryRef.toLowerCase()) ||
-        order.deliveryRefNo.toLowerCase().includes(pickupDeliveryRef.toLowerCase());
-      const matchesCustName = !custName || order.customerName.toLowerCase().includes(custName.toLowerCase());
-      const matchesPickupLocation = !pickupLocation || order.pickupLocation.toLowerCase().includes(pickupLocation.toLowerCase());
-      const matchesDeliveryLocation = !deliveryLocation || order.deliveryLocation.toLowerCase().includes(deliveryLocation.toLowerCase());
+        (order.pickupRefNo && order.pickupRefNo.toLowerCase().includes(pickupDeliveryRef.toLowerCase())) ||
+        (order.deliveryRefNo && order.deliveryRefNo.toLowerCase().includes(pickupDeliveryRef.toLowerCase()));
+      const matchesCustName = !custName || (order.customerName && order.customerName.toLowerCase().includes(custName.toLowerCase()));
+      // Extract location strings - orders should already have strings, but handle both cases
+      const pickupLocStr = typeof order.pickupLocation === 'string' ? order.pickupLocation : extractLocationString(order.pickupLocation);
+      const deliveryLocStr = typeof order.deliveryLocation === 'string' ? order.deliveryLocation : extractLocationString(order.deliveryLocation);
+      const matchesPickupLocation = !pickupLocation || (pickupLocStr && pickupLocStr.toLowerCase().includes(pickupLocation.toLowerCase()));
+      const matchesDeliveryLocation = !deliveryLocation || (deliveryLocStr && deliveryLocStr.toLowerCase().includes(deliveryLocation.toLowerCase()));
       const matchesOrderType = !orderType || order.orderType === orderType;
       const matchesStatus = !orderStatus || order.status === orderStatus;
 
@@ -172,33 +298,90 @@ const OrderList = () => {
     currentPage * itemsPerPage
   );
 
+  // Filtered places for search dropdowns
+  const filteredPickupPlaces = useMemo(() => {
+    return places.filter(place =>
+      !pickupLocationSearch ||
+      (place.name || '').toLowerCase().includes(pickupLocationSearch.toLowerCase()) ||
+      (place.currentLocation?.address || '').toLowerCase().includes(pickupLocationSearch.toLowerCase()) ||
+      (place.city || '').toLowerCase().includes(pickupLocationSearch.toLowerCase()) ||
+      (place.state || '').toLowerCase().includes(pickupLocationSearch.toLowerCase())
+    );
+  }, [places, pickupLocationSearch]);
+
+  const filteredDeliveryPlaces = useMemo(() => {
+    return places.filter(place =>
+      !deliveryLocationSearch ||
+      (place.name || '').toLowerCase().includes(deliveryLocationSearch.toLowerCase()) ||
+      (place.currentLocation?.address || '').toLowerCase().includes(deliveryLocationSearch.toLowerCase()) ||
+      (place.city || '').toLowerCase().includes(deliveryLocationSearch.toLowerCase()) ||
+      (place.state || '').toLowerCase().includes(deliveryLocationSearch.toLowerCase())
+    );
+  }, [places, deliveryLocationSearch]);
+
+  const handlePickupLocationSelect = (place: Place) => {
+    const locationString = place.currentLocation?.address || place.name || '';
+    setPickupLocation(locationString);
+    setPickupLocationSearch(locationString);
+    setPickupLocationDropdownOpen(false);
+  };
+
+  const handleDeliveryLocationSelect = (place: Place) => {
+    const locationString = place.currentLocation?.address || place.name || '';
+    setDeliveryLocation(locationString);
+    setDeliveryLocationSearch(locationString);
+    setDeliveryLocationDropdownOpen(false);
+  };
+
   const handleCreateOrder = () => {
     setEditingOrder(null);
     setSidebarOpen(true);
   };
 
-  const handleEditOrder = (order: Order) => {
-    setEditingOrder(order);
+  const handleEditOrder = async (order: Order) => {
+    try {
+      // Fetch full order details with populated fields
+      const response = await getOrderById(order.id);
+      if (response?.success && response?.data) {
+        setEditingOrder(response.data);
     setSidebarOpen(true);
     setActionMenuOpen(null);
+      } else {
+        addNotification('error', response?.message || "Failed to load order details");
+      }
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      addNotification('error', "Failed to load order details. Please try again.");
+    }
   };
 
-  const handleDeleteOrder = (orderId: string) => {
+  const handleDeleteOrder = async (orderId: string) => {
     if (window.confirm("Are you sure you want to delete this order?")) {
+      try {
+        const response = await deleteOrder(orderId);
+        if (response?.success) {
       setOrders(orders.filter((o) => o.id !== orderId));
+          addNotification('success', "Order deleted successfully");
+        } else {
+          addNotification('error', response?.message || "Failed to delete order");
+        }
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        addNotification('error', "Failed to delete order. Please try again.");
+      }
       setActionMenuOpen(null);
     }
   };
 
-  const handleSaveOrder = (orderData: Order) => {
-    if (editingOrder) {
-      setOrders(orders.map((o) => (o.id === editingOrder.id ? orderData : o)));
-    } else {
-      const newOrder = { ...orderData, id: Date.now().toString() };
-      setOrders([...orders, newOrder]);
-    }
+  const handleSaveOrder = async () => {
+    // Order is already saved by the sidebar component
+    // Close sidebar first, then refresh the list to get properly formatted data
     setSidebarOpen(false);
     setEditingOrder(null);
+    // Wait a moment for the order to be saved in the database
+    setTimeout(() => {
+      fetchOrders();
+    }, 500);
   };
 
   const handleReset = () => {
@@ -208,7 +391,9 @@ const OrderList = () => {
     setPickupDeliveryRef("");
     setCustName("");
     setPickupLocation("");
+    setPickupLocationSearch("");
     setDeliveryLocation("");
+    setDeliveryLocationSearch("");
     setOrderType("");
     setCreatedDate("");
     setByDays("");
@@ -366,27 +551,117 @@ const OrderList = () => {
               <option value="3909973 MANITOBA INC D">3909973 MANITOBA INC D</option>
             </select>
           </div>
-          <div>
+          <div className="relative" ref={pickupLocationDropdownRef}>
             <label className="block text-xs font-medium text-gray-700 mb-1">Pickup Location</label>
-            <select
-              value={pickupLocation}
-              onChange={(e) => setPickupLocation(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded text-sm bg-white"
-            >
-              <option value="">Select</option>
-              <option value="ADM MATSUTANI AMERICA - CAMANCHE">ADM MATSUTANI AMERICA - CAMANCHE</option>
-            </select>
+            <div className="relative">
+              <input
+                type="text"
+                value={pickupLocationSearch || pickupLocation}
+                onChange={(e) => {
+                  setPickupLocationSearch(e.target.value);
+                  setPickupLocation(e.target.value);
+                  setPickupLocationDropdownOpen(true);
+                }}
+                onFocus={() => setPickupLocationDropdownOpen(true)}
+                placeholder="Search pickup location..."
+                className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setPickupLocationDropdownOpen(!pickupLocationDropdownOpen)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {pickupLocationDropdownOpen ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            {pickupLocationDropdownOpen && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                {filteredPickupPlaces.length > 0 ? (
+                  filteredPickupPlaces.map((place) => {
+                    const locationString = place.currentLocation?.address || place.name || '';
+                    return (
+                      <div
+                        key={place._id}
+                        onClick={() => handlePickupLocationSelect(place)}
+                        className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                      >
+                        <div className="font-medium text-gray-900">{place.name || 'Unnamed Place'}</div>
+                        {locationString && (
+                          <div className="text-xs text-gray-500">{locationString}</div>
+                        )}
+                        {(place.city || place.state) && (
+                          <div className="text-xs text-gray-400">
+                            {[place.city, place.state].filter(Boolean).join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="p-2 text-sm text-gray-500 text-center">No places found</div>
+                )}
+              </div>
+            )}
           </div>
-          <div>
+          <div className="relative" ref={deliveryLocationDropdownRef}>
             <label className="block text-xs font-medium text-gray-700 mb-1">Delivery Location</label>
-            <select
-              value={deliveryLocation}
-              onChange={(e) => setDeliveryLocation(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded text-sm bg-white"
-            >
-              <option value="">Select</option>
-              <option value="VERSA COLD - CLIVEDEN">VERSA COLD - CLIVEDEN</option>
-            </select>
+            <div className="relative">
+              <input
+                type="text"
+                value={deliveryLocationSearch || deliveryLocation}
+                onChange={(e) => {
+                  setDeliveryLocationSearch(e.target.value);
+                  setDeliveryLocation(e.target.value);
+                  setDeliveryLocationDropdownOpen(true);
+                }}
+                onFocus={() => setDeliveryLocationDropdownOpen(true)}
+                placeholder="Search delivery location..."
+                className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setDeliveryLocationDropdownOpen(!deliveryLocationDropdownOpen)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {deliveryLocationDropdownOpen ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            {deliveryLocationDropdownOpen && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                {filteredDeliveryPlaces.length > 0 ? (
+                  filteredDeliveryPlaces.map((place) => {
+                    const locationString = place.currentLocation?.address || place.name || '';
+                    return (
+                      <div
+                        key={place._id}
+                        onClick={() => handleDeliveryLocationSelect(place)}
+                        className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                      >
+                        <div className="font-medium text-gray-900">{place.name || 'Unnamed Place'}</div>
+                        {locationString && (
+                          <div className="text-xs text-gray-500">{locationString}</div>
+                        )}
+                        {(place.city || place.state) && (
+                          <div className="text-xs text-gray-400">
+                            {[place.city, place.state].filter(Boolean).join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="p-2 text-sm text-gray-500 text-center">No places found</div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex justify-end gap-2">
@@ -397,7 +672,7 @@ const OrderList = () => {
             Reset
           </button>
           <button
-            onClick={() => {}}
+            onClick={() => fetchOrders()}
             className="px-4 py-2 bg-blue-600 !text-white rounded hover:bg-blue-700 transition-colors"
           >
             Search
@@ -447,7 +722,22 @@ const OrderList = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedOrders.map((order) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-2">Loading orders...</p>
+                  </td>
+                </tr>
+              ) : paginatedOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                    <p className="text-lg font-medium">No orders found</p>
+                    <p className="text-sm">Create a new order to get started</p>
+                  </td>
+                </tr>
+              ) : (
+                paginatedOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="relative">
@@ -498,26 +788,32 @@ const OrderList = () => {
                     {order.customerName}
                   </td>
                   <td className="px-6 py-4">
-                    {order.pickupLocation ? (
+                    {(() => {
+                      const pickupLoc = extractLocationString(order.pickupLocation);
+                      return pickupLoc ? (
                       <div className="text-sm">
-                        <div className="text-gray-900">: {order.pickupLocation}</div>
-                        <div className="text-gray-600">{order.pickupRefNo}</div>
-                        <div className="text-red-600">{order.pickupDate}</div>
+                          <div className="text-gray-900">{pickupLoc}</div>
+                          {order.pickupRefNo && <div className="text-gray-600">Ref: {order.pickupRefNo}</div>}
+                          {order.pickupDate && <div className="text-red-600">{order.pickupDate}</div>}
                       </div>
                     ) : (
                       <span className="text-sm text-gray-400">-</span>
-                    )}
+                      );
+                    })()}
                   </td>
                   <td className="px-6 py-4">
-                    {order.deliveryLocation ? (
+                    {(() => {
+                      const deliveryLoc = extractLocationString(order.deliveryLocation);
+                      return deliveryLoc ? (
                       <div className="text-sm">
-                        <div className="text-gray-900">: {order.deliveryLocation}</div>
-                        <div className="text-gray-600">{order.deliveryRefNo}</div>
-                        <div className="text-red-600">{order.deliveryDate}</div>
+                          <div className="text-gray-900">{deliveryLoc}</div>
+                          {order.deliveryRefNo && <div className="text-gray-600">Ref: {order.deliveryRefNo}</div>}
+                          {order.deliveryDate && <div className="text-red-600">{order.deliveryDate}</div>}
                       </div>
                     ) : (
                       <span className="text-sm text-gray-400">-</span>
-                    )}
+                      );
+                    })()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
@@ -531,17 +827,18 @@ const OrderList = () => {
                     {order.driver || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {order.truckNo && order.trailerNo ? (
+                    {order.truckNo || order.trailerNo ? (
                       <div>
-                        <div>{order.truckNo}</div>
-                        <div>{order.trailerNo}</div>
+                        {order.truckNo && <div>Truck: {order.truckNo}</div>}
+                        {order.trailerNo && <div>Trailer: {order.trailerNo}</div>}
                       </div>
                     ) : (
                       "-"
                     )}
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -601,6 +898,17 @@ const OrderList = () => {
           }}
           onSave={handleSaveOrder}
         />
+      </div>
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-2">
+        {notifications.map((notification) => (
+          <ToastNotification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
       </div>
     </div>
   );

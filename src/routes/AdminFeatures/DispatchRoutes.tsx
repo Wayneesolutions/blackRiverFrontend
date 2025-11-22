@@ -13,6 +13,7 @@ const Scheduler = lazy(() => import("../../pages/admin/dispatch/operations/sched
 const OrderConfig = lazy(() => import("../../pages/admin/dispatch/operations/orderConfig/index"))
 const OrderList = lazy(() => import("../../pages/admin/dispatch/operations/order-list/index"))
 const BulkOrder = lazy(() => import("../../pages/admin/dispatch/operations/bulk-order/index"))
+const Trips = lazy(() => import("../../pages/admin/dispatch/operations/trips/index"))
 
 const DriversPage = lazy(() => import("../../pages/admin/dispatch/resources/drivers"))
 const Vehicle = lazy(() => import("../../pages/admin/dispatch/resources/vehicles/index"))
@@ -37,6 +38,7 @@ function DispatchRoutes() {
           <Route path="operations/dashboard" element={<DispatchDashboard />} />
           <Route path="operations/order-list" element={<OrderList />} />
           <Route path="operations/bulk-order" element={<BulkOrder />} />
+          <Route path="operations/trips" element={<Trips />} />
           <Route path="operations/service-rates" element={<ServiceRate />} />
           <Route path="operations/dispatch" element={<Dispatch />} />
           <Route path="operations/all-dispatch" element={<AllDispatch />} />

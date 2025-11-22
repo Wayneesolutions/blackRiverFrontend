@@ -616,3 +616,182 @@ export const getRouteAnalysis = async () => {
     return (error as Error).response?.data;
   }
 }
+
+// Order management APIs
+export const createOrder = async (data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/order`, data);
+    console.log('==res ', res);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const listOrder = async (params?: { 
+  page?: number; 
+  limit?: number; 
+  search?: string; 
+  status?: string; 
+  orderType?: string;
+  accountingStatus?: string;
+  sortBy?: string; 
+  sortOrder?: string 
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.orderType) queryParams.append('orderType', params.orderType);
+    if (params?.accountingStatus) queryParams.append('accountingStatus', params.accountingStatus);
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    
+    const queryString = queryParams.toString();
+    const url = `dispatcher/order${queryString ? `?${queryString}` : ''}`;
+    
+    const res: AxiosResponse = await apiClient.get(url);
+    console.log('==res ', res);
+    return res.data;
+  } catch (error: any) {
+    console.log(error);
+    return error?.response?.data || { success: false, message: error?.message || 'Failed to fetch orders', data: null };
+  }
+}
+
+export const getOrderById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/order/${id}`);
+    console.log('==res ', res);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const updateOrder = async (id: string, data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`dispatcher/order/${id}`, data);
+    console.log('==res ', res);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const deleteOrder = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`dispatcher/order/${id}`);
+    console.log('==res ', res);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
+
+// Trip Management APIs
+export const createTrip = async (tripData: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/trip`, tripData);
+    return res.data;
+  } catch (error: any) {
+    console.error('createTrip API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
+export const listTrip = async (params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  driver?: string;
+  truck?: string;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+}) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/trip`, { params });
+    return res.data;
+  } catch (error: any) {
+    console.error('listTrip API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
+export const getTripById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/trip/${id}`);
+    return res.data;
+  } catch (error: any) {
+    console.error('getTripById API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
+export const updateTrip = async (id: string, tripData: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`dispatcher/trip/${id}`, tripData);
+    return res.data;
+  } catch (error: any) {
+    console.error('updateTrip API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
+export const deleteTrip = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`dispatcher/trip/${id}`);
+    return res.data;
+  } catch (error: any) {
+    console.error('deleteTrip API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
+export const assignOrdersToTrip = async (tripId: string, orders: string[]) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/trip/${tripId}/assign`, { orders });
+    return res.data;
+  } catch (error: any) {
+    console.error('assignOrdersToTrip API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
+export const startTrip = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/trip/${id}/start`);
+    return res.data;
+  } catch (error: any) {
+    console.error('startTrip API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
+export const completeTrip = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/trip/${id}/complete`);
+    return res.data;
+  } catch (error: any) {
+    console.error('completeTrip API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
+export const createBulkOrders = async (orders: any[]) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/order/bulk`, { orders });
+    console.log('==createBulkOrders res ', res);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
