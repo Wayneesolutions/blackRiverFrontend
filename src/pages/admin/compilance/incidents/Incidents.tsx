@@ -798,7 +798,7 @@ const Incidents: React.FC = () => {
           </p>
           <button
             onClick={handleAddIncident}
-            className="px-6 py-2.5 bg-[#9793E4] text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors flex items-center gap-2"
+            className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors flex items-center gap-2"
           >
             <FaPlus size={16} />
             Add Incident
