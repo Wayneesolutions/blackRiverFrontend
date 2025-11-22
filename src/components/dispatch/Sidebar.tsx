@@ -3,7 +3,6 @@ import { NavLink } from "react-router-dom";
 import { DispatchSidebarLinks } from "../../utils/DispatchSidebarLinks";
 import { FaChevronDown, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
 import { MdOutlineMap } from "react-icons/md";
-import NewLoad from "../../pages/admin/dispatch/NewLoad";
 import Logo from "../../assets/FleetGo.png";
 import { getUserRole } from "../../utils/auth";
 
@@ -15,7 +14,6 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const [, setHoveredMenu] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const userRole = getUserRole();
   const isDispatcher = userRole === 'dispatcher';
 
@@ -76,8 +74,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
   // Handle link click: either navigate or open drawer
   const handleClick = (link: any) => {
-    if (link.action === "open-new-load") {
-      setSidebarOpen(true); // 👈 open drawer
+    if (link.action === "open-new-order") {
+      // Handle new order action if needed
+      console.log("Open new order");
     }
   };
 
@@ -218,20 +217,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           </div>
         </div>
       </aside>
-
-      {/* --- Drawer for New Load --- */}
-      <div
-        className={`fixed top-0 right-0 h-full max-w-5xl w-full  bg-white bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 border-opacity-50 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
-          }`}
-      >
-        <NewLoad onClose={() => setSidebarOpen(false)} />
-      </div>
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm transition-all duration-500"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
     </>
   );
 };

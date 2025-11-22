@@ -3,7 +3,6 @@ import {
   MdMiscellaneousServices,
   MdEventNote,
   MdContacts,
-  MdLocalShipping,
   MdOutlineMap,
 } from "react-icons/md";
 import {
@@ -11,30 +10,21 @@ import {
   FaUsers,
   FaTrailer,
   FaUserTie,
-  FaTruck,
-  FaClipboardCheck,
   FaList,
   FaLayerGroup,
   FaRoute,
 } from "react-icons/fa";
 import { TbTruckDelivery, TbReportAnalytics } from "react-icons/tb";
-import { IoIosSend } from "react-icons/io";
 
 type DispatchSidebarLinks = {
   key: string;
   icon: React.ReactNode;
   label: string;
   children?: DispatchSidebarLinks[];
-  action?: "open-new-load" | "open-new-order";
+  action?: "open-new-order";
 };
 
 export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
-  {
-    key: "open-new-load",
-    action: "open-new-load",
-    icon: <IoIosSend />,
-    label: "New Load",
-  },
   {
     key: "/admin/dispatch/operations",
     icon: <MdMiscellaneousServices />,
@@ -64,21 +54,6 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
         key: "/admin/dispatch/operations/service-rates",
         icon: <TbReportAnalytics />,
         label: "Service Rates",
-      },
-      {
-        key: "/admin/dispatch/operations/dispatch",
-        icon: <MdLocalShipping />,
-        label: "Planned",
-      },
-      {
-        key: "/admin/dispatch/operations/all-dispatch",
-        icon: <FaTruck />,
-        label: "All",
-      },
-      {
-        key: "/admin/dispatch/operations/delivery",
-        icon: <FaClipboardCheck />,
-        label: "Completed Loads",
       },
       {
         key: "/admin/dispatch/operations/scheduler",

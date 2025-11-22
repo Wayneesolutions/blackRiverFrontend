@@ -512,8 +512,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                     className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                 >
                                     <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
-                                    <input
-                                        type="text"
+                                <input
+                                    type="text"
                                         value={selectedPickupPlace ? `${selectedPickupPlace.name || ''} | ${selectedPickupPlace.currentLocation?.address || ''}` : pickupSearch}
                                         onChange={(e) => {
                                             setPickupSearch(e.target.value);
@@ -533,8 +533,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             }}
                                             className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                         >
-                                            <X className="w-4 h-4 text-gray-400" />
-                                        </button>
+                                        <X className="w-4 h-4 text-gray-400" />
+                                    </button>
                                     )}
                                 </div>
                                 {pickupDropdownOpen && (
@@ -573,7 +573,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             ) : (
                                                 <div className="px-3 py-2 text-sm text-gray-500">No places found</div>
                                             )}
-                                        </div>
+                                </div>
                                     </div>
                                 )}
                             </div>
@@ -616,8 +616,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                     className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                 >
                                     <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${deliveryDropdownOpen ? 'rotate-180' : ''}`} />
-                                    <input
-                                        type="text"
+                                <input
+                                    type="text"
                                         value={selectedDeliveryPlace ? `${selectedDeliveryPlace.name || ''} | ${selectedDeliveryPlace.currentLocation?.address || ''}` : deliverySearch}
                                         onChange={(e) => {
                                             setDeliverySearch(e.target.value);
@@ -637,8 +637,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             }}
                                             className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                         >
-                                            <X className="w-4 h-4 text-gray-400" />
-                                        </button>
+                                        <X className="w-4 h-4 text-gray-400" />
+                                    </button>
                                     )}
                                 </div>
                                 {deliveryDropdownOpen && (
@@ -677,7 +677,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             ) : (
                                                 <div className="px-3 py-2 text-sm text-gray-500">No places found</div>
                                             )}
-                                        </div>
+                                </div>
                                     </div>
                                 )}
                             </div>
@@ -821,8 +821,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                     <span className="text-sm whitespace-nowrap">Tax 1</span>
                                 </label>
                                 <div className="flex items-center gap-1 flex-1">
-                                    <input
-                                        type="number"
+                                <input
+                                    type="number"
                                         step="0.01"
                                         value={tax1Percent}
                                         onChange={(e) => {
@@ -839,7 +839,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                 setGrossTotalFreight(gross.toFixed(2));
                                             }
                                         }}
-                                        placeholder="0.00"
+                                    placeholder="0.00"
                                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
                                     />
                                     <span className="text-sm text-gray-500 flex-shrink-0">%</span>

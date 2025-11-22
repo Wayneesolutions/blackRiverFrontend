@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash2, Eye, Search, X } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, X, File, Download } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck, FaUser, FaTrailer } from "react-icons/fa";
 import NewTripSidebar from "./NewTripSidebar";
-import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle } from "../../../../../axios/api/distapcher";
+import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
 
 interface Trip {
   _id: string;
@@ -50,6 +50,16 @@ interface Trip {
     longitude?: string;
   };
   notes?: string;
+  documents?: Array<{
+    _id?: string;
+    fileUrl: string;
+    fileName: string;
+    fileSize?: number;
+    mimeType?: string;
+    uploadedBy?: any;
+    uploadedAt?: string;
+    description?: string;
+  }>;
 }
 
 type NotificationType = 'success' | 'error' | 'warning';
@@ -688,6 +698,76 @@ const Trips = () => {
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2">Notes</h4>
                   <p className="text-gray-700">{viewingTrip.notes}</p>
+                </div>
+              )}
+
+              {/* Documents */}
+              {viewingTrip.documents && viewingTrip.documents.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3">Documents ({viewingTrip.documents.length})</h4>
+                  <div className="space-y-3">
+                    {viewingTrip.documents.map((doc) => {
+                      const formatFileSize = (bytes?: number) => {
+                        if (!bytes) return 'Unknown size';
+                        if (bytes < 1024) return bytes + ' B';
+                        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+                        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+                      };
+                      return (
+                        <div
+                          key={doc._id || doc.fileUrl}
+                          className="flex items-start justify-between gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                        >
+                          <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <File className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm text-gray-900 truncate">
+                                {doc.fileName}
+                              </div>
+                              {doc.description && (
+                                <div className="text-xs text-gray-600 mt-1">{doc.description}</div>
+                              )}
+                              <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                <span>{formatFileSize(doc.fileSize)}</span>
+                                {doc.uploadedAt && (
+                                  <span>
+                                    {new Date(doc.uploadedAt).toLocaleDateString()}
+                                  </span>
+                                )}
+                                {doc.uploadedBy?.name && (
+                                  <span>Uploaded by {doc.uploadedBy.name}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button
+                              onClick={async () => {
+                                if (!viewingTrip?._id || !doc._id) return;
+                                try {
+                                  const response = await getTripDocumentSignedUrl(viewingTrip._id, doc._id, 'inline');
+                                  if (response?.success && response?.url) {
+                                    window.open(response.url, '_blank');
+                                  } else {
+                                    // Fallback to original URL
+                                    window.open(doc.fileUrl, '_blank');
+                                  }
+                                } catch (error) {
+                                  console.error('Error getting signed URL:', error);
+                                  // Fallback to original URL
+                                  window.open(doc.fileUrl, '_blank');
+                                }
+                              }}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="View/Download Document"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { X, ChevronDown, Search, Check } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
-import { listDriver, listVehicle, listTrailers, createTrip, updateTrip } from "../../../../../axios/api/distapcher";
+import { listDriver, listVehicle, listTrailers, createTrip, updateTrip, uploadTripDocument, deleteTripDocument, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
 import { listOrder } from "../../../../../axios/api/distapcher";
+import { Upload, File, Trash2, Download } from "lucide-react";
 
 type NotificationType = 'success' | 'error' | 'warning';
 
@@ -60,6 +61,16 @@ interface Trip {
   plannedStartDate?: string;
   plannedEndDate?: string;
   notes?: string;
+  documents?: Array<{
+    _id?: string;
+    fileUrl: string;
+    fileName: string;
+    fileSize?: number;
+    mimeType?: string;
+    uploadedBy?: any;
+    uploadedAt?: string;
+    description?: string;
+  }>;
 }
 
 const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose: () => void; onSave: () => void }) => {
@@ -84,6 +95,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState<any[]>([]); // Store full order details for selected orders
   const [orderSearch, setOrderSearch] = useState("");
   const [orderDropdownOpen, setOrderDropdownOpen] = useState(false);
   
@@ -92,6 +104,21 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   const [plannedEndDate, setPlannedEndDate] = useState(trip?.plannedEndDate ? new Date(trip.plannedEndDate).toISOString().split('T')[0] : "");
   const [status, setStatus] = useState(trip?.status || 'planned');
   const [notes, setNotes] = useState(trip?.notes || "");
+  
+  // Documents
+  const [documents, setDocuments] = useState<Array<{
+    _id?: string;
+    fileUrl: string;
+    fileName: string;
+    fileSize?: number;
+    mimeType?: string;
+    uploadedBy?: any;
+    uploadedAt?: string;
+    description?: string;
+  }>>(trip?.documents || []);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]); // Files selected before trip creation
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addNotification = useCallback((type: NotificationType, message: string) => {
     const id = Date.now();
@@ -114,6 +141,8 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   // Populate form when editing
   useEffect(() => {
     if (trip) {
+      setDocuments(trip.documents || []);
+      setPendingFiles([]); // Clear pending files when editing existing trip
       if (trip.driver) {
         if (typeof trip.driver === 'object') {
           setSelectedDriver(trip.driver);
@@ -134,10 +163,62 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         }
       }
       if (trip.orders && Array.isArray(trip.orders)) {
-        setSelectedOrders(trip.orders.map((o: any) => o._id || o));
+        const orderIds = trip.orders.map((o: any) => o._id || o);
+        setSelectedOrders(orderIds);
+        // Store full order details for display even if they're not in assignable orders list
+        setSelectedOrderDetails(trip.orders.filter((o: any) => o && (o._id || typeof o === 'string')));
       }
+    } else {
+      // Reset when creating new trip
+      setSelectedOrders([]);
+      setSelectedOrderDetails([]);
     }
   }, [trip, drivers, trucks, trailers]);
+
+  // Sync selectedOrderDetails with selectedOrders whenever selectedOrders changes
+  useEffect(() => {
+    if (selectedOrders.length === 0) {
+      // Clear selectedOrderDetails if no orders are selected
+      setSelectedOrderDetails([]);
+      return;
+    }
+
+    if (orders.length > 0) {
+      // Build a complete selectedOrderDetails array from current selectedOrders
+      setSelectedOrderDetails((prev: any[]) => {
+        // Create a map of existing order details for quick lookup
+        const existingMap = new Map();
+        prev.forEach((o: any) => {
+          const oId = String(o._id || o);
+          existingMap.set(oId, o);
+        });
+        
+        // Build new array with all selected orders
+        const newDetails = selectedOrders.map((orderId: string) => {
+          const orderIdStr = String(orderId);
+          // First check if we already have it in prev details
+          if (existingMap.has(orderIdStr)) {
+            return existingMap.get(orderIdStr);
+          }
+          // Otherwise try to find in orders list
+          const order = orders.find((o: any) => {
+            const oId = String(o._id || o);
+            return oId === orderIdStr;
+          });
+          return order || null;
+        }).filter(Boolean);
+        
+        return newDetails;
+      });
+    }
+  }, [selectedOrders, orders]);
+
+  // Clear search when dropdown opens to show all orders
+  useEffect(() => {
+    if (orderDropdownOpen) {
+      setOrderSearch("");
+    }
+  }, [orderDropdownOpen]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -195,10 +276,16 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           orderData = ordersRes.data.data;
         }
         
+        
         // Filter to show only orders that can be assigned (planned, QUOTED, CONFIRMED status)
         // Also show orders without status or with empty status
+        // Exclude orders that are already assigned to a trip (have tripNo)
         const assignableOrders = orderData.filter((order: any) => {
-          const status = order.status?.toLowerCase()?.trim();
+          // Don't show orders that are already assigned to a trip
+          if (order.tripNo && order.tripNo.trim() !== '') {
+            return false;
+          }
+          const status = order.status?.toLowerCase()?.trim() || '';
           // Show orders that are not dispatched, in-delivery, or completed
           return !status || 
                  status === '' ||
@@ -208,9 +295,21 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                  status === 'in_progress';
         });
         
-        console.log('Fetched orders:', orderData.length, 'Assignable orders:', assignableOrders.length);
-        console.log('Order data sample:', orderData.slice(0, 2));
         setOrders(assignableOrders);
+        
+        // If editing and have selected orders, sync selectedOrderDetails with fetched orders
+        if (trip && selectedOrders.length > 0) {
+          const updatedSelectedDetails = selectedOrders.map((orderId: string) => {
+            // First check if already in selectedOrderDetails (from trip.orders)
+            const existing = selectedOrderDetails.find((o: any) => (o._id || o) === orderId);
+            if (existing && existing.customer) return existing; // Already have full details
+            // Otherwise, try to find in fetched orders
+            return assignableOrders.find((o: any) => o._id === orderId) || existing;
+          }).filter(Boolean);
+          if (updatedSelectedDetails.length > 0) {
+            setSelectedOrderDetails(updatedSelectedDetails);
+          }
+        }
       } else {
         console.error('Orders response error:', ordersRes);
         addNotification('error', ordersRes?.message || 'Failed to fetch orders');
@@ -240,25 +339,31 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     (trailer.trailerNumber || '').toLowerCase().includes(trailerSearch.toLowerCase())
   );
 
-  const filteredOrders = orders.filter(order => {
-    const searchLower = orderSearch.toLowerCase();
-    const orderNumber = (order.orderNumber || '').toLowerCase();
-    const customerOrderNo = (order.customerOrderNo || '').toLowerCase();
-    const customerName = (order.customer?.name || '').toLowerCase();
-    const pickupPlace = typeof order.pickupLocation === 'string' 
-      ? order.pickupLocation.toLowerCase()
-      : (order.pickupLocation?.place || order.pickupLocation?.placeId?.name || '').toLowerCase();
-    const deliveryPlace = typeof order.deliveryLocation === 'string'
-      ? order.deliveryLocation.toLowerCase()
-      : (order.deliveryLocation?.place || order.deliveryLocation?.placeId?.name || '').toLowerCase();
+  const filteredOrders = useMemo(() => {
+    if (!orderSearch || orderSearch.trim() === '') {
+      // If no search term, return all orders
+      return orders;
+    }
     
-    return !orderSearch ||
-      orderNumber.includes(searchLower) ||
-      customerOrderNo.includes(searchLower) ||
-      customerName.includes(searchLower) ||
-      pickupPlace.includes(searchLower) ||
-      deliveryPlace.includes(searchLower);
-  });
+    const searchLower = orderSearch.toLowerCase().trim();
+    return orders.filter((order: any) => {
+      const orderNumber = (order.orderNumber || '').toLowerCase();
+      const customerOrderNo = (order.customerOrderNo || '').toLowerCase();
+      const customerName = (order.customer?.name || order.customer?.firstName || '').toLowerCase();
+      const pickupPlace = typeof order.pickupLocation === 'string' 
+        ? order.pickupLocation.toLowerCase()
+        : (order.pickupLocation?.place || order.pickupLocation?.placeId?.name || order.pickupLocation?.placeId?.currentLocation?.address || '').toLowerCase();
+      const deliveryPlace = typeof order.deliveryLocation === 'string'
+        ? order.deliveryLocation.toLowerCase()
+        : (order.deliveryLocation?.place || order.deliveryLocation?.placeId?.name || order.deliveryLocation?.placeId?.currentLocation?.address || '').toLowerCase();
+      
+      return orderNumber.includes(searchLower) ||
+        customerOrderNo.includes(searchLower) ||
+        customerName.includes(searchLower) ||
+        pickupPlace.includes(searchLower) ||
+        deliveryPlace.includes(searchLower);
+    });
+  }, [orders, orderSearch]);
 
   const handleSave = async () => {
     if (!selectedDriver) {
@@ -290,7 +395,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         orders: selectedOrders,
         plannedStartDate,
         plannedEndDate: plannedEndDate || null,
-        status,
+        status: trip?._id ? status : 'planned', // Always create new trips with 'planned' status
         notes
       };
 
@@ -303,6 +408,23 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
       if (response?.success) {
         addNotification('success', trip?._id ? 'Trip updated successfully' : 'Trip created successfully');
+        
+        // If trip was just created and we have pending files, upload them
+        if (!trip?._id && response?.data?._id && pendingFiles.length > 0) {
+          const newTripId = response.data._id;
+          // Small delay to ensure trip is fully saved
+          setTimeout(async () => {
+            if (newTripId) {
+              await uploadPendingFiles(newTripId);
+            }
+          }, 300);
+        }
+        
+        // If trip was updated, refresh documents from response
+        if (trip?._id && response?.data?.documents) {
+          setDocuments(response.data.documents || []);
+        }
+
         setTimeout(() => {
           onSave();
         }, 500);
@@ -318,11 +440,167 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   };
 
   const toggleOrderSelection = (orderId: string) => {
-    setSelectedOrders(prev => 
-      prev.includes(orderId) 
-        ? prev.filter(id => id !== orderId)
-        : [...prev, orderId]
-    );
+    // Get current state first
+    setSelectedOrders(prevOrders => {
+      const isSelected = prevOrders.includes(orderId);
+      
+      if (isSelected) {
+        // Remove order
+        const newOrders = prevOrders.filter(id => id !== orderId);
+        setSelectedOrderDetails((prevDetails: any[]) => {
+          return prevDetails.filter((o: any) => {
+            const oId = o._id || o;
+            return String(oId) !== String(orderId);
+          });
+        });
+        return newOrders;
+      } else {
+        // Add order - find full order details from orders list
+        const order = orders.find((o: any) => o._id === orderId);
+        if (order) {
+          setSelectedOrderDetails((prevDetails: any[]) => {
+            // Check if order already exists to avoid duplicates
+            const exists = prevDetails.some((o: any) => {
+              const oId = o._id || o;
+              return String(oId) === String(orderId);
+            });
+            if (exists) {
+              return prevDetails;
+            }
+            // Add the order with all its details
+            return [...prevDetails, { ...order }];
+          });
+        }
+        return [...prevOrders, orderId];
+      }
+    });
+  };
+
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Convert FileList to Array
+    const filesArray = Array.from(files);
+
+    // If trip exists, upload immediately
+    if (trip?._id) {
+      const tripId = trip._id;
+      setUploadingDocument(true);
+      try {
+        // Upload all files
+        const uploadPromises = filesArray.map(file => uploadTripDocument(tripId, file));
+        const results = await Promise.allSettled(uploadPromises);
+        
+        let successCount = 0;
+        let failCount = 0;
+
+        results.forEach((result) => {
+          if (result.status === 'fulfilled' && result.value?.success && result.value?.data) {
+            setDocuments(prev => [...prev, result.value.data]);
+            successCount++;
+          } else {
+            failCount++;
+          }
+        });
+
+        if (successCount > 0) {
+          addNotification('success', `${successCount} document(s) uploaded successfully`);
+        }
+        if (failCount > 0) {
+          addNotification('error', `${failCount} document(s) failed to upload`);
+        }
+      } catch (error: any) {
+        console.error("Error uploading documents:", error);
+        addNotification('error', error?.response?.data?.message || 'An error occurred while uploading documents');
+      } finally {
+        setUploadingDocument(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    } else {
+      // Trip doesn't exist yet - add to pending files
+      setPendingFiles(prev => [...prev, ...filesArray]);
+      addNotification('success', `${filesArray.length} file(s) selected. They will be uploaded after trip creation.`);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Upload pending files after trip creation
+  const uploadPendingFiles = async (tripId: string) => {
+    if (pendingFiles.length === 0) return;
+
+    setUploadingDocument(true);
+    try {
+      const uploadPromises = pendingFiles.map(file => uploadTripDocument(tripId, file));
+      const results = await Promise.allSettled(uploadPromises);
+      
+      let successCount = 0;
+      let failCount = 0;
+
+      results.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value?.success && result.value?.data) {
+          setDocuments(prev => [...prev, result.value.data]);
+          successCount++;
+        } else {
+          failCount++;
+        }
+      });
+
+      if (successCount > 0) {
+        addNotification('success', `${successCount} document(s) uploaded successfully`);
+      }
+      if (failCount > 0) {
+        addNotification('error', `${failCount} document(s) failed to upload`);
+      }
+
+      // Clear pending files after upload
+      setPendingFiles([]);
+    } catch (error: any) {
+      console.error("Error uploading pending documents:", error);
+      addNotification('error', 'Some documents failed to upload. You can upload them manually.');
+    } finally {
+      setUploadingDocument(false);
+    }
+  };
+
+  // Remove pending file
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDeleteDocument = async (documentId: string) => {
+    if (!trip?._id) {
+      addNotification('error', 'Cannot delete document');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this document?')) {
+      return;
+    }
+
+    try {
+      const response = await deleteTripDocument(trip._id, documentId);
+      if (response?.success) {
+        setDocuments(prev => prev.filter(doc => doc._id !== documentId));
+        addNotification('success', 'Document deleted successfully');
+      } else {
+        addNotification('error', response?.message || 'Failed to delete document');
+      }
+    } catch (error: any) {
+      console.error("Error deleting document:", error);
+      addNotification('error', error?.response?.data?.message || 'An error occurred while deleting the document');
+    }
+  };
+
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return 'Unknown size';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   };
 
   // Helper function to extract location string
@@ -661,27 +939,41 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             </label>
             <div className="relative">
               <div
-                onClick={() => setOrderDropdownOpen(!orderDropdownOpen)}
+                onClick={() => {
+                  const willOpen = !orderDropdownOpen;
+                  setOrderDropdownOpen(willOpen);
+                  if (willOpen) {
+                    // Always clear search when opening dropdown to show all orders
+                    setOrderSearch("");
+                  }
+                }}
                 className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
               >
                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${orderDropdownOpen ? 'rotate-180' : ''}`} />
                 <input
                   type="text"
-                  value={selectedOrders.length > 0 ? `${selectedOrders.length} order(s) selected` : orderSearch}
+                  value={selectedOrders.length > 0 && !orderDropdownOpen ? `${selectedOrders.length} order(s) selected` : orderSearch}
                   onChange={(e) => {
                     setOrderSearch(e.target.value);
                     setOrderDropdownOpen(true);
                   }}
-                  onFocus={() => setOrderDropdownOpen(true)}
-                  placeholder="Select orders to assign"
+                  onFocus={() => {
+                    setOrderDropdownOpen(true);
+                    // Clear search when focusing to show all orders
+                    if (selectedOrders.length > 0 && !orderSearch) {
+                      setOrderSearch("");
+                    }
+                  }}
+                  placeholder={selectedOrders.length > 0 ? `${selectedOrders.length} order(s) selected - click to add more` : "Select orders to assign"}
                   className="flex-1 outline-none text-sm min-w-0"
-                  readOnly={selectedOrders.length > 0}
+                  readOnly={selectedOrders.length > 0 && !orderDropdownOpen}
                 />
                 {selectedOrders.length > 0 && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedOrders([]);
+                      setSelectedOrderDetails([]);
                       setOrderSearch("");
                     }}
                     className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
@@ -691,8 +983,8 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 )}
               </div>
               {orderDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                  <div className="p-2 border-b border-gray-200">
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg" style={{ maxHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+                  <div className="p-2 border-b border-gray-200 flex-shrink-0">
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
@@ -705,9 +997,26 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                       />
                     </div>
                   </div>
-                  <div className="overflow-y-auto max-h-96">
-                    {filteredOrders.length > 0 ? (
-                      filteredOrders.map((order) => {
+                  <div className="overflow-y-auto flex-1" style={{ maxHeight: '500px', minHeight: '200px' }}>
+                    {orders.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-gray-500">No orders available. Please create orders first.</div>
+                    ) : filteredOrders.length > 0 ? (
+                      <>
+                        <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 border-b sticky top-0 z-10 bg-gray-50">
+                          Showing {filteredOrders.length} of {orders.length} available orders
+                          {orderSearch && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOrderSearch("");
+                              }}
+                              className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                            >
+                              Clear search
+                            </button>
+                          )}
+                        </div>
+                        {filteredOrders.map((order: any, index: number) => {
                         const isSelected = selectedOrders.includes(order._id);
                         const customerName = order.customer?.name || order.customer?.firstName || 'N/A';
                         const pickupLocation = extractLocationString(order.pickupLocation);
@@ -721,7 +1030,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                            orderStatus === 'in_progress';
                         return (
                           <div
-                            key={order._id}
+                            key={`order-${order._id}-${index}`}
                             onClick={() => {
                               if (isAssignable) {
                                 toggleOrderSelection(order._id);
@@ -730,6 +1039,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             className={`px-3 py-3 cursor-pointer hover:bg-blue-50 text-sm border-b border-gray-100 ${
                               isSelected ? 'bg-blue-50' : ''
                             } ${!isAssignable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            style={{ display: 'block' }}
                           >
                             <div className="flex items-start gap-2">
                               <div className={`w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300'}`}>
@@ -774,11 +1084,14 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             </div>
                           </div>
                         );
-                      })
+                      })}
+                      </>
                     ) : orders.length === 0 ? (
                       <div className="px-3 py-2 text-sm text-gray-500">No orders available. Please create orders first.</div>
                     ) : (
-                      <div className="px-3 py-2 text-sm text-gray-500">No orders match your search.</div>
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        No orders match your search. Try clearing the search field or check if orders are already assigned to trips.
+                      </div>
                     )}
                   </div>
                 </div>
@@ -790,9 +1103,40 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                   Selected Orders ({selectedOrders.length}):
                 </div>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {selectedOrders.map(orderId => {
-                    const order = orders.find(o => o._id === orderId);
-                    if (!order) return null;
+                  {selectedOrders.map((orderId: string) => {
+                    // First try to find from selectedOrderDetails (for trip orders), then from orders list
+                    let order = selectedOrderDetails.find((o: any) => {
+                      const oId = o._id || o;
+                      return oId === orderId || String(oId) === String(orderId);
+                    });
+                    if (!order) {
+                      order = orders.find((o: any) => {
+                        const oId = o._id || o;
+                        return oId === orderId || String(oId) === String(orderId);
+                      });
+                    }
+                    // If still not found, it might be just an ID from the trip
+                    if (!order) {
+                      return (
+                        <div key={orderId} className="p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-blue-700 mb-1">Order ID: {orderId}</div>
+                              <div className="text-gray-500 text-xs">Loading order details...</div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleOrderSelection(orderId);
+                              }}
+                              className="p-1 hover:bg-red-100 rounded flex-shrink-0 text-red-600"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
                     const customerName = order.customer?.name || order.customer?.firstName || 'N/A';
                     const pickupLocation = extractLocationString(order.pickupLocation);
                     const deliveryLocation = extractLocationString(order.deliveryLocation);
@@ -806,6 +1150,24 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                               <div><span className="font-medium">Customer:</span> {customerName}</div>
                               <div><span className="font-medium">Pickup:</span> {pickupLocation}</div>
                               <div><span className="font-medium">Delivery:</span> {deliveryLocation}</div>
+                              {order.pickupDate && (
+                                <div><span className="font-medium">Pickup Date:</span> {new Date(order.pickupDate).toLocaleDateString()}</div>
+                              )}
+                              {order.deliveryDate && (
+                                <div><span className="font-medium">Delivery Date:</span> {new Date(order.deliveryDate).toLocaleDateString()}</div>
+                              )}
+                              {order.orderType && (
+                                <div><span className="font-medium">Type:</span> {order.orderType}</div>
+                              )}
+                              {order.status && (
+                                <div><span className="font-medium">Status:</span> <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                  order.status?.toLowerCase() === 'planned' ? 'bg-yellow-100 text-yellow-800' :
+                                  order.status?.toLowerCase() === 'dispatched' ? 'bg-blue-100 text-blue-800' :
+                                  order.status?.toLowerCase() === 'in-delivery' ? 'bg-orange-100 text-orange-800' :
+                                  order.status?.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>{order.status}</span></div>
+                              )}
                             </div>
                           </div>
                           <button
@@ -839,6 +1201,153 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
             />
           </div>
+
+          {/* Documents */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Documents {pendingFiles.length > 0 && !trip?._id && (
+                <span className="text-blue-600">({pendingFiles.length} pending)</span>
+              )}
+            </label>
+            <div className="space-y-3">
+              {/* Upload Button */}
+              <div className="flex items-center gap-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleDocumentUpload}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,image/*"
+                  multiple
+                  className="hidden"
+                  disabled={uploadingDocument}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingDocument || loading}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Upload className="w-4 h-4" />
+                  {uploadingDocument ? 'Uploading...' : 'Upload Document(s)'}
+                </button>
+                <span className="text-xs text-gray-500">
+                  PDF, DOC, XLS, TXT, ZIP, Images (Max 20MB each)
+                </span>
+              </div>
+
+              {/* Pending Files (before trip creation) */}
+              {pendingFiles.length > 0 && !trip?._id && (
+                <div className="space-y-2 border border-blue-200 rounded-lg p-3 bg-blue-50 max-h-48 overflow-y-auto">
+                  <div className="text-xs font-medium text-blue-700 mb-2">
+                    Files will be uploaded after trip creation:
+                  </div>
+                  {pendingFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start justify-between gap-3 p-3 bg-white border border-blue-200 rounded-lg"
+                    >
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <File className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-gray-900 truncate">
+                            {file.name}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removePendingFile(index)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                        title="Remove File"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+                {/* Document List */}
+                {documents.length > 0 && (
+                  <div className="space-y-2 border border-gray-200 rounded-lg p-3 bg-gray-50 max-h-64 overflow-y-auto">
+                    {documents.map((doc) => (
+                      <div
+                        key={doc._id || doc.fileUrl}
+                        className="flex items-start justify-between gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                      >
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <File className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm text-gray-900 truncate">
+                              {doc.fileName}
+                            </div>
+                            {doc.description && (
+                              <div className="text-xs text-gray-600 mt-1">{doc.description}</div>
+                            )}
+                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                              <span>{formatFileSize(doc.fileSize)}</span>
+                              {doc.uploadedAt && (
+                                <span>
+                                  {new Date(doc.uploadedAt).toLocaleDateString()}
+                                </span>
+                              )}
+                              {doc.uploadedBy?.name && (
+                                <span>Uploaded by {doc.uploadedBy.name}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={async () => {
+                              if (!trip?._id || !doc._id) return;
+                              try {
+                                const response = await getTripDocumentSignedUrl(trip._id, doc._id, 'inline');
+                                if (response?.success && response?.url) {
+                                  window.open(response.url, '_blank');
+                                } else {
+                                  // Fallback to original URL
+                                  window.open(doc.fileUrl, '_blank');
+                                }
+                              } catch (error) {
+                                console.error('Error getting signed URL:', error);
+                                // Fallback to original URL
+                                window.open(doc.fileUrl, '_blank');
+                              }
+                            }}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="View Document"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDocument(doc._id || '')}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Document"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {documents.length === 0 && trip?._id && pendingFiles.length === 0 && (
+                  <div className="text-sm text-gray-500 text-center py-4 border border-gray-200 rounded-lg bg-gray-50">
+                    No documents uploaded yet. Click "Upload Document(s)" to add files.
+                  </div>
+                )}
+
+                {!trip?._id && pendingFiles.length === 0 && documents.length === 0 && (
+                  <div className="text-sm text-gray-500 text-center py-4 border border-gray-200 rounded-lg bg-gray-50">
+                    You can select files now. They will be uploaded automatically after trip creation.
+                  </div>
+                )}
+              </div>
+            </div>
         </div>
       </div>
 

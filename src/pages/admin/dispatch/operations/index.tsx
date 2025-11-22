@@ -5,7 +5,7 @@ import {
   listDriver, 
   listVehicle, 
   listTrailers,
-  listLoad
+  listTrip
 } from "../../../../axios/api/distapcher";
 
 interface DashboardStats {
@@ -24,14 +24,13 @@ interface DashboardStats {
     active: number;
     onShift: number;
   };
-  loads: {
+  trips: {
     total: number;
-    active: number;
+    planned: number;
+    inProgress: number;
     completed: number;
     today: number;
     tomorrow: number;
-    pickups: number;
-    deliveries: number;
   };
 }
 
@@ -69,37 +68,40 @@ interface Trailer {
   isAttached?: boolean;
 }
 
-interface Load {
+interface Trip {
   _id: string;
-  loadNumber?: string;
-  orderId?: string;
-  driverName?: string;
-  driverId?: string;
-  vehicleId?: string;
-  vehiclePlate?: string;
-  customerName?: string;
-  status?: string;
-  amount?: number;
-  route?: any;
-  assignedAt?: string;
-  startedAt?: string;
-  completedAt?: string;
-  details?: {
-    internalId?: string;
-    customer?: {
-      name?: string;
-      email?: string;
-    };
-    driver?: {
-      name?: string;
-      _id?: string;
-    };
-    vehicle?: {
-      plateNumber?: string;
-      _id?: string;
-    };
-    receiver?: any;
+  tripNumber: string;
+  driver?: {
+    _id: string;
+    name: string;
+    email?: string;
+    phone?: string;
   };
+  truck?: {
+    _id: string;
+    plateNumber?: string;
+    internalId?: string;
+    make?: string;
+    model?: string;
+  };
+  trailer?: {
+    _id: string;
+    plateNumber?: string;
+    trailerNumber?: string;
+  };
+  orders?: Array<{
+    _id: string;
+    orderNumber: string;
+    customerOrderNo?: string;
+    status?: string;
+    customer?: any;
+  }>;
+  status: 'planned' | 'in-progress' | 'completed' | 'cancelled';
+  plannedStartDate: string;
+  plannedEndDate?: string;
+  actualStartDate?: string;
+  actualEndDate?: string;
+  notes?: string;
 }
 
 const Index = () => {
@@ -108,9 +110,9 @@ const Index = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
-  const [loads, setLoads] = useState<Load[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"drivers" | "vehicles" | "trailers" | "loads">("drivers");
+  const [activeTab, setActiveTab] = useState<"drivers" | "vehicles" | "trailers" | "trips">("drivers");
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -175,14 +177,13 @@ const Index = () => {
             active: data.activeDrivers ?? 0,
             onShift: data.driversOnShift ?? 0,
           },
-          loads: {
-            total: data.totalLoads ?? 0,
-            active: data.activeLoads ?? 0,
-            completed: data.completedLoads ?? 0,
-            today: data.todayLoads ?? 0,
-            tomorrow: data.tomorrowLoads ?? 0,
-            pickups: data.pickups ?? 0,
-            deliveries: data.deliveries ?? 0,
+          trips: {
+            total: data.totalTrips ?? 0,
+            planned: data.plannedTrips ?? 0,
+            inProgress: data.inProgressTrips ?? 0,
+            completed: data.completedTrips ?? 0,
+            today: data.todayTrips ?? 0,
+            tomorrow: data.tomorrowTrips ?? 0,
           },
         });
       }
@@ -291,7 +292,7 @@ const Index = () => {
   };
 
   // Handle tab change - reset pagination and filters
-  const handleTabChange = (tab: "drivers" | "vehicles" | "trailers" | "loads") => {
+  const handleTabChange = (tab: "drivers" | "vehicles" | "trailers" | "trips") => {
     setActiveTab(tab);
     setSearchTerm("");
     setCurrentPage(1);
@@ -329,38 +330,33 @@ const Index = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, loading]);
 
-  const fetchLoads = async (page: number = currentPage, search: string = searchTerm, status: string = statusFilter) => {
+  const fetchTrips = async (page: number = currentPage, search: string = searchTerm, status: string = statusFilter) => {
     try {
-      // Default to in-delivery if no status filter is set
-      const loadStatus = status || (activeTab === "loads" ? "in-delivery" : undefined);
-      
-      const res = await listLoad({
+      const res = await listTrip({
         page,
         limit: itemsPerPage,
         search: search || undefined,
-        status: loadStatus || undefined,
-        sortBy: 'assignedAt',
-        sortOrder: 'desc'
+        status: status || undefined,
       });
       if (res.success) {
         if (res.data) {
-          const loadData = Array.isArray(res.data) ? res.data : (res.data.data || []);
-          setLoads(loadData);
-          setTotalItems(res.pagination?.total || res.count || loadData.length || 0);
-          setTotalPages(res.pagination?.pages || Math.ceil((res.pagination?.total || res.count || loadData.length) / itemsPerPage) || 0);
+          const tripData = Array.isArray(res.data) ? res.data : (res.data.data || []);
+          setTrips(tripData);
+          setTotalItems(res.pagination?.totalItems || res.pagination?.total || res.count || tripData.length || 0);
+          setTotalPages(res.pagination?.totalPages || res.pagination?.pages || Math.ceil((res.pagination?.totalItems || res.pagination?.total || res.count || tripData.length) / itemsPerPage) || 0);
         } else {
-          setLoads([]);
+          setTrips([]);
           setTotalItems(0);
           setTotalPages(0);
         }
       } else {
-        setLoads([]);
+        setTrips([]);
         setTotalItems(0);
         setTotalPages(0);
       }
     } catch (error) {
-      console.error("Error fetching loads:", error);
-      setLoads([]);
+      console.error("Error fetching trips:", error);
+      setTrips([]);
       setTotalItems(0);
       setTotalPages(0);
     }
@@ -373,8 +369,8 @@ const Index = () => {
       fetchVehicles(currentPage, searchTerm, statusFilter);
     } else if (activeTab === "trailers") {
       fetchTrailers(currentPage, searchTerm, statusFilter, operationStatusFilter, typeFilter);
-    } else if (activeTab === "loads") {
-      fetchLoads(currentPage, searchTerm, statusFilter);
+    } else if (activeTab === "trips") {
+      fetchTrips(currentPage, searchTerm, statusFilter);
     }
   };
 
@@ -382,7 +378,7 @@ const Index = () => {
   const filteredDrivers = drivers;
   const filteredVehicles = vehicles;
   const filteredTrailers = trailers;
-  const filteredLoads = loads;
+  const filteredTrips = trips;
 
   if (loading) {
     return (
@@ -469,44 +465,40 @@ const Index = () => {
           </div>
         </div>
 
-          {/* Loads Card */}
+          {/* Trips Card */}
           <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-orange-100 rounded-lg">
                 <Truck className="w-6 h-6 text-orange-600" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Loads</h3>
-            <p className="text-3xl font-bold text-gray-800">{stats?.loads.total || 0}</p>
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Trips</h3>
+            <p className="text-3xl font-bold text-gray-800">{stats?.trips.total || 0}</p>
             <div className="mt-4 flex flex-col gap-2 text-sm">
               <div className="flex gap-4">
                 <div>
-                  <span className="text-gray-500">Active:</span>
-                  <span className="ml-1 font-semibold text-green-600">{stats?.loads.active || 0}</span>
+                  <span className="text-gray-500">Planned:</span>
+                  <span className="ml-1 font-semibold text-yellow-600">{stats?.trips.planned || 0}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Completed:</span>
-                  <span className="ml-1 font-semibold text-blue-600">{stats?.loads.completed || 0}</span>
+                  <span className="text-gray-500">In Progress:</span>
+                  <span className="ml-1 font-semibold text-blue-600">{stats?.trips.inProgress || 0}</span>
                 </div>
               </div>
               <div className="flex gap-4 pt-1 border-t border-gray-200">
                 <div>
-                  <span className="text-gray-500">Pickups:</span>
-                  <span className="ml-1 font-semibold text-indigo-600">{stats?.loads.pickups || 0}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500">Deliveries:</span>
-                  <span className="ml-1 font-semibold text-teal-600">{stats?.loads.deliveries || 0}</span>
+                  <span className="text-gray-500">Completed:</span>
+                  <span className="ml-1 font-semibold text-green-600">{stats?.trips.completed || 0}</span>
                 </div>
               </div>
               <div className="flex gap-4 pt-1 border-t border-gray-200">
                 <div>
                   <span className="text-gray-500">Today:</span>
-                  <span className="ml-1 font-semibold text-orange-600">{stats?.loads.today || 0}</span>
+                  <span className="ml-1 font-semibold text-orange-600">{stats?.trips.today || 0}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">Tomorrow:</span>
-                  <span className="ml-1 font-semibold text-purple-600">{stats?.loads.tomorrow || 0}</span>
+                  <span className="ml-1 font-semibold text-purple-600">{stats?.trips.tomorrow || 0}</span>
                 </div>
               </div>
             </div>
@@ -549,14 +541,14 @@ const Index = () => {
                 Trailers ({totalItems})
               </button>
               <button
-                onClick={() => handleTabChange("loads")}
+                onClick={() => handleTabChange("trips")}
                 className={`px-6 py-4 font-medium text-sm transition-colors ${
-                  activeTab === "loads"
+                  activeTab === "trips"
                     ? "text-blue-600 border-b-2 border-blue-600"
                     : "text-gray-600 hover:text-gray-800"
                 }`}
               >
-                In-Delivery Loads ({totalItems})
+                Trips ({totalItems})
               </button>
         </div>
       </div>
@@ -643,7 +635,7 @@ const Index = () => {
                     </div>
                   )}
                   
-                  {activeTab === "loads" && (
+                  {activeTab === "trips" && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                       <select
@@ -651,11 +643,11 @@ const Index = () => {
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option value="in-delivery">In-Delivery</option>
-                        <option value="dispatched">Dispatched</option>
-                        <option value="planned">Planned</option>
-                        <option value="completed">Completed</option>
                         <option value="">All Status</option>
+                        <option value="planned">Planned</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
                       </select>
                     </div>
                   )}
@@ -855,87 +847,89 @@ const Index = () => {
               </table>
             )}
 
-            {activeTab === "loads" && (
+            {activeTab === "trips" && (
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Load Number
+                      Trip Number
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Driver
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Vehicle
+                      Truck
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Customer
+                      Trailer
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Orders
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Assigned At
+                      Planned Start
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredLoads.length === 0 ? (
+                  {filteredTrips.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                        No in-delivery loads found
+                        No trips found
                       </td>
                     </tr>
                   ) : (
-                    filteredLoads.map((load) => (
-                      <tr key={load._id} className="hover:bg-gray-50">
+                    filteredTrips.map((trip) => (
+                      <tr key={trip._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {load.loadNumber || load.details?.internalId || load._id.slice(-8).toUpperCase()}
+                            {trip.tripNumber || trip._id.slice(-8).toUpperCase()}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            {load.driverName || load.details?.driver?.name || "N/A"}
+                            {trip.driver?.name || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            {load.vehiclePlate || load.details?.vehicle?.plateNumber || "N/A"}
+                            {trip.truck?.plateNumber || trip.truck?.internalId || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            {load.customerName || load.details?.customer?.name || "N/A"}
+                            {trip.trailer?.plateNumber || trip.trailer?.trailerNumber || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            {trip.orders?.length || 0} order(s)
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              load.status === "in-delivery"
-                                ? "bg-blue-100 text-blue-800"
-                                : load.status === "dispatched"
+                              trip.status === "planned"
                                 ? "bg-yellow-100 text-yellow-800"
-                                : load.status === "completed"
+                                : trip.status === "in-progress"
+                                ? "bg-blue-100 text-blue-800"
+                                : trip.status === "completed"
                                 ? "bg-green-100 text-green-800"
+                                : trip.status === "cancelled"
+                                ? "bg-red-100 text-red-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            {load.status || "N/A"}
+                            {trip.status || "N/A"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            ${load.amount || 0}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">
-                            {load.assignedAt
-                              ? new Date(load.assignedAt).toLocaleDateString()
+                            {trip.plannedStartDate
+                              ? new Date(trip.plannedStartDate).toLocaleDateString()
                               : "N/A"}
                           </div>
                         </td>

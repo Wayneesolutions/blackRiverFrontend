@@ -785,6 +785,47 @@ export const completeTrip = async (id: string) => {
   }
 };
 
+export const uploadTripDocument = async (tripId: string, file: File, description?: string) => {
+  try {
+    const formData = new FormData();
+    formData.append('document', file);
+    if (description) {
+      formData.append('description', description);
+    }
+    const res: AxiosResponse = await apiClient.post(`dispatcher/trip/${tripId}/documents`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error('uploadTripDocument API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
+export const deleteTripDocument = async (tripId: string, documentId: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`dispatcher/trip/${tripId}/documents/${documentId}`);
+    return res.data;
+  } catch (error: any) {
+    console.error('deleteTripDocument API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
+export const getTripDocumentSignedUrl = async (tripId: string, documentId: string, disposition: 'inline' | 'attachment' = 'inline') => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/trip/${tripId}/documents/${documentId}/signed-url`, {
+      params: { disposition }
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error('getTripDocumentSignedUrl API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
 export const createBulkOrders = async (orders: any[]) => {
   try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/order/bulk`, { orders });
