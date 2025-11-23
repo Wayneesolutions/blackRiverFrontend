@@ -78,3 +78,17 @@ export const getDriverCompletedLoads = async (driverId: string, startDate?: stri
         return err.response?.data;
     }
 };
+
+export const getDriverCompletedTrips = async (driverId: string, startDate?: string, endDate?: string) => {
+    try {
+        let url = `hr/completed-trips/${driverId}`;
+        if (startDate && endDate) {
+            url += `?startDate=${startDate}&endDate=${endDate}`;
+        }
+        const res: AxiosResponse = await apiClient.get(url);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};

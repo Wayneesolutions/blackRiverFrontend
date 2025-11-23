@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Clock, Building2 } from 'lucide-react';
-import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedLoads } from "../../../../axios/api/account.payroll";
+import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips } from "../../../../axios/api/account.payroll";
 
 interface Employee {
     _id: string;
@@ -12,34 +12,30 @@ interface Employee {
     };
 }
 
-interface Load {
+interface Trip {
     _id: string;
-    route: {
-        multipleDropOffs: boolean;
-        selectPickup?: {
+    tripNumber: string;
+    startLocation?: {
+        place: string;
+        latitude: string;
+        longitude: string;
+    };
+    endLocation?: {
+        place: string;
+        latitude: string;
+        longitude: string;
+    };
+    route?: {
+        totalDistance?: number;
+        waypoints?: Array<{
             place: string;
             latitude: string;
             longitude: string;
-        };
-        selectDropOff?: {
-            place: string;
-            latitude: string;
-            longitude: string;
-        };
-        wayPoints?: Array<{
-            address: {
-                place: string;
-                latitude: string;
-                longitude: string;
-            };
-            customer?: any;
-            dropOff: boolean;
-            pickup: boolean;
         }>;
     };
-    assignedAt?: string;
-    startedAt?: string;
-    completedAt?: string;
+    plannedStartDate?: string;
+    actualStartDate?: string;
+    actualEndDate?: string;
     status: string;
     distance: number; // km from backend
     distanceInMiles: number; // miles from backend
@@ -49,20 +45,27 @@ interface Load {
         _id: string;
         name: string;
         phone: string;
-    };
-    customerDetails?: {
+    } | null;
+    driver?: {
         _id: string;
         name: string;
-        email: string;
+        phone?: string;
     };
-    details?: {
+    truck?: {
+        _id: string;
+        plateNumber?: string;
         internalId?: string;
+    };
+    trailer?: {
+        _id: string;
+        plateNumber?: string;
+        trailerNumber?: string;
     };
     selected?: boolean;
 }
 
 interface DriverPayrollSummary {
-    totalLoads: number;
+    totalTrips: number;
     totalDistanceKm: number;
     totalDistanceMiles: number;
     totalEarnings: number;
@@ -85,6 +88,24 @@ interface Payroll {
     endDate: string;
     createdAt: string;
     // Driver-specific fields
+    trips?: Array<{
+        _id: string;
+        tripNumber?: string;
+        startLocation?: {
+            place?: string;
+            latitude?: string;
+            longitude?: string;
+        };
+        endLocation?: {
+            place?: string;
+            latitude?: string;
+            longitude?: string;
+        };
+        actualEndDate?: string;
+        distance?: number;
+        distanceInMiles?: number;
+        earnings?: string;
+    }>;
     loads?: Array<{
         _id: string;
         details?: {
@@ -147,11 +168,11 @@ const PayrollManagement = () => {
     const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [payrollData, setPayrollData] = useState<Payroll[]>([]);
-    const [driverLoads, setDriverLoads] = useState<Load[]>([]);
+    const [driverTrips, setDriverTrips] = useState<Trip[]>([]);
     const [driverPayrollSummary, setDriverPayrollSummary] = useState<DriverPayrollSummary | null>(null);
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
     const [loading, setLoading] = useState(false);
-    const [loadingLoads, setLoadingLoads] = useState(false);
+    const [loadingTrips, setLoadingTrips] = useState(false);
     const [notification, setNotification] = useState<Notification | null>(null);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
@@ -259,9 +280,9 @@ const PayrollManagement = () => {
         }
     };
 
-    // Fetch driver completed loads from API
-    const fetchDriverLoads = async (driverId: string, startDate?: string, endDate?: string) => {
-        setLoadingLoads(true);
+    // Fetch driver completed trips from API
+    const fetchDriverTrips = async (driverId: string, startDate?: string, endDate?: string) => {
+        setLoadingTrips(true);
         try {
             const userInfo: any = getLocalUserInfo();
             
@@ -273,30 +294,30 @@ const PayrollManagement = () => {
             const isDispatcher = userRole === 'dispatcher';
             const hasCompany = Boolean(userCompany);
 
-            console.log('🔍 Fetching driver loads:', { driverId, startDate, endDate, userRole, hasCompany });
+            console.log('🔍 Fetching driver trips:', { driverId, startDate, endDate, userRole, hasCompany });
 
             // Allow HR, dispatchers, and users with company to call API
             // The backend will handle company filtering based on the authenticated user
             if (!isSuperadmin && !isHR && !isDispatcher && !hasCompany) {
-                console.warn('⚠️ User does not have permission or company to fetch loads');
-                setDriverLoads([]);
+                console.warn('⚠️ User does not have permission or company to fetch trips');
+                setDriverTrips([]);
                 setDriverPayrollSummary(null);
-                setLoadingLoads(false);
+                setLoadingTrips(false);
                 return;
             }
 
-            console.log('📡 Calling API: getDriverCompletedLoads');
-            const response = await getDriverCompletedLoads(driverId, startDate, endDate);
+            console.log('📡 Calling API: getDriverCompletedTrips');
+            const response = await getDriverCompletedTrips(driverId, startDate, endDate);
             console.log('📥 API Response:', response);
             
             if (response?.success) {
-                const loads: Load[] = (response.data || []).map((load: any) => ({
-                    ...load,
+                const trips: Trip[] = (response.data || []).map((trip: any) => ({
+                    ...trip,
                     selected: false
                 }));
                 
-                console.log(`✅ Loaded ${loads.length} loads for driver`);
-                setDriverLoads(loads);
+                console.log(`✅ Loaded ${trips.length} trips for driver`);
+                setDriverTrips(trips);
 
                 // Set summary data if available from backend
                 if (response.summary) {
@@ -314,15 +335,15 @@ const PayrollManagement = () => {
                     }));
                 } else {
                     // Fallback calculation if no summary provided
-                    const totalMiles = loads.reduce((sum, load) => sum + (load.distanceInMiles || 0), 0);
-                    const totalEarnings = loads.reduce((sum, load) => sum + parseFloat(load.earnings || '0'), 0);
+                    const totalMiles = trips.reduce((sum, trip) => sum + (trip.distanceInMiles || 0), 0);
+                    const totalEarnings = trips.reduce((sum, trip) => sum + parseFloat(trip.earnings || '0'), 0);
                     
                     const fallbackSummary = {
-                        totalLoads: loads.length,
-                        totalDistanceKm: loads.reduce((sum, load) => sum + (load.distance || 0), 0),
+                        totalTrips: trips.length,
+                        totalDistanceKm: trips.reduce((sum, trip) => sum + (trip.distance || 0), 0),
                         totalDistanceMiles: totalMiles,
                         totalEarnings: totalEarnings,
-                        ratePerMile: loads[0]?.mileRate || 0
+                        ratePerMile: trips[0]?.mileRate || 0
                     };
                     
                     console.log('📊 Fallback summary:', fallbackSummary);
@@ -336,30 +357,30 @@ const PayrollManagement = () => {
                     }));
                 }
                 
-                // Show info message if no loads found
-                if (loads.length === 0) {
-                    console.log('ℹ️ No loads found for the selected date range');
+                // Show info message if no trips found
+                if (trips.length === 0) {
+                    console.log('ℹ️ No trips found for the selected date range');
                 }
             } else {
-                const errorMsg = response?.message || 'Failed to fetch driver loads';
+                const errorMsg = response?.message || 'Failed to fetch driver trips';
                 console.error('❌ API Error:', errorMsg, response);
                 showNotification('error', errorMsg);
-                setDriverLoads([]);
+                setDriverTrips([]);
                 setDriverPayrollSummary(null);
-                // Reset baseSalary to 0 if no loads
+                // Reset baseSalary to 0 if no trips
                 setFormData(prev => ({
                     ...prev,
                     baseSalary: '0'
                 }));
             }
         } catch (error: any) {
-            console.error('❌ Exception fetching driver loads:', error);
-            const errorMsg = error?.response?.data?.message || error?.message || 'Error fetching driver loads';
+            console.error('❌ Exception fetching driver trips:', error);
+            const errorMsg = error?.response?.data?.message || error?.message || 'Error fetching driver trips';
             showNotification('error', errorMsg);
-            setDriverLoads([]);
+            setDriverTrips([]);
             setDriverPayrollSummary(null);
         } finally {
-            setLoadingLoads(false);
+            setLoadingTrips(false);
         }
     };
 
@@ -377,8 +398,8 @@ const PayrollManagement = () => {
             setSelectedEmployee(selectedEmp || null);
             
             // Check if it's a driver
-            if (selectedEmp?.role.toLowerCase() === 'driver') {
-                // Auto-fetch loads for driver with default date range (current month)
+            if (selectedEmp?.role?.toLowerCase() === 'driver') {
+                // Auto-fetch trips for driver with default date range (current month)
                 const today = new Date();
                 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
                 const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
@@ -393,11 +414,11 @@ const PayrollManagement = () => {
                     endDate
                 }));
                 
-                // Fetch loads immediately
-                fetchDriverLoads(value, startDate, endDate);
+                // Fetch trips immediately
+                fetchDriverTrips(value, startDate, endDate);
             } else {
                 // Reset driver-specific data when changing to non-driver employee
-                setDriverLoads([]);
+                setDriverTrips([]);
                 setDriverPayrollSummary(null);
                     setFormData(prev => ({
                         ...prev,
@@ -423,34 +444,34 @@ const PayrollManagement = () => {
             endDate
         }));
 
-        // If selected employee is a driver and we have both dates, fetch loads
-        if (selectedEmployee?.role.toLowerCase() === 'driver' && startDate && endDate) {
-            fetchDriverLoads(selectedEmployee._id, startDate, endDate);
+        // If selected employee is a driver and we have both dates, fetch trips
+        if (selectedEmployee?.role?.toLowerCase() === 'driver' && startDate && endDate) {
+            fetchDriverTrips(selectedEmployee._id, startDate, endDate);
         }
     };
 
-    // Handle load selection
-    const toggleLoadSelection = (loadId: string) => {
-        setDriverLoads(prev => prev.map(load => 
-            load._id === loadId ? { ...load, selected: !load.selected } : load
+    // Handle trip selection
+    const toggleTripSelection = (tripId: string) => {
+        setDriverTrips(prev => prev.map(trip => 
+            trip._id === tripId ? { ...trip, selected: !trip.selected } : trip
         ));
     };
 
-    const selectAllLoads = () => {
-        setDriverLoads(prev => prev.map(load => ({ ...load, selected: true })));
+    const selectAllTrips = () => {
+        setDriverTrips(prev => prev.map(trip => ({ ...trip, selected: true })));
     };
 
-    const deselectAllLoads = () => {
-        setDriverLoads(prev => prev.map(load => ({ ...load, selected: false })));
+    const deselectAllTrips = () => {
+        setDriverTrips(prev => prev.map(trip => ({ ...trip, selected: false })));
     };
 
-    // Calculate selected loads totals
-    const getSelectedLoadsTotals = () => {
-        const selectedLoads = driverLoads.filter(load => load.selected);
+    // Calculate selected trips totals
+    const getSelectedTripsTotals = () => {
+        const selectedTrips = driverTrips.filter(trip => trip.selected);
         return {
-            count: selectedLoads.length,
-            totalMiles: selectedLoads.reduce((sum, load) => sum + (load.distanceInMiles || 0), 0),
-            totalEarnings: selectedLoads.reduce((sum, load) => sum + parseFloat(load.earnings || '0'), 0)
+            count: selectedTrips.length,
+            totalMiles: selectedTrips.reduce((sum, trip) => sum + (trip.distanceInMiles || 0), 0),
+            totalEarnings: selectedTrips.reduce((sum, trip) => sum + parseFloat(trip.earnings || '0'), 0)
         };
     };
 
@@ -486,12 +507,12 @@ const PayrollManagement = () => {
             };
 
             // Add driver-specific data if this is for a driver
-            if (selectedEmployee?.role.toLowerCase() === 'driver' && driverPayrollSummary) {
-                payload.loadIds = driverLoads.map(load => load._id).filter(id => id); // Filter out any null/undefined IDs
+            if (selectedEmployee?.role?.toLowerCase() === 'driver' && driverPayrollSummary) {
+                payload.tripIds = driverTrips.map(trip => trip._id).filter(id => id); // Filter out any null/undefined IDs
                 payload.totalMiles = driverPayrollSummary.totalDistanceMiles;
                 payload.ratePerMile = driverPayrollSummary.ratePerMile;
                 console.log('🚚 Driver payroll payload:', {
-                    loadIds: payload.loadIds.length,
+                    tripIds: payload.tripIds.length,
                     totalMiles: payload.totalMiles,
                     ratePerMile: payload.ratePerMile
                 });
@@ -590,6 +611,12 @@ const PayrollManagement = () => {
     };
 
     const openEditModal = (payroll: Payroll) => {
+        // Add null check for userId
+        if (!payroll.userId || !payroll.userId._id) {
+            showNotification('error', 'Invalid payroll record: missing user information');
+            return;
+        }
+        
         setSelectedPayroll(payroll);
         const payDateFormatted = payroll.payDate ? payroll.payDate.split('T')[0] : '';
         const startDateFormatted = payroll.startDate ? payroll.startDate.split('T')[0] : '';
@@ -626,11 +653,16 @@ const PayrollManagement = () => {
             tripEarnings: '0'
         });
         setSelectedEmployee(null);
-        setDriverLoads([]);
+        setDriverTrips([]);
         setDriverPayrollSummary(null);
     };
 
     const filteredPayrolls = payrollData.filter(payroll => {
+        // Add null checks for userId
+        if (!payroll.userId || !payroll.userId.name || !payroll.userId.role) {
+            return false; // Skip payrolls with null userId
+        }
+        
         const matchesSearch = payroll.userId.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             payroll.userId.role.toLowerCase().includes(searchTerm.toLowerCase());
         
@@ -851,7 +883,7 @@ const PayrollManagement = () => {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {filteredPayrolls.map((payroll) => {
-                                        const isDriver = payroll.userId.role.toLowerCase() === 'driver';
+                                        const isDriver = payroll.userId?.role?.toLowerCase() === 'driver';
                                         return (
                                             <tr key={payroll._id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -859,11 +891,11 @@ const PayrollManagement = () => {
                                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${
                                                             isDriver ? 'bg-green-500' : 'bg-blue-500'
                                                         }`}>
-                                                            {payroll.userId.name.charAt(0)}
+                                                            {payroll.userId?.name?.charAt(0) || '?'}
                                                         </div>
                                                         <div className="ml-3">
                                                             <div className="text-sm font-medium text-gray-900">
-                                                                {payroll.userId.name}
+                                                                {payroll.userId?.name || 'Unknown'}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -874,20 +906,20 @@ const PayrollManagement = () => {
                                                             ? 'bg-green-100 text-green-800' 
                                                             : 'bg-gray-100 text-gray-800'
                                                     }`}>
-                                                        {payroll.userId.role}
+                                                        {payroll.userId?.role || 'Unknown'}
                                                     </span>
                                                 </td>
-                                                {/* Column 1: Loads (Driver) or Base Salary (Other) */}
+                                                {/* Column 1: Trips (Driver) or Base Salary (Other) */}
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     {isDriver ? (
                                                         <div className="flex flex-col">
-                                                            <span className="font-medium">{payroll.loads?.length || 0} loads</span>
-                                                            {payroll.loads && payroll.loads.length > 0 && (
+                                                            <span className="font-medium">{(payroll.trips?.length || payroll.loads?.length || 0)} trips</span>
+                                                            {(payroll.trips || payroll.loads) && (payroll.trips?.length || payroll.loads?.length || 0) > 0 && (
                                                                 <span className="text-xs text-gray-500 mt-1">
-                                                                    {payroll.loads.slice(0, 2).map((load) => 
-                                                                        load.details?.internalId || load._id?.slice(-6)
+                                                                    {(payroll.trips || payroll.loads || []).slice(0, 2).map((item: any) => 
+                                                                        item.tripNumber || item.details?.internalId || item._id?.slice(-6)
                                                                     ).join(', ')}
-                                                                    {payroll.loads.length > 2 && ` +${payroll.loads.length - 2} more`}
+                                                                    {(payroll.trips?.length || payroll.loads?.length || 0) > 2 && ` +${(payroll.trips?.length || payroll.loads?.length || 0) - 2} more`}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1157,12 +1189,12 @@ const PayrollManagement = () => {
                                             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                                                 <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                                                     <TrendingUp size={16} />
-                                                    Load Summary
+                                                    Trip Summary
                                                 </h5>
                                                 <div className="grid grid-cols-3 gap-4">
                                                     <div className="text-center">
-                                                        <div className="text-2xl font-bold text-green-600">{driverPayrollSummary.totalLoads}</div>
-                                                        <div className="text-xs text-gray-600">Total Loads</div>
+                                                        <div className="text-2xl font-bold text-green-600">{driverPayrollSummary.totalTrips}</div>
+                                                        <div className="text-xs text-gray-600">Total Trips</div>
                                                     </div>
                                                     <div className="text-center">
                                                         <div className="text-2xl font-bold text-green-600">{driverPayrollSummary.totalDistanceMiles.toLocaleString()}</div>
@@ -1170,7 +1202,7 @@ const PayrollManagement = () => {
                                                     </div>
                                                     <div className="text-center">
                                                         <div className="text-2xl font-bold text-green-600">${driverPayrollSummary.totalEarnings.toFixed(2)}</div>
-                                                        <div className="text-xs text-gray-600">Load Earnings</div>
+                                                        <div className="text-xs text-gray-600">Trip Earnings</div>
                                                     </div>
                                                 </div>
                                                 <div className="mt-2 text-xs text-gray-500 text-center">
@@ -1180,23 +1212,20 @@ const PayrollManagement = () => {
                                         )}
 
                                         {/* Simple Route Display - Fallback */}
-                                        {driverLoads.length > 0 && (
+                                        {driverTrips.length > 0 && (
                                             <div className="bg-white border border-gray-200 rounded-lg p-4">
                                                 <h6 className="text-sm font-medium text-gray-700 mb-3">Quick Route Overview</h6>
                                                 <div className="space-y-2">
-                                                    {driverLoads.slice(0, 3).map((load) => (
-                                                        <div key={load._id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                                    {driverTrips.slice(0, 3).map((trip) => (
+                                                        <div key={trip._id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                                                             <div>
-                                                                <span className="font-medium">Load: </span>
+                                                                <span className="font-medium">Trip: </span>
                                                                 <span className="text-gray-600">
-                                                                    {load.route?.multipleDropOffs 
-                                                                        ? load.route.wayPoints?.[0]?.address?.place + ' → Multiple'
-                                                                        : (load.route?.selectPickup?.place || 'Unknown') + ' → ' + (load.route?.selectDropOff?.place || 'Unknown')
-                                                                    }
+                                                                    {(trip.startLocation?.place || 'Unknown') + ' → ' + (trip.endLocation?.place || 'Unknown')}
                                                                 </span>
                                                             </div>
                                                             <div className="text-sm text-green-600 font-medium">
-                                                                {load.distanceInMiles || 0} miles - ${parseFloat(load.earnings || '0').toFixed(2)}
+                                                                {trip.distanceInMiles || 0} miles - ${parseFloat(trip.earnings || '0').toFixed(2)}
                                                             </div>
                                                         </div>
                                                     ))}
@@ -1204,20 +1233,20 @@ const PayrollManagement = () => {
                                             </div>
                                         )}
 
-                                        {/* Load Details Table */}
-                                        {driverLoads.length > 0 && (
+                                        {/* Trip Details Table */}
+                                        {driverTrips.length > 0 && (
                                             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                                                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
-                                                    <h5 className="text-sm font-medium text-gray-700">Load Details</h5>
+                                                    <h5 className="text-sm font-medium text-gray-700">Trip Details</h5>
                                                     <div className="flex gap-2">
                                                         <button
-                                                            onClick={selectAllLoads}
+                                                            onClick={selectAllTrips}
                                                             className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
                                                         >
                                                             Select All
                                                         </button>
                                                         <button
-                                                            onClick={deselectAllLoads}
+                                                            onClick={deselectAllTrips}
                                                             className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
                                                         >
                                                             Deselect All
@@ -1229,55 +1258,49 @@ const PayrollManagement = () => {
                                                         <thead className="bg-gray-50">
                                                             <tr>
                                                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Select</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Load ID</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trip Number</th>
                                                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Route Details</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Completed Date</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Truck</th>
                                                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Miles</th>
                                                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rate</th>
                                                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Earnings</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-gray-200">
-                                                            {driverLoads.map((load) => (
-                                                                <tr key={load._id} className={`hover:bg-gray-50 ${load.selected ? 'bg-blue-50' : ''}`}>
+                                                            {driverTrips.map((trip) => (
+                                                                <tr key={trip._id} className={`hover:bg-gray-50 ${trip.selected ? 'bg-blue-50' : ''}`}>
                                                                     <td className="px-3 py-2">
                                                                         <input
                                                                             type="checkbox"
-                                                                            checked={load.selected || false}
-                                                                            onChange={() => toggleLoadSelection(load._id)}
+                                                                            checked={trip.selected || false}
+                                                                            onChange={() => toggleTripSelection(trip._id)}
                                                                             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                                                                         />
                                                                     </td>
-                                                                    <td className="px-3 py-2 text-sm font-medium text-gray-900">{load._id?.slice(-6).toUpperCase()}</td>
+                                                                    <td className="px-3 py-2 text-sm font-medium text-gray-900">{trip.tripNumber || trip._id?.slice(-6).toUpperCase()}</td>
                                                                     <td className="px-3 py-2 text-sm text-gray-600">
                                                                         <div className="space-y-1">
                                                                             <div className="font-medium text-gray-900">
-                                                                                {load.route?.multipleDropOffs 
-                                                                                    ? load.route.wayPoints?.[0]?.address?.place + ' → Multiple'
-                                                                                    : (load.route?.selectPickup?.place || 'Unknown') + ' → ' + (load.route?.selectDropOff?.place || 'Unknown')
-                                                                                }
+                                                                                {(trip.startLocation?.place || 'Unknown') + ' → ' + (trip.endLocation?.place || 'Unknown')}
                                                                             </div>
                                                                         </div>
                                                                     </td>
                                                                     <td className="px-3 py-2 text-sm text-gray-600">
                                                                         <div className="space-y-1">
-                                                                            {load.completedAt && (
+                                                                            {trip.actualEndDate && (
                                                                             <div className="font-medium">
-                                                                                    {new Date(load.completedAt).toLocaleDateString()}
+                                                                                    {new Date(trip.actualEndDate).toLocaleDateString()}
                                                                             </div>
                                                                             )}
                                                                         </div>
                                                                     </td>
                                                                     <td className="px-3 py-2 text-sm text-gray-600">
-                                                                        {typeof load.customerDetails === 'object' && load.customerDetails 
-                                                                            ? load.customerDetails.name
-                                                                            : 'N/A'
-                                                                        }
+                                                                        {trip.truck?.plateNumber || trip.truck?.internalId || 'N/A'}
                                                                     </td>
-                                                                    <td className="px-3 py-2 text-sm text-gray-900 font-medium">{load.distanceInMiles || 0}</td>
-                                                                    <td className="px-3 py-2 text-sm text-gray-600">${load.mileRate || 0}/mile</td>
-                                                                    <td className="px-3 py-2 text-sm font-bold text-green-600">${parseFloat(load.earnings || '0').toFixed(2)}</td>
+                                                                    <td className="px-3 py-2 text-sm text-gray-900 font-medium">{trip.distanceInMiles || 0}</td>
+                                                                    <td className="px-3 py-2 text-sm text-gray-600">${trip.mileRate || 0}/mile</td>
+                                                                    <td className="px-3 py-2 text-sm font-bold text-green-600">${parseFloat(trip.earnings || '0').toFixed(2)}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
@@ -1285,33 +1308,33 @@ const PayrollManagement = () => {
                                                             <tr>
                                                                 <td colSpan={5} className="px-3 py-2 text-sm font-medium text-gray-900 text-right">Selected Total:</td>
                                                                 <td className="px-3 py-2 text-sm font-bold text-gray-900">
-                                                                    {getSelectedLoadsTotals().totalMiles}
+                                                                    {getSelectedTripsTotals().totalMiles}
                                                                 </td>
                                                                 <td className="px-3 py-2 text-sm text-gray-600">-</td>
                                                                 <td className="px-3 py-2 text-sm font-bold text-green-600">
-                                                                    ${getSelectedLoadsTotals().totalEarnings.toFixed(2)}
+                                                                    ${getSelectedTripsTotals().totalEarnings.toFixed(2)}
                                                                 </td>
                                                             </tr>
                                                         </tfoot>
                                                     </table>
                                                 </div>
                                                 
-                                                {/* Selected Loads Summary */}
-                                                {getSelectedLoadsTotals().count > 0 && (
+                                                {/* Selected Trips Summary */}
+                                                {getSelectedTripsTotals().count > 0 && (
                                                     <div className="bg-blue-50 p-4 border-t border-blue-200">
-                                                        <h6 className="text-sm font-medium text-blue-800 mb-2">Selected Loads Summary</h6>
+                                                        <h6 className="text-sm font-medium text-blue-800 mb-2">Selected Trips Summary</h6>
                                                         <div className="grid grid-cols-3 gap-4 text-sm">
                                                             <div>
-                                                                <span className="text-blue-600 font-medium">Selected Loads:</span>
-                                                                <span className="ml-1 text-blue-800 font-bold">{getSelectedLoadsTotals().count}</span>
+                                                                <span className="text-blue-600 font-medium">Selected Trips:</span>
+                                                                <span className="ml-1 text-blue-800 font-bold">{getSelectedTripsTotals().count}</span>
                                                             </div>
                                                             <div>
                                                                 <span className="text-blue-600 font-medium">Total Miles:</span>
-                                                                <span className="ml-1 text-blue-800 font-bold">{getSelectedLoadsTotals().totalMiles.toLocaleString()}</span>
+                                                                <span className="ml-1 text-blue-800 font-bold">{getSelectedTripsTotals().totalMiles.toLocaleString()}</span>
                                                             </div>
                                                             <div>
                                                                 <span className="text-blue-600 font-medium">Total Earnings:</span>
-                                                                <span className="ml-1 text-blue-800 font-bold">${getSelectedLoadsTotals().totalEarnings.toFixed(2)}</span>
+                                                                <span className="ml-1 text-blue-800 font-bold">${getSelectedTripsTotals().totalEarnings.toFixed(2)}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1320,34 +1343,34 @@ const PayrollManagement = () => {
                                         )}
 
                                         {/* Loading State */}
-                                        {loadingLoads && (
+                                        {loadingTrips && (
                                             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
-                                                <div className="text-sm text-blue-600 font-medium">Loading load data...</div>
-                                                <div className="text-xs text-blue-500 mt-1">Please wait while we fetch driver loads...</div>
+                                                <div className="text-sm text-blue-600 font-medium">Loading trip data...</div>
+                                                <div className="text-xs text-blue-500 mt-1">Please wait while we fetch driver trips...</div>
                                             </div>
                                         )}
 
-                                        {/* No Loads Message */}
-                                        {!loadingLoads && driverLoads.length === 0 && formData.startDate && formData.endDate && selectedEmployee && (
+                                        {/* No Trips Message */}
+                                        {!loadingTrips && driverTrips.length === 0 && formData.startDate && formData.endDate && selectedEmployee && (
                                             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <AlertCircle className="text-yellow-600" size={18} />
-                                                    <div className="text-sm font-medium text-yellow-800">No loads found</div>
+                                                    <div className="text-sm font-medium text-yellow-800">No trips found</div>
                                                 </div>
                                                 <div className="text-xs text-yellow-700">
-                                                    No loads found for <strong>{selectedEmployee.name}</strong> between <strong>{formData.startDate}</strong> and <strong>{formData.endDate}</strong>.
+                                                    No trips found for <strong>{selectedEmployee?.name || 'driver'}</strong> between <strong>{formData.startDate}</strong> and <strong>{formData.endDate}</strong>.
                                                 </div>
                                                 <div className="text-xs text-yellow-600 mt-1">
-                                                    Try adjusting the date range or check if the driver has completed any loads.
+                                                    Try adjusting the date range or check if the driver has completed any trips.
                                                 </div>
                                             </div>
                                         )}
                                         
                                         {/* No Date Range Selected */}
-                                        {!loadingLoads && driverLoads.length === 0 && (!formData.startDate || !formData.endDate) && selectedEmployee && (
+                                        {!loadingTrips && driverTrips.length === 0 && (!formData.startDate || !formData.endDate) && selectedEmployee && (
                                             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                                                 <div className="text-sm text-gray-600">
-                                                    Please select a date range to view driver loads.
+                                                    Please select a date range to view driver trips.
                                                 </div>
                                             </div>
                                         )}
@@ -1376,9 +1399,9 @@ const PayrollManagement = () => {
                                                 ).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </span>
                                         </div>
-                                        {selectedEmployee?.role.toLowerCase() === 'driver' && driverPayrollSummary && (
+                                        {selectedEmployee?.role?.toLowerCase() === 'driver' && driverPayrollSummary && (
                                             <div className="mt-2 text-xs text-gray-600">
-                                                Based on {driverPayrollSummary.totalLoads} loads • {driverPayrollSummary.totalDistanceMiles.toLocaleString()} miles
+                                                Based on {driverPayrollSummary.totalTrips} trips • {driverPayrollSummary.totalDistanceMiles.toLocaleString()} miles
                                             </div>
                                         )}
                                     </div>
@@ -1431,7 +1454,7 @@ const PayrollManagement = () => {
                                     </div>
                                     <div>
                                         <h4 className="text-xl font-bold text-gray-900">Payroll Details</h4>
-                                        <p className="text-sm text-gray-500">{selectedPayroll.userId.name}</p>
+                                        <p className="text-sm text-gray-500">{selectedPayroll.userId?.name || 'Unknown'}</p>
                                     </div>
                                 </div>
                                 <button 
@@ -1453,7 +1476,7 @@ const PayrollManagement = () => {
                                         <div>
                                             <label className="text-sm font-semibold text-gray-600">Name</label>
                                             <div className="mt-1 px-4 py-3 bg-white rounded-lg text-gray-900">
-                                                {selectedPayroll.userId.name}
+                                                {selectedPayroll.userId?.name || 'Unknown'}
                                             </div>
                                         </div>
                                         <div>
@@ -1689,7 +1712,7 @@ const PayrollManagement = () => {
                             </div>
                             
                             <p className="text-gray-700 mb-6">
-                                Are you sure you want to delete the payroll record for <strong>{selectedPayroll.userId.name}</strong>?
+                                Are you sure you want to delete the payroll record for <strong>{selectedPayroll.userId?.name || 'Unknown'}</strong>?
                             </p>
 
                             <div className="flex justify-end space-x-3">

@@ -1,5 +1,78 @@
-import  { useState } from "react";
-import { FaTimes, FaEdit, FaCheckCircle } from "react-icons/fa";
+import { useState, useEffect, useCallback } from "react";
+import { FaTimes, FaEdit, FaCheckCircle, FaChevronLeft, FaChevronRight, FaExclamationCircle, FaInfoCircle } from "react-icons/fa";
+import { listVehicle, updateVehicle } from "../../../../axios/api/distapcher";
+
+// Add CSS animation for toast notifications
+const toastStyle = `
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+`;
+
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = toastStyle;
+  if (!document.head.querySelector('style[data-toast-animation]')) {
+    styleSheet.setAttribute('data-toast-animation', 'true');
+    document.head.appendChild(styleSheet);
+  }
+}
+
+type NotificationType = 'success' | 'error' | 'info';
+
+interface Notification {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+const NotificationToast = ({ notification, onClose }: { notification: Notification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]}`} style={{ 
+      animation: 'slideIn 0.3s ease-out',
+      transform: 'translateX(0)',
+      opacity: 1
+    }}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 interface Vehicle {
   _id: string;
@@ -10,11 +83,12 @@ interface Vehicle {
   model: string;
   year: number;
   status: string;
-  hasTrailer: boolean;
-  engineOn: boolean;
-  speed: number;
-  fuelLevel: number;
-  odometer: number;
+  hasTrailer?: boolean;
+  engineOn?: boolean;
+  speed?: number;
+  fuelLevel?: number;
+  odometer?: number;
+  trailer?: any;
   // Safety compliance fields
   safetyExpiryDate?: string;
   safetyDecalNumber?: string;
@@ -23,301 +97,21 @@ interface Vehicle {
   lastInspectionInvoice?: string;
 }
 
-// Static mock data matching Excel sheet structure - All trucks from Excel
-const staticTrucks: Vehicle[] = [
-  {
-    _id: 't1',
-    internalId: '1001',
-    plateNumber: 'ABC-1001',
-    vinNumber: '1HGBH41JXMN109186',
-    make: 'Freightliner',
-    model: 'Cascadia',
-    year: 2020,
-    status: 'available',
-    hasTrailer: false,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 75,
-    odometer: 125000,
-    safetyExpiryDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    safetyDecalNumber: 'SD-1001-2024',
-    safetyPaperNumber: 'SP-1001-2024',
-    lastInspectionShop: 'ABC Auto Shop',
-    lastInspectionInvoice: 'INV-1001-2024'
-  },
-  {
-    _id: 't2',
-    internalId: '1002',
-    plateNumber: 'ABC-1002',
-    vinNumber: '1HGBH41JXMN109187',
-    make: 'Volvo',
-    model: 'VNL',
-    year: 2021,
-    status: 'in-use',
-    hasTrailer: true,
-    engineOn: true,
-    speed: 65,
-    fuelLevel: 50,
-    odometer: 98000,
-    safetyExpiryDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    safetyDecalNumber: 'SD-1002-2023',
-    safetyPaperNumber: 'SP-1002-2023',
-    lastInspectionShop: 'XYZ Truck Service',
-    lastInspectionInvoice: 'INV-1002-2023'
-  },
-  {
-    _id: 't3',
-    internalId: '1003',
-    plateNumber: 'ABC-1003',
-    vinNumber: '1HGBH41JXMN109188',
-    make: 'Peterbilt',
-    model: '579',
-    year: 2019,
-    status: 'maintenance',
-    hasTrailer: false,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 30,
-    odometer: 150000,
-    safetyExpiryDate: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    safetyDecalNumber: 'SD-1003-2024',
-    safetyPaperNumber: 'SP-1003-2024',
-    lastInspectionShop: 'Main Street Garage',
-    lastInspectionInvoice: 'INV-1003-2024'
-  },
-  {
-    _id: 't4',
-    internalId: '1004',
-    plateNumber: 'ABC-1004',
-    vinNumber: '1HGBH41JXMN109189',
-    make: 'Kenworth',
-    model: 'T680',
-    year: 2022,
-    status: 'available',
-    hasTrailer: true,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 80,
-    odometer: 45000,
-    safetyExpiryDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    safetyDecalNumber: 'SD-1004-2024',
-    safetyPaperNumber: 'SP-1004-2024',
-    lastInspectionShop: 'Fleet Service Center',
-    lastInspectionInvoice: 'INV-1004-2024'
-  },
-  {
-    _id: 't5',
-    internalId: '1207',
-    plateNumber: 'ABC-1207',
-    vinNumber: '1HGBH41JXMN109190',
-    make: 'Mack',
-    model: 'Anthem',
-    year: 2021,
-    status: 'available',
-    hasTrailer: false,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 60,
-    odometer: 110000,
-    safetyExpiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    safetyDecalNumber: 'SD-1207-2024',
-    safetyPaperNumber: 'SP-1207-2024',
-    lastInspectionShop: 'Premium Truck Service',
-    lastInspectionInvoice: 'INV-1207-2024'
-  },
-  {
-    _id: 't6',
-    internalId: '1208',
-    plateNumber: 'ABC-1208',
-    vinNumber: '1HGBH41JXMN109192',
-    make: 'Freightliner',
-    model: 'Cascadia',
-    year: 2020,
-    status: 'available',
-    hasTrailer: false,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 70,
-    odometer: 105000
-  },
-  {
-    _id: 't7',
-    internalId: '1209',
-    plateNumber: 'ABC-1209',
-    vinNumber: '1HGBH41JXMN109193',
-    make: 'Volvo',
-    model: 'VNL',
-    year: 2021,
-    status: 'in-use',
-    hasTrailer: true,
-    engineOn: true,
-    speed: 60,
-    fuelLevel: 45,
-    odometer: 92000
-  },
-  {
-    _id: 't8',
-    internalId: '1210',
-    plateNumber: 'ABC-1210',
-    vinNumber: '1HGBH41JXMN109194',
-    make: 'Peterbilt',
-    model: '579',
-    year: 2019,
-    status: 'available',
-    hasTrailer: false,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 85,
-    odometer: 118000
-  },
-  {
-    _id: 't9',
-    internalId: '1212',
-    plateNumber: 'ABC-1212',
-    vinNumber: '1HGBH41JXMN109195',
-    make: 'Kenworth',
-    model: 'T680',
-    year: 2022,
-    status: 'maintenance',
-    hasTrailer: false,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 20,
-    odometer: 48000
-  },
-  {
-    _id: 't10',
-    internalId: '1213',
-    plateNumber: 'ABC-1213',
-    vinNumber: '1HGBH41JXMN109196',
-    make: 'Mack',
-    model: 'Anthem',
-    year: 2021,
-    status: 'available',
-    hasTrailer: true,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 65,
-    odometer: 87000
-  },
-  {
-    _id: 't11',
-    internalId: '1214',
-    plateNumber: 'ABC-1214',
-    vinNumber: '1HGBH41JXMN109197',
-    make: 'Freightliner',
-    model: 'Cascadia',
-    year: 2020,
-    status: 'in-use',
-    hasTrailer: true,
-    engineOn: true,
-    speed: 70,
-    fuelLevel: 55,
-    odometer: 142000
-  },
-  {
-    _id: 't12',
-    internalId: '1215',
-    plateNumber: 'ABC-1215',
-    vinNumber: '1HGBH41JXMN109198',
-    make: 'Volvo',
-    model: 'VNL',
-    year: 2021,
-    status: 'available',
-    hasTrailer: false,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 90,
-    odometer: 76000
-  },
-  {
-    _id: 't13',
-    internalId: '1216',
-    plateNumber: 'ABC-1216',
-    vinNumber: '1HGBH41JXMN109199',
-    make: 'Peterbilt',
-    model: '579',
-    year: 2019,
-    status: 'available',
-    hasTrailer: false,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 75,
-    odometer: 128000
-  },
-  {
-    _id: 't14',
-    internalId: '1217',
-    plateNumber: 'ABC-1217',
-    vinNumber: '1HGBH41JXMN109200',
-    make: 'Kenworth',
-    model: 'T680',
-    year: 2022,
-    status: 'in-use',
-    hasTrailer: true,
-    engineOn: true,
-    speed: 58,
-    fuelLevel: 40,
-    odometer: 52000
-  },
-  {
-    _id: 't15',
-    internalId: '1401',
-    plateNumber: 'ABC-1401',
-    vinNumber: '1HGBH41JXMN109191',
-    make: 'Freightliner',
-    model: 'Cascadia',
-    year: 2020,
-    status: 'in-use',
-    hasTrailer: true,
-    engineOn: true,
-    speed: 55,
-    fuelLevel: 40,
-    odometer: 135000,
-    safetyExpiryDate: new Date(Date.now() + 200 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    safetyDecalNumber: 'SD-1401-2024',
-    safetyPaperNumber: 'SP-1401-2024',
-    lastInspectionShop: 'Central Fleet Maintenance',
-    lastInspectionInvoice: 'INV-1401-2024'
-  },
-  {
-    _id: 't16',
-    internalId: '1402',
-    plateNumber: 'ABC-1402',
-    vinNumber: '1HGBH41JXMN109201',
-    make: 'Mack',
-    model: 'Anthem',
-    year: 2021,
-    status: 'available',
-    hasTrailer: false,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 80,
-    odometer: 95000
-  },
-  {
-    _id: 't17',
-    internalId: '2025',
-    plateNumber: 'ABC-2025',
-    vinNumber: '1HGBH41JXMN109202',
-    make: 'Volvo',
-    model: 'VNL',
-    year: 2023,
-    status: 'available',
-    hasTrailer: false,
-    engineOn: false,
-    speed: 0,
-    fuelLevel: 95,
-    odometer: 15000
-  }
-];
-
 function Trucks() {
   const [search, setSearch] = useState<string>("");
-  const [vehicles, setVehicles] = useState<Vehicle[]>(staticTrucks);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [selectedTruck, setSelectedTruck] = useState<Vehicle | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [total, setTotal] = useState<number>(0);
 
   // Safety compliance form state
   const [safetyForm, setSafetyForm] = useState({
@@ -328,10 +122,80 @@ function Trucks() {
     lastInspectionInvoice: ''
   });
 
+  // Notification functions
+  const addNotification = (type: NotificationType, message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  // Fetch vehicles with pagination
+  const fetchVehicles = useCallback(async (page: number, limit: number, searchQuery: string) => {
+    setLoading(true);
+    try {
+      const res = await listVehicle({
+        page,
+        limit,
+        search: searchQuery.trim() || undefined,
+        sortBy: 'createdAt',
+        sortOrder: 'desc'
+      });
+
+      if (res?.success) {
+        const vehiclesData = Array.isArray(res?.data?.vehicles)
+          ? res.data.vehicles
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+        
+        setVehicles(vehiclesData);
+        
+        // Update pagination info
+        if (res?.pagination) {
+          setTotal(res.pagination.total || 0);
+          setTotalPages(res.pagination.pages || 0);
+          setCurrentPage(res.pagination.current || 1);
+        }
+      } else {
+        setVehicles([]);
+        setTotal(0);
+        setTotalPages(0);
+      }
+    } catch (error: any) {
+      console.error('Error fetching vehicles:', error);
+      setVehicles([]);
+      setTotal(0);
+      setTotalPages(0);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchVehicles(currentPage, pageSize, search);
+  }, [currentPage, pageSize, fetchVehicles]);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (currentPage === 1) {
+        fetchVehicles(1, pageSize, search);
+      } else {
+        setCurrentPage(1);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const handleTruckClick = (truck: Vehicle) => {
     setSelectedTruck(truck);
     setSafetyForm({
-      safetyExpiryDate: truck.safetyExpiryDate || '',
+      safetyExpiryDate: truck.safetyExpiryDate ? new Date(truck.safetyExpiryDate).toISOString().split('T')[0] : '',
       safetyDecalNumber: truck.safetyDecalNumber || '',
       safetyPaperNumber: truck.safetyPaperNumber || '',
       lastInspectionShop: truck.lastInspectionShop || '',
@@ -345,35 +209,49 @@ function Trucks() {
     setIsEditing(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedTruck) return;
     
-    // Update the vehicle in static data
-    const updatedVehicles = vehicles.map(vehicle => {
-      if (vehicle._id === selectedTruck._id) {
-        return {
-          ...vehicle,
-          safetyExpiryDate: safetyForm.safetyExpiryDate,
-          safetyDecalNumber: safetyForm.safetyDecalNumber,
-          safetyPaperNumber: safetyForm.safetyPaperNumber,
-          lastInspectionShop: safetyForm.lastInspectionShop,
-          lastInspectionInvoice: safetyForm.lastInspectionInvoice
-        };
+    setSubmitting(true);
+    try {
+      const updateData: Partial<Vehicle> = {
+        safetyExpiryDate: safetyForm.safetyExpiryDate || undefined,
+        safetyDecalNumber: safetyForm.safetyDecalNumber || undefined,
+        safetyPaperNumber: safetyForm.safetyPaperNumber || undefined,
+        lastInspectionShop: safetyForm.lastInspectionShop || undefined,
+        lastInspectionInvoice: safetyForm.lastInspectionInvoice || undefined
+      };
+
+      const res = await updateVehicle(selectedTruck._id, updateData);
+      
+      if (res?.success) {
+        // Update local state
+        const updatedVehicles = vehicles.map(vehicle => {
+          if (vehicle._id === selectedTruck._id) {
+            return {
+              ...vehicle,
+              ...updateData
+            } as Vehicle;
+          }
+          return vehicle;
+        });
+        
+        setVehicles(updatedVehicles);
+        setSelectedTruck({
+          ...selectedTruck,
+          ...updateData
+        } as Vehicle);
+        setIsEditing(false);
+        addNotification('success', 'Safety compliance data saved successfully!');
+      } else {
+        addNotification('error', res?.message || 'Failed to save safety compliance data');
       }
-      return vehicle;
-    });
-    
-    setVehicles(updatedVehicles);
-    setSelectedTruck({
-      ...selectedTruck,
-      safetyExpiryDate: safetyForm.safetyExpiryDate,
-      safetyDecalNumber: safetyForm.safetyDecalNumber,
-      safetyPaperNumber: safetyForm.safetyPaperNumber,
-      lastInspectionShop: safetyForm.lastInspectionShop,
-      lastInspectionInvoice: safetyForm.lastInspectionInvoice
-    });
-    setIsEditing(false);
-    alert('Safety compliance data saved successfully!');
+    } catch (error: any) {
+      console.error('Error updating vehicle:', error);
+      addNotification('error', error?.message || 'Error updating safety compliance data');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -401,18 +279,44 @@ function Trucks() {
     }
   };
 
-  // Filter vehicles based on search
-  const filtered = vehicles.filter((truck: Vehicle) =>
-    (truck.make + " " + truck.model + " " + truck.plateNumber + " " + truck.internalId)
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', { 
+        month: '2-digit', 
+        day: '2-digit', 
+        year: 'numeric' 
+      });
+    } catch {
+      return 'N/A';
+    }
+  };
+
+  // Pagination handlers
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSize = parseInt(e.target.value);
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[999] flex flex-col gap-3 max-w-md">
+        {notifications.map(notification => (
+          <NotificationToast key={notification.id} notification={notification} onClose={removeNotification} />
+        ))}
+      </div>
+
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Truck Listing</h1>
 
-      <div className="mb-6">
+      <div className="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <input
           type="text"
           placeholder="Search by make, model, plate, or internal ID..."
@@ -420,127 +324,216 @@ function Trucks() {
           onChange={(e) => setSearch(e.target.value)}
           className="border border-gray-300 rounded-lg px-4 py-2 w-full md:w-1/3 shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
         />
+        
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600">Items per page:</label>
+          <select
+            value={pageSize}
+            onChange={handlePageSizeChange}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+        </div>
       </div>
 
-      <div className="overflow-x-auto bg-white shadow-md rounded-lg">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-blue-50 text-gray-700 uppercase text-sm">
-              <th className="p-4">Unit No</th>
-              <th className="p-4">Plate Number</th>
-              <th className="p-4">Make</th>
-              <th className="p-4">Model</th>
-              <th className="p-4">Year</th>
-              <th className="p-4 min-w-[180px]">Safety Expiry</th>
-              <th className="p-4">Safety Compliance</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {filtered.map((truck: Vehicle) => {
-              return (
-                <tr 
-                  key={truck._id} 
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  <td className="p-4 font-medium text-gray-800">{truck.internalId}</td>
-                  <td className="p-4 text-gray-600">{truck.plateNumber}</td>
-                  <td className="p-4 text-gray-600">{truck.make}</td>
-                  <td className="p-4 text-gray-600">{truck.model}</td>
-                  <td className="p-4 text-gray-600">{truck.year}</td>
-                  <td className="p-4 min-w-[180px]">
-                    {truck.safetyExpiryDate ? (
-                      <div className="flex flex-col gap-2">
-                        <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
-                          {new Date(truck.safetyExpiryDate).toLocaleDateString('en-US', { 
-                            month: '2-digit', 
-                            day: '2-digit', 
-                            year: 'numeric' 
-                          })}
-                        </span>
-                        <div className="w-full">
-                          <span
-                            className={`px-4 py-1.5 rounded-full text-xs font-semibold inline-block whitespace-nowrap ${
-                              getComplianceStatus(truck.safetyExpiryDate).status === 'expired'
-                                ? "bg-red-100 text-red-700 border border-red-200"
-                                : getComplianceStatus(truck.safetyExpiryDate).status === 'expiring-soon'
-                                  ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-                                  : "bg-green-100 text-green-700 border border-green-200"
-                            }`}
-                          >
-                            {getComplianceStatus(truck.safetyExpiryDate).text}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-sm text-gray-400">Not Set</span>
-                    )}
-                  </td>
-                  <td className="p-4">
-                    <div className="flex flex-col gap-1 text-xs">
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-500">Decal:</span>
-                        <span className="font-medium text-gray-800">{truck.safetyDecalNumber || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-500">Paper:</span>
-                        <span className="font-medium text-gray-800">{truck.safetyPaperNumber || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-500">Shop:</span>
-                        <span className="font-medium text-gray-800 truncate max-w-[120px]">{truck.lastInspectionShop || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-500">Invoice:</span>
-                        <span className="font-medium text-gray-800">{truck.lastInspectionInvoice || 'N/A'}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${truck.status === "available"
-                          ? "bg-green-100 text-green-700"
-                          : truck.status === "in-use"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : truck.status === "maintenance"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-gray-100 text-gray-700"
-                        }`}
-                    >
-                      {truck.status}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleTruckClick(truck);
-                      }}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 !text-white text-xs rounded-lg flex items-center gap-1 transition-colors font-medium"
-                      title="Edit Safety Compliance"
-                    >
-                      <FaEdit size={12} />
-                      {truck.safetyExpiryDate ? 'Edit' : 'Add'} Safety
-                    </button>
-                  </td>
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Loading trucks...</p>
+        </div>
+      ) : (
+        <>
+          <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-blue-50 text-gray-700 uppercase text-sm">
+                  <th className="p-4">Unit No</th>
+                  <th className="p-4">Plate Number</th>
+                  <th className="p-4">VIN Number</th>
+                  <th className="p-4">Make</th>
+                  <th className="p-4">Model</th>
+                  <th className="p-4">Year</th>
+                  <th className="p-4">Odometer (km)</th>
+                  <th className="p-4 min-w-[180px]">Safety Expiry</th>
+                  <th className="p-4">Safety Compliance</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4">Actions</th>
                 </tr>
-              );
-            })}
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {vehicles.map((truck: Vehicle) => {
+                  return (
+                    <tr 
+                      key={truck._id} 
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="p-4 font-medium text-gray-800">{truck.internalId || 'N/A'}</td>
+                      <td className="p-4 text-gray-600">{truck.plateNumber || 'N/A'}</td>
+                      <td className="p-4 text-gray-600">{truck.vinNumber || 'N/A'}</td>
+                      <td className="p-4 text-gray-600">{truck.make || 'N/A'}</td>
+                      <td className="p-4 text-gray-600">{truck.model || 'N/A'}</td>
+                      <td className="p-4 text-gray-600">{truck.year || 'N/A'}</td>
+                      <td className="p-4 text-gray-600">{truck.odometer?.toLocaleString() || '0'}</td>
+                      <td className="p-4 min-w-[180px]">
+                        {truck.safetyExpiryDate ? (
+                          <div className="flex flex-col gap-2">
+                            <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+                              {formatDate(truck.safetyExpiryDate)}
+                            </span>
+                            <div className="w-full">
+                              <span
+                                className={`px-4 py-1.5 rounded-full text-xs font-semibold inline-block whitespace-nowrap ${
+                                  getComplianceStatus(truck.safetyExpiryDate).status === 'expired'
+                                    ? "bg-red-100 text-red-700 border border-red-200"
+                                    : getComplianceStatus(truck.safetyExpiryDate).status === 'expiring-soon'
+                                      ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
+                                      : "bg-green-100 text-green-700 border border-green-200"
+                                }`}
+                              >
+                                {getComplianceStatus(truck.safetyExpiryDate).text}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">Not Set</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <div className="flex flex-col gap-1 text-xs">
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-500">Decal:</span>
+                            <span className="font-medium text-gray-800">{truck.safetyDecalNumber || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-500">Paper:</span>
+                            <span className="font-medium text-gray-800">{truck.safetyPaperNumber || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-500">Shop:</span>
+                            <span className="font-medium text-gray-800 truncate max-w-[120px]">{truck.lastInspectionShop || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-500">Invoice:</span>
+                            <span className="font-medium text-gray-800">{truck.lastInspectionInvoice || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+                            truck.status === "moving" || truck.status === "available"
+                              ? "bg-green-100 text-green-700"
+                              : truck.status === "idle" || truck.status === "in-use"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : truck.status === "maintenance"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {truck.status || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTruckClick(truck);
+                          }}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 !text-white text-xs rounded-lg flex items-center gap-1 transition-colors font-medium"
+                          title="Edit Safety Compliance"
+                        >
+                          <FaEdit size={12} />
+                          {truck.safetyExpiryDate ? 'Edit' : 'Add'} Safety
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
 
-            {filtered.length === 0 && (
-              <tr>
-                <td
-                  colSpan={9}
-                  className="p-6 text-center text-gray-500 italic"
+                {vehicles.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={11}
+                      className="p-6 text-center text-gray-500 italic"
+                    >
+                      No trucks found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between bg-white px-4 py-3 rounded-lg shadow-sm">
+              <div className="text-sm text-gray-700">
+                Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{' '}
+                <span className="font-medium">{Math.min(currentPage * pageSize, total)}</span> of{' '}
+                <span className="font-medium">{total}</span> trucks
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-2 rounded-lg border ${
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                  }`}
                 >
-                  No trucks found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  <FaChevronLeft size={14} />
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                          currentPage === pageNum
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-2 rounded-lg border ${
+                    currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                  }`}
+                >
+                  <FaChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Safety Compliance Modal */}
       {showDetailsModal && selectedTruck && (
@@ -674,17 +667,18 @@ function Trucks() {
                     <div className="flex gap-3 pt-4">
                       <button
                         type="submit"
-                        className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 !text-white rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-md"
+                        disabled={submitting}
+                        className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 !text-white rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed"
                       >
                         <FaCheckCircle size={16} />
-                        Save Safety Compliance
+                        {submitting ? 'Saving...' : 'Save Safety Compliance'}
                       </button>
                       <button
                         type="button"
                         onClick={() => {
                           setIsEditing(false);
                           setSafetyForm({
-                            safetyExpiryDate: selectedTruck.safetyExpiryDate || '',
+                            safetyExpiryDate: selectedTruck.safetyExpiryDate ? new Date(selectedTruck.safetyExpiryDate).toISOString().split('T')[0] : '',
                             safetyDecalNumber: selectedTruck.safetyDecalNumber || '',
                             safetyPaperNumber: selectedTruck.safetyPaperNumber || '',
                             lastInspectionShop: selectedTruck.lastInspectionShop || '',
@@ -708,4 +702,3 @@ function Trucks() {
 }
 
 export default Trucks;
-

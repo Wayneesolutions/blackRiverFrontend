@@ -3,7 +3,6 @@ import {
   Truck,
   Wrench,
   Calendar,
-  DollarSign,
   AlertTriangle,
   CheckCircle,
   TrendingUp,

@@ -211,9 +211,11 @@ const Index = () => {
       });
       if (res.success) {
         if (res.data) {
-          setDrivers(Array.isArray(res.data) ? res.data : []);
-          setTotalItems(res.pagination?.total || res.count || res.data.length || 0);
-          setTotalPages(res.pagination?.pages || Math.ceil((res.pagination?.total || res.count || res.data.length) / itemsPerPage) || 0);
+          const driversData = Array.isArray(res.data) ? res.data : [];
+          const total = res.pagination?.total || res.count || driversData.length || 0;
+          setDrivers(driversData);
+          setTotalItems(total);
+          setTotalPages(res.pagination?.pages || Math.ceil(total / itemsPerPage) || 0);
         } else {
           setDrivers([]);
           setTotalItems(0);
@@ -244,9 +246,10 @@ const Index = () => {
       });
       if (res.success && res.data) {
         const vehicleData = res.data.vehicles || res.data || [];
+        const total = res.pagination?.total || res.data.count || vehicleData.length || 0;
         setVehicles(Array.isArray(vehicleData) ? vehicleData : []);
-        setTotalItems(res.pagination?.total || res.data.count || vehicleData.length || 0);
-        setTotalPages(res.pagination?.pages || Math.ceil((res.pagination?.total || vehicleData.length) / itemsPerPage) || 0);
+        setTotalItems(total);
+        setTotalPages(res.pagination?.pages || Math.ceil(total / itemsPerPage) || 0);
       } else {
         setVehicles([]);
         setTotalItems(0);
@@ -275,9 +278,10 @@ const Index = () => {
       });
       if (res.success && res.data) {
         const trailerData = res.data.data || res.data || [];
+        const total = res.pagination?.total || res.data.length || trailerData.length || 0;
         setTrailers(Array.isArray(trailerData) ? trailerData : []);
-        setTotalItems(res.pagination?.total || res.data.length || trailerData.length || 0);
-        setTotalPages(res.pagination?.pages || Math.ceil((res.pagination?.total || trailerData.length) / itemsPerPage) || 0);
+        setTotalItems(total);
+        setTotalPages(res.pagination?.pages || Math.ceil(total / itemsPerPage) || 0);
       } else {
         setTrailers([]);
         setTotalItems(0);
@@ -341,9 +345,10 @@ const Index = () => {
       if (res.success) {
         if (res.data) {
           const tripData = Array.isArray(res.data) ? res.data : (res.data.data || []);
+          const total = res.pagination?.totalItems || res.pagination?.total || res.count || tripData.length || 0;
           setTrips(tripData);
-          setTotalItems(res.pagination?.totalItems || res.pagination?.total || res.count || tripData.length || 0);
-          setTotalPages(res.pagination?.totalPages || res.pagination?.pages || Math.ceil((res.pagination?.totalItems || res.pagination?.total || res.count || tripData.length) / itemsPerPage) || 0);
+          setTotalItems(total);
+          setTotalPages(res.pagination?.totalPages || res.pagination?.pages || Math.ceil(total / itemsPerPage) || 0);
         } else {
           setTrips([]);
           setTotalItems(0);
@@ -518,7 +523,7 @@ const Index = () => {
                     : "text-gray-600 hover:text-gray-800"
                 }`}
               >
-                Drivers ({totalItems})
+                Drivers
               </button>
               <button
                 onClick={() => handleTabChange("vehicles")}
@@ -528,7 +533,7 @@ const Index = () => {
                     : "text-gray-600 hover:text-gray-800"
                 }`}
               >
-                Vehicles ({totalItems})
+                Vehicles
               </button>
               <button
                 onClick={() => handleTabChange("trailers")}
@@ -538,7 +543,7 @@ const Index = () => {
                     : "text-gray-600 hover:text-gray-800"
                 }`}
               >
-                Trailers ({totalItems})
+                Trailers
               </button>
               <button
                 onClick={() => handleTabChange("trips")}
@@ -548,7 +553,7 @@ const Index = () => {
                     : "text-gray-600 hover:text-gray-800"
                 }`}
               >
-                Trips ({totalItems})
+                Trips
               </button>
         </div>
       </div>

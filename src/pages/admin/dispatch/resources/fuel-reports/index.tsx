@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Filter, Edit, Trash2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Plus, Search, Filter, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { message } from "antd";
 import NewFuelReportSidebar from "./NewFuelReportSidebar";
 import {
@@ -37,6 +37,12 @@ const FuelReports = () => {
   const [fuelReports, setFuelReports] = useState<FuelReportType[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [editingReport, setEditingReport] = useState<FuelReportType | null>(null);
   const [editForm, setEditForm] = useState<FuelReportEditForm>({
     driverId: "",
@@ -71,13 +77,45 @@ const FuelReports = () => {
     }
   }, []);
 
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1); // Reset to first page on search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset to page 1 when status filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter]);
+
   const fetchFuelReports = async () => {
     try {
       setLoading(true);
-      const res = await listFuelReport();
+      const params: any = {
+        page: currentPage,
+        limit: pageSize,
+        sortBy: 'createdAt',
+        sortOrder: 'desc'
+      };
+      
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (statusFilter !== 'all') params.status = statusFilter;
+      
+      const res = await listFuelReport(params);
       if (res.success) {
         const data = Array.isArray(res.data) ? res.data : [];
         setFuelReports(data);
+        if (res.pagination) {
+          setTotal(res.pagination.total);
+          setTotalPages(res.pagination.totalPages);
+          // If current page is beyond total pages, reset to last page
+          if (currentPage > res.pagination.totalPages && res.pagination.totalPages > 0) {
+            setCurrentPage(res.pagination.totalPages);
+          }
+        }
         if (res.message && data.length === 0) {
           setEmptyStateMessage(res.message);
         } else {
@@ -86,11 +124,15 @@ const FuelReports = () => {
       } else {
         message.error(res.message || "Failed to fetch fuel reports");
         setFuelReports([]);
+        setTotal(0);
+        setTotalPages(0);
         setEmptyStateMessage(res?.message || "Failed to fetch fuel reports");
       }
     } catch (error: any) {
       console.error(error);
       setFuelReports([]);
+      setTotal(0);
+      setTotalPages(0);
       setEmptyStateMessage(error?.message || "Failed to fetch fuel reports");
     } finally {
       setLoading(false);
@@ -116,7 +158,7 @@ const FuelReports = () => {
 
     fetchFuelReports();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfoReady, userInfo]);
+  }, [userInfoReady, userInfo, currentPage, pageSize, debouncedSearch, statusFilter]);
 
   const openDeleteModal = (report: FuelReportType) => {
     setDeleteTarget(report);
@@ -136,7 +178,12 @@ const FuelReports = () => {
       const res = await deleteFuelReport(deleteTarget._id);
       if (res.success) {
         message.success(res.message || "Fuel report deleted successfully");
-        await fetchFuelReports();
+        // If we're on the last page and it becomes empty, go to previous page
+        if (fuelReports.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        } else {
+          await fetchFuelReports();
+        }
         closeDeleteModal();
       } else {
         message.error(res.message || "Failed to delete fuel report");
@@ -259,23 +306,8 @@ const FuelReports = () => {
     }
   };
 
-  const filteredReports = useMemo(
-    () =>
-      fuelReports.filter(
-        (report) =>
-          report.reporter?.name
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          report.driver?.name
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          report.vehicle?.plateNumber
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          report.status?.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
-    [fuelReports, searchTerm]
-  );
+  // No need for client-side filtering since backend handles it
+  const filteredReports = fuelReports;
 
   if (loading) {
     return (
@@ -319,6 +351,21 @@ const FuelReports = () => {
               onChange={handleSearchChange}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+          <div>
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
           </div>
         </div>
         <div className="flex items-center space-x-3">
@@ -433,6 +480,82 @@ const FuelReports = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination Controls */}
+          {total > 0 && (
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+              <div className="text-sm text-gray-700">
+                Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{' '}
+                <span className="font-medium">{Math.min(currentPage * pageSize, total)}</span> of{' '}
+                <span className="font-medium">{total}</span> fuel reports
+              </div>
+              {totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-2 rounded-lg border ${
+                      currentPage === 1
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                    }`}
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <div className="flex gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`px-3 py-2 rounded-lg border ${
+                            currentPage === pageNum
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-2 rounded-lg border ${
+                      currentPage === totalPages
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                    }`}
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="ml-4 px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700"
+                  >
+                    <option value={25}>25 per page</option>
+                    <option value={50}>50 per page</option>
+                    <option value={100}>100 per page</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

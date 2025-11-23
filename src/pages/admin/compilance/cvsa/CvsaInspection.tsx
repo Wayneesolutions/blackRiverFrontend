@@ -16,7 +16,9 @@ import {
   FaSearch,
   FaFlag,
   FaFlagUsa,
-  FaTimes
+  FaTimes,
+  FaChevronLeft,
+  FaChevronRight
 } from 'react-icons/fa';
 import {
   getCvsaInspections,
@@ -156,6 +158,12 @@ const CvsaInspection: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [total, setTotal] = useState<number>(0);
   const [inspectionForm, setInspectionForm] = useState<Partial<Inspection>>({
     country: 'canada',
     date: '',
@@ -222,19 +230,28 @@ const CvsaInspection: React.FC = () => {
   }, []);
 
   // Function to refresh inspections and stats
-  const refreshData = async (useFilters = true) => {
+  const refreshData = async (useFilters = true, page = currentPage, limit = pageSize) => {
     try {
       const [inspectionsRes, statsRes] = await Promise.all([
         getCvsaInspections({ 
           country: activeTab,
           status: useFilters && statusFilter !== 'all' ? statusFilter : undefined, 
-          search: useFilters && searchQuery ? searchQuery : undefined 
+          search: useFilters && searchQuery ? searchQuery : undefined,
+          page: page,
+          limit: limit
         }),
         getCvsaInspectionStats(activeTab)
       ]);
 
       if (inspectionsRes?.success) {
         setInspections(inspectionsRes.data || []);
+        
+        // Update pagination info
+        if (inspectionsRes?.pagination) {
+          setTotal(inspectionsRes.pagination.total || 0);
+          setTotalPages(inspectionsRes.pagination.totalPages || 0);
+          setCurrentPage(inspectionsRes.pagination.page || 1);
+        }
       }
 
       if (statsRes?.success) {
@@ -251,14 +268,17 @@ const CvsaInspection: React.FC = () => {
     }
   };
 
-  // Fetch inspections and stats
+  // Fetch inspections and stats when filters change
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        await refreshData(true);
+        // Reset to page 1 when filters change
+        setCurrentPage(1);
+        await refreshData(true, 1, pageSize);
       } catch (error) {
         console.error('Error fetching inspections:', error);
+        addNotification('error', 'Failed to load inspections');
       } finally {
         setLoading(false);
       }
@@ -266,7 +286,36 @@ const CvsaInspection: React.FC = () => {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, statusFilter, searchQuery]);
+  }, [activeTab, statusFilter]);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+      refreshData(true, 1, pageSize);
+    }, 500);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+  // Fetch when page or pageSize changes
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        await refreshData(true, currentPage, pageSize);
+      } catch (error) {
+        console.error('Error fetching inspections:', error);
+        addNotification('error', 'Failed to load inspections');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize]);
 
   // Filter inspections (already filtered by API, but keep for client-side if needed)
   useEffect(() => {
@@ -667,31 +716,50 @@ const CvsaInspection: React.FC = () => {
 
       {/* Filters and Search */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-              <input
-                type="text"
-                placeholder="Search inspections..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
-              />
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="flex flex-col md:flex-row gap-4 flex-1">
+            <div className="flex-1">
+              <div className="relative">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <input
+                  type="text"
+                  placeholder="Search inspections..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <FaFilter className="text-gray-500" size={16} />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+              >
+                <option value="all">All Status</option>
+                <option value="pass">Pass</option>
+                <option value="fail">Fail</option>
+                <option value="warning">Warning</option>
+                <option value="out-of-service">Out of Service</option>
+              </select>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <FaFilter className="text-gray-500" size={16} />
+            <label className="text-sm text-gray-600">Items per page:</label>
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+              value={pageSize}
+              onChange={(e) => {
+                const newSize = parseInt(e.target.value);
+                setPageSize(newSize);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
             >
-              <option value="all">All Status</option>
-              <option value="pass">Pass</option>
-              <option value="fail">Fail</option>
-              <option value="warning">Warning</option>
-              <option value="out-of-service">Out of Service</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
             </select>
           </div>
         </div>
@@ -701,7 +769,7 @@ const CvsaInspection: React.FC = () => {
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-bold text-gray-800">
-            {activeTab.toUpperCase()} Inspections ({filteredInspections.length})
+            {activeTab.toUpperCase()} Inspections ({total > 0 ? total : filteredInspections.length})
           </h3>
         </div>
 
@@ -717,97 +785,288 @@ const CvsaInspection: React.FC = () => {
             <p className="text-gray-400 mt-2">Try adjusting your filters or search criteria</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Inspection ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date & Location
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Vehicle & Driver
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Inspector
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredInspections.map((inspection) => (
-                  <tr key={inspection._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {inspection.inspectionId}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        <div className="flex items-center gap-2">
-                          <FaCalendarAlt className="text-gray-400" size={14} />
-                          {formatDate(inspection.date)}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <FaMapMarkerAlt className="text-gray-400" size={14} />
-                          <span className="text-gray-600">{inspection.location}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        <div className="font-medium">{getVehicleInfo(inspection.vehicle)}</div>
-                        <div className="text-gray-600">{getDriverName(inspection.driver)}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(inspection.status)}
-                        <span className={`text-sm px-2 py-1 rounded-full font-medium border ${getStatusBadgeColor(inspection.status)}`}>
-                          {inspection.status.replace('-', ' ').toUpperCase()}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {inspection.inspectorName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex gap-2">
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1200px]">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
+                        Inspection ID
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Location
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Country
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Vehicle
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Driver
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Inspector
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Report #
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Level
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Jurisdiction
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        USDOT #
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        OOS Issued
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Violations
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-gray-50 z-10">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredInspections.map((inspection) => (
+                      <tr key={inspection._id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-white z-10">
+                          <div className="text-sm font-medium text-gray-900">
+                            {inspection.inspectionId || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            <div className="flex items-center gap-1">
+                              <FaCalendarAlt className="text-gray-400" size={12} />
+                              {inspection.date ? formatDate(inspection.date) : 'N/A'}
+                            </div>
+                            {inspection.timeOfInspection && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                {inspection.timeOfInspection}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm text-gray-900 max-w-[200px] truncate" title={inspection.location || 'N/A'}>
+                            <div className="flex items-center gap-1">
+                              <FaMapMarkerAlt className="text-gray-400 flex-shrink-0" size={12} />
+                              {inspection.location || 'N/A'}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 uppercase">
+                            {inspection.country === 'canada' ? (
+                              <span className="flex items-center gap-1">
+                                <FaFlag className="text-red-600" size={14} />
+                                CA
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1">
+                                <FaFlagUsa className="text-blue-600" size={14} />
+                                USA
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm text-gray-900 max-w-[180px]">
+                            <div className="font-medium truncate" title={getVehicleInfo(inspection.vehicle)}>
+                              {getVehicleInfo(inspection.vehicle) || 'N/A'}
+                            </div>
+                            {typeof inspection.vehicle === 'object' && inspection.vehicle?.internalId && (
+                              <div className="text-xs text-gray-500">
+                                ID: {inspection.vehicle.internalId}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm text-gray-900 max-w-[150px]">
+                            <div className="truncate" title={getDriverName(inspection.driver)}>
+                              {getDriverName(inspection.driver) || 'N/A'}
+                            </div>
+                            {inspection.driverLicenseNumber && (
+                              <div className="text-xs text-gray-500">
+                                DL: {inspection.driverLicenseNumber}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(inspection.status)}
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium border ${getStatusBadgeColor(inspection.status)}`}>
+                              {inspection.status.replace('-', ' ').toUpperCase()}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm text-gray-900 max-w-[150px] truncate" title={inspection.inspectorName || 'N/A'}>
+                            {inspection.inspectorName || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {inspection.reportNumber || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {inspection.inspectionLevel ? `Level ${inspection.inspectionLevel}` : 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {inspection.jurisdiction || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {inspection.carrierUSDOTNumber || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm">
+                            {inspection.outOfServiceIssued ? (
+                              <span className="text-red-600 font-medium">Yes</span>
+                            ) : (
+                              <span className="text-gray-500">No</span>
+                            )}
+                            {inspection.outOfServiceReleaseDate && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                Released: {formatDate(inspection.outOfServiceReleaseDate)}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm text-gray-900">
+                            {inspection.violations && inspection.violations.length > 0 ? (
+                              <div className="flex flex-col gap-1">
+                                <span className="text-red-600 font-medium">{inspection.violations.length} violation(s)</span>
+                                {inspection.violations.slice(0, 2).map((v, idx) => (
+                                  <span key={idx} className="text-xs text-gray-600 truncate max-w-[150px]" title={v.description}>
+                                    {v.code}: {v.description}
+                                  </span>
+                                ))}
+                                {inspection.violations.length > 2 && (
+                                  <span className="text-xs text-gray-500">+{inspection.violations.length - 2} more</span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-500">None</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-10">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleViewInspection(inspection)}
+                              className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="View Details"
+                            >
+                              <FaEye size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleEditInspection(inspection)}
+                              className="text-[#9793E4] hover:text-[#8783D4] p-2 hover:bg-purple-50 rounded-lg transition-colors"
+                              title="Edit Inspection"
+                            >
+                              <FaEdit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteInspection(inspection)}
+                              className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Inspection"
+                            >
+                              <FaTrash size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+                <div className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{' '}
+                  <span className="font-medium">{Math.min(currentPage * pageSize, total)}</span> of{' '}
+                  <span className="font-medium">{total}</span> inspections
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-2 rounded-lg border ${
+                      currentPage === 1
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                    }`}
+                  >
+                    <FaChevronLeft size={14} />
+                  </button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
                         <button
-                          onClick={() => handleViewInspection(inspection)}
-                          className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="View Details"
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                            currentPage === pageNum
+                              ? 'bg-[#9793E4] text-white'
+                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                          }`}
                         >
-                          <FaEye size={16} />
+                          {pageNum}
                         </button>
-                        <button
-                          onClick={() => handleEditInspection(inspection)}
-                          className="text-[#9793E4] hover:text-[#8783D4] p-2 hover:bg-purple-50 rounded-lg transition-colors"
-                          title="Edit Inspection"
-                        >
-                          <FaEdit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteInspection(inspection)}
-                          className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete Inspection"
-                        >
-                          <FaTrash size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-2 rounded-lg border ${
+                      currentPage === totalPages
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                    }`}
+                  >
+                    <FaChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

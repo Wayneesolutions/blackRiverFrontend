@@ -138,19 +138,20 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
     // Close dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target)) {
+            const target = event.target as Node | null;
+            if (customerDropdownRef.current && !customerDropdownRef.current.contains(target)) {
                 setCustomerDropdownOpen(false);
             }
-            if (equipmentDropdownRef.current && !equipmentDropdownRef.current.contains(event.target)) {
+            if (equipmentDropdownRef.current && !equipmentDropdownRef.current.contains(target)) {
                 setEquipmentDropdownOpen(false);
             }
-            if (packagesDropdownRef.current && !packagesDropdownRef.current.contains(event.target)) {
+            if (packagesDropdownRef.current && !packagesDropdownRef.current.contains(target)) {
                 setNoOfPackagesDropdownOpen(false);
             }
-            if (pickupDropdownRef.current && !pickupDropdownRef.current.contains(event.target)) {
+            if (pickupDropdownRef.current && !pickupDropdownRef.current.contains(target)) {
                 setPickupDropdownOpen(false);
             }
-            if (deliveryDropdownRef.current && !deliveryDropdownRef.current.contains(event.target)) {
+            if (deliveryDropdownRef.current && !deliveryDropdownRef.current.contains(target)) {
                 setDeliveryDropdownOpen(false);
             }
         };

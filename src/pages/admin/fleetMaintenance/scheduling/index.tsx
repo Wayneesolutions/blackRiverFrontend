@@ -210,12 +210,6 @@ const MaintenanceSchedule = () => {
         'other': { mileage: 0, days: 0 }
     };
 
-    // State to store last completed service data for next due calculation
-    const [lastServiceData, setLastServiceData] = useState<{
-        odometerReading?: number;
-        completionDate?: string;
-        serviceType?: string;
-    } | null>(null);
 
     // State for vehicle's current odometer
     const [currentOdometer, setCurrentOdometer] = useState<number | null>(null);
@@ -450,6 +444,8 @@ const MaintenanceSchedule = () => {
             notes?: string;
             serviceProvider?: string;
             invoiceNumber?: string;
+            estimatedCost?: number;
+            estimatedTime?: string;
         } = {
             vehicleId: scheduleForm.vehicle,
             serviceType: validServiceType as any,
@@ -467,7 +463,9 @@ const MaintenanceSchedule = () => {
             parts: scheduleForm.parts || undefined,
             notes: scheduleForm.notes || undefined,
             serviceProvider: scheduleForm.serviceProvider || undefined,
-            invoiceNumber: scheduleForm.invoiceNumber || undefined
+            invoiceNumber: scheduleForm.invoiceNumber || undefined,
+            estimatedCost: scheduleForm.estimatedCost ? parseFloat(scheduleForm.estimatedCost) : undefined,
+            estimatedTime: scheduleForm.estimatedTime || undefined
         };
 
         console.log('Creating service with data:', serviceData);
@@ -520,6 +518,8 @@ const MaintenanceSchedule = () => {
             notes?: string;
             serviceProvider?: string;
             invoiceNumber?: string;
+            estimatedCost?: number;
+            estimatedTime?: string;
         } = {
             vehicleId: scheduleForm.vehicle,
             serviceType: scheduleForm.serviceType as any,
@@ -537,7 +537,9 @@ const MaintenanceSchedule = () => {
             parts: scheduleForm.parts || undefined,
             notes: scheduleForm.notes || undefined,
             serviceProvider: scheduleForm.serviceProvider || undefined,
-            invoiceNumber: scheduleForm.invoiceNumber || undefined
+            invoiceNumber: scheduleForm.invoiceNumber || undefined,
+            estimatedCost: scheduleForm.estimatedCost ? parseFloat(scheduleForm.estimatedCost) : undefined,
+            estimatedTime: scheduleForm.estimatedTime || undefined
         };
 
         const result = await updateService(serviceId, updateData);
@@ -558,9 +560,9 @@ const MaintenanceSchedule = () => {
             priority: service.priority,
             dueDate: service.dueDate.split('T')[0],
             dueMileage: service.dueMileage.toString(),
-            assignedMechanic: service.assignedMechanic?._id || '',
-            estimatedCost: '',
-            estimatedTime: '',
+            assignedMechanic: service.assignedMechanic?._id || (typeof service.assignedMechanic === 'string' ? service.assignedMechanic : ''),
+            estimatedCost: (service as any).estimatedCost?.toString() || '',
+            estimatedTime: (service as any).estimatedTime || '',
             description: service.description || '',
             recurringService: false,
             recurringInterval: '',
@@ -776,17 +778,8 @@ const MaintenanceSchedule = () => {
                 const lastOrder = completedOrders[0];
                 lastOdometer = lastOrder.odometerReading || currentOdo;
                 lastCompletionDate = new Date(lastOrder.completionDate || lastOrder.createdAt);
-                setLastServiceData({
-                    odometerReading: lastOdometer,
-                    completionDate: lastCompletionDate.toISOString(),
-                    serviceType: serviceType
-                });
             } else {
                 // No completed orders found, use vehicle's current odometer
-                setLastServiceData({
-                    odometerReading: currentOdo,
-                    serviceType: serviceType
-                });
                 lastCompletionDate = new Date(); // Use today as base if no previous service
             }
 
@@ -1271,6 +1264,29 @@ const MaintenanceSchedule = () => {
                                     </select>
                                 </div>
 
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Cost ($)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={scheduleForm.estimatedCost}
+                                        onChange={(e) => handleFormChange('estimatedCost', e.target.value)}
+                                        placeholder="0.00"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Time</label>
+                                    <input
+                                        type="text"
+                                        value={scheduleForm.estimatedTime}
+                                        onChange={(e) => handleFormChange('estimatedTime', e.target.value)}
+                                        placeholder="e.g., 2 hours, 1 day"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
                                 {/* New Fields Section */}
                                 <div className="border-t pt-6 mt-6">
                                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Service Details</h3>
@@ -1559,37 +1575,57 @@ const MaintenanceSchedule = () => {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Type</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Mechanic</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit/Vehicle</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Type</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Date</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Odometer (km)</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Mileage</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Mechanic</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Provider</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estimated Cost</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parts</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {vehicleServices.map((service: VehicleServiceResponse) => (
+                                {vehicleServices.map((service: VehicleServiceResponse) => {
+                                    const formatDate = (dateString: string | Date | null | undefined) => {
+                                        if (!dateString) return 'N/A';
+                                        const date = new Date(dateString);
+                                        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                                    };
+                                    
+                                    return (
                                     <tr key={service._id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <Truck className="text-gray-400 mr-3" size={20} />
-                                                <div>
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {service.vehicleId?.plateNumber || service.vehicleId?.internalId || 'N/A'}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        {service.vehicleId?.make && service.vehicleId?.model 
-                                                            ? `${service.vehicleId.make} ${service.vehicleId.model}` 
-                                                            : service.vehicleId?.model || service.vehicleId?.year || ''}
-                                                    </div>
+                                        <td className="px-4 py-4 whitespace-nowrap">
+                                            <div>
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {(service as any).unitNumber || service.vehicleId?.internalId || 'N/A'}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    {service.vehicleId?.plateNumber || ''}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {service.serviceType.replace('-', ' ').toUpperCase()}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {formatDate((service as any).serviceDate)}
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {formatDate(service.dueDate)}
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {(service as any).odometer ? (service as any).odometer.toLocaleString() : 'N/A'}
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {service.dueMileage ? service.dueMileage.toLocaleString() : 'N/A'}
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap">
                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${service.priority === 'urgent' ? 'bg-red-100 text-red-800' :
                                                     service.priority === 'high' ? 'bg-orange-100 text-orange-800' :
                                                         service.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
@@ -1597,7 +1633,7 @@ const MaintenanceSchedule = () => {
                                                 {service.priority.toUpperCase()}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-4 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-2">
                                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${service.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                         service.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
@@ -1617,10 +1653,7 @@ const MaintenanceSchedule = () => {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {new Date(service.dueDate).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
                                             {(() => {
                                                 const mechanic = service.assignedMechanic as any;
                                                 if (!mechanic) return 'N/A';
@@ -1637,7 +1670,20 @@ const MaintenanceSchedule = () => {
                                                 return 'N/A';
                                             })()}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            <div className="truncate max-w-24" title={(service as any).serviceProvider || 'N/A'}>
+                                                {(service as any).serviceProvider || 'N/A'}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {(service as any).estimatedCost ? `$${((service as any).estimatedCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
+                                        </td>
+                                        <td className="px-4 py-4 text-sm text-gray-600 max-w-xs">
+                                            <div className="truncate" title={(service as any).parts || 'N/A'}>
+                                                {(service as any).parts || 'N/A'}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => handleEditService(service)}
@@ -1665,7 +1711,8 @@ const MaintenanceSchedule = () => {
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
+                                    );
+                                })}
                             </tbody>
                         </table>
                     )}

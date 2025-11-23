@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, X, Calendar, Truck, Clock, CheckCircle, ExternalLink } from 'lucide-react';
+import {  X, Calendar, Truck, Clock, ExternalLink } from 'lucide-react';
 import { getExpiringVehicleDocuments } from '../../axios/api/compilance.vehicledoc';
 
 interface ExpiringVehicleDocumentsPopupProps {
@@ -171,7 +171,6 @@ const ExpiringVehicleDocumentsPopup: React.FC<ExpiringVehicleDocumentsPopupProps
               {expiringDocuments.map((doc) => {
                 const daysUntilExpiry = getDaysUntilExpiry(doc.expiryDate);
                 const urgencyBadge = getUrgencyBadge(daysUntilExpiry);
-                const asset = doc.assetType === 'trailer' ? doc.trailerId : doc.vehicleId;
                 const assetName = doc.assetType === 'trailer' 
                   ? `${doc.trailerId?.type || 'Trailer'} (${doc.trailerId?.plateNumber || 'N/A'})`
                   : `${doc.vehicleId?.make || ''} ${doc.vehicleId?.model || ''} (${doc.vehicleId?.plateNumber || 'N/A'})`.trim();

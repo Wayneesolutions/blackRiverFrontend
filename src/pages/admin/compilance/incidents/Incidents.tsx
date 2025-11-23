@@ -6,23 +6,16 @@ import {
   FaTrash, 
   FaEye, 
   FaSearch, 
-  FaFilter,
   FaCalendarAlt,
   FaMapMarkerAlt,
   FaUser,
-  FaTruck,
-  FaDollarSign,
   FaCheckCircle,
   FaTimesCircle,
   FaExclamationCircle,
   FaInfoCircle,
-  FaSort,
-  FaSortUp,
-  FaSortDown,
   FaTimes,
-  FaClipboardList,
-  FaShieldAlt,
-  FaFileAlt
+  FaChevronLeft,
+  FaChevronRight
 } from 'react-icons/fa';
 import {
   getIncidents,
@@ -178,18 +171,20 @@ const ToastNotification: React.FC<ToastNotification & { onRemove: () => void }> 
 
 const Incidents: React.FC = () => {
   const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [filteredIncidents, setFilteredIncidents] = useState<Incident[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [, setVehicles] = useState<Vehicle[]>([]);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [locationFilter, setLocationFilter] = useState<string>('all');
   const [driverFilter, setDriverFilter] = useState<string>('all');
-  const [sortField, setSortField] = useState<string>('incidentDateTime');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
@@ -224,8 +219,21 @@ const Incidents: React.FC = () => {
     closed: 0
   });
 
+  // Debounce search query
   useEffect(() => {
-    refreshData();
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1); // Reset to first page on search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, typeFilter, locationFilter, driverFilter]);
+
+  useEffect(() => {
     loadDrivers();
     loadVehicles();
     loadTrailers();
@@ -233,19 +241,47 @@ const Incidents: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    applyFilters();
-  }, [incidents, searchQuery, statusFilter, typeFilter, locationFilter, driverFilter, sortField, sortDirection]);
+    refreshData();
+  }, [statusFilter, typeFilter, locationFilter, driverFilter, debouncedSearch, currentPage, pageSize]);
 
   const refreshData = async () => {
     setLoading(true);
     try {
-      const res = await getIncidents();
-      if (res && res.data) {
+      const params: any = {
+        page: currentPage,
+        limit: pageSize,
+        sortBy: 'incidentDateTime',
+        sortOrder: 'desc'
+      };
+      
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (typeFilter !== 'all') params.type = typeFilter;
+      if (locationFilter !== 'all') params.location = locationFilter;
+      if (driverFilter !== 'all') params.driver = driverFilter;
+      if (debouncedSearch) params.search = debouncedSearch;
+      
+      const res = await getIncidents(params);
+      if (res && res.success && res.data) {
         setIncidents(res.data);
+        if (res.pagination) {
+          setTotal(res.pagination.total);
+          setTotalPages(res.pagination.totalPages);
+          // If current page is beyond total pages, reset to last page
+          if (currentPage > res.pagination.totalPages && res.pagination.totalPages > 0) {
+            setCurrentPage(res.pagination.totalPages);
+          }
+        }
+      } else {
+        setIncidents([]);
+        setTotal(0);
+        setTotalPages(0);
       }
     } catch (error) {
       console.error('Error fetching incidents:', error);
       addNotification('error', 'Failed to load incidents');
+      setIncidents([]);
+      setTotal(0);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
@@ -287,88 +323,12 @@ const Incidents: React.FC = () => {
   const loadStats = async () => {
     try {
       const res = await getIncidentStats();
-      if (res) {
-        setStats(res);
+      if (res && res.data) {
+        setStats(res.data);
       }
     } catch (error) {
       console.error('Error loading stats:', error);
     }
-  };
-
-  const applyFilters = () => {
-    let filtered = [...incidents];
-
-    // Apply search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(incident =>
-        incident.incidentNumber?.toLowerCase().includes(query) ||
-        incident.incidentType?.toLowerCase().includes(query) ||
-        incident.location?.city?.toLowerCase().includes(query) ||
-        incident.location?.stateProvince?.toLowerCase().includes(query) ||
-        getDriverName(incident.driver).toLowerCase().includes(query) ||
-        incident.caseFileNumber?.toLowerCase().includes(query) ||
-        incident.description?.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(incident => incident.incidentStatus === statusFilter);
-    }
-
-    // Apply type filter
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(incident => incident.incidentType === typeFilter);
-    }
-
-    // Apply location filter
-    if (locationFilter !== 'all') {
-      filtered = filtered.filter(incident => 
-        incident.location?.stateProvince === locationFilter ||
-        incident.location?.city === locationFilter
-      );
-    }
-
-    // Apply driver filter
-    if (driverFilter !== 'all') {
-      filtered = filtered.filter(incident => {
-        const driverId = typeof incident.driver === 'string' ? incident.driver : incident.driver?._id;
-        return driverId === driverFilter;
-      });
-    }
-
-    // Sort incidents
-    filtered.sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
-
-      switch (sortField) {
-        case 'incidentDateTime':
-          aValue = new Date(a.incidentDateTime).getTime();
-          bValue = new Date(b.incidentDateTime).getTime();
-          break;
-        case 'incidentType':
-          aValue = a.incidentType || '';
-          bValue = b.incidentType || '';
-          break;
-        case 'incidentStatus':
-          aValue = a.incidentStatus || '';
-          bValue = b.incidentStatus || '';
-          break;
-        default:
-          aValue = a[sortField as keyof Incident];
-          bValue = b[sortField as keyof Incident];
-      }
-
-      if (sortDirection === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
-
-    setFilteredIncidents(filtered);
   };
 
   const getDriverName = (driver: Incident['driver']): string => {
@@ -416,26 +376,8 @@ const Incidents: React.FC = () => {
     });
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+  
 
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-
-  const getSortIcon = (field: string) => {
-    if (sortField !== field) return <FaSort className="text-gray-400" size={14} />;
-    return sortDirection === 'asc' ? <FaSortUp className="text-gray-600" size={14} /> : <FaSortDown className="text-gray-600" size={14} />;
-  };
 
   const resetForm = () => {
     setIncidentForm({
@@ -460,7 +402,11 @@ const Incidents: React.FC = () => {
     setSelectedIncident(incident);
     setIncidentForm({
       incidentDateTime: incident.incidentDateTime ? new Date(incident.incidentDateTime).toISOString().slice(0, 16) : '',
-      location: incident.location || { city: '', stateProvince: '', country: 'usa' },
+      location: {
+        city: incident.location?.city || '',
+        stateProvince: incident.location?.stateProvince || '',
+        country: incident.location?.country || 'usa'
+      },
       incidentType: incident.incidentType || '',
       incidentStatus: incident.incidentStatus || 'open',
       caseFileNumber: incident.caseFileNumber || '',
@@ -480,8 +426,7 @@ const Incidents: React.FC = () => {
       cvsaDotImpact: incident.cvsaDotImpact || false,
       fmcsaReportable: incident.fmcsaReportable || false,
       fmcsaNotes: incident.fmcsaNotes || '',
-      notes: incident.notes || '',
-      country: incident.location?.country || 'usa'
+      notes: incident.notes || ''
     });
     setShowEditModal(true);
   };
@@ -550,12 +495,13 @@ const Incidents: React.FC = () => {
       };
 
       const res = await createIncident(payload);
-      if (res && res.data) {
+      if (res && res.success && res.data) {
         addNotification('success', 'Incident created successfully');
         setShowAddModal(false);
         resetForm();
-        refreshData();
-        loadStats();
+        setCurrentPage(1); // Reset to first page to see the new incident
+        await refreshData();
+        await loadStats();
       } else {
         addNotification('error', res?.message || 'Failed to create incident');
       }
@@ -601,13 +547,13 @@ const Incidents: React.FC = () => {
       };
 
       const res = await updateIncident(selectedIncident._id, payload);
-      if (res && res.data) {
+      if (res && res.success && res.data) {
         addNotification('success', 'Incident updated successfully');
         setShowEditModal(false);
         setSelectedIncident(null);
         resetForm();
-        refreshData();
-        loadStats();
+        await refreshData();
+        await loadStats();
       } else {
         addNotification('error', res?.message || 'Failed to update incident');
       }
@@ -625,12 +571,16 @@ const Incidents: React.FC = () => {
     setLoading(true);
     try {
       const res = await deleteIncident(incidentToDelete._id);
-      if (res && res.data) {
+      if (res && res.success) {
         addNotification('success', 'Incident deleted successfully');
         setShowDeleteModal(false);
         setIncidentToDelete(null);
-        refreshData();
-        loadStats();
+        // If we're on the last page and it becomes empty, go to previous page
+        if (incidents.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
+        await refreshData();
+        await loadStats();
       } else {
         addNotification('error', res?.message || 'Failed to delete incident');
       }
@@ -742,7 +692,10 @@ const Incidents: React.FC = () => {
           <div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
             >
               <option value="all">All Status</option>
@@ -755,7 +708,10 @@ const Incidents: React.FC = () => {
           <div>
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
+              onChange={(e) => {
+                setTypeFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
             >
               <option value="all">All Types</option>
@@ -768,7 +724,10 @@ const Incidents: React.FC = () => {
           <div>
             <select
               value={locationFilter}
-              onChange={(e) => setLocationFilter(e.target.value)}
+              onChange={(e) => {
+                setLocationFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
             >
               <option value="all">All Locations</option>
@@ -781,7 +740,10 @@ const Incidents: React.FC = () => {
           <div>
             <select
               value={driverFilter}
-              onChange={(e) => setDriverFilter(e.target.value)}
+              onChange={(e) => {
+                setDriverFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
             >
               <option value="all">All Drivers</option>
@@ -794,7 +756,9 @@ const Incidents: React.FC = () => {
 
         <div className="flex justify-between items-center">
           <p className="text-sm text-gray-600">
-            Showing <span className="font-semibold">{filteredIncidents.length}</span> of <span className="font-semibold">{incidents.length}</span> incidents
+            Showing <span className="font-semibold">{(currentPage - 1) * pageSize + 1}</span> to{' '}
+            <span className="font-semibold">{Math.min(currentPage * pageSize, total)}</span> of{' '}
+            <span className="font-semibold">{total}</span> incidents
           </p>
           <button
             onClick={handleAddIncident}
@@ -812,49 +776,31 @@ const Incidents: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('incidentNumber')}
-                >
-                  <div className="flex items-center gap-2">
-                    Incident #
-                    {getSortIcon('incidentNumber')}
-                  </div>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
+                  Incident #
                 </th>
-                <th
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('incidentDateTime')}
-                >
-                  <div className="flex items-center gap-2">
-                    Date/Time
-                    {getSortIcon('incidentDateTime')}
-                  </div>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date/Time
                 </th>
-                <th
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('incidentType')}
-                >
-                  <div className="flex items-center gap-2">
-                    Type
-                    {getSortIcon('incidentType')}
-                  </div>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Location
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Driver
                 </th>
-                <th
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('incidentStatus')}
-                >
-                  <div className="flex items-center gap-2">
-                    Status
-                    {getSortIcon('incidentStatus')}
-                  </div>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Unit/Trailer
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Case File #
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-gray-50 z-10">
                   Actions
                 </th>
               </tr>
@@ -862,32 +808,32 @@ const Incidents: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                     Loading incidents...
                   </td>
                 </tr>
-              ) : filteredIncidents.length === 0 ? (
+              ) : incidents.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                     No incidents found
                   </td>
                 </tr>
               ) : (
-                filteredIncidents.map((incident) => (
+                incidents.map((incident) => (
                   <tr key={incident._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky left-0 bg-white z-10">
                       <p className="text-sm font-semibold text-gray-800">{incident.incidentNumber || 'N/A'}</p>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <FaCalendarAlt size={14} />
                         {incident.incidentDateTime ? formatDate(incident.incidentDateTime) : 'N/A'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <p className="text-sm text-gray-800">{incident.incidentType || 'N/A'}</p>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <FaMapMarkerAlt size={14} />
                         <span>
@@ -896,13 +842,24 @@ const Incidents: React.FC = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <FaUser size={14} />
                         {getDriverName(incident.driver)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-600">
+                        {incident.unitNumber ? `Unit: ${incident.unitNumber}` : 'N/A'}
+                        {incident.trailerNumber && (
+                          <div className="text-xs text-gray-500">Trailer: {incident.trailerNumber}</div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <p className="text-sm text-gray-600">{incident.caseFileNumber || 'N/A'}</p>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {getStatusIcon(incident.incidentStatus)}
                         <span className={`text-xs px-3 py-1 rounded-full font-semibold border ${getStatusBadgeColor(incident.incidentStatus)}`}>
@@ -910,26 +867,26 @@ const Incidents: React.FC = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-10">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleViewIncident(incident)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="View"
+                          className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="View Details"
                         >
                           <FaEye size={16} />
                         </button>
                         <button
                           onClick={() => handleEditIncident(incident)}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                          title="Edit"
+                          className="text-[#9793E4] hover:text-[#8783D4] p-2 hover:bg-purple-50 rounded-lg transition-colors"
+                          title="Edit Incident"
                         >
                           <FaEdit size={16} />
                         </button>
                         <button
                           onClick={() => handleDeleteIncident(incident)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete"
+                          className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Incident"
                         >
                           <FaTrash size={16} />
                         </button>
@@ -941,6 +898,82 @@ const Incidents: React.FC = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {total > 0 && (
+          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+            <div className="text-sm text-gray-700">
+              Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{' '}
+              <span className="font-medium">{Math.min(currentPage * pageSize, total)}</span> of{' '}
+              <span className="font-medium">{total}</span> incidents
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-2 rounded-lg border ${
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                  }`}
+                >
+                  <FaChevronLeft size={14} />
+                </button>
+                <div className="flex gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-3 py-2 rounded-lg border ${
+                          currentPage === pageNum
+                            ? 'bg-[#9793E4] text-white border-[#9793E4]'
+                            : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-2 rounded-lg border ${
+                    currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                  }`}
+                >
+                  <FaChevronRight size={14} />
+                </button>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="ml-4 px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700"
+                >
+                  <option value={25}>25 per page</option>
+                  <option value={50}>50 per page</option>
+                  <option value={100}>100 per page</option>
+                </select>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Add Incident Modal */}

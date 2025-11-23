@@ -884,19 +884,46 @@ const SparePartsInventory = () => {
                         <table className="w-full">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Part Details
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Part Number
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Stock Info
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Part Name
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Pricing
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Category
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Description
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Stock Qty
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Min/Max Stock
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Buying Price
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Selling Price
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Purchase Date
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Supplier
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Location
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Condition
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Warranty
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
@@ -907,31 +934,78 @@ const SparePartsInventory = () => {
                                     const supplier = typeof part.supplier === 'object' ? part.supplier : suppliers.find(s => s._id === part.supplier);
                                     return (
                                         <tr key={part._id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-semibold text-gray-900">{part.partName}</div>
-                                                <div className="text-sm text-gray-500">{part.partNumber}</div>
-                                                <div className="text-xs text-gray-400">{part.category}</div>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-semibold text-gray-900">{part.partNumber || 'N/A'}</div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">{part.stockQty} units</div>
-                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.color}`}>
-                                                    {stockStatus.status}
-                                                </span>
-                                                {part.stockQty <= part.minStockLevel && (
-                                                    <FaExclamationTriangle className="inline ml-2 text-red-500" size={12} />
-                                                )}
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-gray-900">{part.partName || 'N/A'}</div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    <div>Buy: ${part.buyingPrice.toFixed(2)}</div>
-                                                    <div>Sell: ${part.sellingPrice.toFixed(2)}</div>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-600">{part.category || 'N/A'}</div>
+                                            </td>
+                                            <td className="px-4 py-4">
+                                                <div className="text-sm text-gray-600 max-w-xs truncate" title={part.description || 'N/A'}>
+                                                    {part.description || 'N/A'}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">{supplier?.name || 'N/A'}</div>
-                                                <div className="text-xs text-gray-500">{formatDate(part.purchaseDate)}</div>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="text-sm font-medium text-gray-900">{part.stockQty || 0}</div>
+                                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.color}`}>
+                                                        {stockStatus.status}
+                                                    </span>
+                                                    {part.stockQty <= part.minStockLevel && (
+                                                        <FaExclamationTriangle className="text-red-500" size={12} />
+                                                    )}
+                                                </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-600">
+                                                    <div>Min: {part.minStockLevel || 0}</div>
+                                                    <div>Max: {part.maxStockLevel || 0}</div>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-900">
+                                                    ${part.buyingPrice ? part.buyingPrice.toFixed(2) : '0.00'}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-900">
+                                                    ${part.sellingPrice ? part.sellingPrice.toFixed(2) : '0.00'}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-600">
+                                                    {part.purchaseDate ? formatDate(part.purchaseDate) : 'N/A'}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-900">{supplier?.name || 'N/A'}</div>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-600">{part.location || 'N/A'}</div>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                                    part.condition === 'new' ? 'bg-green-100 text-green-800' :
+                                                    part.condition === 'refurbished' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-gray-100 text-gray-800'
+                                                }`}>
+                                                    {part.condition ? part.condition.charAt(0).toUpperCase() + part.condition.slice(1) : 'N/A'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-600">
+                                                    {part.warrantyPeriod ? `${part.warrantyPeriod} months` : 'N/A'}
+                                                </div>
+                                                {part.warrantyExpiry && (
+                                                    <div className="text-xs text-gray-500">
+                                                        Exp: {formatDate(part.warrantyExpiry)}
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                                                 <ActionDropdown part={part} />
                                             </td>
                                         </tr>
