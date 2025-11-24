@@ -124,17 +124,25 @@ const Issues: React.FC = () => {
     }
   };
 
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; issueId: string | null }>({ show: false, issueId: null });
+
   // Delete issue
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this issue?')) return;
+    setDeleteConfirm({ show: true, issueId: id });
+  };
+
+  const confirmDeleteIssue = async () => {
+    if (!deleteConfirm.issueId) return;
 
     try {
-      const response = await deleteIssue(id);
+      const response = await deleteIssue(deleteConfirm.issueId);
       if (response.success) {
-        setIssues(issues.filter(issue => issue._id !== id));
+        setIssues(issues.filter(issue => issue._id !== deleteConfirm.issueId));
       }
     } catch (error) {
       console.error('Error deleting issue:', error);
+    } finally {
+      setDeleteConfirm({ show: false, issueId: null });
     }
   };
 
@@ -524,6 +532,18 @@ const Issues: React.FC = () => {
           }}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirm.show}
+        onClose={() => setDeleteConfirm({ show: false, issueId: null })}
+        onConfirm={confirmDeleteIssue}
+        title="Delete Issue"
+        message="Are you sure you want to delete this issue? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 };

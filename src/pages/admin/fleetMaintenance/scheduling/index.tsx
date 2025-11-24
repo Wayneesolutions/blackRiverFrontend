@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Clock, AlertTriangle, Truck, Wrench, CheckCircle, Search, Bell, Plus, X, FileText, Edit, Trash2 } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaInfoCircle } from 'react-icons/fa';
+import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 import { getMaintenanceSchedule, getMaintenanceCostReport } from "../../../../axios/api/fleet.maintenance"
 import { 
     createVehicleService, 
@@ -135,6 +136,7 @@ const MaintenanceSchedule = () => {
     const [showScheduleForm, setShowScheduleForm] = useState<boolean>(false);
     const [showAlertDetails, setShowAlertDetails] = useState<Alert | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; serviceId: string | null }>({ show: false, serviceId: null });
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [costReport, setCostReport] = useState<CostReportItem[]>([]);
     const [selectedYear] = useState<number>(new Date().getFullYear());
@@ -1206,7 +1208,7 @@ const MaintenanceSchedule = () => {
                                                     });
                                                 }
                                             }}
-                                            className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                                            className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 !text-white text-sm rounded-lg transition-colors"
                                         >
                                             Calculate Next Due
                                         </button>
@@ -1693,16 +1695,7 @@ const MaintenanceSchedule = () => {
                                                     <Edit size={16} />
                                                 </button>
                                                 <button
-                                                    onClick={async () => {
-                                                        if (window.confirm('Are you sure you want to delete this service?')) {
-                                                            const result = await deleteService(service._id);
-                                                            if (result?.success) {
-                                                                addNotification('success', result?.message || 'Service deleted successfully!');
-                                                            } else {
-                                                                addNotification('error', `Failed to delete service: ${result?.message || 'Unknown error'}`);
-                                                            }
-                                                        }
-                                                    }}
+                                                    onClick={() => setDeleteConfirm({ show: true, serviceId: service._id })}
                                                     className="text-red-600 hover:text-red-900"
                                                     title="Delete Service"
                                                 >
@@ -1734,6 +1727,28 @@ const MaintenanceSchedule = () => {
                     />
                 ))}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={deleteConfirm.show}
+                onClose={() => setDeleteConfirm({ show: false, serviceId: null })}
+                onConfirm={async () => {
+                    if (deleteConfirm.serviceId) {
+                        const result = await deleteService(deleteConfirm.serviceId);
+                        if (result?.success) {
+                            addNotification('success', result?.message || 'Service deleted successfully!');
+                        } else {
+                            addNotification('error', `Failed to delete service: ${result?.message || 'Unknown error'}`);
+                        }
+                        setDeleteConfirm({ show: false, serviceId: null });
+                    }
+                }}
+                title="Delete Service"
+                message="Are you sure you want to delete this service? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+            />
         </div>
     );
 };

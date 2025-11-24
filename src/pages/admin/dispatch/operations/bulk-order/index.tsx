@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import NewBulkOrderSidebar from "./NewBulkOrderSidebar";
 import { createBulkOrders } from "../../../../../axios/api/distapcher";
+import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 
 type NotificationType = 'success' | 'error' | 'warning';
 
@@ -165,11 +166,17 @@ const BulkOrder = () => {
         setSidebarOpen(true);
     };
 
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; orderId: string | null }>({ show: false, orderId: null });
+
     const handleDeleteOrder = (id: string) => {
-        if (window.confirm("Are you sure you want to delete this order?")) {
-            setOrders(orders.filter((o) => o.id !== id));
-            addNotification('success', 'Order deleted successfully');
-        }
+        setDeleteConfirm({ show: true, orderId: id });
+    };
+
+    const confirmDeleteOrder = () => {
+        if (!deleteConfirm.orderId) return;
+        setOrders(orders.filter((o) => o.id !== deleteConfirm.orderId));
+        addNotification('success', 'Order deleted successfully');
+        setDeleteConfirm({ show: false, orderId: null });
     };
 
     const handleSaveAllOrders = async () => {
@@ -364,6 +371,18 @@ const BulkOrder = () => {
                     />
                 ))}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={deleteConfirm.show}
+                onClose={() => setDeleteConfirm({ show: false, orderId: null })}
+                onConfirm={confirmDeleteOrder}
+                title="Delete Order"
+                message="Are you sure you want to delete this order? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+            />
         </div>
     );
 };

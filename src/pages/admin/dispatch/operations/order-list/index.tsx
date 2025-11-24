@@ -4,6 +4,7 @@ import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import NewOrderSidebar from "./NewOrderSidebar";
 import { listOrder, deleteOrder, getOrderById } from "../../../../../axios/api/distapcher";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
+import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 
 interface Place {
   _id: string;
@@ -90,6 +91,7 @@ const OrderList = () => {
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; orderId: string | null }>({ show: false, orderId: null });
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
@@ -356,17 +358,22 @@ const OrderList = () => {
   };
 
   const handleDeleteOrder = async (orderId: string) => {
-    if (window.confirm("Are you sure you want to delete this order?")) {
-      try {
-        const response = await deleteOrder(orderId);
-        if (response?.success) {
-      setOrders(orders.filter((o) => o.id !== orderId));
-          addNotification('success', "Order deleted successfully");
-        } else {
-          addNotification('error', response?.message || "Failed to delete order");
-        }
-      } catch (error) {
-        console.error('Error deleting order:', error);
+    setDeleteConfirm({ show: true, orderId });
+  };
+
+  const confirmDeleteOrder = async () => {
+    if (!deleteConfirm.orderId) return;
+    
+    try {
+      const response = await deleteOrder(deleteConfirm.orderId);
+      if (response?.success) {
+        setOrders(orders.filter((o) => o.id !== deleteConfirm.orderId));
+        addNotification('success', "Order deleted successfully");
+      } else {
+        addNotification('error', response?.message || "Failed to delete order");
+      }
+    } catch (error) {
+      console.error('Error deleting order:', error);
         addNotification('error', "Failed to delete order. Please try again.");
       }
       setActionMenuOpen(null);
@@ -910,6 +917,18 @@ const OrderList = () => {
           />
         ))}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirm.show}
+        onClose={() => setDeleteConfirm({ show: false, orderId: null })}
+        onConfirm={confirmDeleteOrder}
+        title="Delete Order"
+        message="Are you sure you want to delete this order? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 };

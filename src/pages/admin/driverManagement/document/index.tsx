@@ -1000,7 +1000,7 @@ const ViewDocumentModal = ({
         <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
           <button
             onClick={() => onEdit(document)}
-            className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 flex items-center gap-2 transition-colors"
+            className="bg-blue-600 !text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
           >
             <Edit className="w-4 h-4" />
             Edit Document

@@ -3,6 +3,7 @@ import { Plus, Edit, Trash2, Eye, Search, X, File, Download } from "lucide-react
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck, FaUser, FaTrailer } from "react-icons/fa";
 import NewTripSidebar from "./NewTripSidebar";
 import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
+import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 
 interface Trip {
   _id: string;
@@ -113,6 +114,9 @@ const Trips = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [viewingTrip, setViewingTrip] = useState<Trip | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
+  const [startConfirm, setStartConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
+  const [completeConfirm, setCompleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   
   // Search and filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -225,12 +229,14 @@ const Trips = () => {
   };
 
   const handleDeleteTrip = async (trip: Trip) => {
-    if (!window.confirm(`Are you sure you want to delete trip ${trip.tripNumber}?`)) {
-      return;
-    }
+    setDeleteConfirm({ show: true, trip });
+  };
 
+  const confirmDeleteTrip = async () => {
+    if (!deleteConfirm.trip) return;
+    
     try {
-      const response = await deleteTrip(trip._id);
+      const response = await deleteTrip(deleteConfirm.trip._id);
       if (response?.success) {
         addNotification('success', 'Trip deleted successfully');
         fetchTrips();
@@ -239,6 +245,8 @@ const Trips = () => {
       }
     } catch (error: any) {
       addNotification('error', error?.message || 'An error occurred while deleting trip');
+    } finally {
+      setDeleteConfirm({ show: false, trip: null });
     }
   };
 
@@ -262,12 +270,14 @@ const Trips = () => {
   };
 
   const handleStartTrip = async (trip: Trip) => {
-    if (!window.confirm(`Are you sure you want to start trip ${trip.tripNumber}? This will change all order statuses to 'in-delivery'.`)) {
-      return;
-    }
+    setStartConfirm({ show: true, trip });
+  };
 
+  const confirmStartTrip = async () => {
+    if (!startConfirm.trip) return;
+    
     try {
-      const response = await startTripAPI(trip._id);
+      const response = await startTripAPI(startConfirm.trip._id);
       if (response?.success) {
         addNotification('success', 'Trip started successfully. Order statuses updated to in-delivery.');
         fetchTrips();
@@ -276,16 +286,20 @@ const Trips = () => {
       }
     } catch (error: any) {
       addNotification('error', error?.message || 'An error occurred while starting trip');
+    } finally {
+      setStartConfirm({ show: false, trip: null });
     }
   };
 
   const handleCompleteTrip = async (trip: Trip) => {
-    if (!window.confirm(`Are you sure you want to complete trip ${trip.tripNumber}? This will change all order statuses to 'completed'.`)) {
-      return;
-    }
+    setCompleteConfirm({ show: true, trip });
+  };
 
+  const confirmCompleteTrip = async () => {
+    if (!completeConfirm.trip) return;
+    
     try {
-      const response = await completeTripAPI(trip._id);
+      const response = await completeTripAPI(completeConfirm.trip._id);
       if (response?.success) {
         addNotification('success', 'Trip completed successfully. Order statuses updated to completed.');
         fetchTrips();
@@ -294,6 +308,8 @@ const Trips = () => {
       }
     } catch (error: any) {
       addNotification('error', error?.message || 'An error occurred while completing trip');
+    } finally {
+      setCompleteConfirm({ show: false, trip: null });
     }
   };
 
@@ -793,6 +809,42 @@ const Trips = () => {
           />
         ))}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirm.show}
+        onClose={() => setDeleteConfirm({ show: false, trip: null })}
+        onConfirm={confirmDeleteTrip}
+        title="Delete Trip"
+        message={deleteConfirm.trip ? `Are you sure you want to delete trip ${deleteConfirm.trip.tripNumber}? This action cannot be undone.` : ''}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
+
+      {/* Start Trip Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={startConfirm.show}
+        onClose={() => setStartConfirm({ show: false, trip: null })}
+        onConfirm={confirmStartTrip}
+        title="Start Trip"
+        message={startConfirm.trip ? `Are you sure you want to start trip ${startConfirm.trip.tripNumber}? This will change all order statuses to 'in-delivery'.` : ''}
+        confirmText="Start Trip"
+        cancelText="Cancel"
+        type="warning"
+      />
+
+      {/* Complete Trip Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={completeConfirm.show}
+        onClose={() => setCompleteConfirm({ show: false, trip: null })}
+        onConfirm={confirmCompleteTrip}
+        title="Complete Trip"
+        message={completeConfirm.trip ? `Are you sure you want to complete trip ${completeConfirm.trip.tripNumber}? This will change all order statuses to 'completed'.` : ''}
+        confirmText="Complete Trip"
+        cancelText="Cancel"
+        type="info"
+      />
     </div>
   );
 };

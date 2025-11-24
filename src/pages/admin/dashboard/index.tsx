@@ -23,7 +23,7 @@ const features = [
     },
     {
         id: "driver",
-        title: "Human Resources (Drivers)",
+        title: "Human Resources",
         description: "Simplify scheduling, communication, and performance monitoring to keep your driver team organized.",
         icon: DriverIcon,
         route: "/admin/Management",

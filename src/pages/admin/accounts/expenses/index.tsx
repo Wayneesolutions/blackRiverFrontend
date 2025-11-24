@@ -3,6 +3,7 @@ import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Tras
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { createExpense, listExpenses, updateExpense, deleteExpense } from "../../../../axios/api/account.expense";
 import { getEmployees } from "../../../../axios/api/account.payroll";
+import ConfirmationModal from "../../../../components/common/ConfirmationModal";
 
 interface Employee {
   _id: string;
@@ -285,14 +286,18 @@ const ExpensesPage = () => {
     setActiveTab('create');
   };
 
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; expenseId: string | null }>({ show: false, expenseId: null });
+
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this expense?')) {
-      return;
-    }
+    setDeleteConfirm({ show: true, expenseId: id });
+  };
+
+  const confirmDeleteExpense = async () => {
+    if (!deleteConfirm.expenseId) return;
 
     setLoading(true);
     try {
-      const response = await deleteExpense(id);
+      const response = await deleteExpense(deleteConfirm.expenseId);
       if (response && response.success) {
         addNotification('success', response.message || 'Expense deleted successfully!');
         fetchExpenses();
@@ -973,6 +978,18 @@ const ExpensesPage = () => {
           />
         ))}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirm.show}
+        onClose={() => setDeleteConfirm({ show: false, expenseId: null })}
+        onConfirm={confirmDeleteExpense}
+        title="Delete Expense"
+        message="Are you sure you want to delete this expense? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Edit, Trash2, Plus, X, Save, RefreshCw, AlertCircle } from 'lucide-react';
 import { getAllDrivers, createDriver, updateDriver, deleteDriver, updateDriverStatus, generateInternalId, type Driver } from '../../../../axios/api/driver';
+import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 
 const DriverManagement = () => {
     const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -149,21 +150,29 @@ const DriverManagement = () => {
         }
     };
 
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; driverId: string | null }>({ show: false, driverId: null });
+
     const handleDelete = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this driver?')) {
-            try {
-                const response = await deleteDriver(id);
-                if (response.success) {
-                    await fetchDrivers(); // Refresh the list
-                    alert('Driver deleted successfully!');
-                } else {
+        setDeleteConfirm({ show: true, driverId: id });
+    };
+
+    const confirmDeleteDriver = async () => {
+        if (!deleteConfirm.driverId) return;
+        
+        try {
+            const response = await deleteDriver(deleteConfirm.driverId);
+            if (response.success) {
+                await fetchDrivers(); // Refresh the list
+                alert('Driver deleted successfully!');
+            } else {
                     alert(response.message || 'Failed to delete driver');
                 }
             } catch (error) {
                 console.error('Error deleting driver:', error);
                 alert('Failed to delete driver');
+            } finally {
+                setDeleteConfirm({ show: false, driverId: null });
             }
-        }
     };
 
     const toggleStatus = async (id: string, currentStatus: string) => {
@@ -562,6 +571,18 @@ const DriverManagement = () => {
                     <p className="text-gray-500 text-lg">No drivers found. Create your first driver!</p>
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={deleteConfirm.show}
+                onClose={() => setDeleteConfirm({ show: false, driverId: null })}
+                onConfirm={confirmDeleteDriver}
+                title="Delete Driver"
+                message="Are you sure you want to delete this driver? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+            />
         </div>
     );
 };

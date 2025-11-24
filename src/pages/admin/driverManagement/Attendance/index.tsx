@@ -155,11 +155,17 @@ const AttendanceTracking = () => {
     setShowAddModal(true);
   };
 
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; recordId: string | null }>({ show: false, recordId: null });
+
   const handleDelete = async (id?: string) => {
     if (!id) return;
-    if (!window.confirm('Are you sure you want to delete this attendance record?')) return;
+    setDeleteConfirm({ show: true, recordId: id });
+  };
+
+  const confirmDeleteAttendance = async () => {
+    if (!deleteConfirm.recordId) return;
     try {
-      const res = await apiDeleteAttendance(id);
+      const res = await apiDeleteAttendance(deleteConfirm.recordId);
       if (res?.success) {
         addNotification('success', 'Attendance record deleted successfully');
         await fetchAttendance();
@@ -168,6 +174,8 @@ const AttendanceTracking = () => {
       }
     } catch (e: any) {
       addNotification('error', e?.response?.data?.message || e?.message || 'Error deleting attendance record');
+    } finally {
+      setDeleteConfirm({ show: false, recordId: null });
     }
   };
 
@@ -530,6 +538,18 @@ const AttendanceTracking = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirm.show}
+        onClose={() => setDeleteConfirm({ show: false, recordId: null })}
+        onConfirm={confirmDeleteAttendance}
+        title="Delete Attendance Record"
+        message="Are you sure you want to delete this attendance record? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 };
