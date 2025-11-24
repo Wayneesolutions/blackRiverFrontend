@@ -374,8 +374,9 @@ const OrderList = () => {
       }
     } catch (error) {
       console.error('Error deleting order:', error);
-        addNotification('error', "Failed to delete order. Please try again.");
-      }
+      addNotification('error', "Failed to delete order. Please try again.");
+    } finally {
+      setDeleteConfirm({ show: false, orderId: null });
       setActionMenuOpen(null);
     }
   };
