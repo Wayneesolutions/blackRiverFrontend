@@ -1,6 +1,24 @@
 import { type AxiosResponse } from "axios";
 import apiClient from "../apiClient";
 
+export type VehicleServiceType =
+  | 'oil-change'
+  | 'dpf-filter'
+  | 'valve-adjustment'
+  | 'radiator-change'
+  | 'oil-pump'
+  | 'coolant-filter'
+  | 'after-treatment-system'
+  | 'transmission-service'
+  | 'brake-inspection'
+  | 'tire-rotation'
+  | 'general-maintenance'
+  | 'inspection'
+  | 'other';
+
+export type VehicleServicePriority = 'low' | 'medium' | 'high' | 'urgent';
+export type VehicleServiceStatus = 'pending' | 'in-progress' | 'completed';
+
 interface Error {
   response?: {
     data?: {
@@ -11,36 +29,48 @@ interface Error {
 
 // Vehicle Service Data Types
 export interface VehicleServiceData {
-  vehicleId: string;
-  serviceType: 'oil-change' | 'tire-rotation' | 'bike-inspection' | 'general-maintenance' | 'other';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  vehicleId?: string;
+  unitNumber?: string;
+  unitType?: string;
+  makeModel?: string;
+  serviceType: VehicleServiceType;
+  priority: VehicleServicePriority;
   dueDate: string;
   dueMileage: number;
-  assignedMechanic: string;
-  description?: string;
-}
-
-export interface UpdateServiceData {
-  vehicleId?: string;
-  serviceType?: 'oil-change' | 'tire-rotation' | 'bike-inspection' | 'general-maintenance' | 'other';
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  dueDate?: string;
-  dueMileage?: number;
   assignedMechanic?: string;
   description?: string;
+  status?: VehicleServiceStatus;
+  serviceDate?: string;
+  odometer?: number;
+  parts?: string;
+  notes?: string;
+  serviceProvider?: string;
+  invoiceNumber?: string;
+  estimatedCost?: number;
+  estimatedTime?: string;
 }
 
+export interface UpdateServiceData extends Partial<VehicleServiceData> {}
+
 export interface ServiceFilters {
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  status?: 'pending' | 'in-progress' | 'completed';
-  serviceType?: 'oil-change' | 'tire-rotation' | 'bike-inspection' | 'general-maintenance' | 'other';
+  priority?: VehicleServicePriority;
+  status?: VehicleServiceStatus;
+  serviceType?: VehicleServiceType;
   mechanic?: string;
   vehicleId?: string;
+  unitNumber?: string;
+}
+
+interface AssignedMechanicDetails {
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
 }
 
 export interface VehicleServiceResponse {
   _id: string;
-  vehicleId: {
+  vehicleId?: {
     _id: string;
     plateNumber: string;
     internalId?: string;
@@ -48,18 +78,20 @@ export interface VehicleServiceResponse {
     make?: string;
     year?: number;
   };
-  serviceType: string;
-  priority: string;
-  dueDate: string;
-  dueMileage: number;
-  assignedMechanic: {
-    _id: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-  };
-  description: string;
-  status: 'pending' | 'in-progress' | 'completed';
+  unitNumber?: string;
+  unitType?: string;
+  makeModel?: string;
+  serviceType: VehicleServiceType;
+  priority: VehicleServicePriority;
+  dueDate?: string;
+  dueMileage?: number;
+  serviceDate?: string;
+  odometer?: number;
+  assignedMechanic?: string | AssignedMechanicDetails;
+  description?: string;
+  invoiceNumber?: string;
+  notes?: string;
+  status: VehicleServiceStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -127,6 +159,7 @@ export const listVehicleServices = async (filters?: ServiceFilters) => {
     if (filters?.serviceType) params.append('serviceType', filters.serviceType);
     if (filters?.mechanic) params.append('mechanic', filters.mechanic);
     if (filters?.vehicleId) params.append('vehicleId', filters.vehicleId);
+    if (filters?.unitNumber) params.append('unitNumber', filters.unitNumber);
 
     const queryString = params.toString();
     const url = `admin/vehicle-service${queryString ? `?${queryString}` : ''}`;

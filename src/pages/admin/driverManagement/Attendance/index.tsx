@@ -554,4 +554,62 @@ const AttendanceTracking = () => {
   );
 };
 
+interface ConfirmationModalProps {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  type?: 'danger' | 'default';
+  onConfirm: () => void;
+  onClose: () => void;
+}
+
+const ConfirmationModal = ({
+  isOpen,
+  title,
+  message,
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  type = 'default',
+  onConfirm,
+  onClose
+}: ConfirmationModalProps) => {
+  if (!isOpen) return null;
+
+  const confirmStyles =
+    type === 'danger'
+      ? 'bg-red-600 hover:bg-red-700 text-white'
+      : 'bg-blue-600 hover:bg-blue-700 text-white';
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+        <div className="border-b border-gray-200 px-6 py-4">
+          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        </div>
+        <div className="px-6 py-5">
+          <p className="text-sm text-gray-600">{message}</p>
+        </div>
+        <div className="flex gap-3 border-t border-gray-200 px-6 py-4">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            {cancelText}
+          </button>
+          <button
+            onClick={() => {
+              onConfirm();
+            }}
+            className={`flex-1 rounded-lg px-4 py-2 font-medium transition-colors ${confirmStyles}`}
+          >
+            {confirmText}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default AttendanceTracking;

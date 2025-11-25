@@ -1,163 +1,201 @@
-import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Calendar, Wrench, FileText } from 'lucide-react';
-import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Plus, Edit, Trash2, Search, Calendar, Wrench } from 'lucide-react';
+import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
+import {
+  listVehicleServices,
+  createVehicleService,
+  updateVehicleService,
+  deleteVehicleService,
+  type VehicleServiceData,
+  type VehicleServiceResponse,
+  type VehicleServiceType,
+  type ServiceFilters
+} from '../../../../axios/api/vehicleService';
+import { listFleetUnits } from '../../../../axios/api/fleet.units';
 
-type ServiceType = 'Oil Change' | 'DPF Filter' | 'Valve Adjustment' | 'Radiator Change' | 'Oil Pump' | 'Coolant Filter' | 'After Treatment System' | 'Transmission Service' | 'Brake Inspection';
+const SERVICE_TYPE_OPTIONS: { label: string; value: VehicleServiceType }[] = [
+  { label: 'Oil Change', value: 'oil-change' },
+  { label: 'DPF Filter', value: 'dpf-filter' },
+  { label: 'Valve Adjustment', value: 'valve-adjustment' },
+  { label: 'Radiator Change', value: 'radiator-change' },
+  { label: 'Oil Pump', value: 'oil-pump' },
+  { label: 'Coolant Filter', value: 'coolant-filter' },
+  { label: 'After Treatment System', value: 'after-treatment-system' },
+  { label: 'Transmission Service', value: 'transmission-service' },
+  { label: 'Brake Inspection', value: 'brake-inspection' }
+];
+
+type ServiceTypeFilter = 'all' | VehicleServiceType;
 
 interface ScheduledService {
   _id: string;
-  serviceDate: string;
   unitNo: string;
-  unitType: string;
-  makeModel: string;
-  serviceType: ServiceType;
-  odometer: number;
-  invoiceNo: string;
-  notes: string;
-  createdAt: string;
+  unitType?: string;
+  makeModel?: string;
+  serviceType: VehicleServiceType;
+  serviceDate?: string;
+  dueDate?: string;
+  odometer?: number;
+  invoiceNo?: string;
+  notes?: string;
+  status: 'pending' | 'in-progress' | 'completed';
+  priority?: string;
 }
 
-// Static data for scheduled services
-const staticServices: ScheduledService[] = [
-  {
-    _id: '1',
-    serviceDate: '2024-01-15',
-    unitNo: '1001',
-    unitType: 'Truck',
-    makeModel: 'Kenworth T680',
-    serviceType: 'Oil Change',
-    odometer: 125000,
-    invoiceNo: 'INV-2024-001',
-    notes: 'Regular scheduled maintenance. All filters replaced.',
-    createdAt: '2024-01-15'
-  },
-  {
-    _id: '2',
-    serviceDate: '2024-01-20',
-    unitNo: '1002',
-    unitType: 'Truck',
-    makeModel: 'Peterbilt 579',
-    serviceType: 'DPF Filter',
-    odometer: 98000,
-    invoiceNo: 'INV-2024-002',
-    notes: 'DPF filter cleaned and inspected. No issues found.',
-    createdAt: '2024-01-20'
-  },
-  {
-    _id: '3',
-    serviceDate: '2024-01-25',
-    unitNo: '1001',
-    unitType: 'Truck',
-    makeModel: 'Kenworth T680',
-    serviceType: 'Valve Adjustment',
-    odometer: 125500,
-    invoiceNo: 'INV-2024-003',
-    notes: 'Valve clearance adjusted to specifications.',
-    createdAt: '2024-01-25'
-  },
-  {
-    _id: '4',
-    serviceDate: '2024-02-01',
-    unitNo: 'BRV001',
-    unitType: 'Reefer Trailer',
-    makeModel: 'Utility 4000R',
-    serviceType: 'Coolant Filter',
-    odometer: 45000,
-    invoiceNo: 'INV-2024-004',
-    notes: 'Coolant filter replaced. System flushed.',
-    createdAt: '2024-02-01'
-  },
-  {
-    _id: '5',
-    serviceDate: '2024-02-05',
-    unitNo: '1003',
-    unitType: 'Truck',
-    makeModel: 'Freightliner Cascadia',
-    serviceType: 'After Treatment System',
-    odometer: 156000,
-    invoiceNo: 'INV-2024-005',
-    notes: 'After treatment system serviced. DEF tank refilled.',
-    createdAt: '2024-02-05'
-  },
-  {
-    _id: '6',
-    serviceDate: '2024-02-10',
-    unitNo: '1002',
-    unitType: 'Truck',
-    makeModel: 'Peterbilt 579',
-    serviceType: 'Transmission Service',
-    odometer: 99000,
-    invoiceNo: 'INV-2024-006',
-    notes: 'Transmission fluid changed. Filter replaced.',
-    createdAt: '2024-02-10'
-  },
-  {
-    _id: '7',
-    serviceDate: '2024-02-15',
-    unitNo: '1001',
-    unitType: 'Truck',
-    makeModel: 'Kenworth T680',
-    serviceType: 'Radiator Change',
-    odometer: 126000,
-    invoiceNo: 'INV-2024-007',
-    notes: 'Radiator replaced due to leak. System pressure tested.',
-    createdAt: '2024-02-15'
-  },
-  {
-    _id: '8',
-    serviceDate: '2024-02-20',
-    unitNo: 'BRV002',
-    unitType: 'Tri-Axle Trailer',
-    makeModel: 'Great Dane',
-    serviceType: 'Brake Inspection',
-    odometer: 32000,
-    invoiceNo: 'INV-2024-008',
-    notes: 'Full brake inspection. All components within spec.',
-    createdAt: '2024-02-20'
+interface UnitOption {
+  unitNo: string;
+  unitType?: string;
+  makeModel?: string;
+  referenceType?: string;
+  referenceId?: string;
+}
+
+const getServiceTypeLabel = (value: string) => {
+  const match = SERVICE_TYPE_OPTIONS.find(option => option.value === value);
+  if (match) return match.label;
+  return value.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return 'N/A';
+  try {
+    return new Date(dateString).toLocaleDateString();
+  } catch {
+    return 'N/A';
   }
-];
+};
+
+interface ServiceFormState {
+  serviceDate: string;
+  unitNo: string;
+  serviceType: VehicleServiceType;
+  odometer: string;
+  invoiceNo: string;
+  notes: string;
+}
 
 const ScheduledServicesLog: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterServiceType, setFilterServiceType] = useState<string>('all');
+  const [filterServiceType, setFilterServiceType] = useState<ServiceTypeFilter>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedService, setSelectedService] = useState<ScheduledService | null>(null);
-  const [services, setServices] = useState<ScheduledService[]>(staticServices);
-  const [formData, setFormData] = useState({
+  const [services, setServices] = useState<ScheduledService[]>([]);
+  const [units, setUnits] = useState<UnitOption[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<ServiceFormState>({
     serviceDate: new Date().toISOString().split('T')[0],
     unitNo: '',
-    serviceType: 'Oil Change' as ServiceType,
+    serviceType: SERVICE_TYPE_OPTIONS[0].value,
     odometer: '',
     invoiceNo: '',
     notes: ''
   });
 
-  // Available units (from Unit Master List)
-  const availableUnits = [
-    { unitNo: '1001', unitType: 'Truck', makeModel: 'Kenworth T680' },
-    { unitNo: '1002', unitType: 'Truck', makeModel: 'Peterbilt 579' },
-    { unitNo: '1003', unitType: 'Truck', makeModel: 'Freightliner Cascadia' },
-    { unitNo: 'BRV001', unitType: 'Reefer Trailer', makeModel: 'Utility 4000R' },
-    { unitNo: 'BRV002', unitType: 'Tri-Axle Trailer', makeModel: 'Great Dane' },
-    { unitNo: 'BRV003', unitType: 'Dry Van', makeModel: 'Wabash National' }
-  ];
+  const mapApiService = useCallback((service: VehicleServiceResponse): ScheduledService => {
+    const unitNo =
+      service.unitNumber ||
+      service.vehicleId?.internalId ||
+      service.vehicleId?.plateNumber ||
+      'N/A';
+    const makeModel =
+      service.makeModel ||
+      [service.vehicleId?.make, service.vehicleId?.model].filter(Boolean).join(' ').trim() ||
+      undefined;
+    return {
+      _id: service._id,
+      unitNo,
+      unitType: service.unitType || (service.vehicleId ? 'Truck' : undefined),
+      makeModel,
+      serviceType: service.serviceType,
+      serviceDate: service.serviceDate || undefined,
+      dueDate: service.dueDate || undefined,
+      odometer: service.odometer ?? service.dueMileage ?? undefined,
+      invoiceNo: service.invoiceNumber || undefined,
+      notes: service.notes || undefined,
+      status: service.status,
+      priority: service.priority
+    };
+  }, []);
 
-  const filteredServices = services.filter(service => {
-    const matchesSearch = !searchTerm || 
-      service.unitNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.makeModel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.invoiceNo.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterServiceType === 'all' || service.serviceType === filterServiceType;
-    return matchesSearch && matchesType;
-  });
+  const fetchUnits = useCallback(async () => {
+    try {
+      const response = await listFleetUnits({ category: 'all' });
+      if (response?.success) {
+        const unitOptions =
+          (response.data as FleetUnitDto[] | undefined)?.map((unit) => ({
+            unitNo: unit.unitNo,
+            unitType: unit.unitType,
+            makeModel: unit.makeModel,
+            referenceType: unit.referenceType,
+            referenceId: unit.referenceId
+          })) || [];
+        setUnits(unitOptions);
+      }
+    } catch (err) {
+      console.error('Failed to load units', err);
+    }
+  }, []);
+
+  const fetchServices = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const filters: ServiceFilters = {};
+      if (filterServiceType !== 'all') {
+        filters.serviceType = filterServiceType;
+      }
+      const response = await listVehicleServices(filters);
+      if (response?.success) {
+        const mapped =
+          (response.data as VehicleServiceResponse[] | undefined)?.map(mapApiService) || [];
+        setServices(mapped);
+      } else {
+        setServices([]);
+        setError(response?.message || 'Failed to fetch services');
+      }
+    } catch (err: any) {
+      setServices([]);
+      setError(err?.message || 'Failed to fetch services');
+    } finally {
+      setLoading(false);
+    }
+  }, [filterServiceType, mapApiService]);
+
+  useEffect(() => {
+    fetchUnits();
+  }, [fetchUnits]);
+
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
+
+  const filteredServices = useMemo(() => {
+    return services.filter((service) => {
+      const matchesSearch =
+        !searchTerm ||
+        service.unitNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (service.makeModel || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (service.invoiceNo || '').toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = filterServiceType === 'all' || service.serviceType === filterServiceType;
+      return matchesSearch && matchesType;
+    });
+  }, [services, searchTerm, filterServiceType]);
 
   const handleAddService = () => {
+    setNotification(null);
+    setError(null);
+    setFormError(null);
     setFormData({
       serviceDate: new Date().toISOString().split('T')[0],
       unitNo: '',
-      serviceType: 'Oil Change',
+      serviceType: SERVICE_TYPE_OPTIONS[0].value,
       odometer: '',
       invoiceNo: '',
       notes: ''
@@ -166,87 +204,102 @@ const ScheduledServicesLog: React.FC = () => {
   };
 
   const handleEditService = (service: ScheduledService) => {
+    setNotification(null);
+    setError(null);
+    setFormError(null);
     setSelectedService(service);
     setFormData({
-      serviceDate: service.serviceDate,
+      serviceDate: service.serviceDate ? service.serviceDate.split('T')[0] : new Date().toISOString().split('T')[0],
       unitNo: service.unitNo,
       serviceType: service.serviceType,
-      odometer: service.odometer.toString(),
-      invoiceNo: service.invoiceNo,
-      notes: service.notes
+      odometer: service.odometer?.toString() || '',
+      invoiceNo: service.invoiceNo || '',
+      notes: service.notes || ''
     });
     setShowEditModal(true);
   };
 
   const handleDeleteService = (service: ScheduledService) => {
+    setNotification(null);
+    setError(null);
     setSelectedService(service);
     setShowDeleteModal(true);
   };
 
-  const handleSaveService = () => {
-    if (!formData.serviceDate || !formData.unitNo || !formData.serviceType || !formData.odometer || !formData.invoiceNo) {
-      alert('Please fill in all required fields');
+  const handleSaveService = async () => {
+    if (!formData.serviceDate || !formData.unitNo || !formData.serviceType || !formData.odometer) {
+      setFormError('Please fill in all required fields.');
       return;
     }
 
-    const selectedUnit = availableUnits.find(u => u.unitNo === formData.unitNo);
-
-    if (showAddModal) {
-      const newService: ScheduledService = {
-        _id: Date.now().toString(),
-        serviceDate: formData.serviceDate,
-        unitNo: formData.unitNo,
-        unitType: selectedUnit?.unitType || '',
-        makeModel: selectedUnit?.makeModel || '',
-        serviceType: formData.serviceType,
-        odometer: parseInt(formData.odometer),
-        invoiceNo: formData.invoiceNo,
-        notes: formData.notes,
-        createdAt: new Date().toISOString()
-      };
-      setServices([...services, newService]);
-    } else if (showEditModal && selectedService) {
-      setServices(services.map(service => 
-        service._id === selectedService._id 
-          ? { 
-              ...service, 
-              serviceDate: formData.serviceDate,
-              unitNo: formData.unitNo,
-              unitType: selectedUnit?.unitType || service.unitType,
-              makeModel: selectedUnit?.makeModel || service.makeModel,
-              serviceType: formData.serviceType,
-              odometer: parseInt(formData.odometer),
-              invoiceNo: formData.invoiceNo,
-              notes: formData.notes
-            }
-          : service
-      ));
+    const selectedUnit = units.find((unit) => unit.unitNo === formData.unitNo);
+    if (!selectedUnit) {
+      setFormError('Please select a valid unit.');
+      return;
     }
 
-    setShowAddModal(false);
-    setShowEditModal(false);
-    setSelectedService(null);
-  };
+    const payload: VehicleServiceData = {
+      vehicleId: selectedUnit.referenceType === 'vehicle' ? selectedUnit.referenceId : undefined,
+      unitNumber: selectedUnit.unitNo,
+      unitType: selectedUnit.unitType,
+      makeModel: selectedUnit.makeModel,
+      serviceType: formData.serviceType as VehicleServiceType,
+      priority: 'medium',
+      dueDate: formData.serviceDate,
+      dueMileage: Number(formData.odometer || 0),
+      assignedMechanic: 'Fleet Team',
+      description: formData.notes,
+      status: 'completed',
+      serviceDate: formData.serviceDate,
+      odometer: Number(formData.odometer || 0),
+      invoiceNumber: formData.invoiceNo,
+      notes: formData.notes
+    };
 
-  const handleConfirmDelete = () => {
-    if (selectedService) {
-      setServices(services.filter(service => service._id !== selectedService._id));
-      setShowDeleteModal(false);
-      setSelectedService(null);
+    setSaving(true);
+    try {
+      let response;
+      if (showAddModal) {
+        response = await createVehicleService(payload);
+      } else if (showEditModal && selectedService) {
+        response = await updateVehicleService(selectedService._id, payload);
+      }
+
+      if (response?.success) {
+        setNotification({ type: 'success', message: response.message || 'Service saved successfully.' });
+        setShowAddModal(false);
+        setShowEditModal(false);
+        setSelectedService(null);
+        await fetchServices();
+      } else {
+        setFormError(response?.message || 'Failed to save service');
+      }
+    } catch (err: any) {
+      setFormError(err?.response?.data?.message || err?.message || 'Failed to save service');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const serviceTypes: ServiceType[] = [
-    'Oil Change',
-    'DPF Filter',
-    'Valve Adjustment',
-    'Radiator Change',
-    'Oil Pump',
-    'Coolant Filter',
-    'After Treatment System',
-    'Transmission Service',
-    'Brake Inspection'
-  ];
+  const handleConfirmDelete = async () => {
+    if (!selectedService) return;
+    setDeleting(true);
+    try {
+      const response = await deleteVehicleService(selectedService._id);
+      if (response?.success) {
+        setNotification({ type: 'success', message: response.message || 'Service deleted successfully.' });
+        setShowDeleteModal(false);
+        setSelectedService(null);
+        await fetchServices();
+      } else {
+        setNotification({ type: 'error', message: response?.message || 'Failed to delete service.' });
+      }
+    } catch (err: any) {
+      setNotification({ type: 'error', message: err?.response?.data?.message || err?.message || 'Failed to delete service.' });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
@@ -279,6 +332,24 @@ const ScheduledServicesLog: React.FC = () => {
           </div>
         </div>
 
+        {notification && (
+          <div
+            className={`mb-6 rounded-lg border px-4 py-3 ${
+              notification.type === 'success'
+                ? 'border-green-200 bg-green-50 text-green-800'
+                : 'border-red-200 bg-red-50 text-red-800'
+            }`}
+          >
+            {notification.message}
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -299,15 +370,15 @@ const ScheduledServicesLog: React.FC = () => {
               <label className="text-sm font-medium text-gray-700">Service Type:</label>
               <select
                 value={filterServiceType}
-                onChange={(e) => setFilterServiceType(e.target.value)}
+                onChange={(e) => setFilterServiceType(e.target.value as ServiceTypeFilter)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
               style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
               onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
               onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
               >
                 <option value="all">All Types</option>
-                {serviceTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
+                {SERVICE_TYPE_OPTIONS.map(type => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
                 ))}
               </select>
             </div>
@@ -327,14 +398,21 @@ const ScheduledServicesLog: React.FC = () => {
                   <th className="px-6 py-4 text-left text-sm font-semibold">Service Type</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Odometer/Hour</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Invoice No.</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Notes</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredServices.length === 0 ? (
+                {loading ? (
                   <tr>
-                    <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                      Loading services...
+                    </td>
+                  </tr>
+                ) : filteredServices.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
                       No services found
                     </td>
                   </tr>
@@ -342,23 +420,38 @@ const ScheduledServicesLog: React.FC = () => {
                   filteredServices.map((service) => (
                     <tr key={service._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 text-gray-900">
-                        {new Date(service.serviceDate).toLocaleDateString()}
+                        {formatDate(service.serviceDate || service.dueDate)}
                       </td>
                       <td className="px-6 py-4 font-medium text-gray-900">{service.unitNo}</td>
                       <td className="px-6 py-4">
                         <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {service.unitType}
+                          {service.unitType || 'Unit'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-900">{service.makeModel}</td>
+                      <td className="px-6 py-4 text-gray-900">{service.makeModel || '—'}</td>
                       <td className="px-6 py-4">
                         <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full" style={{ backgroundColor: '#398bc3', color: '#063f6f' }}>
-                          {service.serviceType}
+                          {getServiceTypeLabel(service.serviceType)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-900">{service.odometer.toLocaleString()} km</td>
-                      <td className="px-6 py-4 text-gray-600 font-mono text-sm">{service.invoiceNo}</td>
-                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={service.notes}>
+                      <td className="px-6 py-4 text-gray-900">
+                        {service.odometer !== undefined ? `${service.odometer.toLocaleString()} km` : '—'}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 font-mono text-sm">{service.invoiceNo || '—'}</td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                            service.status === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : service.status === 'in-progress'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-blue-100 text-blue-800'
+                          }`}
+                        >
+                          {service.status.replace('-', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={service.notes || undefined}>
                         {service.notes || 'N/A'}
                       </td>
                       <td className="px-6 py-4">
@@ -394,6 +487,7 @@ const ScheduledServicesLog: React.FC = () => {
               setShowAddModal(false);
               setShowEditModal(false);
               setSelectedService(null);
+              setFormError(null);
             }} />
             <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
               <div className="h-full flex flex-col">
@@ -404,6 +498,7 @@ const ScheduledServicesLog: React.FC = () => {
                       setShowAddModal(false);
                       setShowEditModal(false);
                       setSelectedService(null);
+                      setFormError(null);
                     }}
                     className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                   >
@@ -411,6 +506,11 @@ const ScheduledServicesLog: React.FC = () => {
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {formError && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+                    {formError}
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Service Date *</label>
@@ -435,7 +535,7 @@ const ScheduledServicesLog: React.FC = () => {
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                     >
                       <option value="">Select Unit</option>
-                      {availableUnits.map(unit => (
+                      {units.map(unit => (
                         <option key={unit.unitNo} value={unit.unitNo}>
                           {unit.unitNo} - {unit.makeModel} ({unit.unitType})
                         </option>
@@ -446,14 +546,14 @@ const ScheduledServicesLog: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Service Type *</label>
                     <select
                       value={formData.serviceType}
-                      onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as ServiceType })}
+                      onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as VehicleServiceType })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                     >
-                      {serviceTypes.map(type => (
-                        <option key={type} value={type}>{type}</option>
+                      {SERVICE_TYPE_OPTIONS.map(type => (
+                        <option key={type.value} value={type.value}>{type.label}</option>
                       ))}
                     </select>
                   </div>
@@ -503,6 +603,7 @@ const ScheduledServicesLog: React.FC = () => {
                       setShowAddModal(false);
                       setShowEditModal(false);
                       setSelectedService(null);
+                      setFormError(null);
                     }}
                     className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                   >
@@ -510,10 +611,11 @@ const ScheduledServicesLog: React.FC = () => {
                   </button>
                   <button
                     onClick={handleSaveService}
-                    className="px-6 py-2 text-white rounded-lg transition-colors hover:opacity-90"
+                    disabled={saving}
+                    className={`px-6 py-2 text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
                     style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
                   >
-                    {showAddModal ? 'Add Service' : 'Save Changes'}
+                    {saving ? 'Saving...' : showAddModal ? 'Add Service' : 'Save Changes'}
                   </button>
                 </div>
               </div>
@@ -525,7 +627,13 @@ const ScheduledServicesLog: React.FC = () => {
         {/* Delete Confirmation Modal */}
         {showDeleteModal && selectedService && (
           <>
-            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998]" onClick={() => setShowDeleteModal(false)} />
+            <div
+              className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998]"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setSelectedService(null);
+              }}
+            />
             <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[9999] w-full max-w-md">
               <div className="p-6">
                 <div className="flex items-center gap-4 mb-4">
@@ -542,16 +650,22 @@ const ScheduledServicesLog: React.FC = () => {
                 </p>
                 <div className="flex justify-end gap-3">
                   <button
-                    onClick={() => setShowDeleteModal(false)}
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setSelectedService(null);
+                    }}
                     className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleConfirmDelete}
-                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    disabled={deleting}
+                    className={`px-6 py-2 rounded-lg text-white transition-colors ${
+                      deleting ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                    }`}
                   >
-                    Delete
+                    {deleting ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
               </div>

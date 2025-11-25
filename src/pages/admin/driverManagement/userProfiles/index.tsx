@@ -1,428 +1,117 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Calendar, Users, DollarSign, Clock, TrendingUp, MapPin, FileText, Eye, X, User as UserIcon, Mail, Briefcase, AlertCircle, Download } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import ExcelJS from 'exceljs';
+import { fetchUserProfiles, type UserProfileDto, type UserProfilesTimeRange } from '../../../../axios/api/hr.userProfiles';
 
-type TimePeriod = '1week' | '2weeks' | '1month';
-type UserRole = 'driver' | 'dispatcher' | 'hr' | 'reporter' | 'Maintenance Crew (Mechanics)' | 'Fleet Maintenance Manager' | 'Compliance Manager' | 'all';
+type TimePeriod = UserProfilesTimeRange;
+type UserRole =
+  | 'driver'
+  | 'dispatcher'
+  | 'hr'
+  | 'reporter'
+  | 'Maintenance Crew (Mechanics)'
+  | 'Fleet Maintenance Manager'
+  | 'Compliance Manager'
+  | 'all';
 
-interface UserProfile {
-  _id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  // Payroll data
-  totalEarnings: number;
-  baseSalary: number;
-  bonus: number;
-  deductions: number;
-  invoices: number; // Number of invoices/transactions
-  // Driver-specific
-  milesDriven?: number;
-  tripsCompleted?: number;
-  // Attendance data
-  daysWorked: number;
-  totalHours: number;
-  presentDays: number;
-  absentDays: number;
-  lateDays: number;
-  leaveDays: number;
-  // Additional details
-  notes?: string;
-  joinDate?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  province?: string;
-  postalCode?: string;
-  country?: string;
-  citizenshipStatus?: 'Citizen' | 'Permanent Resident' | 'Work Permit' | 'Student Visa' | 'Visitor Visa';
-  sinNumber?: string;
-  dateOfBirth?: string;
-}
-
-// Static data for user profiles
-const staticUserProfiles: UserProfile[] = [
-  // Drivers
-  {
-    _id: '1',
-    name: 'John Smith',
-    email: 'john.smith@example.com',
-    role: 'driver',
-    totalEarnings: 12500.00,
-    baseSalary: 8000.00,
-    bonus: 2500.00,
-    deductions: 2000.00,
-    invoices: 15,
-    milesDriven: 12500,
-    tripsCompleted: 12,
-    daysWorked: 20,
-    totalHours: 160,
-    presentDays: 18,
-    absentDays: 1,
-    lateDays: 1,
-    leaveDays: 0,
-    phone: '+1 (555) 123-4567',
-    joinDate: '2023-01-15',
-    address: '123 Main Street',
-    city: 'Toronto',
-    province: 'Ontario',
-    postalCode: 'M5H 2N2',
-    country: 'Canada',
-    citizenshipStatus: 'Citizen',
-    sinNumber: '123-456-789',
-    dateOfBirth: '1985-05-15',
-    notes: 'Excellent driver with consistent performance. Always on time and maintains good communication. Has completed all safety training courses.'
-  },
-  {
-    _id: '2',
-    name: 'Michael Johnson',
-    email: 'michael.j@example.com',
-    role: 'driver',
-    totalEarnings: 9800.00,
-    baseSalary: 7000.00,
-    bonus: 1500.00,
-    deductions: 1700.00,
-    invoices: 11,
-    milesDriven: 9800,
-    tripsCompleted: 9,
-    daysWorked: 18,
-    totalHours: 144,
-    presentDays: 17,
-    absentDays: 0,
-    lateDays: 1,
-    leaveDays: 0,
-    phone: '+1 (555) 234-5678',
-    joinDate: '2023-03-20',
-    address: '456 Oak Avenue',
-    city: 'Vancouver',
-    province: 'British Columbia',
-    postalCode: 'V6B 1A1',
-    country: 'Canada',
-    citizenshipStatus: 'Permanent Resident',
-    sinNumber: '234-567-890',
-    dateOfBirth: '1988-08-22',
-    notes: 'Reliable driver with good track record. Occasionally arrives late but makes up for it with excellent work quality.'
-  },
-  {
-    _id: '3',
-    name: 'David Williams',
-    email: 'david.w@example.com',
-    role: 'driver',
-    totalEarnings: 11200.00,
-    baseSalary: 7500.00,
-    bonus: 2200.00,
-    deductions: 1500.00,
-    invoices: 13,
-    milesDriven: 11200,
-    tripsCompleted: 10,
-    daysWorked: 19,
-    totalHours: 152,
-    presentDays: 18,
-    absentDays: 0,
-    lateDays: 0,
-    leaveDays: 1,
-    phone: '+1 (555) 345-6789',
-    joinDate: '2023-02-10',
-    address: '789 Pine Street',
-    city: 'Calgary',
-    province: 'Alberta',
-    postalCode: 'T2P 1J1',
-    country: 'Canada',
-    citizenshipStatus: 'Citizen',
-    sinNumber: '345-678-901',
-    dateOfBirth: '1983-11-30',
-    notes: 'Top performer with excellent safety record. Takes initiative and shows strong leadership qualities.'
-  },
-  // Dispatchers
-  {
-    _id: '4',
-    name: 'Sarah Davis',
-    email: 'sarah.d@example.com',
-    role: 'dispatcher',
-    totalEarnings: 6500.00,
-    baseSalary: 6000.00,
-    bonus: 500.00,
-    deductions: 0,
-    invoices: 0,
-    daysWorked: 22,
-    totalHours: 176,
-    presentDays: 21,
-    absentDays: 0,
-    lateDays: 1,
-    leaveDays: 0,
-    phone: '+1 (555) 456-7890',
-    joinDate: '2022-11-05',
-    address: '321 Elm Road',
-    city: 'Montreal',
-    province: 'Quebec',
-    postalCode: 'H3A 0G4',
-    country: 'Canada',
-    citizenshipStatus: 'Citizen',
-    sinNumber: '456-789-012',
-    dateOfBirth: '1990-03-15',
-    notes: 'Efficient dispatcher with excellent communication skills. Handles multiple routes simultaneously with precision.'
-  },
-  {
-    _id: '5',
-    name: 'Emily Brown',
-    email: 'emily.b@example.com',
-    role: 'dispatcher',
-    totalEarnings: 6200.00,
-    baseSalary: 5800.00,
-    bonus: 400.00,
-    deductions: 0,
-    invoices: 0,
-    daysWorked: 21,
-    totalHours: 168,
-    presentDays: 20,
-    absentDays: 1,
-    lateDays: 0,
-    leaveDays: 0,
-    phone: '+1 (555) 567-8901',
-    joinDate: '2023-04-12',
-    address: '654 Maple Drive',
-    city: 'Ottawa',
-    province: 'Ontario',
-    postalCode: 'K1A 0A6',
-    country: 'Canada',
-    citizenshipStatus: 'Work Permit',
-    sinNumber: '567-890-123',
-    dateOfBirth: '1992-07-08',
-    notes: 'New dispatcher showing great potential. Quick learner and adapts well to changing schedules.'
-  },
-  // HR
-  {
-    _id: '6',
-    name: 'Robert Miller',
-    email: 'robert.m@example.com',
-    role: 'hr',
-    totalEarnings: 7200.00,
-    baseSalary: 7000.00,
-    bonus: 200.00,
-    deductions: 0,
-    invoices: 0,
-    daysWorked: 22,
-    totalHours: 176,
-    presentDays: 22,
-    absentDays: 0,
-    lateDays: 0,
-    leaveDays: 0,
-    phone: '+1 (555) 678-9012',
-    joinDate: '2022-08-15',
-    address: '987 Cedar Lane',
-    city: 'Toronto',
-    province: 'Ontario',
-    postalCode: 'M5J 2N8',
-    country: 'Canada',
-    citizenshipStatus: 'Citizen',
-    sinNumber: '678-901-234',
-    dateOfBirth: '1987-12-20',
-    notes: 'Dedicated HR professional. Maintains excellent employee relations and ensures compliance with all policies.'
-  },
-  // Reporter
-  {
-    _id: '7',
-    name: 'Jennifer Wilson',
-    email: 'jennifer.w@example.com',
-    role: 'reporter',
-    totalEarnings: 5500.00,
-    baseSalary: 5500.00,
-    bonus: 0,
-    deductions: 0,
-    invoices: 0,
-    daysWorked: 20,
-    totalHours: 160,
-    presentDays: 19,
-    absentDays: 0,
-    lateDays: 1,
-    leaveDays: 0,
-    phone: '+1 (555) 789-0123',
-    joinDate: '2023-05-01',
-    address: '147 Birch Street',
-    city: 'Edmonton',
-    province: 'Alberta',
-    postalCode: 'T5J 2R1',
-    country: 'Canada',
-    citizenshipStatus: 'Permanent Resident',
-    sinNumber: '789-012-345',
-    dateOfBirth: '1991-04-25',
-    notes: 'Detail-oriented reporter. Produces accurate and timely reports. Occasionally late but work quality is exceptional.'
-  },
-  // Maintenance Crew
-  {
-    _id: '8',
-    name: 'James Anderson',
-    email: 'james.a@example.com',
-    role: 'Maintenance Crew (Mechanics)',
-    totalEarnings: 6800.00,
-    baseSalary: 6500.00,
-    bonus: 300.00,
-    deductions: 0,
-    invoices: 0,
-    daysWorked: 21,
-    totalHours: 168,
-    presentDays: 20,
-    absentDays: 0,
-    lateDays: 1,
-    leaveDays: 0,
-    phone: '+1 (555) 890-1234',
-    joinDate: '2022-09-20',
-    address: '258 Spruce Avenue',
-    city: 'Winnipeg',
-    province: 'Manitoba',
-    postalCode: 'R3C 0V8',
-    country: 'Canada',
-    citizenshipStatus: 'Citizen',
-    sinNumber: '890-123-456',
-    dateOfBirth: '1986-09-12',
-    notes: 'Experienced mechanic with extensive knowledge of fleet vehicles. Ensures all maintenance is completed on schedule.'
-  },
-  {
-    _id: '9',
-    name: 'Thomas Martinez',
-    email: 'thomas.m@example.com',
-    role: 'Maintenance Crew (Mechanics)',
-    totalEarnings: 6400.00,
-    baseSalary: 6200.00,
-    bonus: 200.00,
-    deductions: 0,
-    invoices: 0,
-    daysWorked: 20,
-    totalHours: 160,
-    presentDays: 19,
-    absentDays: 1,
-    lateDays: 0,
-    leaveDays: 0,
-    phone: '+1 (555) 901-2345',
-    joinDate: '2023-01-08',
-    address: '369 Willow Way',
-    city: 'Halifax',
-    province: 'Nova Scotia',
-    postalCode: 'B3H 4R2',
-    country: 'Canada',
-    citizenshipStatus: 'Work Permit',
-    sinNumber: '901-234-567',
-    dateOfBirth: '1989-06-18',
-    notes: 'Skilled mechanic specializing in engine diagnostics. Takes pride in keeping vehicles in optimal condition.'
-  },
-  // Fleet Maintenance Manager
-  {
-    _id: '10',
-    name: 'Patricia Taylor',
-    email: 'patricia.t@example.com',
-    role: 'Fleet Maintenance Manager',
-    totalEarnings: 8500.00,
-    baseSalary: 8000.00,
-    bonus: 500.00,
-    deductions: 0,
-    invoices: 0,
-    daysWorked: 22,
-    totalHours: 176,
-    presentDays: 22,
-    absentDays: 0,
-    lateDays: 0,
-    leaveDays: 0,
-    phone: '+1 (555) 012-3456',
-    joinDate: '2022-06-10',
-    address: '741 Ash Boulevard',
-    city: 'Toronto',
-    province: 'Ontario',
-    postalCode: 'M4B 1B3',
-    country: 'Canada',
-    citizenshipStatus: 'Citizen',
-    sinNumber: '012-345-678',
-    dateOfBirth: '1984-02-14',
-    notes: 'Outstanding manager with strong organizational skills. Maintains excellent fleet uptime and manages team effectively.'
-  },
-  // Compliance Manager
-  {
-    _id: '11',
-    name: 'Christopher Lee',
-    email: 'christopher.l@example.com',
-    role: 'Compliance Manager',
-    totalEarnings: 8200.00,
-    baseSalary: 7800.00,
-    bonus: 400.00,
-    deductions: 0,
-    invoices: 0,
-    daysWorked: 22,
-    totalHours: 176,
-    presentDays: 21,
-    absentDays: 0,
-    lateDays: 1,
-    leaveDays: 0,
-    phone: '+1 (555) 123-4567',
-    joinDate: '2022-07-22',
-    address: '852 Fir Court',
-    city: 'Vancouver',
-    province: 'British Columbia',
-    postalCode: 'V5K 0A1',
-    country: 'Canada',
-    citizenshipStatus: 'Permanent Resident',
-    sinNumber: '123-456-789',
-    dateOfBirth: '1985-10-05',
-    notes: 'Expert in regulatory compliance. Ensures all operations meet industry standards and regulations. Highly knowledgeable.'
-  }
-];
+type UserProfile = UserProfileDto & { role: UserRole | string };
 
 type ProfileTimePeriod = '1week' | '2weeks' | '1month' | '6months' | '1year' | '2years';
 
 const UserProfilesPortfolio: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('1month');
   const [selectedRole, setSelectedRole] = useState<UserRole>('all');
+  const [profiles, setProfiles] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
+  const [lastFetchedRange, setLastFetchedRange] = useState<{ startDate?: string; endDate?: string } | null>(null);
+  const [pagination, setPagination] = useState<{ currentPage: number; totalItems: number; totalPages: number }>({
+    currentPage: 1,
+    totalItems: 0,
+    totalPages: 0
+  });
   const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
   const [showProfileSidebar, setShowProfileSidebar] = useState(false);
   const [profileTimePeriod, setProfileTimePeriod] = useState<ProfileTimePeriod>('1month');
+  const PAGE_SIZE = 100;
 
-  // Filter profiles based on search, time period, and role
-  const filteredProfiles = useMemo(() => {
-    let filtered = staticUserProfiles;
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
-    // Filter by role
-    if (selectedRole !== 'all') {
-      filtered = filtered.filter(profile => profile.role === selectedRole);
-    }
+  useEffect(() => {
+    let isMounted = true;
 
-    // Filter by search term
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(profile =>
-        profile.name.toLowerCase().includes(searchLower) ||
-        profile.email.toLowerCase().includes(searchLower)
-      );
-    }
+    const loadProfiles = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetchUserProfiles({
+          search: debouncedSearchTerm || undefined,
+          role: selectedRole !== 'all' ? selectedRole : undefined,
+          timeRange: timePeriod,
+          page: 1,
+          limit: PAGE_SIZE
+        });
 
-    // Time period filter (simulate different data based on period)
-    // In a real app, this would filter actual date ranges
-    // For static data, we'll apply a multiplier to simulate different periods
-    const periodMultiplier: Record<TimePeriod, number> = {
-      '1week': 0.25,
-      '2weeks': 0.5,
-      '1month': 1.0
+        if (!isMounted) return;
+
+        if (response.success) {
+          setProfiles(((response.data as UserProfileDto[]) || []) as UserProfile[]);
+          setRequiresCompanySetup(!!response.requiresCompanySetup);
+          setPagination({
+            currentPage: response.pagination?.currentPage || 1,
+            totalItems: response.pagination?.totalItems || response.data?.length || 0,
+            totalPages: response.pagination?.totalPages || 1
+          });
+          setLastFetchedRange(response.filters || null);
+        } else {
+          setProfiles([]);
+          setRequiresCompanySetup(!!response.requiresCompanySetup);
+          setError(response.message || 'Failed to fetch user profiles');
+        }
+      } catch (err: any) {
+        if (!isMounted) return;
+        const message = err?.response?.data?.message || err?.message || 'Failed to fetch user profiles';
+        setError(message);
+        setProfiles([]);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     };
 
-    const multiplier = periodMultiplier[timePeriod];
-    filtered = filtered.map(profile => ({
-      ...profile,
-      totalEarnings: profile.totalEarnings * multiplier,
-      baseSalary: profile.baseSalary * multiplier,
-      bonus: profile.bonus * multiplier,
-      deductions: profile.deductions * multiplier,
-      invoices: Math.round(profile.invoices * multiplier),
-      milesDriven: profile.milesDriven ? profile.milesDriven * multiplier : undefined,
-      tripsCompleted: profile.tripsCompleted ? Math.round(profile.tripsCompleted * multiplier) : undefined,
-      daysWorked: Math.round(profile.daysWorked * multiplier),
-      totalHours: profile.totalHours * multiplier,
-      presentDays: Math.round(profile.presentDays * multiplier),
-      absentDays: Math.round(profile.absentDays * multiplier),
-      lateDays: Math.round(profile.lateDays * multiplier),
-      leaveDays: Math.round(profile.leaveDays * multiplier)
-    }));
+    loadProfiles();
 
-    return filtered;
-  }, [searchTerm, timePeriod, selectedRole]);
+    return () => {
+      isMounted = false;
+    };
+  }, [debouncedSearchTerm, selectedRole, timePeriod]);
+
+  useEffect(() => {
+    if (!selectedProfile) return;
+    const updated = profiles.find((profile) => profile._id === selectedProfile._id);
+    if (!updated) {
+      setShowProfileSidebar(false);
+      setSelectedProfile(null);
+    } else if (updated !== selectedProfile) {
+      setSelectedProfile(updated);
+    }
+  }, [profiles, selectedProfile]);
+
+  const filteredProfiles = profiles;
+  const showDriverColumns = selectedRole === 'driver' || selectedRole === 'all';
+  const emptyStateMessage = requiresCompanySetup
+    ? 'Complete your company setup to start seeing user records.'
+    : 'No users found matching your criteria';
 
   // Calculate summary statistics
   const summaryStats = useMemo(() => {
@@ -448,11 +137,22 @@ const UserProfilesPortfolio: React.FC = () => {
     }).format(amount)}`;
   };
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('en-US').format(Math.round(num));
+  const formatNumber = (num?: number) => {
+    return new Intl.NumberFormat('en-US').format(Math.round(num || 0));
   };
 
-  const getRoleBadgeColor = (role: UserRole) => {
+  const formatDateLabel = (date?: string) => {
+    if (!date) return null;
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return parsed.toLocaleDateString();
+  };
+
+  const fetchedRangeLabel = lastFetchedRange
+    ? `${formatDateLabel(lastFetchedRange.startDate) || '—'} to ${formatDateLabel(lastFetchedRange.endDate) || '—'}`
+    : null;
+
+  const getRoleBadgeColor = (role: string) => {
     const colors: Record<string, string> = {
       driver: 'bg-blue-100 text-blue-800',
       dispatcher: 'bg-purple-100 text-purple-800',
@@ -585,6 +285,11 @@ const UserProfilesPortfolio: React.FC = () => {
                   <TrendingUp className="w-4 h-4" />
                   Comprehensive view of user performance, payroll, and attendance
                 </p>
+                {fetchedRangeLabel && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Showing payroll & attendance data from {fetchedRangeLabel}
+                  </p>
+                )}
               </div>
             </div>
             <button
@@ -596,6 +301,18 @@ const UserProfilesPortfolio: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {requiresCompanySetup && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800">
+            Please complete your company setup to view and manage user profiles.
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+            {error}
+          </div>
+        )}
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
@@ -708,6 +425,12 @@ const UserProfilesPortfolio: React.FC = () => {
           </div>
         </div>
 
+        {loading && (
+          <div className="mb-4 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-indigo-700">
+            Loading user profiles...
+          </div>
+        )}
+
         {/* User Profiles Table */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
@@ -717,7 +440,7 @@ const UserProfilesPortfolio: React.FC = () => {
                   <th className="px-6 py-4 text-left text-sm font-semibold">User</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Role</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Earnings</th>
-                  {selectedRole === 'driver' || selectedRole === 'all' ? (
+                  {showDriverColumns ? (
                     <>
                       <th className="px-6 py-4 text-left text-sm font-semibold">Miles</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold">Trips</th>
@@ -731,10 +454,16 @@ const UserProfilesPortfolio: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredProfiles.length === 0 ? (
+                {loading ? (
                   <tr>
-                    <td colSpan={selectedRole === 'driver' || selectedRole === 'all' ? 10 : 7} className="px-6 py-12 text-center text-gray-500">
-                      No users found matching your criteria
+                    <td colSpan={showDriverColumns ? 10 : 7} className="px-6 py-12 text-center text-gray-500">
+                      Loading user profiles...
+                    </td>
+                  </tr>
+                ) : filteredProfiles.length === 0 ? (
+                  <tr>
+                    <td colSpan={showDriverColumns ? 10 : 7} className="px-6 py-12 text-center text-gray-500">
+                      {emptyStateMessage}
                     </td>
                   </tr>
                 ) : (
@@ -766,10 +495,10 @@ const UserProfilesPortfolio: React.FC = () => {
                           </div>
                         </div>
                       </td>
-                      {(selectedRole === 'driver' || selectedRole === 'all') && (
+                      {showDriverColumns && (
                         <>
                           <td className="px-6 py-4">
-                            {profile.milesDriven ? (
+                            {profile.milesDriven != null ? (
                               <div className="flex items-center gap-2">
                                 <MapPin className="w-4 h-4 text-orange-500" />
                                 <span className="font-medium text-gray-900">{formatNumber(profile.milesDriven)}</span>
@@ -779,14 +508,14 @@ const UserProfilesPortfolio: React.FC = () => {
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            {profile.tripsCompleted ? (
-                              <span className="font-medium text-gray-900">{profile.tripsCompleted}</span>
+                            {profile.tripsCompleted != null ? (
+                              <span className="font-medium text-gray-900">{formatNumber(profile.tripsCompleted)}</span>
                             ) : (
                               <span className="text-gray-400">—</span>
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            {profile.invoices > 0 ? (
+                            {profile.invoices != null ? (
                               <div className="flex items-center gap-2">
                                 <FileText className="w-4 h-4 text-indigo-500" />
                                 <span className="font-medium text-gray-900">{profile.invoices}</span>

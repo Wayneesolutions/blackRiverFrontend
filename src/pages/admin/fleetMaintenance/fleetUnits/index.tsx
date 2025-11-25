@@ -1,286 +1,162 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, Search, Truck, CheckCircle, XCircle, Filter } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
+import {
+  listFleetUnits,
+  createFleetUnit as apiCreateFleetUnit,
+  updateFleetUnit as apiUpdateFleetUnit,
+  deleteFleetUnit as apiDeleteFleetUnit,
+  type FleetUnitDto,
+  type FleetUnitSummary
+} from '../../../../axios/api/fleet.units';
 
 type UnitType = 'Truck' | 'Reefer Trailer' | 'Tri-Axle Trailer' | 'Dry Van' | 'Bus/Van';
 type UnitStatus = 'Active' | 'Inactive';
 type TruckType = 'Semi-Truck' | 'Straight Truck' | 'Box Truck' | 'Flatbed' | 'Refrigerated Truck' | 'Dump Truck' | 'Tow Truck';
 type TrailerType = 'Reefer Trailer' | 'Tri-Axle Trailer' | 'Dry Van' | 'Flatbed' | 'Step Deck' | 'Lowboy' | 'Tank Trailer' | 'Dump Trailer';
 
-interface FleetUnit {
-  _id: string;
+type FleetUnit = FleetUnitDto & {
+  source?: 'vehicle' | 'trailer' | 'custom';
+};
+
+interface FleetUnitFormData {
   unitNo: string;
   unitType: UnitType;
   makeModel: string;
   vinNo: string;
   licensePlate: string;
-  year?: number;
-  truckType?: TruckType;
-  trailerType?: TrailerType;
-  capacity?: string;
-  initialOdometer: number;
-  currentOdometer?: number;
+  year: string;
+  truckType: TruckType;
+  trailerType: TrailerType;
+  capacity: string;
+  initialOdometer: string;
+  currentOdometer: string;
   status: UnitStatus;
-  operationStatus?: string;
-  lastDate?: string;
-  reason?: string;
-  // Safety compliance fields
-  safetyExpiryDate?: string;
-  safetyDecalNumber?: string;
-  safetyPaperNumber?: string;
-  lastInspectionShop?: string;
-  lastInspectionInvoice?: string;
-  createdAt: string;
+  operationStatus: string;
+  lastDate: string;
+  reason: string;
+  safetyExpiryDate: string;
+  safetyDecalNumber: string;
+  safetyPaperNumber: string;
+  lastInspectionShop: string;
+  lastInspectionInvoice: string;
 }
 
-// Comprehensive static data combining trucks and trailers
-const staticFleetUnits: FleetUnit[] = [
-  // Trucks
-  {
-    _id: '1',
-    unitNo: '1001',
-    unitType: 'Truck',
-    makeModel: 'Kenworth T680',
-    vinNo: '1XKDB0X5XKJ123456',
-    licensePlate: 'BRV-1001',
-    year: 2022,
-    truckType: 'Semi-Truck',
-    initialOdometer: 0,
-    currentOdometer: 125000,
-    status: 'Active',
-    safetyExpiryDate: '2024-12-15',
-    safetyDecalNumber: 'SD-2024-1001',
-    safetyPaperNumber: 'SP-2024-1001',
-    lastInspectionShop: 'Provincial Safety Inspection',
-    lastInspectionInvoice: 'INV-SAF-2024-001',
-    createdAt: '2023-01-15'
-  },
-  {
-    _id: '2',
-    unitNo: '1002',
-    unitType: 'Truck',
-    makeModel: 'Peterbilt 579',
-    vinNo: '1NP5DB0X9NW234567',
-    licensePlate: 'BRV-1002',
-    year: 2023,
-    truckType: 'Semi-Truck',
-    initialOdometer: 0,
-    currentOdometer: 98000,
-    status: 'Active',
-    safetyExpiryDate: '2024-11-20',
-    safetyDecalNumber: 'SD-2024-1002',
-    safetyPaperNumber: 'SP-2024-1002',
-    lastInspectionShop: 'Fleet Safety Services',
-    lastInspectionInvoice: 'INV-SAF-2024-002',
-    createdAt: '2023-02-20'
-  },
-  {
-    _id: '3',
-    unitNo: '1003',
-    unitType: 'Truck',
-    makeModel: 'Freightliner Cascadia',
-    vinNo: '1FUJGHDV5DS345678',
-    licensePlate: 'BRV-1003',
-    year: 2021,
-    truckType: 'Semi-Truck',
-    initialOdometer: 0,
-    currentOdometer: 156000,
-    status: 'Active',
-    safetyExpiryDate: '2024-09-30',
-    safetyDecalNumber: 'SD-2024-1003',
-    safetyPaperNumber: 'SP-2024-1003',
-    lastInspectionShop: 'Commercial Vehicle Inspections',
-    lastInspectionInvoice: 'INV-SAF-2024-004',
-    createdAt: '2022-11-15'
-  },
-  {
-    _id: '4',
-    unitNo: '1004',
-    unitType: 'Truck',
-    makeModel: 'Volvo VNL',
-    vinNo: '4V4NC9EH5NN456789',
-    licensePlate: 'BRV-1004',
-    year: 2020,
-    truckType: 'Semi-Truck',
-    initialOdometer: 0,
-    currentOdometer: 0,
-    status: 'Inactive',
-    lastDate: '2024-01-15',
-    reason: 'SOLD - Replaced with newer unit',
-    createdAt: '2021-06-10'
-  },
-  {
-    _id: '5',
-    unitNo: '1005',
-    unitType: 'Truck',
-    makeModel: 'International LT Series',
-    vinNo: '1HTMMAMN5MH567890',
-    licensePlate: 'BRV-1005',
-    year: 2023,
-    truckType: 'Box Truck',
-    initialOdometer: 0,
-    currentOdometer: 45000,
-    status: 'Active',
-    safetyExpiryDate: '2024-10-10',
-    safetyDecalNumber: 'SD-2024-1005',
-    safetyPaperNumber: 'SP-2024-1005',
-    lastInspectionShop: 'Provincial Safety Inspection',
-    lastInspectionInvoice: 'INV-SAF-2024-006',
-    createdAt: '2023-03-15'
-  },
-  // Trailers
-  {
-    _id: '6',
-    unitNo: 'BRV001',
-    unitType: 'Reefer Trailer',
-    makeModel: 'Utility 4000R',
-    vinNo: '1UYVS2534M1234567',
-    licensePlate: 'TRL-001',
-    year: 2023,
-    trailerType: 'Reefer Trailer',
-    capacity: '53 ft',
-    initialOdometer: 0,
-    currentOdometer: 45000,
-    status: 'Active',
-    operationStatus: 'available',
-    safetyExpiryDate: '2024-10-05',
-    safetyDecalNumber: 'SD-2024-BRV001',
-    safetyPaperNumber: 'SP-2024-BRV001',
-    lastInspectionShop: 'Trailer Inspection Center',
-    lastInspectionInvoice: 'INV-SAF-2024-003',
-    createdAt: '2023-03-10'
-  },
-  {
-    _id: '7',
-    unitNo: 'BRV002',
-    unitType: 'Tri-Axle Trailer',
-    makeModel: 'Great Dane',
-    vinNo: '1GRDM2534M2345678',
-    licensePlate: 'TRL-002',
-    year: 2022,
-    trailerType: 'Tri-Axle Trailer',
-    capacity: '53 ft',
-    initialOdometer: 0,
-    currentOdometer: 32000,
-    status: 'Active',
-    operationStatus: 'in-transit',
-    safetyExpiryDate: '2024-08-15',
-    safetyDecalNumber: 'SD-2024-BRV002',
-    safetyPaperNumber: 'SP-2024-BRV002',
-    lastInspectionShop: 'Trailer Inspection Center',
-    lastInspectionInvoice: 'INV-SAF-2024-005',
-    createdAt: '2023-04-05'
-  },
-  {
-    _id: '8',
-    unitNo: 'BRV003',
-    unitType: 'Dry Van',
-    makeModel: 'Wabash National',
-    vinNo: '1WBN2534M3456789',
-    licensePlate: 'TRL-003',
-    year: 2023,
-    trailerType: 'Dry Van',
-    capacity: '53 ft',
-    initialOdometer: 0,
-    currentOdometer: 28000,
-    status: 'Active',
-    operationStatus: 'available',
-    safetyExpiryDate: '2024-07-20',
-    safetyDecalNumber: 'SD-2024-BRV003',
-    safetyPaperNumber: 'SP-2024-BRV003',
-    lastInspectionShop: 'Trailer Inspection Center',
-    lastInspectionInvoice: 'INV-SAF-2024-006',
-    createdAt: '2023-05-20'
-  },
-  {
-    _id: '9',
-    unitNo: 'BRV004',
-    unitType: 'Reefer Trailer',
-    makeModel: 'Carrier Transicold',
-    vinNo: '1CRR2534M4567890',
-    licensePlate: 'TRL-004',
-    year: 2024,
-    trailerType: 'Reefer Trailer',
-    capacity: '53 ft',
-    initialOdometer: 0,
-    currentOdometer: 12000,
-    status: 'Active',
-    operationStatus: 'available',
-    safetyExpiryDate: '2025-01-15',
-    safetyDecalNumber: 'SD-2025-BRV004',
-    safetyPaperNumber: 'SP-2025-BRV004',
-    lastInspectionShop: 'Trailer Inspection Center',
-    lastInspectionInvoice: 'INV-SAF-2025-001',
-    createdAt: '2024-01-10'
-  },
-  {
-    _id: '10',
-    unitNo: 'BRV005',
-    unitType: 'Dry Van',
-    makeModel: 'East Manufacturing Flatbed',
-    vinNo: '1FBP2534M5678901',
-    licensePlate: 'TRL-005',
-    year: 2022,
-    trailerType: 'Flatbed',
-    capacity: '48 ft',
-    initialOdometer: 0,
-    currentOdometer: 55000,
-    status: 'Inactive',
-    operationStatus: 'maintenance',
-    lastDate: '2024-02-10',
-    reason: 'Rental returned',
-    createdAt: '2022-08-15'
-  }
-];
+const defaultSummary: FleetUnitSummary = {
+  totalUnits: 0,
+  activeUnits: 0,
+  inactiveUnits: 0,
+  trucks: 0,
+  trailers: 0,
+  expiringSoon: 0,
+  expired: 0
+};
 
 const FleetUnits: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'trucks' | 'trailers'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<FleetUnit | null>(null);
-  const [units, setUnits] = useState<FleetUnit[]>(staticFleetUnits);
-  const [formData, setFormData] = useState({
+  const [units, setUnits] = useState<FleetUnit[]>([]);
+  const [summary, setSummary] = useState<FleetUnitSummary>(defaultSummary);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FleetUnitFormData>({
     unitNo: '',
-    unitType: 'Truck' as UnitType,
+    unitType: 'Truck',
     makeModel: '',
     vinNo: '',
     licensePlate: '',
     year: new Date().getFullYear().toString(),
-    truckType: 'Semi-Truck' as TruckType,
-    trailerType: 'Dry Van' as TrailerType,
+    truckType: 'Semi-Truck',
+    trailerType: 'Dry Van',
     capacity: '',
     initialOdometer: '',
-    status: 'Active' as UnitStatus,
+    currentOdometer: '',
+    status: 'Active',
     operationStatus: 'available',
     lastDate: '',
-    reason: ''
+    reason: '',
+    safetyExpiryDate: '',
+    safetyDecalNumber: '',
+    safetyPaperNumber: '',
+    lastInspectionShop: '',
+    lastInspectionInvoice: ''
   });
 
-  const filteredUnits = useMemo(() => {
-    return units.filter(unit => {
-      // Tab filter
-      const matchesTab = activeTab === 'all' || 
-        (activeTab === 'trucks' && unit.unitType === 'Truck') ||
-        (activeTab === 'trailers' && (unit.unitType === 'Reefer Trailer' || unit.unitType === 'Tri-Axle Trailer' || unit.unitType === 'Dry Van' || unit.unitType === 'Bus/Van'));
-      
-      // Status filter
-      const matchesStatus = statusFilter === 'all' || 
-        (statusFilter === 'active' && unit.status === 'Active') ||
-        (statusFilter === 'inactive' && unit.status === 'Inactive');
-      
-      // Search filter
-      const matchesSearch = !searchTerm || 
-        unit.unitNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        unit.makeModel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        unit.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        unit.vinNo.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      return matchesTab && matchesStatus && matchesSearch;
+  const resetForm = () => {
+    setFormData({
+      unitNo: '',
+      unitType: 'Truck',
+      makeModel: '',
+      vinNo: '',
+      licensePlate: '',
+      year: new Date().getFullYear().toString(),
+      truckType: 'Semi-Truck',
+      trailerType: 'Dry Van',
+      capacity: '',
+      initialOdometer: '',
+      currentOdometer: '',
+      status: 'Active',
+      operationStatus: 'available',
+      lastDate: '',
+      reason: '',
+      safetyExpiryDate: '',
+      safetyDecalNumber: '',
+      safetyPaperNumber: '',
+      lastInspectionShop: '',
+      lastInspectionInvoice: ''
     });
-  }, [units, activeTab, statusFilter, searchTerm]);
+    setFormError(null);
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const loadFleetUnits = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await listFleetUnits({
+        search: debouncedSearchTerm || undefined,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        category: activeTab
+      });
+
+      if (response?.success) {
+        setUnits(response.data || []);
+        setSummary(response.summary || defaultSummary);
+        setRequiresCompanySetup(!!response.requiresCompanySetup);
+      } else {
+        setUnits([]);
+        setSummary(defaultSummary);
+        setError(response?.message || 'Failed to fetch fleet units');
+      }
+    } catch (err: any) {
+      setUnits([]);
+      setSummary(defaultSummary);
+      setError(err?.response?.data?.message || err?.message || 'Failed to fetch fleet units');
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab, statusFilter, debouncedSearchTerm]);
+
+  useEffect(() => {
+    loadFleetUnits();
+  }, [loadFleetUnits]);
 
   const getComplianceStatus = (expiryDate?: string) => {
     if (!expiryDate) return { status: 'unknown', color: 'gray', text: 'Not Set' };
@@ -315,22 +191,8 @@ const FleetUnits: React.FC = () => {
   };
 
   const handleAddUnit = () => {
-    setFormData({
-      unitNo: '',
-      unitType: 'Truck',
-      makeModel: '',
-      vinNo: '',
-      licensePlate: '',
-      year: new Date().getFullYear().toString(),
-      truckType: 'Semi-Truck',
-      trailerType: 'Dry Van',
-      capacity: '',
-      initialOdometer: '',
-      status: 'Active',
-      operationStatus: 'available',
-      lastDate: '',
-      reason: ''
-    });
+    resetForm();
+    setSelectedUnit(null);
     setShowAddModal(true);
   };
 
@@ -338,20 +200,27 @@ const FleetUnits: React.FC = () => {
     setSelectedUnit(unit);
     setFormData({
       unitNo: unit.unitNo,
-      unitType: unit.unitType,
+      unitType: unit.unitType as UnitType,
       makeModel: unit.makeModel,
       vinNo: unit.vinNo,
       licensePlate: unit.licensePlate,
-      year: unit.year?.toString() || new Date().getFullYear().toString(),
-      truckType: unit.truckType || 'Semi-Truck',
-      trailerType: unit.trailerType || 'Dry Van',
+      year: unit.year?.toString() || '',
+      truckType: (unit.truckType as TruckType) || 'Semi-Truck',
+      trailerType: (unit.trailerType as TrailerType) || 'Dry Van',
       capacity: unit.capacity || '',
-      initialOdometer: unit.initialOdometer.toString(),
-      status: unit.status,
+      initialOdometer: unit.initialOdometer?.toString() || '',
+      currentOdometer: (unit.currentOdometer ?? unit.initialOdometer ?? 0).toString(),
+      status: unit.status as UnitStatus,
       operationStatus: unit.operationStatus || 'available',
-      lastDate: unit.lastDate || '',
-      reason: unit.reason || ''
+      lastDate: unit.lastDate ? unit.lastDate.slice(0, 10) : '',
+      reason: unit.reason || '',
+      safetyExpiryDate: unit.safetyExpiryDate ? unit.safetyExpiryDate.slice(0, 10) : '',
+      safetyDecalNumber: unit.safetyDecalNumber || '',
+      safetyPaperNumber: unit.safetyPaperNumber || '',
+      lastInspectionShop: unit.lastInspectionShop || '',
+      lastInspectionInvoice: unit.lastInspectionInvoice || ''
     });
+    setFormError(null);
     setShowEditModal(true);
   };
 
@@ -361,68 +230,87 @@ const FleetUnits: React.FC = () => {
     setShowDeleteModal(true);
   };
 
-  const handleSaveUnit = () => {
+  const handleSaveUnit = async () => {
+    setFormError(null);
     if (!formData.unitNo || !formData.makeModel || !formData.vinNo || !formData.licensePlate || !formData.initialOdometer) {
-      alert('Please fill in all required fields');
+      setFormError('Please fill in all required fields highlighted with *');
       return;
     }
 
-    if (showAddModal) {
-      const newUnit: FleetUnit = {
-        _id: Date.now().toString(),
-        unitNo: formData.unitNo,
+    const payload = {
+      unitNo: formData.unitNo.trim(),
         unitType: formData.unitType,
-        makeModel: formData.makeModel,
-        vinNo: formData.vinNo,
-        licensePlate: formData.licensePlate,
-        year: parseInt(formData.year),
+      makeModel: formData.makeModel.trim(),
+      vinNo: formData.vinNo.trim(),
+      licensePlate: formData.licensePlate.trim(),
+      year: formData.year ? Number(formData.year) : undefined,
         truckType: formData.unitType === 'Truck' ? formData.truckType : undefined,
         trailerType: formData.unitType !== 'Truck' ? formData.trailerType : undefined,
         capacity: formData.unitType !== 'Truck' ? formData.capacity : undefined,
-        initialOdometer: parseInt(formData.initialOdometer),
-        currentOdometer: parseInt(formData.initialOdometer),
+      initialOdometer: formData.initialOdometer ? Number(formData.initialOdometer) : 0,
+      currentOdometer: formData.currentOdometer
+        ? Number(formData.currentOdometer)
+        : formData.initialOdometer
+          ? Number(formData.initialOdometer)
+          : 0,
         status: formData.status,
         operationStatus: formData.unitType !== 'Truck' ? formData.operationStatus : undefined,
-        lastDate: formData.status === 'Inactive' ? formData.lastDate : undefined,
-        reason: formData.status === 'Inactive' ? formData.reason : undefined,
-        createdAt: new Date().toISOString()
-      };
-      setUnits([...units, newUnit]);
-    } else if (showEditModal && selectedUnit) {
-      setUnits(units.map(unit => 
-        unit._id === selectedUnit._id 
-          ? { 
-              ...unit, 
-              unitNo: formData.unitNo,
-              unitType: formData.unitType,
-              makeModel: formData.makeModel,
-              vinNo: formData.vinNo,
-              licensePlate: formData.licensePlate,
-              year: parseInt(formData.year),
-              truckType: formData.unitType === 'Truck' ? formData.truckType : undefined,
-              trailerType: formData.unitType !== 'Truck' ? formData.trailerType : undefined,
-              capacity: formData.unitType !== 'Truck' ? formData.capacity : undefined,
-              initialOdometer: parseInt(formData.initialOdometer),
-              status: formData.status,
-              operationStatus: formData.unitType !== 'Truck' ? formData.operationStatus : unit.operationStatus,
-              lastDate: formData.status === 'Inactive' ? formData.lastDate : undefined,
-              reason: formData.status === 'Inactive' ? formData.reason : undefined
-            }
-          : unit
-      ));
-    }
+      lastDate: formData.status === 'Inactive' ? formData.lastDate || undefined : undefined,
+      reason: formData.status === 'Inactive' ? formData.reason || undefined : undefined,
+      safetyExpiryDate: formData.safetyExpiryDate || undefined,
+      safetyDecalNumber: formData.safetyDecalNumber || undefined,
+      safetyPaperNumber: formData.safetyPaperNumber || undefined,
+      lastInspectionShop: formData.lastInspectionShop || undefined,
+      lastInspectionInvoice: formData.lastInspectionInvoice || undefined
+    };
 
+    setSaving(true);
+    try {
+      if (showAddModal) {
+        const response = await apiCreateFleetUnit(payload);
+        if (!response?.success) {
+          throw new Error(response?.message || 'Failed to create fleet unit');
+        }
+        setNotification({ type: 'success', message: 'Fleet unit added successfully.' });
+    } else if (showEditModal && selectedUnit) {
+        const response = await apiUpdateFleetUnit(selectedUnit._id, payload);
+        if (!response?.success) {
+          throw new Error(response?.message || 'Failed to update fleet unit');
+        }
+        setNotification({ type: 'success', message: 'Fleet unit updated successfully.' });
+      }
     setShowAddModal(false);
     setShowEditModal(false);
     setSelectedUnit(null);
+      resetForm();
+      await loadFleetUnits();
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to save fleet unit';
+      setFormError(message);
+      setNotification({ type: 'error', message });
+    } finally {
+      setSaving(false);
+    }
   };
 
 
-  const handleConfirmDelete = () => {
-    if (selectedUnit) {
-      setUnits(units.filter(unit => unit._id !== selectedUnit._id));
+  const handleConfirmDelete = async () => {
+    if (!selectedUnit) return;
+    setDeleting(true);
+    try {
+      const response = await apiDeleteFleetUnit(selectedUnit._id);
+      if (!response?.success) {
+        throw new Error(response?.message || 'Failed to delete fleet unit');
+      }
+      setNotification({ type: 'success', message: 'Fleet unit deleted successfully.' });
       setShowDeleteModal(false);
       setSelectedUnit(null);
+      await loadFleetUnits();
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to delete fleet unit';
+      setNotification({ type: 'error', message });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -446,10 +334,12 @@ const FleetUnits: React.FC = () => {
     'Tank Trailer',
     'Dump Trailer'
   ];
+  const operationStatuses = ['available', 'in-transit', 'maintenance', 'idle'];
 
-  const activeCount = units.filter(u => u.status === 'Active').length;
-  const trucksCount = units.filter(u => u.unitType === 'Truck').length;
-  const trailersCount = units.filter(u => u.unitType !== 'Truck').length;
+  const activeCount = summary.activeUnits;
+  const trucksCount = summary.trucks;
+  const trailersCount = summary.trailers;
+  const totalUnitsCount = summary.totalUnits;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
@@ -482,13 +372,37 @@ const FleetUnits: React.FC = () => {
           </div>
         </div>
 
+        {requiresCompanySetup && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+            Please complete your company settings to view and manage fleet units.
+          </div>
+        )}
+
+        {notification && (
+          <div
+            className={`mb-6 rounded-lg border px-4 py-3 ${
+              notification.type === 'success'
+                ? 'border-green-200 bg-green-50 text-green-800'
+                : 'border-red-200 bg-red-50 text-red-800'
+            }`}
+          >
+            {notification.message}
+          </div>
+        )}
+
+        {error && !requiresCompanySetup && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm mb-1">Total Units</p>
-                <p className="text-3xl font-bold" style={{ color: '#016ab2' }}>{units.length}</p>
+                <p className="text-3xl font-bold" style={{ color: '#016ab2' }}>{totalUnitsCount}</p>
               </div>
               <Truck className="text-gray-400" size={32} />
             </div>
@@ -534,7 +448,7 @@ const FleetUnits: React.FC = () => {
               }`}
               style={activeTab === 'all' ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: '#016ab2' } : {}}
             >
-              All Units ({units.length})
+              All Units ({totalUnitsCount})
             </button>
             <button
               onClick={() => setActiveTab('trucks')}
@@ -615,14 +529,22 @@ const FleetUnits: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredUnits.length === 0 ? (
+                {loading ? (
                   <tr>
                     <td colSpan={activeTab === 'trailers' ? 12 : 11} className="px-6 py-12 text-center text-gray-500">
-                      No units found
+                      Loading fleet units...
+                    </td>
+                  </tr>
+                ) : units.length === 0 ? (
+                  <tr>
+                    <td colSpan={activeTab === 'trailers' ? 12 : 11} className="px-6 py-12 text-center text-gray-500">
+                      {requiresCompanySetup
+                        ? 'Please complete your company settings to manage fleet units.'
+                        : error || 'No units found'}
                     </td>
                   </tr>
                 ) : (
-                  filteredUnits.map((unit) => {
+                  units.map((unit) => {
                     const compliance = getComplianceStatus(unit.safetyExpiryDate);
                     return (
                       <tr key={unit._id} className="hover:bg-gray-50 transition-colors">
@@ -634,21 +556,33 @@ const FleetUnits: React.FC = () => {
                               unit.unitType === 'Reefer Trailer' ? 'bg-green-100 text-green-800' :
                               unit.unitType === 'Tri-Axle Trailer' ? 'bg-orange-100 text-orange-800' :
                               unit.unitType === 'Dry Van' ? 'bg-purple-100 text-purple-800' :
+                          unit.unitType === 'Flatbed' ? 'bg-indigo-100 text-indigo-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
                               {unit.unitType}
                             </span>
-                            {unit.truckType && (
+                        {unit.truckType && unit.truckType !== unit.unitType && (
                               <span className="text-xs text-gray-500">{unit.truckType}</span>
                             )}
-                            {unit.trailerType && (
+                        {unit.trailerType && unit.trailerType !== unit.unitType && (
                               <span className="text-xs text-gray-500">{unit.trailerType}</span>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-gray-900">{unit.makeModel}</td>
                         <td className="px-6 py-4 text-gray-600 font-mono text-sm">{unit.vinNo}</td>
-                        <td className="px-6 py-4 text-gray-900 font-medium">{unit.licensePlate}</td>
+                        <td className="px-6 py-4 text-gray-900 font-medium">
+                          {unit.licensePlate}
+                          {unit.source && (
+                            <span className="ml-2 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                              {unit.source === 'vehicle'
+                                ? 'Vehicle'
+                                : unit.source === 'trailer'
+                                  ? 'Trailer'
+                                  : 'Custom'}
+                            </span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 text-gray-900">{unit.year || 'N/A'}</td>
                         <td className="px-6 py-4 text-gray-900">
                           {unit.currentOdometer !== undefined ? unit.currentOdometer.toLocaleString() : unit.initialOdometer.toLocaleString()} km
@@ -728,6 +662,7 @@ const FleetUnits: React.FC = () => {
               setShowAddModal(false);
               setShowEditModal(false);
               setSelectedUnit(null);
+              resetForm();
             }} />
             <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
               <div className="h-full flex flex-col">
@@ -738,6 +673,7 @@ const FleetUnits: React.FC = () => {
                       setShowAddModal(false);
                       setShowEditModal(false);
                       setSelectedUnit(null);
+                      resetForm();
                     }}
                     className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                   >
@@ -745,6 +681,11 @@ const FleetUnits: React.FC = () => {
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {formError && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+                      {formError}
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Unit No. *</label>
@@ -886,10 +827,11 @@ const FleetUnits: React.FC = () => {
                             onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                             onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                           >
-                            <option value="available">Available</option>
-                            <option value="in-transit">In Transit</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="idle">Idle</option>
+                            {operationStatuses.map((status) => (
+                              <option key={status} value={status}>
+                                {status.replace('-', ' ')}
+                              </option>
+                            ))}
                           </select>
                         </div>
                       </>
@@ -900,6 +842,19 @@ const FleetUnits: React.FC = () => {
                         type="number"
                         value={formData.initialOdometer}
                         onChange={(e) => setFormData({ ...formData, initialOdometer: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Current Odometer/Hour</label>
+                      <input
+                        type="number"
+                        value={formData.currentOdometer}
+                        onChange={(e) => setFormData({ ...formData, currentOdometer: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
@@ -950,6 +905,66 @@ const FleetUnits: React.FC = () => {
                         </div>
                       </>
                     )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Safety Expiry Date</label>
+                      <input
+                        type="date"
+                        value={formData.safetyExpiryDate}
+                        onChange={(e) => setFormData({ ...formData, safetyExpiryDate: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Safety Decal Number</label>
+                      <input
+                        type="text"
+                        value={formData.safetyDecalNumber}
+                        onChange={(e) => setFormData({ ...formData, safetyDecalNumber: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Safety Paper Number</label>
+                      <input
+                        type="text"
+                        value={formData.safetyPaperNumber}
+                        onChange={(e) => setFormData({ ...formData, safetyPaperNumber: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Inspection Shop</label>
+                      <input
+                        type="text"
+                        value={formData.lastInspectionShop}
+                        onChange={(e) => setFormData({ ...formData, lastInspectionShop: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Inspection Invoice</label>
+                      <input
+                        type="text"
+                        value={formData.lastInspectionInvoice}
+                        onChange={(e) => setFormData({ ...formData, lastInspectionInvoice: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      />
+                    </div>
                   </div>
                   <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-6">
                     <button
@@ -957,6 +972,7 @@ const FleetUnits: React.FC = () => {
                         setShowAddModal(false);
                         setShowEditModal(false);
                         setSelectedUnit(null);
+                        resetForm();
                       }}
                       className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                     >
@@ -964,10 +980,13 @@ const FleetUnits: React.FC = () => {
                     </button>
                     <button
                       onClick={handleSaveUnit}
-                      className="px-6 py-2 !text-white rounded-lg transition-colors hover:opacity-90"
+                      disabled={saving}
+                      className={`px-6 py-2 !text-white rounded-lg transition-colors ${
+                        saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
+                      }`}
                       style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
                     >
-                      {showAddModal ? 'Add Fleet' : 'Save Changes'}
+                      {saving ? 'Saving...' : showAddModal ? 'Add Fleet' : 'Save Changes'}
                     </button>
                   </div>
                 </div>
@@ -979,7 +998,13 @@ const FleetUnits: React.FC = () => {
         {/* Delete Confirmation Modal */}
         {showDeleteModal && selectedUnit && (
           <>
-            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998]" onClick={() => setShowDeleteModal(false)} />
+            <div
+              className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998]"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setSelectedUnit(null);
+              }}
+            />
             <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[9999] w-full max-w-md">
               <div className="p-6">
                 <div className="flex items-center gap-4 mb-4">
@@ -996,16 +1021,22 @@ const FleetUnits: React.FC = () => {
                 </p>
                 <div className="flex justify-end gap-3">
                   <button
-                    onClick={() => setShowDeleteModal(false)}
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setSelectedUnit(null);
+                    }}
                     className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleConfirmDelete}
-                    className="px-6 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors"
+                    disabled={deleting}
+                    className={`px-6 py-2 rounded-lg !text-white transition-colors ${
+                      deleting ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                    }`}
                   >
-                    Delete
+                    {deleting ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
               </div>
