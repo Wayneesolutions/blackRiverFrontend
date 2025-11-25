@@ -3,6 +3,7 @@ import {
   MdDocumentScanner, // Documents
   MdAccessTime, // Attendance Tracking
   MdErrorOutline, // Issues
+  MdPersonPin, // User Profiles
 } from "react-icons/md";
 import { FaUsers, FaCar } from "react-icons/fa"; // Employee List, Vehicle Documents
 import { RiCalendarScheduleFill } from "react-icons/ri"; // Scheduling
@@ -50,6 +51,11 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/attendence",
     icon: <MdAccessTime />,
     label: "Attendance Tracking",
+  },
+  {
+    key: "/admin/Management/user-profiles",
+    icon: <MdPersonPin />,
+    label: "User Portfolio",
   },
   {
     key: "/admin/Management/issues",

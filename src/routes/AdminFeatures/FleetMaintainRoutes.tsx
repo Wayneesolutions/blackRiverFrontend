@@ -10,8 +10,11 @@ const Schedule = lazy(() => import("../../pages/admin/fleetMaintenance/schedulin
 const SpareParts = lazy(() => import("../../pages/admin/fleetMaintenance/sparePart/index"))
 const Invoices = lazy(() => import("../../pages/admin/fleetMaintenance/invoices/index"))
 const CostReports = lazy(() => import("../../pages/admin/fleetMaintenance/costReport/index"))
-const Trucks = lazy(()=>import('../../pages/admin/fleetMaintenance/trucks/Trucks'))
-const Trailers = lazy(()=>import('../../pages/admin/fleetMaintenance/trailers/Trailers'))
+const FleetUnits = lazy(() => import("../../pages/admin/fleetMaintenance/fleetUnits/index"))
+const ComplianceDashboard = lazy(() => import("../../pages/admin/fleetMaintenance/complianceDashboard/index"))
+const ScheduledServicesLog = lazy(() => import("../../pages/admin/fleetMaintenance/scheduledServicesLog/index"))
+const GeneralRepairsLog = lazy(() => import("../../pages/admin/fleetMaintenance/generalRepairsLog/index"))
+const RegulatorySafety = lazy(() => import("../../pages/admin/fleetMaintenance/regulatorySafety/index"))
 
 function FleetMaintainRoutes() {
     return (
@@ -24,8 +27,11 @@ function FleetMaintainRoutes() {
                     <Route path="/spare-parts" element={<SpareParts />} />
                     <Route path="/invoices" element={<Invoices />} />
                     <Route path="/cost-reports" element={<CostReports />} />
-                    <Route path="/trucks" element={<Trucks />} />
-                    <Route path="/trailers" element={<Trailers />} />
+                    <Route path="/fleet-units" element={<FleetUnits />} />
+                    <Route path="/compliance-dashboard" element={<ComplianceDashboard />} />
+                    <Route path="/scheduled-services-log" element={<ScheduledServicesLog />} />
+                    <Route path="/general-repairs-log" element={<GeneralRepairsLog />} />
+                    <Route path="/regulatory-safety" element={<RegulatorySafety />} />
                 </Route>
             </Routes>
         </Suspense>

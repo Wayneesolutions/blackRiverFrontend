@@ -100,7 +100,7 @@ export default function RegistrationPage() {
       {/* Floating Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
       <div className="w-full max-w-4xl relative">
@@ -132,7 +132,7 @@ export default function RegistrationPage() {
               {/* Personal Information Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-indigo-600" />
+                  <Users className="w-5 h-5" style={{ color: '#016ab2' }} />
                   Personal Information
                 </h3>
                 
@@ -142,9 +142,12 @@ export default function RegistrationPage() {
                     <input
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className={`block w-full rounded-xl border px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                      className={`block w-full rounded-xl border px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
                         errors.name ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-gray-300"
                       }`}
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="Enter your full name"
                     />
                     {errors.name && <div className="text-xs text-red-500 flex items-center gap-1">{errors.name}</div>}
@@ -155,7 +158,7 @@ export default function RegistrationPage() {
               {/* Contact Information Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-indigo-600" />
+                  <MapPin className="w-5 h-5" style={{ color: '#016ab2' }} />
                   Contact Details
                 </h3>
                 
@@ -166,9 +169,12 @@ export default function RegistrationPage() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className={`block w-full rounded-xl border px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                      className={`block w-full rounded-xl border px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
                         errors.email ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-gray-300"
                       }`}
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="you@company.com"
                     />
                     {errors.email && <div className="text-xs text-red-500">{errors.email}</div>}
@@ -180,7 +186,10 @@ export default function RegistrationPage() {
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent hover:border-gray-300"
+                      className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-300"
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="+1 (555) 123-4567"
                     />
                   </div>
@@ -193,7 +202,10 @@ export default function RegistrationPage() {
                     <input
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
-                      className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent hover:border-gray-300"
+                      className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-300"
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="Country (optional)"
                     />
                   </div>
@@ -203,7 +215,10 @@ export default function RegistrationPage() {
                     <input
                       value={state}
                       onChange={(e) => setState(e.target.value)}
-                      className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent hover:border-gray-300"
+                      className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-300"
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="State (optional)"
                     />
                   </div>
@@ -213,7 +228,10 @@ export default function RegistrationPage() {
                     <input
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent hover:border-gray-300"
+                      className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-300"
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="City (optional)"
                     />
                   </div>
@@ -233,7 +251,7 @@ export default function RegistrationPage() {
               {/* Security Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-indigo-600" />
+                  <Shield className="w-5 h-5" style={{ color: '#016ab2' }} />
                   Security
                 </h3>
                 
@@ -245,9 +263,12 @@ export default function RegistrationPage() {
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className={`block w-full rounded-xl border px-4 py-3 pr-12 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                        className={`block w-full rounded-xl border px-4 py-3 pr-12 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
                           errors.password ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-gray-300"
                         }`}
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                         placeholder="Create a strong password"
                       />
                       <button
@@ -280,9 +301,12 @@ export default function RegistrationPage() {
                         type={showConfirm ? "text" : "password"}
                         value={confirm}
                         onChange={(e) => setConfirm(e.target.value)}
-                        className={`block w-full rounded-xl border px-4 py-3 pr-12 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                        className={`block w-full rounded-xl border px-4 py-3 pr-12 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
                           errors.confirm ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-gray-300"
                         }`}
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                         placeholder="Confirm your password"
                       />
                       <button
@@ -306,17 +330,18 @@ export default function RegistrationPage() {
                     type="checkbox"
                     checked={agree}
                     onChange={(e) => setAgree(e.target.checked)}
-                    className={`mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 ${
+                    className={`mt-1 h-4 w-4 rounded border-gray-300 ${
                       errors.agree ? "border-red-400" : ""
                     }`}
+                    style={{ accentColor: '#016ab2' }}
                   />
                   <label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed">
                     I agree to the{" "}
-                    <a className="text-indigo-600 hover:text-indigo-700 underline font-medium" href="#">
+                    <a className="underline font-medium" href="#" style={{ color: '#016ab2' }} onMouseEnter={(e) => e.currentTarget.style.color = '#063f6f'} onMouseLeave={(e) => e.currentTarget.style.color = '#016ab2'}>
                       Terms of Service
                     </a>{" "}
                     and{" "}
-                    <a className="text-indigo-600 hover:text-indigo-700 underline font-medium" href="#">
+                    <a className="underline font-medium" href="#" style={{ color: '#016ab2' }} onMouseEnter={(e) => e.currentTarget.style.color = '#063f6f'} onMouseLeave={(e) => e.currentTarget.style.color = '#016ab2'}>
                       Privacy Policy
                     </a>
                   </label>
@@ -326,7 +351,7 @@ export default function RegistrationPage() {
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="text-sm text-gray-500">
                     Already have an account?{" "}
-                    <Link to="/" className="text-indigo-600 hover:text-indigo-700 underline font-medium">
+                    <Link to="/" className="underline font-medium" style={{ color: '#016ab2' }} onMouseEnter={(e) => e.currentTarget.style.color = '#063f6f'} onMouseLeave={(e) => e.currentTarget.style.color = '#016ab2'}>
                       Sign in here
                     </Link>
                   </div>
@@ -338,9 +363,12 @@ export default function RegistrationPage() {
                       disabled={loading}
                       className={`inline-flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-semibold !text-white shadow-lg transition-all duration-200 ${
                         loading 
-                          ? "bg-indigo-400 cursor-not-allowed" 
-                          : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl transform hover:-translate-y-0.5"
+                          ? "cursor-not-allowed opacity-60" 
+                          : "hover:shadow-xl transform hover:-translate-y-0.5"
                       }`}
+                      style={loading ? {} : { background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                      onMouseEnter={(e) => { if (!loading) e.currentTarget.style.opacity = '0.9'; }}
+                      onMouseLeave={(e) => { if (!loading) e.currentTarget.style.opacity = '1'; }}
                     >
                       {loading ? (
                         <>

@@ -221,7 +221,7 @@ export default function LoginPage() {
       {/* Floating Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
       <div className="w-full max-w-6xl relative">
@@ -259,7 +259,7 @@ export default function LoginPage() {
               </div>
 
               <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 hover:shadow-lg transition-all duration-300">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <Users className="w-6 h-6 text-white" />
                 </div>
                 <h4 className="font-semibold text-gray-800 mb-2">Team Management</h4>
@@ -273,7 +273,7 @@ export default function LoginPage() {
             <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl ring-1 ring-gray-200/50 overflow-hidden">
               {/* Form Header */}
               <div className="p-8 text-center border-b border-gray-100">
-                <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   <Lock className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Sign In</h3>
@@ -292,9 +292,12 @@ export default function LoginPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={loading}
-                      className={`block w-full rounded-xl border pl-12 pr-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
+                      className={`block w-full rounded-xl border pl-12 pr-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
                         errors.email ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-gray-300"
                       }`}
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="Enter your email"
                       autoComplete="email"
                     />
@@ -306,7 +309,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="block text-sm font-medium text-gray-700">Password</label>
-                    <a href="#" className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">
+                    <a href="#" className="text-xs font-medium" style={{ color: '#016ab2' }} onMouseEnter={(e) => e.currentTarget.style.color = '#063f6f'} onMouseLeave={(e) => e.currentTarget.style.color = '#016ab2'}>
                       Forgot password?
                     </a>
                   </div>
@@ -317,9 +320,12 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
-                      className={`block w-full rounded-xl border pl-12 pr-12 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
+                      className={`block w-full rounded-xl border pl-12 pr-12 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
                         errors.password ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-gray-300"
                       }`}
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="Enter your password"
                       autoComplete="current-password"
                     />
@@ -344,7 +350,8 @@ export default function LoginPage() {
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
                       disabled={loading}
-                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
+                      className="h-4 w-4 rounded border-gray-300 disabled:opacity-50"
+                      style={{ accentColor: '#016ab2' }}
                     />
                     <label htmlFor="remember" className="text-sm text-gray-600">
                       Remember me
@@ -366,9 +373,12 @@ export default function LoginPage() {
                     disabled={loading}
                     className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 text-sm font-semibold !text-white shadow-lg transition-all duration-200 ${
                       loading
-                        ? "bg-indigo-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl transform hover:-translate-y-0.5"
+                        ? "cursor-not-allowed opacity-60"
+                        : "hover:shadow-xl transform hover:-translate-y-0.5"
                     }`}
+                    style={loading ? {} : { background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                    onMouseEnter={(e) => { if (!loading) e.currentTarget.style.opacity = '0.9'; }}
+                    onMouseLeave={(e) => { if (!loading) e.currentTarget.style.opacity = '1'; }}
                   >
                     {loading ? (
                       <>
@@ -398,7 +408,7 @@ export default function LoginPage() {
                 <div className="text-center pt-4 border-t border-gray-100">
                   <p className="text-sm text-gray-600">
                     Don't have an account?{" "}
-                    <a href="/admin/register" className="text-indigo-600 hover:text-indigo-700 font-medium underline">
+                    <a href="/admin/register" className="font-medium underline" style={{ color: '#016ab2' }} onMouseEnter={(e) => e.currentTarget.style.color = '#063f6f'} onMouseLeave={(e) => e.currentTarget.style.color = '#016ab2'}>
                       Create one now
                     </a>
                   </p>
