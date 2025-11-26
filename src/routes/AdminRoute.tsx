@@ -12,6 +12,7 @@ const QuickStats = lazy(() => import("../pages/admin/dashboard/quckstats/QuickSt
 const Slots = lazy(() => import("../pages/admin/dashboard/slot/index"));
 const Member = lazy(() => import("../pages/admin/dashboard/member/index"));
 const Invoice = lazy(() => import("../pages/admin/dashboard/invoice/index"));
+const TruckProfile = lazy(() => import("../pages/admin/dashboard/truckProfile/index"));
 
 const Integrations = lazy(() => import("../pages/admin/dashboard/setting/Api"))
 const UserManage = lazy(() => import("../pages/admin/dashboard/setting/Users"));
@@ -84,6 +85,7 @@ function AdminRoute() {
           <Route path="member" element={<ErrorBoundary><Member /></ErrorBoundary>} />
           <Route path="slots" element={<ErrorBoundary><Slots /></ErrorBoundary>} />
           <Route path="invoice" element={<ErrorBoundary><Invoice /></ErrorBoundary>} />
+          <Route path="truck-profile" element={<ErrorBoundary><TruckProfile /></ErrorBoundary>} />
 
           <Route path="users" element={<ErrorBoundary><UserManage /></ErrorBoundary>} />
           <Route path="company" element={<ErrorBoundary><CompanyManage /></ErrorBoundary>} />

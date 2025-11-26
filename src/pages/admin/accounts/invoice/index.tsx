@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Eye, Edit, Filter, Calendar, DollarSign, Users, TrendingUp,
      Trash2, X, CheckCircle, AlertCircle, CreditCard, Building2 } from 'lucide-react';
 import { createInvoice, listInvoices,  updateInvoice, deleteInvoice, listLoad, createPaymentSession } from "../../../../axios/api/account.invoices";
+import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 interface Invoice {
     _id: string;
@@ -74,6 +75,19 @@ const InvoiceManagement: React.FC = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [deleteModal, setDeleteModal] = useState<{ show: boolean; invoiceId: string | null }>({ show: false, invoiceId: null });
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+
+    const pageBackgroundStyle = {
+        background: `linear-gradient(180deg, ${FLEET_COLORS.focusRing} 0%, rgba(255,255,255,0.98) 40%, #f8fafc 100%)`,
+    };
+
+   
+
+    const primaryButtonStyle: React.CSSProperties = {
+        background: FLEET_COLORS.gradient,
+        color: '#fff',
+        border: 'none',
+        boxShadow: `0 12px 25px ${FLEET_COLORS.focusRing}`,
+    };
 
     useEffect(() => {
         // Check authentication state
@@ -343,7 +357,7 @@ const InvoiceManagement: React.FC = () => {
 
     const DashboardOverview: React.FC = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg p-6" >
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-gray-500">Total Revenue</p>
@@ -358,7 +372,7 @@ const InvoiceManagement: React.FC = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg p-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-gray-500">Paid</p>
@@ -373,7 +387,7 @@ const InvoiceManagement: React.FC = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg p-6" >
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-gray-500">Pending</p>
@@ -388,7 +402,7 @@ const InvoiceManagement: React.FC = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg p-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-gray-500">Collection Rate</p>
@@ -406,7 +420,7 @@ const InvoiceManagement: React.FC = () => {
     );
 
     const InvoiceList: React.FC = () => (
-        <div className="bg-white rounded-lg shadow-md">
+        <div className="bg-white rounded-lg" >
             <div className="p-6 border-b border-gray-200">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <h2 className="text-xl font-semibold text-gray-900 mb-4 sm:mb-0">Invoice List</h2>
@@ -523,7 +537,7 @@ const InvoiceManagement: React.FC = () => {
         if (!selectedInvoice) return null;
 
         return (
-            <div className="bg-white rounded-lg shadow-md">
+            <div className="bg-white rounded-lg" >
                 <div className="p-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-semibold text-gray-900">Invoice Details</h2>
@@ -643,7 +657,7 @@ const InvoiceManagement: React.FC = () => {
         };
 
         return (
-            <div className="bg-white rounded-lg shadow-md">
+            <div className="bg-white rounded-lg" >
                 <div className="p-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-semibold text-gray-900">Edit Invoice</h2>
@@ -657,7 +671,8 @@ const InvoiceManagement: React.FC = () => {
                             <button
                                 onClick={handleSave}
                                 disabled={loading}
-                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+                                className="px-4 py-2 rounded-md transition-colors disabled:bg-gray-400"
+                                style={primaryButtonStyle}
                             >
                                 {loading ? 'Saving...' : 'Save Changes'}
                             </button>
@@ -844,7 +859,7 @@ const InvoiceManagement: React.FC = () => {
         };
 
         return (
-            <div className="bg-white rounded-lg shadow-md">
+            <div className="bg-white rounded-lg">
                 <div className="p-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-semibold text-gray-900">Create New Invoice</h2>
@@ -858,7 +873,8 @@ const InvoiceManagement: React.FC = () => {
                             <button
                                 onClick={handleCreate}
                                 disabled={loading}
-                                className="bg-green-600 !text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 disabled:bg-gray-400"
+                                className="px-4 py-2 rounded-md transition-colors flex items-center gap-2 disabled:bg-gray-400"
+                                style={primaryButtonStyle}
                             >
                                 <Plus className="h-4 w-4" />
                                 {loading ? 'Creating...' : 'Create Invoice'}
@@ -1057,7 +1073,7 @@ const InvoiceManagement: React.FC = () => {
 
     if (!loading && emptyStateMessage) {
         return (
-            <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center text-center space-y-5">
+            <div className="min-h-screen p-6 flex flex-col items-center justify-center text-center space-y-5" style={pageBackgroundStyle}>
                 <NotificationContainer />
                 <Building2 className="h-16 w-16 text-gray-400" />
                 <div className="space-y-3 max-w-md">
@@ -1066,7 +1082,8 @@ const InvoiceManagement: React.FC = () => {
                 </div>
                 <button
                     onClick={fetchInvoices}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow"
+                    className="px-4 py-2 rounded-lg shadow text-sm font-medium"
+                    style={primaryButtonStyle}
                 >
                     Refresh
                 </button>
@@ -1075,7 +1092,7 @@ const InvoiceManagement: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen p-6 bg-gray-50" >
             <NotificationContainer />
             <DeleteConfirmationModal />
             <div className="max-w-7xl mx-auto">
@@ -1089,7 +1106,8 @@ const InvoiceManagement: React.FC = () => {
                             <div className="mt-4 sm:mt-0">
                                 <button
                                     onClick={() => setActiveTab('create')}
-                                    className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                    className="px-4 py-2 rounded-md transition-colors flex items-center gap-2"
+                                    style={primaryButtonStyle}
                                 >
                                     <Plus className="h-4 w-4" />
                                     New Invoice

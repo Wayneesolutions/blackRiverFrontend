@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
@@ -9,6 +9,7 @@ import {
 import { listInvoices } from '../../../axios/api/account.invoices';
 import { listExpenses } from '../../../axios/api/account.expense';
 import { listPayrolls } from '../../../axios/api/account.payroll';
+import { FLEET_COLORS } from '../fleetMaintenance/colorUtils';
 
 interface Invoice {
   _id: string;
@@ -91,6 +92,27 @@ const Dashboard = () => {
   };
 
   const formatDate = (value?: string) => (value ? new Date(value).toLocaleDateString() : 'N/A');
+
+  const pageBackgroundStyle = {
+    background: `linear-gradient(180deg, ${FLEET_COLORS.focusRing} 0%, rgba(255,255,255,0.98) 40%, #f8fafc 100%)`,
+  };
+
+  const sectionCardStyle = {
+    borderColor: FLEET_COLORS.focusRing,
+    boxShadow: `0 18px 35px ${FLEET_COLORS.focusRing}`,
+  };
+
+  const statCardStyle = {
+    borderColor: FLEET_COLORS.focusRing,
+    boxShadow: `0 15px 30px ${FLEET_COLORS.focusRing}`,
+  };
+
+  const primaryButtonStyle: React.CSSProperties = {
+    background: FLEET_COLORS.gradient,
+    color: '#fff',
+    border: 'none',
+    boxShadow: `0 12px 25px ${FLEET_COLORS.focusRing}`,
+  };
 
   // Calculate stats from real data
   const totalRevenue = invoices.reduce((sum, inv) => sum + normalizeAmount(inv.amount), 0);
@@ -189,7 +211,12 @@ const StatCard = ({
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Recent Invoices</h3>
-                <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">View All</button>
+                <button
+                  className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                  style={primaryButtonStyle}
+                >
+                  View All
+                </button>
               </div>
             </div>
             <div className="p-6">
@@ -223,7 +250,7 @@ const StatCard = ({
           </div>
 
           {/* Recent Expenses */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100" style={sectionCardStyle}>
             <div className="p-6 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900">Recent Expenses</h3>
             </div>
@@ -247,7 +274,8 @@ const StatCard = ({
               )}
               <button 
                 onClick={() => navigate('/accounts/expenses')}
-                className="w-full mt-4 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-full mt-4 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={primaryButtonStyle}
               >
                 View All Expenses
               </button>

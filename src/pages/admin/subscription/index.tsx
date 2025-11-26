@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import {
   CreditCard,
   CheckCircle,
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { message, Modal, Button, Tag, Card, Spin, Tabs, Progress } from 'antd';
 import { getAllPlans, getMySubscription, getMySubscriptions, createCheckoutSession, cancelSubscription, getTrialStatus } from '../../../axios/api/subscription';
+import { FLEET_COLORS } from '../fleetMaintenance/colorUtils';
 
 interface Plan {
   _id: string;
@@ -94,6 +95,20 @@ const SubscriptionPage = () => {
   const [cancelSubscriptionId, setCancelSubscriptionId] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
+
+  const pageBackgroundStyle: CSSProperties = {
+    background: FLEET_COLORS.gradientVertical,
+  };
+  const primaryButtonStyle: CSSProperties = {
+    background: FLEET_COLORS.gradient,
+    color: '#fff',
+    border: 'none',
+    boxShadow: `0 18px 32px ${FLEET_COLORS.focusRing}`,
+  };
+  const cardAccentStyle: CSSProperties = {
+    borderColor: FLEET_COLORS.focusRing,
+    boxShadow: `0 25px 45px ${FLEET_COLORS.focusRing}`,
+  };
 
   useEffect(() => {
     fetchData();
@@ -261,30 +276,33 @@ const SubscriptionPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-blue-50">
+      <div className="flex justify-center items-center min-h-screen bg-gray-50" >
         <div className="text-center">
           <Spin size="large" />
-          <p className="mt-4 text-gray-600">Loading your subscriptions...</p>
+          <p className="mt-4 text-black">Loading your subscriptions...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-blue-50/30">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Enhanced Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl shadow-lg">
-                <CreditCard className="w-8 h-8 text-white" />
+              <div
+                className="p-3 rounded-2xl shadow-lg"
+
+              >
+                <CreditCard className="w-8 h-8 text-black" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold" style={{ color: FLEET_COLORS.light }}>
                   Subscription & Plans
                 </h1>
-                <p className="text-gray-600 mt-1 flex items-center gap-2">
+                <p className="text-black/90 mt-1 flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
                   Manage your subscription and choose from available plans
                 </p>
@@ -390,7 +408,7 @@ const SubscriptionPage = () => {
                     <Button
                       type="primary"
                       size="large"
-                      className="bg-white text-purple-600 hover:bg-white/90 border-0 font-semibold"
+                      style={primaryButtonStyle}
                       onClick={() => setActiveTab('plans')}
                     >
                       <ArrowRight className="w-4 h-4 mr-2" />
@@ -405,7 +423,10 @@ const SubscriptionPage = () => {
 
         {/* Enhanced Active Subscription Card */}
         {activeSubscription && (
-          <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-purple-700 to-blue-600 shadow-2xl">
+          <div
+            className="mb-8 relative overflow-hidden rounded-2xl shadow-2xl"
+            style={{ background: FLEET_COLORS.gradient, boxShadow: `0 35px 55px ${FLEET_COLORS.focusRing}` }}
+          >
             <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24 pointer-events-none"></div>
@@ -590,14 +611,14 @@ const SubscriptionPage = () => {
                         ? 'border-purple-500 ring-4 ring-purple-200'
                         : 'border-gray-200 hover:border-purple-300'
                     }`}
+                    style={isCurrentPlan ? { borderColor: FLEET_COLORS.primary, boxShadow: `0 25px 45px ${FLEET_COLORS.focusRing}` } : cardAccentStyle}
                   >
                     {/* Plan Header with Gradient */}
                     <div
-                      className={`relative p-6 ${
-                        isCurrentPlan
-                          ? 'bg-gradient-to-br from-purple-600 to-blue-600'
-                          : 'bg-gradient-to-br from-gray-50 to-gray-100'
-                      }`}
+                      className="relative p-6"
+                      style={{
+                        background: isCurrentPlan ? FLEET_COLORS.gradient : FLEET_COLORS.gradientVertical,
+                      }}
                     >
                       {isCurrentPlan && (
                         <div className="absolute top-4 right-4">
@@ -608,7 +629,7 @@ const SubscriptionPage = () => {
                         </div>
                       )}
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className={`text-2xl font-bold ${isCurrentPlan ? 'text-white' : 'text-gray-900'}`}>
+                        <h3 className={`text-2xl font-bold ${isCurrentPlan ? '!text-white' : 'text-white'}`}>
                           {plan.planName}
                         </h3>
                         <Tag
@@ -623,7 +644,7 @@ const SubscriptionPage = () => {
                         </Tag>
                       </div>
                       {plan.description && (
-                        <p className={`text-sm ${isCurrentPlan ? 'text-white/90' : 'text-gray-600'}`}>
+                        <p className={`text-sm ${isCurrentPlan ? '!text-white/90' : '!text-white'}`}>
                           {plan.description}
                         </p>
                       )}
@@ -645,7 +666,7 @@ const SubscriptionPage = () => {
                                 icon={<ArrowRight className="w-3 h-3" />}
                                 onClick={() => handleSubscribe(plan, 'one-time')}
                                 disabled={isCurrentPlan}
-                                className="bg-gradient-to-r from-blue-600 to-indigo-600 border-0 hover:from-blue-700 hover:to-indigo-700"
+                                style={primaryButtonStyle}
                               >
                                 {isCurrentPlan ? 'Current' : 'Subscribe'}
                               </Button>
@@ -669,7 +690,7 @@ const SubscriptionPage = () => {
                                   icon={<ArrowRight className="w-3 h-3" />}
                                   onClick={() => handleSubscribe(plan, '3-months')}
                                   disabled={isCurrentPlan}
-                                  className="bg-gradient-to-r from-purple-600 to-pink-600 border-0 hover:from-purple-700 hover:to-pink-700"
+                                  style={primaryButtonStyle}
                                 >
                                   {isCurrentPlan ? 'Current' : 'Subscribe'}
                                 </Button>
@@ -695,7 +716,7 @@ const SubscriptionPage = () => {
                                   icon={<ArrowRight className="w-3 h-3" />}
                                   onClick={() => handleSubscribe(plan, '6-months')}
                                   disabled={isCurrentPlan}
-                                  className="bg-gradient-to-r from-green-600 to-emerald-600 border-0 hover:from-green-700 hover:to-emerald-700"
+                                  style={primaryButtonStyle}
                                 >
                                   {isCurrentPlan ? 'Current' : 'Subscribe'}
                                 </Button>
@@ -725,7 +746,7 @@ const SubscriptionPage = () => {
                                   icon={<ArrowRight className="w-3 h-3" />}
                                   onClick={() => handleSubscribe(plan, 'full-app')}
                                   disabled={isCurrentPlan}
-                                  className="bg-gradient-to-r from-blue-600 to-indigo-600 border-0 hover:from-blue-700 hover:to-indigo-700"
+                                  style={primaryButtonStyle}
                                 >
                                   {isCurrentPlan ? 'Current' : 'Subscribe'}
                                 </Button>
@@ -751,7 +772,7 @@ const SubscriptionPage = () => {
                                   icon={<ArrowRight className="w-3 h-3" />}
                                   onClick={() => handleSubscribe(plan, 'without-hr')}
                                   disabled={isCurrentPlan}
-                                  className="bg-gradient-to-r from-purple-600 to-pink-600 border-0 hover:from-purple-700 hover:to-pink-700"
+                                  style={primaryButtonStyle}
                                 >
                                   {isCurrentPlan ? 'Current' : 'Subscribe'}
                                 </Button>
@@ -780,7 +801,8 @@ const SubscriptionPage = () => {
                   {subscriptions.map((sub) => (
                     <Card
                       key={sub._id}
-                      className="hover:shadow-lg transition-all duration-300 border-2 border-gray-200 hover:border-purple-300"
+                      className="hover:shadow-lg transition-all duration-300 border-2 border-gray-200 hover:border-purple-300 !mb-4"
+                      style={cardAccentStyle}
                     >
                       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                         <div className="flex-1">
@@ -914,7 +936,7 @@ const SubscriptionPage = () => {
             loading={processing}
             onClick={confirmSubscribe}
             icon={<ArrowRight className="w-4 h-4" />}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 hover:from-purple-700 hover:to-blue-700 font-semibold shadow-lg"
+            style={primaryButtonStyle}
           >
             {processing ? 'Processing...' : 'Proceed to Checkout'}
           </Button>,

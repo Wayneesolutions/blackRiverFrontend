@@ -9,6 +9,7 @@ import {
 import { BsPersonVcard } from "react-icons/bs";
 import { RiBillLine } from "react-icons/ri";
 import { RiFoldersLine } from "react-icons/ri";
+import { FaTruck } from "react-icons/fa";
 
 export type AdminSidebarLink = {
     key: string;
@@ -28,6 +29,11 @@ export const AdminSidebarLinks: AdminSidebarLink[] = [
         key: "quick-stats",
         icon: <BsPersonVcard />,
         label: "Quick Stats",
+    },
+    {
+        key: "truck-profile",
+        icon: <FaTruck />,
+        label: "Fleet Profile",
     },
     // {
     //     key: "member",

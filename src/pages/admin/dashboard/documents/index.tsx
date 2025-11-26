@@ -22,6 +22,7 @@ import {
   Sheet,
   X
 } from 'lucide-react';
+import { FLEET_COLORS, getFocusStyles } from '../../fleetMaintenance/colorUtils';
 
 interface Document {
   _id: string;
@@ -59,6 +60,12 @@ const DocumentManagement: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
   const [uploadModalError, setUploadModalError] = useState<string | null>(null);
+  const focusHandlers = getFocusStyles();
+  const primaryButtonStyle: React.CSSProperties = {
+    background: FLEET_COLORS.gradient,
+    color: "#fff",
+    boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
+  };
 
   const getExtension = (doc: Document) => {
     if (doc.type) return doc.type.toLowerCase();
@@ -355,14 +362,20 @@ const DocumentManagement: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-8">
+    <div
+      className="min-h-screen bg-gray-50 px-6 py-8"
+     
+    >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div
+          className="bg-white rounded-2xl shadow-xl border p-6 mb-8"
+          style={{ borderColor: FLEET_COLORS.focusRing, boxShadow: `0 25px 45px ${FLEET_COLORS.focusRing}` }}
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Company Documents</h1>
-              <p className="text-gray-600">Manage and organize your company documents in one place</p>
+              <h1 className="text-3xl font-bold mb-2" style={{ color: FLEET_COLORS.dark }}>Company Documents</h1>
+              <p className="text-sm" style={{ color: FLEET_COLORS.light }}>Manage and organize your company documents in one place</p>
             </div>
             <button
               onClick={() => {
@@ -370,7 +383,8 @@ const DocumentManagement: React.FC = () => {
                 setUploadModalError(null); // Clear modal error when opening
                 setUploadDialog(true);
               }}
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 shadow-md"
+              className="px-4 py-2 rounded-lg transition-all font-medium flex items-center gap-2"
+              style={primaryButtonStyle}
             >
               <Plus size={20} />
               Upload Document
@@ -410,9 +424,12 @@ const DocumentManagement: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar - Categories */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 sticky top-6">
+            <div
+              className="bg-white rounded-2xl shadow-md border sticky top-6"
+              style={{ borderColor: FLEET_COLORS.focusRing }}
+            >
               <div className="p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900">Categories</h3>
+                <h3 className="font-semibold" style={{ color: FLEET_COLORS.dark }}>Categories</h3>
               </div>
               <div className="p-3 space-y-2">
                 {categories.map((category) => {
@@ -423,17 +440,29 @@ const DocumentManagement: React.FC = () => {
                     <button
                       key={category.id}
                       onClick={() => setSelectedCategory(category.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium`}
+                      style={
                         selectedCategory === category.id
-                          ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 font-medium shadow-sm'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
+                          ? {
+                              background: FLEET_COLORS.gradient,
+                              color: "#fff",
+                              boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
+                            }
+                          : {
+                              color: FLEET_COLORS.dark,
+                              border: `1px solid transparent`,
+                            }
+                      }
                     >
                       <Icon size={18} />
                       <span className="flex-1 text-left">{category.name}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${
-                        selectedCategory === category.id ? 'bg-blue-200 text-blue-800' : 'bg-gray-200 text-gray-600'
-                      }`}>
+                      <span
+                        className="px-2 py-0.5 rounded-full text-xs"
+                        style={{
+                          background: selectedCategory === category.id ? FLEET_COLORS.focusRing : "rgba(6,63,111,0.1)",
+                          color: selectedCategory === category.id ? FLEET_COLORS.dark : FLEET_COLORS.primary,
+                        }}
+                      >
                         {count}
                       </span>
                     </button>
@@ -446,7 +475,10 @@ const DocumentManagement: React.FC = () => {
           {/* Main Content */}
           <div className="lg:col-span-3">
             {/* Search and Filter */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <div
+              className="bg-white rounded-2xl shadow-md border p-4 mb-6"
+              style={{ borderColor: FLEET_COLORS.focusRing }}
+            >
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -455,10 +487,15 @@ const DocumentManagement: React.FC = () => {
                     placeholder="Search documents by name or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none"
+                    style={{ border: `1px solid ${FLEET_COLORS.focusRing}` }}
+                    {...focusHandlers}
                   />
                 </div>
-                <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center gap-2">
+                <button
+                  className="px-4 py-2 border rounded-lg transition-colors font-medium flex items-center gap-2"
+                  style={{ borderColor: FLEET_COLORS.focusRing, color: FLEET_COLORS.dark }}
+                >
                   <Filter size={18} />
                   Filter
                 </button>
@@ -477,7 +514,8 @@ const DocumentManagement: React.FC = () => {
                 <p className="text-gray-600 mb-4">{errorMessage}</p>
                 <button
                   onClick={() => window.location.href = '/admin/company'}
-                  className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="px-4 py-2 rounded-lg transition-colors font-medium"
+                  style={primaryButtonStyle}
                 >
                   Go to Company Settings
                 </button>
@@ -521,16 +559,26 @@ const DocumentManagement: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center gap-2 pt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => handleView(doc)} className="flex-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center gap-1 text-sm font-medium">
+                      <button
+                        onClick={() => handleView(doc)}
+                        className="flex-1 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1 text-sm font-medium"
+                        style={{ background: FLEET_COLORS.gradient, color: "#fff", boxShadow: `0 10px 18px ${FLEET_COLORS.focusRing}` }}
+                      >
                         <Eye size={16} />
                         Open
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); handleDownload(doc); }} className="px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors" title="Download">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDownload(doc); }}
+                        className="px-3 py-1.5 rounded-lg transition-colors"
+                        style={{ border: `1px solid ${FLEET_COLORS.focusRing}`, color: FLEET_COLORS.dark }}
+                        title="Download"
+                      >
                         <Download size={16} />
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); handleAskDelete(doc); }}
-                        className="px-3 py-1.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
+                        className="px-3 py-1.5 rounded-lg transition-colors"
+                        style={{ background: "rgba(239,68,68,0.1)", color: "#b91c1c" }}
                         title="Delete"
                       >
                         <Trash2 size={16} />
@@ -681,7 +729,8 @@ const DocumentManagement: React.FC = () => {
                 <button
                   onClick={handleFileUpload}
                   disabled={uploading || !selectedFile}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !text-white rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={primaryButtonStyle}
                 >
                   {uploading ? (
                     <>

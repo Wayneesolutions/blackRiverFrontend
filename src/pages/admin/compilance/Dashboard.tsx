@@ -9,6 +9,11 @@ import {
   FaCarCrash,
   FaSync,
   FaChartLine,
+  FaTruck,
+  FaCalendarCheck,
+  FaTools,
+  FaBalanceScale,
+  FaWarehouse,
 } from "react-icons/fa";
 import { getCvsaInspectionStats, getTicketStats, getIncidentStats } from "../../../axios/api/admin";
 import { useNavigate } from "react-router-dom";
@@ -38,6 +43,54 @@ interface IncidentStats {
   underReview: number;
   closed: number;
 }
+
+const fleetComplianceModules = [
+  {
+    key: "fleet",
+    title: "Fleet",
+    description: "Active units, inspection readiness, VIN matchups.",
+    metric: "18 units monitored",
+    icon: <FaTruck className="text-blue-600" />,
+    accent: "bg-blue-50",
+    route: "/fleetmaintenance/fleet-units",
+  },
+  {
+    key: "scheduled-services",
+    title: "Scheduled Services Log",
+    description: "Upcoming PM visits and overdue tasks.",
+    metric: "7 services this week",
+    icon: <FaCalendarCheck className="text-indigo-600" />,
+    accent: "bg-indigo-50",
+    route: "/fleetmaintenance/scheduled-services-log",
+  },
+  {
+    key: "general-repairs",
+    title: "General Repairs Log",
+    description: "Chronic issues and component replacements.",
+    metric: "4 repairs in review",
+    icon: <FaTools className="text-amber-600" />,
+    accent: "bg-amber-50",
+    route: "/fleetmaintenance/general-repairs-log",
+  },
+  {
+    key: "regulatory-safety",
+    title: "Regulatory & Safety",
+    description: "Policy attestations, compliance tasks, safety scorecards.",
+    metric: "Compliance score 92%",
+    icon: <FaBalanceScale className="text-emerald-600" />,
+    accent: "bg-emerald-50",
+    route: "/fleetmaintenance/regulatory-safety",
+  },
+  {
+    key: "spare-parts",
+    title: "Fleet Spare Parts",
+    description: "Critical inventory, warranty tracking, reorder alerts.",
+    metric: "32 critical SKUs",
+    icon: <FaWarehouse className="text-purple-600" />,
+    accent: "bg-purple-50",
+    route: "/fleetmaintenance/spare-parts",
+  },
+];
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -437,6 +490,45 @@ function Dashboard() {
           stats={incidentStats}
           type="incidents"
         />
+      </div>
+
+      {/* Fleet compliance modules */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-6">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Fleet Compliance Modules</h2>
+            <p className="text-gray-500">
+              Quick shortcuts to the maintenance logs most often referenced by Compliance.
+            </p>
+          </div>
+          <p className="text-sm text-gray-400">
+            Static preview based on fleet maintenance system snapshots.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {fleetComplianceModules.map((module) => (
+            <button
+              key={module.key}
+              type="button"
+              onClick={() => navigate(module.route)}
+              className="group flex flex-col gap-3 rounded-2xl border border-gray-100 bg-gradient-to-br from-white to-gray-50 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${module.accent}`}>
+                {module.icon}
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">{module.title}</h3>
+                <p className="text-sm text-gray-500">{module.description}</p>
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <span>{module.metric}</span>
+                <span className="text-blue-600 font-semibold group-hover:underline">
+                  View module
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Quick Actions */}

@@ -35,29 +35,26 @@ function DispatchRoutes() {
         <Route element={<Layout />}>
 
           <Route index element={<DispatchDashboard />} />
-          <Route path="operations/dashboard" element={<DispatchDashboard />} />
-          <Route path="operations/order-list" element={<OrderList />} />
-          <Route path="operations/bulk-order" element={<BulkOrder />} />
-          <Route path="operations/trips" element={<Trips />} />
-          <Route path="operations/service-rates" element={<ServiceRate />} />
-          <Route path="operations/dispatch" element={<Dispatch />} />
-          <Route path="operations/all-dispatch" element={<AllDispatch />} />
-          <Route path="operations/delivery" element={<Delivery />} />
-          <Route path="operations/scheduler" element={<Scheduler />} />
-          <Route path="operations/order-config" element={<OrderConfig />} />
+          <Route path="/dashboard" element={<DispatchDashboard />} />
+          <Route path="/order-list" element={<OrderList />} />
+          <Route path="/bulk-order" element={<BulkOrder />} />
+          <Route path="/trips" element={<Trips />} />
+          <Route path="/service-rates" element={<ServiceRate />} />
+          <Route path="/dispatch" element={<Dispatch />} />
+          <Route path="/all-dispatch" element={<AllDispatch />} />
+          <Route path="/delivery" element={<Delivery />} />
+          <Route path="/scheduler" element={<Scheduler />} />
+          <Route path="/order-config" element={<OrderConfig />} />
 
-          <Route path="resources/drivers" element={<DriversPage />} />
-          <Route path="resources/vehicles" element={<Vehicle />} />
-          <Route path="resources/trailers" element={<Trailers />} />
-          <Route path="resources/fleets" element={<Fleets />} />
-          <Route path="resources/vendors" element={<Vendors />} />
-          <Route path="resources/contacts" element={<Contacts />} />
-          <Route path="resources/places" element={<Places />} />
+          <Route path="/drivers" element={<DriversPage />} />
+          <Route path="/vehicles" element={<Vehicle />} />
+          <Route path="/trailers" element={<Trailers />} />
+          <Route path="/fleets" element={<Fleets />} />
+          <Route path="/vendors" element={<Vendors />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/places" element={<Places />} />
 
-          <Route path="settings/navigator-app" element={<NavigatorApp />} />
-          <Route path="settings/payments" element={<Invoices />} />
-          <Route path="settings/notifications" element={<Notifications />} />
-          <Route path="settings/routing" element={<Routing />} />
+        
 
         </Route>
       </Routes>

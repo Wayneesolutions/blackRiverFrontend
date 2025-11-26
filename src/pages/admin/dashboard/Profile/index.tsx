@@ -17,6 +17,7 @@ import {
   updateCurrentUserProfile, 
   changePassword 
 } from '../../../../axios/api/auth';
+import { FLEET_COLORS, getFocusStyles } from '../../fleetMaintenance/colorUtils';
 interface UserProfile {
   _id?: string;
   name?: string;
@@ -52,6 +53,21 @@ const ProfilePage = () => {
     newPassword: '',
     confirmPassword: ''
   });
+  const focusHandlers = getFocusStyles();
+  const sharedInputProps = {
+    ...focusHandlers,
+    style: { border: `1px solid ${FLEET_COLORS.focusRing}` }
+  };
+  const cardStyle: React.CSSProperties = {
+    borderColor: FLEET_COLORS.focusRing,
+    boxShadow: `0 25px 45px ${FLEET_COLORS.focusRing}`,
+    borderRadius: "20px",
+  };
+  const primaryButtonStyle: React.CSSProperties = {
+    background: FLEET_COLORS.gradient,
+    color: "#fff",
+    boxShadow: `0 15px 30px ${FLEET_COLORS.focusRing}`,
+  };
 
   // Fetch user profile on mount
   useEffect(() => {
@@ -171,29 +187,30 @@ const ProfilePage = () => {
 
   if (fetchLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: FLEET_COLORS.gradientVertical }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: FLEET_COLORS.primary }}></div>
+          <p className="text-white">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6">
+    <div className="min-h-screen px-6" style={{ background: FLEET_COLORS.gradientVertical }}>
       <div className="py-8">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-white p-6 mb-8" style={cardStyle}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
-              <p className="text-gray-600">Manage your account information and preferences</p>
+              <h1 className="text-3xl font-bold mb-2" style={{ color: FLEET_COLORS.dark }}>My Profile</h1>
+              <p style={{ color: FLEET_COLORS.light }}>Manage your account information and preferences</p>
             </div>
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2"
+                className="px-4 py-2 rounded-lg transition-all font-medium flex items-center gap-2"
+                style={primaryButtonStyle}
               >
                 <User size={16} />
                 Edit Profile
@@ -203,11 +220,11 @@ const ProfilePage = () => {
         </div>
 
       {/* Profile Information */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-white" style={cardStyle}>
+        <div className="p-6 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
           <div className="flex items-center gap-3">
-            <User className="text-blue-600" size={24} />
-            <h2 className="text-xl font-bold text-gray-900">Personal Information</h2>
+            <User style={{ color: FLEET_COLORS.primary }} size={24} />
+            <h2 className="text-xl font-bold" style={{ color: FLEET_COLORS.dark }}>Personal Information</h2>
           </div>
         </div>
         
@@ -221,8 +238,9 @@ const ProfilePage = () => {
                 name="name"
                 value={editForm.name || ''}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all"
                 placeholder="Enter your full name"
+                {...sharedInputProps}
               />
             ) : (
               <div className="px-4 py-3 bg-gray-50 rounded-lg">
@@ -249,8 +267,9 @@ const ProfilePage = () => {
                 name="phone"
                 value={editForm.phone || ''}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all"
                 placeholder="Enter your phone number"
+                {...sharedInputProps}
               />
             ) : (
               <div className="px-4 py-3 bg-gray-50 rounded-lg">
@@ -273,11 +292,11 @@ const ProfilePage = () => {
       </div>
 
       {/* Location Information */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-8">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-white mt-8" style={cardStyle}>
+        <div className="p-6 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
           <div className="flex items-center gap-3">
-            <MapPin className="text-blue-600" size={24} />
-            <h2 className="text-xl font-bold text-gray-900">Location Information</h2>
+            <MapPin style={{ color: FLEET_COLORS.primary }} size={24} />
+            <h2 className="text-xl font-bold" style={{ color: FLEET_COLORS.dark }}>Location Information</h2>
           </div>
         </div>
         
@@ -291,8 +310,9 @@ const ProfilePage = () => {
                 name="country"
                 value={editForm.country || ''}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all"
                 placeholder="Enter country"
+                {...sharedInputProps}
               />
             ) : (
               <div className="px-4 py-3 bg-gray-50 rounded-lg">
@@ -310,8 +330,9 @@ const ProfilePage = () => {
                 name="state"
                 value={editForm.state || ''}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all"
                 placeholder="Enter state"
+                {...sharedInputProps}
               />
             ) : (
               <div className="px-4 py-3 bg-gray-50 rounded-lg">
@@ -329,8 +350,9 @@ const ProfilePage = () => {
                 name="city"
                 value={editForm.city || ''}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all"
                 placeholder="Enter city"
+                {...sharedInputProps}
               />
             ) : (
               <div className="px-4 py-3 bg-gray-50 rounded-lg">
@@ -348,8 +370,9 @@ const ProfilePage = () => {
                 name="address"
                 value={editForm.location?.address || ''}
                 onChange={handleLocationChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all"
                 placeholder="Enter full address"
+                {...sharedInputProps}
               />
             ) : (
               <div className="px-4 py-3 bg-gray-50 rounded-lg">
@@ -362,11 +385,11 @@ const ProfilePage = () => {
 
       {/* Company Information */}
       {profile.company && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-8">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-white mt-8" style={cardStyle}>
+          <div className="p-6 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
             <div className="flex items-center gap-3">
-              <Building className="text-blue-600" size={24} />
-              <h2 className="text-xl font-bold text-gray-900">Company Information</h2>
+              <Building style={{ color: FLEET_COLORS.primary }} size={24} />
+              <h2 className="text-xl font-bold" style={{ color: FLEET_COLORS.dark }}>Company Information</h2>
             </div>
           </div>
           <div className="p-6">
@@ -381,7 +404,7 @@ const ProfilePage = () => {
 
       {/* Edit Actions */}
       {isEditing && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-8">
+        <div className="bg-white p-6 mt-8" style={cardStyle}>
           <div className="flex justify-end gap-3">
             <button
               onClick={handleCancelEdit}
@@ -394,7 +417,8 @@ const ProfilePage = () => {
             <button
               onClick={handleSaveProfile}
               disabled={loading}
-              className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50"
+              className="px-4 py-2 rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50"
+              style={primaryButtonStyle}
             >
               {loading ? (
                 <>
@@ -413,17 +437,18 @@ const ProfilePage = () => {
       )}
 
       {/* Password Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-8">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-white mt-8" style={cardStyle}>
+        <div className="p-6 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Key className="text-blue-600" size={24} />
-              <h2 className="text-xl font-bold text-gray-900">Password</h2>
+              <Key style={{ color: FLEET_COLORS.primary }} size={24} />
+              <h2 className="text-xl font-bold" style={{ color: FLEET_COLORS.dark }}>Password</h2>
             </div>
             {!showPasswordSection && (
               <button
                 onClick={() => setShowPasswordSection(true)}
-                className="px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium flex items-center gap-2"
+                className="px-4 py-2 rounded-lg transition-colors font-medium flex items-center gap-2"
+                style={{ border: `1px solid ${FLEET_COLORS.primary}`, color: FLEET_COLORS.primary }}
               >
                 <Key size={16} />
                 Change Password
@@ -441,8 +466,9 @@ const ProfilePage = () => {
                   type={showNewPassword ? "text" : "password"}
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-10"
+                  className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all pr-10"
                   placeholder="Enter new password"
+                  {...sharedInputProps}
                 />
                 <button
                   type="button"
@@ -461,8 +487,9 @@ const ProfilePage = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-10"
+                  className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all pr-10"
                   placeholder="Confirm new password"
+                  {...sharedInputProps}
                 />
                 <button
                   type="button"
@@ -501,7 +528,8 @@ const ProfilePage = () => {
               <button
                 onClick={handleChangePassword}
                 disabled={loading}
-                className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50"
+                style={primaryButtonStyle}
               >
                 {loading ? (
                   <>

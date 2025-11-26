@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
     Car,
-    Fuel,
     Gauge,
     MapPin,
     Search,
@@ -82,6 +81,65 @@ interface Vehicle {
         route: { latitude: string; longitude: string; timestamp: Date }[];
     }[];
 }
+
+interface VehicleAssignment {
+    loadId: string;
+    customer: string;
+    origin: string;
+    destination: string;
+    dispatcher: string;
+    eta: string;
+    milesToday: number;
+    milesThisWeek: number;
+    lastCheckpoint: string;
+}
+
+const DEFAULT_ASSIGNMENT: VehicleAssignment = {
+    loadId: "Unassigned",
+    customer: "—",
+    origin: "—",
+    destination: "—",
+    dispatcher: "—",
+    eta: "—",
+    milesToday: 0,
+    milesThisWeek: 0,
+    lastCheckpoint: "Awaiting dispatch",
+};
+
+const VEHICLE_ASSIGNMENTS: Record<string, VehicleAssignment> = {
+    "2131": {
+        loadId: "LD-2041",
+        customer: "Prairie Lumber Co.",
+        origin: "Calgary, AB",
+        destination: "Winnipeg, MB",
+        dispatcher: "Amy Patel",
+        eta: "ETA 18:45 MST",
+        milesToday: 348,
+        milesThisWeek: 1260,
+        lastCheckpoint: "Regina, SK · 16:05",
+    },
+    "veh--01": {
+        loadId: "LD-1997",
+        customer: "Northern Grocers",
+        origin: "Jersey City, NJ",
+        destination: "Cleveland, OH",
+        dispatcher: "Ivan Brooks",
+        eta: "ETA 21:10 EST",
+        milesToday: 212,
+        milesThisWeek: 980,
+        lastCheckpoint: "I-80 Rest Area, PA · 14:32",
+    },
+};
+
+const getAssignmentForVehicle = (vehicle: Vehicle): VehicleAssignment => {
+    return (
+        VEHICLE_ASSIGNMENTS[vehicle.internalId] ||
+        VEHICLE_ASSIGNMENTS[vehicle.plateNumber] ||
+        DEFAULT_ASSIGNMENT
+    );
+};
+
+const formatMiles = (value: number) => `${value.toLocaleString()} mi`;
 
 const VehicleList = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -180,12 +238,6 @@ const VehicleList = () => {
         }
     };
 
-    const getFuelColor = (level: number) => {
-        if (level > 50) return 'text-emerald-600';
-        if (level > 20) return 'text-amber-600';
-        return 'text-red-600';
-    };
-
     const getSpeedColor = (speed: number, status: string) => {
         if (status === 'moving' && speed > 0) return 'text-blue-600';
         return 'text-slate-600';
@@ -218,9 +270,13 @@ const VehicleList = () => {
                 aValue = a.speed;
                 bValue = b.speed;
                 break;
-            case "fuelLevel":
-                aValue = a.fuelLevel;
-                bValue = b.fuelLevel;
+            case "assignment":
+                aValue = getAssignmentForVehicle(a).loadId;
+                bValue = getAssignmentForVehicle(b).loadId;
+                break;
+            case "miles":
+                aValue = getAssignmentForVehicle(a).milesToday;
+                bValue = getAssignmentForVehicle(b).milesToday;
                 break;
             case "status":
                 aValue = a.status;
@@ -293,13 +349,15 @@ const VehicleList = () => {
     );
 
     // Stats calculation
+    const totalMilesToday = vehicles.reduce((sum, vehicle) => sum + getAssignmentForVehicle(vehicle).milesToday, 0);
+
     const stats = {
         total: vehicles.length,
         moving: vehicles.filter(v => v.status === 'moving').length,
         idle: vehicles.filter(v => v.status === 'idle').length,
         stopped: vehicles.filter(v => v.status === 'stopped').length,
         maintenance: vehicles.filter(v => v.status === 'maintenance').length,
-        lowFuel: vehicles.filter(v => v.fuelLevel < 20).length
+        milesToday: totalMilesToday
     };
 
     if (loading) {
@@ -357,12 +415,10 @@ const VehicleList = () => {
                             <div className="bg-red-500 h-1 rounded-full" style={{ width: `${(stats.maintenance / stats.total) * 100}%` }}></div>
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-orange-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-orange-600 mb-1">{stats.lowFuel}</div>
-                        <div className="text-sm font-medium text-slate-600">Low Fuel</div>
-                        <div className="w-full bg-orange-100 rounded-full h-1 mt-2">
-                            <div className="bg-orange-500 h-1 rounded-full" style={{ width: `${(stats.lowFuel / stats.total) * 100}%` }}></div>
-                        </div>
+                    <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-6 hover:shadow-md transition-shadow duration-200">
+                        <div className="text-2xl font-bold text-blue-600 mb-1">{stats.milesToday.toLocaleString()}</div>
+                        <div className="text-sm font-medium text-slate-600">Miles Logged Today</div>
+                        <p className="text-xs text-slate-500 mt-2">Across active assignments</p>
                     </div>
                 </div>
 
@@ -424,7 +480,8 @@ const VehicleList = () => {
                                     <SortHeader field="plateNumber">Plate Number</SortHeader>
                                     <SortHeader field="location">Current Location</SortHeader>
                                     <SortHeader field="speed">Speed</SortHeader>
-                                    <SortHeader field="fuelLevel">Fuel Level</SortHeader>
+                                    <SortHeader field="assignment">Assigned Load</SortHeader>
+                                    <SortHeader field="miles">Miles Driven</SortHeader>
                                     <SortHeader field="status">Status</SortHeader>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
                                         Actions
@@ -447,7 +504,9 @@ const VehicleList = () => {
                                         </td>
                                     </tr>
                                 ) : (
-                                    currentVehicles.map((vehicle) => (
+                                    currentVehicles.map((vehicle) => {
+                                    const assignment = getAssignmentForVehicle(vehicle);
+                                    return (
                                     <tr key={vehicle._id} className="hover:bg-slate-50 transition-colors duration-150">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
@@ -487,21 +546,27 @@ const VehicleList = () => {
                                             </div>
                                         </td>
 
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center space-x-3">
-                                                <Fuel className={`w-4 h-4 ${getFuelColor(vehicle.fuelLevel)}`} />
-                                                <span className={`text-sm font-medium ${getFuelColor(vehicle.fuelLevel)} min-w-12`}>
-                                                    {vehicle.fuelLevel}%
-                                                </span>
-                                                <div className="w-20 bg-slate-200 rounded-full h-2">
-                                                    <div
-                                                        className={`h-2 rounded-full transition-all duration-300 ${vehicle.fuelLevel > 50 ? 'bg-emerald-500' :
-                                                            vehicle.fuelLevel > 20 ? 'bg-amber-500' : 'bg-red-500'
-                                                            }`}
-                                                        style={{ width: `${Math.min(vehicle.fuelLevel, 100)}%` }}
-                                                    ></div>
+                                        <td className="px-6 py-4">
+                                            <div className="space-y-1">
+                                                <div className="text-sm font-semibold text-slate-900 flex items-center space-x-2">
+                                                    <Route className="w-4 h-4 text-blue-500" />
+                                                    <span>{assignment.loadId}</span>
                                                 </div>
+                                                <p className="text-xs text-slate-500">
+                                                    {assignment.origin} → {assignment.destination}
+                                                </p>
+                                                <p className="text-xs text-slate-400">
+                                                    Dispatcher: {assignment.dispatcher}
+                                                </p>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-semibold text-slate-900">
+                                                {formatMiles(assignment.milesToday)} today
+                                            </div>
+                                            <p className="text-xs text-slate-500">
+                                                {formatMiles(assignment.milesThisWeek)} this week
+                                            </p>
                                         </td>
 
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -521,7 +586,7 @@ const VehicleList = () => {
                                             </button>
                                         </td>
                                     </tr>
-                                    ))
+                                    )})
                                 )}
                             </tbody>
                         </table>
@@ -595,7 +660,9 @@ const VehicleList = () => {
                 </div>
 
                 {/* Vehicle Details Modal */}
-                {showDetails && selectedVehicle && (
+                {showDetails && selectedVehicle && (() => {
+                    const assignmentDetails = getAssignmentForVehicle(selectedVehicle);
+                    return (
                     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] overflow-hidden">
                         <div className="absolute transition-opacity" onClick={() => setShowDetails(false)} />
                         <div className="absolute inset-y-0 right-0 max-w-2xl w-full bg-white shadow-xl">
@@ -708,22 +775,13 @@ const VehicleList = () => {
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-600">Fuel Level</label>
-                                                    <div className="mt-1">
-                                                        <div className="flex items-center space-x-2">
-                                                            <span className={`text-sm font-medium ${getFuelColor(selectedVehicle.fuelLevel)}`}>
-                                                                {selectedVehicle.fuelLevel}%
-                                                            </span>
-                                                            <div className="w-20 bg-slate-200 rounded-full h-2">
-                                                                <div
-                                                                    className={`h-2 rounded-full transition-all duration-300 ${selectedVehicle.fuelLevel > 50 ? 'bg-emerald-500' :
-                                                                        selectedVehicle.fuelLevel > 20 ? 'bg-amber-500' : 'bg-red-500'
-                                                                        }`}
-                                                                    style={{ width: `${Math.min(selectedVehicle.fuelLevel, 100)}%` }}
-                                                                ></div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                    <label className="text-sm font-medium text-slate-600">Miles Today</label>
+                                                    <p className="text-sm font-medium text-slate-900">
+                                                        {formatMiles(assignmentDetails.milesToday)}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500">
+                                                        {formatMiles(assignmentDetails.milesThisWeek)} this week
+                                                    </p>
                                                 </div>
                                                 <div>
                                                     <label className="text-sm font-medium text-slate-600">Engine</label>
@@ -762,6 +820,35 @@ const VehicleList = () => {
                                                 <div>
                                                     <label className="text-sm font-medium text-slate-600">Last Updated</label>
                                                     <p className="text-sm text-slate-900">{new Date(selectedVehicle.currentLocation.updatedAt).toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Assignment Information */}
+                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                                <Route className="w-5 h-5 mr-2 text-blue-600" />
+                                                Current Load
+                                            </h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-sm font-medium text-slate-600">Load ID</label>
+                                                    <p className="text-sm text-slate-900 font-semibold">{assignmentDetails.loadId}</p>
+                                                    <p className="text-xs text-slate-500">{assignmentDetails.customer}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-sm font-medium text-slate-600">Dispatcher</label>
+                                                    <p className="text-sm text-slate-900 font-medium">{assignmentDetails.dispatcher}</p>
+                                                    <p className="text-xs text-slate-500">{assignmentDetails.eta}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-sm font-medium text-slate-600">Route</label>
+                                                    <p className="text-sm text-slate-900">{assignmentDetails.origin}</p>
+                                                    <p className="text-xs text-slate-500">→ {assignmentDetails.destination}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-sm font-medium text-slate-600">Last checkpoint</label>
+                                                    <p className="text-sm text-slate-900">{assignmentDetails.lastCheckpoint}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -937,7 +1024,8 @@ const VehicleList = () => {
                             </div>
                         </div>
                     </div>
-                )}
+                    );
+                })()}
             </div>
         </div>
     );

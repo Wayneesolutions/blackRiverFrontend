@@ -5,6 +5,7 @@ import Header from "./Header";
 import ExpiringDriverDocumentsPopup from "../common/ExpiringDriverDocumentsPopup";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { useExpiringDriverDocuments } from "../../hooks/useExpiringDriverDocuments";
+import { FLEET_COLORS } from "../../pages/admin/fleetMaintenance/colorUtils";
 
 // Wrapper to log route changes and catch rendering issues
 const OutletWrapper = () => {
@@ -76,7 +77,11 @@ const Layout = () => {
                 </div>
                 
                 {/* Footer fixed at bottom */}
-                <footer className="bg-[#9793E4] text-center text-white py-4 text-md fixed bottom-0 left-0 w-full z-50">
+
+                <footer
+                    className="text-center text-white py-4 text-md fixed bottom-0 left-0 w-full z-50"
+                    style={{ background: FLEET_COLORS.dark }}
+                >
                     Logistics All rights reserved
                 </footer>
                 

@@ -43,11 +43,6 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     label: "Company Documents",
   },
   {
-    key: "/admin/Management/vehicle-documents",
-    icon: <FaCar />,
-    label: "Vehicle Documents",
-  },
-  {
     key: "/admin/Management/attendence",
     icon: <MdAccessTime />,
     label: "Attendance Tracking",

@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
 import QuickAction from "../common/QuickAction";
+import { FLEET_COLORS } from "../../pages/admin/fleetMaintenance/colorUtils";
 
 const Header = () => {
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
@@ -38,18 +39,24 @@ const Header = () => {
         <header className="flex items-center justify-between px-4 py-4">
             <div className="flex items-center flex-1 gap-14 max-w-3xl">
                 <QuickAction />
-                <button className="px-4 py-2 rounded-md text-sm bg-gradient-to-r from-gray-200 to-blue-200 shadow-md hover:opacity-90 transition">
+                <button
+                    className="px-4 py-2 rounded-md text-sm !text-white shadow-md hover:opacity-90 transition"
+                    style={{
+                        background: FLEET_COLORS.gradient,
+                        boxShadow: `0 4px 6px ${FLEET_COLORS.focusRing}`
+                    }}
+                >
                     Compilance
                 </button>
             </div>
 
             <div className="flex items-center gap-4 ml-4 relative">
                 <div className="relative" ref={dropdownRef}>
-                    <FaUserCircle 
-                        className="cursor-pointer" 
-                        onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)} 
+                    <FaUserCircle
+                        className="cursor-pointer"
+                        onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                     />
-                    
+
                     {isUserDropdownOpen && (
                         <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                             <div className="px-4 py-3 border-b border-gray-200">

@@ -4,6 +4,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { FaChevronDown, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
 import Logo from "../../assets/FleetGo.png";
 import { getUserRole } from "../../utils/auth";
+import { FLEET_COLORS } from "../../pages/admin/fleetMaintenance/colorUtils";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -50,36 +51,58 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
     }
   };
 
+  const activeLinkStyle: React.CSSProperties = {
+    background: FLEET_COLORS.gradient,
+    color: "#fff",
+    boxShadow: `0 10px 25px ${FLEET_COLORS.focusRing}`,
+    borderLeft: `4px solid ${FLEET_COLORS.primary}`,
+  };
+
+  const collapsedIconColor = { color: FLEET_COLORS.light };
+
   return (
     <>
-      <aside className={`${isCollapsed ? 'w-20' : 'w-64'} h-screen flex flex-col transition-all duration-300 ease-in-out relative z-10`}>
+      <aside
+        className={`${isCollapsed ? 'w-20' : 'w-64'} h-screen flex flex-col transition-all duration-300 ease-in-out relative z-10`}
+      >
         {/* Logo & status - fixed at top */}
-        <div className="flex-shrink-0 flex justify-between items-center bg-white shadow-lg rounded-lg px-4 py-3 m-3 mb-4 z-10 relative">
+        <div
+          className="flex-shrink-0 flex justify-between items-center bg-white shadow-lg rounded-xl px-4 py-3 m-3 mb-4 z-10 relative border"
+          style={{ borderColor: FLEET_COLORS.focusRing }}
+        >
           <div className="flex items-center">
             {!isCollapsed && (
 
               <div className="flex items-center space-x-2">
                 <img src={Logo} alt="FleetGo Logo" className="w-20 h-auto" />
-                <div>
-                  <div className="text-green-500 text-xs font-medium">Active</div>
-                </div>
+                
               </div>
 
             )}
             {isCollapsed && (
-              <div className="text-lg font-bold text-gray-800">L</div>
+              <div className="text-lg font-bold" style={{ color: FLEET_COLORS.light }}>L</div>
             )}
           </div>
           <button
             onClick={onToggle}
-            className="text-gray-500 hover:text-gray-700 cursor-pointer transition-colors p-1 rounded-md hover:bg-gray-100"
+            className="cursor-pointer transition-colors p-1 rounded-md"
+            style={{ color: FLEET_COLORS.dark }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = FLEET_COLORS.focusRing;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+            }}
           >
-            {isCollapsed ? <FaBars size={16} /> : <FaTimes size={16} />}
+            {isCollapsed ? <FaBars size={16} style={collapsedIconColor} /> : <FaTimes size={16} style={collapsedIconColor} />}
           </button>
         </div>
 
         {/* Menu with independent scroll */}
-        <div className="flex-1 mx-3 mb-3 bg-white shadow-lg rounded-lg flex flex-col relative overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+        <div
+          className="flex-1 mx-3 mb-3 bg-white shadow-lg rounded-xl flex flex-col relative overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent border"
+          style={{ borderColor: FLEET_COLORS.focusRing }}
+        >
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
             <ul className="space-y-1 p-3 relative">
               {transformedLinks.map((link) => (
@@ -93,7 +116,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                         onMouseEnter={() => isCollapsed && setHoveredMenu(link.key)}
                         onMouseLeave={() => isCollapsed && setHoveredMenu(null)}
                         data-menu-key={link.key}
-                        className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} w-full px-3 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-[#F2F1FF] hover:text-purple-700 transition-all duration-200 group`}
+                        className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} w-full px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 group`}
+                        style={{ color: FLEET_COLORS.dark }}
                         title={isCollapsed ? link.label : ''}
                       >
                         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
@@ -115,7 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
                       {/* Expanded children (unchanged) */}
                       {!isCollapsed && openMenus.includes(link.key) && (
-                        <ul className="ml-6 mt-2 space-y-1 border-l-2 border-purple-100 pl-4">
+                        <ul className="ml-6 mt-2 space-y-1 border-l-2 pl-4" style={{ borderColor: FLEET_COLORS.focusRing }}>
                           {link.children.map((child: any) => (
                             <li key={child.key}>
                               <NavLink
@@ -127,13 +151,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                                     isActive,
                                     pathname
                                   );
-                                  return `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                                  transition-all duration-200 ease-in-out group
-                                  ${activeState
-                                      ? "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border-l-4 border-purple-500"
-                                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+                                  return `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out group ${
+                                    activeState ? "text-white" : "text-gray-600"
                                     }`;
                                 }}
+                                style={({ isActive }) => (isActive ? activeLinkStyle : { color: FLEET_COLORS.dark })}
                                 onClick={() => {
                                   const targetPath = isComplianceManager ? `/compliance/${child.key}` : `/admin/compliance/${child.key}`;
                                   console.log('🔗 Compliance Sidebar navigation to:', targetPath);
@@ -180,13 +202,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                           isActive,
                           pathname
                         );
-                        return `flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-lg text-sm font-medium
-                        transition-all duration-200 ease-in-out group
-                        ${activeState
-                            ? "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 shadow-md"
-                            : "text-gray-700 hover:bg-[#F2F1FF] hover:text-purple-700"
+                        return `flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out group ${
+                          activeState ? "text-white" : "text-gray-700"
                           }`;
                       }}
+                      style={({ isActive }) => (isActive ? activeLinkStyle : { color: FLEET_COLORS.dark })}
                       title={isCollapsed ? link.label : ''}
                       onClick={() => {
                         const basePath = isComplianceManager ? '/compliance' : '/admin/compliance';

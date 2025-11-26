@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
 import QuickAction from "../common/QuickAction";
+import { FLEET_COLORS } from "../../pages/admin/fleetMaintenance/colorUtils";
 
 function Header() {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
@@ -37,7 +38,13 @@ function Header() {
     <header className="flex items-center justify-between px-4 py-4">
       <div className="flex items-center flex-1 gap-14 max-w-3xl">
         <QuickAction />
-        <button className="px-4 py-2 rounded-md text-sm bg-gradient-to-r from-gray-200 to-blue-200 shadow-md hover:opacity-90 transition">
+        <button 
+          className="px-4 py-2 rounded-md text-sm !text-white shadow-md hover:opacity-90 transition"
+          style={{ 
+            background: FLEET_COLORS.gradient,
+            boxShadow: `0 4px 6px ${FLEET_COLORS.focusRing}`
+          }}
+        >
           HR Human Resource
         </button>
       </div>

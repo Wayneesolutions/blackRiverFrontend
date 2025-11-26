@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import type { CSSProperties } from "react";
 import { Eye, X } from "lucide-react";
 import { message } from "antd";
 import { listInvoices, getInvoiceById, type Invoice } from "../../../../axios/api/invoice";
+import { FLEET_COLORS, getFocusStyles } from "../../fleetMaintenance/colorUtils";
 
 const InvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -12,6 +14,12 @@ const InvoiceList = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
+  const focusHandlers = getFocusStyles();
+  const primaryButtonStyle: CSSProperties = {
+    background: FLEET_COLORS.gradient,
+    color: "#fff",
+    boxShadow: `0 15px 30px ${FLEET_COLORS.focusRing}`,
+  };
 
   // Fetch invoices from API
   const fetchInvoices = async () => {
@@ -83,23 +91,33 @@ const InvoiceList = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Invoices</h1>
+    <div
+      className="p-6 bg-gray-50 min-h-screen"
+      
+    >
+      <h1 className="text-3xl font-bold mb-6" style={{ color: "black" }}>Invoices</h1>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-2xl shadow-md flex flex-col md:flex-row gap-4 items-center justify-between mb-8">
+      <div
+        className="bg-white p-4 rounded-2xl shadow-xl flex flex-col md:flex-row gap-4 items-center justify-between mb-8"
+        style={{ border: `1px solid ${FLEET_COLORS.focusRing}`, boxShadow: `0 20px 40px ${FLEET_COLORS.focusRing}` }}
+      >
         <input
           type="text"
           placeholder="🔍 Search by Client Name"
           value={clientFilter}
           onChange={(e) => setClientFilter(e.target.value)}
-          className="border rounded-xl p-3 w-full md:w-1/3 focus:ring-2 focus:ring-blue-500 outline-none transition"
+          className="rounded-xl p-3 w-full md:w-1/3 outline-none transition border"
+          style={{ borderColor: FLEET_COLORS.focusRing }}
+          {...focusHandlers}
         />
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="border rounded-xl p-3 w-full md:w-1/4 focus:ring-2 focus:ring-blue-500 outline-none transition"
+          className="rounded-xl p-3 w-full md:w-1/4 outline-none transition border"
+          style={{ borderColor: FLEET_COLORS.focusRing }}
+          {...focusHandlers}
         >
           <option value="all">All Status</option>
           <option value="paid">✅ Paid</option>
@@ -108,9 +126,12 @@ const InvoiceList = () => {
       </div>
 
       {/* Invoice Table */}
-      <div className="overflow-x-auto bg-white rounded-2xl shadow-md">
+      <div
+        className="overflow-x-auto bg-white rounded-2xl shadow-xl border"
+        style={{ borderColor: FLEET_COLORS.focusRing }}
+      >
         <table className="w-full text-sm text-left">
-          <thead className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+          <thead style={{ background: FLEET_COLORS.gradient, color: "#fff" }}>
             <tr>
               <th className="p-4">Client</th>
               <th className="p-4">Company</th>
@@ -176,7 +197,8 @@ const InvoiceList = () => {
                   <td className="p-4">
                     <button
                       onClick={() => handleViewInvoice(inv._id)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                      className="p-2 rounded-md transition-colors"
+                      style={{ color: FLEET_COLORS.primary }}
                       title="View Invoice"
                     >
                       <Eye size={16} />
@@ -198,13 +220,18 @@ const InvoiceList = () => {
       {/* View Invoice Modal */}
       {showViewModal && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div
+            className="bg-white rounded-xl max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto border"
+            style={{ borderColor: FLEET_COLORS.focusRing }}
+          >
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Invoice Details</h2>
+                <h2 className="text-2xl font-bold" style={{ color: FLEET_COLORS.dark }}>Invoice Details</h2>
                 <button
                   onClick={handleCloseViewModal}
-                  className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="text-gray-400 p-2 rounded-lg transition-colors"
+                  onMouseEnter={(e) => { e.currentTarget.style.background = FLEET_COLORS.focusRing; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                 >
                   <X size={24} />
                 </button>
@@ -337,7 +364,8 @@ const InvoiceList = () => {
                   <div className="flex justify-end pt-4 border-t">
                     <button
                       onClick={handleCloseViewModal}
-                      className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium"
+                      className="px-6 py-2 rounded-lg transition-colors font-medium"
+                      style={primaryButtonStyle}
                     >
                       Close
                     </button>
@@ -348,7 +376,8 @@ const InvoiceList = () => {
                   <p className="text-gray-500">Failed to load invoice details</p>
                   <button
                     onClick={handleCloseViewModal}
-                    className="mt-4 px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium"
+                    className="mt-4 px-6 py-2 rounded-lg transition-colors font-medium"
+                    style={primaryButtonStyle}
                   >
                     Close
                   </button>

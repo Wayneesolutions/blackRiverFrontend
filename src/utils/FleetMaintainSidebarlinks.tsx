@@ -1,8 +1,9 @@
 import { MdDashboard, MdReceipt } from "react-icons/md"; // Dashboard, Invoices
-import { FaClipboardList, FaTruck, FaTrailer } from "react-icons/fa"; // Work Orders, Fleet
+import { FaClipboardList, FaTruck,FaCar, FaTrailer } from "react-icons/fa"; // Work Orders, Fleet
 import { RiCalendarScheduleFill } from "react-icons/ri"; // Maintenance Schedule
 import { GiGearHammer } from "react-icons/gi"; // Spare Parts Inventory
 import { FaShieldAlt, FaListAlt, FaWrench, FaTools, FaFileAlt } from "react-icons/fa"; // New icons
+import { RiOilLine } from "react-icons/ri";
 
 type FleetMaintainSidebarlinks = {
     key: string;
@@ -12,21 +13,22 @@ type FleetMaintainSidebarlinks = {
 };
 
 export const FleetMaintainSidebarlinks: FleetMaintainSidebarlinks[] = [
-    {
-        key: "/admin/fleetmaintenance",
-        icon: <MdDashboard />,
-        label: "Dashboard",
-    },
+
     {
         key: "/admin/fleetmaintenance/compliance-dashboard",
-        icon: <FaShieldAlt />,
-        label: "Fleet Maintenance Dashboard",
+        icon: <MdDashboard />,
+        label: "Dashboard",
     },
     {
         key: "/admin/fleetmaintenance/fleet-units",
         icon: <FaTruck />,
         label: "Fleets",
     },
+    {
+        key: "/admin/fleetmaintenance/vehicle-documents",
+        icon: <FaCar />,
+        label: "Fleet Documents",
+      },
     {
         key: "/admin/fleetmaintenance/scheduled-services-log",
         icon: <FaWrench />,
@@ -42,24 +44,15 @@ export const FleetMaintainSidebarlinks: FleetMaintainSidebarlinks[] = [
         icon: <FaFileAlt />,
         label: "Regulatory & Safety",
     },
-    {
-        key: "/admin/fleetmaintenance/work-orders",
-        icon: <FaClipboardList />,
-        label: "Work Orders",
-    },
-    {
-        key: "/admin/fleetmaintenance/schedule",
-        icon: <RiCalendarScheduleFill />,
-        label: "Maintenance Schedule",
-    },
+
     {
         key: "/admin/fleetmaintenance/spare-parts",
         icon: <GiGearHammer />,
         label: "Spare Parts Inventory",
     },
     {
-        key: "/admin/fleetmaintenance/invoices",
-        icon: <MdReceipt />,
-        label: "Invoices",
+        key: "/admin/fleetmaintenance/fuel-reports",
+        icon: <RiOilLine />,
+        label: "Fuel Reports",
     },
 ];
