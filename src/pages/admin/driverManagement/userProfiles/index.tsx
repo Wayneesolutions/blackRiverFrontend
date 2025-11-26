@@ -108,7 +108,8 @@ const UserProfilesPortfolio: React.FC = () => {
   }, [profiles, selectedProfile]);
 
   const filteredProfiles = profiles;
-  const showDriverColumns = selectedRole === 'driver' || selectedRole === 'all';
+  const showDriverColumns = selectedRole === 'driver';
+  const summaryGridCols = showDriverColumns ? 'lg:grid-cols-5' : 'lg:grid-cols-4';
   const emptyStateMessage = requiresCompanySetup
     ? 'Complete your company setup to start seeing user records.'
     : 'No users found matching your criteria';
@@ -118,7 +119,10 @@ const UserProfilesPortfolio: React.FC = () => {
     const totalUsers = filteredProfiles.length;
     const totalEarnings = filteredProfiles.reduce((sum, p) => sum + p.totalEarnings, 0);
     const totalHours = filteredProfiles.reduce((sum, p) => sum + p.totalHours, 0);
-    const totalMiles = filteredProfiles.reduce((sum, p) => sum + (p.milesDriven || 0), 0);
+    const totalMiles = filteredProfiles.reduce((sum, p) => {
+      if (p.role !== 'driver') return sum;
+      return sum + (p.milesDriven || 0);
+    }, 0);
     const totalInvoices = filteredProfiles.reduce((sum, p) => sum + p.invoices, 0);
 
     return {
@@ -315,7 +319,7 @@ const UserProfilesPortfolio: React.FC = () => {
         )}
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+        <div className={`grid grid-cols-1 md:grid-cols-2 ${summaryGridCols} gap-6 mb-6`}>
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
@@ -346,15 +350,17 @@ const UserProfilesPortfolio: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm mb-1">Total Miles</p>
-                <p className="text-3xl font-bold text-orange-600">{formatNumber(summaryStats.totalMiles)}</p>
+          {showDriverColumns && (
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm mb-1">Driver Miles</p>
+                  <p className="text-3xl font-bold text-orange-600">{formatNumber(summaryStats.totalMiles)}</p>
+                </div>
+                <MapPin className="text-orange-600" size={32} />
               </div>
-              <MapPin className="text-orange-600" size={32} />
             </div>
-          </div>
+          )}
 
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
             <div className="flex items-center justify-between">
@@ -479,6 +485,28 @@ const UserProfilesPortfolio: React.FC = () => {
                             <p className="text-sm text-gray-500">{profile.email}</p>
                           </div>
                         </div>
+                        {!showDriverColumns && profile.role === 'driver' && (
+                          <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-500">
+                            {profile.milesDriven != null && (
+                              <span className="inline-flex items-center gap-1">
+                                <MapPin className="w-3 h-3 text-orange-500" />
+                                {formatNumber(profile.milesDriven)} mi
+                              </span>
+                            )}
+                            {profile.tripsCompleted != null && (
+                              <span className="inline-flex items-center gap-1">
+                                <TrendingUp className="w-3 h-3 text-blue-500" />
+                                {formatNumber(profile.tripsCompleted)} trips
+                              </span>
+                            )}
+                            {profile.invoices != null && (
+                              <span className="inline-flex items-center gap-1">
+                                <FileText className="w-3 h-3 text-indigo-500" />
+                                {profile.invoices} invoices
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(profile.role)}`}>

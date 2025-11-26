@@ -7,6 +7,7 @@ import {
 } from '../../../../../axios/api/distapcher';
 import NewIssueSidebar from './NewIssueSidebar';
 import ViewIssueModal from './ViewIssueModal';
+import ConfirmationModal from '../../../../../components/common/ConfirmationModal';
 import { 
   MdAdd, 
   MdSearch, 
