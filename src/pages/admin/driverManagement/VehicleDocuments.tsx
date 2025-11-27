@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, CSSProperties } from "react";
 import { FaCar, FaPlus, FaEdit, FaTrash, FaFileUpload, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaEye, FaDownload, FaTrailer } from "react-icons/fa";
 import {
   getVehicleDocument,
@@ -10,6 +10,19 @@ import {
 } from "../../../axios/api/compilance.vehicledoc";
 import { useVehicles } from "../../../customHooks/useVehicles";
 import { useTrailers } from "../../../customHooks/useTrailers";
+import { FLEET_COLORS } from "../fleetMaintenance/colorUtils";
+
+const ACCENT_PRIMARY = FLEET_COLORS.primary;
+const ACCENT_DARK = FLEET_COLORS.dark;
+const ACCENT_LIGHT = FLEET_COLORS.light;
+const ACCENT_GRADIENT = FLEET_COLORS.gradient;
+const focusRingStyle = {
+  "--tw-ring-color": ACCENT_PRIMARY
+} as CSSProperties & { "--tw-ring-color": string };
+const notificationInfoStyle: CSSProperties = {
+  backgroundColor: "rgba(1, 106, 178, 0.08)",
+  borderColor: "rgba(1, 106, 178, 0.3)"
+};
 
 // Types
 type AssetType = 'vehicle' | 'trailer';
@@ -115,13 +128,13 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
   const icons = {
     success: <FaCheckCircle className="text-green-500" size={24} />,
     error: <FaExclamationCircle className="text-red-500" size={24} />,
-    info: <FaInfoCircle className="text-[#9793E4]" size={24} />
+    info: <FaInfoCircle size={24} style={{ color: ACCENT_PRIMARY }} />
   };
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
     error: 'bg-red-50 border-red-200',
-    info: 'bg-[#9793E4]/10 border-[#9793E4]/30'
+    info: ''
   };
 
   useEffect(() => {
@@ -133,7 +146,10 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
   }, [notification.id, onClose]);
 
   return (
-    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+    <div
+      className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}
+      style={notification.type === 'info' ? notificationInfoStyle : undefined}
+    >
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
@@ -502,7 +518,7 @@ function VehicleDocument() {
     if (assetType === "trailer") {
       return <FaTrailer className="text-green-600" size={20} />;
     }
-    return <FaCar className="text-[#9793E4]" size={20} />;
+    return <FaCar size={20} style={{ color: ACCENT_PRIMARY }} />;
   };
 
   const getDocumentTypeDisplayName = (docType: string) => {
@@ -526,20 +542,20 @@ function VehicleDocument() {
   // Static vehicle type definitions
   const getVehicleTypeInfo = (value?: string) => {
     const assetType = resolveAssetType(value);
-    const map: Record<AssetType, { name: string; icon: ReactNode; color: string; bgColor: string; description: string }> =
+    const map: Record<AssetType, { name: string; icon: ReactNode; textStyle: CSSProperties; bgStyle: CSSProperties; description: string }> =
       {
         vehicle: {
           name: "Vehicle",
-          icon: <FaCar className="text-[#9793E4]" size={20} />,
-          color: "text-[#4A45B0]",
-          bgColor: "bg-[#9793E4]/10 border-[#9793E4]/30",
+          icon: <FaCar size={20} style={{ color: ACCENT_PRIMARY }} />,
+          textStyle: { color: ACCENT_PRIMARY },
+          bgStyle: { backgroundColor: "rgba(1, 106, 178, 0.08)", borderColor: "rgba(1, 106, 178, 0.3)" },
           description: "Company vehicle / truck asset",
         },
         trailer: {
           name: "Trailer",
           icon: <FaTrailer className="text-green-600" size={20} />,
-          color: "text-green-600",
-          bgColor: "bg-green-50 border-green-200",
+          textStyle: { color: "#15803d" },
+          bgStyle: { backgroundColor: "rgba(34, 197, 94, 0.12)", borderColor: "rgba(34, 197, 94, 0.35)" },
           description: "Company trailer asset",
         },
       };
@@ -646,11 +662,12 @@ const DocumentModal = () => {
                         e.stopPropagation();
                         handleAssetTypeChange(type);
                       }}
-                      className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                        isActive
-                          ? `${info.bgColor} shadow-sm`
-                          : "bg-white border-gray-200 text-gray-600 hover:border-[#9793E4]/40"
-                      }`}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                    isActive
+                      ? "shadow-sm"
+                      : "bg-white border-gray-200 text-gray-600 hover:border-[#016ab2]/40"
+                  }`}
+                  style={isActive ? { ...info.bgStyle, color: info.textStyle.color } : undefined}
                     >
                       {info.icon}
                       {info.name}
@@ -662,11 +679,11 @@ const DocumentModal = () => {
           )}
 
           {/* Vehicle Type Context */}
-          <div className={`p-4 rounded-lg border ${assetInfo.bgColor}`}>
+          <div className="p-4 rounded-lg border" style={assetInfo.bgStyle}>
             <div className="flex items-center gap-3">
               {assetInfo.icon}
               <div>
-                <h4 className={`font-bold text-lg ${assetInfo.color}`}>
+                <h4 className="font-bold text-lg" style={assetInfo.textStyle}>
                   {assetInfo.name} Documents
                 </h4>
                 <p className="text-sm text-gray-600">
@@ -689,7 +706,8 @@ const DocumentModal = () => {
               )}
             </label>
             <select
-              className="w-full border border-gray-300 rounded-lg p-3 bg-white focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+              className="w-full border border-gray-300 rounded-lg p-3 bg-white focus:ring-2 focus:border-transparent transition-all"
+              style={focusRingStyle}
               value={selectedAssetId}
               onChange={handleAssetSelectChange}
               required
@@ -769,7 +787,8 @@ const DocumentModal = () => {
             </label>
             <select
               name="documentType"
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+              style={focusRingStyle}
               value={formData.documentType}
               onChange={handleInputChange}
               onFocus={(e) => {
@@ -812,7 +831,8 @@ const DocumentModal = () => {
               <input
                 type="text"
                 name="documentNumber"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+                style={focusRingStyle}
                 value={formData.documentNumber}
                 onChange={handleInputChange}
                 onFocus={(e) => {
@@ -838,10 +858,11 @@ const DocumentModal = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Issued Date <span className="text-red-500">*</span>
               </label>
-              <input
-                type="date"
-                name="issuedAt"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+            <input
+              type="date"
+              name="issuedAt"
+              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+              style={focusRingStyle}
                 value={formData.issuedAt}
                 onChange={handleInputChange}
                 onFocus={(e) => {
@@ -864,10 +885,11 @@ const DocumentModal = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Expiry Date <span className="text-red-500">*</span>
               </label>
-              <input
-                type="date"
-                name="expiryDate"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+            <input
+              type="date"
+              name="expiryDate"
+              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+              style={focusRingStyle}
                 value={formData.expiryDate}
                 onChange={handleInputChange}
                 onFocus={(e) => {
@@ -895,7 +917,8 @@ const DocumentModal = () => {
             <div className="relative">
               <input
                 type="file"
-                className="w-full border border-gray-300 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#9793E4]/10 file:text-[#9793E4] hover:file:bg-[#9793E4]/20 transition-all"
+                className="w-full border border-gray-300 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#016ab2]/10 file:text-[#016ab2] hover:file:bg-[#016ab2]/20 transition-all"
+                style={focusRingStyle}
                 onChange={handleFileChange}
                 onFocus={(e) => e.stopPropagation()}
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
@@ -921,7 +944,8 @@ const DocumentModal = () => {
           </button>
           <button
             type="button"
-            className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] disabled:bg-[#9793E4]/50 disabled:cursor-not-allowed font-medium transition-colors shadow-md"
+            className="px-6 py-2.5 !text-white rounded-lg font-medium transition-colors shadow-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: ACCENT_GRADIENT }}
             onClick={handleSubmitDocument}
             disabled={submitting}
           >
@@ -996,8 +1020,8 @@ const DocumentModal = () => {
                   <div key={file._id || file.fileUrl} className="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all bg-white">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#9793E4]/10 rounded-lg">
-                          <FaFileAlt className="text-[#9793E4]" size={18} />
+                        <div className="p-2 rounded-lg" style={{ backgroundColor: "rgba(1, 106, 178, 0.1)" }}>
+                          <FaFileAlt size={18} style={{ color: ACCENT_PRIMARY }} />
                         </div>
                         <div>
                           <p className="font-semibold text-gray-800">{file.fileName}</p>
@@ -1011,7 +1035,8 @@ const DocumentModal = () => {
                       </div>
                       <div className="flex gap-2">
                         <button
-                          className="p-2.5 text-[#9793E4] hover:bg-[#9793E4]/10 rounded-lg transition-all border border-[#9793E4]/30"
+                          className="p-2.5 rounded-lg transition-all border"
+                          style={{ color: ACCENT_PRIMARY, borderColor: "rgba(1, 106, 178, 0.3)" }}
                           onClick={async () => {
                             try {
                               if (!viewingDoc?._id) return;
@@ -1113,7 +1138,8 @@ const DocumentModal = () => {
                 <p className="text-sm font-medium">No files uploaded for this document</p>
                 {viewingDoc?.documentLocation && (
                   <button
-                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] transition-colors"
+                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 !text-white rounded-lg transition-colors hover:opacity-90"
+                    style={{ background: ACCENT_GRADIENT }}
                     onClick={async () => {
                       try {
                         if (!viewingDoc?._id) return;
@@ -1189,7 +1215,10 @@ const DocumentModal = () => {
             
             {loadingFileUrl ? (
               <div className="flex flex-col items-center justify-center h-[60vh] bg-white rounded-lg">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[#9793E4] mb-4"></div>
+                <div
+                  className="animate-spin rounded-full h-12 w-12 border-b-4 mb-4"
+                  style={{ borderColor: "rgba(1, 106, 178, 0.2)", borderBottomColor: ACCENT_PRIMARY }}
+                ></div>
                 <p className="text-gray-600">Loading file...</p>
               </div>
             ) : !signedFileUrl ? (
@@ -1445,7 +1474,8 @@ const DocumentModal = () => {
         <h1 className="text-3xl font-bold text-gray-800">Vehicle Documents</h1>
         <button
           onClick={handleAddDocument}
-          className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] hover:bg-[#8783d4] !text-white rounded-lg shadow-lg hover:shadow-xl transition-all font-medium"
+          className="flex items-center gap-2 px-5 py-3 !text-white rounded-lg shadow-lg hover:shadow-xl transition-all font-medium hover:opacity-90"
+          style={{ background: ACCENT_GRADIENT }}
         >
           <FaPlus /> Add New Document
         </button>
@@ -1484,9 +1514,14 @@ const DocumentModal = () => {
             onClick={() => setActiveTab('all')}
             className={`flex-1 px-6 py-4 text-sm font-semibold transition-all ${
               activeTab === 'all'
-                ? 'text-[#9793E4] border-b-2 border-[#9793E4] bg-[#9793E4]/5'
+                ? 'border-b-2'
                 : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
             }`}
+            style={
+              activeTab === 'all'
+                ? { color: ACCENT_PRIMARY, borderColor: ACCENT_PRIMARY, backgroundColor: "rgba(1, 106, 178, 0.05)" }
+                : undefined
+            }
           >
             <div className="flex items-center justify-center gap-2">
               <FaCar className="text-gray-500" size={16} />
@@ -1517,7 +1552,10 @@ const DocumentModal = () => {
 
       {loading ? (
         <div className="text-center py-16">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#9793E4] mx-auto mb-4"></div>
+          <div
+            className="animate-spin rounded-full h-16 w-16 border-b-4 mx-auto mb-4"
+            style={{ borderColor: "rgba(1, 106, 178, 0.2)", borderBottomColor: ACCENT_PRIMARY }}
+          ></div>
           <p className="text-gray-500 text-lg">Loading vehicles and documents...</p>
         </div>
       ) : getFilteredVehicles().length === 0 ? (
@@ -1539,10 +1577,10 @@ const DocumentModal = () => {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {getFilteredVehicles().map((item) => {
             const assetType = resolveAssetType(item.assetType);
-            const gradientClass =
+            const headerStyle =
               assetType === "trailer"
-                ? "bg-gradient-to-r from-green-500 via-green-600 to-green-700"
-                : "bg-gradient-to-r from-[#9793E4] via-[#8783D4] to-[#7773C4]";
+                ? { background: "linear-gradient(to right, #22c55e, #15803d)" }
+                : { background: ACCENT_GRADIENT };
             const title =
               assetType === "trailer"
                 ? item.vehicle?.trailerName || item.vehicle?.make || "Trailer"
@@ -1559,7 +1597,7 @@ const DocumentModal = () => {
             return (
               <div key={`${item.assetType}:${item._id}`} className="bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-200">
                 {/* Asset Header */}
-                <div className={`p-6 text-white ${gradientClass}`}>
+                <div className="p-6 text-white" style={headerStyle}>
                   <div className="flex items-center gap-4">
                     <div className="p-4 bg-white text-black bg-opacity-20 rounded-xl backdrop-blur-sm">
                       {getVehicleTypeIcon(assetType)}
@@ -1582,7 +1620,7 @@ const DocumentModal = () => {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-gray-800 flex items-center gap-2 text-lg">
-                    <FaFileAlt className="text-[#9793E4]" />
+                    <FaFileAlt style={{ color: ACCENT_PRIMARY }} />
                     Documents ({item.documents?.length || 0})
                   </h3>
                 </div>
@@ -1601,8 +1639,8 @@ const DocumentModal = () => {
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 bg-[#9793E4]/10 rounded-lg">
-                              <FaFileAlt className="text-[#9793E4]" size={18} />
+                            <div className="p-2 rounded-lg" style={{ backgroundColor: "rgba(1, 106, 178, 0.1)" }}>
+                              <FaFileAlt size={18} style={{ color: ACCENT_PRIMARY }} />
                             </div>
                             <div>
                               <span className="font-bold !text-gray-800 capitalize block text-lg">
@@ -1624,7 +1662,8 @@ const DocumentModal = () => {
                               <FaEye size={16} />
                             </button>
                             <button
-                              className="p-2.5 text-[#9793E4] hover:bg-[#9793E4]/10 rounded-lg transition-all border border-[#9793E4]/30"
+                              className="p-2.5 rounded-lg transition-all border"
+                              style={{ color: ACCENT_PRIMARY, borderColor: "rgba(1, 106, 178, 0.3)" }}
                               onClick={() => handleEditDocument(doc, item)}
                               title="Edit Document"
                             >

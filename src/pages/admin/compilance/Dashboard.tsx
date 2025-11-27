@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import {
   FaShieldAlt,
   FaExclamationTriangle,
@@ -9,14 +10,10 @@ import {
   FaCarCrash,
   FaSync,
   FaChartLine,
-  FaTruck,
-  FaCalendarCheck,
-  FaTools,
-  FaBalanceScale,
-  FaWarehouse,
 } from "react-icons/fa";
 import { getCvsaInspectionStats, getTicketStats, getIncidentStats } from "../../../axios/api/admin";
 import { useNavigate } from "react-router-dom";
+import { FLEET_COLORS } from "../fleetMaintenance/colorUtils";
 
 interface CvsaStats {
   total: number;
@@ -44,53 +41,46 @@ interface IncidentStats {
   closed: number;
 }
 
-const fleetComplianceModules = [
-  {
-    key: "fleet",
-    title: "Fleet",
-    description: "Active units, inspection readiness, VIN matchups.",
-    metric: "18 units monitored",
-    icon: <FaTruck className="text-blue-600" />,
-    accent: "bg-blue-50",
-    route: "/fleetmaintenance/fleet-units",
+const hexToRgba = (hex: string, alpha = 1) => {
+  const parsed = hex.replace("#", "");
+  const bigint = parseInt(parsed, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+type CardToneKey = "primary" | "dark" | "light" | "gradient";
+
+type CardTone = {
+  fill?: string;
+  gradient?: string;
+  text: string;
+  border: string;
+};
+
+const CARD_TONES: Record<CardToneKey, CardTone> = {
+  primary: {
+    fill: hexToRgba(FLEET_COLORS.primary, 0.12),
+    text: FLEET_COLORS.primary,
+    border: hexToRgba(FLEET_COLORS.primary, 0.3)
   },
-  {
-    key: "scheduled-services",
-    title: "Scheduled Services Log",
-    description: "Upcoming PM visits and overdue tasks.",
-    metric: "7 services this week",
-    icon: <FaCalendarCheck className="text-indigo-600" />,
-    accent: "bg-indigo-50",
-    route: "/fleetmaintenance/scheduled-services-log",
+  dark: {
+    fill: hexToRgba(FLEET_COLORS.dark, 0.12),
+    text: FLEET_COLORS.dark,
+    border: hexToRgba(FLEET_COLORS.dark, 0.3)
   },
-  {
-    key: "general-repairs",
-    title: "General Repairs Log",
-    description: "Chronic issues and component replacements.",
-    metric: "4 repairs in review",
-    icon: <FaTools className="text-amber-600" />,
-    accent: "bg-amber-50",
-    route: "/fleetmaintenance/general-repairs-log",
+  light: {
+    fill: hexToRgba(FLEET_COLORS.light, 0.12),
+    text: FLEET_COLORS.light,
+    border: hexToRgba(FLEET_COLORS.light, 0.3)
   },
-  {
-    key: "regulatory-safety",
-    title: "Regulatory & Safety",
-    description: "Policy attestations, compliance tasks, safety scorecards.",
-    metric: "Compliance score 92%",
-    icon: <FaBalanceScale className="text-emerald-600" />,
-    accent: "bg-emerald-50",
-    route: "/fleetmaintenance/regulatory-safety",
-  },
-  {
-    key: "spare-parts",
-    title: "Fleet Spare Parts",
-    description: "Critical inventory, warranty tracking, reorder alerts.",
-    metric: "32 critical SKUs",
-    icon: <FaWarehouse className="text-purple-600" />,
-    accent: "bg-purple-50",
-    route: "/fleetmaintenance/spare-parts",
-  },
-];
+  gradient: {
+    gradient: FLEET_COLORS.gradient,
+    text: "#ffffff",
+    border: "transparent"
+  }
+};
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -221,15 +211,21 @@ function Dashboard() {
     icon,
     label,
     value,
-    color,
-    onClick,
+    tone = "primary",
+    onClick
   }: {
     icon: React.ReactNode;
     label: string;
     value: number | string;
-    color: string;
+    tone?: keyof typeof CARD_TONES;
     onClick?: () => void;
-  }) => (
+  }) => {
+    const toneMeta = CARD_TONES[tone];
+    const badgeStyle: CSSProperties = toneMeta.gradient
+      ? { backgroundImage: toneMeta.gradient, color: toneMeta.text }
+      : { backgroundColor: toneMeta.fill, color: toneMeta.text };
+
+    return (
     <div
       onClick={onClick}
       className={`bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all duration-300 ${
@@ -238,7 +234,12 @@ function Dashboard() {
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-lg ${color}`}>{icon}</div>
+          <div
+            className="p-3 rounded-lg border"
+            style={{ ...badgeStyle, borderColor: toneMeta.border }}
+          >
+            {icon}
+          </div>
           <div>
             <p className="text-sm text-gray-500">{label}</p>
             <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
@@ -247,6 +248,7 @@ function Dashboard() {
       </div>
     </div>
   );
+  };
 
   const ComplianceSection = ({
     title,
@@ -283,10 +285,19 @@ function Dashboard() {
     };
 
     return (
-      <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6">
+      <div className="rounded-2xl shadow-lg p-6 border border-gray-100" style={{ background: "linear-gradient(135deg, #ffffff, rgba(1,106,178,0.04))" }}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-100 rounded-lg text-blue-600">{icon}</div>
+            <div
+              className="p-3 rounded-lg border"
+              style={{
+                background: hexToRgba(FLEET_COLORS.primary, 0.08),
+                borderColor: hexToRgba(FLEET_COLORS.primary, 0.2),
+                color: FLEET_COLORS.primary
+              }}
+            >
+              {icon}
+            </div>
             <h2 className="text-xl font-bold text-gray-800">{title}</h2>
           </div>
           <div className="text-right">
@@ -304,28 +315,28 @@ function Dashboard() {
                 icon={<FaCheckCircle />}
                 label="Pass"
                 value={(stats as CvsaStats).pass}
-                color="bg-green-100 text-green-600"
+                tone="primary"
                 onClick={() => navigate("/admin/compliance/cvsa-inspection?status=pass")}
               />
               <StatCard
                 icon={<FaTimesCircle />}
                 label="Fail"
                 value={(stats as CvsaStats).fail}
-                color="bg-red-100 text-red-600"
+                tone="dark"
                 onClick={() => navigate("/admin/compliance/cvsa-inspection?status=fail")}
               />
               <StatCard
                 icon={<FaExclamationTriangle />}
                 label="Warning"
                 value={(stats as CvsaStats).warning}
-                color="bg-yellow-100 text-yellow-600"
+                tone="light"
                 onClick={() => navigate("/admin/compliance/cvsa-inspection?status=warning")}
               />
               <StatCard
                 icon={<FaShieldAlt />}
                 label="Out of Service"
                 value={(stats as CvsaStats).outOfService}
-                color="bg-orange-100 text-orange-600"
+                tone="gradient"
                 onClick={() => navigate("/admin/compliance/cvsa-inspection?status=out-of-service")}
               />
             </>
@@ -337,28 +348,28 @@ function Dashboard() {
                 icon={<FaCheckCircle />}
                 label="Paid"
                 value={(stats as TicketStats).paid}
-                color="bg-green-100 text-green-600"
+                tone="primary"
                 onClick={() => navigate("/admin/compliance/tickets?status=paid")}
               />
               <StatCard
                 icon={<FaExclamationTriangle />}
                 label="Unpaid"
                 value={(stats as TicketStats).unpaid}
-                color="bg-red-100 text-red-600"
+                tone="dark"
                 onClick={() => navigate("/admin/compliance/tickets?status=unpaid")}
               />
               <StatCard
                 icon={<FaShieldAlt />}
                 label="Fighting"
                 value={(stats as TicketStats).fight}
-                color="bg-blue-100 text-blue-600"
+                tone="light"
                 onClick={() => navigate("/admin/compliance/tickets?status=fight")}
               />
               <StatCard
                 icon={<FaFileInvoiceDollar />}
                 label="Total Amount"
                 value={`$${((stats as TicketStats).totalAmount || 0).toLocaleString()}`}
-                color="bg-purple-100 text-purple-600"
+                tone="gradient"
               />
             </>
           )}
@@ -369,28 +380,28 @@ function Dashboard() {
                 icon={<FaExclamationTriangle />}
                 label="Open"
                 value={(stats as IncidentStats).open}
-                color="bg-red-100 text-red-600"
+                tone="dark"
                 onClick={() => navigate("/admin/compliance/incidents?status=open")}
               />
               <StatCard
                 icon={<FaClipboardCheck />}
                 label="Under Review"
                 value={(stats as IncidentStats).underReview}
-                color="bg-yellow-100 text-yellow-600"
+                tone="light"
                 onClick={() => navigate("/admin/compliance/incidents?status=under-review")}
               />
               <StatCard
                 icon={<FaCheckCircle />}
                 label="Closed"
                 value={(stats as IncidentStats).closed}
-                color="bg-green-100 text-green-600"
+                tone="primary"
                 onClick={() => navigate("/admin/compliance/incidents?status=closed")}
               />
               <StatCard
                 icon={<FaCarCrash />}
                 label="Total"
                 value={(stats as IncidentStats).total}
-                color="bg-gray-100 text-gray-600"
+                tone="gradient"
                 onClick={() => navigate("/admin/compliance/incidents")}
               />
             </>
@@ -451,21 +462,21 @@ function Dashboard() {
           icon={<FaClipboardCheck />}
           label="Total CVSA Inspections"
           value={cvsaStats.total}
-          color="bg-blue-100 text-blue-600"
+          tone="primary"
           onClick={() => navigate("/admin/compliance/cvsa-inspection")}
         />
         <StatCard
           icon={<FaFileInvoiceDollar />}
           label="Total Tickets"
           value={ticketStats.total}
-          color="bg-purple-100 text-purple-600"
+          tone="light"
           onClick={() => navigate("/admin/compliance/tickets")}
         />
         <StatCard
           icon={<FaCarCrash />}
           label="Total Incidents"
           value={incidentStats.total}
-          color="bg-red-100 text-red-600"
+          tone="dark"
           onClick={() => navigate("/admin/compliance/incidents")}
         />
       </div>
@@ -492,44 +503,7 @@ function Dashboard() {
         />
       </div>
 
-      {/* Fleet compliance modules */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-6">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">Fleet Compliance Modules</h2>
-            <p className="text-gray-500">
-              Quick shortcuts to the maintenance logs most often referenced by Compliance.
-            </p>
-          </div>
-          <p className="text-sm text-gray-400">
-            Static preview based on fleet maintenance system snapshots.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {fleetComplianceModules.map((module) => (
-            <button
-              key={module.key}
-              type="button"
-              onClick={() => navigate(module.route)}
-              className="group flex flex-col gap-3 rounded-2xl border border-gray-100 bg-gradient-to-br from-white to-gray-50 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${module.accent}`}>
-                {module.icon}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">{module.title}</h3>
-                <p className="text-sm text-gray-500">{module.description}</p>
-              </div>
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <span>{module.metric}</span>
-                <span className="text-blue-600 font-semibold group-hover:underline">
-                  View module
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
+    
 
       {/* Quick Actions */}
       {totalComplianceItems === 0 && (

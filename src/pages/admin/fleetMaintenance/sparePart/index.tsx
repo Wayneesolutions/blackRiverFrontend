@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import type { CSSProperties } from 'react';
+import ExcelJS from 'exceljs';
 import { 
   FaEllipsisH, 
   FaPlus, 
@@ -17,6 +19,7 @@ import {
   FaBuilding,
   FaShoppingCart
 } from 'react-icons/fa';
+import { Download } from 'lucide-react';
 import { 
     getAllSpareParts, 
     createSparePart, 
@@ -28,6 +31,17 @@ import {
 } from '../../../../axios/api/fleet.spareparts';
 import { useNavigate } from 'react-router-dom';
 import { getAllWorkOrders } from '../../../../axios/api/fleet.workorder';
+import { FLEET_COLORS } from '../colorUtils';
+
+const ACCENT_PRIMARY = FLEET_COLORS.primary;
+const ACCENT_GRADIENT = FLEET_COLORS.gradient;
+const focusRingStyle = {
+    '--tw-ring-color': ACCENT_PRIMARY
+} as CSSProperties & { '--tw-ring-color': string };
+const notificationInfoStyle: CSSProperties = {
+    backgroundColor: 'rgba(1, 106, 178, 0.08)',
+    borderColor: 'rgba(1, 106, 178, 0.3)'
+};
 
 // Enhanced Types for comprehensive spare parts management
 interface VehicleId {
@@ -129,13 +143,13 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
     const icons = {
         success: <FaCheckCircle className="text-green-500" size={24} />,
         error: <FaExclamationCircle className="text-red-500" size={24} />,
-        info: <FaInfoCircle className="text-[#9793E4]" size={24} />
+        info: <FaInfoCircle size={24} style={{ color: ACCENT_PRIMARY }} />
     };
 
     const bgColors = {
         success: 'bg-green-50 border-green-200',
         error: 'bg-red-50 border-red-200',
-        info: 'bg-[#9793E4]/10 border-[#9793E4]/30'
+        info: ''
     };
 
     useEffect(() => {
@@ -146,7 +160,10 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
     }, [notification.id, onClose]);
 
     return (
-        <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+        <div
+            className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}
+            style={notification.type === 'info' ? notificationInfoStyle : undefined}
+        >
             <div className="flex-shrink-0 mt-0.5">
                 {icons[notification.type]}
             </div>
@@ -188,6 +205,17 @@ const SparePartsInventory = () => {
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
     const [userInfo, setUserInfo] = useState<any>(null);
     const [userInfoReady, setUserInfoReady] = useState<boolean>(false);
+    const [exporting, setExporting] = useState(false);
+    const filteredParts = useMemo(
+        () =>
+            spareParts.filter(
+                (part) =>
+                    part.partName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    part.partNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    part.category?.toLowerCase().includes(searchTerm.toLowerCase())
+            ),
+        [spareParts, searchTerm]
+    );
 
     // Form refs
     const newPartRef = useRef({
@@ -384,12 +412,6 @@ const SparePartsInventory = () => {
             </div>
         );
     }
-
-    const filteredParts = spareParts.filter(part =>
-        part.partName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        part.partNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        part.category?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     const handleAddPart = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -643,6 +665,79 @@ const SparePartsInventory = () => {
         }
     };
 
+    const handleExportParts = async () => {
+        if (!filteredParts.length) {
+            alert('No spare parts available to export.');
+            return;
+        }
+
+        try {
+            setExporting(true);
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Fleet Spare Parts');
+
+            worksheet.columns = [
+                { header: 'Part Number', key: 'partNumber', width: 16 },
+                { header: 'Part Name', key: 'partName', width: 24 },
+                { header: 'Category', key: 'category', width: 18 },
+                { header: 'Condition', key: 'condition', width: 16 },
+                { header: 'Stock Qty', key: 'stockQty', width: 12 },
+                { header: 'Min Level', key: 'minStockLevel', width: 12 },
+                { header: 'Location', key: 'location', width: 18 },
+                { header: 'Buying Price', key: 'buyingPrice', width: 14 },
+                { header: 'Selling Price', key: 'sellingPrice', width: 14 },
+                { header: 'Purchase Date', key: 'purchaseDate', width: 16 },
+                { header: 'Supplier', key: 'supplier', width: 24 },
+                { header: 'Warranty Expiry', key: 'warrantyExpiry', width: 18 },
+                { header: 'Notes', key: 'notes', width: 32 }
+            ];
+
+            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            worksheet.getRow(1).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF0EA5E9' }
+            };
+
+            filteredParts.forEach((part) => {
+                const supplierName = typeof part.supplier === 'string' ? part.supplier : part.supplier?.name || 'N/A';
+                worksheet.addRow({
+                    partNumber: part.partNumber,
+                    partName: part.partName,
+                    category: part.category || 'N/A',
+                    condition: part.condition,
+                    stockQty: part.stockQty,
+                    minStockLevel: part.minStockLevel,
+                    location: part.location || 'N/A',
+                    buyingPrice: part.buyingPrice,
+                    sellingPrice: part.sellingPrice,
+                    purchaseDate: part.purchaseDate ? new Date(part.purchaseDate).toLocaleDateString() : 'N/A',
+                    supplier: supplierName,
+                    warrantyExpiry: part.warrantyExpiry ? new Date(part.warrantyExpiry).toLocaleDateString() : 'N/A',
+                    notes: part.description || ''
+                });
+            });
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Fleet_Spare_Parts_${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Failed to export spare parts', error);
+            alert('Unable to export spare parts. Please try again.');
+        } finally {
+            setExporting(false);
+        }
+    };
+
     const getStockStatus = (stockQty: number, minStockLevel: number) => {
         if (stockQty <= minStockLevel) return { status: 'Low Stock', color: 'text-red-600 bg-red-50' };
         if (stockQty <= minStockLevel * 2) return { status: 'Medium Stock', color: 'text-yellow-600 bg-yellow-50' };
@@ -773,15 +868,7 @@ const SparePartsInventory = () => {
                                 <FaHistory size={14} className="text-orange-600" />
                                 Use Part
                             </button>
-                            <button
-                                onClick={() => {
-                                    navigate('/admin/fleetmaintenance/invoices');
-                                }}
-                                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                                <FaFileInvoice size={14} className="text-blue-600" />
-                                Go to Invoices
-                            </button>
+                           
                             <button
                                 onClick={() => {
                                     setSelectedPart(part);
@@ -822,7 +909,8 @@ const SparePartsInventory = () => {
                             placeholder="Search parts..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2.5 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                            className="pl-10 pr-4 py-2.5 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all"
+                            style={focusRingStyle}
                         />
                     </div>
                 </div>
@@ -839,7 +927,7 @@ const SparePartsInventory = () => {
                         <div className="text-gray-600 text-sm">Low Stock</div>
                     </div>
                     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                        <div className="text-2xl font-bold text-[#9793E4]">
+                        <div className="text-2xl font-bold" style={{ color: ACCENT_PRIMARY }}>
                             {spareParts.reduce((total, part) => total + part.stockQty, 0)}
                         </div>
                         <div className="text-gray-600 text-sm">Total Stock</div>
@@ -856,7 +944,10 @@ const SparePartsInventory = () => {
             {/* Parts Table */}
             {loading ? (
                 <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-gray-200">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#9793E4] mx-auto mb-4"></div>
+                    <div
+                        className="animate-spin rounded-full h-16 w-16 border-b-4 mx-auto mb-4"
+                        style={{ borderColor: 'rgba(1, 106, 178, 0.2)', borderBottomColor: ACCENT_PRIMARY }}
+                    ></div>
                     <p className="text-gray-500 text-lg">Loading spare parts...</p>
                 </div>
             ) : filteredParts.length === 0 ? (
@@ -871,7 +962,8 @@ const SparePartsInventory = () => {
                     {!searchTerm && (
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="inline-flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] transition-all font-medium shadow-md"
+                            className="inline-flex items-center gap-2 px-5 py-3 !text-white rounded-lg transition-all font-medium shadow-md hover:opacity-90"
+                            style={{ background: ACCENT_GRADIENT }}
                         >
                             <FaPlus />
                             Add First Spare Part
@@ -1044,6 +1136,14 @@ const SparePartsInventory = () => {
                 </div>
                 <div className="flex gap-3">
                     <button
+                        onClick={handleExportParts}
+                        disabled={exporting}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 !text-white rounded-lg shadow-lg hover:shadow-xl transition-colors disabled:opacity-60"
+                    >
+                        <Download className="w-4 h-4" />
+                        {exporting ? 'Preparing Excel...' : 'Export to Excel'}
+                    </button>
+                    <button
                         onClick={() => setShowSupplierModal(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors"
                     >
@@ -1052,7 +1152,8 @@ const SparePartsInventory = () => {
                     </button>
                     <button
                         onClick={() => setShowAddModal(true)}
-                        className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] shadow-lg hover:shadow-xl transition-all font-medium"
+                        className="flex items-center gap-2 px-5 py-3 !text-white rounded-lg shadow-lg hover:shadow-xl transition-all font-medium hover:opacity-90"
+                        style={{ background: ACCENT_GRADIENT }}
                     >
                         <FaPlus /> Add New Part
                     </button>
@@ -1300,7 +1401,8 @@ const SparePartsInventory = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-[#9793E4] !text-white !ml-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                                    className="px-4 py-2 !text-white !ml-3 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed hover:opacity-90"
+                                    style={{ background: ACCENT_GRADIENT }}
                                     disabled={submitting}
                                 >
                                     {submitting ? 'Adding...' : 'Add Part'}
@@ -1552,7 +1654,8 @@ const SparePartsInventory = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-[#9793E4] !text-white !ml-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                                    className="px-4 py-2 !text-white !ml-3 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed hover:opacity-90"
+                                    style={{ background: ACCENT_GRADIENT }}
                                     disabled={submitting}
                                 >
                                     {submitting ? 'Updating...' : 'Update Part'}
@@ -1857,7 +1960,7 @@ const SparePartsInventory = () => {
                         </div>
 
                         {/* Spare Part Details */}
-                        <div className="mb-6 p-4 bg-gradient-to-r from-[#9793E4] to-[#8783D4] rounded-lg text-white">
+                        <div className="mb-6 p-4 rounded-lg text-white" style={{ background: ACCENT_GRADIENT }}>
                             <div className="flex items-center justify-between mb-3">
                                 <div>
                                     <h4 className="text-lg font-bold">{selectedPart.partName}</h4>
@@ -1890,7 +1993,10 @@ const SparePartsInventory = () => {
                                 </label>
                                 {loadingWorkOrders ? (
                                     <div className="flex items-center justify-center py-8 bg-gray-50 rounded-lg">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#9793E4]"></div>
+                                        <div
+                                            className="animate-spin rounded-full h-8 w-8 border-b-2"
+                                            style={{ borderColor: 'rgba(1, 106, 178, 0.2)', borderBottomColor: ACCENT_PRIMARY }}
+                                        ></div>
                                         <span className="ml-3 text-sm text-gray-500">Loading work orders...</span>
                                     </div>
                                 ) : workOrders.length === 0 ? (
@@ -1903,7 +2009,8 @@ const SparePartsInventory = () => {
                                     <select
                                         defaultValue={usageDataRef.current.workOrderId}
                                         onChange={(e) => usageDataRef.current.workOrderId = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-[#9793E4] transition-all bg-white"
+                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all bg-white"
+                                        style={focusRingStyle}
                                         required
                                     >
                                         <option value="">Select Work Order</option>
@@ -1935,7 +2042,8 @@ const SparePartsInventory = () => {
                                         setQtyUsedInput(value);
                                         usageDataRef.current.qtyUsed = value;
                                     }}
-                                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-[#9793E4] transition-all"
+                                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+                                    style={focusRingStyle}
                                     placeholder={`Enter quantity (max: ${selectedPart.stockQty})`}
                                     min="1"
                                     max={selectedPart.stockQty}
@@ -1960,7 +2068,8 @@ const SparePartsInventory = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-5 py-2.5 bg-[#9793E4] !text-white !ml-3 rounded-lg hover:bg-[#8783D4] disabled:bg-[#9793E4]/50 disabled:cursor-not-allowed font-medium transition-colors shadow-md"
+                                    className="px-5 py-2.5 !text-white !ml-3 rounded-lg font-medium transition-colors shadow-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    style={{ background: ACCENT_GRADIENT }}
                                     disabled={submitting || loadingWorkOrders || workOrders.length === 0}
                                 >
                                     {submitting ? 'Processing...' : 'Use Part'}
@@ -1993,7 +2102,7 @@ const SparePartsInventory = () => {
                         </div>
 
                         <div className="p-6 space-y-6">
-                            <div className="bg-gradient-to-r from-[#9793E4] via-[#8783D4] to-[#7773C4] rounded-xl p-6 text-white">
+                            <div className="rounded-xl p-6 text-white" style={{ background: ACCENT_GRADIENT }}>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-sm opacity-80">Current Stock</label>
@@ -2032,7 +2141,7 @@ const SparePartsInventory = () => {
 
                             <div className="border border-gray-200 rounded-xl p-5">
                                 <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                    <FaHistory className="text-[#9793E4]" size={20} />
+                                    <FaHistory size={20} style={{ color: ACCENT_PRIMARY }} />
                                     Usage History
                                 </h4>
                                 <div className="space-y-3 max-h-60 overflow-y-auto">
@@ -2122,7 +2231,7 @@ const SparePartsInventory = () => {
 
                         <div className="p-6 space-y-6">
                             {/* Invoice Header */}
-                            <div className="bg-gradient-to-r from-[#9793E4] via-[#8783D4] to-[#7773C4] rounded-xl p-6 text-white">
+                            <div className="rounded-xl p-6 text-white" style={{ background: ACCENT_GRADIENT }}>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-sm opacity-80">Invoice Number</label>
@@ -2160,7 +2269,7 @@ const SparePartsInventory = () => {
                             {/* Invoice Items */}
                             <div className="border border-gray-200 rounded-xl p-5">
                                 <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                    <FaFileInvoice className="text-[#9793E4]" size={20} />
+                                    <FaFileInvoice size={20} style={{ color: ACCENT_PRIMARY }} />
                                     Invoice Items
                                 </h4>
                                 <div className="space-y-3">

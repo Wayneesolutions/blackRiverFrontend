@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit, Trash2, Search, Shield, AlertTriangle, Calendar } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import ExcelJS from 'exceljs';
+import { Plus, Edit, Trash2, Search, Shield, AlertTriangle, Calendar, Download } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import {
   listRegulatorySafety,
@@ -11,13 +12,31 @@ import {
 } from '../../../../axios/api/regulatorySafety';
 import { listFleetUnits } from '../../../../axios/api/fleet.units';
 
+type UnitStatus = 'Active' | 'Inactive';
+type TruckType = 'Semi-Truck' | 'Straight Truck' | 'Box Truck' | 'Flatbed' | 'Refrigerated Truck' | 'Dump Truck' | 'Tow Truck';
+type TrailerType = 'Reefer Trailer' | 'Tri-Axle Trailer' | 'Dry Van' | 'Flatbed' | 'Step Deck' | 'Lowboy' | 'Tank Trailer' | 'Dump Trailer';
+
+type UnitFilterKey = 'all' | 'truck' | 'trailer' | 'tri-axle trailer' | 'reefer trailer' | 'dry van';
+
 interface UnitOption {
   unitNo: string;
   unitType?: string;
+  truckType?: TruckType | string;
+  trailerType?: TrailerType | string;
+  status?: UnitStatus | string;
   makeModel?: string;
   referenceType?: string;
   referenceId?: string;
 }
+
+const UNIT_FILTERS: { key: UnitFilterKey; label: string }[] = [
+  { key: 'all', label: 'All Units' },
+  { key: 'truck', label: 'Trucks' },
+  { key: 'trailer', label: 'Trailers' },
+  { key: 'tri-axle trailer', label: 'Tri-Axle Trailer' },
+  { key: 'reefer trailer', label: 'Reefer Trailer' },
+  { key: 'dry van', label: 'Dry Van' }
+];
 
 interface NotificationState {
   type: 'success' | 'error';
@@ -83,6 +102,7 @@ const RegulatorySafety: React.FC = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [records, setRecords] = useState<RegulatorySafetyDto[]>([]);
   const [units, setUnits] = useState<UnitOption[]>([]);
+  const [unitFilter, setUnitFilter] = useState<UnitFilterKey>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -103,6 +123,7 @@ const RegulatorySafety: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [notification, setNotification] = useState<NotificationState | null>(null);
   const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 400);
@@ -119,14 +140,25 @@ const RegulatorySafety: React.FC = () => {
     try {
       const response = await listFleetUnits({ category: 'all' });
       if (response?.success) {
+        const rawData = (response as any)?.data;
+        const payload = Array.isArray(rawData)
+          ? rawData
+          : Array.isArray(rawData?.data)
+            ? rawData.data
+            : Array.isArray(rawData?.units)
+              ? rawData.units
+              : [];
         setUnits(
-          response.data?.map((unit) => ({
+          payload.map((unit: any) => ({
             unitNo: unit.unitNo,
             unitType: unit.unitType,
+            truckType: unit.truckType,
+            trailerType: unit.trailerType,
+            status: unit.status,
             makeModel: unit.makeModel,
             referenceType: unit.referenceType,
             referenceId: unit.referenceId
-          })) || []
+          }))
         );
       }
     } catch (err) {
@@ -163,9 +195,130 @@ const RegulatorySafety: React.FC = () => {
     loadRecords();
   }, [loadRecords]);
 
+  const unitMap = useMemo(() => {
+    const map = new Map<string, UnitOption>();
+    units.forEach((unit) => map.set(unit.unitNo, unit));
+    return map;
+  }, [units]);
+
+  const normalize = (value?: string | null) => (value || '').trim().toLowerCase();
+
+  const isTrailerFamily = (value: string) =>
+    ['trailer', 'reefer trailer', 'tri-axle trailer', 'dry van', 'flatbed', 'step deck', 'lowboy', 'tank trailer', 'dump trailer'].includes(
+      value
+    );
+
+  const matchesUnitFilter = (unitData: { unitType?: string; truckType?: string; trailerType?: string }, filter: UnitFilterKey) => {
+    if (filter === 'all') return true;
+    const unitType = normalize(unitData.unitType);
+    const truckType = normalize(unitData.truckType);
+    const trailerType = normalize(unitData.trailerType);
+
+    if (filter === 'truck') {
+      return unitType === 'truck' || (!!truckType && truckType.length > 0 && truckType !== 'truck');
+    }
+
+    if (filter === 'trailer') {
+      return unitType === 'trailer' || isTrailerFamily(unitType) || isTrailerFamily(trailerType);
+    }
+
+    const filterValue = normalize(filter);
+    return trailerType === filterValue || unitType === filterValue;
+  };
+
+  const filteredRecords = useMemo(() => {
+    return records.filter((record) => {
+      const meta = unitMap.get(record.unitNo);
+      return matchesUnitFilter(
+        {
+          unitType: record.unitType || meta?.unitType,
+          truckType: (record as any)?.truckType || meta?.truckType,
+          trailerType: (record as any)?.trailerType || meta?.trailerType
+        },
+        unitFilter
+      );
+    });
+  }, [records, unitMap, unitFilter]);
+
+  const filteredUnitOptions = useMemo(() => units.filter((unit) => matchesUnitFilter(unit, unitFilter)), [units, unitFilter]);
+
+  const unitSelectOptions = useMemo(() => {
+    if (!formData.unitNo) return filteredUnitOptions;
+    const exists = filteredUnitOptions.some((unit) => unit.unitNo === formData.unitNo);
+    return exists ? filteredUnitOptions : [...filteredUnitOptions, ...units.filter((unit) => unit.unitNo === formData.unitNo)];
+  }, [filteredUnitOptions, formData.unitNo, units]);
+
+  const handleExportSafety = async () => {
+    if (!filteredRecords.length) {
+      alert('No safety records available to export.');
+      return;
+    }
+
+    try {
+      setExporting(true);
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Regulatory Safety');
+
+      worksheet.columns = [
+        { header: 'Unit Number', key: 'unitNo', width: 16 },
+        { header: 'Unit Type', key: 'unitType', width: 16 },
+        { header: 'Make / Model', key: 'makeModel', width: 26 },
+        { header: 'Safety Expiry', key: 'safetyExpiryDate', width: 18 },
+        { header: 'Status', key: 'status', width: 18 },
+        { header: 'Decal Number', key: 'safetyDecalNumber', width: 18 },
+        { header: 'Paper Number', key: 'safetyPaperNumber', width: 18 },
+        { header: 'Shop Name', key: 'shopName', width: 24 },
+        { header: 'Invoice #', key: 'invoiceNo', width: 18 },
+        { header: 'Notes', key: 'notes', width: 32 }
+      ];
+
+      worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF0EA5E9' }
+      };
+
+      filteredRecords.forEach((record) => {
+        const status = getExpiryStatus(record.safetyExpiryDate);
+        worksheet.addRow({
+          unitNo: record.unitNo,
+          unitType: record.unitType || 'N/A',
+          makeModel: record.makeModel || 'N/A',
+          safetyExpiryDate: formatDate(record.safetyExpiryDate),
+          status: status.text,
+          safetyDecalNumber: record.safetyDecalNumber || 'N/A',
+          safetyPaperNumber: record.safetyPaperNumber || 'N/A',
+          shopName: record.shopName || 'N/A',
+          invoiceNo: record.invoiceNo || 'N/A',
+          notes: record.notes || ''
+        });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Regulatory_Safety_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export regulatory safety records', error);
+      alert('Unable to export safety records. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handleAddRecord = () => {
+    const defaultUnitNo = (filteredUnitOptions[0] || units[0])?.unitNo || '';
     setFormData({
-      unitNo: '',
+      unitNo: defaultUnitNo,
       safetyExpiryDate: '',
       safetyDecalNumber: '',
       safetyPaperNumber: '',
@@ -278,7 +431,7 @@ const RegulatorySafety: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-4">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-2xl shadow-lg" style={{ background: 'linear-gradient(to bottom right, #016ab2, #063f6f)' }}>
                 <Shield className="w-8 h-8 text-white" />
@@ -293,14 +446,24 @@ const RegulatorySafety: React.FC = () => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleAddRecord}
-              className="flex items-center gap-2 px-6 py-3 text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
-              style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-            >
-              <Plus className="w-5 h-5" />
-              Add Safety Record
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleExportSafety}
+                disabled={exporting}
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-green-600 to-green-700 px-5 py-2.5 font-semibold !text-white shadow-lg transition hover:shadow-xl disabled:opacity-60"
+              >
+                <Download className="w-4 h-4" />
+                {exporting ? 'Preparing Excel...' : 'Export to Excel'}
+              </button>
+              <button
+                onClick={handleAddRecord}
+                className="flex items-center gap-2 px-6 py-3 !text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
+                style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+              >
+                <Plus className="w-5 h-5" />
+                Add Safety Record
+              </button>
+            </div>
           </div>
 
           {requiresCompanySetup && (
@@ -338,6 +501,29 @@ const RegulatorySafety: React.FC = () => {
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          {UNIT_FILTERS.map((filter) => (
+            <button
+              key={filter.key}
+              type="button"
+              onClick={() => setUnitFilter(filter.key)}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all ${
+                unitFilter === filter.key ? '!text-white shadow-md' : 'text-gray-600 bg-white hover:text-gray-900'
+              }`}
+              style={
+                unitFilter === filter.key
+                  ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: 'transparent' }
+                  : { borderColor: 'rgba(0,0,0,0.08)' }
+              }
+            >
+              {filter.label}
+            </button>
+          ))}
+          <span className="text-sm text-gray-500">
+            Showing {filteredRecords.length} of {records.length} safety record{records.length === 1 ? '' : 's'}
+          </span>
+        </div>
+
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -362,21 +548,25 @@ const RegulatorySafety: React.FC = () => {
                       Loading safety records...
                     </td>
                   </tr>
-                ) : records.length === 0 ? (
+                ) : filteredRecords.length === 0 ? (
                   <tr>
                     <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
-                      No safety records found
+                      {unitFilter === 'all' ? 'No safety records found' : 'No records match the selected filter'}
                     </td>
                   </tr>
                 ) : (
-                  records.map((record) => {
+                  filteredRecords.map((record) => {
                     const status = getExpiryStatus(record.safetyExpiryDate);
+                    const rowAccent =
+                      status.status === 'expired'
+                        ? 'border-l-4 border-red-400'
+                        : status.status === 'warning'
+                          ? 'border-l-4 border-amber-400'
+                          : 'border-l-4 border-transparent';
                     return (
                       <tr
                         key={record._id}
-                        className={`hover:bg-gray-50 transition-colors ${
-                          status.status === 'expired' ? 'bg-red-50' : status.status === 'warning' ? 'bg-yellow-50' : ''
-                        }`}
+                        className={`hover:bg-gray-50 transition-colors ${rowAccent}`}
                       >
                         <td className="px-6 py-4 font-medium text-gray-900">{record.unitNo}</td>
                         <td className="px-6 py-4">
@@ -392,7 +582,7 @@ const RegulatorySafety: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${status.color}`}>
+                          <span className={`inline-flex px-4 py-2 text-xs font-semibold rounded-full ${status.color}`}>
                             {status.status === 'expired' && <FaExclamationCircle className="mr-1" size={12} />}
                             {status.status === 'warning' && <AlertTriangle className="mr-1" size={12} />}
                             {status.status === 'ok' && <FaCheckCircle className="mr-1" size={12} />}
@@ -463,9 +653,9 @@ const RegulatorySafety: React.FC = () => {
                         }}
                       >
                         <option value="">Select Unit</option>
-                        {units.map((unit) => (
+                        {unitSelectOptions.map((unit) => (
                           <option key={unit.unitNo} value={unit.unitNo}>
-                            {unit.unitNo} - {unit.makeModel} ({unit.unitType})
+                            {unit.unitNo} - {unit.makeModel} ({unit.unitType || unit.trailerType || 'Unit'})
                           </option>
                         ))}
                       </select>
@@ -594,7 +784,7 @@ const RegulatorySafety: React.FC = () => {
                     <button
                       onClick={handleSaveRecord}
                       disabled={saving}
-                      className={`px-6 py-2 text-white rounded-lg transition-colors ${
+                      className={`px-6 py-2 !text-white rounded-lg transition-colors ${
                         saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
                       }`}
                       style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}

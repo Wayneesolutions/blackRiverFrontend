@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, Edit, Trash2, Search, Wrench, FileText } from 'lucide-react';
+import ExcelJS from 'exceljs';
+import { Plus, Edit, Trash2, Search, Wrench, FileText, Download } from 'lucide-react';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import {
   listGeneralRepairs,
@@ -10,6 +11,7 @@ import {
   type GeneralRepairPayload
 } from '../../../../axios/api/generalRepairs';
 import { listFleetUnits } from '../../../../axios/api/fleet.units';
+import { getAllEmployees } from '../../../../axios/api/employee';
 
 interface UnitOption {
   unitNo: string;
@@ -17,6 +19,14 @@ interface UnitOption {
   vin?: string;
   referenceType?: string;
   referenceId?: string;
+}
+
+interface ServiceProviderOption {
+  id: string;
+  name: string;
+  role: string;
+  email?: string;
+  internalId?: string;
 }
 
 interface NotificationState {
@@ -32,6 +42,7 @@ interface FormState {
   parts: string;
   notes: string;
   serviceProvider: string;
+  serviceProviderId?: string;
   invoiceNumber: string;
 }
 
@@ -80,6 +91,7 @@ const GeneralRepairsLog: React.FC = () => {
     parts: '',
     notes: '',
     serviceProvider: '',
+    serviceProviderId: undefined,
     invoiceNumber: ''
   });
   const [loading, setLoading] = useState(false);
@@ -89,6 +101,11 @@ const GeneralRepairsLog: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [notification, setNotification] = useState<NotificationState | null>(null);
   const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
+  const [serviceProviders, setServiceProviders] = useState<ServiceProviderOption[]>([]);
+  const [serviceProvidersLoading, setServiceProvidersLoading] = useState(false);
+  const [serviceProvidersError, setServiceProvidersError] = useState<string | null>(null);
+  const [useCustomProvider, setUseCustomProvider] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 400);
@@ -120,6 +137,41 @@ const GeneralRepairsLog: React.FC = () => {
     }
   }, []);
 
+  const loadServiceProviders = useCallback(async () => {
+    setServiceProvidersLoading(true);
+    setServiceProvidersError(null);
+    try {
+      const response = await getAllEmployees();
+      if (response?.success) {
+        const mechanics =
+          response.data
+            ?.filter((employee: any) =>
+              (employee?.role || '').toLowerCase().includes('mechanic')
+            )
+            .map((employee: any) => ({
+              id: employee._id,
+              name: employee.name || employee.internalId || employee.email || 'Mechanic',
+              role: employee.role || 'Mechanic',
+              email: employee.email,
+              internalId: employee.internalId
+            })) || [];
+        setServiceProviders(mechanics);
+        if (mechanics.length > 0 && !showEditModal) {
+          setUseCustomProvider(false);
+        }
+      } else {
+        setServiceProviders([]);
+        setServiceProvidersError(response?.message || 'Unable to load mechanics.');
+      }
+    } catch (err: any) {
+      console.error('Failed to load mechanics', err);
+      setServiceProviders([]);
+      setServiceProvidersError(err?.response?.data?.message || err?.message || 'Unable to load mechanics.');
+    } finally {
+      setServiceProvidersLoading(false);
+    }
+  }, [showEditModal]);
+
   const loadRepairs = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -146,8 +198,30 @@ const GeneralRepairsLog: React.FC = () => {
   }, [loadUnits]);
 
   useEffect(() => {
+    loadServiceProviders();
+  }, [loadServiceProviders]);
+
+  useEffect(() => {
     loadRepairs();
   }, [loadRepairs]);
+
+  useEffect(() => {
+    if (!showEditModal || !selectedRepair || serviceProviders.length === 0) return;
+    setFormData((prev) => {
+      if (!selectedRepair.serviceProvider) {
+        return prev.serviceProviderId ? { ...prev, serviceProviderId: undefined } : prev;
+      }
+      const match = serviceProviders.find((provider) => provider.name === selectedRepair.serviceProvider);
+      if (match && prev.serviceProviderId !== match.id) {
+        setUseCustomProvider(false);
+        return { ...prev, serviceProviderId: match.id };
+      }
+      if (!match && !useCustomProvider) {
+        setUseCustomProvider(true);
+      }
+      return prev;
+    });
+  }, [serviceProviders, selectedRepair, showEditModal, useCustomProvider]);
 
   const filteredRepairs = useMemo(() => {
     if (!searchTerm) return repairs;
@@ -162,6 +236,78 @@ const GeneralRepairsLog: React.FC = () => {
     });
   }, [repairs, searchTerm]);
 
+  const handleExportRepairs = async () => {
+    if (!filteredRepairs.length) {
+      alert('No repair records available to export.');
+      return;
+    }
+
+    try {
+      setExporting(true);
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('General Repairs');
+
+      worksheet.columns = [
+        { header: 'Service Date', key: 'serviceDate', width: 16 },
+        { header: 'Unit Number', key: 'unitNumber', width: 16 },
+        { header: 'Make / Model', key: 'makeModel', width: 24 },
+        { header: 'Description', key: 'description', width: 32 },
+        { header: 'Odometer', key: 'odometer', width: 14 },
+        { header: 'Parts', key: 'parts', width: 28 },
+        { header: 'Notes', key: 'notes', width: 32 },
+        { header: 'Service Provider', key: 'serviceProvider', width: 24 },
+        { header: 'Invoice #', key: 'invoiceNumber', width: 18 }
+      ];
+
+      worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF0EA5E9' }
+      };
+
+      filteredRepairs.forEach((repair) => {
+        worksheet.addRow({
+          serviceDate: formatDate(repair.serviceDate),
+          unitNumber: repair.unitNumber,
+          makeModel: repair.makeModel || 'N/A',
+          description: repair.description,
+          odometer: repair.odometer ?? 'N/A',
+          parts: repair.parts || 'N/A',
+          notes: repair.notes || '',
+          serviceProvider: repair.serviceProvider,
+          invoiceNumber: repair.invoiceNumber || 'N/A'
+        });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `General_Repairs_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export general repairs', error);
+      alert('Unable to export repair records. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const providerSelectValue = useCustomProvider ? '__custom__' : formData.serviceProviderId || '';
+
+  useEffect(() => {
+    if (serviceProviders.length === 0) {
+      setUseCustomProvider(true);
+    }
+  }, [serviceProviders.length]);
+
   const handleAddRepair = () => {
     setFormData({
       serviceDate: new Date().toISOString().split('T')[0],
@@ -171,9 +317,11 @@ const GeneralRepairsLog: React.FC = () => {
       parts: '',
       notes: '',
       serviceProvider: '',
+      serviceProviderId: undefined,
       invoiceNumber: ''
     });
     setFormError(null);
+    setUseCustomProvider(serviceProviders.length === 0);
     setShowAddModal(true);
   };
 
@@ -188,8 +336,10 @@ const GeneralRepairsLog: React.FC = () => {
       parts: repair.parts || '',
       notes: repair.notes || '',
       serviceProvider: repair.serviceProvider,
+      serviceProviderId: serviceProviders.find((provider) => provider.name === repair.serviceProvider)?.id,
       invoiceNumber: repair.invoiceNumber
     });
+    setUseCustomProvider(!serviceProviders.find((provider) => provider.name === repair.serviceProvider));
     setShowEditModal(true);
   };
 
@@ -286,7 +436,7 @@ const GeneralRepairsLog: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-4">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-2xl shadow-lg" style={{ background: 'linear-gradient(to bottom right, #016ab2, #063f6f)' }}>
                 <Wrench className="w-8 h-8 text-white" />
@@ -301,14 +451,24 @@ const GeneralRepairsLog: React.FC = () => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleAddRepair}
-              className="flex items-center gap-2 px-6 py-3 text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
-              style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-            >
-              <Plus className="w-5 h-5" />
-              Add Repair
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleExportRepairs}
+                disabled={exporting}
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-green-600 to-green-700 px-5 py-2.5 font-semibold !text-white shadow-lg transition hover:shadow-xl disabled:opacity-60"
+              >
+                <Download className="w-4 h-4" />
+                {exporting ? 'Preparing Excel...' : 'Export to Excel'}
+              </button>
+              <button
+                onClick={handleAddRepair}
+                className="flex items-center gap-2 px-6 py-3 !text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
+                style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+              >
+                <Plus className="w-5 h-5" />
+                Add Repair
+              </button>
+            </div>
           </div>
 
           {requiresCompanySetup && (
@@ -503,22 +663,95 @@ const GeneralRepairsLog: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Service Provider *</label>
-                      <input
-                        type="text"
-                        value={formData.serviceProvider}
-                        onChange={(e) => setFormData({ ...formData, serviceProvider: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#016ab2';
-                          e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '';
-                          e.target.style.boxShadow = '';
-                        }}
-                        placeholder="Name of the shop"
-                      />
+                      {serviceProvidersLoading ? (
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 inline-block" />
+                          Loading mechanics...
+                        </div>
+                      ) : serviceProviders.length > 0 ? (
+                        <>
+                          <select
+                            value={providerSelectValue}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (!value) {
+                                setUseCustomProvider(false);
+                                setFormData((prev) => ({ ...prev, serviceProviderId: undefined, serviceProvider: '' }));
+                                return;
+                              }
+                              if (value === '__custom__') {
+                                setUseCustomProvider(true);
+                                setFormData((prev) => ({ ...prev, serviceProviderId: undefined, serviceProvider: '' }));
+                                return;
+                              }
+                              const provider = serviceProviders.find((option) => option.id === value);
+                              setUseCustomProvider(false);
+                              setFormData((prev) => ({
+                                ...prev,
+                                serviceProviderId: provider?.id,
+                                serviceProvider: provider?.name || ''
+                              }));
+                            }}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => {
+                              e.target.style.borderColor = '#016ab2';
+                              e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                            }}
+                            onBlur={(e) => {
+                              e.target.style.borderColor = '';
+                              e.target.style.boxShadow = '';
+                            }}
+                          >
+                            <option value="">Select mechanic</option>
+                            {serviceProviders.map((provider) => (
+                              <option key={provider.id} value={provider.id}>
+                                {provider.name} {provider.role ? `(${provider.role})` : ''}
+                              </option>
+                            ))}
+                            <option value="__custom__">Other / External Vendor</option>
+                          </select>
+                          {useCustomProvider && (
+                            <input
+                              type="text"
+                              value={formData.serviceProvider}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  serviceProvider: e.target.value,
+                                  serviceProviderId: undefined
+                                })
+                              }
+                              className="mt-3 w-full px-4 !mt-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                              style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                              placeholder="Enter shop or vendor name"
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            type="text"
+                            value={formData.serviceProvider}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                serviceProvider: e.target.value,
+                                serviceProviderId: undefined
+                              })
+                            }
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            placeholder="Enter shop or vendor name"
+                          />
+                          <p className="text-xs text-gray-500 mt-2">
+                            Add an employee with a mechanic role to auto-populate this list.
+                          </p>
+                        </>
+                      )}
+                      {serviceProvidersError && (
+                        <p className="text-sm text-red-600 mt-2">{serviceProvidersError}</p>
+                      )}
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
@@ -607,7 +840,7 @@ const GeneralRepairsLog: React.FC = () => {
                     <button
                       onClick={handleSaveRepair}
                       disabled={saving}
-                      className={`px-6 py-2 text-white rounded-lg transition-colors ${
+                      className={`px-6 py-2 !text-white rounded-lg transition-colors ${
                         saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
                       }`}
                       style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
@@ -657,7 +890,7 @@ const GeneralRepairsLog: React.FC = () => {
                   <button
                     onClick={handleConfirmDelete}
                     disabled={deleting}
-                    className={`px-6 py-2 rounded-lg text-white transition-colors ${
+                    className={`px-6 py-2 rounded-lg !text-white transition-colors ${
                       deleting ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
                     }`}
                   >

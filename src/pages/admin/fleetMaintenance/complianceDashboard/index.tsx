@@ -87,11 +87,11 @@ const ComplianceDashboard: React.FC = () => {
                 className="text-4xl font-bold bg-clip-text text-transparent"
                 style={{ backgroundImage: 'linear-gradient(to right, #016ab2, #063f6f)' }}
               >
-                Fleet Compliance Dashboard
+                Overview
               </h1>
               <p className="text-gray-600 mt-1 flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                Aggregated view for Compliance & Safety teams
+                Aggregated view for fleet maintenance
               </p>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import type { CSSProperties } from 'react';
 import {
   FaClipboardCheck,
   FaMapMarkerAlt,
@@ -29,6 +30,29 @@ import {
 } from '../../../../axios/api/admin';
 import { listVehicle } from '../../../../axios/api/distapcher';
 import { listDriver } from '../../../../axios/api/distapcher';
+import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+
+const ACCENT_PRIMARY = FLEET_COLORS.primary;
+const ACCENT_DARK = FLEET_COLORS.dark;
+const ACCENT_GRADIENT = FLEET_COLORS.gradient;
+
+const hexToRgba = (hex: string, alpha = 1) => {
+  const parsed = hex.replace('#', '');
+  const bigint = parseInt(parsed, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+const ACCENT_SOFT = hexToRgba(ACCENT_PRIMARY, 0.1);
+const ACCENT_SOFT_BORDER = hexToRgba(ACCENT_PRIMARY, 0.25);
+const ACCENT_VARS = {
+  '--accent-color': ACCENT_PRIMARY,
+  '--accent-dark': ACCENT_DARK,
+  '--accent-soft': ACCENT_SOFT,
+  '--accent-soft-border': ACCENT_SOFT_BORDER
+} as CSSProperties;
 
 // Types
 interface Inspection {
@@ -113,24 +137,25 @@ interface ToastNotification {
 
 // Toast Notification Component
 const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
-  const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+  const toneStyles: Record<NotificationType, { bg: string; border: string; icon: React.ReactNode }> = {
+    success: { bg: 'bg-green-50 border-green-200', border: '', icon: <FaCheckCircle className="text-green-600" size={20} /> },
+    error: { bg: 'bg-red-50 border-red-200', border: '', icon: <FaExclamationCircle className="text-red-600" size={20} /> },
+    info: { bg: '', border: '', icon: <FaInfoCircle className="text-[var(--accent-color)]" size={20} /> },
+    warning: { bg: 'bg-yellow-50 border-yellow-200', border: '', icon: <FaExclamationTriangle className="text-yellow-600" size={20} /> }
   };
 
-  const icons = {
-    success: <FaCheckCircle className="text-green-600" size={20} />,
-    error: <FaExclamationCircle className="text-red-600" size={20} />,
-    info: <FaInfoCircle className="text-blue-600" size={20} />,
-    warning: <FaExclamationTriangle className="text-yellow-600" size={20} />
-  };
+  const infoStyle =
+    notification.type === 'info'
+      ? { backgroundColor: ACCENT_SOFT, borderColor: ACCENT_SOFT_BORDER }
+      : undefined;
 
   return (
-    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+    <div
+      className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${toneStyles[notification.type].bg || ''} animate-slide-in`}
+      style={infoStyle}
+    >
       <div className="flex-shrink-0 mt-0.5">
-        {icons[notification.type]}
+        {toneStyles[notification.type].icon}
       </div>
       <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
       <button
@@ -611,22 +636,53 @@ const CvsaInspection: React.FC = () => {
     }
   };
 
-  const StatCard = ({ title, value, color, icon }: { title: string; value: number; color: string; icon: React.ReactNode }) => (
-    <div className={`${color} p-4 rounded-xl border-2`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium opacity-80">{title}</p>
-          <p className="text-2xl font-bold">{value}</p>
-        </div>
-        <div className="p-3 bg-white bg-opacity-20 rounded-lg">
-          {icon}
+  const STAT_TONES = {
+    accent: {
+      container: { backgroundColor: ACCENT_SOFT, borderColor: ACCENT_SOFT_BORDER },
+      iconBg: hexToRgba(ACCENT_PRIMARY, 0.15),
+      iconColor: ACCENT_PRIMARY
+    },
+    success: {
+      container: { backgroundColor: 'rgba(16,185,129,0.12)', borderColor: 'rgba(5,150,105,0.3)' },
+      iconBg: 'rgba(16,185,129,0.15)',
+      iconColor: '#047857'
+    },
+    danger: {
+      container: { backgroundColor: 'rgba(248,113,113,0.12)', borderColor: 'rgba(220,38,38,0.3)' },
+      iconBg: 'rgba(248,113,113,0.2)',
+      iconColor: '#b91c1c'
+    },
+    warning: {
+      container: { backgroundColor: 'rgba(251,191,36,0.15)', borderColor: 'rgba(217,119,6,0.3)' },
+      iconBg: 'rgba(251,191,36,0.2)',
+      iconColor: '#b45309'
+    },
+    out: {
+      container: { backgroundColor: 'rgba(248,113,113,0.18)', borderColor: 'rgba(185,28,28,0.35)' },
+      iconBg: 'rgba(185,28,28,0.15)',
+      iconColor: '#7f1d1d'
+    }
+  } as const;
+
+  const StatCard = ({ title, value, tone, icon }: { title: string; value: number; tone: keyof typeof STAT_TONES; icon: React.ReactNode }) => {
+    const palette = STAT_TONES[tone];
+    return (
+      <div className="p-4 rounded-xl border-2" style={palette.container}>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium opacity-80">{title}</p>
+            <p className="text-2xl font-bold text-gray-900">{value}</p>
+          </div>
+          <div className="p-3 rounded-lg" style={{ backgroundColor: palette.iconBg, color: palette.iconColor }}>
+            {icon}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
+    <div className="p-6 min-h-screen bg-gray-50" style={ACCENT_VARS}>
       {/* Toast Notifications Container - High z-index to be above modal */}
       <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
         {notifications.map(notification => (
@@ -645,7 +701,7 @@ const CvsaInspection: React.FC = () => {
         </div>
         <button
           onClick={handleAddInspection}
-          className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] shadow-lg hover:shadow-xl transition-all font-medium"
+          className="flex items-center gap-2 px-5 py-3 !text-white rounded-lg shadow-lg hover:shadow-xl transition-all font-medium bg-[var(--accent-color)] hover:bg-[var(--accent-dark)]"
         >
           + Add Inspection
         </button>
@@ -659,7 +715,7 @@ const CvsaInspection: React.FC = () => {
             <button
               onClick={() => setActiveTab('canada')}
               className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${activeTab === 'canada'
-                ? 'bg-white text-[#9793E4] shadow-sm'
+                ? 'bg-white text-[var(--accent-color)] shadow-sm'
                 : 'text-gray-600 hover:text-gray-800'
                 }`}
             >
@@ -669,7 +725,7 @@ const CvsaInspection: React.FC = () => {
             <button
               onClick={() => setActiveTab('usa')}
               className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${activeTab === 'usa'
-                ? 'bg-white text-[#9793E4] shadow-sm'
+                ? 'bg-white text-[var(--accent-color)] shadow-sm'
                 : 'text-gray-600 hover:text-gray-800'
                 }`}
             >
@@ -684,31 +740,31 @@ const CvsaInspection: React.FC = () => {
           <StatCard
             title="Total Inspections"
             value={stats.total}
-            color="bg-blue-50 border-blue-200"
-            icon={<FaClipboardCheck className="text-blue-600" size={24} />}
+            tone="accent"
+            icon={<FaClipboardCheck className="text-[var(--accent-color)]" size={24} />}
           />
           <StatCard
             title="Passed"
             value={stats.pass}
-            color="bg-green-50 border-green-200"
+            tone="success"
             icon={<FaCheckCircle className="text-green-600" size={24} />}
           />
           <StatCard
             title="Failed"
             value={stats.fail}
-            color="bg-red-50 border-red-200"
+            tone="danger"
             icon={<FaTimesCircle className="text-red-600" size={24} />}
           />
           <StatCard
             title="Warning"
             value={stats.warning}
-            color="bg-yellow-50 border-yellow-200"
+            tone="warning"
             icon={<FaExclamationTriangle className="text-yellow-600" size={24} />}
           />
           <StatCard
             title="Out of Service"
             value={stats.outOfService}
-            color="bg-red-100 border-red-300"
+            tone="out"
             icon={<FaBan className="text-red-800" size={24} />}
           />
         </div>
@@ -726,7 +782,7 @@ const CvsaInspection: React.FC = () => {
                   placeholder="Search inspections..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                 />
               </div>
             </div>
@@ -735,7 +791,7 @@ const CvsaInspection: React.FC = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
               >
                 <option value="all">All Status</option>
                 <option value="pass">Pass</option>
@@ -754,7 +810,7 @@ const CvsaInspection: React.FC = () => {
                 setPageSize(newSize);
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -775,7 +831,7 @@ const CvsaInspection: React.FC = () => {
 
         {loading ? (
           <div className="text-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9793E4] mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-color)] mx-auto mb-4"></div>
             <p className="text-xl font-semibold text-gray-500">Loading inspections...</p>
           </div>
         ) : filteredInspections.length === 0 ? (
@@ -975,14 +1031,14 @@ const CvsaInspection: React.FC = () => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleViewInspection(inspection)}
-                              className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
                               title="View Details"
                             >
                               <FaEye size={16} />
                             </button>
                             <button
                               onClick={() => handleEditInspection(inspection)}
-                              className="text-[#9793E4] hover:text-[#8783D4] p-2 hover:bg-purple-50 rounded-lg transition-colors"
+                              className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
                               title="Edit Inspection"
                             >
                               <FaEdit size={16} />
@@ -1042,7 +1098,7 @@ const CvsaInspection: React.FC = () => {
                           onClick={() => setCurrentPage(pageNum)}
                           className={`px-3 py-2 rounded-lg text-sm font-medium ${
                             currentPage === pageNum
-                              ? 'bg-[#9793E4] text-white'
+                              ? 'bg-[var(--accent-color)] text-white'
                               : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                           }`}
                         >
@@ -1151,7 +1207,7 @@ const CvsaInspection: React.FC = () => {
 
               {/* Official Document Information */}
               {(selectedInspection.reportNumber || selectedInspection.inspectionLevel || selectedInspection.jurisdiction || selectedInspection.timeOfInspection) && (
-                <div className="bg-blue-50 rounded-xl p-6">
+                <div className="rounded-xl p-6" style={{ backgroundColor: ACCENT_SOFT }}>
                   <h4 className="text-lg font-bold text-gray-800 mb-4">Official Document Information</h4>
                   <div className="grid grid-cols-2 gap-4">
                     {selectedInspection.reportNumber && (
@@ -1246,7 +1302,7 @@ const CvsaInspection: React.FC = () => {
 
               {/* Documentation */}
               {selectedInspection.documentLink && (
-                <div className="bg-purple-50 rounded-xl p-6">
+                <div className="bg-[var(--accent-soft)] rounded-xl p-6">
                   <h4 className="text-lg font-bold text-gray-800 mb-4">Documentation</h4>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Document Link</label>
@@ -1254,7 +1310,7 @@ const CvsaInspection: React.FC = () => {
                       href={selectedInspection.documentLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-lg font-semibold text-blue-600 hover:text-blue-800 underline break-all"
+                      className="text-lg font-semibold text-[var(--accent-color)] hover:text-[var(--accent-dark)] underline break-all"
                     >
                       {selectedInspection.documentLink}
                     </a>
@@ -1263,7 +1319,7 @@ const CvsaInspection: React.FC = () => {
               )}
 
               {/* Vehicle & Driver Info */}
-              <div className="bg-blue-50 rounded-xl p-6">
+              <div className="rounded-xl p-6" style={{ backgroundColor: ACCENT_SOFT }}>
                 <h4 className="text-lg font-bold text-gray-800 mb-4">Vehicle & Driver Information</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1344,7 +1400,7 @@ const CvsaInspection: React.FC = () => {
                   <select
                     value={inspectionForm.country}
                     onChange={(e) => setInspectionForm(prev => ({ ...prev, country: e.target.value as 'canada' | 'usa' }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                   >
                     <option value="canada">Canada</option>
                     <option value="usa">USA</option>
@@ -1356,7 +1412,7 @@ const CvsaInspection: React.FC = () => {
                     type="date"
                     value={inspectionForm.date || ''}
                     onChange={(e) => setInspectionForm(prev => ({ ...prev, date: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                   />
                 </div>
                 <div className="col-span-2">
@@ -1366,7 +1422,7 @@ const CvsaInspection: React.FC = () => {
                     placeholder="Enter inspection location"
                     value={inspectionForm.location || ''}
                     onChange={(e) => setInspectionForm(prev => ({ ...prev, location: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -1374,7 +1430,7 @@ const CvsaInspection: React.FC = () => {
                   <select
                     value={inspectionForm.status}
                     onChange={(e) => setInspectionForm(prev => ({ ...prev, status: e.target.value as Inspection['status'] }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                   >
                     <option value="pass">Pass</option>
                     <option value="fail">Fail</option>
@@ -1389,7 +1445,7 @@ const CvsaInspection: React.FC = () => {
                     placeholder="Inspector name"
                     value={inspectionForm.inspectorName || ''}
                     onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectorName: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -1397,7 +1453,7 @@ const CvsaInspection: React.FC = () => {
                   <select
                     value={typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || ''}
                     onChange={(e) => setInspectionForm(prev => ({ ...prev, driver: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                   >
                     <option value="">Select Driver</option>
                     {drivers.map((driver) => (
@@ -1410,7 +1466,7 @@ const CvsaInspection: React.FC = () => {
                   <select
                     value={typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || ''}
                     onChange={(e) => setInspectionForm(prev => ({ ...prev, vehicle: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                   >
                     <option value="">Select Vehicle</option>
                     {vehicles.map((vehicle) => (
@@ -1426,7 +1482,7 @@ const CvsaInspection: React.FC = () => {
                     placeholder="Additional notes"
                     value={inspectionForm.notes || ''}
                     onChange={(e) => setInspectionForm(prev => ({ ...prev, notes: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     rows={3}
                   />
                 </div>
@@ -1443,7 +1499,7 @@ const CvsaInspection: React.FC = () => {
                       placeholder="Inspection Report Number"
                       value={inspectionForm.reportNumber || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, reportNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1451,7 +1507,7 @@ const CvsaInspection: React.FC = () => {
                     <select
                       value={inspectionForm.inspectionLevel || 'I'}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectionLevel: e.target.value as 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII' }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="I">Level I</option>
                       <option value="II">Level II</option>
@@ -1470,7 +1526,7 @@ const CvsaInspection: React.FC = () => {
                       placeholder="e.g., ON, TX, CA"
                       value={inspectionForm.jurisdiction || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, jurisdiction: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1479,7 +1535,7 @@ const CvsaInspection: React.FC = () => {
                       type="time"
                       value={inspectionForm.timeOfInspection || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, timeOfInspection: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -1496,7 +1552,7 @@ const CvsaInspection: React.FC = () => {
                       placeholder="Driver's License Number"
                       value={inspectionForm.driverLicenseNumber || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, driverLicenseNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1506,7 +1562,7 @@ const CvsaInspection: React.FC = () => {
                       placeholder="USDOT Number (USA only)"
                       value={inspectionForm.carrierUSDOTNumber || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, carrierUSDOTNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div className="col-span-2">
@@ -1516,7 +1572,7 @@ const CvsaInspection: React.FC = () => {
                       placeholder="Motor Carrier Number (if applicable)"
                       value={inspectionForm.carrierMotorCarrierNumber || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, carrierMotorCarrierNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -1532,7 +1588,7 @@ const CvsaInspection: React.FC = () => {
                         type="checkbox"
                         checked={inspectionForm.outOfServiceIssued || false}
                         onChange={(e) => setInspectionForm(prev => ({ ...prev, outOfServiceIssued: e.target.checked }))}
-                        className="rounded border-gray-300 text-[#9793E4] focus:ring-[#9793E4]"
+                        className="rounded border-gray-300 text-[var(--accent-color)] focus:ring-[var(--accent-color)]"
                       />
                       Out-of-Service Order Issued
                     </label>
@@ -1543,7 +1599,7 @@ const CvsaInspection: React.FC = () => {
                         type="checkbox"
                         checked={inspectionForm.defectRepairNeeded || false}
                         onChange={(e) => setInspectionForm(prev => ({ ...prev, defectRepairNeeded: e.target.checked }))}
-                        className="rounded border-gray-300 text-[#9793E4] focus:ring-[#9793E4]"
+                        className="rounded border-gray-300 text-[var(--accent-color)] focus:ring-[var(--accent-color)]"
                       />
                       Defect Repair Needed
                     </label>
@@ -1555,7 +1611,7 @@ const CvsaInspection: React.FC = () => {
                         type="date"
                         value={inspectionForm.outOfServiceReleaseDate || ''}
                         onChange={(e) => setInspectionForm(prev => ({ ...prev, outOfServiceReleaseDate: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                   )}
@@ -1578,7 +1634,7 @@ const CvsaInspection: React.FC = () => {
                             setInspectionForm(prev => ({ ...prev, documentLink: fileUrl }));
                           }
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[var(--accent-soft)] file:text-[var(--accent-color)] hover:file:bg-purple-100 cursor-pointer"
                       />
                       {inspectionForm.documentLink && inspectionForm.documentLink.startsWith('blob:') && (
                         <p className="mt-2 text-sm text-gray-600">
@@ -1591,7 +1647,7 @@ const CvsaInspection: React.FC = () => {
               </div>
               <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
                 <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-                <button onClick={saveNewInspection} className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                <button onClick={saveNewInspection} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                   {loading ? 'Saving...' : 'Save Inspection'}
                 </button>
               </div>
@@ -1620,7 +1676,7 @@ const CvsaInspection: React.FC = () => {
                       <select
                         value={inspectionForm.country}
                         onChange={(e) => setInspectionForm(prev => ({ ...prev, country: e.target.value as 'canada' | 'usa' }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="canada">Canada</option>
                         <option value="usa">USA</option>
@@ -1628,15 +1684,15 @@ const CvsaInspection: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
-                      <input type="date" value={inspectionForm.date || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, date: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" />
+                      <input type="date" value={inspectionForm.date || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, date: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent" />
                     </div>
                     <div className="col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
-                      <input type="text" value={inspectionForm.location || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, location: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" />
+                      <input type="text" value={inspectionForm.location || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, location: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
-                      <select value={inspectionForm.status} onChange={(e) => setInspectionForm(prev => ({ ...prev, status: e.target.value as Inspection['status'] }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent">
+                      <select value={inspectionForm.status} onChange={(e) => setInspectionForm(prev => ({ ...prev, status: e.target.value as Inspection['status'] }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent">
                         <option value="pass">Pass</option>
                         <option value="fail">Fail</option>
                         <option value="warning">Warning</option>
@@ -1645,14 +1701,14 @@ const CvsaInspection: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Inspector <span className="text-red-500">*</span></label>
-                      <input type="text" value={inspectionForm.inspectorName || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectorName: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" />
+                      <input type="text" value={inspectionForm.inspectorName || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectorName: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Driver <span className="text-red-500">*</span></label>
                       <select
                         value={typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || ''}
                         onChange={(e) => setInspectionForm(prev => ({ ...prev, driver: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="">Select Driver</option>
                         {drivers.map((driver) => (
@@ -1665,7 +1721,7 @@ const CvsaInspection: React.FC = () => {
                       <select
                         value={typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || ''}
                         onChange={(e) => setInspectionForm(prev => ({ ...prev, vehicle: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="">Select Vehicle</option>
                         {vehicles.map((vehicle) => (
@@ -1677,7 +1733,7 @@ const CvsaInspection: React.FC = () => {
                     </div>
                     <div className="col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                      <textarea value={inspectionForm.notes || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, notes: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent" rows={3} />
+                      <textarea value={inspectionForm.notes || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, notes: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent" rows={3} />
                     </div>
                   </div>
 
@@ -1692,7 +1748,7 @@ const CvsaInspection: React.FC = () => {
                       placeholder="Inspection Report Number"
                       value={inspectionForm.reportNumber || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, reportNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1700,7 +1756,7 @@ const CvsaInspection: React.FC = () => {
                     <select
                       value={inspectionForm.inspectionLevel || 'I'}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectionLevel: e.target.value as 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII' }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="I">Level I</option>
                       <option value="II">Level II</option>
@@ -1719,7 +1775,7 @@ const CvsaInspection: React.FC = () => {
                       placeholder="e.g., ON, TX, CA"
                       value={inspectionForm.jurisdiction || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, jurisdiction: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1728,7 +1784,7 @@ const CvsaInspection: React.FC = () => {
                       type="time"
                       value={inspectionForm.timeOfInspection || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, timeOfInspection: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -1745,7 +1801,7 @@ const CvsaInspection: React.FC = () => {
                       placeholder="Driver's License Number"
                       value={inspectionForm.driverLicenseNumber || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, driverLicenseNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1755,7 +1811,7 @@ const CvsaInspection: React.FC = () => {
                       placeholder="USDOT Number (USA only)"
                       value={inspectionForm.carrierUSDOTNumber || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, carrierUSDOTNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div className="col-span-2">
@@ -1765,7 +1821,7 @@ const CvsaInspection: React.FC = () => {
                       placeholder="Motor Carrier Number (if applicable)"
                       value={inspectionForm.carrierMotorCarrierNumber || ''}
                       onChange={(e) => setInspectionForm(prev => ({ ...prev, carrierMotorCarrierNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -1781,7 +1837,7 @@ const CvsaInspection: React.FC = () => {
                         type="checkbox"
                         checked={inspectionForm.outOfServiceIssued || false}
                         onChange={(e) => setInspectionForm(prev => ({ ...prev, outOfServiceIssued: e.target.checked }))}
-                        className="rounded border-gray-300 text-[#9793E4] focus:ring-[#9793E4]"
+                        className="rounded border-gray-300 text-[var(--accent-color)] focus:ring-[var(--accent-color)]"
                       />
                       Out-of-Service Order Issued
                     </label>
@@ -1792,7 +1848,7 @@ const CvsaInspection: React.FC = () => {
                         type="checkbox"
                         checked={inspectionForm.defectRepairNeeded || false}
                         onChange={(e) => setInspectionForm(prev => ({ ...prev, defectRepairNeeded: e.target.checked }))}
-                        className="rounded border-gray-300 text-[#9793E4] focus:ring-[#9793E4]"
+                        className="rounded border-gray-300 text-[var(--accent-color)] focus:ring-[var(--accent-color)]"
                       />
                       Defect Repair Needed
                     </label>
@@ -1804,7 +1860,7 @@ const CvsaInspection: React.FC = () => {
                         type="date"
                         value={inspectionForm.outOfServiceReleaseDate || ''}
                         onChange={(e) => setInspectionForm(prev => ({ ...prev, outOfServiceReleaseDate: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                   )}
@@ -1827,7 +1883,7 @@ const CvsaInspection: React.FC = () => {
                         setInspectionForm(prev => ({ ...prev, documentLink: fileUrl }));
                       }
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[var(--accent-soft)] file:text-[var(--accent-color)] hover:file:bg-purple-100 cursor-pointer"
                   />
                   {inspectionForm.documentLink && inspectionForm.documentLink.startsWith('blob:') && (
                     <p className="mt-2 text-sm text-gray-600">
@@ -1846,7 +1902,7 @@ const CvsaInspection: React.FC = () => {
             </div>
             <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
               <button onClick={() => setShowEditModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-              <button onClick={updateInspection} className="px-6 py-2.5 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+              <button onClick={updateInspection} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                 {loading ? 'Updating...' : 'Update Inspection'}
               </button>
             </div>

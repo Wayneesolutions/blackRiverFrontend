@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Plus, Search, Filter, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { Plus, Search, Filter, Edit, Trash2, ChevronLeft, ChevronRight, Fuel } from "lucide-react";
 import { message } from "antd";
 import NewFuelReportSidebar from "./NewFuelReportSidebar";
 import {
@@ -9,13 +9,16 @@ import {
   updateFuelReport,
 } from "../../../../../axios/api/dispatcher.fuelreport";
 import { useDrivers } from "../../../../../customHooks/useDrivers";
-import { useVehicles } from "../../../../../customHooks/useVehicles";
+import { listFleetUnits } from "../../../../../axios/api/fleet.units";
+import { FLEET_COLORS } from "../../../fleetMaintenance/colorUtils";
 
 interface FuelReportType {
   _id: string;
-  reporter: { _id: string; name: string };
+  reporter: { _id: string; name?: string; email?: string };
+  reporterName?: string;
+  reporterEmail?: string;
   driver: { _id: string; name: string };
-  vehicle: { _id: string; plateNumber: string; vinNumber: string };
+  vehicle: { _id: string; plateNumber?: string; vinNumber?: string; unitNo?: string; unitType?: string; makeModel?: string };
   volume: string;
   type: string;
   odometer: string;
@@ -30,6 +33,14 @@ interface FuelReportEditForm {
   type: string;
   odometer: string;
   status: string;
+}
+
+interface FleetUnitOption {
+  id: string;
+  unitNo: string;
+  unitType?: string;
+  makeModel?: string;
+  licensePlate?: string;
 }
 
 const FuelReports = () => {
@@ -60,9 +71,63 @@ const FuelReports = () => {
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>(null);
   const [userInfoReady, setUserInfoReady] = useState(false);
+  const [units, setUnits] = useState<FleetUnitOption[]>([]);
+  const [unitsLoading, setUnitsLoading] = useState(false);
 
   const { drivers } = useDrivers();
-  const { vehicles } = useVehicles();
+  const unitsMap = useMemo(() => new Map(units.map((unit) => [unit.id, unit])), [units]);
+  const focusRingStyle = useMemo(
+    () =>
+      ({
+        "--tw-ring-color": FLEET_COLORS.primary
+      }) as React.CSSProperties & { "--tw-ring-color": string },
+    []
+  );
+
+  const formatUnitLabel = useCallback((unit?: FleetUnitOption | null) => {
+    if (!unit) return "N/A";
+    const base = [unit.unitNo, unit.makeModel].filter(Boolean).join(" - ");
+    return unit.unitType ? `${base} (${unit.unitType})` : base || "Unit";
+  }, []);
+
+  const getVehicleDetails = useCallback(
+    (report: FuelReportType | null) => {
+      if (!report) {
+        return { primary: "N/A", secondary: "", badge: "" };
+      }
+      const vehicleId = report.vehicle?._id || "";
+      const matched = vehicleId ? unitsMap.get(vehicleId) : undefined;
+      if (matched) {
+        return {
+          primary: matched.unitNo || matched.licensePlate || "Unit",
+          secondary: matched.makeModel || matched.licensePlate || "",
+          badge: matched.unitType || ""
+        };
+      }
+      const primary =
+        report.vehicle?.unitNo ||
+        report.vehicle?.plateNumber ||
+        report.vehicle?.vinNumber ||
+        "N/A";
+      const secondary = [report.vehicle?.makeModel, report.vehicle?.plateNumber, report.vehicle?.vinNumber]
+        .filter(Boolean)
+        .join(" · ");
+      return {
+        primary,
+        secondary,
+        badge: report.vehicle?.unitType || ""
+      };
+    },
+    [unitsMap]
+  );
+
+  const renderVehicleLabel = useCallback(
+    (report: FuelReportType | null) => {
+      const details = getVehicleDetails(report);
+      return [details.primary, details.secondary].filter(Boolean).join(" - ") || "N/A";
+    },
+    [getVehicleDetails]
+  );
 
   useEffect(() => {
     try {
@@ -139,6 +204,68 @@ const FuelReports = () => {
     }
   };
 
+  const getCurrentUserId = useMemo(
+    () => userInfo?._id || userInfo?.userData?._id || "",
+    [userInfo]
+  );
+  const getCurrentUserName = useMemo(
+    () =>
+      userInfo?.name ||
+      userInfo?.userData?.name ||
+      [userInfo?.userData?.firstName, userInfo?.userData?.lastName].filter(Boolean).join(" ").trim(),
+    [userInfo]
+  );
+  const getCurrentUserEmail = useMemo(
+    () => userInfo?.email || userInfo?.userData?.email || "",
+    [userInfo]
+  );
+
+  const getReporterDetails = useCallback(
+    (report: FuelReportType) => {
+      const name =
+        report.reporter?.name ||
+        report.reporterName ||
+        (report.reporter?._id === getCurrentUserId ? getCurrentUserName : "") ||
+        "N/A";
+      const email =
+        report.reporter?.email ||
+        report.reporterEmail ||
+        (report.reporter?._id === getCurrentUserId ? getCurrentUserEmail : undefined);
+      return { name, email };
+    },
+    [getCurrentUserEmail, getCurrentUserId, getCurrentUserName]
+  );
+
+  const loadUnits = useCallback(async () => {
+    setUnitsLoading(true);
+    try {
+      const res = await listFleetUnits({ category: "all" });
+      if (res?.success) {
+        const data = Array.isArray(res.data) ? res.data : [];
+        const normalized = data.map((unit: any) => ({
+          id: unit._id,
+          unitNo: unit.unitNo || unit.internalId || unit.licensePlate || "Unit",
+          unitType: unit.unitType || (unit.source === "trailer" ? "Trailer" : unit.truckType ? "Truck" : unit.source),
+          makeModel:
+            unit.makeModel ||
+            [unit.make, unit.model]
+              .filter(Boolean)
+              .join(" ")
+              .trim(),
+          licensePlate: unit.licensePlate || unit.vinNo || ""
+        }));
+        setUnits(normalized);
+      } else {
+        setUnits([]);
+      }
+    } catch (error) {
+      console.error("Failed to load fleet units", error);
+      setUnits([]);
+    } finally {
+      setUnitsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!userInfoReady) {
       return;
@@ -159,6 +286,10 @@ const FuelReports = () => {
     fetchFuelReports();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfoReady, userInfo, currentPage, pageSize, debouncedSearch, statusFilter]);
+
+  useEffect(() => {
+    loadUnits();
+  }, [loadUnits]);
 
   const openDeleteModal = (report: FuelReportType) => {
     setDeleteTarget(report);
@@ -335,79 +466,95 @@ const FuelReports = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Fuel Reports
-          </h1>
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search Fuel Reports"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <div
+                className="p-3 rounded-2xl shadow-lg"
+                style={{ background: FLEET_COLORS.gradientVertical }}
+              >
+                <Fuel className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1
+                  className="text-4xl font-bold bg-clip-text text-transparent"
+                  style={{ backgroundImage: FLEET_COLORS.gradient }}
+                >
+                  Fuel Reports
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Track refuelling activity and odometer updates across your fleet
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
+              style={{ background: FLEET_COLORS.gradient }}
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
+              <Plus className="w-4 h-4" />
+              Create Fuel Report
+            </button>
+          </div>
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="relative flex-1 max-w-xl">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by reporter, driver, vehicle or status..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                style={{ '--tw-ring-color': FLEET_COLORS.primary } as React.CSSProperties & { '--tw-ring-color': string }}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">Status:</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                style={{ '--tw-ring-color': FLEET_COLORS.primary } as React.CSSProperties & { '--tw-ring-color': string }}
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
           </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <button className="p-2 text-gray-400 hover:text-gray-600">
-            <Filter className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Fuel Report</span>
-          </button>
-        </div>
-      </div>
 
-      {/* Table */}
-      <div className="p-6">
+        {/* Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="text-white" style={{ background: FLEET_COLORS.gradient }}>
                 <tr>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
                     Reporter
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
                     Driver
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
                     Vehicle
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
                     Volume
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
                     Odometer
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -425,14 +572,55 @@ const FuelReports = () => {
                 ) : (
                   filteredReports.map((report) => (
                     <tr key={report._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {report.reporter?.name}
+                      <td className="px-6 py-4 text-sm">
+                        {(() => {
+                          const reporterInfo = getReporterDetails(report);
+                          return (
+                            <>
+                              <div className="font-semibold text-gray-900">
+                                {reporterInfo.name}
+                              </div>
+                              {reporterInfo.email && (
+                                <div className="text-xs text-gray-500">
+                                  {reporterInfo.email}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {report.driver?.name}
+                        {report.driver?.name || "N/A"}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {report.vehicle?.plateNumber} - {report.vehicle?.vinNumber}
+                        {(() => {
+                          const vehicleDetails = getVehicleDetails(report);
+                          return (
+                            <div className="space-y-1">
+                              <div className="font-semibold text-gray-900">{vehicleDetails.primary}</div>
+                              {vehicleDetails.secondary && (
+                                <div className="text-xs text-gray-500">{vehicleDetails.secondary}</div>
+                              )}
+                              {vehicleDetails.badge && (
+                                <span
+                                  className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide"
+                                  style={{
+                                    backgroundColor:
+                                      vehicleDetails.badge.toLowerCase().includes("trailer")
+                                        ? "rgba(34, 197, 94, 0.15)"
+                                        : "rgba(1, 106, 178, 0.15)",
+                                    color:
+                                      vehicleDetails.badge.toLowerCase().includes("trailer")
+                                        ? "#15803d"
+                                        : FLEET_COLORS.primary
+                                  }}
+                                >
+                                  {vehicleDetails.badge}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4">
                         <span
@@ -566,6 +754,9 @@ const FuelReports = () => {
           setIsSidebarOpen(false);
           fetchFuelReports();
         }}
+        units={units}
+        unitsLoading={unitsLoading}
+        currentUser={userInfo}
       />
 
       {/* Edit Modal */}
@@ -585,12 +776,16 @@ const FuelReports = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Reporter</label>
-                <input
-                  type="text"
-                  value={editingReport.reporter?.name || ""}
-                  disabled
-                  className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-500"
-                />
+                <div className="w-full border px-3 py-2 rounded bg-gray-50 text-sm text-gray-700">
+                  <div className="font-semibold">
+                    {getReporterDetails(editingReport).name}
+                  </div>
+                  {getReporterDetails(editingReport).email && (
+                    <div className="text-xs text-gray-500">
+                      {getReporterDetails(editingReport).email}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -598,7 +793,8 @@ const FuelReports = () => {
                 <select
                   value={editForm.driverId}
                   onChange={(e) => handleEditFieldChange("driverId", e.target.value)}
-                  className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border px-3 py-2 rounded focus:ring-2 focus:border-transparent"
+                  style={focusRingStyle}
                 >
                   <option value="">Select Driver</option>
                   {drivers.map((driver) => (
@@ -620,20 +816,18 @@ const FuelReports = () => {
                 <select
                   value={editForm.vehicleId}
                   onChange={(e) => handleEditFieldChange("vehicleId", e.target.value)}
-                  className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border px-3 py-2 rounded focus:ring-2 focus:border-transparent"
+                  style={focusRingStyle}
                 >
-                  <option value="">Select Vehicle</option>
-                  {vehicles.map((vehicle) => (
-                    <option key={vehicle._id} value={vehicle._id}>
-                      {vehicle.plateNumber} - {vehicle.vinNumber}
+                  <option value="">Select Unit</option>
+                  {units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {formatUnitLabel(unit)}
                     </option>
                   ))}
-                  {editForm.vehicleId &&
-                    !vehicles.some((vehicle) => vehicle._id === editForm.vehicleId) && (
-                      <option value={editForm.vehicleId}>
-                        {editingReport.vehicle?.plateNumber} - {editingReport.vehicle?.vinNumber}
-                      </option>
-                    )}
+                  {editForm.vehicleId && !unitsMap.has(editForm.vehicleId) && (
+                    <option value={editForm.vehicleId}>{renderVehicleLabel(editingReport)}</option>
+                  )}
                 </select>
               </div>
 
@@ -642,7 +836,8 @@ const FuelReports = () => {
                 <select
                   value={editForm.status}
                   onChange={(e) => handleEditFieldChange("status", e.target.value)}
-                  className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border px-3 py-2 rounded focus:ring-2 focus:border-transparent"
+                  style={focusRingStyle}
                 >
                   <option value="pending">Pending</option>
                   <option value="approved">Approved</option>
@@ -659,12 +854,14 @@ const FuelReports = () => {
                     value={editForm.volume}
                     onChange={(e) => handleEditFieldChange("volume", e.target.value)}
                     placeholder="Enter volume"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:border-transparent"
+                    style={focusRingStyle}
                   />
                   <select
                     value={editForm.type}
                     onChange={(e) => handleEditFieldChange("type", e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 rounded-r-md focus:ring-2 focus:border-transparent"
+                    style={focusRingStyle}
                   >
                     <option value="ml">ml</option>
                     <option value="cl">cl</option>
@@ -686,7 +883,8 @@ const FuelReports = () => {
                   value={editForm.odometer}
                   onChange={(e) => handleEditFieldChange("odometer", e.target.value)}
                   placeholder="Enter odometer"
-                  className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border px-3 py-2 rounded focus:ring-2 focus:border-transparent"
+                  style={focusRingStyle}
                 />
               </div>
             </div>
@@ -695,14 +893,15 @@ const FuelReports = () => {
               <button
                 onClick={closeEditModal}
                 disabled={editSubmitting}
-                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors disabled:opacity-60"
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-60"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdateSubmit}
                 disabled={editSubmitting}
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-60"
+                className="px-4 py-2 rounded-lg text-white transition-colors disabled:opacity-60"
+                style={{ background: FLEET_COLORS.gradient }}
               >
                 {editSubmitting ? "Saving..." : "Save Changes"}
               </button>
@@ -721,7 +920,7 @@ const FuelReports = () => {
                 <h3 className="text-lg font-semibold text-gray-800">Delete Fuel Report</h3>
                 <p className="text-sm text-gray-600 mt-1">
                   Are you sure you want to delete the fuel report for{" "}
-                  <span className="font-medium text-gray-800">{deleteTarget.vehicle?.plateNumber}</span>?
+                  <span className="font-medium text-gray-800">{renderVehicleLabel(deleteTarget)}</span>?
                   This action cannot be undone.
                 </p>
               </div>

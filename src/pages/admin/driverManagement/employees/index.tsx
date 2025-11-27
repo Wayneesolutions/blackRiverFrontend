@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { 
@@ -24,6 +25,18 @@ import {
   deleteEmployee, 
   updateEmployeeStatus
 } from '../../../../axios/api/employee';
+import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+
+const ACCENT_PRIMARY = FLEET_COLORS.primary;
+const ACCENT_DARK = FLEET_COLORS.dark;
+const ACCENT_GRADIENT = FLEET_COLORS.gradient;
+const ACCENT_VARS = {
+  '--accent-color': ACCENT_PRIMARY,
+  '--accent-dark': ACCENT_DARK
+} as CSSProperties & { '--accent-color': string; '--accent-dark': string };
+const focusRingStyle = {
+  '--tw-ring-color': ACCENT_PRIMARY
+} as CSSProperties & { '--tw-ring-color': string };
 
 interface Employee {
   _id: string;
@@ -185,13 +198,13 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
   const icons = {
     success: <FaCheckCircle className="text-green-500" size={24} />,
     error: <FaExclamationCircle className="text-red-500" size={24} />,
-    info: <FaInfoCircle className="text-[#9793E4]" size={24} />
+    info: <FaInfoCircle style={{ color: ACCENT_PRIMARY }} size={24} />
   };
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
     error: 'bg-red-50 border-red-200',
-    info: 'bg-[#9793E4]/10 border-[#9793E4]/30'
+    info: ''
   };
 
   useEffect(() => {
@@ -201,8 +214,19 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
     return () => clearTimeout(timer);
   }, [notification.id, onClose]);
 
+  const infoStyle =
+    notification.type === 'info'
+      ? {
+          backgroundColor: 'rgba(1, 106, 178, 0.08)',
+          borderColor: 'rgba(1, 106, 178, 0.3)'
+        }
+      : undefined;
+
   return (
-    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+    <div
+      className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}
+      style={infoStyle}
+    >
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>

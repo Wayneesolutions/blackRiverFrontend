@@ -6,7 +6,7 @@ import {
   MdOutlineMap,
 } from "react-icons/md";
 import {
-  FaTruckMoving,
+  FaTruck,
   FaUsers,
   FaUserTie,
   FaList,
@@ -53,12 +53,12 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
   // Resources - now flat
   {
     key: "/admin/dispatch/drivers",
-    icon: <FaTruckMoving />,
+    icon: <FaUserTie />,
     label: "Drivers",
   },
   {
     key: "/admin/dispatch/fleets",
-    icon: <FaUserTie />,
+    icon: <FaTruck />,
     label: "Fleets",
   },
   {

@@ -10,7 +10,7 @@ import {
   type FleetUnitSummary
 } from '../../../../axios/api/fleet.units';
 
-type UnitType = 'Truck' | 'Reefer Trailer' | 'Tri-Axle Trailer' | 'Dry Van' | 'Bus/Van';
+type UnitType = 'Truck' | 'Trailer';
 type UnitStatus = 'Active' | 'Inactive';
 type TruckType = 'Semi-Truck' | 'Straight Truck' | 'Box Truck' | 'Flatbed' | 'Refrigerated Truck' | 'Dump Truck' | 'Tow Truck';
 type TrailerType = 'Reefer Trailer' | 'Tri-Axle Trailer' | 'Dry Van' | 'Flatbed' | 'Step Deck' | 'Lowboy' | 'Tank Trailer' | 'Dump Trailer';
@@ -35,11 +35,6 @@ interface FleetUnitFormData {
   operationStatus: string;
   lastDate: string;
   reason: string;
-  safetyExpiryDate: string;
-  safetyDecalNumber: string;
-  safetyPaperNumber: string;
-  lastInspectionShop: string;
-  lastInspectionInvoice: string;
 }
 
 const defaultSummary: FleetUnitSummary = {
@@ -85,12 +80,7 @@ const FleetUnits: React.FC = () => {
     status: 'Active',
     operationStatus: 'available',
     lastDate: '',
-    reason: '',
-    safetyExpiryDate: '',
-    safetyDecalNumber: '',
-    safetyPaperNumber: '',
-    lastInspectionShop: '',
-    lastInspectionInvoice: ''
+    reason: ''
   });
 
   const resetForm = () => {
@@ -109,12 +99,7 @@ const FleetUnits: React.FC = () => {
       status: 'Active',
       operationStatus: 'available',
       lastDate: '',
-      reason: '',
-      safetyExpiryDate: '',
-      safetyDecalNumber: '',
-      safetyPaperNumber: '',
-      lastInspectionShop: '',
-      lastInspectionInvoice: ''
+      reason: ''
     });
     setFormError(null);
   };
@@ -158,38 +143,6 @@ const FleetUnits: React.FC = () => {
     loadFleetUnits();
   }, [loadFleetUnits]);
 
-  const getComplianceStatus = (expiryDate?: string) => {
-    if (!expiryDate) return { status: 'unknown', color: 'gray', text: 'Not Set' };
-    
-    const expiry = new Date(expiryDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    expiry.setHours(0, 0, 0, 0);
-    
-    const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (daysUntilExpiry < 0) {
-      return { status: 'expired', color: 'red', text: 'Expired' };
-    } else if (daysUntilExpiry <= 30) {
-      return { status: 'expiring-soon', color: 'yellow', text: `Expiring in ${daysUntilExpiry} days` };
-    } else {
-      return { status: 'valid', color: 'green', text: 'Valid' };
-    }
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', { 
-        month: '2-digit', 
-        day: '2-digit', 
-        year: 'numeric' 
-      });
-    } catch {
-      return 'N/A';
-    }
-  };
-
   const handleAddUnit = () => {
     resetForm();
     setSelectedUnit(null);
@@ -213,12 +166,7 @@ const FleetUnits: React.FC = () => {
       status: unit.status as UnitStatus,
       operationStatus: unit.operationStatus || 'available',
       lastDate: unit.lastDate ? unit.lastDate.slice(0, 10) : '',
-      reason: unit.reason || '',
-      safetyExpiryDate: unit.safetyExpiryDate ? unit.safetyExpiryDate.slice(0, 10) : '',
-      safetyDecalNumber: unit.safetyDecalNumber || '',
-      safetyPaperNumber: unit.safetyPaperNumber || '',
-      lastInspectionShop: unit.lastInspectionShop || '',
-      lastInspectionInvoice: unit.lastInspectionInvoice || ''
+      reason: unit.reason || ''
     });
     setFormError(null);
     setShowEditModal(true);
@@ -256,12 +204,7 @@ const FleetUnits: React.FC = () => {
         status: formData.status,
         operationStatus: formData.unitType !== 'Truck' ? formData.operationStatus : undefined,
       lastDate: formData.status === 'Inactive' ? formData.lastDate || undefined : undefined,
-      reason: formData.status === 'Inactive' ? formData.reason || undefined : undefined,
-      safetyExpiryDate: formData.safetyExpiryDate || undefined,
-      safetyDecalNumber: formData.safetyDecalNumber || undefined,
-      safetyPaperNumber: formData.safetyPaperNumber || undefined,
-      lastInspectionShop: formData.lastInspectionShop || undefined,
-      lastInspectionInvoice: formData.lastInspectionInvoice || undefined
+      reason: formData.status === 'Inactive' ? formData.reason || undefined : undefined
     };
 
     setSaving(true);
@@ -522,7 +465,6 @@ const FleetUnits: React.FC = () => {
                   {activeTab === 'trailers' && (
                     <th className="px-6 py-4 text-left text-sm font-semibold">Capacity</th>
                   )}
-                  <th className="px-6 py-4 text-left text-sm font-semibold min-w-[180px]">Safety Expiry</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Comment</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
@@ -531,13 +473,13 @@ const FleetUnits: React.FC = () => {
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={activeTab === 'trailers' ? 12 : 11} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={activeTab === 'trailers' ? 11 : 10} className="px-6 py-12 text-center text-gray-500">
                       Loading fleet units...
                     </td>
                   </tr>
                 ) : units.length === 0 ? (
                   <tr>
-                    <td colSpan={activeTab === 'trailers' ? 12 : 11} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={activeTab === 'trailers' ? 11 : 10} className="px-6 py-12 text-center text-gray-500">
                       {requiresCompanySetup
                         ? 'Please complete your company settings to manage fleet units.'
                         : error || 'No units found'}
@@ -545,7 +487,6 @@ const FleetUnits: React.FC = () => {
                   </tr>
                 ) : (
                   units.map((unit) => {
-                    const compliance = getComplianceStatus(unit.safetyExpiryDate);
                     return (
                       <tr key={unit._id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 font-medium text-gray-900">{unit.unitNo}</td>
@@ -590,26 +531,6 @@ const FleetUnits: React.FC = () => {
                         {activeTab === 'trailers' && (
                           <td className="px-6 py-4 text-gray-900">{unit.capacity || 'N/A'}</td>
                         )}
-                        <td className="px-6 py-4 min-w-[180px]">
-                          {unit.safetyExpiryDate ? (
-                            <div className="flex flex-col gap-2">
-                              <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
-                                {formatDate(unit.safetyExpiryDate)}
-                              </span>
-                              <span className={`px-4 py-1.5 rounded-full text-xs font-semibold inline-block whitespace-nowrap ${
-                                compliance.status === 'expired'
-                                  ? "bg-red-100 text-red-700 border border-red-200"
-                                  : compliance.status === 'expiring-soon'
-                                    ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-                                    : "bg-green-100 text-green-700 border border-green-200"
-                              }`}>
-                                {compliance.text}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">Not Set</span>
-                          )}
-                        </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
                             unit.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -711,10 +632,8 @@ const FleetUnits: React.FC = () => {
                         onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       >
                         <option value="Truck">Truck</option>
-                        <option value="Reefer Trailer">Reefer Trailer</option>
-                        <option value="Tri-Axle Trailer">Tri-Axle Trailer</option>
-                        <option value="Dry Van">Dry Van</option>
-                        <option value="Bus/Van">Bus/Van</option>
+                        <option value="Trailer">Trailer</option>
+                     
                       </select>
                     </div>
                     <div>
@@ -905,66 +824,6 @@ const FleetUnits: React.FC = () => {
                         </div>
                       </>
                     )}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Safety Expiry Date</label>
-                      <input
-                        type="date"
-                        value={formData.safetyExpiryDate}
-                        onChange={(e) => setFormData({ ...formData, safetyExpiryDate: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Safety Decal Number</label>
-                      <input
-                        type="text"
-                        value={formData.safetyDecalNumber}
-                        onChange={(e) => setFormData({ ...formData, safetyDecalNumber: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Safety Paper Number</label>
-                      <input
-                        type="text"
-                        value={formData.safetyPaperNumber}
-                        onChange={(e) => setFormData({ ...formData, safetyPaperNumber: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Inspection Shop</label>
-                      <input
-                        type="text"
-                        value={formData.lastInspectionShop}
-                        onChange={(e) => setFormData({ ...formData, lastInspectionShop: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Inspection Invoice</label>
-                      <input
-                        type="text"
-                        value={formData.lastInspectionInvoice}
-                        onChange={(e) => setFormData({ ...formData, lastInspectionInvoice: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      />
-                    </div>
                   </div>
                   <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-6">
                     <button

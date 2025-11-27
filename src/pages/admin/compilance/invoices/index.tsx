@@ -394,7 +394,7 @@ const ComplianceInvoices = () => {
               <ClipboardList className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Compliance Invoices</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Invoices</h1>
               <p className="text-gray-600 mt-1 flex items-center gap-2">
                 <Wrench className="w-4 h-4" />
                 Static log of mechanic invoices tied to fleet compliance work.
@@ -407,7 +407,7 @@ const ComplianceInvoices = () => {
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-600 to-green-700 px-6 py-3 font-semibold text-white shadow-lg transition hover:shadow-xl disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-600 to-green-700 px-6 py-3 font-semibold !text-white shadow-lg transition hover:shadow-xl disabled:opacity-60"
           >
             <Download className="w-4 h-4" />
             {exporting ? "Preparing Excel..." : "Export to Excel"}

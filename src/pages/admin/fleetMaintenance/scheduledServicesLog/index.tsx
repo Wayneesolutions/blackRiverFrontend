@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Edit, Trash2, Search, Calendar, Wrench } from 'lucide-react';
+import ExcelJS from 'exceljs';
+import { Plus, Edit, Trash2, Search, Calendar, Wrench, Download } from 'lucide-react';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import {
   listVehicleServices,
@@ -11,7 +12,7 @@ import {
   type VehicleServiceType,
   type ServiceFilters
 } from '../../../../axios/api/vehicleService';
-import { listFleetUnits } from '../../../../axios/api/fleet.units';
+import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
 
 const SERVICE_TYPE_OPTIONS: { label: string; value: VehicleServiceType }[] = [
   { label: 'Oil Change', value: 'oil-change' },
@@ -86,6 +87,7 @@ const ScheduledServicesLog: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -187,6 +189,74 @@ const ScheduledServicesLog: React.FC = () => {
       return matchesSearch && matchesType;
     });
   }, [services, searchTerm, filterServiceType]);
+
+  const handleExportServices = async () => {
+    if (!filteredServices.length) {
+      alert('No scheduled services available to export.');
+      return;
+    }
+
+    try {
+      setExporting(true);
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Scheduled Services');
+
+      worksheet.columns = [
+        { header: 'Unit Number', key: 'unitNo', width: 16 },
+        { header: 'Unit Type', key: 'unitType', width: 14 },
+        { header: 'Make / Model', key: 'makeModel', width: 24 },
+        { header: 'Service Type', key: 'serviceType', width: 24 },
+        { header: 'Service Date', key: 'serviceDate', width: 16 },
+        { header: 'Due Date', key: 'dueDate', width: 16 },
+        { header: 'Odometer', key: 'odometer', width: 14 },
+        { header: 'Invoice #', key: 'invoiceNo', width: 16 },
+        { header: 'Status', key: 'status', width: 14 },
+        { header: 'Priority', key: 'priority', width: 14 },
+        { header: 'Notes', key: 'notes', width: 32 }
+      ];
+
+      worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF0EA5E9' }
+      };
+
+      filteredServices.forEach((service) => {
+        worksheet.addRow({
+          unitNo: service.unitNo,
+          unitType: service.unitType || 'N/A',
+          makeModel: service.makeModel || 'N/A',
+          serviceType: getServiceTypeLabel(service.serviceType),
+          serviceDate: formatDate(service.serviceDate),
+          dueDate: formatDate(service.dueDate),
+          odometer: service.odometer ?? 'N/A',
+          invoiceNo: service.invoiceNo || 'N/A',
+          status: service.status.replace(/-/g, ' ').toUpperCase(),
+          priority: service.priority || 'Standard',
+          notes: service.notes || ''
+        });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Scheduled_Services_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export scheduled services', error);
+      alert('Unable to export scheduled services. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleAddService = () => {
     setNotification(null);
@@ -306,7 +376,7 @@ const ScheduledServicesLog: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-4">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-2xl shadow-lg" style={{ background: 'linear-gradient(to bottom right, #016ab2, #063f6f)' }}>
                 <Wrench className="w-8 h-8 text-white" />
@@ -321,14 +391,24 @@ const ScheduledServicesLog: React.FC = () => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleAddService}
-              className="flex items-center gap-2 px-6 py-3 text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
-              style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-            >
-              <Plus className="w-5 h-5" />
-              Add Service
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleExportServices}
+                disabled={exporting}
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-green-600 to-green-700 px-5 py-2.5 font-semibold !text-white shadow-lg transition hover:shadow-xl disabled:opacity-60"
+              >
+                <Download className="w-4 h-4" />
+                {exporting ? 'Preparing Excel...' : 'Export to Excel'}
+              </button>
+              <button
+                onClick={handleAddService}
+                className="flex items-center gap-2 px-6 py-3 !text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
+                style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+              >
+                <Plus className="w-5 h-5" />
+                Add Service
+              </button>
+            </div>
           </div>
         </div>
 
@@ -612,7 +692,7 @@ const ScheduledServicesLog: React.FC = () => {
                   <button
                     onClick={handleSaveService}
                     disabled={saving}
-                    className={`px-6 py-2 text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
+                    className={`px-6 py-2 !text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
                     style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
                   >
                     {saving ? 'Saving...' : showAddModal ? 'Add Service' : 'Save Changes'}
@@ -661,7 +741,7 @@ const ScheduledServicesLog: React.FC = () => {
                   <button
                     onClick={handleConfirmDelete}
                     disabled={deleting}
-                    className={`px-6 py-2 rounded-lg text-white transition-colors ${
+                    className={`px-6 py-2 rounded-lg !text-white transition-colors ${
                       deleting ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
                     }`}
                   >

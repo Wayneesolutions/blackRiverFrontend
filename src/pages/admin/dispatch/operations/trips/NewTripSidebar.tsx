@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { X, ChevronDown, Search, Check } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
-import { listDriver, listVehicle, listTrailers, createTrip, updateTrip, uploadTripDocument, deleteTripDocument, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
+import { listDriver, createTrip, updateTrip, uploadTripDocument, deleteTripDocument, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
 import { listOrder } from "../../../../../axios/api/distapcher";
 import { Upload, File, Trash2, Download } from "lucide-react";
+import { listFleetUnits } from "../../../../../axios/api/fleet.units";
 
 type NotificationType = 'success' | 'error' | 'warning';
 
@@ -120,6 +121,41 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const trailerKeywords = useMemo(
+    () => ['trailer', 'dry van', 'reefer', 'flatbed', 'step deck', 'lowboy', 'tank', 'dump'],
+    []
+  );
+
+  const isTrailerUnit = useCallback(
+    (unit: any) => {
+      const type = (unit?.unitType || '').toLowerCase();
+      if (unit?.source === 'trailer') return true;
+      if (unit?.trailerType) return true;
+      if (!type) return false;
+      if (type === 'truck' || type.includes('truck') || type === 'bus/van') return false;
+      return trailerKeywords.some((keyword) => type.includes(keyword));
+    },
+    [trailerKeywords]
+  );
+
+  const normalizeFleetUnit = useCallback(
+    (unit: any) => ({
+      _id: unit._id,
+      unitNo: unit.unitNo,
+      unitType: unit.unitType,
+      make: unit.make || '',
+      model: unit.model || '',
+      makeModel: unit.makeModel || '',
+      licensePlate: unit.licensePlate || unit.vinNo || '',
+      vinNo: unit.vinNo,
+      trailerType: unit.trailerType,
+      capacity: unit.capacity,
+      source: unit.source,
+      status: unit.status
+    }),
+    []
+  );
+
   const addNotification = useCallback((type: NotificationType, message: string) => {
     const id = Date.now();
     setNotifications(prev => [...prev, { id, type, message }]);
@@ -152,15 +188,41 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       }
       if (trip.truck) {
         if (typeof trip.truck === 'object') {
-          setSelectedTruck(trip.truck);
+          const truckId = trip.truck._id || trip.truck.id;
+          const matchedTruck =
+            trucks.find(
+              (truck) =>
+                truck._id === truckId ||
+                (truck.unitNo && truck.unitNo === trip.truck.unitNo) ||
+                (truck.licensePlate && truck.licensePlate === trip.truck.plateNumber)
+            ) || null;
+          setSelectedTruck(matchedTruck || trip.truck);
+        } else {
+          const matchedTruck = trucks.find((truck) => truck._id === trip.truck);
+          if (matchedTruck) {
+            setSelectedTruck(matchedTruck);
+          }
         }
+      } else {
+        setSelectedTruck(null);
       }
       if (trip.trailer) {
         if (typeof trip.trailer === 'object') {
-          setSelectedTrailer(trip.trailer);
+          const trailerId = trip.trailer._id || trip.trailer.id;
+          const matchedTrailer =
+            trailers.find(
+              (trailer) =>
+                trailer._id === trailerId ||
+                (trailer.unitNo && trailer.unitNo === trip.trailer.unitNo) ||
+                (trailer.licensePlate && trailer.licensePlate === trip.trailer.plateNumber)
+            ) || null;
+          setSelectedTrailer(matchedTrailer || trip.trailer);
         } else {
-          setSelectedTrailer(null);
+          const matchedTrailer = trailers.find((trailer) => trailer._id === trip.trailer);
+          setSelectedTrailer(matchedTrailer || null);
         }
+      } else {
+        setSelectedTrailer(null);
       }
       if (trip.orders && Array.isArray(trip.orders)) {
         const orderIds = trip.orders.map((o: any) => o._id || o);
@@ -243,10 +305,9 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
   const fetchData = async () => {
     try {
-      const [driversRes, vehiclesRes, trailersRes, ordersRes] = await Promise.all([
+      const [driversRes, fleetUnitsRes, ordersRes] = await Promise.all([
         listDriver(),
-        listVehicle(),
-        listTrailers(),
+        listFleetUnits({ category: 'all' }),
         listOrder({ page: 1, limit: 500 }) // Fetch all orders (increased limit)
       ]);
 
@@ -255,14 +316,12 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         setDrivers(driverData);
       }
 
-      if (vehiclesRes?.success && vehiclesRes?.data) {
-        const vehicleData = vehiclesRes.data?.vehicles || (Array.isArray(vehiclesRes.data) ? vehiclesRes.data : []);
-        setTrucks(vehicleData);
-      }
-
-      if (trailersRes?.success && trailersRes?.data) {
-        const trailerData = Array.isArray(trailersRes.data) ? trailersRes.data : [];
-        setTrailers(trailerData);
+      if (fleetUnitsRes?.success && Array.isArray(fleetUnitsRes.data)) {
+        const normalizedUnits = fleetUnitsRes.data.map(normalizeFleetUnit);
+        const truckUnits = normalizedUnits.filter((unit) => !isTrailerUnit(unit));
+        const trailerUnits = normalizedUnits.filter((unit) => isTrailerUnit(unit));
+        setTrucks(truckUnits);
+        setTrailers(trailerUnits);
       }
 
       if (ordersRes?.success) {
@@ -326,18 +385,25 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     ((driver.firstName || '') + ' ' + (driver.lastName || '')).toLowerCase().includes(driverSearch.toLowerCase())
   );
 
-  const filteredTrucks = trucks.filter(truck =>
-    !truckSearch ||
-    (truck.plateNumber || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
-    (truck.internalId || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
-    ((truck.make || '') + ' ' + (truck.model || '')).toLowerCase().includes(truckSearch.toLowerCase())
-  );
+  const filteredTrucks = trucks.filter((truck) => {
+    if (!truckSearch) return true;
+    const search = truckSearch.toLowerCase();
+    return (
+      (truck.unitNo || '').toLowerCase().includes(search) ||
+      (truck.licensePlate || truck.plateNumber || '').toLowerCase().includes(search) ||
+      (truck.makeModel || `${truck.make || ''} ${truck.model || ''}` || '').toLowerCase().includes(search)
+    );
+  });
 
-  const filteredTrailers = trailers.filter(trailer =>
-    !trailerSearch ||
-    (trailer.plateNumber || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
-    (trailer.trailerNumber || '').toLowerCase().includes(trailerSearch.toLowerCase())
-  );
+  const filteredTrailers = trailers.filter((trailer) => {
+    if (!trailerSearch) return true;
+    const search = trailerSearch.toLowerCase();
+    return (
+      (trailer.unitNo || '').toLowerCase().includes(search) ||
+      (trailer.licensePlate || trailer.plateNumber || trailer.trailerNumber || '').toLowerCase().includes(search) ||
+      (trailer.makeModel || trailer.trailerType || '').toLowerCase().includes(search)
+    );
+  });
 
   const filteredOrders = useMemo(() => {
     if (!orderSearch || orderSearch.trim() === '') {
@@ -728,7 +794,11 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${truckDropdownOpen ? 'rotate-180' : ''}`} />
                 <input
                   type="text"
-                  value={selectedTruck ? `${selectedTruck.plateNumber || selectedTruck.internalId || ''} - ${selectedTruck.make || ''} ${selectedTruck.model || ''}`.trim() : truckSearch}
+                  value={
+                    selectedTruck
+                      ? `${selectedTruck.unitNo || selectedTruck.licensePlate || selectedTruck.plateNumber || selectedTruck.internalId || ''} - ${(selectedTruck.makeModel || `${selectedTruck.make || ''} ${selectedTruck.model || ''}`).trim()}`
+                      : truckSearch
+                  }
                   onChange={(e) => {
                     setTruckSearch(e.target.value);
                     setTruckDropdownOpen(true);
@@ -781,11 +851,11 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                           }`}
                         >
                           <div className="font-medium text-blue-600">
-                            {truck.plateNumber || truck.internalId || 'Unknown'}
+                            {truck.unitNo || truck.licensePlate || truck.plateNumber || truck.internalId || 'Unknown'}
                           </div>
-                          {(truck.make || truck.model) && (
+                          {(truck.makeModel || truck.make || truck.model) && (
                             <div className="text-xs text-gray-600">
-                              {truck.make} {truck.model}
+                              {truck.makeModel || `${truck.make || ''} ${truck.model || ''}`}
                             </div>
                           )}
                         </div>
@@ -812,7 +882,15 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${trailerDropdownOpen ? 'rotate-180' : ''}`} />
                 <input
                   type="text"
-                  value={selectedTrailer ? (selectedTrailer.plateNumber || selectedTrailer.trailerNumber || '') : trailerSearch}
+                  value={
+                    selectedTrailer
+                      ? selectedTrailer.unitNo ||
+                        selectedTrailer.licensePlate ||
+                        selectedTrailer.plateNumber ||
+                        selectedTrailer.trailerNumber ||
+                        ''
+                      : trailerSearch
+                  }
                   onChange={(e) => {
                     setTrailerSearch(e.target.value);
                     setTrailerDropdownOpen(true);
@@ -857,7 +935,9 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         setTrailerSearch("");
                         setTrailerDropdownOpen(false);
                       }}
-                      className="px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm text-gray-600"
+                      className={`px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm text-gray-600 ${
+                        selectedTrailer === null ? 'bg-gray-50' : ''
+                      }`}
                     >
                       No Trailer
                     </div>
@@ -875,8 +955,13 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                           }`}
                         >
                           <div className="font-medium text-blue-600">
-                            {trailer.plateNumber || trailer.trailerNumber || 'Unknown'}
+                            {trailer.unitNo || trailer.licensePlate || trailer.plateNumber || trailer.trailerNumber || 'Unknown'}
                           </div>
+                          {(trailer.makeModel || trailer.trailerType) && (
+                            <div className="text-xs text-gray-600">
+                              {trailer.makeModel || trailer.trailerType}
+                            </div>
+                          )}
                         </div>
                       ))
                     ) : (

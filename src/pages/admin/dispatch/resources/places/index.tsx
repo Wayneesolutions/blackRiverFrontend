@@ -307,7 +307,8 @@ const Index = () => {
                           place.state,
                         ].filter(Boolean);
                         
-                        const fullAddress = addressParts.length > 0 
+                        const hasManualAddress = addressParts.length > 0;
+                        const fullAddress = hasManualAddress
                           ? addressParts.join(", ")
                           : place.currentLocation?.address || "N/A";
                         
@@ -322,9 +323,9 @@ const Index = () => {
                               {postalCode !== "N/A" && (
                                 <div className="text-xs text-gray-400">Postal: {postalCode}</div>
                               )}
-                              {place.currentLocation?.address && fullAddress !== place.currentLocation.address && (
+                              {!hasManualAddress && place.currentLocation?.address && (
                                 <div className="text-xs text-gray-400 mt-1">
-                                  Location: {place.currentLocation.address}
+                                  Coordinates: {place.currentLocation.address}
                                 </div>
                               )}
                             </div>

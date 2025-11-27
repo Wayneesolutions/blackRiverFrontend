@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import type { CSSProperties } from 'react';
 import { Search, Filter, Calendar, Users, DollarSign, Clock, TrendingUp, MapPin, FileText, Eye, X, User as UserIcon, Mail, Briefcase, AlertCircle, Download } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import ExcelJS from 'exceljs';
 import { fetchUserProfiles, type UserProfileDto, type UserProfilesTimeRange } from '../../../../axios/api/hr.userProfiles';
+import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 type TimePeriod = UserProfilesTimeRange;
 type UserRole =
@@ -20,6 +22,17 @@ type UserProfile = UserProfileDto & { role: UserRole | string };
 type ProfileTimePeriod = '1week' | '2weeks' | '1month' | '6months' | '1year' | '2years';
 
 const UserProfilesPortfolio: React.FC = () => {
+  const ACCENT_PRIMARY = FLEET_COLORS.primary;
+  const ACCENT_DARK = FLEET_COLORS.dark;
+  const ACCENT_GRADIENT = FLEET_COLORS.gradient;
+  const ACCENT_VARS = {
+    '--accent-color': ACCENT_PRIMARY,
+    '--accent-dark': ACCENT_DARK
+  } as CSSProperties & { '--accent-color': string; '--accent-dark': string };
+  const focusRingStyle = {
+    '--tw-ring-color': ACCENT_PRIMARY
+  } as CSSProperties & { '--tw-ring-color': string };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('1month');
@@ -272,17 +285,26 @@ const UserProfilesPortfolio: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-blue-50/30 p-6">
+    <div
+      className="min-h-screen p-6"
+      style={{
+        ...ACCENT_VARS,
+        background: 'linear-gradient(135deg, #f8fafc 0%, rgba(1, 106, 178, 0.08) 45%, rgba(6, 63, 111, 0.12) 100%)'
+      }}
+    >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl shadow-lg">
+              <div className="p-3 rounded-2xl shadow-lg" style={{ background: ACCENT_GRADIENT }}>
                 <Users className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                <h1
+                  className="text-4xl font-bold bg-clip-text text-transparent"
+                  style={{ backgroundImage: ACCENT_GRADIENT }}
+                >
                   User Portfolio
                 </h1>
                 <p className="text-gray-600 mt-1 flex items-center gap-2">
@@ -298,7 +320,8 @@ const UserProfilesPortfolio: React.FC = () => {
             </div>
             <button
               onClick={handleExportToExcel}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 !text-white rounded-lg shadow-lg transition-all duration-200 font-medium"
+              className="flex items-center gap-2 px-6 py-3 !text-white rounded-lg shadow-lg transition-all duration-200 font-medium"
+              style={{ background: ACCENT_GRADIENT }}
             >
               <Download className="w-5 h-5" />
               Export to Excel
@@ -384,7 +407,8 @@ const UserProfilesPortfolio: React.FC = () => {
                 placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                style={focusRingStyle}
               />
             </div>
 
@@ -398,10 +422,9 @@ const UserProfilesPortfolio: React.FC = () => {
                     key={period}
                     onClick={() => setTimePeriod(period)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      timePeriod === period
-                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 !text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      timePeriod === period ? '!text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
+                    style={timePeriod === period ? { background: ACCENT_GRADIENT } : undefined}
                   >
                     {period === '1week' ? '1 Week' : period === '2weeks' ? '2 Weeks' : '1 Month'}
                   </button>
@@ -416,7 +439,8 @@ const UserProfilesPortfolio: React.FC = () => {
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                style={focusRingStyle}
               >
                 <option value="all">All Roles</option>
                 <option value="driver">Driver</option>
@@ -441,7 +465,7 @@ const UserProfilesPortfolio: React.FC = () => {
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+              <thead className="text-white" style={{ background: ACCENT_GRADIENT }}>
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold">User</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Role</th>
@@ -477,7 +501,10 @@ const UserProfilesPortfolio: React.FC = () => {
                     <tr key={profile._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-semibold">
+                          <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold"
+                            style={{ background: ACCENT_GRADIENT }}
+                          >
                             {profile.name.charAt(0)}
                           </div>
                           <div>
@@ -494,8 +521,8 @@ const UserProfilesPortfolio: React.FC = () => {
                               </span>
                             )}
                             {profile.tripsCompleted != null && (
-                              <span className="inline-flex items-center gap-1">
-                                <TrendingUp className="w-3 h-3 text-blue-500" />
+                              <span className="inline-flex items-center gap-1 text-[var(--accent-color)]">
+                                <TrendingUp className="w-3 h-3" />
                                 {formatNumber(profile.tripsCompleted)} trips
                               </span>
                             )}
@@ -599,7 +626,8 @@ const UserProfilesPortfolio: React.FC = () => {
                             setSelectedProfile(profile);
                             setShowProfileSidebar(true);
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 rounded-lg transition-colors text-[var(--accent-color)] hover:text-[var(--accent-dark)]"
+                          style={{ backgroundColor: 'rgba(1, 106, 178, 0.08)' }}
                           title="View Profile"
                         >
                           <Eye className="w-5 h-5" />
@@ -768,10 +796,13 @@ const UserProfilesPortfolio: React.FC = () => {
                   )}
                 </div>
  {/* Time Period Filter */}
- <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4">
+      <div
+        className="rounded-xl p-4"
+        style={{ backgroundColor: 'rgba(1, 106, 178, 0.05)', border: '1px solid rgba(1, 106, 178, 0.2)' }}
+      >
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-purple-600" />
+            <Calendar className="w-5 h-5 text-[var(--accent-color)]" />
                       <span className="text-sm font-semibold text-gray-700">Filter Period:</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -781,9 +812,10 @@ const UserProfilesPortfolio: React.FC = () => {
                           onClick={() => setProfileTimePeriod(period)}
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             profileTimePeriod === period
-                              ? 'bg-gradient-to-r from-purple-600 to-blue-600 !text-white shadow-md'
+                    ? '!text-white shadow-md'
                               : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
                           }`}
+                style={profileTimePeriod === period ? { background: ACCENT_GRADIENT, borderColor: 'transparent' } : undefined}
                         >
                           {period === '1week' ? '1 Week' : 
                            period === '2weeks' ? '2 Weeks' : 
