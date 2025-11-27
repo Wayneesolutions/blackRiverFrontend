@@ -29,6 +29,7 @@ import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const ACCENT_DARK = FLEET_COLORS.dark;
+const ACCENT_LIGHT = FLEET_COLORS.light;
 const ACCENT_GRADIENT = FLEET_COLORS.gradient;
 const ACCENT_VARS = {
   '--accent-color': ACCENT_PRIMARY,
@@ -1678,7 +1679,7 @@ const EmployeesPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-8" style={ACCENT_VARS}>
       {/* Notifications Container - Updated z-index to be above modal */}
       <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
         {notifications.map(notification => (
@@ -1697,7 +1698,8 @@ const EmployeesPage = () => {
               resetForm();
               setShowAddModal(true);
             }}
-            className="px-4 py-2 bg-blue-500 !text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+            className="px-4 py-2 !text-white rounded-lg transition-opacity flex items-center space-x-2 shadow-sm hover:opacity-90"
+            style={{ backgroundImage: ACCENT_GRADIENT }}
           >
             <Plus className="w-4 h-4" />
             <span>Add Employee</span>
@@ -1712,18 +1714,27 @@ const EmployeesPage = () => {
               placeholder="Search by name, ID, role, or department..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2"
+              style={focusRingStyle}
             />
           </div>
           <div className="relative">
             <button 
               onClick={() => setShowFilterPanel(!showFilterPanel)}
-              className={`px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2 ${showFilterPanel ? 'bg-blue-50 border-blue-300' : ''}`}
+              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2"
+              style={
+                showFilterPanel
+                  ? { backgroundColor: "rgba(1, 106, 178, 0.08)", borderColor: ACCENT_PRIMARY }
+                  : undefined
+              }
             >
               <Filter className="w-4 h-4" />
               <span>Filter</span>
               {(selectedRole || selectedStatus) && (
-                <span className="ml-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span
+                  className="ml-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                  style={{ backgroundColor: ACCENT_PRIMARY }}
+                >
                   {(selectedRole ? 1 : 0) + (selectedStatus ? 1 : 0)}
                 </span>
               )}
@@ -1754,7 +1765,8 @@ const EmployeesPage = () => {
                       <select
                         value={selectedRole}
                         onChange={(e) => setSelectedRole(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm"
+                        style={focusRingStyle}
                       >
                         <option value="">All Roles</option>
                         {roles.map(role => (
@@ -1772,7 +1784,8 @@ const EmployeesPage = () => {
                       <select
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm"
+                        style={focusRingStyle}
                       >
                         <option value="">All Status</option>
                         <option value="active">Active</option>
@@ -1793,7 +1806,8 @@ const EmployeesPage = () => {
                       </button>
                       <button
                         onClick={() => setShowFilterPanel(false)}
-                        className="flex-1 px-3 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                        className="flex-1 px-3 py-2 text-sm text-white rounded-lg hover:opacity-90"
+                        style={{ backgroundImage: ACCENT_GRADIENT }}
                       >
                         Apply
                       </button>
@@ -1836,15 +1850,23 @@ const EmployeesPage = () => {
         <div className="grid grid-cols-2 gap-6">
           {employees.map((employee) => (
             <div key={employee._id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-4">
+              <div
+                className="p-4 text-white rounded-t-xl"
+                style={{ backgroundImage: ACCENT_GRADIENT }}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold text-lg">
+                    <div
+                      className="w-12 h-12 bg-white rounded-full flex items-center justify-center font-bold text-lg"
+                      style={{ color: ACCENT_PRIMARY }}
+                    >
                       {employee.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div>
                       <h3 className="text-white font-semibold">{employee.name}</h3>
-                      <p className="text-blue-100 text-sm">{employee.internalId}</p>
+                      <p className="text-sm text-white">
+                        {employee.internalId}
+                      </p>
                     </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -1869,7 +1891,9 @@ const EmployeesPage = () => {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Email</p>
-                    <p className="text-sm font-medium text-blue-600">{employee.email}</p>
+                    <p className="text-sm font-medium" style={{ color: ACCENT_DARK }}>
+                      {employee.email}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Phone</p>
@@ -1904,7 +1928,7 @@ const EmployeesPage = () => {
               <div className="px-6 pb-4 flex items-center space-x-2">
                 <button 
                   onClick={() => handleStatusToggle(employee)}
-                  className={`flex-1 px-4 py-2 rounded-lg transition-colors text-sm font-medium flex items-center justify-center space-x-1 ${
+                  className={`flex-1 px-4 py-2 !mr-3 rounded-lg transition-colors text-sm font-medium flex items-center justify-center space-x-1 ${
                     employee.status === 'active' 
                       ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100' 
                       : 'bg-green-50 text-green-600 hover:bg-green-100'
@@ -1914,7 +1938,7 @@ const EmployeesPage = () => {
                 </button>
                 <button 
                   onClick={() => handleEdit(employee)}
-                  className="flex-1 px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium flex items-center justify-center space-x-1">
+                  className="flex-1 px-4 py-2 !mr-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium flex items-center justify-center space-x-1">
                   <Edit className="w-4 h-4" />
                   <span>Edit</span>
                 </button>
@@ -1932,16 +1956,21 @@ const EmployeesPage = () => {
       {showAddModal && (
         <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-[10001] p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-4 flex items-center justify-between">
+            <div
+              className="px-6 py-4 flex items-center justify-between"
+              style={{ backgroundImage: ACCENT_GRADIENT }}
+            >
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-blue-600" />
+                  <User className="w-5 h-5" style={{ color: ACCENT_PRIMARY }} />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">
                     {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
                   </h2>
-                  <p className="text-blue-100 text-sm">Fill in the employee details below</p>
+                  <p className="text-sm" style={{ color: ACCENT_LIGHT }}>
+                    Fill in the employee details below
+                  </p>
                 </div>
               </div>
               <button 
@@ -1956,7 +1985,7 @@ const EmployeesPage = () => {
               {/* Basic Employee Information */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
-                  <User className="w-5 h-5 text-blue-500" />
+                  <User className="w-5 h-5" style={{ color: ACCENT_PRIMARY }} />
                   <span>Basic Information</span>
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -2074,7 +2103,10 @@ const EmployeesPage = () => {
               {/* Driver-specific panel */}
               {showDriverPanel && (
                 <div className="mb-6">
-                  <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 rounded-lg mb-6">
+                  <div
+                    className="p-4 rounded-lg mb-6 text-white"
+                    style={{ backgroundImage: ACCENT_GRADIENT }}
+                  >
                     <div className="flex items-center space-x-3">
                       <Truck className="w-6 h-6 text-white" />
                       <h3 className="text-lg font-semibold text-white">Driver Information</h3>
@@ -2084,11 +2116,11 @@ const EmployeesPage = () => {
                   {/* Driver Tabs */}
                   <div className="mb-6">
                     <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-                      {[
-                        { id: 'basic', label: 'Basic Information', icon: User },
-                        { id: 'employment', label: 'Employment & Contact', icon: Mail },
-                        { id: 'payment', label: 'Payment Profile', icon: CreditCard }
-                      ].map((tab) => (
+                    {[
+                      { id: 'basic', label: 'Basic Information', icon: User },
+                      { id: 'employment', label: 'Employment & Contact', icon: Mail },
+                      { id: 'payment', label: 'Payment Profile', icon: CreditCard }
+                    ].map((tab) => (
                         <button
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
@@ -2269,13 +2301,13 @@ const EmployeesPage = () => {
               <div className="flex justify-end space-x-4">
                 <button
                   onClick={() => setDeleteConfirm({ show: false, employeeId: null })}
-                  className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                  className="px-6 py-3 !mr-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+                  className="px-6 py-3 bg-red-600 hover:bg-red-700 !text-white rounded-lg transition-colors font-medium"
                 >
                   Delete
                 </button>

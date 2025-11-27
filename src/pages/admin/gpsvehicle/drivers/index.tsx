@@ -62,7 +62,126 @@ interface Driver {
     profileImageUrl?: string;
     avatar?: string;
     country?: string;
+    milesToday?: number;
+    avgSpeed?: number;
 }
+
+const SAMPLE_DRIVER_ROWS: Driver[] = [
+    {
+        _id: 'sample-driver-1',
+        name: 'Sophia Reed',
+        email: 'sophia.reed@logistiq.com',
+        phone: '(555) 214-8976',
+        internalId: 'DRI-214',
+        status: 'active',
+        location: {
+            address: 'I-76 near King of Prussia, PA',
+            longitude: '-75.3830',
+            latitude: '40.1002',
+        },
+        details: {
+            vehicle: {
+                _id: 'veh-sample-1',
+                plateNumber: 'BR-204',
+                make: 'Volvo',
+                model: 'VNL 760',
+                internalId: 'BR-204',
+                status: 'moving',
+                currentLocation: {
+                    address: 'I-76 near King of Prussia, PA',
+                    longitude: '-75.3830',
+                    latitude: '40.1002',
+                },
+                speed: 64,
+                fuelLevel: 72,
+            },
+            licenceNumber: 'PA-8876214',
+            employeeCode: 'DRI-214',
+        },
+        milesToday: 312,
+        avgSpeed: 58,
+        joinDate: new Date('2023-02-14'),
+        profileImageUrl: '',
+        avatar: '',
+        country: 'USA',
+    },
+    {
+        _id: 'sample-driver-2',
+        name: 'Aaron Kim',
+        email: 'aaron.kim@logistiq.com',
+        phone: '(555) 664-0012',
+        internalId: 'DRI-099',
+        status: 'active',
+        location: {
+            address: 'Dallas Yard, TX',
+            longitude: '-96.7970',
+            latitude: '32.7767',
+        },
+        details: {
+            vehicle: {
+                _id: 'veh-sample-2',
+                plateNumber: 'TX-118',
+                make: 'Freightliner',
+                model: 'Cascadia',
+                internalId: 'TX-118',
+                status: 'idle',
+                currentLocation: {
+                    address: 'Dallas Yard, TX',
+                    longitude: '-96.7970',
+                    latitude: '32.7767',
+                },
+                speed: 0,
+                fuelLevel: 54,
+            },
+            licenceNumber: 'TX-902345',
+            employeeCode: 'DRI-099',
+        },
+        milesToday: 148,
+        avgSpeed: 46,
+        joinDate: new Date('2022-11-03'),
+        profileImageUrl: '',
+        avatar: '',
+        country: 'USA',
+    },
+    {
+        _id: 'sample-driver-3',
+        name: 'Priya Patel',
+        email: 'priya.patel@logistiq.com',
+        phone: '(555) 420-8891',
+        internalId: 'DRI-330',
+        status: 'inactive',
+        location: {
+            address: 'Port of Oakland, CA',
+            longitude: '-122.2711',
+            latitude: '37.8049',
+        },
+        details: {
+            vehicle: {
+                _id: 'veh-sample-3',
+                plateNumber: 'CA-441',
+                make: 'Kenworth',
+                model: 'T680',
+                internalId: 'CA-441',
+                status: 'stopped',
+                currentLocation: {
+                    address: 'Port of Oakland, CA',
+                    longitude: '-122.2711',
+                    latitude: '37.8049',
+                },
+                speed: 0,
+                fuelLevel: 31,
+            },
+            licenceNumber: 'CA-776500',
+            employeeCode: 'DRI-330',
+        },
+        milesToday: 0,
+        avgSpeed: 0,
+        joinDate: new Date('2021-07-19'),
+        profileImageUrl: '',
+        avatar: '',
+        country: 'USA',
+    },
+];
 
 const DriverList = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -82,7 +201,7 @@ const DriverList = () => {
             try {
                 setLoading(true);
                 const res = await listDriver();
-                if (res.success && res.data) {
+                if (res.success && res.data?.length) {
                     // Map API response to Driver interface
                     const formattedDrivers: Driver[] = res.data.map((d: any) => ({
                         _id: d._id,
@@ -100,12 +219,17 @@ const DriverList = () => {
                         joinDate: d.joinDate ? new Date(d.joinDate) : new Date(),
                         profileImageUrl: d.profileImageUrl || d.avatar,
                         avatar: d.avatar || d.profileImageUrl,
-                        country: d.country || 'N/A'
+                        country: d.country || 'N/A',
+                        milesToday: Number(d.milesToday ?? d.stats?.milesToday ?? 0),
+                        avgSpeed: Number(d.avgSpeed ?? d.stats?.avgSpeed ?? 0),
                     }));
                     setDrivers(formattedDrivers);
+                } else {
+                    setDrivers(SAMPLE_DRIVER_ROWS);
                 }
             } catch (error) {
                 console.error('Error fetching drivers:', error);
+                setDrivers(SAMPLE_DRIVER_ROWS);
             } finally {
                 setLoading(false);
             }
@@ -166,6 +290,14 @@ const DriverList = () => {
             case "internalId":
                 aValue = a.internalId;
                 bValue = b.internalId;
+                break;
+            case "milesToday":
+                aValue = a.milesToday || 0;
+                bValue = b.milesToday || 0;
+                break;
+            case "avgSpeed":
+                aValue = a.avgSpeed || 0;
+                bValue = b.avgSpeed || 0;
                 break;
             case "joinDate":
                 aValue = a.joinDate;
@@ -358,6 +490,8 @@ const DriverList = () => {
                                     <SortHeader field="name">Name</SortHeader>
                                     <SortHeader field="email">Contact</SortHeader>
                                     <SortHeader field="location">Location</SortHeader>
+                                    <SortHeader field="milesToday">Miles Today</SortHeader>
+                                    <SortHeader field="avgSpeed">Avg Speed</SortHeader>
                                     <SortHeader field="status">Status</SortHeader>
                                     <SortHeader field="joinDate">Join Date</SortHeader>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -368,7 +502,7 @@ const DriverList = () => {
                             <tbody className="bg-white divide-y divide-slate-100">
                                 {currentDrivers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-12 text-center">
+                                        <td colSpan={9} className="px-6 py-12 text-center">
                                             <div className="flex flex-col items-center justify-center">
                                                 <User className="w-12 h-12 text-slate-400 mb-4" />
                                                 <p className="text-slate-600 font-medium">No drivers found</p>
@@ -448,6 +582,20 @@ const DriverList = () => {
                                                         </span>
                                                     </div>
                                                 )}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <p className="text-sm font-semibold text-slate-900">
+                                                    {driver.milesToday !== undefined
+                                                        ? `${driver.milesToday.toLocaleString()} mi`
+                                                        : '—'}
+                                                </p>
+                                                <p className="text-xs text-slate-500">Today</p>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <p className="text-sm font-semibold text-slate-900">
+                                                    {driver.avgSpeed !== undefined ? `${driver.avgSpeed} mph` : '—'}
+                                                </p>
+                                                <p className="text-xs text-slate-500">Avg speed</p>
                                             </td>
 
                                             <td className="px-6 py-4 whitespace-nowrap">

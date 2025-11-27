@@ -141,6 +141,72 @@ const getAssignmentForVehicle = (vehicle: Vehicle): VehicleAssignment => {
 
 const formatMiles = (value: number) => `${value.toLocaleString()} mi`;
 
+const gpsVehiclePanels = [
+    {
+        title: 'Vehicles Reporting',
+        value: '18',
+        helper: 'Last telemetry within 5 min',
+        accent: 'text-blue-600',
+    },
+    {
+        title: 'Average Fleet Speed',
+        value: '62 mph',
+        helper: 'Across active trips',
+        accent: 'text-emerald-600',
+    },
+    {
+        title: 'Max Speed Today',
+        value: '78 mph',
+        helper: 'Unit BR-204 near I-76',
+        accent: 'text-orange-600',
+    },
+    {
+        title: 'Idle Threshold Alerts',
+        value: '3',
+        helper: 'Over 20 min idle',
+        accent: 'text-red-600',
+    },
+];
+
+const sampleGpsVehicleStreams = [
+    {
+        unit: 'BR-204',
+        driver: 'Mia Watson',
+        location: 'I-76 near King of Prussia, PA',
+        coords: '40.1002, -75.3830',
+        status: 'moving',
+        speed: '64 mph',
+        lastPing: '09:14 AM EST',
+        odometer: '412,895 mi',
+        fuel: '72%',
+        ignition: 'On',
+    },
+    {
+        unit: 'TX-118',
+        driver: 'Carlos Ramirez',
+        location: 'Dallas Yard, TX',
+        coords: '32.7767, -96.7970',
+        status: 'idle',
+        speed: '0 mph',
+        lastPing: '09:09 AM CST',
+        odometer: '188,244 mi',
+        fuel: '54%',
+        ignition: 'On',
+    },
+    {
+        unit: 'CA-441',
+        driver: 'Lia Chen',
+        location: 'Port of Oakland, CA',
+        coords: '37.8049, -122.2711',
+        status: 'stopped',
+        speed: '0 mph',
+        lastPing: '08:56 AM PST',
+        odometer: '503,901 mi',
+        fuel: '31%',
+        ignition: 'Off',
+    },
+];
+
 const VehicleList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
@@ -380,6 +446,8 @@ const VehicleList = () => {
                         </div>
                     </div>
                 </div>
+
+            
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">

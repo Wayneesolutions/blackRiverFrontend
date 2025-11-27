@@ -39,7 +39,7 @@ export const GpsSidebarLinks: DispatchSidebarLinks[] = [
   {
     key: "/admin/gpsvehicle/vehicles",
     icon: <FaTruck />,
-    label: "Vehicles",
+    label: "Fleets",
   },
   {
     key: "/admin/gpsvehicle/drivers",
