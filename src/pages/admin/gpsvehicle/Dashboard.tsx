@@ -66,10 +66,13 @@ const Dashboard = () => {
         setFleetLoading(true);
         setFleetError(null);
         const res = await listFleetUnits({ category: "all" });
-        if (res?.success) {
-          const payload = Array.isArray(res.data)
-            ? res.data
-            : res.data?.data || res.data?.units || [];
+        if (res?.success && res.data) {
+          const data = res.data;
+          const payload = Array.isArray(data)
+            ? data
+            : (typeof data === 'object' && data !== null && ('data' in data || 'units' in data))
+              ? (data as any).data || (data as any).units || []
+              : [];
           setFleetUnits(Array.isArray(payload) ? payload : []);
         } else {
           setFleetUnits([]);
@@ -112,48 +115,10 @@ const Dashboard = () => {
   ];
 
   const safetyScore = dashboardData?.safetyScore || 0;
-  const currentTrips: any[] = Array.isArray(dashboardData?.currentTrips)
-    ? dashboardData.currentTrips
-    : [];
+  
 
-  const vehiclesInTransit = currentTrips.length;
-  const milesToday = currentTrips.reduce(
-    (total, trip) => total + Number(trip?.milesToday ?? trip?.distanceToday ?? 0),
-    0
-  );
-  const monitoredFleet = fleetUnits.length;
+  
 
-  const fleetRows = useMemo(() => {
-    if (!fleetUnits.length) return [];
-    return fleetUnits.slice(0, 8).map((unit) => {
-      const trip =
-        currentTrips.find(
-          (current) =>
-            current?.vehicleId === unit._id ||
-            current?.unitNo === unit.unitNo ||
-            current?.vin === unit.vinNo
-        ) || null;
-
-      const miles = trip?.milesToday ?? trip?.distanceToday ?? trip?.distance ?? 0;
-      const lastPing = trip?.lastPing || trip?.lastUpdate;
-      const formattedPing = lastPing
-        ? new Date(lastPing).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-        : "—";
-
-      return {
-        unitNo: unit.unitNo || "—",
-        makeModel: unit.makeModel || [unit.make, unit.model].filter(Boolean).join(" ").trim(),
-        licensePlate: unit.licensePlate || "—",
-        status: unit.status || "Inactive",
-        driver: trip?.driverName || trip?.driver?.name || "Unassigned",
-        tripNumber: trip?.tripNumber || trip?._id || "—",
-        milesToday: miles,
-        odometer: unit.currentOdometer || "—",
-        location: trip?.lastKnownLocation || trip?.location || "No ping",
-        lastPing: formattedPing,
-      };
-    });
-  }, [fleetUnits, currentTrips]);
 
   // Custom Circular Progress Component
   const CircularProgress = ({ percentage }: { percentage: number }) => {

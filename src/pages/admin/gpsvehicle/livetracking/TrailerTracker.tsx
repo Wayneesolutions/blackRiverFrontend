@@ -7,7 +7,7 @@ import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.u
 
 // Type definitions
 // Use FleetUnit for trailers (unitType !== "Truck")
-type Trailer = FleetUnitDto & {
+type Trailer = Omit<FleetUnitDto, 'status' | 'currentLocation'> & {
     trailer: string; // Mapped from unitNo
     plateNumber: string; // Mapped from licensePlate
     type: 'dry_van' | 'refrigerated' | 'flatbed' | 'tanker' | 'container'; // Mapped from trailerType/unitType

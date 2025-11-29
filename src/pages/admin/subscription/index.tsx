@@ -96,9 +96,7 @@ const SubscriptionPage = () => {
   const [cancelling, setCancelling] = useState(false);
   const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
 
-  const pageBackgroundStyle: CSSProperties = {
-    background: FLEET_COLORS.gradientVertical,
-  };
+  
   const primaryButtonStyle: CSSProperties = {
     background: FLEET_COLORS.gradient,
     color: '#fff',
