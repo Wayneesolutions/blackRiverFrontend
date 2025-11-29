@@ -16,6 +16,7 @@ interface Vehicle {
     plateNumber: string;
     make: string;
     model: string;
+    odometer?: number;
 }
 
 interface RepairUpdate {
