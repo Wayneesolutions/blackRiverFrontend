@@ -22,7 +22,7 @@ import {
     Truck,
     Route,
 } from 'lucide-react';
-import { listVehicle } from '../../../../axios/api/distapcher';
+import apiClient from '../../../../axios/apiClient';
 
 import type { ReactNode } from "react";
 
@@ -219,15 +219,15 @@ const VehicleList = () => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Fetch vehicles from API
+    // Fetch vehicles from API (using FleetUnit via /vehicles/list endpoint)
     useEffect(() => {
         const fetchVehicles = async () => {
             try {
                 setLoading(true);
-                const res = await listVehicle();
-                if (res.success && res.data?.vehicles) {
+                const res = await apiClient.get('/admin/vehicles/list');
+                if (res.data.success && res.data.data?.vehicles) {
                     // Map API response to Vehicle interface
-                    const formattedVehicles: Vehicle[] = res.data.vehicles.map((v: any) => ({
+                    const formattedVehicles: Vehicle[] = res.data.data.vehicles.map((v: any) => ({
                         _id: v._id,
                         internalId: v.internalId || v._id,
                         plateNumber: v.plateNumber || 'N/A',
@@ -235,25 +235,17 @@ const VehicleList = () => {
                         make: v.make || 'Unknown',
                         model: v.model || 'Unknown',
                         year: v.year || new Date().getFullYear(),
-                        driver: v.driver ? {
-                            _id: v.driver._id || v.driver,
-                            name: v.driver.name || 'Unknown',
-                            phone: v.driver.phone || 'N/A'
-                        } : null,
+                        driver: null, // Driver info would need to be fetched from Loads/Trips
                         status: v.status || 'stopped',
-                        vehicleImage: v.vehicleImage || [],
-                        documents: v.documents || [],
-                        avatar: v.avatar || (v.vehicleImage?.[0]?.imageUrl || 'https://via.placeholder.com/100x100/6366f1/ffffff?text=Vehicle'),
-                        hasTrailer: !!v.trailer,
-                        trailerDetails: v.trailer ? {
-                            serialNumber: v.trailer.serialNumber || 'N/A',
-                            capacity: v.trailer.capacity || 'N/A',
-                            status: v.trailer.status || 'attached'
-                        } : null,
+                        vehicleImage: [],
+                        documents: [],
+                        avatar: 'https://via.placeholder.com/100x100/6366f1/ffffff?text=Vehicle',
+                        hasTrailer: false,
+                        trailerDetails: null,
                         currentLocation: {
                             address: v.currentLocation?.address || 'Location not available',
-                            longitude: String(v.currentLocation?.longitude || v.coordinates?.longitude || '0'),
-                            latitude: String(v.currentLocation?.latitude || v.coordinates?.latitude || '0'),
+                            longitude: String(v.currentLocation?.longitude || '0'),
+                            latitude: String(v.currentLocation?.latitude || '0'),
                             updatedAt: v.currentLocation?.updatedAt ? new Date(v.currentLocation.updatedAt) : new Date()
                         },
                         speed: v.speed || 0,
@@ -270,7 +262,7 @@ const VehicleList = () => {
                             batteryVoltage: 12.0,
                             engineHours: 0
                         },
-                        trips: v.trips || []
+                        trips: []
                     }));
                     setVehicles(formattedVehicles);
                 }

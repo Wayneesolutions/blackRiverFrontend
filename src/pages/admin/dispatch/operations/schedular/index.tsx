@@ -1,35 +1,69 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight, Calendar, Clock, User, Truck, Trash2 } from "lucide-react";
-import { listLoad, updateLoad } from "../../../../../axios/api/distapcher";
+import { listTrip, updateTrip } from "../../../../../axios/api/distapcher";
 
-interface Load {
+interface SchedulerTrip {
     _id: string;
-    orderId: string;
-    driverName: string | null;
-    customerName: string | null;
-    route: any[];
+    tripNumber?: string;
     status: string;
-    notes: string | null;
-    assignedAt: string | null;
-    scheduledDate?: Date;
+    plannedStartDate?: string | null;
+    driver?: {
+        _id: string;
+        name?: string;
+    };
+    truck?: {
+        _id: string;
+        plateNumber?: string;
     internalId?: string;
-    payloads?: any[];
+    };
+    trailer?: {
+        _id: string;
+        trailerNumber?: string;
+        plateNumber?: string;
+    } | null;
+    orders?: Array<{
+        _id: string;
+        orderNumber?: string;
+        customer?: {
+            name?: string;
+        };
+    }>;
+    notes?: string | null;
+    scheduledDate: Date | null;
 }
+
+const DEFAULT_SCHEDULE_TIME = "09:00";
 
 const SchedulerPage = () => {
     const [activeTab, setActiveTab] = useState<"unscheduled" | "scheduled">("unscheduled");
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
-    const [loads, setLoads] = useState<Load[]>([]);
+    const [trips, setTrips] = useState<SchedulerTrip[]>([]);
     const [loading, setLoading] = useState(true);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
-    const [selectedLoad, setSelectedLoad] = useState<Load | null>(null);
-    const [draggedLoad, setDraggedLoad] = useState<Load | null>(null);
+    const [selectedTrip, setSelectedTrip] = useState<SchedulerTrip | null>(null);
+    const [selectedTime, setSelectedTime] = useState(DEFAULT_SCHEDULE_TIME);
+    const [draggedTrip, setDraggedTrip] = useState<SchedulerTrip | null>(null);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
     const userInfoRef = useRef<any>(null);
 
-    // Fetch loads data
-    const fetchLoads = useCallback(
+    const formatTimeFromDate = (date: Date | null) => {
+        if (!date) {
+            return DEFAULT_SCHEDULE_TIME;
+        }
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        return `${hours}:${minutes}`;
+    };
+
+    const combineDateAndTime = (date: Date, time: string) => {
+        const [hours = "09", minutes = "00"] = time?.split(":") ?? [];
+        const combined = new Date(date);
+        combined.setHours(Number(hours) || 0, Number(minutes) || 0, 0, 0);
+        return combined;
+    };
+
+    const fetchTrips = useCallback(
         async (options?: { suppressLoading?: boolean }) => {
             if (!options?.suppressLoading) {
                 setLoading(true);
@@ -38,57 +72,56 @@ const SchedulerPage = () => {
             try {
                 let currentUser = userInfoRef.current;
                 if (!currentUser) {
-                    const stored = localStorage.getItem('userInfo');
+                    const stored = localStorage.getItem("userInfo");
                     if (stored) {
                         try {
                             currentUser = JSON.parse(stored);
                             userInfoRef.current = currentUser;
                         } catch (error) {
-                            console.error('Error parsing userInfo during fetch:', error);
+                            console.error("Error parsing userInfo during fetch:", error);
                         }
                     }
                 }
 
-                // Handle different userInfo structures (userData.company or direct company)
                 const userRole = currentUser?.role || currentUser?.userData?.role;
                 const userCompany = currentUser?.company || currentUser?.userData?.company;
-                const isSuperadmin = userRole === 'superadmin';
-                const isDispatcher = userRole === 'dispatcher';
+                const isSuperadmin = userRole === "superadmin";
+                const isDispatcher = userRole === "dispatcher";
                 const hasCompany = Boolean(userCompany);
 
-                // Allow dispatchers to call API even if company is not visible in localStorage
-                // The backend will handle company filtering based on the authenticated user
                 if (!isSuperadmin && !isDispatcher && !hasCompany) {
-                    setLoads([]);
-                    setEmptyStateMessage('No company assigned. Please complete company settings to view loads.');
+                    setTrips([]);
+                    setEmptyStateMessage("No company assigned. Please complete company settings to view trips.");
                     return;
                 }
 
-                const response = await listLoad();
+                const response = await listTrip({ limit: 500 });
                 const message = response?.message || null;
                 const data = response?.data;
 
-                if (response.success && Array.isArray(data)) {
+                if (response?.success && Array.isArray(data)) {
                     if (data.length === 0) {
-                        setLoads([]);
-                        setEmptyStateMessage(message || 'No loads available.');
+                        setTrips([]);
+                        setEmptyStateMessage(message || "No trips available.");
                         return;
                     }
 
-                    const loadsWithDates = data.map((load: any) => ({
-                        ...load,
-                        scheduledDate: load.assignedAt ? new Date(load.assignedAt) : null
+                    const tripsWithDates: SchedulerTrip[] = data.map((trip: any) => ({
+                        ...trip,
+                        scheduledDate: trip.plannedStartDate ? new Date(trip.plannedStartDate) : null
                     }));
-                    setLoads(loadsWithDates);
+
+                    setTrips(tripsWithDates);
                     setEmptyStateMessage(null);
                 } else {
-                    setLoads([]);
-                    setEmptyStateMessage(message || 'Failed to fetch loads.');
+                    setTrips([]);
+                    setEmptyStateMessage(message || "Failed to fetch trips.");
                 }
-            } catch (error) {
-                console.error('Error fetching loads:', error);
-                setLoads([]);
-                setEmptyStateMessage('Error fetching loads.');
+            } catch (error: any) {
+                console.error("Error fetching trips:", error);
+                const fallbackMessage = error?.message || error?.data?.message || "Error fetching trips.";
+                setTrips([]);
+                setEmptyStateMessage(fallbackMessage);
             } finally {
                 if (!options?.suppressLoading) {
                     setLoading(false);
@@ -101,51 +134,45 @@ const SchedulerPage = () => {
     useEffect(() => {
         const syncUser = () => {
             try {
-                const stored = localStorage.getItem('userInfo');
+                const stored = localStorage.getItem("userInfo");
                 if (stored) {
                     userInfoRef.current = JSON.parse(stored);
                 }
             } catch (error) {
-                console.error('Error parsing userInfo from localStorage:', error);
+                console.error("Error parsing userInfo from localStorage:", error);
             }
         };
 
         syncUser();
-        fetchLoads();
+        fetchTrips();
 
         const handleStorage = (event: StorageEvent) => {
-            if (event.key === 'userInfo') {
+            if (event.key === "userInfo") {
                 syncUser();
-                fetchLoads();
+                fetchTrips();
             }
         };
 
-        window.addEventListener('storage', handleStorage);
-        return () => window.removeEventListener('storage', handleStorage);
-    }, [fetchLoads]);
+        window.addEventListener("storage", handleStorage);
+        return () => window.removeEventListener("storage", handleStorage);
+    }, [fetchTrips]);
 
-    // Filter loads based on scheduling status
-    const scheduledLoads = loads.filter((load) => load.scheduledDate);
-    const unscheduledLoads = loads.filter((load) => !load.scheduledDate);
+    const scheduledTrips = trips.filter((trip) => trip.scheduledDate);
+    const unscheduledTrips = trips.filter((trip) => !trip.scheduledDate);
 
-    // Calendar functions
-    const getDaysInMonth = (date: Date) => {
-        return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-    };
+    const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 
-    const getFirstDayOfMonth = (date: Date) => {
-        return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-    };
+    const getFirstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
     const getPreviousMonthDays = (date: Date) => {
-        const prevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 0);
+        const prevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
         return prevMonth.getDate();
     };
 
-    const navigateMonth = (direction: 'prev' | 'next') => {
-        setCurrentMonth(prev => {
+    const navigateMonth = (direction: "prev" | "next") => {
+        setCurrentMonth((prev) => {
             const newMonth = new Date(prev);
-            if (direction === 'prev') {
+            if (direction === "prev") {
                 newMonth.setMonth(prev.getMonth() - 1);
             } else {
                 newMonth.setMonth(prev.getMonth() + 1);
@@ -160,63 +187,40 @@ const SchedulerPage = () => {
         setSelectedDate(today);
     };
 
-    const hasLoadOnDate = (date: Date) => {
-        return scheduledLoads.some(load => 
-            load.scheduledDate?.toDateString() === date.toDateString()
-        );
-    };
+    const hasTripOnDate = (date: Date) =>
+        scheduledTrips.some((trip) => trip.scheduledDate?.toDateString() === date.toDateString());
 
-    const getLoadsForDate = (date: Date) => {
-        return scheduledLoads.filter(load => 
-            load.scheduledDate?.toDateString() === date.toDateString()
-        );
-    };
+    const getTripsForDate = (date: Date) =>
+        scheduledTrips.filter((trip) => trip.scheduledDate?.toDateString() === date.toDateString());
 
-    // Schedule a load for a specific date
-    const scheduleLoad = async (load: Load, date: Date) => {
+    const scheduleTrip = async (trip: SchedulerTrip, date: Date, time: string = DEFAULT_SCHEDULE_TIME) => {
+        if (!date) return;
+
         try {
-            const updateData = {
-                assignedAt: date.toISOString()
-            };
-            const response = await updateLoad(load._id, updateData);
-            if (response.success) {
-                fetchLoads({ suppressLoading: true }); // Refresh the loads
-            }
+            const scheduledDate = combineDateAndTime(date, time);
+            await updateTrip(trip._id, { plannedStartDate: scheduledDate.toISOString() });
+            await fetchTrips({ suppressLoading: true });
         } catch (error) {
-            console.error('Error scheduling load:', error);
+            console.error("Error scheduling trip:", error);
         }
     };
 
-    // Unschedule a load
-    const unscheduleLoad = async (load: Load) => {
+    const unscheduleTrip = async (trip: SchedulerTrip) => {
         try {
-            const updateData = {
-                assignedAt: null
-            };
-            const response = await updateLoad(load._id, updateData);
-            if (response.success) {
-                fetchLoads({ suppressLoading: true }); // Refresh the loads
-            }
+            await updateTrip(trip._id, { plannedStartDate: null });
+            await fetchTrips({ suppressLoading: true });
         } catch (error) {
-            console.error('Error unscheduling load:', error);
+            console.error("Error unscheduling trip:", error);
         }
     };
 
-    // Handle drag start
-    const handleDragStart = (load: Load) => {
-        setDraggedLoad(load);
-    };
+    const handleDragStart = (trip: SchedulerTrip) => setDraggedTrip(trip);
+    const handleDragEnd = () => setDraggedTrip(null);
 
-    // Handle drag end
-    const handleDragEnd = () => {
-        setDraggedLoad(null);
-    };
-
-    // Handle drop on calendar date
     const handleDrop = (date: Date) => {
-        if (draggedLoad) {
-            scheduleLoad(draggedLoad, date);
-            setDraggedLoad(null);
+        if (draggedTrip) {
+            scheduleTrip(draggedTrip, date, DEFAULT_SCHEDULE_TIME);
+            setDraggedTrip(null);
         }
     };
 
@@ -225,59 +229,52 @@ const SchedulerPage = () => {
         const firstDay = getFirstDayOfMonth(currentMonth);
         const prevMonthDays = getPreviousMonthDays(currentMonth);
         
-        const days = [];
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-        // Add day headers
-        dayNames.forEach(day => {
-            days.push(
+        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const cells = dayNames.map((day) => (
                 <div key={day} className="text-center text-sm font-medium text-gray-600 p-2">
                     {day}
                 </div>
-            );
-        });
+        ));
 
-        // Add previous month's trailing days
         for (let i = firstDay - 1; i >= 0; i--) {
             const day = prevMonthDays - i;
-            days.push(
+            cells.push(
                 <div key={`prev-${day}`} className="text-center p-2 text-gray-400 text-sm">
                     {day}
                 </div>
             );
         }
 
-        // Add current month's days
         for (let day = 1; day <= daysInMonth; day++) {
             const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
             const isToday = date.toDateString() === new Date().toDateString();
             const isSelected = date.toDateString() === selectedDate.toDateString();
-            const hasLoad = hasLoadOnDate(date);
-            const loadsForDate = getLoadsForDate(date);
+            const hasTrip = hasTripOnDate(date);
+            const tripsForDate = getTripsForDate(date);
 
-            days.push(
+            cells.push(
                 <div
                     key={day}
                     onClick={() => setSelectedDate(date)}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => handleDrop(date)}
                     className={`text-center p-2 text-sm cursor-pointer rounded-lg transition-colors relative
-                        ${isSelected ? 'bg-blue-200 text-blue-800' : ''}
-                        ${hasLoad && !isSelected ? 'bg-green-100' : ''}
-                        ${isToday && !isSelected ? 'bg-yellow-100 text-yellow-800' : ''}
-                        ${draggedLoad ? 'bg-blue-50 border-2 border-dashed border-blue-300' : ''}
+                        ${isSelected ? "bg-blue-200 text-blue-800" : ""}
+                        ${hasTrip && !isSelected ? "bg-green-100" : ""}
+                        ${isToday && !isSelected ? "bg-yellow-100 text-yellow-800" : ""}
+                        ${draggedTrip ? "bg-blue-50 border-2 border-dashed border-blue-300" : ""}
                         hover:bg-gray-100
                     `}
                 >
                     <div className="flex flex-col items-center">
                         <span>{day}</span>
-                        {hasLoad && (
+                        {hasTrip && (
                             <div className="flex space-x-1 mt-1">
-                                {loadsForDate.slice(0, 3).map((_, index) => (
-                                    <div key={index} className="w-1 h-1 bg-green-600 rounded-full"></div>
+                                {tripsForDate.slice(0, 3).map((trip, index) => (
+                                    <div key={`${trip._id}-${index}`} className="w-1 h-1 bg-green-600 rounded-full" />
                                 ))}
-                                {loadsForDate.length > 3 && (
-                                    <span className="text-xs text-green-600">+{loadsForDate.length - 3}</span>
+                                {tripsForDate.length > 3 && (
+                                    <span className="text-xs text-green-600">+{tripsForDate.length - 3}</span>
                                 )}
                             </div>
                         )}
@@ -286,26 +283,27 @@ const SchedulerPage = () => {
             );
         }
 
-        // Add next month's leading days to fill the grid
-        const totalCells = days.length - 7; // Subtract header row
-        const remainingCells = 42 - totalCells; // 6 rows * 7 days = 42
+        const totalCells = cells.length - 7;
+        const remainingCells = 42 - totalCells;
         for (let day = 1; day <= remainingCells; day++) {
-            days.push(
+            cells.push(
                 <div key={`next-${day}`} className="text-center p-2 text-gray-400 text-sm">
                     {day}
                 </div>
             );
         }
 
-        return (
-            <div className="grid grid-cols-7 gap-1">
-                {days}
-            </div>
-        );
+        return <div className="grid grid-cols-7 gap-1">{cells}</div>;
     };
 
-    const currentLoads = activeTab === "scheduled" ? scheduledLoads : unscheduledLoads;
-    const selectedDateLoads = getLoadsForDate(selectedDate);
+    const currentTrips = activeTab === "scheduled" ? scheduledTrips : unscheduledTrips;
+    const selectedDateTrips = getTripsForDate(selectedDate);
+
+    const getTripIdentifier = (trip: SchedulerTrip) =>
+        trip.tripNumber || `Trip ${trip._id.slice(-6)}`;
+
+    const getCustomerName = (trip: SchedulerTrip) =>
+        trip.orders?.[0]?.customer?.name || "No customer";
 
     if (loading) {
         return (
@@ -317,104 +315,99 @@ const SchedulerPage = () => {
 
     return (
         <div className="min-h-screen bg-white">
-            {/* Header */}
             <div className="border-b border-gray-200 p-4">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold text-gray-800">Scheduler</h1>
+                    <h1 className="text-2xl font-semibold text-gray-800">Trip Scheduler</h1>
                     <div className="flex items-center space-x-4">
                         <div className="text-sm text-gray-600">
-                            <span className="font-medium">{scheduledLoads.length}</span> scheduled
+                            <span className="font-medium">{scheduledTrips.length}</span> scheduled
                         </div>
                         <div className="text-sm text-gray-600">
-                            <span className="font-medium">{unscheduledLoads.length}</span> unscheduled
+                            <span className="font-medium">{unscheduledTrips.length}</span> unscheduled
                         </div>
                         <div className="text-sm text-gray-600">
-                            <span className="font-medium">{loads.length}</span> total loads
+                            <span className="font-medium">{trips.length}</span> total trips
                         </div>
                     </div>
                 </div>
             </div>
 
-            {emptyStateMessage && currentLoads.length === 0 && (
-                <div className="bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3">
+            {emptyStateMessage && currentTrips.length === 0 && (
+                <div className="bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3 m-4">
                     <Calendar className="text-xl" />
                     <span className="text-sm">{emptyStateMessage}</span>
                 </div>
             )}
 
             <div className="flex">
-                {/* Left Sidebar */}
                 <div className="w-80 border-r border-gray-200 bg-white">
-                    {/* Quick Stats */}
                     <div className="p-4 border-b border-gray-200 bg-gray-50">
                         <h3 className="text-sm font-medium text-gray-700 mb-3">Quick Stats</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-white p-3 rounded-lg border">
-                                <div className="text-lg font-semibold text-green-600">{scheduledLoads.length}</div>
-                                <div className="text-xs text-gray-500">Scheduled</div>
+                                <div className="text-lg font-semibold text-green-600">{scheduledTrips.length}</div>
+                                <div className="text-xs text-gray-500">Scheduled Trips</div>
                             </div>
                             <div className="bg-white p-3 rounded-lg border">
-                                <div className="text-lg font-semibold text-orange-600">{unscheduledLoads.length}</div>
-                                <div className="text-xs text-gray-500">Pending</div>
+                                <div className="text-lg font-semibold text-orange-600">{unscheduledTrips.length}</div>
+                                <div className="text-xs text-gray-500">Pending Trips</div>
                             </div>
                         </div>
                         <div className="mt-3 bg-white p-3 rounded-lg border">
-                            <div className="text-lg font-semibold text-blue-600">{loads.length}</div>
-                            <div className="text-xs text-gray-500">Total Loads</div>
+                            <div className="text-lg font-semibold text-blue-600">{trips.length}</div>
+                            <div className="text-xs text-gray-500">Total Trips</div>
                         </div>
                     </div>
 
-                    {/* Tabs */}
                     <div className="border-b border-gray-200">
                         <div className="flex">
                             <button
                                 onClick={() => setActiveTab("unscheduled")}
                                 className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors
                                     ${activeTab === "unscheduled" 
-                                        ? 'border-blue-500 text-blue-600 bg-blue-50' 
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                        ? "border-blue-500 text-blue-600 bg-blue-50" 
+                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                                     }`}
                             >
-                                Unscheduled Orders
+                                Unscheduled Trips
                             </button>
                             <button
                                 onClick={() => setActiveTab("scheduled")}
                                 className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors
                                     ${activeTab === "scheduled" 
-                                        ? 'border-blue-500 text-blue-600 bg-blue-50' 
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                        ? "border-blue-500 text-blue-600 bg-blue-50" 
+                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                                     }`}
                             >
-                                Scheduled Orders
+                                Scheduled Trips
                             </button>
                         </div>
                     </div>
 
-                    {/* Loads List */}
                     <div className="p-4">
                         <div className="space-y-3">
-                            {loading ? (
-                                <div className="text-center py-8">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                                    <p className="text-gray-500 mt-2">Loading loads...</p>
-                                </div>
-                            ) : currentLoads.length > 0 ? (
-                                currentLoads.map((load) => (
+                            {currentTrips.length > 0 ? (
+                                currentTrips.map((trip) => (
                                     <div
-                                        key={load._id}
+                                        key={trip._id}
                                         draggable={activeTab === "unscheduled"}
-                                        onDragStart={() => handleDragStart(load)}
+                                        onDragStart={() => handleDragStart(trip)}
                                         onDragEnd={handleDragEnd}
                                         className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md
                                             ${activeTab === "scheduled" 
-                                                ? 'bg-green-50 border-green-200' 
-                                                : 'bg-gray-50 border-gray-200'
+                                                ? "bg-green-50 border-green-200" 
+                                                : "bg-gray-50 border-gray-200"
                                             }
-                                            ${draggedLoad?._id === load._id ? 'opacity-50' : ''}
+                                            ${draggedTrip?._id === trip._id ? "opacity-50" : ""}
                                         `}
                                         onClick={() => {
-                                            setSelectedLoad(load);
                                             if (activeTab === "unscheduled") {
+                                                setSelectedTrip(trip);
+                                                const baseDate = trip.scheduledDate
+                                                    ? new Date(trip.scheduledDate)
+                                                    : new Date(selectedDate);
+                                                setSelectedDate(baseDate);
+                                                setSelectedTime(formatTimeFromDate(trip.scheduledDate));
                                                 setShowScheduleModal(true);
                                             }
                                         }}
@@ -422,25 +415,25 @@ const SchedulerPage = () => {
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <div className="font-medium text-gray-900">
-                                                    {load.internalId || load.orderId}
+                                                    {getTripIdentifier(trip)}
                                                 </div>
                                                 <div className="text-sm text-gray-600 flex items-center mt-1">
                                                     <User className="w-3 h-3 mr-1" />
-                                                    {load.customerName || 'No customer'}
+                                                    {getCustomerName(trip)}
                                                 </div>
-                                                {load.driverName && (
+                                                {trip.driver?.name && (
                                                     <div className="text-sm text-gray-600 flex items-center mt-1">
                                                         <Truck className="w-3 h-3 mr-1" />
-                                                        {load.driverName}
+                                                        {trip.driver.name}
                                                     </div>
                                                 )}
                                                 <div className="text-xs text-gray-500 mt-2 flex items-center">
                                                     <Clock className="w-3 h-3 mr-1" />
-                                                    Status: {load.status}
+                                                    Status: {trip.status}
                                                 </div>
-                                                {load.scheduledDate && (
+                                                {trip.scheduledDate && (
                                                     <div className="text-xs text-gray-500 mt-1">
-                                                        {load.scheduledDate.toLocaleDateString("en-GB")}
+                                                        {trip.scheduledDate.toLocaleDateString("en-GB")}
                                                     </div>
                                                 )}
                                             </div>
@@ -449,7 +442,7 @@ const SchedulerPage = () => {
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            unscheduleLoad(load);
+                                                            unscheduleTrip(trip);
                                                         }}
                                                         className="p-1 text-red-600 hover:bg-red-100 rounded"
                                                         title="Unschedule"
@@ -461,7 +454,12 @@ const SchedulerPage = () => {
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            setSelectedLoad(load);
+                                                            setSelectedTrip(trip);
+                                                            const baseDate = trip.scheduledDate
+                                                                ? new Date(trip.scheduledDate)
+                                                                : new Date(selectedDate);
+                                                            setSelectedDate(baseDate);
+                                                            setSelectedTime(formatTimeFromDate(trip.scheduledDate));
                                                             setShowScheduleModal(true);
                                                         }}
                                                         className="p-1 text-blue-600 hover:bg-blue-100 rounded"
@@ -477,7 +475,7 @@ const SchedulerPage = () => {
                             ) : (
                                 <div className="text-center py-8">
                                     <Truck className="mx-auto mb-3 text-gray-300" size={32} />
-                                    <p className="text-gray-500">No loads found</p>
+                                    <p className="text-gray-500">No trips found</p>
                                     {emptyStateMessage && (
                                         <p className="text-xs text-gray-400 mt-1">{emptyStateMessage}</p>
                                     )}
@@ -487,12 +485,10 @@ const SchedulerPage = () => {
                     </div>
                 </div>
 
-                {/* Right Calendar Area */}
                 <div className="flex-1 p-6">
-                    {/* Calendar Header */}
                     <div className="flex items-center justify-between mb-6">
                         <button
-                            onClick={() => navigateMonth('prev')}
+                            onClick={() => navigateMonth("prev")}
                             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                         >
                             <ChevronLeft className="w-5 h-5" />
@@ -514,19 +510,17 @@ const SchedulerPage = () => {
                         </div>
 
                         <button
-                            onClick={() => navigateMonth('next')}
+                            onClick={() => navigateMonth("next")}
                             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                         >
                             <ChevronRight className="w-5 h-5" />
                         </button>
                     </div>
 
-                    {/* Calendar Grid */}
                     <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                         {renderCalendar()}
                     </div>
 
-                    {/* Calendar Legend */}
                     <div className="mt-4 bg-gray-50 rounded-lg p-4">
                         <h4 className="text-sm font-medium text-gray-700 mb-2">Calendar Legend</h4>
                         <div className="grid grid-cols-2 gap-2 text-xs">
@@ -540,7 +534,7 @@ const SchedulerPage = () => {
                             </div>
                             <div className="flex items-center">
                                 <div className="w-3 h-3 bg-green-100 rounded mr-2"></div>
-                                <span>Has Loads</span>
+                                <span>Has Trips</span>
                             </div>
                             <div className="flex items-center">
                                 <div className="w-3 h-3 bg-blue-50 border-2 border-dashed border-blue-300 rounded mr-2"></div>
@@ -548,42 +542,41 @@ const SchedulerPage = () => {
                             </div>
                         </div>
                         <div className="mt-2 text-xs text-gray-500">
-                            💡 Drag unscheduled loads to calendar dates to schedule them
+                            💡 Drag unscheduled trips to calendar dates to schedule them
                         </div>
                     </div>
 
-                    {/* Selected Date Loads */}
-                    {activeTab === "scheduled" && selectedDateLoads.length > 0 && (
+                    {activeTab === "scheduled" && selectedDateTrips.length > 0 && (
                         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
                             <h3 className="font-medium text-blue-800 mb-3 flex items-center">
                                 <Calendar className="w-4 h-4 mr-2" />
-                                Loads for {selectedDate.toLocaleDateString("en-GB")}
+                                Trips for {selectedDate.toLocaleDateString("en-GB")}
                             </h3>
                             <div className="space-y-3">
-                                {selectedDateLoads.map((load) => (
-                                    <div key={load._id} className="bg-white p-3 rounded border">
+                                {selectedDateTrips.map((trip) => (
+                                    <div key={trip._id} className="bg-white p-3 rounded border">
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <div className="font-medium text-gray-900">
-                                                    {load.internalId || load.orderId}
+                                                    {getTripIdentifier(trip)}
                                                 </div>
                                                 <div className="text-sm text-gray-600 flex items-center mt-1">
                                                     <User className="w-3 h-3 mr-1" />
-                                                    {load.customerName || 'No customer'}
+                                                    {getCustomerName(trip)}
                                                 </div>
-                                                {load.driverName && (
+                                                {trip.driver?.name && (
                                                     <div className="text-sm text-gray-600 flex items-center mt-1">
                                                         <Truck className="w-3 h-3 mr-1" />
-                                                        {load.driverName}
+                                                        {trip.driver.name}
                                                     </div>
                                                 )}
                                                 <div className="text-xs text-gray-500 mt-2 flex items-center">
                                                     <Clock className="w-3 h-3 mr-1" />
-                                                    Status: {load.status}
+                                                    Status: {trip.status}
                                                 </div>
                                             </div>
                                             <button
-                                                onClick={() => unscheduleLoad(load)}
+                                                onClick={() => unscheduleTrip(trip)}
                                                 className="p-1 text-red-600 hover:bg-red-100 rounded"
                                                 title="Unschedule"
                                             >
@@ -598,24 +591,28 @@ const SchedulerPage = () => {
                 </div>
             </div>
 
-            {/* Schedule Modal */}
-            {showScheduleModal && selectedLoad && (
+            {showScheduleModal && selectedTrip && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 w-96 max-w-full mx-4">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                            Schedule Load
+                            Schedule Trip
                         </h3>
                         
                         <div className="mb-4">
                             <div className="font-medium text-gray-900">
-                                {selectedLoad.internalId || selectedLoad.orderId}
+                                {getTripIdentifier(selectedTrip)}
                             </div>
                             <div className="text-sm text-gray-600">
-                                Customer: {selectedLoad.customerName || 'No customer'}
+                                Customer: {getCustomerName(selectedTrip)}
                             </div>
-                            {selectedLoad.driverName && (
+                            {selectedTrip.driver?.name && (
                                 <div className="text-sm text-gray-600">
-                                    Driver: {selectedLoad.driverName}
+                                    Driver: {selectedTrip.driver.name}
+                            </div>
+                            )}
+                            {selectedTrip.truck?.internalId && (
+                                <div className="text-sm text-gray-600">
+                                    Truck: {selectedTrip.truck.internalId}
                                 </div>
                             )}
                         </div>
@@ -626,8 +623,12 @@ const SchedulerPage = () => {
                             </label>
                             <input
                                 type="date"
-                                value={selectedDate.toISOString().split('T')[0]}
-                                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                                value={selectedDate.toISOString().split("T")[0]}
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setSelectedDate(new Date(e.target.value));
+                                    }
+                                }}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
@@ -638,7 +639,8 @@ const SchedulerPage = () => {
                             </label>
                             <input
                                 type="time"
-                                defaultValue="09:00"
+                                value={selectedTime}
+                                onChange={(e) => setSelectedTime(e.target.value || DEFAULT_SCHEDULE_TIME)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
@@ -647,7 +649,8 @@ const SchedulerPage = () => {
                             <button
                                 onClick={() => {
                                     setShowScheduleModal(false);
-                                    setSelectedLoad(null);
+                                    setSelectedTrip(null);
+                                    setSelectedTime(DEFAULT_SCHEDULE_TIME);
                                 }}
                                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
@@ -655,13 +658,14 @@ const SchedulerPage = () => {
                             </button>
                             <button
                                 onClick={() => {
-                                    scheduleLoad(selectedLoad, selectedDate);
+                                    scheduleTrip(selectedTrip, selectedDate, selectedTime);
                                     setShowScheduleModal(false);
-                                    setSelectedLoad(null);
+                                    setSelectedTrip(null);
+                                    setSelectedTime(DEFAULT_SCHEDULE_TIME);
                                 }}
                                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                Schedule Load
+                                Schedule Trip
                             </button>
                         </div>
                     </div>

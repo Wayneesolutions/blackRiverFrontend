@@ -248,6 +248,33 @@ export const deleteTicket = async (id: string) => {
   }
 };
 
+export const getComplianceInvoices = async (params?: { 
+  unitNumber?: string; 
+  driver?: string; 
+  serviceProvider?: string; 
+  search?: string; 
+  page?: number; 
+  limit?: number 
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.unitNumber) queryParams.append('unitNumber', params.unitNumber);
+    if (params?.driver) queryParams.append('driver', params.driver);
+    if (params?.serviceProvider) queryParams.append('serviceProvider', params.serviceProvider);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const queryString = queryParams.toString();
+    const url = `admin/compliance-invoices${queryString ? `?${queryString}` : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
 // Incident API Functions
 export const getIncidents = async (params?: { status?: string; type?: string; location?: string; driver?: string; search?: string; page?: number; limit?: number }) => {
   try {
@@ -333,6 +360,21 @@ export const getShifts = async (params?: { driverId?: string; startDate?: string
     return res.data;
   } catch (error) {
     console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const getTruckProfile = async (unitNumber: string, dateRange?: string, driverFilter?: string) => {
+  try {
+    const params = new URLSearchParams();
+    if (dateRange) params.append('dateRange', dateRange);
+    if (driverFilter) params.append('driverFilter', driverFilter);
+    const queryString = params.toString();
+    const url = `admin/truck-profile/${unitNumber}${queryString ? `?${queryString}` : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching truck profile:", error);
     return (error as Error).response?.data;
   }
 };

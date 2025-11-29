@@ -236,8 +236,8 @@ const OrderList = () => {
           currency: order.currency || 'CAD',
           status: order.status || 'QUOTED',
           driver: order.driver?.name || '',
-          truckNo: order.truck?.plateNumber || order.truck?.internalId || '',
-          trailerNo: order.trailer?.plateNumber || ''
+          truckNo: order.truck?.licensePlate || order.truck?.unitNo || order.truck?.internalId || '',
+          trailerNo: order.trailer?.licensePlate || order.trailer?.unitNo || ''
         }));
         setOrders(formattedOrders);
       } else {

@@ -30,7 +30,7 @@ import {
     createSupplier
 } from '../../../../axios/api/fleet.spareparts';
 import { useNavigate } from 'react-router-dom';
-import { getAllWorkOrders } from '../../../../axios/api/fleet.workorder';
+import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
 import { FLEET_COLORS } from '../colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -57,6 +57,16 @@ interface WorkOrderId {
     _id: string;
     issue: string;
     vehicleId?: VehicleId;
+    unitNumber?: string;
+    fleetUnit?: {
+        _id: string;
+        unitNo: string;
+        licensePlate: string;
+        makeModel: string;
+        make?: string;
+        model?: string;
+        vinNo?: string;
+    } | null;
 }
 
 interface Supplier {
@@ -97,12 +107,6 @@ interface SparePart {
     usageHistory: UsageHistory[];
 }
 
-interface WorkOrder {
-    _id: string;
-    issue: string;
-    vehicleId?: VehicleId;
-    status?: string;
-}
 
 interface InvoiceItem {
     partId: string;
@@ -196,10 +200,10 @@ const SparePartsInventory = () => {
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
     const [qtyUsedInput, setQtyUsedInput] = useState<string>('');
     const [spareParts, setSpareParts] = useState<SparePart[]>([]);
-    const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
+    const [trucks, setTrucks] = useState<FleetUnitDto[]>([]);
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [loadingWorkOrders, setLoadingWorkOrders] = useState<boolean>(false);
+    const [loadingTrucks, setLoadingTrucks] = useState<boolean>(false);
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
@@ -253,7 +257,7 @@ const SparePartsInventory = () => {
         notes: ''
     });
 
-    const usageDataRef = useRef({ workOrderId: '', qtyUsed: '' });
+    const usageDataRef = useRef({ unitNumber: '', qtyUsed: '' });
 
     useEffect(() => {
         try {
@@ -283,7 +287,7 @@ const SparePartsInventory = () => {
         if (!isSuperadmin && !hasCompany && !isFleetManager) {
             setSpareParts([]);
             setSuppliers([]);
-            setWorkOrders([]);
+            setTrucks([]);
             setEmptyStateMessage(null);
             setLoading(false);
             return;
@@ -301,10 +305,10 @@ const SparePartsInventory = () => {
         }
     }, [showAddModal, showEditModal]);
 
-    // Fetch work orders when usage modal opens
+    // Fetch trucks when usage modal opens
     useEffect(() => {
         if (showUsageModal) {
-            fetchWorkOrders();
+            fetchTrucks();
         }
     }, [showUsageModal]);
 
@@ -332,28 +336,28 @@ const SparePartsInventory = () => {
         }
     };
 
-    const fetchWorkOrders = async () => {
-        setLoadingWorkOrders(true);
+    const fetchTrucks = async () => {
+        setLoadingTrucks(true);
         try {
-            const res = await getAllWorkOrders();
-            if (res?.success) {
+            const res = await listFleetUnits({ category: 'trucks' });
+            if (res?.success && res?.data) {
                 const data = res.data || [];
-                setWorkOrders(data);
+                setTrucks(data);
                 if (data.length === 0) {
-                    pushBannerMessage(res.message);
+                    pushBannerMessage('No trucks available');
                 }
             } else {
-                addNotification('error', res?.message || 'Failed to fetch work orders');
-                setWorkOrders([]);
-                pushBannerMessage(res?.message || 'Failed to fetch work orders');
+                addNotification('error', res?.message || 'Failed to fetch trucks');
+                setTrucks([]);
+                pushBannerMessage(res?.message || 'Failed to fetch trucks');
             }
         } catch (err: any) {
-            console.error("Error fetching work orders:", err);
-            addNotification('error', err?.message || 'Failed to fetch work orders');
-            setWorkOrders([]);
-            pushBannerMessage(err?.message || 'Failed to fetch work orders');
+            console.error("Error fetching trucks:", err);
+            addNotification('error', err?.message || 'Failed to fetch trucks');
+            setTrucks([]);
+            pushBannerMessage(err?.message || 'Failed to fetch trucks');
         }
-        setLoadingWorkOrders(false);
+        setLoadingTrucks(false);
     };
 
     const addNotification = (type: NotificationType, message: string) => {
@@ -535,11 +539,11 @@ const SparePartsInventory = () => {
             return;
         }
 
-        const { workOrderId, qtyUsed } = usageDataRef.current;
+        const { unitNumber, qtyUsed } = usageDataRef.current;
         const quantity = Number(qtyUsed);
 
-        if (!workOrderId) {
-            addNotification('error', 'Please select a work order');
+        if (!unitNumber) {
+            addNotification('error', 'Please select a truck');
             return;
         }
 
@@ -556,7 +560,7 @@ const SparePartsInventory = () => {
         setSubmitting(true);
         try {
             const res = await useSparePart(selectedPart._id, {
-                workOrderId,
+                unitNumber,
                 qtyUsed: quantity,
             });
 
@@ -564,7 +568,7 @@ const SparePartsInventory = () => {
                 addNotification('success', res.message || 'Spare part usage recorded');
                 setShowUsageModal(false);
                 setSelectedPart(null);
-                usageDataRef.current = { workOrderId: '', qtyUsed: '' };
+                usageDataRef.current = { unitNumber: '', qtyUsed: '' };
                 setQtyUsedInput('');
                 await fetchSpareParts();
             } else {
@@ -746,14 +750,37 @@ const SparePartsInventory = () => {
 
     const getWorkOrderDetails = (usage: UsageHistory) => {
         if (typeof usage.workOrderId === 'object' && usage.workOrderId !== null) {
+            // Prioritize FleetUnit data if available
+            if (usage.workOrderId.fleetUnit) {
+                return {
+                    issue: usage.workOrderId.issue || 'N/A',
+                    truck: `${usage.workOrderId.fleetUnit.unitNo} - ${usage.workOrderId.fleetUnit.makeModel} (${usage.workOrderId.fleetUnit.licensePlate})`,
+                    vehicle: `${usage.workOrderId.fleetUnit.unitNo} - ${usage.workOrderId.fleetUnit.makeModel} (${usage.workOrderId.fleetUnit.licensePlate})`
+                };
+            }
+            // Fallback to unitNumber if available
+            if (usage.workOrderId.unitNumber) {
+                return {
+                    issue: usage.workOrderId.issue || 'N/A',
+                    truck: usage.workOrderId.unitNumber,
+                    vehicle: usage.workOrderId.unitNumber
+                };
+            }
+            // Fallback to vehicleId if available
+            if (usage.workOrderId.vehicleId) {
+                return {
+                    issue: usage.workOrderId.issue || 'N/A',
+                    truck: `${usage.workOrderId.vehicleId.licensePlate || usage.workOrderId.vehicleId.plateNumber || 'N/A'} - ${usage.workOrderId.vehicleId.make || ''} ${usage.workOrderId.vehicleId.model || ''}`.trim(),
+                    vehicle: `${usage.workOrderId.vehicleId.licensePlate || usage.workOrderId.vehicleId.plateNumber || 'N/A'} - ${usage.workOrderId.vehicleId.make || ''} ${usage.workOrderId.vehicleId.model || ''}`.trim()
+                };
+            }
             return {
                 issue: usage.workOrderId.issue || 'N/A',
-                vehicle: usage.workOrderId.vehicleId
-                    ? `${usage.workOrderId.vehicleId.licensePlate} - ${usage.workOrderId.vehicleId.make} ${usage.workOrderId.vehicleId.model}`
-                    : 'N/A'
+                truck: 'N/A',
+                vehicle: 'N/A'
             };
         }
-        return { issue: 'N/A', vehicle: 'N/A' };
+        return { issue: 'N/A', truck: 'N/A', vehicle: 'N/A' };
     };
 
     // addItemToInvoice removed; invoices handled in dedicated page
@@ -858,7 +885,7 @@ const SparePartsInventory = () => {
                             <button
                                     onClick={() => {
                                         setSelectedPart(part);
-                                        usageDataRef.current = { workOrderId: '', qtyUsed: '' };
+                                        usageDataRef.current = { unitNumber: '', qtyUsed: '' };
                                         setQtyUsedInput('');
                                         setShowUsageModal(true);
                                         setShowDropdown(false);
@@ -1944,13 +1971,13 @@ const SparePartsInventory = () => {
                                 <h3 className="text-xl font-bold text-gray-800 mb-2">
                                     Use Spare Part
                                 </h3>
-                                <p className="text-sm text-gray-600">Record usage of this part in a work order</p>
+                                <p className="text-sm text-gray-600">Record usage of this part for a truck</p>
                             </div>
                             <button
                                 onClick={() => {
                                     setShowUsageModal(false);
                                     setSelectedPart(null);
-                                    usageDataRef.current = { workOrderId: '', qtyUsed: '' };
+                                    usageDataRef.current = { unitNumber: '', qtyUsed: '' };
                                     setQtyUsedInput('');
                                 }}
                                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -1989,44 +2016,36 @@ const SparePartsInventory = () => {
                         <form onSubmit={handleUsePart} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Work Order <span className="text-red-500">*</span>
+                                    Truck <span className="text-red-500">*</span>
                                 </label>
-                                {loadingWorkOrders ? (
+                                {loadingTrucks ? (
                                     <div className="flex items-center justify-center py-8 bg-gray-50 rounded-lg">
                                         <div
                                             className="animate-spin rounded-full h-8 w-8 border-b-2"
                                             style={{ borderColor: 'rgba(1, 106, 178, 0.2)', borderBottomColor: ACCENT_PRIMARY }}
                                         ></div>
-                                        <span className="ml-3 text-sm text-gray-500">Loading work orders...</span>
+                                        <span className="ml-3 text-sm text-gray-500">Loading trucks...</span>
                                     </div>
-                                ) : workOrders.length === 0 ? (
+                                ) : trucks.length === 0 ? (
                                     <div className="py-8 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
                                         <FaExclamationCircle className="text-yellow-600 mx-auto mb-2" size={24} />
-                                        <p className="text-sm text-yellow-800">No work orders available</p>
-                                        <p className="text-xs text-yellow-600 mt-1">Create a work order first to use this part</p>
+                                        <p className="text-sm text-yellow-800">No trucks available</p>
+                                        <p className="text-xs text-yellow-600 mt-1">Add trucks to your fleet first</p>
                                     </div>
                                 ) : (
                                     <select
-                                        defaultValue={usageDataRef.current.workOrderId}
-                                        onChange={(e) => usageDataRef.current.workOrderId = e.target.value}
+                                        defaultValue={usageDataRef.current.unitNumber}
+                                        onChange={(e) => usageDataRef.current.unitNumber = e.target.value}
                                         className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all bg-white"
                                         style={focusRingStyle}
                                         required
                                     >
-                                        <option value="">Select Work Order</option>
-                                        {workOrders.map(wo => {
-                                            const vehicleInfo = wo.vehicleId 
-                                                ? (wo.vehicleId.plateNumber || wo.vehicleId.licensePlate || wo.vehicleId.internalId || 'N/A')
-                                                : 'No Vehicle';
-                                            const vehicleDetails = wo.vehicleId 
-                                                ? (wo.vehicleId.make && wo.vehicleId.model ? ` (${wo.vehicleId.make} ${wo.vehicleId.model})` : '')
-                                                : '';
-                                            return (
-                                                <option key={wo._id} value={wo._id}>
-                                                    {wo.issue} - {vehicleInfo}{vehicleDetails} {wo.status ? `[${wo.status}]` : ''}
-                                                </option>
-                                            );
-                                        })}
+                                        <option value="">Select Truck</option>
+                                        {trucks.map(truck => (
+                                            <option key={truck._id} value={truck.unitNo}>
+                                                {truck.unitNo} - {truck.makeModel} ({truck.licensePlate})
+                                            </option>
+                                        ))}
                                     </select>
                                 )}
                             </div>
@@ -2059,7 +2078,7 @@ const SparePartsInventory = () => {
                                     onClick={() => {
                                         setShowUsageModal(false);
                                         setSelectedPart(null);
-                                        usageDataRef.current = { workOrderId: '', qtyUsed: '' };
+                                        usageDataRef.current = { unitNumber: '', qtyUsed: '' };
                                     }}
                                     className="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
                                     disabled={submitting}
@@ -2070,7 +2089,7 @@ const SparePartsInventory = () => {
                                     type="submit"
                                     className="px-5 py-2.5 !text-white !ml-3 rounded-lg font-medium transition-colors shadow-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                     style={{ background: ACCENT_GRADIENT }}
-                                    disabled={submitting || loadingWorkOrders || workOrders.length === 0}
+                                    disabled={submitting || loadingTrucks || trucks.length === 0}
                                 >
                                     {submitting ? 'Processing...' : 'Use Part'}
                                 </button>
@@ -2153,20 +2172,22 @@ const SparePartsInventory = () => {
                                                 return (
                                                     <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                                         <div className="flex justify-between items-start mb-2">
-                                                            <span className="text-sm font-semibold text-gray-700">Update #{index + 1}</span>
+                                                            <span className="text-sm font-semibold text-gray-700">Usage #{index + 1}</span>
                                                             <span className="text-xs text-gray-500">
                                                                 {formatDate(usage.usedOn)}
                                                             </span>
                                                         </div>
-                                                        <div className="font-medium text-gray-900">
+                                                        <div className="font-medium text-gray-900 mb-2">
                                                             {usage.qtyUsed} units used
                                                         </div>
-                                                        <div className="text-sm text-gray-600 mt-1">
-                                                            Work Order: {details.issue}
+                                                        <div className="text-sm font-semibold text-blue-700 mb-1">
+                                                            Truck: {details.truck}
                                                         </div>
-                                                        <div className="text-sm text-gray-500">
-                                                            Vehicle: {details.vehicle}
-                                                        </div>
+                                                        {details.issue && details.issue !== 'N/A' && (
+                                                            <div className="text-xs text-gray-500 mt-1">
+                                                                Work Order: {details.issue}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 );
                                             })

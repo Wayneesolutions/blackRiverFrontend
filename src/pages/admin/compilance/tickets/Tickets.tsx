@@ -32,9 +32,8 @@ import {
   updateTicket,
   deleteTicket
 } from '../../../../axios/api/admin';
-import { listVehicle } from '../../../../axios/api/distapcher';
+import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
 import { listDriver } from '../../../../axios/api/distapcher';
-import { listTrailers } from '../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -99,11 +98,13 @@ interface Ticket {
 
 interface Vehicle {
   _id: string;
-  internalId: string;
+  internalId?: string;
   plateNumber: string;
+  licensePlate?: string;
   make: string;
   model: string;
-  year: number;
+  makeModel?: string;
+  year?: number;
 }
 
 interface Driver {
@@ -114,9 +115,11 @@ interface Driver {
 
 interface Trailer {
   _id: string;
-  trailer: string;
+  unitNo?: string;
+  trailer?: string;
   internalId?: string;
   plateNumber?: string;
+  licensePlate?: string;
 }
 
 interface LawyerDetails {
@@ -258,13 +261,24 @@ const Tickets: React.FC = () => {
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const notificationIdRef = useRef(0);
 
-  // Fetch vehicles, drivers, and trailers
+  // Fetch vehicles, drivers, and trailers (using FleetUnit)
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const res = await listVehicle();
-        if (res?.success && res?.data?.vehicles) {
-          setVehicles(res.data.vehicles);
+        const res = await listFleetUnits({ category: "trucks" });
+        if (res?.success && res?.data) {
+          // Map FleetUnit to Vehicle interface format
+          const mappedVehicles: Vehicle[] = res.data.map((unit: FleetUnitDto) => ({
+            _id: unit._id,
+            internalId: unit.internalId || unit.unitNo,
+            plateNumber: unit.licensePlate || 'N/A',
+            licensePlate: unit.licensePlate,
+            make: unit.make || unit.makeModel?.split(' ')[0] || 'Unknown',
+            model: unit.model || unit.makeModel?.split(' ').slice(1).join(' ') || 'Unknown',
+            makeModel: unit.makeModel,
+            year: unit.year
+          }));
+          setVehicles(mappedVehicles);
         }
       } catch (error) {
         console.error('Error fetching vehicles:', error);
@@ -287,10 +301,18 @@ const Tickets: React.FC = () => {
 
     const fetchTrailers = async () => {
       try {
-        const res = await listTrailers();
+        const res = await listFleetUnits({ category: "trailers" });
         if (res?.success && res?.data) {
-          const trailerList = Array.isArray(res.data) ? res.data : (res.data?.trailers || []);
-          setTrailers(trailerList);
+          // Map FleetUnit to Trailer interface format
+          const mappedTrailers: Trailer[] = res.data.map((unit: FleetUnitDto) => ({
+            _id: unit._id,
+            unitNo: unit.unitNo,
+            trailer: unit.unitNo || unit.licensePlate || 'N/A',
+            internalId: unit.internalId || unit.unitNo,
+            plateNumber: unit.licensePlate || 'N/A',
+            licensePlate: unit.licensePlate
+          }));
+          setTrailers(mappedTrailers);
         }
       } catch (error) {
         console.error('Error fetching trailers:', error);
@@ -460,10 +482,17 @@ const Tickets: React.FC = () => {
   const getVehicleInfo = (vehicle: Ticket['vehicle']): string => {
     if (typeof vehicle === 'string') {
       const v = vehicles.find(v => v._id === vehicle);
-      return v ? `${v.make} ${v.model} - ${v.plateNumber}` : '';
+      if (v) {
+        const plate = v.plateNumber || v.licensePlate || 'N/A';
+        return `${v.make} ${v.model} - ${plate}`;
+      }
+      return '';
     }
-    if (vehicle?.make && vehicle?.model && vehicle?.plateNumber) {
-      return `${vehicle.make} ${vehicle.model} - ${vehicle.plateNumber}`;
+    if (vehicle) {
+      const make = vehicle.make || 'Unknown';
+      const model = vehicle.model || 'Unknown';
+      const plate = vehicle.plateNumber || 'N/A';
+      return `${make} ${model} - ${plate}`;
     }
     return '';
   };
@@ -474,6 +503,18 @@ const Tickets: React.FC = () => {
       return d ? d.name : '';
     }
     return driver?.name || '';
+  };
+
+  const formatPaymentMethod = (method?: string): string => {
+    if (!method) return '';
+    const methodMap: Record<string, string> = {
+      'cash': 'Cash',
+      'check': 'Check',
+      'credit_card': 'Credit Card',
+      'online': 'Online Payment',
+      'other': 'Other'
+    };
+    return methodMap[method] || method;
   };
 
   const getStatusIcon = (status: string) => {
@@ -1441,8 +1482,8 @@ const Tickets: React.FC = () => {
                   >
                     <option value="">Select Trailer</option>
                     {trailers.map((trailer) => (
-                      <option key={trailer._id} value={trailer.trailer || trailer._id}>
-                        {trailer.trailer || trailer.plateNumber || trailer.internalId || trailer._id}
+                      <option key={trailer._id} value={trailer.unitNo || trailer.trailer || trailer._id}>
+                        {trailer.unitNo || trailer.trailer || trailer.plateNumber || trailer.licensePlate || trailer.internalId || 'N/A'}
                       </option>
                     ))}
                   </select>
@@ -1557,13 +1598,11 @@ const Tickets: React.FC = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="">Select Payment Method</option>
-                        <option value="Cash">Cash</option>
-                        <option value="Credit Card">Credit Card</option>
-                        <option value="Debit Card">Debit Card</option>
-                        <option value="Check">Check</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="Online Payment">Online Payment</option>
-                        <option value="Other">Other</option>
+                        <option value="cash">Cash</option>
+                        <option value="credit_card">Credit Card</option>
+                        <option value="check">Check</option>
+                        <option value="online">Online Payment</option>
+                        <option value="other">Other</option>
                       </select>
                     </div>
                     <div className="col-span-2">
@@ -1886,8 +1925,8 @@ const Tickets: React.FC = () => {
                   >
                     <option value="">Select Trailer</option>
                     {trailers.map((trailer) => (
-                      <option key={trailer._id} value={trailer.trailer || trailer._id}>
-                        {trailer.trailer || trailer.plateNumber || trailer.internalId || trailer._id}
+                      <option key={trailer._id} value={trailer.unitNo || trailer.trailer || trailer._id}>
+                        {trailer.unitNo || trailer.trailer || trailer.plateNumber || trailer.licensePlate || trailer.internalId || 'N/A'}
                       </option>
                     ))}
                   </select>
@@ -2002,13 +2041,11 @@ const Tickets: React.FC = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="">Select Payment Method</option>
-                        <option value="Cash">Cash</option>
-                        <option value="Credit Card">Credit Card</option>
-                        <option value="Debit Card">Debit Card</option>
-                        <option value="Check">Check</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="Online Payment">Online Payment</option>
-                        <option value="Other">Other</option>
+                        <option value="cash">Cash</option>
+                        <option value="credit_card">Credit Card</option>
+                        <option value="check">Check</option>
+                        <option value="online">Online Payment</option>
+                        <option value="other">Other</option>
                       </select>
                     </div>
                     <div className="col-span-2">
@@ -2351,7 +2388,7 @@ const Tickets: React.FC = () => {
                     {selectedTicket.paymentMethod && (
                       <div>
                         <label className="block text-sm font-medium text-gray-600 mb-1">Payment Method</label>
-                        <p className="text-lg font-semibold text-gray-800">{selectedTicket.paymentMethod}</p>
+                        <p className="text-lg font-semibold text-gray-800">{formatPaymentMethod(selectedTicket.paymentMethod)}</p>
                       </div>
                     )}
                     {selectedTicket.paymentReference && (

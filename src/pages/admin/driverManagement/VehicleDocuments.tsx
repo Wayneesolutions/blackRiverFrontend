@@ -62,11 +62,13 @@ interface Document {
   assetType?: AssetType;
   vehicleId?: string;
   trailerId?: string;
+  fleetUnitId?: string;
 }
 
 interface VehicleDocument {
   _id: string;
   assetType: AssetType;
+  sourceType?: 'vehicle' | 'trailer' | 'fleetUnit';
   vehicle: Vehicle;
   documents: Document[];
 }
@@ -74,6 +76,7 @@ interface VehicleDocument {
 interface FormData {
   vehicleId: string;
   trailerId: string;
+  fleetUnitId: string;
   assetType: AssetType;
   documentType: 'insurance' | 'permit' | 'fitness' | 'pollution' | 'driver_license' | 'logbook' | 'maintenance' | 'trailer_registration' | 'safety_inspection' | 'brake_certificate' | 'coupling_certificate' | 'other';
   documentNumber: string;
@@ -186,10 +189,11 @@ function VehicleDocument() {
   const [signedFileUrl, setSignedFileUrl] = useState<string | null>(null);
   const [loadingFileUrl, setLoadingFileUrl] = useState<boolean>(false);
   const [viewerError, setViewerError] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'trailer'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'vehicles' | 'trailers'>('all');
   const [formData, setFormData] = useState<FormData>({
     vehicleId: "",
     trailerId: "",
+    fleetUnitId: "",
     assetType: "vehicle",
     documentType: "insurance",
     documentNumber: "",
@@ -226,12 +230,14 @@ function VehicleDocument() {
       assetType: "vehicle" as AssetType,
       vehicle,
       documents: [],
+      sourceType: "vehicle" as const,
     }));
     const trailerEntries = normalizedTrailers.map((trailer) => ({
       _id: trailer._id,
       assetType: "trailer" as AssetType,
       vehicle: trailer,
       documents: [],
+      sourceType: "trailer" as const,
     }));
     return [...vehicleEntries, ...trailerEntries];
   }, [normalizedVehicles, normalizedTrailers]);
@@ -266,6 +272,7 @@ function VehicleDocument() {
                     : assetType,
                 vehicleId: doc?.vehicleId ? String(doc.vehicleId) : undefined,
                 trailerId: doc?.trailerId ? String(doc.trailerId) : undefined,
+                fleetUnitId: doc?.fleetUnitId ? String(doc.fleetUnitId) : undefined,
               }))
             : [];
 
@@ -274,6 +281,7 @@ function VehicleDocument() {
             assetType,
             vehicle: normalized,
             documents,
+            sourceType: item?.sourceType || (assetType === "trailer" ? "trailer" : "vehicle"),
           });
         });
 
@@ -305,10 +313,11 @@ function VehicleDocument() {
   const handleAddDocument = () => {
     setEditingDoc(null);
     setSelectedFile(null);
-    const defaultAssetType: AssetType = activeTab === 'trailer' ? 'trailer' : 'vehicle';
+    const defaultAssetType: AssetType = activeTab === 'trailers' ? 'trailer' : 'vehicle';
     setFormData({
       vehicleId: "",
       trailerId: "",
+      fleetUnitId: "",
       assetType: defaultAssetType,
       documentType: "insurance",
       documentNumber: "",
@@ -330,15 +339,19 @@ function VehicleDocument() {
         ? "trailer"
         : "vehicle";
 
+    const hasFleetUnit = Boolean(doc.fleetUnitId);
     const rawId =
-      inferredAssetType === "trailer"
-        ? doc?.trailerId || asset?.vehicle?._id
-        : doc?.vehicleId || asset?.vehicle?._id;
+      hasFleetUnit
+        ? doc.fleetUnitId
+        : inferredAssetType === "trailer"
+          ? doc?.trailerId || asset?.vehicle?._id
+          : doc?.vehicleId || asset?.vehicle?._id;
     const selectedAssetId = rawId ? String(rawId) : "";
 
     setFormData({
-      vehicleId: inferredAssetType === "vehicle" ? selectedAssetId : "",
-      trailerId: inferredAssetType === "trailer" ? selectedAssetId : "",
+      vehicleId: !hasFleetUnit && inferredAssetType === "vehicle" ? selectedAssetId : "",
+      trailerId: !hasFleetUnit && inferredAssetType === "trailer" ? selectedAssetId : "",
+      fleetUnitId: hasFleetUnit ? selectedAssetId : "",
       assetType: inferredAssetType,
       documentType: doc.documentType || "insurance",
       documentNumber: doc.documentNumber || "",
@@ -409,8 +422,9 @@ function VehicleDocument() {
     setFormData((prev) => ({
       ...prev,
       assetType,
-      vehicleId: assetType === "vehicle" ? prev.vehicleId : "",
-      trailerId: assetType === "trailer" ? prev.trailerId : "",
+      vehicleId: "",
+      trailerId: "",
+      fleetUnitId: "",
     }));
     
     // Restore scroll position after state update
@@ -426,10 +440,16 @@ function VehicleDocument() {
     const scrollPosition = modalBodyRef.current?.scrollTop || 0;
     const value = e.target.value;
     
+    const asset = documentsWithFallback.find((item) => item._id === value);
+    const assetType = asset?.assetType || formData.assetType;
+    const sourceType = asset?.sourceType || (assetType === "trailer" ? "trailer" : "vehicle");
+    
     setFormData((prev) => ({
       ...prev,
-      vehicleId: prev.assetType === "vehicle" ? value : "",
-      trailerId: prev.assetType === "trailer" ? value : "",
+      assetType,
+      vehicleId: sourceType === "vehicle" ? value : "",
+      trailerId: sourceType === "trailer" ? value : "",
+      fleetUnitId: sourceType === "fleetUnit" ? value : "",
     }));
     
     // Restore scroll position after state update
@@ -442,7 +462,12 @@ function VehicleDocument() {
 
   const handleSubmitDocument = async () => {
     const isTrailer = formData.assetType === "trailer";
-    const selectedAssetId = isTrailer ? formData.trailerId : formData.vehicleId;
+    const usingFleetUnit = Boolean(formData.fleetUnitId);
+    const selectedAssetId = usingFleetUnit
+      ? formData.fleetUnitId
+      : isTrailer
+        ? formData.trailerId
+        : formData.vehicleId;
 
     if (!selectedAssetId || !formData.documentNumber || !formData.expiryDate || !formData.issuedAt) {
       addNotification('error', "Please fill all required fields");
@@ -453,12 +478,18 @@ function VehicleDocument() {
 
     const data = new FormData();
     data.append("assetType", formData.assetType);
-    if (isTrailer) {
+    if (usingFleetUnit) {
+      data.append("fleetUnitId", selectedAssetId);
+      data.append("vehicleId", "");
+      data.append("trailerId", "");
+    } else if (isTrailer) {
       data.append("trailerId", selectedAssetId);
       data.append("vehicleId", "");
+      data.append("fleetUnitId", "");
     } else {
       data.append("vehicleId", selectedAssetId);
       data.append("trailerId", "");
+      data.append("fleetUnitId", "");
     }
     data.append("documentType", formData.documentType);
     data.append("documentNumber", formData.documentNumber);
@@ -562,41 +593,42 @@ function VehicleDocument() {
     return map[assetType];
   };
 
-  const getSelectableAssets = useCallback(
-    (assetTypeOverride?: AssetType) => {
-      const resolvedType: AssetType =
-        assetTypeOverride ||
-        (activeTab === "trailer" ? "trailer" : "vehicle");
-      return resolvedType === "trailer" ? normalizedTrailers : normalizedVehicles;
-    },
-    [activeTab, normalizedTrailers, normalizedVehicles]
-  );
-
-  const getDocumentsWithFallback = () => {
-    if (vehicleDocuments.length) return vehicleDocuments;
-    return fallbackEntries;
-  };
+  const documentsWithFallback = useMemo<VehicleDocument[]>(() => {
+    return vehicleDocuments.length ? vehicleDocuments : fallbackEntries;
+  }, [vehicleDocuments, fallbackEntries]);
 
   const getFilteredVehicles = () => {
-    const docs = getDocumentsWithFallback();
-    if (activeTab === "trailer") {
-      return docs.filter((item) => item.assetType === "trailer");
+    if (activeTab === "vehicles") {
+      return documentsWithFallback.filter((item) => item.assetType === "vehicle");
     }
-    // When activeTab is "all", only show vehicles (exclude trailers)
-    return docs.filter((item) => item.assetType === "vehicle");
+    if (activeTab === "trailers") {
+      return documentsWithFallback.filter((item) => item.assetType === "trailer");
+    }
+    return documentsWithFallback;
   };
 
   const tabStats = useMemo(() => {
-    const docs = getDocumentsWithFallback();
-    const vehicles = docs.filter((item) => item.assetType === "vehicle").length;
-    const trailers = docs.filter((item) => item.assetType === "trailer").length;
-    return { vehicles, trailers };
-  }, [vehicleDocuments, fallbackEntries, activeTab]);
+    const vehicles = documentsWithFallback.filter((item) => item.assetType === "vehicle").length;
+    const trailers = documentsWithFallback.filter((item) => item.assetType === "trailer").length;
+    const total = documentsWithFallback.length;
+    return { total, vehicles, trailers };
+  }, [documentsWithFallback]);
+
+  const getSelectableAssets = useCallback(
+    (assetTypeOverride?: AssetType) => {
+      const resolvedType: AssetType = assetTypeOverride || formData.assetType;
+      return documentsWithFallback.filter((item) => item.assetType === resolvedType);
+    },
+    [documentsWithFallback, formData.assetType]
+  );
 
 const DocumentModal = () => {
   const currentAssetType = formData.assetType;
   const selectableAssets = getSelectableAssets(currentAssetType);
-  const selectedAssetId = currentAssetType === "trailer" ? formData.trailerId : formData.vehicleId;
+  const selectedAssetId =
+    currentAssetType === "trailer"
+      ? formData.fleetUnitId || formData.trailerId
+      : formData.fleetUnitId || formData.vehicleId;
   const selectedAsset = selectableAssets.find((asset) => asset._id === selectedAssetId);
   const assetInfo = getVehicleTypeInfo(currentAssetType);
 
@@ -708,7 +740,7 @@ const DocumentModal = () => {
             <select
               className="w-full border border-gray-300 rounded-lg p-3 bg-white focus:ring-2 focus:border-transparent transition-all"
               style={focusRingStyle}
-              value={selectedAssetId}
+              value={selectedAssetId || ""}
               onChange={handleAssetSelectChange}
               required
               onFocus={(e) => {
@@ -730,7 +762,7 @@ const DocumentModal = () => {
                   {currentAssetType === "trailer" ? "No trailers available" : "No vehicles available"}
                 </option>
               ) : (
-                selectableAssets.map((asset: Vehicle) => {
+                selectableAssets.map((asset) => {
                   const info = getVehicleTypeInfo(asset.assetType);
                   return (
                     <option key={asset._id} value={asset._id}>
@@ -739,6 +771,7 @@ const DocumentModal = () => {
                         ? `${asset.trailerName || asset.make || "Trailer"} (${asset.type || "Type N/A"})`
                         : `${asset.make ?? "Vehicle"} ${asset.model ?? ""} (${asset.year ?? "N/A"})`}{" "}
                       {asset.plateNumber ? `- ${asset.plateNumber}` : ""}
+                      {asset.sourceType === "fleetUnit" ? " • Fleet Unit" : ""}
                     </option>
                   );
                 })
@@ -763,6 +796,9 @@ const DocumentModal = () => {
                       {selectedAsset.assetType === "trailer"
                         ? selectedAsset.trailerName || selectedAsset.make
                         : `${selectedAsset.make ?? ""} ${selectedAsset.model ?? ""}`}
+                      {selectedAsset.sourceType === "fleetUnit" && (
+                        <span className="text-xs text-gray-500 font-medium ml-2">(Fleet Unit)</span>
+                      )}
                     </p>
                     <p className="text-sm text-gray-600">
                       {selectedAsset.assetType === "trailer"
@@ -1509,12 +1545,12 @@ const DocumentModal = () => {
 
       {/* Tabs */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-6">
-        <div className="flex border-b border-gray-200">
+        <div className="flex flex-col md:flex-row border-b border-gray-200 divide-y md:divide-y-0">
           <button
             onClick={() => setActiveTab('all')}
             className={`flex-1 px-6 py-4 text-sm font-semibold transition-all ${
               activeTab === 'all'
-                ? 'border-b-2'
+                ? 'border-b-2 md:border-b-0 md:border-r-2'
                 : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
             }`}
             style={
@@ -1525,16 +1561,37 @@ const DocumentModal = () => {
           >
             <div className="flex items-center justify-center gap-2">
               <FaCar className="text-gray-500" size={16} />
-              All Vehicles
+              All Units
               <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
+                {tabStats.total}
+              </span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('vehicles')}
+            className={`flex-1 px-6 py-4 text-sm font-semibold transition-all ${
+              activeTab === 'vehicles'
+                ? 'border-b-2 md:border-b-0 md:border-r-2'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+            }`}
+            style={
+              activeTab === 'vehicles'
+                ? { color: ACCENT_PRIMARY, borderColor: ACCENT_PRIMARY, backgroundColor: "rgba(1, 106, 178, 0.05)" }
+                : undefined
+            }
+          >
+            <div className="flex items-center justify-center gap-2">
+              <FaCar className="text-blue-500" size={16} />
+              Trucks
+              <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs font-medium">
                 {tabStats.vehicles}
               </span>
             </div>
           </button>
           <button
-            onClick={() => setActiveTab('trailer')}
+            onClick={() => setActiveTab('trailers')}
             className={`flex-1 px-6 py-4 text-sm font-semibold transition-all ${
-              activeTab === 'trailer'
+              activeTab === 'trailers'
                 ? 'text-green-600 border-b-2 border-green-600 bg-green-50'
                 : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
             }`}

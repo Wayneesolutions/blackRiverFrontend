@@ -25,7 +25,8 @@ import {
   updateIncident,
   deleteIncident
 } from '../../../../axios/api/admin';
-import { listVehicle } from '../../../../axios/api/distapcher';
+import { createIssue } from '../../../../axios/api/distapcher';
+import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { listTrailers } from '../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
@@ -111,11 +112,15 @@ interface Incident {
 
 interface Vehicle {
   _id: string;
-  internalId: string;
-  plateNumber: string;
-  make: string;
-  model: string;
-  year: number;
+  unitNo: string;
+  internalId?: string;
+  licensePlate: string;
+  plateNumber?: string;
+  makeModel: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  vinNo?: string;
   vin?: string;
 }
 
@@ -148,6 +153,7 @@ interface IncidentForm {
   driversLicense?: string;
   reportingParty?: string;
   unitNumber?: string;
+  alsoCreateAsAccident?: boolean;
   trailerNumber?: string;
   vinPlateNumber?: string;
   damageDescription?: string;
@@ -193,7 +199,7 @@ const ToastNotification: React.FC<ToastNotification & { onRemove: () => void }> 
 const Incidents: React.FC = () => {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [, setVehicles] = useState<Vehicle[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -225,7 +231,8 @@ const Incidents: React.FC = () => {
     },
     incidentType: '',
     incidentStatus: 'open',
-    driver: ''
+    driver: '',
+    alsoCreateAsAccident: false // New field for creating accident
   });
   
   // Notifications
@@ -321,9 +328,23 @@ const Incidents: React.FC = () => {
 
   const loadVehicles = async () => {
     try {
-      const res = await listVehicle();
-      if (res && res.data) {
-        setVehicles(res.data);
+      const res = await listFleetUnits({ category: 'trucks' });
+      if (res && res.success && res.data) {
+        // Map FleetUnit to Vehicle format for compatibility
+        const mappedVehicles: Vehicle[] = res.data.map((unit: FleetUnitDto) => ({
+          _id: unit._id,
+          unitNo: unit.unitNo,
+          internalId: unit.internalId,
+          licensePlate: unit.licensePlate,
+          plateNumber: unit.licensePlate,
+          makeModel: unit.makeModel,
+          make: unit.make,
+          model: unit.model,
+          year: unit.year,
+          vinNo: unit.vinNo,
+          vin: unit.vinNo
+        }));
+        setVehicles(mappedVehicles);
       }
     } catch (error) {
       console.error('Error loading vehicles:', error);
@@ -410,7 +431,8 @@ const Incidents: React.FC = () => {
       },
       incidentType: '',
       incidentStatus: 'open',
-      driver: ''
+      driver: '',
+      alsoCreateAsAccident: false
     });
   };
 
@@ -517,7 +539,63 @@ const Incidents: React.FC = () => {
 
       const res = await createIncident(payload);
       if (res && res.success && res.data) {
-        addNotification('success', 'Incident created successfully');
+        // If "Also create as accident" is checked, create an Issue with issueType='accident'
+        if (incidentForm.alsoCreateAsAccident) {
+          try {
+            // Find the vehicle (FleetUnit) by unitNumber
+            let vehicleId = null;
+            if (incidentForm.unitNumber) {
+              const fleetUnitsResponse = await listFleetUnits({ category: 'trucks' });
+              if (fleetUnitsResponse?.success && fleetUnitsResponse?.data) {
+                const matchingUnit = fleetUnitsResponse.data.find(
+                  (unit: FleetUnitDto) => unit.unitNo === incidentForm.unitNumber
+                );
+                if (matchingUnit) {
+                  vehicleId = matchingUnit._id;
+                }
+              }
+            }
+
+            // Build address string from location
+            const addressParts = [];
+            if (incidentForm.location.city) addressParts.push(incidentForm.location.city);
+            if (incidentForm.location.stateProvince) addressParts.push(incidentForm.location.stateProvince);
+            const address = addressParts.join(', ') || undefined;
+
+            // Create issue payload
+            const issuePayload: any = {
+              issueType: 'accident',
+              issueCategory: 'minor-damage', // Default, can be adjusted
+              issueReport: incidentForm.description || incidentForm.incidentType || 'Accident reported',
+              priority: 'high', // Accidents are typically high priority
+              status: incidentForm.incidentStatus === 'open' ? 'open' : incidentForm.incidentStatus === 'closed' ? 'closed' : 'in-progress',
+              driver: incidentForm.driver,
+              address: address
+            };
+
+            if (vehicleId) {
+              issuePayload.vehicle = vehicleId;
+            }
+
+            if (incidentForm.reportingParty) {
+              issuePayload.reportedBy = incidentForm.reportingParty;
+            }
+
+            // Create the issue
+            const issueRes = await createIssue(issuePayload);
+            if (issueRes && issueRes.success) {
+              addNotification('success', 'Incident and accident created successfully');
+            } else {
+              addNotification('error', 'Incident created, but failed to create accident: ' + (issueRes?.message || 'Unknown error'));
+            }
+          } catch (issueError: any) {
+            console.error('Error creating accident issue:', issueError);
+            addNotification('error', 'Incident created, but failed to create accident: ' + (issueError?.response?.data?.message || issueError?.message || 'Unknown error'));
+          }
+        } else {
+          addNotification('success', 'Incident created successfully');
+        }
+
         setShowAddModal(false);
         resetForm();
         setCurrentPage(1); // Reset to first page to see the new incident
@@ -1190,13 +1268,18 @@ const Incidents: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Unit Number</label>
-                    <input
-                      type="text"
-                      placeholder="Unit number"
+                    <select
                       value={incidentForm.unitNumber || ''}
                       onChange={(e) => setIncidentForm(prev => ({ ...prev, unitNumber: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
-                    />
+                    >
+                      <option value="">Select Truck</option>
+                      {vehicles.map((vehicle) => (
+                        <option key={vehicle._id} value={vehicle.unitNo}>
+                          {vehicle.unitNo} - {vehicle.makeModel} ({vehicle.licensePlate})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Trailer Number</label>
@@ -1260,6 +1343,18 @@ const Incidents: React.FC = () => {
                         className="w-4 h-4 text-[var(--accent-color)] border-gray-300 rounded focus:ring-[var(--accent-color)]"
                       />
                       <span className="text-sm font-medium text-gray-700">CVSA & DOT Impact</span>
+                    </label>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="flex items-center gap-2 mb-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={incidentForm.alsoCreateAsAccident || false}
+                        onChange={(e) => setIncidentForm(prev => ({ ...prev, alsoCreateAsAccident: e.target.checked }))}
+                        className="w-4 h-4 text-[var(--accent-color)] border-gray-300 rounded focus:ring-[var(--accent-color)]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Also create as accident (Issue)</span>
+                      <span className="text-xs text-gray-500">(Creates an accident record in the Issues system)</span>
                     </label>
                   </div>
                   {incidentForm.fmcsaReportable && (

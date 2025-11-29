@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit, Trash2, Search, Truck, CheckCircle, XCircle, Filter } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Truck, CheckCircle, XCircle, Filter, MapPin } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import {
   listFleetUnits,
@@ -21,6 +21,7 @@ type FleetUnit = FleetUnitDto & {
 
 interface FleetUnitFormData {
   unitNo: string;
+  internalId: string;
   unitType: UnitType;
   makeModel: string;
   vinNo: string;
@@ -33,6 +34,7 @@ interface FleetUnitFormData {
   currentOdometer: string;
   status: UnitStatus;
   operationStatus: string;
+  address: string;
   lastDate: string;
   reason: string;
 }
@@ -67,6 +69,7 @@ const FleetUnits: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FleetUnitFormData>({
     unitNo: '',
+    internalId: '',
     unitType: 'Truck',
     makeModel: '',
     vinNo: '',
@@ -79,6 +82,7 @@ const FleetUnits: React.FC = () => {
     currentOdometer: '',
     status: 'Active',
     operationStatus: 'available',
+    address: '',
     lastDate: '',
     reason: ''
   });
@@ -86,6 +90,7 @@ const FleetUnits: React.FC = () => {
   const resetForm = () => {
     setFormData({
       unitNo: '',
+      internalId: '',
       unitType: 'Truck',
       makeModel: '',
       vinNo: '',
@@ -98,6 +103,7 @@ const FleetUnits: React.FC = () => {
       currentOdometer: '',
       status: 'Active',
       operationStatus: 'available',
+      address: '',
       lastDate: '',
       reason: ''
     });
@@ -153,6 +159,7 @@ const FleetUnits: React.FC = () => {
     setSelectedUnit(unit);
     setFormData({
       unitNo: unit.unitNo,
+      internalId: unit.internalId || '',
       unitType: unit.unitType as UnitType,
       makeModel: unit.makeModel,
       vinNo: unit.vinNo,
@@ -165,6 +172,7 @@ const FleetUnits: React.FC = () => {
       currentOdometer: (unit.currentOdometer ?? unit.initialOdometer ?? 0).toString(),
       status: unit.status as UnitStatus,
       operationStatus: unit.operationStatus || 'available',
+      address: unit.currentLocation?.address || '',
       lastDate: unit.lastDate ? unit.lastDate.slice(0, 10) : '',
       reason: unit.reason || ''
     });
@@ -185,24 +193,32 @@ const FleetUnits: React.FC = () => {
       return;
     }
 
-    const payload = {
+    // Map UnitType to FleetUnitType - if it's just "Trailer", use the selected trailerType
+    const mappedUnitType: import('../../../../axios/api/fleet.units').FleetUnitType = 
+      formData.unitType === 'Truck' 
+        ? 'Truck' 
+        : (formData.trailerType as import('../../../../axios/api/fleet.units').FleetUnitType) || 'Dry Van';
+
+    const payload: import('../../../../axios/api/fleet.units').FleetUnitPayload = {
       unitNo: formData.unitNo.trim(),
-        unitType: formData.unitType,
+      internalId: formData.internalId.trim() || undefined,
+      unitType: mappedUnitType,
       makeModel: formData.makeModel.trim(),
       vinNo: formData.vinNo.trim(),
       licensePlate: formData.licensePlate.trim(),
       year: formData.year ? Number(formData.year) : undefined,
-        truckType: formData.unitType === 'Truck' ? formData.truckType : undefined,
-        trailerType: formData.unitType !== 'Truck' ? formData.trailerType : undefined,
-        capacity: formData.unitType !== 'Truck' ? formData.capacity : undefined,
+      truckType: formData.unitType === 'Truck' ? formData.truckType : undefined,
+      trailerType: formData.unitType !== 'Truck' ? formData.trailerType : undefined,
+      capacity: formData.unitType !== 'Truck' ? formData.capacity : undefined,
       initialOdometer: formData.initialOdometer ? Number(formData.initialOdometer) : 0,
       currentOdometer: formData.currentOdometer
         ? Number(formData.currentOdometer)
         : formData.initialOdometer
           ? Number(formData.initialOdometer)
           : 0,
-        status: formData.status,
-        operationStatus: formData.unitType !== 'Truck' ? formData.operationStatus : undefined,
+      status: formData.status,
+      operationStatus: formData.unitType !== 'Truck' ? formData.operationStatus : undefined,
+      address: formData.address.trim() || undefined,
       lastDate: formData.status === 'Inactive' ? formData.lastDate || undefined : undefined,
       reason: formData.status === 'Inactive' ? formData.reason || undefined : undefined
     };
@@ -622,6 +638,20 @@ const FleetUnits: React.FC = () => {
                       />
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Internal ID</label>
+                      <input
+                        type="text"
+                        value={formData.internalId}
+                        onChange={(e) => setFormData({ ...formData, internalId: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., INT-001, GEO-123"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Optional: For Geotab or other tracking system integration</p>
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Unit Type *</label>
                       <select
                         value={formData.unitType}
@@ -794,6 +824,30 @@ const FleetUnits: React.FC = () => {
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
                       </select>
+                    </div>
+                    <div className="md:col-span-2">
+                      <h3 className="text-sm font-medium text-gray-900 mb-3">Current Location</h3>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Address
+                        </label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <input
+                            type="text"
+                            value={formData.address}
+                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                            placeholder="123 Main St, City, State, Country"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Coordinates will be automatically fetched from this address using Google Maps
+                        </p>
+                      </div>
                     </div>
                     {formData.status === 'Inactive' && (
                       <>

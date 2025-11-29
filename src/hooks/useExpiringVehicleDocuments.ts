@@ -53,24 +53,10 @@ export const useExpiringVehicleDocuments = () => {
                 return;
             }
 
-            try {
-                // Import the API function dynamically to avoid circular imports
-                const { getExpiringVehicleDocuments } = await import('../axios/api/compilance.vehicledoc');
-                const response = await getExpiringVehicleDocuments(30); // Check for documents expiring in next 30 days
-                
-                if (response && response.success && response.data && response.data.length > 0) {
-                    setExpiringDocuments(response.data);
-                    setShowExpiringToast(true);
-                } else {
-                    setShowExpiringToast(false);
-                }
-            } catch (error: any) {
-                // Silently handle errors - don't crash the app for background checks
-                if (error?.response?.status !== 403 && error?.response?.status !== 401) {
-                    console.error('❌ Error checking expiring vehicle documents:', error);
-                }
-                setShowExpiringToast(false);
-            }
+            // Compliance side doesn't need to call this API
+            // Return empty data to avoid permission errors
+            setExpiringDocuments([]);
+            setShowExpiringToast(false);
         };
 
         // Add a small delay before first check to allow Redux state to update after login

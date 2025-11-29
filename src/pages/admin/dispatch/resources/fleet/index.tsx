@@ -121,18 +121,17 @@ const buildUnitAssignments = (trips: any[]) => {
       normalizeKey("truck", trip.truck?._id),
       normalizeKey("truck", trip.truck?.unitNo),
       normalizeKey("truck", trip.truck?.internalId),
-      normalizeKey("truck", trip.truck?.plateNumber)
+      normalizeKey("truck", trip.truck?.licensePlate)
     ].filter(Boolean) as string[];
 
     const trailerIdentifiers = [
       normalizeKey("trailer", trip.trailer?._id),
       normalizeKey("trailer", trip.trailer?.unitNo),
-      normalizeKey("trailer", trip.trailer?.trailerNumber),
-      normalizeKey("trailer", trip.trailer?.plateNumber)
+      normalizeKey("trailer", trip.trailer?.licensePlate)
     ].filter(Boolean) as string[];
 
-    const trailerLabel = trip.trailer?.unitNo || trip.trailer?.trailerNumber || trip.trailer?.plateNumber;
-    const truckLabel = trip.truck?.unitNo || trip.truck?.internalId || trip.truck?.plateNumber;
+    const trailerLabel = trip.trailer?.unitNo || trip.trailer?.licensePlate || trip.trailer?.makeModel;
+    const truckLabel = trip.truck?.unitNo || trip.truck?.licensePlate || trip.truck?.internalId || trip.truck?.makeModel;
 
     truckIdentifiers.forEach((key) => {
       const store = ensure(key);

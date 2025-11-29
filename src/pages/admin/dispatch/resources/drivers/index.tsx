@@ -605,13 +605,13 @@ const summarizeDriverAssignments = (trips: any[]): Record<string, DriverAssignme
     };
     const store = ensureDriver(driverId);
     if (trip.truck) {
-      const truckLabel = trip.truck.internalId || trip.truck.plateNumber || trip.truck.unitNo || trip.truck._id;
+      const truckLabel = trip.truck.licensePlate || trip.truck.unitNo || trip.truck.internalId || trip.truck.makeModel || trip.truck._id;
       if (truckLabel && !store.trucks.includes(truckLabel)) {
         store.trucks.push(truckLabel);
       }
     }
     if (trip.trailer) {
-      const trailerLabel = trip.trailer.trailerNumber || trip.trailer.plateNumber || trip.trailer.unitNo || trip.trailer._id;
+      const trailerLabel = trip.trailer.licensePlate || trip.trailer.unitNo || trip.trailer.makeModel || trip.trailer._id;
       if (trailerLabel && !store.trailers.includes(trailerLabel)) {
         store.trailers.push(trailerLabel);
       }

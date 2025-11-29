@@ -3,7 +3,7 @@ import { RefreshCw, Truck, Search, ChevronLeft, ChevronRight, MapPin, User, Gaug
 import { useJsApiLoader } from '@react-google-maps/api';
 import type { Libraries } from '@react-google-maps/api';
 import { getSocket } from "../../../../socket/socketClient";
-import { listTrucks } from '../../../../axios/api/truckTracking';
+import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
 
 // Type definitions
 interface Driver {
@@ -13,14 +13,13 @@ interface Driver {
     phone: string;
 }
 
-interface Vehicle {
-    _id: string;
-    internalId: string;
-    plateNumber: string;
+// Use FleetUnit for trucks (unitType === "Truck")
+type Vehicle = FleetUnitDto & {
+    plateNumber: string; // Mapped from licensePlate
+    status: 'moving' | 'idle' | 'stopped' | 'maintenance'; // Mapped from operationStatus
     make: string;
     model: string;
     year: number;
-    status: 'moving' | 'idle' | 'stopped' | 'maintenance';
     speed: number;
     fuelLevel: number;
     odometer: number;
@@ -32,7 +31,7 @@ interface Vehicle {
         updatedAt: string | Date;
     };
     driver?: Driver;
-}
+};
 
 declare global {
     interface Window {
@@ -104,13 +103,26 @@ const ProfessionalTruckTracker: React.FC = () => {
                 return;
             }
 
-            const res = await listTrucks();
-            if (res?.success) {
-                const data = res.data?.vehicles || [];
-                const formatted = data.map((v: any) => ({
+            // Fetch trucks from FleetUnit (unitType === "Truck")
+            const res = await listFleetUnits({ category: "trucks" });
+            if (res?.success && res.data) {
+                const data = Array.isArray(res.data) ? res.data : [];
+                // Map FleetUnit to Vehicle format for compatibility
+                const formatted = data.map((v: FleetUnitDto): Vehicle => ({
                     ...v,
+                    plateNumber: v.licensePlate || v.unitNo,
+                    status: (v.operationStatus === "in-transit" ? "moving" : 
+                            v.operationStatus === "maintenance" ? "maintenance" :
+                            v.operationStatus === "idle" ? "idle" : "stopped") as 'moving' | 'idle' | 'stopped' | 'maintenance',
+                    make: v.make || "",
+                    model: v.model || "",
+                    year: v.year || 0,
+                    speed: (v as any).speed || 0,
+                    fuelLevel: (v as any).fuelLevel || 0,
+                    odometer: v.currentOdometer || 0,
+                    engineOn: (v as any).engineOn || false,
                     currentLocation: {
-                        ...v.currentLocation,
+                        address: v.currentLocation?.address || "",
                         latitude: Number(v.currentLocation?.latitude ?? 0),
                         longitude: Number(v.currentLocation?.longitude ?? 0),
                         updatedAt: v.currentLocation?.updatedAt || new Date().toISOString()
@@ -152,8 +164,9 @@ const ProfessionalTruckTracker: React.FC = () => {
         // Leave previous vehicle updates
         socket.emit("leaveVehicle");
         
-        // Join new vehicle updates
-        socket.emit("joinVehicle", vehicle._id);
+        // Join new vehicle updates (use internalId if available, otherwise _id)
+        const vehicleId = vehicle.internalId || vehicle._id;
+        socket.emit("joinVehicle", vehicleId);
         
         // Listen for vehicle updates
         socket.off("vehicleLocation");

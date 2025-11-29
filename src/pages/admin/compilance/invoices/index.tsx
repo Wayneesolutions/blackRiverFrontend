@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import ExcelJS from "exceljs";
 import {
   Download,
@@ -10,6 +10,7 @@ import {
   ClipboardList,
   Search,
 } from "lucide-react";
+import { getComplianceInvoices } from "../../../../axios/api/admin";
 
 type MechanicInvoice = {
   id: string;
@@ -29,185 +30,7 @@ type MechanicInvoice = {
   location: string;
 };
 
-const mechanicInvoices: MechanicInvoice[] = [
-  {
-    id: "1",
-    serviceDate: "2025-01-12",
-    unitNumber: "TRK-204",
-    makeModel: "Freightliner Cascadia",
-    vinOrPlate: "1FUJGLDR2CL123456",
-    description: "DOT annual inspection with full brake adjustment",
-    odometer: 452130,
-    parts: [
-      { name: "Brake chamber kit", cost: 320 },
-      { name: "Rear slack adjuster", cost: 115 },
-    ],
-    notes: "Adjusted drive axle brakes, replaced offside slack adjuster, torqued undercarriage hardware.",
-    serviceProvider: "North Ridge Mechanics",
-    invoiceNumber: "INV-FM-2412",
-    passedInspection: true,
-    driver: "Marcus Lee",
-    serviceCategory: "Annual Inspection",
-    location: "Edmonton Hub",
-  },
-  {
-    id: "2",
-    serviceDate: "2025-01-18",
-    unitNumber: "TRK-117",
-    makeModel: "Kenworth T680",
-    vinOrPlate: "1XKYD49X0KJ284576",
-    description: "After-hours roadside repair for coolant hose + visual inspection",
-    odometer: 389410,
-    parts: [
-      { name: "Coolant hose kit", cost: 210 },
-      { name: "Extended-life coolant", cost: 96 },
-    ],
-    notes: "Roadside assist near Regina. Cooling system pressure test performed after hose install.",
-    serviceProvider: "Prairie Mobile Mechanics",
-    invoiceNumber: "INV-RR-1180",
-    passedInspection: false,
-    driver: "Alicia Gomez",
-    serviceCategory: "Roadside Repair",
-    location: "Regina Yard",
-  },
-  {
-    id: "3",
-    serviceDate: "2025-01-20",
-    unitNumber: "DRV-44",
-    makeModel: "Great Dane Dry Van",
-    vinOrPlate: "2G1WS5E33B9173842",
-    description: "Trailer ABS fault diagnosis, wheel-end inspection",
-    odometer: 0,
-    parts: [
-      { name: "ABS sensor harness", cost: 180 },
-      { name: "Hub seal", cost: 64 },
-    ],
-    notes: "Cleared fault codes after replacing harness. Documented hub seal seepage.",
-    serviceProvider: "Metro Fleet Services",
-    invoiceNumber: "INV-TLR-9034",
-    passedInspection: true,
-    driver: "Randy Holmes",
-    serviceCategory: "Trailer Compliance",
-    location: "Calgary Distribution",
-  },
-  {
-    id: "4",
-    serviceDate: "2025-01-21",
-    unitNumber: "TRK-305",
-    makeModel: "Volvo VNL 760",
-    vinOrPlate: "4V4NC9EJ9GN938411",
-    description: "Scheduled service – oil analysis, DEF dosing test",
-    odometer: 512908,
-    parts: [
-      { name: "Oil analysis kit", cost: 48 },
-      { name: "DEF dosing nozzle", cost: 265 },
-    ],
-    notes: "DEF spray pattern restored; suggested follow-up in 60 days.",
-    serviceProvider: "Summit Mechanics",
-    invoiceNumber: "INV-SRV-6612",
-    passedInspection: true,
-    driver: "Keisha Monroe",
-    serviceCategory: "Scheduled Service",
-    location: "Maintenance HQ",
-  },
-  {
-    id: "5",
-    serviceDate: "2025-01-23",
-    unitNumber: "TRK-117",
-    makeModel: "Kenworth T680",
-    vinOrPlate: "1XKYD49X0KJ284576",
-    description: "Alignment follow-up + steering gear torque audit",
-    odometer: 389890,
-    parts: [
-      { name: "Steering gear hardware kit", cost: 142 },
-    ],
-    notes: "Documented slight cupping on steer tires; scheduled tire rotation.",
-    serviceProvider: "Prairie Mobile Mechanics",
-    invoiceNumber: "INV-FUP-1188",
-    passedInspection: true,
-    driver: "Alicia Gomez",
-    serviceCategory: "Follow-up",
-    location: "Regina Yard",
-  },
-  {
-    id: "6",
-    serviceDate: "2025-01-24",
-    unitNumber: "TRK-412",
-    makeModel: "Peterbilt 579",
-    vinOrPlate: "1XPBDP9X3LD715820",
-    description: "General repair – DPF bake, charge air leak test",
-    odometer: 601245,
-    parts: [
-      { name: "DPF gaskets", cost: 78 },
-      { name: "Charge air clamps", cost: 52 },
-    ],
-    notes: "DPF restored, no leaks detected. Marked for regulatory review due to repeated clog alerts.",
-    serviceProvider: "Metro Fleet Services",
-    invoiceNumber: "INV-GEN-7721",
-    passedInspection: false,
-    driver: "Noah Sanderson",
-    serviceCategory: "General Repairs",
-    location: "Calgary Distribution",
-  },
-];
-
-const SERVICE_INTERVAL_KM = 7500;
-const SERVICE_INTERVAL_DAYS = 30;
-const CADENCE_REFERENCE_DATE = new Date("2025-01-30");
-
-type FleetServiceRecord = {
-  unitNumber: string;
-  driver: string;
-  servicePerformed: string;
-  lastServiceDate: string;
-  lastServiceOdometer: number;
-  currentOdometer: number;
-  maintenanceModule: string;
-  summary: string;
-};
-
-const fleetServiceRecords: FleetServiceRecord[] = [
-  {
-    unitNumber: "TRK-204",
-    driver: "Marcus Lee",
-    servicePerformed: "PM-A Inspection + Brake Adjustment",
-    lastServiceDate: "2025-01-04",
-    lastServiceOdometer: 444900,
-    currentOdometer: 452130,
-    maintenanceModule: "Scheduled Services Log",
-    summary: "Re-torqued drive axle hardware and verified brake travel readings.",
-  },
-  {
-    unitNumber: "TRK-117",
-    driver: "Alicia Gomez",
-    servicePerformed: "Roadside Repair Follow-up",
-    lastServiceDate: "2025-01-11",
-    lastServiceOdometer: 383200,
-    currentOdometer: 389890,
-    maintenanceModule: "General Repairs Log",
-    summary: "Cooling system pressure test + steering-gear torque audit.",
-  },
-  {
-    unitNumber: "DRV-44",
-    driver: "Randy Holmes",
-    servicePerformed: "Trailer ABS Audit",
-    lastServiceDate: "2025-01-15",
-    lastServiceOdometer: 0,
-    currentOdometer: 0,
-    maintenanceModule: "Regulatory & Safety",
-    summary: "Replaced ABS harness, cleared code history, documented hub seal seepage.",
-  },
-  {
-    unitNumber: "TRK-412",
-    driver: "Noah Sanderson",
-    servicePerformed: "DPF Bake & Charge-Air Leak Test",
-    lastServiceDate: "2025-01-09",
-    lastServiceOdometer: 594700,
-    currentOdometer: 601245,
-    maintenanceModule: "Fleet Spare Parts",
-    summary: "DPF reinstalled with new gaskets; spare clamps deducted from inventory.",
-  },
-];
+// Removed static data - now fetching from API
 
 const ComplianceInvoices = () => {
   const [truckFilter, setTruckFilter] = useState<string>("all");
@@ -215,45 +38,85 @@ const ComplianceInvoices = () => {
   const [mechanicFilter, setMechanicFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [invoices, setInvoices] = useState<MechanicInvoice[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 50;
 
+  // Fetch invoices from API
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      setLoading(true);
+      try {
+        const params: any = {
+          page: currentPage,
+          limit: pageSize
+        };
+        
+        if (truckFilter !== "all") params.unitNumber = truckFilter;
+        if (driverFilter !== "all") params.driver = driverFilter;
+        if (mechanicFilter !== "all") params.serviceProvider = mechanicFilter;
+        if (searchTerm.trim()) params.search = searchTerm.trim();
+
+        const response = await getComplianceInvoices(params);
+        
+        if (response?.success && response?.data) {
+          // Map API response to MechanicInvoice format
+          const mappedInvoices: MechanicInvoice[] = response.data.map((invoice: any) => ({
+            id: invoice.id || invoice._id || '',
+            serviceDate: invoice.serviceDate || new Date().toISOString(),
+            unitNumber: invoice.unitNumber || 'N/A',
+            makeModel: invoice.makeModel || 'N/A',
+            vinOrPlate: invoice.vinOrPlate || 'N/A',
+            description: invoice.description || '',
+            odometer: invoice.odometer || 0,
+            parts: invoice.parts || [],
+            notes: invoice.notes || '',
+            serviceProvider: invoice.serviceProvider || 'N/A',
+            invoiceNumber: invoice.invoiceNumber || 'N/A',
+            passedInspection: invoice.passedInspection !== false,
+            driver: invoice.driver || 'N/A',
+            serviceCategory: invoice.serviceCategory || 'N/A',
+            location: invoice.location || 'N/A'
+          }));
+          
+          setInvoices(mappedInvoices);
+          
+          if (response.pagination) {
+            setTotalPages(response.pagination.totalPages || 1);
+            setTotal(response.pagination.total || 0);
+          }
+        } else {
+          setInvoices([]);
+        }
+      } catch (error) {
+        console.error('Error fetching compliance invoices:', error);
+        setInvoices([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoices();
+  }, [truckFilter, driverFilter, mechanicFilter, searchTerm, currentPage]);
+
+  // Get unique values for filters
   const uniqueTrucks = useMemo(
-    () => ["all", ...new Set(mechanicInvoices.map((invoice) => invoice.unitNumber))],
-    []
+    () => ["all", ...new Set(invoices.map((invoice) => invoice.unitNumber))],
+    [invoices]
   );
   const uniqueDrivers = useMemo(
-    () => ["all", ...new Set(mechanicInvoices.map((invoice) => invoice.driver))],
-    []
+    () => ["all", ...new Set(invoices.map((invoice) => invoice.driver))],
+    [invoices]
   );
   const uniqueMechanics = useMemo(
-    () => ["all", ...new Set(mechanicInvoices.map((invoice) => invoice.serviceProvider))],
-    []
+    () => ["all", ...new Set(invoices.map((invoice) => invoice.serviceProvider))],
+    [invoices]
   );
 
-  const filteredInvoices = useMemo(() => {
-    return mechanicInvoices.filter((invoice) => {
-      const matchesTruck =
-        truckFilter === "all" ? true : invoice.unitNumber === truckFilter;
-      const matchesDriver =
-        driverFilter === "all" ? true : invoice.driver === driverFilter;
-      const matchesMechanic =
-        mechanicFilter === "all" ? true : invoice.serviceProvider === mechanicFilter;
-      const matchesSearch =
-        searchTerm.trim().length === 0
-          ? true
-          : [
-              invoice.invoiceNumber,
-              invoice.unitNumber,
-              invoice.makeModel,
-              invoice.serviceProvider,
-              invoice.description,
-            ]
-              .join(" ")
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase());
-
-      return matchesTruck && matchesDriver && matchesMechanic && matchesSearch;
-    });
-  }, [truckFilter, driverFilter, mechanicFilter, searchTerm]);
+  const filteredInvoices = invoices; // Already filtered by API
 
   const summary = useMemo(() => {
     const passed = filteredInvoices.filter((invoice) => invoice.passedInspection).length;
@@ -273,35 +136,7 @@ const ComplianceInvoices = () => {
     };
   }, [filteredInvoices]);
 
-  const serviceReminders = useMemo(() => {
-    return fleetServiceRecords.map((record) => {
-      const kmSince = Math.max(record.currentOdometer - record.lastServiceOdometer, 0);
-      const daysSince = Math.max(
-        Math.round(
-          (CADENCE_REFERENCE_DATE.getTime() - new Date(record.lastServiceDate).getTime()) /
-            (1000 * 60 * 60 * 24)
-        ),
-        0
-      );
-      const mileageDue = kmSince >= SERVICE_INTERVAL_KM;
-      const timeDue = daysSince >= SERVICE_INTERVAL_DAYS;
-      const status = mileageDue || timeDue ? "due" : "ok";
-      const mileageDetail = mileageDue
-        ? `${(kmSince - SERVICE_INTERVAL_KM).toLocaleString()} km over`
-        : `${(SERVICE_INTERVAL_KM - kmSince).toLocaleString()} km remaining`;
-      const timeDetail = timeDue
-        ? `${daysSince - SERVICE_INTERVAL_DAYS} days over`
-        : `${SERVICE_INTERVAL_DAYS - daysSince} days remaining`;
-
-      return {
-        ...record,
-        kmSince,
-        daysSince,
-        status,
-        cadenceDetail: `${mileageDetail} • ${timeDetail}`,
-      };
-    });
-  }, []);
+  // Removed serviceReminders - can be added later if needed
 
   const handleExport = async () => {
     if (!filteredInvoices.length) {
@@ -339,19 +174,21 @@ const ComplianceInvoices = () => {
 
       filteredInvoices.forEach((invoice) => {
         worksheet.addRow({
-          invoiceNumber: invoice.invoiceNumber,
-          serviceDate: invoice.serviceDate,
-          unitNumber: invoice.unitNumber,
-          driver: invoice.driver,
-          makeModel: invoice.makeModel,
-          vinOrPlate: invoice.vinOrPlate,
-          description: invoice.description,
-          odometer: invoice.odometer || "N/A",
-          parts: invoice.parts.map((part) => `${part.name} ($${part.cost})`).join(", "),
-          serviceProvider: invoice.serviceProvider,
-          location: invoice.location,
+          invoiceNumber: invoice.invoiceNumber || "N/A",
+          serviceDate: invoice.serviceDate ? new Date(invoice.serviceDate).toLocaleDateString() : "N/A",
+          unitNumber: invoice.unitNumber || "N/A",
+          driver: invoice.driver || "N/A",
+          makeModel: invoice.makeModel || "N/A",
+          vinOrPlate: invoice.vinOrPlate || "N/A",
+          description: invoice.description || "N/A",
+          odometer: invoice.odometer ? invoice.odometer.toLocaleString() : "N/A",
+          parts: invoice.parts && invoice.parts.length > 0 
+            ? invoice.parts.map((part) => `${part.name || 'Part'} ($${(part.cost || 0).toFixed(2)})`).join(", ")
+            : "No parts listed",
+          serviceProvider: invoice.serviceProvider || "N/A",
+          location: invoice.location || "N/A",
           passedInspection: invoice.passedInspection ? "Passed" : "Follow-up Required",
-          notes: invoice.notes,
+          notes: invoice.notes || "",
         });
       });
 
@@ -394,13 +231,13 @@ const ComplianceInvoices = () => {
               <ClipboardList className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Invoices</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Compliance Invoices</h1>
               <p className="text-gray-600 mt-1 flex items-center gap-2">
                 <Wrench className="w-4 h-4" />
-                Static log of mechanic invoices tied to fleet compliance work.
+                Invoices automatically generated from Fleet Maintenance records.
               </p>
               <p className="text-xs text-gray-500">
-                Service Provider identifies the mechanic responsible for the repairs.
+                Includes General Repairs, Scheduled Services, and Safety Inspections with invoice numbers from the Fleet Maintenance module.
               </p>
             </div>
           </div>
@@ -561,7 +398,7 @@ const ComplianceInvoices = () => {
               {filteredInvoices.map((invoice) => (
                 <tr key={invoice.id} className="hover:bg-gray-50">
                   <td className="px-4 py-4 text-sm text-gray-900 font-semibold">
-                    {new Date(invoice.serviceDate).toLocaleDateString()}
+                    {invoice.serviceDate ? new Date(invoice.serviceDate).toLocaleDateString() : 'N/A'}
                     <div className="text-xs text-gray-500">{invoice.location}</div>
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-900">
@@ -593,16 +430,20 @@ const ComplianceInvoices = () => {
                     {invoice.odometer ? `${invoice.odometer.toLocaleString()} km` : "N/A"}
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-900">
-                    <div className="flex flex-wrap gap-1">
-                      {invoice.parts.map((part) => (
-                        <span
-                          key={`${invoice.id}-${part.name}`}
-                          className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
-                        >
-                          {part.name} (${part.cost})
-                        </span>
-                      ))}
-                    </div>
+                    {invoice.parts && invoice.parts.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {invoice.parts.map((part, idx) => (
+                          <span
+                            key={`${invoice.id}-${part.name || idx}`}
+                            className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
+                          >
+                            {part.name || 'Part'} ${(part.cost || 0).toFixed(2)}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-xs">No parts listed</span>
+                    )}
                   </td>
                   <td className="px-4 py-4 text-sm font-semibold text-gray-900">
                     {invoice.invoiceNumber}
@@ -626,16 +467,51 @@ const ComplianceInvoices = () => {
                   </td>
                 </tr>
               ))}
-              {filteredInvoices.length === 0 && (
+              {loading && (
                 <tr>
                   <td className="px-4 py-16 text-center text-sm text-gray-500" colSpan={11}>
-                    No invoices match the current filters.
+                    Loading invoices...
+                  </td>
+                </tr>
+              )}
+              {!loading && filteredInvoices.length === 0 && (
+                <tr>
+                  <td className="px-4 py-16 text-center text-sm text-gray-500" colSpan={11}>
+                    No invoices found. {total > 0 ? 'Try adjusting your filters.' : 'No invoices have been created yet.'}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200 rounded-b-2xl">
+            <div className="text-sm text-gray-700">
+              Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, total)} of {total} invoices
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1 || loading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="px-4 py-2 text-sm font-medium text-gray-700">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages || loading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

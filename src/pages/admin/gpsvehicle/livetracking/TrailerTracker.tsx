@@ -3,16 +3,16 @@ import { RefreshCw, Package, Search, ChevronLeft, ChevronRight, MapPin, Truck, G
 import { useJsApiLoader } from '@react-google-maps/api';
 import type { Libraries } from '@react-google-maps/api';
 import { getSocket } from "../../../../socket/socketClient";
-import { listTrailers } from '../../../../axios/api/trailerTracking';
+import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
 
 // Type definitions
-interface Trailer {
-    _id: string;
-    trailer: string;
-    plateNumber: string;
-    type: 'dry_van' | 'refrigerated' | 'flatbed' | 'tanker' | 'container';
+// Use FleetUnit for trailers (unitType !== "Truck")
+type Trailer = FleetUnitDto & {
+    trailer: string; // Mapped from unitNo
+    plateNumber: string; // Mapped from licensePlate
+    type: 'dry_van' | 'refrigerated' | 'flatbed' | 'tanker' | 'container'; // Mapped from trailerType/unitType
     capacity: string;
-    status: 'moving' | 'idle' | 'stopped' | 'maintenance';
+    status: 'moving' | 'idle' | 'stopped' | 'maintenance'; // Mapped from operationStatus
     speed: number;
     isAttached: boolean;
     attachedVehicle?: {
@@ -32,7 +32,7 @@ interface Trailer {
         updatedAt: string | Date;
     };
     internalId?: string; // For Geotab integration
-}
+};
 
 declare global {
     interface Window {
@@ -148,18 +148,41 @@ const ProfessionalTrailerTracker: React.FC = () => {
                 return;
             }
 
-            const res = await listTrailers();
-            if (res?.success) {
-                const data = res.data || [];
-                const formatted = data.map((t: any) => ({
-                    ...t,
-                    currentLocation: {
-                        ...t.currentLocation,
-                        latitude: Number(t.currentLocation?.latitude ?? 0),
-                        longitude: Number(t.currentLocation?.longitude ?? 0),
-                        updatedAt: t.currentLocation?.updatedAt || new Date().toISOString()
-                    }
-                }));
+            // Fetch trailers from FleetUnit (unitType !== "Truck")
+            const res = await listFleetUnits({ category: "trailers" });
+            if (res?.success && res.data) {
+                const data = Array.isArray(res.data) ? res.data : [];
+                // Map FleetUnit to Trailer format for compatibility
+                const formatted = data.map((t: FleetUnitDto): Trailer => {
+                    // Map unitType to trailer type enum
+                    const mapUnitTypeToTrailerType = (unitType: string): 'dry_van' | 'refrigerated' | 'flatbed' | 'tanker' | 'container' => {
+                        const lower = unitType.toLowerCase();
+                        if (lower.includes('reefer') || lower.includes('refrigerated')) return 'refrigerated';
+                        if (lower.includes('flatbed')) return 'flatbed';
+                        if (lower.includes('tank')) return 'tanker';
+                        if (lower.includes('container')) return 'container';
+                        return 'dry_van'; // default
+                    };
+                    
+                    return {
+                        ...t,
+                        trailer: t.unitNo || t.licensePlate,
+                        plateNumber: t.licensePlate || t.unitNo,
+                        type: mapUnitTypeToTrailerType(t.unitType),
+                        capacity: t.capacity || "",
+                        status: (t.operationStatus === "in-transit" ? "moving" : 
+                                t.operationStatus === "maintenance" ? "maintenance" :
+                                t.operationStatus === "idle" ? "idle" : "stopped") as 'moving' | 'idle' | 'stopped' | 'maintenance',
+                        speed: (t as any).speed || 0,
+                        isAttached: false, // TODO: Implement attachment logic if needed
+                        currentLocation: {
+                            address: t.currentLocation?.address || "",
+                            latitude: Number(t.currentLocation?.latitude ?? 0),
+                            longitude: Number(t.currentLocation?.longitude ?? 0),
+                            updatedAt: t.currentLocation?.updatedAt || new Date().toISOString()
+                        }
+                    };
+                });
                 setTrailers(formatted);
                 if (formatted.length > 0 && !selectedTrailer) {
                     handleTrailerClick(formatted[0]);

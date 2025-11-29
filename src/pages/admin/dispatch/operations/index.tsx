@@ -3,10 +3,9 @@ import { Truck, Users, Package, Loader2, Search, ChevronLeft, ChevronRight, Filt
 import { 
   getDispatcherDashboard, 
   listDriver, 
-  listVehicle, 
-  listTrailers,
   listTrip
 } from "../../../../axios/api/distapcher";
+import { listFleetUnits, type FleetUnitDto } from "../../../../axios/api/fleet.units";
 
 interface DashboardStats {
   vehicles: {
@@ -48,25 +47,8 @@ interface Driver {
   };
 }
 
-interface Vehicle {
-  _id: string;
-  plateNumber?: string;
-  internalId?: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  status?: string;
-  driver?: any;
-}
-
-interface Trailer {
-  _id: string;
-  trailer?: string;
-  type?: string;
-  status?: string;
-  operationStatus?: string;
-  isAttached?: boolean;
-}
+// FleetUnit replaces both Vehicle and Trailer
+type FleetUnit = FleetUnitDto;
 
 interface Trip {
   _id: string;
@@ -97,7 +79,7 @@ interface Trip {
     customer?: any;
   }>;
   status: 'planned' | 'in-progress' | 'completed' | 'cancelled';
-  plannedStartDate: string;
+  plannedStartDate?: string | null;
   plannedEndDate?: string;
   actualStartDate?: string;
   actualEndDate?: string;
@@ -108,15 +90,15 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [trailers, setTrailers] = useState<Trailer[]>([]);
+  const [vehicles, setVehicles] = useState<FleetUnit[]>([]);
+  const [trailers, setTrailers] = useState<FleetUnit[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"drivers" | "vehicles" | "trailers" | "trips">("drivers");
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(100); // Increased default to show all vehicles and trailers
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   
@@ -125,7 +107,6 @@ const Index = () => {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [operationStatusFilter, setOperationStatusFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<string>("");
-  const [isAttachedFilter, setIsAttachedFilter] = useState<string>("");
 
   useEffect(() => {
     fetchDashboardData();
@@ -139,7 +120,6 @@ const Index = () => {
       setStatusFilter("");
       setOperationStatusFilter("");
       setTypeFilter("");
-      setIsAttachedFilter("");
       fetchCurrentData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -234,22 +214,19 @@ const Index = () => {
     }
   };
 
-  const fetchVehicles = async (page: number = currentPage, search: string = searchTerm, status: string = statusFilter) => {
+  const fetchVehicles = async (_page: number = currentPage, search: string = searchTerm, status: string = statusFilter) => {
     try {
-      const res = await listVehicle({
-        page,
-        limit: itemsPerPage,
+      const res = await listFleetUnits({
         search: search || undefined,
-        status: status || undefined,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+        status: status === "Active" || status === "Inactive" ? status.toLowerCase() as "active" | "inactive" : undefined,
+        category: "trucks"
       });
       if (res.success && res.data) {
-        const vehicleData = res.data.vehicles || res.data || [];
-        const total = res.pagination?.total || res.data.count || vehicleData.length || 0;
-        setVehicles(Array.isArray(vehicleData) ? vehicleData : []);
+        const vehicleData = Array.isArray(res.data) ? res.data : [];
+        const total = vehicleData.length || 0;
+        setVehicles(vehicleData);
         setTotalItems(total);
-        setTotalPages(res.pagination?.pages || Math.ceil(total / itemsPerPage) || 0);
+        setTotalPages(1); // FleetUnits API doesn't return pagination, so set to 1 page
       } else {
         setVehicles([]);
         setTotalItems(0);
@@ -263,25 +240,35 @@ const Index = () => {
     }
   };
 
-  const fetchTrailers = async (page: number = currentPage, search: string = searchTerm, status: string = statusFilter, operationStatus: string = operationStatusFilter, type: string = typeFilter) => {
+  const fetchTrailers = async (_page: number = currentPage, search: string = searchTerm, status: string = statusFilter, operationStatus: string = operationStatusFilter, type: string = typeFilter) => {
     try {
-      const res = await listTrailers({
-        page,
-        limit: itemsPerPage,
+      const res = await listFleetUnits({
         search: search || undefined,
-        status: status || undefined,
-        operationStatus: operationStatus || undefined,
-        type: type || undefined,
-        isAttached: isAttachedFilter === "true" ? true : isAttachedFilter === "false" ? false : undefined,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+        status: status === "Active" || status === "Inactive" ? status.toLowerCase() as "active" | "inactive" : undefined,
+        category: "trailers"
       });
       if (res.success && res.data) {
-        const trailerData = res.data.data || res.data || [];
-        const total = res.pagination?.total || res.data.length || trailerData.length || 0;
-        setTrailers(Array.isArray(trailerData) ? trailerData : []);
+        let trailerData = Array.isArray(res.data) ? res.data : [];
+        
+        // Filter by operationStatus if provided (client-side filtering since FleetUnit API may not support it)
+        if (operationStatus) {
+          trailerData = trailerData.filter((t: FleetUnit) => 
+            t.operationStatus?.toLowerCase() === operationStatus.toLowerCase()
+          );
+        }
+        
+        // Filter by trailerType if provided
+        if (type) {
+          trailerData = trailerData.filter((t: FleetUnit) => 
+            t.trailerType?.toLowerCase() === type.toLowerCase() ||
+            t.unitType?.toLowerCase().includes(type.toLowerCase())
+          );
+        }
+        
+        const total = trailerData.length || 0;
+        setTrailers(trailerData);
         setTotalItems(total);
-        setTotalPages(res.pagination?.pages || Math.ceil(total / itemsPerPage) || 0);
+        setTotalPages(1); // FleetUnits API doesn't return pagination, so set to 1 page
       } else {
         setTrailers([]);
         setTotalItems(0);
@@ -303,7 +290,6 @@ const Index = () => {
     setStatusFilter("");
     setOperationStatusFilter("");
     setTypeFilter("");
-    setIsAttachedFilter("");
     setShowFilters(false);
   };
 
@@ -325,7 +311,7 @@ const Index = () => {
     setCurrentPage(1); // Reset to first page on filter change
     fetchCurrentData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, operationStatusFilter, typeFilter, isAttachedFilter, itemsPerPage, loading]);
+  }, [statusFilter, operationStatusFilter, typeFilter, itemsPerPage, loading]);
 
   // Handle page change
   useEffect(() => {
@@ -574,16 +560,16 @@ const Index = () => {
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${
-                  showFilters || statusFilter || operationStatusFilter || typeFilter || isAttachedFilter
+                  showFilters || statusFilter || operationStatusFilter || typeFilter
                     ? "bg-blue-50 border-blue-500 text-blue-700"
                     : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 <Filter className="w-4 h-4" />
                 Filters
-                {(statusFilter || operationStatusFilter || typeFilter || isAttachedFilter) && (
+                {(statusFilter || operationStatusFilter || typeFilter) && (
                   <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
-                    {[statusFilter, operationStatusFilter, typeFilter, isAttachedFilter].filter(Boolean).length}
+                    {[statusFilter, operationStatusFilter, typeFilter].filter(Boolean).length}
                   </span>
                 )}
               </button>
@@ -599,7 +585,6 @@ const Index = () => {
                       setStatusFilter("");
                       setOperationStatusFilter("");
                       setTypeFilter("");
-                      setIsAttachedFilter("");
                     }}
                     className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
                   >
@@ -632,10 +617,8 @@ const Index = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option value="">All Status</option>
-                        <option value="moving">Moving</option>
-                        <option value="idle">Idle</option>
-                        <option value="stopped">Stopped</option>
-                        <option value="maintenance">Maintenance</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
                       </select>
                     </div>
                   )}
@@ -667,10 +650,8 @@ const Index = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="">All Status</option>
-                          <option value="moving">Moving</option>
-                          <option value="idle">Idle</option>
-                          <option value="stopped">Stopped</option>
-                          <option value="maintenance">Maintenance</option>
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
                         </select>
                       </div>
                       <div>
@@ -681,11 +662,10 @@ const Index = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="">All Operation Status</option>
-                          <option value="in_transit">In Transit</option>
-                          <option value="loading">Loading</option>
-                          <option value="idle">Idle</option>
+                          <option value="in-transit">In Transit</option>
                           <option value="available">Available</option>
                           <option value="maintenance">Maintenance</option>
+                          <option value="idle">Idle</option>
                         </select>
                       </div>
                       <div>
@@ -696,23 +676,12 @@ const Index = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="">All Types</option>
-                          <option value="dry_van">Dry Van</option>
-                          <option value="refrigerated">Refrigerated</option>
-                          <option value="flatbed">Flatbed</option>
-                          <option value="tanker">Tanker</option>
-                          <option value="container">Container</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Attached</label>
-                        <select
-                          value={isAttachedFilter}
-                          onChange={(e) => setIsAttachedFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          <option value="">All</option>
-                          <option value="true">Attached</option>
-                          <option value="false">Not Attached</option>
+                          <option value="Dry Van">Dry Van</option>
+                          <option value="Reefer Trailer">Reefer Trailer</option>
+                          <option value="Flatbed">Flatbed</option>
+                          <option value="Tri-Axle Trailer">Tri-Axle Trailer</option>
+                          <option value="Tank Trailer">Tank Trailer</option>
+                          <option value="Dump Trailer">Dump Trailer</option>
                         </select>
                       </div>
                     </>
@@ -790,7 +759,10 @@ const Index = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Plate Number
+                      Unit No.
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      License Plate
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Internal ID
@@ -809,7 +781,7 @@ const Index = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredVehicles.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                         No vehicles found
                       </td>
                     </tr>
@@ -818,7 +790,12 @@ const Index = () => {
                       <tr key={vehicle._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {vehicle.plateNumber || "N/A"}
+                            {vehicle.unitNo || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {vehicle.licensePlate || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -826,10 +803,10 @@ const Index = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            {vehicle.make && vehicle.model
-                              ? `${vehicle.make} ${vehicle.model}`
-                              : vehicle.make || vehicle.model || "N/A"}
-              </div>
+                            {vehicle.makeModel || 
+                             (vehicle.make && vehicle.model ? `${vehicle.make} ${vehicle.model}` : vehicle.make || vehicle.model) || 
+                             "N/A"}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">{vehicle.year || "N/A"}</div>
@@ -837,13 +814,13 @@ const Index = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              vehicle.status === "moving" || vehicle.status === "idle"
+                              vehicle.status === "Active"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >
                             {vehicle.status || "N/A"}
-              </span>
+                          </span>
                         </td>
                       </tr>
                     ))
@@ -901,12 +878,12 @@ const Index = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            {trip.truck?.plateNumber || trip.truck?.internalId || "N/A"}
+                            {trip.truck?.licensePlate || trip.truck?.unitNo || trip.truck?.internalId || trip.truck?.makeModel || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            {trip.trailer?.plateNumber || trip.trailer?.trailerNumber || "N/A"}
+                            {trip.trailer?.licensePlate || trip.trailer?.unitNo || trip.trailer?.makeModel || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -950,10 +927,13 @@ const Index = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Trailer Number
+                      Unit No.
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
+                      License Plate
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Unit Type
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
@@ -962,14 +942,14 @@ const Index = () => {
                       Operation Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Attached
+                      Capacity
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredTrailers.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                         No trailers found
                       </td>
                     </tr>
@@ -978,16 +958,21 @@ const Index = () => {
                       <tr key={trailer._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {trailer.trailer || trailer._id.slice(-8)}
-            </div>
+                            {trailer.unitNo || "N/A"}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">{trailer.type || "N/A"}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {trailer.licensePlate || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">{trailer.unitType || trailer.trailerType || "N/A"}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              trailer.status === "active"
+                              trailer.status === "Active"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
@@ -998,8 +983,10 @@ const Index = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              trailer.operationStatus === "in_transit" || trailer.operationStatus === "loading"
+                              trailer.operationStatus === "in-transit" || trailer.operationStatus === "loading"
                                 ? "bg-blue-100 text-blue-800"
+                                : trailer.operationStatus === "available"
+                                ? "bg-green-100 text-green-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >
@@ -1007,15 +994,7 @@ const Index = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              trailer.isAttached
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {trailer.isAttached ? "Yes" : "No"}
-                          </span>
+                          <div className="text-sm text-gray-500">{trailer.capacity || "N/A"}</div>
                         </td>
                       </tr>
                     ))

@@ -16,13 +16,23 @@ interface Trip {
   };
   truck?: {
     _id: string;
-    plateNumber?: string;
+    licensePlate?: string;
+    unitNo?: string;
+    makeModel?: string;
     make?: string;
     model?: string;
     internalId?: string;
+    unitType?: string;
+    // Legacy fields for backward compatibility
+    plateNumber?: string;
   };
   trailer?: {
     _id: string;
+    licensePlate?: string;
+    unitNo?: string;
+    makeModel?: string;
+    unitType?: string;
+    // Legacy fields for backward compatibility
     plateNumber?: string;
     trailerNumber?: string;
   };
@@ -36,7 +46,7 @@ interface Trip {
     deliveryLocation?: any;
   }>;
   status: 'planned' | 'in-progress' | 'completed' | 'cancelled';
-  plannedStartDate: string;
+  plannedStartDate?: string | null | undefined;
   plannedEndDate?: string;
   actualStartDate?: string;
   actualEndDate?: string;
@@ -323,7 +333,7 @@ const Trips = () => {
     return badges[status] || 'bg-gray-100 text-gray-800';
   };
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString?: string | null) => {
     if (!dateString) return '-';
     try {
       return new Date(dateString).toLocaleDateString('en-US', {
@@ -474,14 +484,14 @@ const Trips = () => {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <FaTruck className="text-gray-400" size={14} />
-                          <span>{trip.truck?.plateNumber || trip.truck?.internalId || '-'}</span>
+                          <span>{trip.truck?.licensePlate || trip.truck?.unitNo || trip.truck?.internalId || trip.truck?.makeModel || '-'}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         {trip.trailer ? (
                           <div className="flex items-center gap-2">
                             <FaTrailer className="text-gray-400" size={14} />
-                            <span>{trip.trailer?.plateNumber || trip.trailer?.trailerNumber || '-'}</span>
+                            <span>{trip.trailer?.licensePlate || trip.trailer?.unitNo || trip.trailer?.makeModel || '-'}</span>
                           </div>
                         ) : (
                           <span className="text-gray-400">-</span>
@@ -638,11 +648,11 @@ const Trips = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Truck</label>
-                  <p className="text-lg font-semibold">{viewingTrip.truck?.plateNumber || viewingTrip.truck?.internalId || '-'}</p>
+                  <p className="text-lg font-semibold">{viewingTrip.truck?.licensePlate || viewingTrip.truck?.unitNo || viewingTrip.truck?.internalId || viewingTrip.truck?.makeModel || '-'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Trailer</label>
-                  <p className="text-lg font-semibold">{viewingTrip.trailer?.plateNumber || viewingTrip.trailer?.trailerNumber || '-'}</p>
+                  <p className="text-lg font-semibold">{viewingTrip.trailer?.licensePlate || viewingTrip.trailer?.unitNo || viewingTrip.trailer?.makeModel || '-'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Status</label>

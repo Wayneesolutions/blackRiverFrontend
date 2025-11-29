@@ -28,7 +28,7 @@ import {
   updateCvsaInspection,
   deleteCvsaInspection
 } from '../../../../axios/api/admin';
-import { listVehicle } from '../../../../axios/api/distapcher';
+import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
@@ -98,11 +98,13 @@ interface Inspection {
 
 interface Vehicle {
   _id: string;
-  internalId: string;
+  internalId?: string;
   plateNumber: string;
+  licensePlate?: string;
   make: string;
   model: string;
-  year: number;
+  makeModel?: string;
+  year?: number;
 }
 
 interface Driver {
@@ -222,13 +224,24 @@ const CvsaInspection: React.FC = () => {
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const notificationIdRef = useRef(0);
 
-  // Fetch vehicles and drivers
+  // Fetch vehicles and drivers (using FleetUnit)
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const res = await listVehicle();
-        if (res?.success && res?.data?.vehicles) {
-          setVehicles(res.data.vehicles);
+        const res = await listFleetUnits({ category: "trucks" });
+        if (res?.success && res?.data) {
+          // Map FleetUnit to Vehicle interface format
+          const mappedVehicles: Vehicle[] = res.data.map((unit: FleetUnitDto) => ({
+            _id: unit._id,
+            internalId: unit.internalId || unit.unitNo,
+            plateNumber: unit.licensePlate || 'N/A',
+            licensePlate: unit.licensePlate,
+            make: unit.make || unit.makeModel?.split(' ')[0] || 'Unknown',
+            model: unit.model || unit.makeModel?.split(' ').slice(1).join(' ') || 'Unknown',
+            makeModel: unit.makeModel,
+            year: unit.year
+          }));
+          setVehicles(mappedVehicles);
         }
       } catch (error) {
         console.error('Error fetching vehicles:', error);
@@ -470,10 +483,17 @@ const CvsaInspection: React.FC = () => {
   const getVehicleInfo = (vehicle: Inspection['vehicle']): string => {
     if (typeof vehicle === 'string') {
       const v = vehicles.find(v => v._id === vehicle);
-      return v ? `${v.make} ${v.model} - ${v.plateNumber}` : '';
+      if (v) {
+        const plate = v.plateNumber || v.licensePlate || 'N/A';
+        return `${v.make} ${v.model} - ${plate}`;
+      }
+      return '';
     }
-    if (vehicle?.make && vehicle?.model && vehicle?.plateNumber) {
-      return `${vehicle.make} ${vehicle.model} - ${vehicle.plateNumber}`;
+    if (vehicle) {
+      const make = vehicle.make || 'Unknown';
+      const model = vehicle.model || 'Unknown';
+      const plate = vehicle.plateNumber || 'N/A';
+      return `${make} ${model} - ${plate}`;
     }
     return '';
   };
@@ -512,6 +532,10 @@ const CvsaInspection: React.FC = () => {
   };
 
   const saveNewInspection = async () => {
+    console.log('saveNewInspection called');
+    console.log('Form validation:', validateForm());
+    console.log('Form data:', inspectionForm);
+    
     if (!validateForm()) {
       addNotification('error', 'Please fill all required fields');
       return;
@@ -524,8 +548,8 @@ const CvsaInspection: React.FC = () => {
         date: inspectionForm.date,
         location: inspectionForm.location,
         status: inspectionForm.status,
-        vehicle: inspectionForm.vehicle,
-        driver: inspectionForm.driver,
+        vehicle: typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || inspectionForm.vehicle,
+        driver: typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || inspectionForm.driver,
         inspectorName: inspectionForm.inspectorName,
         violations: inspectionForm.violations || [],
         notes: inspectionForm.notes || '',
@@ -543,7 +567,10 @@ const CvsaInspection: React.FC = () => {
         defectRepairNeeded: inspectionForm.defectRepairNeeded || false
       };
 
+      console.log('Sending payload:', payload);
       const res = await createCvsaInspection(payload);
+      console.log('API Response:', res);
+      
       if (res?.success) {
         addNotification('success', res.message || 'Inspection created successfully');
         // Refresh both inspections and stats
@@ -555,7 +582,8 @@ const CvsaInspection: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error creating inspection:', error);
-      addNotification('error', error?.message || 'Failed to create inspection');
+      console.error('Error details:', error?.response?.data || error);
+      addNotification('error', error?.response?.data?.message || error?.message || 'Failed to create inspection');
     } finally {
       setLoading(false);
     }
@@ -1646,8 +1674,8 @@ const CvsaInspection: React.FC = () => {
                 </div>
               </div>
               <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
-                <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-                <button onClick={saveNewInspection} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                <button type="button" onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+                <button type="button" onClick={saveNewInspection} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                   {loading ? 'Saving...' : 'Save Inspection'}
                 </button>
               </div>

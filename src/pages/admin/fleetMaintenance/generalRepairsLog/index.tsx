@@ -14,6 +14,7 @@ import { listFleetUnits } from '../../../../axios/api/fleet.units';
 import { getAllEmployees } from '../../../../axios/api/employee';
 
 interface UnitOption {
+  _id?: string;
   unitNo: string;
   makeModel?: string;
   vin?: string;
@@ -124,6 +125,7 @@ const GeneralRepairsLog: React.FC = () => {
       if (response?.success) {
         setUnits(
           response.data?.map((unit) => ({
+            _id: unit._id,
             unitNo: unit.unitNo,
             makeModel: unit.makeModel,
             vin: unit.vinNo || unit.licensePlate,
@@ -379,7 +381,7 @@ const GeneralRepairsLog: React.FC = () => {
       serviceProvider: formData.serviceProvider,
       invoiceNumber: formData.invoiceNumber,
       unitSource: selectedUnit?.referenceType,
-      unitReference: selectedUnit?.referenceId
+      unitReference: selectedUnit?._id || selectedUnit?.referenceId // Use FleetUnit _id if available, fallback to referenceId
     };
   };
 

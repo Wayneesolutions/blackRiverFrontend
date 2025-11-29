@@ -15,6 +15,7 @@ export type FleetUnitType =
 export interface FleetUnitDto {
   _id: string;
   unitNo: string;
+  internalId?: string;
   unitType: FleetUnitType;
   makeModel: string;
   make?: string;
@@ -29,6 +30,12 @@ export interface FleetUnitDto {
   currentOdometer?: number;
   status: "Active" | "Inactive";
   operationStatus?: string;
+  currentLocation?: {
+    address?: string;
+    latitude?: string;
+    longitude?: string;
+    updatedAt?: string | Date;
+  };
   lastDate?: string;
   reason?: string;
   safetyExpiryDate?: string;
@@ -79,6 +86,7 @@ export interface FleetUnitsResponse {
 
 export interface FleetUnitPayload {
   unitNo: string;
+  internalId?: string;
   unitType: FleetUnitType;
   makeModel: string;
   vinNo: string;
@@ -91,6 +99,7 @@ export interface FleetUnitPayload {
   currentOdometer?: number | string;
   status?: "Active" | "Inactive";
   operationStatus?: string;
+  address?: string;
   lastDate?: string;
   reason?: string;
   safetyExpiryDate?: string;

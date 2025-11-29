@@ -81,8 +81,8 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
     try {
       const [driversRes, vehiclesRes, trailersRes] = await Promise.all([
         listDriver(),
-        listVehicle(),
-        listTrailers()
+        listVehicle({ page: 1, limit: 1000 }), // Fetch all vehicles
+        listTrailers({ page: 1, limit: 1000 }) // Fetch all trailers
       ]);
 
       console.log('🔍 Drivers response:', driversRes);
@@ -142,12 +142,33 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
 
       // Handle trailers - check for both response structures
       if (trailersRes) {
-        const trailerData = trailersRes.data || (trailersRes.success ? trailersRes.data : trailersRes) || [];
-        if (Array.isArray(trailerData)) {
+        let trailerData: any[] = [];
+        
+        // Check if trailers are directly in data (paginated response)
+        if (trailersRes.data && Array.isArray(trailersRes.data)) {
+          trailerData = trailersRes.data;
+        }
+        // Check success wrapper
+        else if (trailersRes.success && trailersRes.data) {
+          if (Array.isArray(trailersRes.data)) {
+            trailerData = trailersRes.data;
+          }
+        }
+        // Fallback: check if trailersRes itself is an array
+        else if (Array.isArray(trailersRes)) {
+          trailerData = trailersRes;
+        }
+        
+        console.log('🔍 Trailer data extracted:', trailerData);
+        
+        if (Array.isArray(trailerData) && trailerData.length > 0) {
           setTrailers(trailerData.map((t: any) => ({ 
             id: t._id, 
             name: t.plateNumber || t.trailerNumber || t.trailer || t._id 
           })));
+        } else {
+          console.warn('⚠️ No trailers found in response:', trailersRes);
+          setTrailers([]);
         }
       }
     } catch (error) {

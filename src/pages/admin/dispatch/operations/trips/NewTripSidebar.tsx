@@ -59,8 +59,8 @@ interface Trip {
   orders?: any[];
   loads?: any[];
   status?: string;
-  plannedStartDate?: string;
-  plannedEndDate?: string;
+  plannedStartDate?: string | null | undefined;
+  plannedEndDate?: string | null | undefined;
   notes?: string;
   documents?: Array<{
     _id?: string;
@@ -194,7 +194,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               (truck) =>
                 truck._id === truckId ||
                 (truck.unitNo && truck.unitNo === trip.truck.unitNo) ||
-                (truck.licensePlate && truck.licensePlate === trip.truck.plateNumber)
+                (truck.licensePlate && truck.licensePlate === trip.truck.licensePlate)
             ) || null;
           setSelectedTruck(matchedTruck || trip.truck);
         } else {
@@ -214,7 +214,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               (trailer) =>
                 trailer._id === trailerId ||
                 (trailer.unitNo && trailer.unitNo === trip.trailer.unitNo) ||
-                (trailer.licensePlate && trailer.licensePlate === trip.trailer.plateNumber)
+                (trailer.licensePlate && trailer.licensePlate === trip.trailer.licensePlate)
             ) || null;
           setSelectedTrailer(matchedTrailer || trip.trailer);
         } else {

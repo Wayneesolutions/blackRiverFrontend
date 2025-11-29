@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { createIssue, updateIssue, listVehicle } from '../../../../../axios/api/distapcher';
+import { createIssue, updateIssue } from '../../../../../axios/api/distapcher';
+import { listFleetUnits, type FleetUnitDto } from '../../../../../axios/api/fleet.units';
 import { MdClose, MdSave } from 'react-icons/md';
 
 interface Issue {
@@ -32,6 +33,8 @@ interface Vehicle {
   plateNumber: string;
   make: string;
   model: string;
+  licensePlate?: string;
+  makeModel?: string;
 }
 
 interface NewIssueSidebarProps {
@@ -58,14 +61,23 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
   const [loading, setLoading] = useState(false);
   const [tagInput, setTagInput] = useState('');
 
-  // Fetch vehicles
+  // Fetch vehicles (using FleetUnit)
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const vehiclesResponse = await listVehicle();
+        const vehiclesResponse = await listFleetUnits({ category: "trucks" });
 
-        if (vehiclesResponse.success) {
-          setVehicles(vehiclesResponse.data?.vehicles || []);
+        if (vehiclesResponse.success && vehiclesResponse.data) {
+          // Map FleetUnit to Vehicle interface format
+          const mappedVehicles: Vehicle[] = vehiclesResponse.data.map((unit: FleetUnitDto) => ({
+            _id: unit._id,
+            plateNumber: unit.licensePlate || 'N/A',
+            make: unit.make || unit.makeModel?.split(' ')[0] || 'Unknown',
+            model: unit.model || unit.makeModel?.split(' ').slice(1).join(' ') || 'Unknown',
+            licensePlate: unit.licensePlate,
+            makeModel: unit.makeModel
+          }));
+          setVehicles(mappedVehicles);
         }
       } catch (error) {
         console.error('Error fetching vehicles:', error);
