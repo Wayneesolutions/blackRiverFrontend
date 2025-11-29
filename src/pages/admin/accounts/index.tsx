@@ -1,4 +1,4 @@
-import { useState, useEffect, type CSSProperties } from 'react';
+import { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
@@ -93,19 +93,12 @@ const Dashboard = () => {
 
   const formatDate = (value?: string) => (value ? new Date(value).toLocaleDateString() : 'N/A');
 
-  const pageBackgroundStyle = {
-    background: `linear-gradient(180deg, ${FLEET_COLORS.focusRing} 0%, rgba(255,255,255,0.98) 40%, #f8fafc 100%)`,
-  };
 
   const sectionCardStyle = {
     borderColor: FLEET_COLORS.focusRing,
     boxShadow: `0 18px 35px ${FLEET_COLORS.focusRing}`,
   };
 
-  const statCardStyle = {
-    borderColor: FLEET_COLORS.focusRing,
-    boxShadow: `0 15px 30px ${FLEET_COLORS.focusRing}`,
-  };
 
   const primaryButtonStyle: React.CSSProperties = {
     background: FLEET_COLORS.gradient,

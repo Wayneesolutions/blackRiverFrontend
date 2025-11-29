@@ -1296,7 +1296,7 @@ const PayrollManagement = () => {
                                                                         </div>
                                                                     </td>
                                                                     <td className="px-3 py-2 text-sm text-gray-600">
-                                                                        {trip.truck?.licensePlate || trip.truck?.unitNo || trip.truck?.internalId || trip.truck?.makeModel || 'N/A'}
+                                                                        {trip.truck?.plateNumber || trip.truck?.internalId || 'N/A'}
                                                                     </td>
                                                                     <td className="px-3 py-2 text-sm text-gray-900 font-medium">{trip.distanceInMiles || 0}</td>
                                                                     <td className="px-3 py-2 text-sm text-gray-600">${trip.mileRate || 0}/mile</td>
