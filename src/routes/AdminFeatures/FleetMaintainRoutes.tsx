@@ -5,10 +5,7 @@ import Loading from "../../components/common/Loading";
 
 
 const Dashboard = lazy(() => import("../../pages/admin/fleetMaintenance/index"));
-const WorkOrder = lazy(() => import("../../pages/admin/fleetMaintenance/workOrder/index"))
-const Schedule = lazy(() => import("../../pages/admin/fleetMaintenance/scheduling/index"))
 const SpareParts = lazy(() => import("../../pages/admin/fleetMaintenance/sparePart/index"))
-const Invoices = lazy(() => import("../../pages/admin/fleetMaintenance/invoices/index"))
 const CostReports = lazy(() => import("../../pages/admin/fleetMaintenance/costReport/index"))
 const FleetUnits = lazy(() => import("../../pages/admin/fleetMaintenance/fleetUnits/index"))
 const ComplianceDashboard = lazy(() => import("../../pages/admin/fleetMaintenance/complianceDashboard/index"))

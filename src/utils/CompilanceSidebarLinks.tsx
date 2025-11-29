@@ -3,7 +3,6 @@ import {
 } from "react-icons/md";
 import { RiBillLine } from "react-icons/ri";
 import { FaClipboardCheck, FaChartBar, FaTicketAlt, FaExclamationTriangle, FaFileInvoiceDollar } from "react-icons/fa";
-import { RiOilLine } from "react-icons/ri";
 
 type CompilanceSidebarLink = {
     key: string;

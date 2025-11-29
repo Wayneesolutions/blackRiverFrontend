@@ -23,10 +23,6 @@ const Vendors = lazy(() => import("../../pages/admin/dispatch/resources/vendors/
 const Contacts = lazy(() => import("../../pages/admin/dispatch/resources/contacts/index"))
 const Places = lazy(() => import("../../pages/admin/dispatch/resources/places/index"))
 
-const NavigatorApp = lazy(() => import("../../pages/admin/dispatch/settings/navigatorApp/index"))
-const Invoices = lazy(() => import("../../pages/admin/dispatch/settings/payments/index"))
-const Notifications = lazy(() => import("../../pages/admin/dispatch/settings/notifications/index"))
-const Routing = lazy(() => import("../../pages/admin/dispatch/settings/routing/index"))
 
 function DispatchRoutes() {
   return (

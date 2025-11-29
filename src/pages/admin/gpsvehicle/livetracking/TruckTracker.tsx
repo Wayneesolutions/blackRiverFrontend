@@ -14,7 +14,7 @@ interface Driver {
 }
 
 // Use FleetUnit for trucks (unitType === "Truck")
-type Vehicle = FleetUnitDto & {
+type Vehicle = Omit<FleetUnitDto, 'status' | 'currentLocation'> & {
     plateNumber: string; // Mapped from licensePlate
     status: 'moving' | 'idle' | 'stopped' | 'maintenance'; // Mapped from operationStatus
     make: string;
