@@ -1,8 +1,7 @@
-import { MdDashboard, MdReceipt } from "react-icons/md"; // Dashboard, Invoices
-import { FaClipboardList, FaTruck,FaCar, FaTrailer } from "react-icons/fa"; // Work Orders, Fleet
-import { RiCalendarScheduleFill } from "react-icons/ri"; // Maintenance Schedule
+import { MdDashboard } from "react-icons/md"; // Dashboard, Invoices
+import {  FaTruck,FaCar } from "react-icons/fa"; // Work Orders, Fleet
 import { GiGearHammer } from "react-icons/gi"; // Spare Parts Inventory
-import { FaShieldAlt, FaListAlt, FaWrench, FaTools, FaFileAlt } from "react-icons/fa"; // New icons
+import { FaWrench, FaTools, FaFileAlt } from "react-icons/fa"; // New icons
 import { RiOilLine } from "react-icons/ri";
 
 type FleetMaintainSidebarlinks = {

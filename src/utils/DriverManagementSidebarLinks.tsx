@@ -5,7 +5,7 @@ import {
   MdErrorOutline, // Issues
   MdPersonPin, // User Profiles
 } from "react-icons/md";
-import { FaUsers, FaCar } from "react-icons/fa"; // Employee List, Vehicle Documents
+import { FaUsers } from "react-icons/fa"; // Employee List, Vehicle Documents
 import { RiCalendarScheduleFill } from "react-icons/ri"; // Scheduling
 import { FaFolderOpen } from "react-icons/fa"; // Company Documents
 

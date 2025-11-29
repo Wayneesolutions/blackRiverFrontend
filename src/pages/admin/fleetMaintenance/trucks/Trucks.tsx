@@ -580,7 +580,7 @@ const Trucks: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Year *</label>
                     <input
                       type="number"
-                      value={formData.year}
+                      value={formData.year || ''}
                       onChange={(e) => setFormData({ ...formData, year: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
@@ -620,27 +620,28 @@ const Trucks: React.FC = () => {
                     </select>
                   </div>
                 </div>
-                <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-6">
-                  <button
-                    onClick={() => {
-                      setShowAddModal(false);
-                      setShowEditModal(false);
-                      setSelectedTruck(null);
-                    }}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveTruck}
-                    className="px-6 py-2 text-white rounded-lg transition-colors hover:opacity-90"
-                    style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-                  >
-                    {showAddModal ? 'Add Truck' : 'Save Changes'}
-                  </button>
-                </div>
+              </div>
+              <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
+                <button
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setShowEditModal(false);
+                    setSelectedTruck(null);
+                  }}
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveTruck}
+                  className="px-6 py-2 text-white rounded-lg transition-colors hover:opacity-90"
+                  style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                >
+                  {showAddModal ? 'Add Truck' : 'Save Changes'}
+                </button>
               </div>
             </div>
+          </div>
           </>
         )}
 
