@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { Plus, Search, Filter, Edit, Trash2, ChevronLeft, ChevronRight, Fuel } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, Fuel } from "lucide-react";
 import { message } from "antd";
 import NewFuelReportSidebar from "./NewFuelReportSidebar";
 import {

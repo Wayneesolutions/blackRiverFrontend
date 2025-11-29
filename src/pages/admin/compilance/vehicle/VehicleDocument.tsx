@@ -13,8 +13,6 @@ import { useTrailers } from "../../../../customHooks/useTrailers";
 import { FLEET_COLORS } from "../../fleetMaintenance/colorUtils";
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
-const ACCENT_DARK = FLEET_COLORS.dark;
-const ACCENT_LIGHT = FLEET_COLORS.light;
 const ACCENT_GRADIENT = FLEET_COLORS.gradient;
 const focusRingStyle = {
   "--tw-ring-color": ACCENT_PRIMARY
