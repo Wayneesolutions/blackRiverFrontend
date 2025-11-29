@@ -26,10 +26,11 @@ interface Issue {
   assignedTo: string;
   vehicle?: {
     _id: string;
-    plateNumber: string;
-    make: string;
-    model: string;
-  };
+    plateNumber?: string;
+    make?: string;
+    model?: string;
+    internalId?: string;
+  } | string | null;
   issueType: 'maintanance' | 'operational' | 'accident' | 'compilance';
   issueCategory: 'engine' | 'fuel' | 'paper-work' | 'minor-damage';
   issueReport: string;
@@ -395,7 +396,17 @@ const Issues: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
-                        {issue.vehicle ? `${issue.vehicle.make} ${issue.vehicle.model} (${issue.vehicle.plateNumber})` : 'No vehicle'}
+                        {issue.vehicle && typeof issue.vehicle === 'object' ? (
+                          (() => {
+                            const make = issue.vehicle.make || '';
+                            const model = issue.vehicle.model || '';
+                            const plateNumber = issue.vehicle.plateNumber || issue.vehicle.internalId || 'N/A';
+                            const vehicleName = [make, model].filter(Boolean).join(' ').trim() || 'Unknown';
+                            return `${vehicleName} (${plateNumber})`;
+                          })()
+                        ) : issue.vehicle && typeof issue.vehicle === 'string' ? (
+                          `Vehicle ID: ${issue.vehicle}`
+                        ) : 'No vehicle'}
                       </div>
                     </td>
                     <td className="px-6 py-4">

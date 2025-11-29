@@ -89,13 +89,30 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
     };
 
     const handleSubmit = async () => {
+        // Validation
+        if (!formData.vehicle) {
+            alert('Please select a vehicle/unit');
+            return;
+        }
+        
+        if (!formData.driver) {
+            alert('Please select a driver');
+            return;
+        }
+
         try {
             setLoadingSubmit(true);
             const payload = {
-                ...formData,
-                reporter: reporterId,
-                reporterName,
-                reporterEmail,
+                reporter: reporterId || formData.reporter,
+                driver: formData.driver,
+                vehicle: formData.vehicle, // This should be the FleetUnit _id or prefixed ID
+                odometer: formData.odometer || null,
+                cost: formData.cost || null,
+                volume: formData.volume || null,
+                volumeUnit: formData.volumeUnit || 'l',
+                type: formData.type || null,
+                status: formData.status || 'pending',
+                address: formData.address || null,
             };
             const response = await createFuelReport(payload);
             if (!response?.success) {
@@ -103,8 +120,9 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
             }
             setLoadingSubmit(false);
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating fuel report:', error);
+            alert(error?.message || 'Failed to create fuel report. Please try again.');
             setLoadingSubmit(false);
         }
     };

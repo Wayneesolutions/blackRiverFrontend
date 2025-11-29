@@ -10,11 +10,10 @@ import {
 } from "../../../axios/api/compilance.vehicledoc";
 import { useVehicles } from "../../../customHooks/useVehicles";
 import { useTrailers } from "../../../customHooks/useTrailers";
+import { listFleetUnits } from "../../../axios/api/fleet.units";
 import { FLEET_COLORS } from "../fleetMaintenance/colorUtils";
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
-const ACCENT_DARK = FLEET_COLORS.dark;
-const ACCENT_LIGHT = FLEET_COLORS.light;
 const ACCENT_GRADIENT = FLEET_COLORS.gradient;
 const focusRingStyle = {
   "--tw-ring-color": ACCENT_PRIMARY
@@ -172,6 +171,7 @@ function VehicleDocument() {
   const { trailers } = useTrailers();
   const modalBodyRef = useRef<HTMLDivElement>(null);
 
+  const [fleetUnits, setFleetUnits] = useState<any[]>([]);
   const [vehicleDocuments, setVehicleDocuments] = useState<VehicleDocument[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showDocModal, setShowDocModal] = useState<boolean>(false);
@@ -201,19 +201,68 @@ function VehicleDocument() {
     issuedAt: ""
   });
 
+  // Fetch FleetUnits and convert them to vehicles/trailers format
+  useEffect(() => {
+    const fetchFleetUnits = async () => {
+      try {
+        const response = await listFleetUnits({ category: 'all' });
+        if (response?.success && Array.isArray(response.data)) {
+          setFleetUnits(response.data);
+        }
+      } catch (err) {
+        console.error('Error fetching fleet units:', err);
+      }
+    };
+    fetchFleetUnits();
+  }, []);
+
+  // Convert FleetUnits to normalized vehicles/trailers format
   const normalizedVehicles = useMemo<Vehicle[]>(() => {
-    if (!Array.isArray(vehicles)) {
-      return [];
-    }
-    return vehicles.map((vehicle: any) => normalizeAsset(vehicle, "vehicle"));
-  }, [vehicles]);
+    const trucks = fleetUnits.filter((unit: any) => unit.unitType === 'Truck');
+    const fleetUnitVehicles = trucks.map((unit: any) => ({
+      _id: unit._id,
+      make: unit.make || unit.makeModel?.split(' ')[0] || 'Truck',
+      model: unit.model || unit.makeModel || '',
+      year: unit.year || null,
+      plateNumber: unit.licensePlate || '',
+      status: unit.status || unit.operationStatus || 'Active',
+      internalId: unit.unitNo || unit.internalId || '',
+      assetType: 'vehicle' as AssetType,
+      sourceType: 'fleetUnit' as const,
+    }));
+    
+    // Combine with old vehicles for backward compatibility
+    const oldVehicles = Array.isArray(vehicles) 
+      ? vehicles.map((vehicle: any) => normalizeAsset(vehicle, "vehicle"))
+      : [];
+    
+    return [...fleetUnitVehicles, ...oldVehicles];
+  }, [fleetUnits, vehicles]);
 
   const normalizedTrailers = useMemo<Vehicle[]>(() => {
-    if (!Array.isArray(trailers)) {
-      return [];
-    }
-    return trailers.map((trailer: any) => normalizeAsset(trailer, "trailer"));
-  }, [trailers]);
+    const fleetTrailers = fleetUnits.filter((unit: any) => unit.unitType !== 'Truck');
+    const fleetUnitTrailers = fleetTrailers.map((unit: any) => ({
+      _id: unit._id,
+      make: unit.unitType || 'Trailer',
+      model: unit.trailerType || unit.makeModel || '',
+      year: unit.year || null,
+      plateNumber: unit.licensePlate || '',
+      status: unit.status || unit.operationStatus || 'Active',
+      internalId: unit.unitNo || unit.internalId || '',
+      assetType: 'trailer' as AssetType,
+      trailerName: unit.unitType || 'Trailer',
+      type: unit.trailerType || unit.unitType || '',
+      capacity: unit.capacity || '',
+      sourceType: 'fleetUnit' as const,
+    }));
+    
+    // Combine with old trailers for backward compatibility
+    const oldTrailers = Array.isArray(trailers)
+      ? trailers.map((trailer: any) => normalizeAsset(trailer, "trailer"))
+      : [];
+    
+    return [...fleetUnitTrailers, ...oldTrailers];
+  }, [fleetUnits, trailers]);
 
   const addNotification = useCallback((type: NotificationType, message: string) => {
     const id = Date.now();
@@ -230,14 +279,14 @@ function VehicleDocument() {
       assetType: "vehicle" as AssetType,
       vehicle,
       documents: [],
-      sourceType: "vehicle" as const,
+      sourceType: (vehicle as any).sourceType || "vehicle" as const,
     }));
     const trailerEntries = normalizedTrailers.map((trailer) => ({
       _id: trailer._id,
       assetType: "trailer" as AssetType,
       vehicle: trailer,
       documents: [],
-      sourceType: "trailer" as const,
+      sourceType: (trailer as any).sourceType || "trailer" as const,
     }));
     return [...vehicleEntries, ...trailerEntries];
   }, [normalizedVehicles, normalizedTrailers]);
@@ -440,16 +489,20 @@ function VehicleDocument() {
     const scrollPosition = modalBodyRef.current?.scrollTop || 0;
     const value = e.target.value;
     
-    const asset = documentsWithFallback.find((item) => item._id === value);
+    const selectableAssets = getSelectableAssets(formData.assetType);
+    const asset = selectableAssets.find((item) => item._id === value);
     const assetType = asset?.assetType || formData.assetType;
     const sourceType = asset?.sourceType || (assetType === "trailer" ? "trailer" : "vehicle");
+    
+    // If it's from FleetUnit, use fleetUnitId, otherwise use vehicleId/trailerId
+    const isFleetUnit = sourceType === "fleetUnit" || (fleetUnits.length > 0 && fleetUnits.some((unit: any) => unit._id === value));
     
     setFormData((prev) => ({
       ...prev,
       assetType,
-      vehicleId: sourceType === "vehicle" ? value : "",
-      trailerId: sourceType === "trailer" ? value : "",
-      fleetUnitId: sourceType === "fleetUnit" ? value : "",
+      vehicleId: !isFleetUnit && assetType === "vehicle" ? value : "",
+      trailerId: !isFleetUnit && assetType === "trailer" ? value : "",
+      fleetUnitId: isFleetUnit ? value : "",
     }));
     
     // Restore scroll position after state update
@@ -617,7 +670,15 @@ function VehicleDocument() {
   const getSelectableAssets = useCallback(
     (assetTypeOverride?: AssetType) => {
       const resolvedType: AssetType = assetTypeOverride || formData.assetType;
-      return documentsWithFallback.filter((item) => item.assetType === resolvedType);
+      // Map VehicleDocument to Vehicle format for dropdown
+      return documentsWithFallback
+        .filter((item) => item.assetType === resolvedType)
+        .map((item) => ({
+          ...item.vehicle,
+          _id: item._id,
+          assetType: item.assetType,
+          sourceType: item.sourceType,
+        }));
     },
     [documentsWithFallback, formData.assetType]
   );
@@ -780,12 +841,12 @@ const DocumentModal = () => {
             
             {/* Selected Vehicle Info */}
             {selectedAsset && (
-              <div className={`mt-3 p-4 rounded-lg border ${getVehicleTypeInfo(selectedAsset.assetType).bgColor}`}>
+              <div className={`mt-3 p-4 rounded-lg border`} style={getVehicleTypeInfo(selectedAsset.assetType).bgStyle}>
                 <div className="flex items-center gap-3">
                   {getVehicleTypeInfo(selectedAsset.assetType).icon}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`font-bold text-lg ${getVehicleTypeInfo(selectedAsset.assetType).color}`}>
+                      <span className={`font-bold text-lg`} style={getVehicleTypeInfo(selectedAsset.assetType).textStyle}>
                         {getVehicleTypeInfo(selectedAsset.assetType).name.toUpperCase()}
                       </span>
                       <span className="text-xs bg-white bg-opacity-50 px-2 py-1 rounded-full font-medium">

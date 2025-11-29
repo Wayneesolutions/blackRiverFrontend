@@ -96,11 +96,44 @@ const ProfessionalTripTracker: React.FC = () => {
   const [directionsResult, setDirectionsResult] = useState<google.maps.DirectionsResult | null>(null);
   const [directionsRequest, setDirectionsRequest] = useState<google.maps.DirectionsRequest | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialLoadRef = useRef<boolean>(true);
+  const currentTripIdRef = useRef<string | null>(null); // Track current trip ID to prevent stale paths
+
+  // Load detailed trip information including traveledPath
+  const loadTripDetails = useCallback(async (tripId: string) => {
+    try {
+      console.log(`🔄 Loading trip details for ID: ${tripId}`);
+      const response = await getTripById(tripId);
+      if (response?.success && response?.data) {
+        const tripData = response.data;
+        console.log(`✅ Trip details loaded for ${tripData.tripNumber} (ID: ${tripData._id})`);
+        console.log(`   TraveledPath exists: ${!!tripData.traveledPath}, Length: ${tripData.traveledPath?.length || 0}`);
+        
+        // Ensure we only set tripDetails if the ID matches (prevents race conditions)
+        if (tripData._id === tripId) {
+          setTripDetails(tripData);
+          return tripData;
+        } else {
+          console.warn(`⚠️ Trip ID mismatch: expected ${tripId}, got ${tripData._id}`);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading trip details:', err);
+    }
+    return null;
+  }, []);
 
   // Fetch trips from backend
   const fetchTripsData = useCallback(async () => {
     try {
-      setLoading(true);
+      const isInitialLoad = isInitialLoadRef.current;
+      
+      // Only show loading spinner on initial load
+      if (isInitialLoad) {
+        setLoading(true);
+        isInitialLoadRef.current = false;
+      }
+      
       const response = await listTrip({ 
         status: 'in-progress',
         limit: 100 
@@ -110,14 +143,26 @@ const ProfessionalTripTracker: React.FC = () => {
         const tripData = Array.isArray(response.data) ? response.data : (response.data.data || []);
         setTrips(tripData);
         
-        // Auto-select first trip if none selected
-        if (tripData.length > 0 && !selectedTrip) {
-          handleTripClick(tripData[0]);
+        // Auto-select first trip if none selected (only on initial load)
+        if (isInitialLoad && tripData.length > 0 && !selectedTrip) {
+          const firstTrip = tripData[0];
+          setSelectedTrip(firstTrip);
+          await loadTripDetails(firstTrip._id);
         } else if (selectedTrip) {
-          // Refresh selected trip details
+          // Refresh selected trip details if it still exists
           const updatedTrip = tripData.find((t: Trip) => t._id === selectedTrip._id);
-          if (updatedTrip) {
-            await loadTripDetails(updatedTrip._id);
+          if (updatedTrip && tripDetails) {
+            // Only refresh if we have existing trip details
+            const updatedDetails = await loadTripDetails(updatedTrip._id);
+            if (updatedDetails && updatedDetails._id === selectedTrip._id) {
+              setTripDetails(updatedDetails);
+            }
+          } else if (!updatedTrip && tripDetails) {
+            // Trip is no longer in the list, clear selection
+            setSelectedTrip(null);
+            setTripDetails(null);
+            setDirectionsResult(null);
+            setDirectionsRequest(null);
           }
         }
       } else {
@@ -129,23 +174,10 @@ const ProfessionalTripTracker: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedTrip]);
-
-  // Load detailed trip information including traveledPath
-  const loadTripDetails = useCallback(async (tripId: string) => {
-    try {
-      const response = await getTripById(tripId);
-      if (response?.success && response?.data) {
-        setTripDetails(response.data);
-        return response.data;
-      }
-    } catch (err) {
-      console.error('Error loading trip details:', err);
-    }
-    return null;
-  }, []);
+  }, [selectedTrip, tripDetails, loadTripDetails]);
 
   useEffect(() => {
+    // Initial load
     fetchTripsData();
     
     // Refresh trips every 10 seconds
@@ -220,23 +252,48 @@ const ProfessionalTripTracker: React.FC = () => {
 
   // Handle trip selection
   const handleTripClick = useCallback(async (trip: Trip) => {
-    console.log('🚛 Trip selected:', trip.tripNumber);
+    // Prevent unnecessary clicks on already selected trip
+    if (selectedTrip?._id === trip._id && tripDetails && tripDetails._id === trip._id) {
+      console.log('🚛 Trip already selected, skipping');
+      return;
+    }
+    
+    console.log('🚛 Trip selected:', trip.tripNumber, 'ID:', trip._id);
+    
+    // IMPORTANT: Clear ALL previous trip's data immediately to prevent stale data
+    console.log('🗑️ Clearing previous trip data...');
+    currentTripIdRef.current = null; // Clear the ref first
+    setTripDetails(null);
+    setDirectionsResult(null);
+    setDirectionsRequest(null);
+    
+    // Wait a tiny bit to ensure state updates are processed
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Set selected trip and update ref
+    console.log('✅ Setting selected trip:', trip.tripNumber);
     setSelectedTrip(trip);
+    currentTripIdRef.current = trip._id; // Track current trip ID
     
     // Load full trip details including traveledPath
     const details = await loadTripDetails(trip._id);
-    if (details) {
+    if (details && details._id === trip._id && currentTripIdRef.current === trip._id) {
+      console.log('✅ Setting tripDetails for:', details.tripNumber, 'TraveledPath length:', details.traveledPath?.length || 0);
       setTripDetails(details);
+      
+      // Center map on trip's current location or start location
+      const currentLocation = getCurrentTripLocation(details);
+      if (currentLocation && map) {
+        map.setCenter(currentLocation);
+        map.setZoom(13);
+        console.log('🗺️ Map centered on trip location');
+      }
+    } else {
+      console.warn('⚠️ Failed to load trip details or ID mismatch');
+      // Ensure tripDetails stays null if loading failed
+      setTripDetails(null);
     }
-    
-    // Center map on trip's current location or start location
-    const currentLocation = getCurrentTripLocation(details || trip);
-    if (currentLocation && map) {
-      map.setCenter(currentLocation);
-      map.setZoom(13);
-      console.log('🗺️ Map centered on trip location');
-    }
-  }, [map, loadTripDetails, getCurrentTripLocation]);
+  }, [map, loadTripDetails, getCurrentTripLocation, selectedTrip, tripDetails]);
 
   // Filter trips by search
   const filteredTrips = useMemo(() => {
@@ -254,10 +311,10 @@ const ProfessionalTripTracker: React.FC = () => {
   const getTraveledPathCoordinates = useCallback((trip: Trip | null): Array<{ lat: number; lng: number }> => {
     if (!trip) return [];
     
-    // If trip has traveledPath, use it
-    if (trip.traveledPath && trip.traveledPath.length > 0) {
+    // ONLY use traveledPath if it exists - don't create fallback paths
+    if (trip.traveledPath && Array.isArray(trip.traveledPath) && trip.traveledPath.length > 0) {
       return trip.traveledPath
-        .filter(point => point.latitude && point.longitude)
+        .filter(point => point && point.latitude && point.longitude)
         .map(point => {
           const lat = parseFloat(point.latitude);
           const lng = parseFloat(point.longitude);
@@ -269,28 +326,9 @@ const ProfessionalTripTracker: React.FC = () => {
         .filter((point): point is { lat: number; lng: number } => point !== null);
     }
     
-    // If no traveledPath but we have start and end locations, create a simple route
-    const startCoords = extractCoordinates(trip.startLocation);
-    const endCoords = extractCoordinates(trip.endLocation);
-    
-    if (startCoords && endCoords) {
-      // Generate a simple straight line path between start and end
-      const numPoints = 20;
-      const path: Array<{ lat: number; lng: number }> = [];
-      
-      for (let i = 0; i <= numPoints; i++) {
-        const ratio = i / numPoints;
-        path.push({
-          lat: startCoords.lat + (endCoords.lat - startCoords.lat) * ratio,
-          lng: startCoords.lng + (endCoords.lng - startCoords.lng) * ratio
-        });
-      }
-      
-      return path;
-    }
-    
+    // Return empty array if no traveledPath - don't create fallback paths
     return [];
-  }, [extractCoordinates]);
+  }, []);
 
   // Get route waypoints (from orders, start, end locations)
   const getRouteWaypoints = useCallback((trip: Trip | null): Array<{ lat: number; lng: number; label: string }> => {
@@ -391,6 +429,63 @@ const ProfessionalTripTracker: React.FC = () => {
     }
   }, [tripDetails, selectedTrip, isLoaded, buildDirectionsRequest]);
 
+  // Debug: Log when traveledPath changes
+  useEffect(() => {
+    if (tripDetails) {
+      if (tripDetails.traveledPath && tripDetails.traveledPath.length > 0) {
+        console.log(`📍 Trip ${tripDetails.tripNumber} (ID: ${tripDetails._id}) has ${tripDetails.traveledPath.length} traveled path points`);
+      } else {
+        console.log(`📍 Trip ${tripDetails.tripNumber} (ID: ${tripDetails._id}) has NO traveled path`);
+      }
+    } else {
+      console.log(`📍 No trip selected - clearing traveled path`);
+    }
+  }, [tripDetails]);
+
+  // Compute traveledPath only for the current trip - use useMemo to ensure proper isolation
+  // MUST be before early returns
+  const traveledPath = useMemo(() => {
+    // CRITICAL: If no tripDetails, return empty array immediately
+    if (!tripDetails || !tripDetails._id) {
+      console.log('📍 traveledPath: No tripDetails, returning empty array');
+      return [];
+    }
+    
+    // CRITICAL: Check against ref to prevent stale data from previous trips
+    if (currentTripIdRef.current && tripDetails._id !== currentTripIdRef.current) {
+      console.warn(`⚠️ traveledPath BLOCKED: tripDetails._id (${tripDetails._id}) !== currentTripIdRef (${currentTripIdRef.current})`);
+      return [];
+    }
+    
+    // CRITICAL: If selectedTrip exists, ensure tripDetails matches it exactly
+    if (selectedTrip) {
+      if (tripDetails._id !== selectedTrip._id) {
+        console.warn(`⚠️ traveledPath BLOCKED: Trip ID mismatch - tripDetails._id (${tripDetails._id}) !== selectedTrip._id (${selectedTrip._id})`);
+        return [];
+      }
+    }
+    
+    // CRITICAL: Check if this trip actually has traveledPath data
+    if (!tripDetails.traveledPath || !Array.isArray(tripDetails.traveledPath) || tripDetails.traveledPath.length === 0) {
+      console.log(`📍 traveledPath: Trip ${tripDetails.tripNumber} (${tripDetails._id}) has NO traveledPath data`);
+      return [];
+    }
+    
+    // Get traveledPath only from tripDetails - ensure it's the correct trip
+    const path = getTraveledPathCoordinates(tripDetails);
+    console.log(`✅ traveledPath computed for trip ${tripDetails.tripNumber} (${tripDetails._id}): ${path.length} points`);
+    return path;
+  }, [tripDetails, selectedTrip, getTraveledPathCoordinates]);
+  
+  // Log traveledPath changes for debugging
+  useEffect(() => {
+    if (traveledPath.length > 0) {
+      console.log(`📍 traveledPath ACTIVE: ${traveledPath.length} points for trip ${tripDetails?._id || 'none'}`);
+    } else {
+      console.log(`📍 traveledPath EMPTY: tripDetails ID: ${tripDetails?._id || 'none'}, selectedTrip ID: ${selectedTrip?._id || 'none'}`);
+    }
+  }, [traveledPath.length, tripDetails?._id, selectedTrip?._id]);
+
   // Early returns AFTER all hooks
   if (loadError) {
     return (
@@ -414,10 +509,10 @@ const ProfessionalTripTracker: React.FC = () => {
     );
   }
 
-  // Compute values after early returns
-  const currentLocation = getCurrentTripLocation(tripDetails || selectedTrip);
-  const traveledPath = getTraveledPathCoordinates(tripDetails || selectedTrip);
-  const waypoints = getRouteWaypoints(tripDetails || selectedTrip);
+  // Compute values after early returns - ONLY use tripDetails for traveledPath (which has full data)
+  const activeTrip = tripDetails || selectedTrip;
+  const currentLocation = getCurrentTripLocation(activeTrip);
+  const waypoints = getRouteWaypoints(activeTrip);
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -477,7 +572,11 @@ const ProfessionalTripTracker: React.FC = () => {
                       ? "bg-purple-50 border-purple-400 shadow-md"
                       : "bg-white border-gray-200 hover:border-purple-300 hover:shadow-sm"
                   }`}
-                  onClick={() => handleTripClick(trip)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleTripClick(trip);
+                  }}
                 >
                   {/* Trip Number & Status */}
                   <div className="flex items-center justify-between mb-3">
@@ -587,16 +686,29 @@ const ProfessionalTripTracker: React.FC = () => {
             />
           )}
 
-          {/* Traveled Path Polyline */}
-          {traveledPath.length > 1 && (
+          {/* Traveled Path Polyline - ONLY show for current trip with valid traveledPath */}
+          {tripDetails && 
+           selectedTrip && 
+           tripDetails._id && 
+           selectedTrip._id &&
+           tripDetails._id === selectedTrip._id && 
+           tripDetails.traveledPath &&
+           Array.isArray(tripDetails.traveledPath) &&
+           tripDetails.traveledPath.length > 0 &&
+           traveledPath &&
+           Array.isArray(traveledPath) &&
+           traveledPath.length > 1 && (
             <Polyline
-              path={traveledPath}
+              key={`traveled-path-${tripDetails._id}-${traveledPath.length}`} // Unique key per trip ID and path length
+              path={traveledPath.map(p => ({ lat: p.lat, lng: p.lng }))} // Ensure clean path array
               options={{
                 strokeColor: '#8b5cf6',
                 strokeOpacity: 0.9,
                 strokeWeight: 4,
                 geodesic: true,
                 zIndex: 2, // Above planned route
+                icons: undefined, // Ensure no icons that might simplify the path
+                clickable: false,
               }}
             />
           )}

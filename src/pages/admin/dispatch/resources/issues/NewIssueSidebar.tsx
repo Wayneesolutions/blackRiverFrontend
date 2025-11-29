@@ -9,10 +9,11 @@ interface Issue {
   assignedTo: string;
   vehicle?: {
     _id: string;
-    plateNumber: string;
-    make: string;
-    model: string;
-  } | string;
+    plateNumber?: string;
+    make?: string;
+    model?: string;
+    internalId?: string;
+  } | string | null;
   issueType: 'maintanance' | 'operational' | 'accident' | 'compilance';
   issueCategory: 'engine' | 'fuel' | 'paper-work' | 'minor-damage';
   issueReport: string;
@@ -28,14 +29,7 @@ interface Issue {
   updatedAt?: string;
 }
 
-interface Vehicle {
-  _id: string;
-  plateNumber: string;
-  make: string;
-  model: string;
-  licensePlate?: string;
-  makeModel?: string;
-}
+// Using FleetUnitDto directly - no need for separate Vehicle interface
 
 interface NewIssueSidebarProps {
   issue?: Issue | null;
@@ -57,30 +51,26 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
     address: ''
   });
 
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [fleetUnits, setFleetUnits] = useState<FleetUnitDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [tagInput, setTagInput] = useState('');
 
-  // Fetch vehicles (using FleetUnit)
+  // Fetch trucks from FleetUnit
   useEffect(() => {
     const fetchData = async () => {
       try {
         const vehiclesResponse = await listFleetUnits({ category: "trucks" });
 
         if (vehiclesResponse.success && vehiclesResponse.data) {
-          // Map FleetUnit to Vehicle interface format
-          const mappedVehicles: Vehicle[] = vehiclesResponse.data.map((unit: FleetUnitDto) => ({
-            _id: unit._id,
-            plateNumber: unit.licensePlate || 'N/A',
-            make: unit.make || unit.makeModel?.split(' ')[0] || 'Unknown',
-            model: unit.model || unit.makeModel?.split(' ').slice(1).join(' ') || 'Unknown',
-            licensePlate: unit.licensePlate,
-            makeModel: unit.makeModel
-          }));
-          setVehicles(mappedVehicles);
+          // Filter to only trucks and set directly
+          const trucks = vehiclesResponse.data.filter((unit: FleetUnitDto) => 
+            unit.unitType === "Truck" || unit.unitType === "Bus/Van"
+          );
+          setFleetUnits(trucks);
+          console.log('Fetched FleetUnits for issues:', trucks.length);
         }
       } catch (error) {
-        console.error('Error fetching vehicles:', error);
+        console.error('Error fetching fleet units:', error);
       }
     };
 
@@ -226,11 +216,30 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select Vehicle</option>
-              {vehicles.map((vehicle) => (
-                <option key={vehicle._id} value={vehicle._id}>
-                  {vehicle.make} {vehicle.model} ({vehicle.plateNumber})
-                </option>
-              ))}
+              {fleetUnits.map((unit) => {
+                // Extract make and model
+                let make = unit.make || '';
+                let model = unit.model || '';
+                
+                // If makeModel exists but make/model don't, parse makeModel
+                if ((!make || !model) && unit.makeModel) {
+                  const makeModelParts = unit.makeModel.trim().split(/\s+/);
+                  if (makeModelParts.length > 0) {
+                    make = make || makeModelParts[0];
+                    model = model || makeModelParts.slice(1).join(' ');
+                  }
+                }
+                
+                // Build display name
+                const vehicleName = [make, model].filter(Boolean).join(' ').trim() || unit.makeModel || 'Vehicle';
+                const identifier = unit.licensePlate || unit.unitNo || unit.internalId || unit._id;
+                
+                return (
+                  <option key={unit._id} value={unit._id}>
+                    {vehicleName} ({identifier})
+                  </option>
+                );
+              })}
             </select>
           </div>
 

@@ -23,6 +23,7 @@ import {
     Route,
 } from 'lucide-react';
 import apiClient from '../../../../axios/apiClient';
+import { listTrip } from '../../../../axios/api/distapcher';
 
 import type { ReactNode } from "react";
 
@@ -106,37 +107,27 @@ const DEFAULT_ASSIGNMENT: VehicleAssignment = {
     lastCheckpoint: "Awaiting dispatch",
 };
 
-const VEHICLE_ASSIGNMENTS: Record<string, VehicleAssignment> = {
-    "2131": {
-        loadId: "LD-2041",
-        customer: "Prairie Lumber Co.",
-        origin: "Calgary, AB",
-        destination: "Winnipeg, MB",
-        dispatcher: "Amy Patel",
-        eta: "ETA 18:45 MST",
-        milesToday: 348,
-        milesThisWeek: 1260,
-        lastCheckpoint: "Regina, SK · 16:05",
-    },
-    "veh--01": {
-        loadId: "LD-1997",
-        customer: "Northern Grocers",
-        origin: "Jersey City, NJ",
-        destination: "Cleveland, OH",
-        dispatcher: "Ivan Brooks",
-        eta: "ETA 21:10 EST",
-        milesToday: 212,
-        milesThisWeek: 980,
-        lastCheckpoint: "I-80 Rest Area, PA · 14:32",
-    },
-};
+// Mock assignments removed - using real trip data only
 
-const getAssignmentForVehicle = (vehicle: Vehicle): VehicleAssignment => {
-    return (
-        VEHICLE_ASSIGNMENTS[vehicle.internalId] ||
-        VEHICLE_ASSIGNMENTS[vehicle.plateNumber] ||
-        DEFAULT_ASSIGNMENT
-    );
+const getAssignmentForVehicle = (vehicle: Vehicle, assignments: Record<string, VehicleAssignment>): VehicleAssignment => {
+    // Try all possible vehicle identifiers in priority order (normalize to strings)
+    const vehicleIdentifiers = [
+        vehicle._id?.toString()?.trim(),
+        vehicle.internalId?.toString()?.trim(),
+        vehicle.plateNumber?.toString()?.trim(),
+        vehicle.vinNumber?.toString()?.trim()
+    ].filter(Boolean) as string[];
+    
+    // Check assignments map with all possible identifiers
+    for (const identifier of vehicleIdentifiers) {
+        const normalizedId = String(identifier).trim();
+        if (normalizedId && assignments[normalizedId]) {
+            return assignments[normalizedId];
+        }
+    }
+    
+    // No real assignment found - return default
+    return DEFAULT_ASSIGNMENT;
 };
 
 const formatMiles = (value: number) => `${value.toLocaleString()} mi`;
@@ -218,24 +209,28 @@ const VehicleList = () => {
     const [showDetails, setShowDetails] = useState(false);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [loading, setLoading] = useState(true);
+    const [vehicleAssignments, setVehicleAssignments] = useState<Record<string, VehicleAssignment>>({});
 
-    // Fetch vehicles from API (using FleetUnit via /vehicles/list endpoint)
+    // Fetch vehicles, trips, and loads from API
     useEffect(() => {
-        const fetchVehicles = async () => {
+        const fetchAllData = async () => {
             try {
                 setLoading(true);
-                const res = await apiClient.get('/admin/vehicles/list');
-                if (res.data.success && res.data.data?.vehicles) {
-                    // Map API response to Vehicle interface
-                    const formattedVehicles: Vehicle[] = res.data.data.vehicles.map((v: any) => ({
+                
+                // Fetch vehicles
+                const vehiclesRes = await apiClient.get('/admin/vehicles/list');
+                let formattedVehicles: Vehicle[] = [];
+                
+                if (vehiclesRes.data.success && vehiclesRes.data.data?.vehicles) {
+                    formattedVehicles = vehiclesRes.data.data.vehicles.map((v: any) => ({
                         _id: v._id,
-                        internalId: v.internalId || v._id,
-                        plateNumber: v.plateNumber || 'N/A',
-                        vinNumber: v.vinNumber || 'N/A',
+                        internalId: v.internalId || v.unitNo || v._id,
+                        plateNumber: v.plateNumber || v.licensePlate || 'N/A',
+                        vinNumber: v.vinNumber || v.vinNo || 'N/A',
                         make: v.make || 'Unknown',
                         model: v.model || 'Unknown',
                         year: v.year || new Date().getFullYear(),
-                        driver: null, // Driver info would need to be fetched from Loads/Trips
+                        driver: null,
                         status: v.status || 'stopped',
                         vehicleImage: [],
                         documents: [],
@@ -266,14 +261,213 @@ const VehicleList = () => {
                     }));
                     setVehicles(formattedVehicles);
                 }
+
+                // Fetch all trips (all statuses to show any assignment)
+                const allTripsRes = await listTrip({ limit: 500 }); // Fetch all trips, no status filter
+                let allTrips: any[] = [];
+                
+                if (allTripsRes?.success && Array.isArray(allTripsRes?.data)) {
+                    allTrips = allTripsRes.data;
+                } else {
+                    // Fallback: try fetching by status individually
+                    const plannedTripsRes = await listTrip({ status: 'planned', limit: 200 });
+                    const inProgressTripsRes = await listTrip({ status: 'in-progress', limit: 200 });
+                    const completedTripsRes = await listTrip({ status: 'completed', limit: 200 });
+                    const plannedTrips = plannedTripsRes?.success && Array.isArray(plannedTripsRes?.data) ? plannedTripsRes.data : [];
+                    const inProgressTrips = inProgressTripsRes?.success && Array.isArray(inProgressTripsRes?.data) ? inProgressTripsRes.data : [];
+                    const completedTrips = completedTripsRes?.success && Array.isArray(completedTripsRes?.data) ? completedTripsRes.data : [];
+                    allTrips = [...plannedTrips, ...inProgressTrips, ...completedTrips];
+                }
+
+                console.log(`📊 Found ${allTrips.length} trips to process`);
+                console.log('📋 Sample trip data:', allTrips[0] ? {
+                    tripNumber: allTrips[0].tripNumber,
+                    status: allTrips[0].status,
+                    truck: allTrips[0].truck ? {
+                        _id: allTrips[0].truck._id,
+                        unitNo: allTrips[0].truck.unitNo,
+                        internalId: allTrips[0].truck.internalId,
+                        licensePlate: allTrips[0].truck.licensePlate
+                    } : 'No truck'
+                } : 'No trips');
+
+                // Create assignments map from trips only
+                const assignments: Record<string, VehicleAssignment> = {};
+
+                // Process trips - prioritize in-progress, then planned, then others
+                const sortedTrips = [...allTrips].sort((a: any, b: any) => {
+                    const statusPriority: Record<string, number> = {
+                        'in-progress': 1,
+                        'planned': 2,
+                        'completed': 3,
+                        'cancelled': 4
+                    };
+                    return (statusPriority[a.status] || 99) - (statusPriority[b.status] || 99);
+                });
+
+                sortedTrips.forEach((trip: any) => {
+                    if (!trip.truck) {
+                        console.warn('⚠️ Trip missing truck:', trip.tripNumber || trip._id);
+                        return;
+                    }
+
+                    // Extract all possible vehicle identifiers from the trip's truck
+                    const truck = trip.truck;
+                    const truckIds: string[] = [];
+                    
+                    // Add all possible ID formats (convert to strings for consistent comparison)
+                    if (truck._id) {
+                        const idStr = typeof truck._id === 'string' ? truck._id : truck._id.toString();
+                        truckIds.push(idStr);
+                    }
+                    if (truck.unitNo) truckIds.push(String(truck.unitNo));
+                    if (truck.internalId) truckIds.push(String(truck.internalId));
+                    if (truck.licensePlate) truckIds.push(String(truck.licensePlate));
+                    if (truck.unitNumber) truckIds.push(String(truck.unitNumber));
+                    
+                    if (truckIds.length === 0) {
+                        console.warn('⚠️ Trip truck has no identifiable ID:', trip.tripNumber || trip._id, truck);
+                        return;
+                    }
+
+                    // Extract origin and destination from trip
+                    let origin = '—';
+                    let destination = '—';
+                    
+                    // Try startLocation first
+                    if (trip.startLocation) {
+                        origin = trip.startLocation.place || 
+                                trip.startLocation.address ||
+                                (trip.startLocation.placeId?.name) ||
+                                (trip.startLocation.placeId?.currentLocation?.address) ||
+                                (typeof trip.startLocation === 'string' ? trip.startLocation : '—');
+                    }
+                    
+                    // Try orders for origin if startLocation not available
+                    if (origin === '—' && trip.orders && trip.orders.length > 0) {
+                        const firstOrder = trip.orders[0];
+                        if (firstOrder.pickupLocation) {
+                            origin = firstOrder.pickupLocation.place || 
+                                    firstOrder.pickupLocation.address ||
+                                    (firstOrder.pickupLocation.placeId?.name) ||
+                                    (firstOrder.pickupLocation.placeId?.currentLocation?.address) ||
+                                    '—';
+                        }
+                    }
+                    
+                    // Try endLocation for destination
+                    if (trip.endLocation) {
+                        destination = trip.endLocation.place || 
+                                    trip.endLocation.address ||
+                                    (trip.endLocation.placeId?.name) ||
+                                    (trip.endLocation.placeId?.currentLocation?.address) ||
+                                    (typeof trip.endLocation === 'string' ? trip.endLocation : '—');
+                    }
+                    
+                    // Try orders for destination if endLocation not available
+                    if (destination === '—' && trip.orders && trip.orders.length > 0) {
+                        const lastOrder = trip.orders[trip.orders.length - 1];
+                        if (lastOrder.deliveryLocation) {
+                            destination = lastOrder.deliveryLocation.place || 
+                                        lastOrder.deliveryLocation.address ||
+                                        (lastOrder.deliveryLocation.placeId?.name) ||
+                                        (lastOrder.deliveryLocation.placeId?.currentLocation?.address) ||
+                                        '—';
+                        }
+                    }
+                    
+                    // Extract customer name from orders
+                    let customerName = '—';
+                    if (trip.orders && trip.orders.length > 0) {
+                        const firstOrder = trip.orders[0];
+                        customerName = firstOrder.customer?.name || 
+                                     (typeof firstOrder.customer === 'string' ? firstOrder.customer : '—');
+                    }
+                    
+                    const driverName = trip.driver?.name || '—';
+                    
+                    // Calculate ETA
+                    let eta = '—';
+                    if (trip.plannedEndDate) {
+                        eta = `ETA ${new Date(trip.plannedEndDate).toLocaleString()}`;
+                    } else if (trip.actualEndDate) {
+                        eta = `Complete ${new Date(trip.actualEndDate).toLocaleDateString()}`;
+                    }
+                    
+                    // Calculate distance from route or traveledPath
+                    let distance = 0;
+                    if (trip.route?.totalDistance) {
+                        distance = Math.round(trip.route.totalDistance * 0.621371); // Convert km to miles
+                    } else if (trip.traveledPath && trip.traveledPath.length > 0) {
+                        // Rough estimate: could calculate actual distance from coordinates
+                        distance = trip.traveledPath.length * 0.1; // Rough estimate
+                    }
+                    
+                    // Store assignment with multiple keys for lookup
+                    const assignment: VehicleAssignment = {
+                        loadId: trip.tripNumber || `Trip-${trip._id?.toString().slice(-6)}`,
+                        customer: customerName,
+                        origin: origin,
+                        destination: destination,
+                        dispatcher: driverName,
+                        eta: eta,
+                        milesToday: distance,
+                        milesThisWeek: 0, // Would need to calculate from trip history
+                        lastCheckpoint: trip.status === 'in-progress' ? 'En route' : trip.status === 'planned' ? 'Scheduled' : trip.status
+                    };
+                    
+                    // Store assignment with all possible vehicle ID formats for flexible lookup
+                    // Since trips are sorted by priority, we only store the first assignment for each vehicle
+                    // This ensures in-progress trips take priority over planned trips
+                    truckIds.forEach(truckId => {
+                        if (truckId) {
+                            // Normalize the ID to string for consistent comparison
+                            const normalizedId = String(truckId).trim();
+                            if (normalizedId && !assignments[normalizedId]) {
+                                assignments[normalizedId] = assignment;
+                            }
+                        }
+                    });
+                    
+                    // Log assignment creation for debugging
+                    if (truckIds.length > 0) {
+                        const storedCount = truckIds.filter(id => assignments[String(id).trim()]).length;
+                        console.log(`✅ Trip ${assignment.loadId} (${trip.status}): Matched ${storedCount}/${truckIds.length} vehicle IDs`, truckIds);
+                    }
+                });
+
+                console.log(`📋 Total assignments created: ${Object.keys(assignments).length}`);
+                if (Object.keys(assignments).length > 0) {
+                    console.log('📋 Assignment keys (first 10):', Object.keys(assignments).slice(0, 10));
+                    console.log('📋 Sample assignment:', assignments[Object.keys(assignments)[0]]);
+                }
+                
+                // Log vehicle IDs for debugging
+                console.log(`🚛 Total vehicles: ${formattedVehicles.length}`);
+                if (formattedVehicles.length > 0) {
+                    console.log('🚛 Sample vehicle IDs (first 3):', formattedVehicles.slice(0, 3).map(v => ({
+                        _id: v._id?.toString(),
+                        internalId: v.internalId,
+                        plateNumber: v.plateNumber
+                    })));
+                }
+
+                setVehicleAssignments(assignments);
             } catch (error) {
-                console.error('Error fetching vehicles:', error);
+                console.error('Error fetching data:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchVehicles();
+        fetchAllData();
+        
+        // Refresh assignments every 30 seconds
+        const interval = setInterval(() => {
+            fetchAllData();
+        }, 30000);
+        
+        return () => clearInterval(interval);
     }, []);
 
     const getStatusColor = (status: string) => {
@@ -329,12 +523,12 @@ const VehicleList = () => {
                 bValue = b.speed;
                 break;
             case "assignment":
-                aValue = getAssignmentForVehicle(a).loadId;
-                bValue = getAssignmentForVehicle(b).loadId;
+                aValue = getAssignmentForVehicle(a, vehicleAssignments).loadId;
+                bValue = getAssignmentForVehicle(b, vehicleAssignments).loadId;
                 break;
             case "miles":
-                aValue = getAssignmentForVehicle(a).milesToday;
-                bValue = getAssignmentForVehicle(b).milesToday;
+                aValue = getAssignmentForVehicle(a, vehicleAssignments).milesToday;
+                bValue = getAssignmentForVehicle(b, vehicleAssignments).milesToday;
                 break;
             case "status":
                 aValue = a.status;
@@ -407,7 +601,7 @@ const VehicleList = () => {
     );
 
     // Stats calculation
-    const totalMilesToday = vehicles.reduce((sum, vehicle) => sum + getAssignmentForVehicle(vehicle).milesToday, 0);
+    const totalMilesToday = vehicles.reduce((sum, vehicle) => sum + getAssignmentForVehicle(vehicle, vehicleAssignments).milesToday, 0);
 
     const stats = {
         total: vehicles.length,
@@ -565,7 +759,7 @@ const VehicleList = () => {
                                     </tr>
                                 ) : (
                                     currentVehicles.map((vehicle) => {
-                                    const assignment = getAssignmentForVehicle(vehicle);
+                                    const assignment = getAssignmentForVehicle(vehicle, vehicleAssignments);
                                     return (
                                     <tr key={vehicle._id} className="hover:bg-slate-50 transition-colors duration-150">
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -721,7 +915,7 @@ const VehicleList = () => {
 
                 {/* Vehicle Details Modal */}
                 {showDetails && selectedVehicle && (() => {
-                    const assignmentDetails = getAssignmentForVehicle(selectedVehicle);
+                    const assignmentDetails = getAssignmentForVehicle(selectedVehicle, vehicleAssignments);
                     return (
                     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] overflow-hidden">
                         <div className="absolute transition-opacity" onClick={() => setShowDetails(false)} />
