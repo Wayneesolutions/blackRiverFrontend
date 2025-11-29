@@ -11,12 +11,13 @@ import {
   Phone,
   MapPin
 } from 'lucide-react';
-import { getShifts } from '../../../../axios/api/admin';
+import { listTrip } from '../../../../axios/api/distapcher';
 
 // Type definitions
-interface Shift {
+interface Trip {
   _id?: string;
   id?: string;
+  tripNumber?: string;
   driver?: {
     _id: string;
     name: string;
@@ -25,43 +26,59 @@ interface Shift {
   };
   driverId?: string;
   driverName?: string;
-  vehicle?: {
+  truck?: {
     _id: string;
-    plateNumber?: string;
+    licensePlate?: string;
+    unitNo?: string;
     make?: string;
     model?: string;
+    makeModel?: string;
+    internalId?: string;
   };
-  vehicleId?: string;
-  load?: {
+  trailer?: {
     _id: string;
-    details?: {
-      internalId?: string;
-    };
-    status?: string;
-    route?: any;
+    licensePlate?: string;
+    unitNo?: string;
+    makeModel?: string;
+    internalId?: string;
   };
-  shiftDate: string | Date;
-  startTime: string | Date;
-  endTime: string | Date;
-  status: 'scheduled' | 'in-progress' | 'completed' | 'missed' | 'pending' | 'active';
+  plannedStartDate: string | Date | null;
+  plannedEndDate: string | Date | null;
+  actualStartDate?: string | Date | null;
+  actualEndDate?: string | Date | null;
+  startLocation?: {
+    place?: string;
+    latitude?: string;
+    longitude?: string;
+  };
+  endLocation?: {
+    place?: string;
+    latitude?: string;
+    longitude?: string;
+  };
+  status: 'planned' | 'in-progress' | 'completed' | 'cancelled';
   notes?: string;
   driverPhone?: string;
   driverEmail?: string;
-  route?: string;
+  route?: {
+    totalDistance?: number;
+    estimatedDuration?: number;
+    waypoints?: any[];
+  };
 }
 
 const DriverScheduleCalendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('month');
-  const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [driverFilter, setDriverFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch shifts from backend
-  const fetchShifts = async () => {
+  // Fetch trips from backend
+  const fetchTrips = async () => {
     setLoading(true);
     try {
       // Calculate date range for current view
@@ -74,72 +91,82 @@ const DriverScheduleCalendar = () => {
       endDate.setDate(0);
       endDate.setHours(23, 59, 59, 999);
 
-      const response = await getShifts({
+      const params: any = {
+        limit: 500,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
-        ...(driverFilter !== 'all' && { driverId: driverFilter })
-      });
+      };
 
-      if (response.success && response.data) {
+      if (driverFilter !== 'all') {
+        params.driver = driverFilter;
+      }
+
+      const response = await listTrip(params);
+
+      if (response?.success && Array.isArray(response.data)) {
         // Map backend data to frontend format
-        const mappedShifts: Shift[] = response.data.map((shift: any) => ({
-          _id: shift._id,
-          id: shift._id,
-          driverId: shift.driver?._id || shift.driver,
-          driverName: shift.driver?.name || 'Unknown Driver',
-          driverPhone: shift.driver?.phone,
-          driverEmail: shift.driver?.email,
-          vehicleId: shift.vehicle?._id || shift.vehicle,
-          vehicle: shift.vehicle,
-          load: shift.load,
-          shiftDate: shift.shiftDate,
-          startTime: shift.startTime,
-          endTime: shift.endTime,
-          status: shift.status === 'pending' ? 'scheduled' : shift.status === 'active' ? 'in-progress' : shift.status,
-          notes: shift.notes || '',
-          route: shift.load?.route ? 'Load: ' + (shift.load.details?.internalId || shift.load._id) : ''
+        const mappedTrips: Trip[] = response.data.map((trip: any) => ({
+          _id: trip._id,
+          id: trip._id,
+          tripNumber: trip.tripNumber,
+          driverId: trip.driver?._id || trip.driver,
+          driverName: trip.driver?.name || 'Unknown Driver',
+          driverPhone: trip.driver?.phone,
+          driverEmail: trip.driver?.email,
+          driver: trip.driver,
+          truck: trip.truck,
+          trailer: trip.trailer,
+          plannedStartDate: trip.plannedStartDate || null,
+          plannedEndDate: trip.plannedEndDate || null,
+          actualStartDate: trip.actualStartDate || null,
+          actualEndDate: trip.actualEndDate || null,
+          startLocation: trip.startLocation,
+          endLocation: trip.endLocation,
+          status: trip.status || 'planned',
+          notes: trip.notes || '',
+          route: trip.route || {}
         }));
-        setShifts(mappedShifts);
+        setTrips(mappedTrips);
       } else {
-        setShifts([]);
+        setTrips([]);
       }
     } catch (error) {
-      console.error('Error fetching shifts:', error);
-      setShifts([]);
+      console.error('Error fetching trips:', error);
+      setTrips([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchShifts();
+    fetchTrips();
   }, [currentDate, driverFilter]);
 
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
-  // Filter shifts based on selected filters
-  const filteredShifts = useMemo(() => {
-    return shifts.filter(shift => {
-      const driverMatch = driverFilter === 'all' || shift.driverId === driverFilter || shift.driver?._id === driverFilter;
-      const statusMatch = statusFilter === 'all' || shift.status === statusFilter;
+  // Filter trips based on selected filters
+  const filteredTrips = useMemo(() => {
+    return trips.filter(trip => {
+      const driverMatch = driverFilter === 'all' || trip.driverId === driverFilter || trip.driver?._id === driverFilter;
+      const statusMatch = statusFilter === 'all' || trip.status === statusFilter;
       return driverMatch && statusMatch;
     });
-  }, [shifts, driverFilter, statusFilter]);
+  }, [trips, driverFilter, statusFilter]);
 
-  // Get unique drivers from shifts
+  // Get unique drivers from trips
   const uniqueDrivers = useMemo(() => {
     const driverMap = new Map();
-    shifts.forEach(shift => {
-      if (shift.driver) {
-        driverMap.set(shift.driver._id, {
-          id: shift.driver._id,
-          name: shift.driver.name
+    trips.forEach(trip => {
+      if (trip.driver) {
+        driverMap.set(trip.driver._id, {
+          id: trip.driver._id,
+          name: trip.driver.name
         });
       }
     });
     return Array.from(driverMap.values());
-  }, [shifts]);
+  }, [trips]);
 
   const navigateMonth = (direction: number) => {
     const newDate = new Date(currentDate);
@@ -159,11 +186,16 @@ const DriverScheduleCalendar = () => {
     setCurrentDate(newDate);
   };
 
-  const getShiftsForDate = (date: Date) => {
+  const getTripsForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return filteredShifts.filter(shift => {
-      const shiftDate = new Date(shift.shiftDate || shift.startTime).toISOString().split('T')[0];
-      return shiftDate === dateStr;
+    return filteredTrips.filter(trip => {
+      // Use plannedStartDate if available, otherwise use actualStartDate or createdAt
+      const tripDate = trip.plannedStartDate 
+        ? new Date(trip.plannedStartDate).toISOString().split('T')[0]
+        : trip.actualStartDate
+        ? new Date(trip.actualStartDate).toISOString().split('T')[0]
+        : null;
+      return tripDate === dateStr;
     });
   };
 
@@ -212,8 +244,7 @@ const DriverScheduleCalendar = () => {
     return days;
   };
 
-  const getShiftTypeColor = () => {
-    // Shifts from backend don't have shiftType, use default color
+  const getTripTypeColor = () => {
     return 'bg-blue-100 text-blue-800 border-blue-200';
   };
 
@@ -223,9 +254,9 @@ const DriverScheduleCalendar = () => {
         return 'bg-green-100 text-green-800 border-green-200';
       case 'in-progress':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'scheduled':
+      case 'planned':
         return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'missed':
+      case 'cancelled':
         return 'bg-red-100 text-red-800 border-red-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -253,7 +284,7 @@ const DriverScheduleCalendar = () => {
       <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading shifts...</p>
+          <p className="text-gray-600">Loading trips...</p>
         </div>
       </div>
     );
@@ -267,17 +298,17 @@ const DriverScheduleCalendar = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Driver Schedule Calendar</h1>
-              <p className="text-gray-600 mt-1">Manage driver shifts and schedules</p>
+              <p className="text-gray-600 mt-1">Manage driver trips and schedules</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <div className="flex items-center space-x-1">
                   <Truck className="w-4 h-4" />
-                  <span>{shifts.length} Total Shifts</span>
+                  <span>{trips.length} Total Trips</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Clock className="w-4 h-4" />
-                  <span>{shifts.filter(s => s.status === 'scheduled').length} Scheduled</span>
+                  <span>{trips.filter(t => t.status === 'planned').length} Planned</span>
                 </div>
               </div>
               <button
@@ -318,10 +349,10 @@ const DriverScheduleCalendar = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Status</option>
-                  <option value="scheduled">Scheduled</option>
+                  <option value="planned">Planned</option>
                   <option value="in-progress">In Progress</option>
                   <option value="completed">Completed</option>
-                  <option value="missed">Missed</option>
+                  <option value="cancelled">Cancelled</option>
                 </select>
               </div>
             </div>
@@ -391,7 +422,7 @@ const DriverScheduleCalendar = () => {
 
               <div className="grid grid-cols-7">
                 {calendarDays.map((day, index) => {
-                  const dayShifts = getShiftsForDate(day.date);
+                  const dayTrips = getTripsForDate(day.date);
                   const isToday = day.date.toDateString() === new Date().toDateString();
 
                   return (
@@ -408,29 +439,37 @@ const DriverScheduleCalendar = () => {
                       </div>
 
                       <div className="space-y-1">
-                        {dayShifts.slice(0, 3).map((shift) => (
+                        {dayTrips.slice(0, 3).map((trip) => (
                           <div
-                            key={shift.id}
-                            onClick={() => setSelectedShift(shift)}
-                            className={`p-2 rounded text-xs cursor-pointer hover:shadow-sm transition-all ${getShiftTypeColor()}`}
+                            key={trip.id || trip._id}
+                            onClick={() => setSelectedTrip(trip)}
+                            className={`p-2 rounded text-xs cursor-pointer hover:shadow-sm transition-all ${getTripTypeColor()}`}
                           >
                             <div className="flex items-center justify-between mb-1">
-                              <span className="font-medium truncate">{shift.driverName || shift.driver?.name || 'Unknown Driver'}</span>
+                              <span className="font-medium truncate">{trip.driverName || trip.driver?.name || 'Unknown Driver'}</span>
                               <div className="flex items-center gap-1">
                                 <Truck className="w-3 h-3" />
                               </div>
                             </div>
-                            <div className="text-xs opacity-75">
-                              {formatTime(shift.startTime)} - {formatTime(shift.endTime)}
-                            </div>
-                            <div className={`text-xs px-1 py-0.5 rounded mt-1 ${getStatusColor(shift.status)}`}>
-                              {shift.status}
+                            {trip.tripNumber && (
+                              <div className="text-xs opacity-75 mb-1">
+                                {trip.tripNumber}
+                              </div>
+                            )}
+                            {trip.plannedStartDate && (
+                              <div className="text-xs opacity-75">
+                                {formatTime(trip.plannedStartDate)}
+                                {trip.plannedEndDate && ` - ${formatTime(trip.plannedEndDate)}`}
+                              </div>
+                            )}
+                            <div className={`text-xs px-1 py-0.5 rounded mt-1 ${getStatusColor(trip.status)}`}>
+                              {trip.status}
                             </div>
                           </div>
                         ))}
-                        {dayShifts.length > 3 && (
+                        {dayTrips.length > 3 && (
                           <div className="text-xs text-gray-500 text-center py-1">
-                            +{dayShifts.length - 3} more
+                            +{dayTrips.length - 3} more
                           </div>
                         )}
                       </div>
@@ -447,7 +486,7 @@ const DriverScheduleCalendar = () => {
                 <div className="p-4 border-r"></div>
                 {weekDays.map((day) => {
                   const isToday = day.toDateString() === new Date().toDateString();
-                  const dayShifts = getShiftsForDate(day);
+                  const dayTrips = getTripsForDate(day);
 
                   return (
                     <div key={day.toISOString()} className={`p-4 text-center border-r last:border-r-0 ${isToday ? 'bg-blue-50' : ''}`}>
@@ -457,9 +496,9 @@ const DriverScheduleCalendar = () => {
                       <div className={`text-lg font-semibold ${isToday ? 'text-blue-600' : 'text-gray-900'}`}>
                         {day.getDate()}
                       </div>
-                      {dayShifts.length > 0 && (
+                      {dayTrips.length > 0 && (
                         <div className="text-xs text-gray-500 mt-1">
-                          {dayShifts.length} shifts
+                          {dayTrips.length} trips
                         </div>
                       )}
                     </div>
@@ -470,30 +509,35 @@ const DriverScheduleCalendar = () => {
               <div className="p-6">
                 <div className="grid grid-cols-7 gap-4">
                   {weekDays.map((day) => {
-                    const dayShifts = getShiftsForDate(day);
+                    const dayTrips = getTripsForDate(day);
 
                     return (
                       <div key={day.toISOString()} className="space-y-2">
-                        {dayShifts.map((shift) => (
+                        {dayTrips.map((trip) => (
                           <div
-                            key={shift.id}
-                            onClick={() => setSelectedShift(shift)}
-                            className={`p-3 rounded-lg cursor-pointer hover:shadow-md transition-all ${getShiftTypeColor()}`}
+                            key={trip.id || trip._id}
+                            onClick={() => setSelectedTrip(trip)}
+                            className={`p-3 rounded-lg cursor-pointer hover:shadow-md transition-all ${getTripTypeColor()}`}
                           >
                             <div className="flex items-center justify-between mb-2">
-                              <span className="font-medium text-sm truncate">{shift.driverName || shift.driver?.name || 'Unknown Driver'}</span>
+                              <span className="font-medium text-sm truncate">{trip.driverName || trip.driver?.name || 'Unknown Driver'}</span>
                               <div className="flex items-center gap-1">
                                 <Truck className="w-4 h-4" />
                               </div>
                             </div>
-                            <div className="text-xs text-gray-600 mb-2">
-                              {formatTime(shift.startTime)} - {formatTime(shift.endTime)}
-                            </div>
-                            <div className="text-xs text-gray-600 mb-2 truncate">
-                              {shift.route}
-                            </div>
-                            <div className={`text-xs px-2 py-1 rounded ${getStatusColor(shift.status)}`}>
-                              {shift.status}
+                            {trip.tripNumber && (
+                              <div className="text-xs text-gray-600 mb-2">
+                                {trip.tripNumber}
+                              </div>
+                            )}
+                            {trip.plannedStartDate && (
+                              <div className="text-xs text-gray-600 mb-2">
+                                {formatTime(trip.plannedStartDate)}
+                                {trip.plannedEndDate && ` - ${formatTime(trip.plannedEndDate)}`}
+                              </div>
+                            )}
+                            <div className={`text-xs px-2 py-1 rounded ${getStatusColor(trip.status)}`}>
+                              {trip.status}
                             </div>
                           </div>
                         ))}
@@ -508,61 +552,70 @@ const DriverScheduleCalendar = () => {
           {viewMode === 'day' && (
             <div className="p-6">
               <div className="space-y-4">
-                {getShiftsForDate(currentDate).length === 0 ? (
+                {getTripsForDate(currentDate).length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
                     <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No shifts scheduled for this day</p>
+                    <p>No trips scheduled for this day</p>
                   </div>
                 ) : (
-                  getShiftsForDate(currentDate).map((shift) => (
+                  getTripsForDate(currentDate).map((trip) => (
                     <div
-                      key={shift.id}
-                      onClick={() => setSelectedShift(shift)}
-                      className={`p-6 rounded-lg cursor-pointer hover:shadow-md transition-all ${getShiftTypeColor()}`}
+                      key={trip.id || trip._id}
+                      onClick={() => setSelectedTrip(trip)}
+                      className={`p-6 rounded-lg cursor-pointer hover:shadow-md transition-all ${getTripTypeColor()}`}
                     >
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
                           <User className="w-8 h-8 text-gray-600" />
                           <div>
-                            <span className="font-medium text-lg">{shift.driverName || shift.driver?.name || 'Unknown Driver'}</span>
-                            {shift.vehicle && (
-                              <p className="text-sm text-gray-600">{shift.vehicle.plateNumber || `${shift.vehicle.make} ${shift.vehicle.model}`}</p>
+                            <span className="font-medium text-lg">{trip.driverName || trip.driver?.name || 'Unknown Driver'}</span>
+                            {trip.tripNumber && (
+                              <p className="text-sm text-gray-600">Trip: {trip.tripNumber}</p>
                             )}
-                            {shift.load && (
-                              <p className="text-sm text-gray-600">Load: {shift.load.details?.internalId || shift.load._id}</p>
+                            {trip.truck && (
+                              <p className="text-sm text-gray-600">
+                                Truck: {trip.truck.licensePlate || trip.truck.unitNo || trip.truck.internalId || 'N/A'}
+                              </p>
                             )}
                           </div>
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(shift.status)}`}>
-                          {shift.status}
+                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(trip.status)}`}>
+                          {trip.status}
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div className="text-sm text-gray-600">
-                          <strong>Time:</strong> {formatTime(shift.startTime)} - {formatTime(shift.endTime)}
-                        </div>
-                        {shift.load && (
+                        {trip.plannedStartDate && (
                           <div className="text-sm text-gray-600">
-                            <strong>Load:</strong> {shift.load.details?.internalId || shift.load._id}
+                            <strong>Start:</strong> {new Date(trip.plannedStartDate).toLocaleString()}
                           </div>
                         )}
-                        {shift.vehicle && (
+                        {trip.plannedEndDate && (
                           <div className="text-sm text-gray-600">
-                            <strong>Vehicle:</strong> {shift.vehicle.plateNumber || shift.vehicle.make} {shift.vehicle.model}
+                            <strong>End:</strong> {new Date(trip.plannedEndDate).toLocaleString()}
+                          </div>
+                        )}
+                        {trip.truck && (
+                          <div className="text-sm text-gray-600">
+                            <strong>Truck:</strong> {trip.truck.licensePlate || trip.truck.unitNo || trip.truck.internalId || 'N/A'}
                           </div>
                         )}
                       </div>
 
-                      {shift.route && (
+                      {trip.startLocation?.place && (
                         <div className="text-sm text-gray-600 mb-2">
-                          <strong>Route:</strong> {shift.route}
+                          <strong>From:</strong> {trip.startLocation.place}
+                        </div>
+                      )}
+                      {trip.endLocation?.place && (
+                        <div className="text-sm text-gray-600 mb-2">
+                          <strong>To:</strong> {trip.endLocation.place}
                         </div>
                       )}
 
-                      {shift.notes && (
+                      {trip.notes && (
                         <div className="mt-3 p-2 bg-gray-50 rounded text-sm text-gray-700">
-                          <strong>Notes:</strong> {shift.notes}
+                          <strong>Notes:</strong> {trip.notes}
                         </div>
                       )}
                     </div>
@@ -573,8 +626,8 @@ const DriverScheduleCalendar = () => {
           )}
         </div>
 
-        {/* Shift Details Modal */}
-        {selectedShift && (
+        {/* Trip Details Modal */}
+        {selectedTrip && (
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
@@ -582,17 +635,19 @@ const DriverScheduleCalendar = () => {
                   <div className="flex items-center space-x-3">
                     <User className="w-8 h-8 text-gray-600" />
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">{selectedShift.driverName || selectedShift.driver?.name || 'Unknown Driver'}</h2>
-                      {selectedShift.vehicle && (
-                        <p className="text-gray-600">{selectedShift.vehicle.plateNumber || `${selectedShift.vehicle.make} ${selectedShift.vehicle.model}`}</p>
+                      <h2 className="text-2xl font-bold text-gray-900">{selectedTrip.driverName || selectedTrip.driver?.name || 'Unknown Driver'}</h2>
+                      {selectedTrip.tripNumber && (
+                        <p className="text-gray-600">Trip: {selectedTrip.tripNumber}</p>
                       )}
-                      {selectedShift.load && (
-                        <p className="text-gray-600">Load: {selectedShift.load.details?.internalId || selectedShift.load._id}</p>
+                      {selectedTrip.truck && (
+                        <p className="text-gray-600">
+                          Truck: {selectedTrip.truck.licensePlate || selectedTrip.truck.unitNo || selectedTrip.truck.internalId || 'N/A'}
+                        </p>
                       )}
                     </div>
                   </div>
                   <button
-                    onClick={() => setSelectedShift(null)}
+                    onClick={() => setSelectedTrip(null)}
                     className="text-gray-400 hover:text-gray-600 transition-colors text-2xl"
                   >
                     <X className="w-6 h-6" />
@@ -602,31 +657,43 @@ const DriverScheduleCalendar = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <h3 className="font-medium text-gray-900">Shift Details</h3>
+                      <h3 className="font-medium text-gray-900">Trip Details</h3>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <div><strong>Start Time:</strong> {new Date(selectedShift.startTime).toLocaleString()}</div>
-                        <div><strong>End Time:</strong> {new Date(selectedShift.endTime).toLocaleString()}</div>
-                        {selectedShift.load && (
-                          <div><strong>Load:</strong> {selectedShift.load.details?.internalId || selectedShift.load._id}</div>
+                        {selectedTrip.plannedStartDate && (
+                          <div><strong>Planned Start:</strong> {new Date(selectedTrip.plannedStartDate).toLocaleString()}</div>
                         )}
-                        {selectedShift.vehicle && (
-                          <div><strong>Vehicle:</strong> {selectedShift.vehicle.plateNumber || `${selectedShift.vehicle.make} ${selectedShift.vehicle.model}`}</div>
+                        {selectedTrip.plannedEndDate && (
+                          <div><strong>Planned End:</strong> {new Date(selectedTrip.plannedEndDate).toLocaleString()}</div>
                         )}
-                        <div><strong>Route:</strong> {selectedShift.route || selectedShift.notes || 'Not assigned'}</div>
+                        {selectedTrip.tripNumber && (
+                          <div><strong>Trip Number:</strong> {selectedTrip.tripNumber}</div>
+                        )}
+                        {selectedTrip.truck && (
+                          <div><strong>Truck:</strong> {selectedTrip.truck.licensePlate || selectedTrip.truck.unitNo || selectedTrip.truck.internalId || 'N/A'}</div>
+                        )}
+                        {selectedTrip.trailer && (
+                          <div><strong>Trailer:</strong> {selectedTrip.trailer.licensePlate || selectedTrip.trailer.unitNo || selectedTrip.trailer.internalId || 'N/A'}</div>
+                        )}
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <h3 className="font-medium text-gray-900">Hours & Status</h3>
+                      <h3 className="font-medium text-gray-900">Status & Route</h3>
                       <div className="text-sm text-gray-600 space-y-1">
-                        {selectedShift.startTime && selectedShift.endTime && (
-                          <div><strong>Duration:</strong> {Math.round((new Date(selectedShift.endTime).getTime() - new Date(selectedShift.startTime).getTime()) / (1000 * 60 * 60) * 10) / 10} hours</div>
+                        {selectedTrip.plannedStartDate && selectedTrip.plannedEndDate && (
+                          <div><strong>Duration:</strong> {Math.round((new Date(selectedTrip.plannedEndDate).getTime() - new Date(selectedTrip.plannedStartDate).getTime()) / (1000 * 60 * 60) * 10) / 10} hours</div>
                         )}
                         <div><strong>Status:</strong> 
-                          <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(selectedShift.status)}`}>
-                            {selectedShift.status}
+                          <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(selectedTrip.status)}`}>
+                            {selectedTrip.status}
                           </span>
                         </div>
+                        {selectedTrip.startLocation?.place && (
+                          <div><strong>From:</strong> {selectedTrip.startLocation.place}</div>
+                        )}
+                        {selectedTrip.endLocation?.place && (
+                          <div><strong>To:</strong> {selectedTrip.endLocation.place}</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -636,20 +703,20 @@ const DriverScheduleCalendar = () => {
                     <div className="text-sm text-gray-600 space-y-1">
                       <div className="flex items-center gap-2">
                         <Phone className="w-4 h-4" />
-                        <span>{selectedShift.driverPhone}</span>
+                        <span>{selectedTrip.driverPhone || selectedTrip.driver?.phone || 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        <span>{selectedShift.driverEmail}</span>
+                        <span>{selectedTrip.driverEmail || selectedTrip.driver?.email || 'N/A'}</span>
                       </div>
                     </div>
                   </div>
 
-                  {selectedShift.notes && (
+                  {selectedTrip.notes && (
                     <div className="space-y-2">
                       <h3 className="font-medium text-gray-900">Notes</h3>
                       <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-700">
-                        {selectedShift.notes}
+                        {selectedTrip.notes}
                       </div>
                     </div>
                   )}

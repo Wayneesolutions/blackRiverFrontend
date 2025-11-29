@@ -2,12 +2,9 @@ import  { useState } from "react";
 import { Outlet } from "react-router-dom";
 import CompilanceSidebar from "./Sidebar";
 import CompilanceHeader from "./Header";
-import ExpiringVehicleDocumentsToast from "../common/ExpiringVehicleDocumentsToast";
-import { useExpiringVehicleDocuments } from "../../hooks/useExpiringVehicleDocuments";
 
 const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const { showExpiringToast, expiringDocuments, handleCloseToast, handleViewDocuments } = useExpiringVehicleDocuments();
 
     const toggleSidebar = () => {
         setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -35,14 +32,6 @@ const Layout = () => {
                     <Outlet />
                 </main>
             </div>
-            
-            {/* Global Expiring Vehicle Documents Toast */}
-            <ExpiringVehicleDocumentsToast
-                isOpen={showExpiringToast}
-                onClose={handleCloseToast}
-                onViewDocuments={handleViewDocuments}
-                count={expiringDocuments.length}
-            />
         </div>
     );
 };

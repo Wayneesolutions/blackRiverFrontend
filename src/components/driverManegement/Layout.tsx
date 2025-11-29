@@ -3,7 +3,6 @@ import { Outlet } from "react-router-dom";
 import Header from './Header'
 import Sidebar from './Sidebar'
 import ExpiringDocumentsToast from "../common/ExpiringDocumentsToast";
-import ExpiringVehicleDocumentsToast from "../common/ExpiringVehicleDocumentsToast";
 import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
 
 function Layout() {
@@ -12,11 +11,7 @@ function Layout() {
     showExpiringToast, 
     expiringDocuments, 
     handleCloseToast, 
-    handleViewDocuments,
-    showVehicleExpiringToast,
-    expiringVehicleDocuments,
-    handleCloseVehicleToast,
-    handleViewVehicleDocuments
+    handleViewDocuments
   } = useExpiringDocuments();
 
     const toggleSidebar = () => {
@@ -52,14 +47,6 @@ function Layout() {
                 onClose={handleCloseToast}
                 onViewDocuments={handleViewDocuments}
                 count={expiringDocuments.length}
-            />
-            
-            {/* Expiring Vehicle Documents Toast (HR Panel Only) */}
-            <ExpiringVehicleDocumentsToast
-                isOpen={showVehicleExpiringToast}
-                onClose={handleCloseVehicleToast}
-                onViewDocuments={handleViewVehicleDocuments}
-                count={expiringVehicleDocuments.length}
             />
         </div>
     );

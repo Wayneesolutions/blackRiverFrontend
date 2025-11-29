@@ -3,11 +3,19 @@ import { Outlet } from "react-router-dom";
 import Header from './Header'
 import Sidebar from './Sidebar'
 import ExpiringDocumentsPopup from "../common/ExpiringDocumentsPopup";
+import ExpiringVehicleDocumentsToast from "../common/ExpiringVehicleDocumentsToast";
 import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
+import { useExpiringVehicleDocumentsFleetMaintenance } from "../../hooks/useExpiringVehicleDocumentsFleetMaintenance";
 
 function Layout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { showExpiringToast, handleCloseToast, handleViewDocuments } = useExpiringDocuments();
+  const { 
+    showExpiringToast: showVehicleExpiringToast, 
+    expiringDocuments: expiringVehicleDocuments, 
+    handleCloseToast: handleCloseVehicleToast, 
+    handleViewDocuments: handleViewVehicleDocuments 
+  } = useExpiringVehicleDocumentsFleetMaintenance();
 
     const toggleSidebar = () => {
         setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -36,13 +44,21 @@ function Layout() {
                 </main>
             </div>
             
-            {/* Global Expiring Documents Popup */}
+            {/* Global Expiring Employee Documents Popup */}
             <ExpiringDocumentsPopup
                 isOpen={showExpiringToast}
                 onClose={handleCloseToast}
                 onViewDocuments={handleViewDocuments}
                 daysThreshold={30}
                 showOnlyOnce={false}
+            />
+            
+            {/* Global Expiring Vehicle Documents Toast (Fleet Maintenance Only) */}
+            <ExpiringVehicleDocumentsToast
+                isOpen={showVehicleExpiringToast}
+                onClose={handleCloseVehicleToast}
+                onViewDocuments={handleViewVehicleDocuments}
+                count={expiringVehicleDocuments.length}
             />
         </div>
     );
