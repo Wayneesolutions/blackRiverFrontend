@@ -38,7 +38,6 @@ import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const ACCENT_DARK = FLEET_COLORS.dark;
-const ACCENT_GRADIENT = FLEET_COLORS.gradient;
 const hexToRgba = (hex: string, alpha = 1) => {
   const parsed = hex.replace('#', '');
   const bigint = parseInt(parsed, 16);
@@ -267,17 +266,51 @@ const Tickets: React.FC = () => {
       try {
         const res = await listFleetUnits({ category: "trucks" });
         if (res?.success && res?.data) {
-          // Map FleetUnit to Vehicle interface format
-          const mappedVehicles: Vehicle[] = res.data.map((unit: FleetUnitDto) => ({
-            _id: unit._id,
-            internalId: unit.internalId || unit.unitNo,
-            plateNumber: unit.licensePlate || 'N/A',
-            licensePlate: unit.licensePlate,
-            make: unit.make || unit.makeModel?.split(' ')[0] || 'Unknown',
-            model: unit.model || unit.makeModel?.split(' ').slice(1).join(' ') || 'Unknown',
-            makeModel: unit.makeModel,
-            year: unit.year
-          }));
+          // Map FleetUnit to Vehicle interface format - filter to trucks only
+          const trucks = res.data.filter((unit: FleetUnitDto) => 
+            unit.unitType === "Truck" || unit.unitType === "Bus/Van"
+          );
+          
+          const mappedVehicles: Vehicle[] = trucks.map((unit: FleetUnitDto) => {
+            // Extract make and model
+            let make = unit.make || '';
+            let model = unit.model || '';
+            
+            // If makeModel exists but make/model don't, parse makeModel
+            if ((!make || !model) && unit.makeModel) {
+              const makeModelParts = unit.makeModel.trim().split(/\s+/);
+              if (makeModelParts.length > 0) {
+                make = make || makeModelParts[0];
+                model = model || makeModelParts.slice(1).join(' ');
+              }
+            }
+            
+            // Use unitNo or internalId as fallback
+            const identifier = unit.licensePlate || unit.unitNo || unit.internalId || unit._id;
+            
+            // Ensure we don't show "Unknown Unknown"
+            if (!make && !model) {
+              if (unit.makeModel) {
+                const parts = unit.makeModel.trim().split(/\s+/);
+                make = parts[0] || identifier;
+                model = parts.slice(1).join(' ') || '';
+              } else {
+                make = unit.unitNo || identifier;
+                model = '';
+              }
+            }
+            
+            return {
+              _id: unit._id,
+              internalId: unit.internalId || unit.unitNo,
+              plateNumber: unit.licensePlate || unit.unitNo || unit.internalId || 'N/A',
+              licensePlate: unit.licensePlate,
+              make: make || identifier,
+              model: model || '',
+              makeModel: unit.makeModel,
+              year: unit.year
+            };
+          });
           setVehicles(mappedVehicles);
         }
       } catch (error) {
@@ -483,16 +516,18 @@ const Tickets: React.FC = () => {
     if (typeof vehicle === 'string') {
       const v = vehicles.find(v => v._id === vehicle);
       if (v) {
-        const plate = v.plateNumber || v.licensePlate || 'N/A';
-        return `${v.make} ${v.model} - ${plate}`;
+        const plate = v.plateNumber || v.licensePlate || v.internalId || 'N/A';
+        const vehicleName = [v.make, v.model].filter(Boolean).join(' ').trim() || v.makeModel || 'Vehicle';
+        return `${vehicleName} (${plate})`;
       }
       return '';
     }
     if (vehicle) {
-      const make = vehicle.make || 'Unknown';
-      const model = vehicle.model || 'Unknown';
-      const plate = vehicle.plateNumber || 'N/A';
-      return `${make} ${model} - ${plate}`;
+      const make = vehicle.make || '';
+      const model = vehicle.model || '';
+      const plate = vehicle.plateNumber || vehicle.internalId || 'N/A';
+      const vehicleName = [make, model].filter(Boolean).join(' ').trim() || 'Vehicle';
+      return `${vehicleName} (${plate})`;
     }
     return '';
   };
@@ -1458,7 +1493,11 @@ const Tickets: React.FC = () => {
                     <option value="">Select Vehicle</option>
                     {vehicles.map((vehicle) => (
                       <option key={vehicle._id} value={vehicle._id}>
-                        {vehicle.make} {vehicle.model} - {vehicle.plateNumber}
+                        {(() => {
+                          const vehicleName = [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim() || vehicle.makeModel || 'Vehicle';
+                          const identifier = vehicle.plateNumber || vehicle.licensePlate || vehicle.internalId || 'N/A';
+                          return `${vehicleName} (${identifier})`;
+                        })()}
                       </option>
                     ))}
                   </select>
@@ -1901,7 +1940,11 @@ const Tickets: React.FC = () => {
                     <option value="">Select Vehicle</option>
                     {vehicles.map((vehicle) => (
                       <option key={vehicle._id} value={vehicle._id}>
-                        {vehicle.make} {vehicle.model} - {vehicle.plateNumber}
+                        {(() => {
+                          const vehicleName = [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim() || vehicle.makeModel || 'Vehicle';
+                          const identifier = vehicle.plateNumber || vehicle.licensePlate || vehicle.internalId || 'N/A';
+                          return `${vehicleName} (${identifier})`;
+                        })()}
                       </option>
                     ))}
                   </select>

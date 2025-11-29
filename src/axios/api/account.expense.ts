@@ -62,3 +62,17 @@ export const deleteExpense = async (id: string) => {
         return err.response?.data;
     }
 };
+
+// Get Expense Receipt Signed URL
+export const getExpenseReceiptSignedUrl = async (expenseId: string, disposition: 'inline' | 'attachment' = 'inline') => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`hr/expense/${expenseId}/receipt-signed-url`, {
+            params: { disposition }
+        });
+        console.log("==getExpenseReceiptSignedUrl res", res);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};

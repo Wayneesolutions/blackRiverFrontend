@@ -28,7 +28,6 @@ import {
 import { createIssue } from '../../../../axios/api/distapcher';
 import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
 import { listDriver } from '../../../../axios/api/distapcher';
-import { listTrailers } from '../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -353,9 +352,18 @@ const Incidents: React.FC = () => {
 
   const loadTrailers = async () => {
     try {
-      const res = await listTrailers();
-      if (res && res.data) {
-        setTrailers(res.data);
+      const res = await listFleetUnits({ category: 'trailers' });
+      if (res && res.success && res.data) {
+        // Map FleetUnit to Trailer format for compatibility
+        const mappedTrailers: Trailer[] = res.data
+          .filter((unit: FleetUnitDto) => unit.unitType !== 'Truck' && unit.unitType !== 'Bus/Van')
+          .map((unit: FleetUnitDto) => ({
+            _id: unit._id,
+            trailer: unit.unitNo || unit.licensePlate || unit.internalId || 'Trailer',
+            internalId: unit.internalId || unit.unitNo,
+            plateNumber: unit.licensePlate || unit.unitNo || unit.internalId || 'N/A'
+          }));
+        setTrailers(mappedTrailers);
       }
     } catch (error) {
       console.error('Error loading trailers:', error);
@@ -1289,11 +1297,15 @@ const Incidents: React.FC = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="">Select Trailer</option>
-                      {trailers.map((trailer) => (
-                        <option key={trailer._id} value={trailer.trailer || trailer._id}>
-                          {trailer.trailer || trailer.plateNumber || trailer.internalId || trailer._id}
-                        </option>
-                      ))}
+                      {trailers.map((trailer) => {
+                        const identifier = trailer.plateNumber || trailer.internalId || trailer.trailer || 'N/A';
+                        const displayName = trailer.trailer || trailer.plateNumber || trailer.internalId || 'Trailer';
+                        return (
+                          <option key={trailer._id} value={trailer.trailer || trailer.internalId || trailer._id}>
+                            {displayName} {identifier !== displayName ? `(${identifier})` : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                   <div>

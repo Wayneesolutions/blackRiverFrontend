@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Trash2, Eye, Building2 } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
-import { createExpense, listExpenses, updateExpense, deleteExpense } from "../../../../axios/api/account.expense";
+import { createExpense, listExpenses, updateExpense, deleteExpense, getExpenseReceiptSignedUrl } from "../../../../axios/api/account.expense";
 import { getEmployees } from "../../../../axios/api/account.payroll";
 import ConfirmationModal from "../../../../components/common/ConfirmationModal";
 
@@ -77,6 +77,8 @@ const ExpensesPage = () => {
   const [loading, setLoading] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [viewingExpense, setViewingExpense] = useState<Expense | null>(null);
+  const [receiptSignedUrl, setReceiptSignedUrl] = useState<string | null>(null);
+  const [loadingReceiptUrl, setLoadingReceiptUrl] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
@@ -312,9 +314,30 @@ const ExpensesPage = () => {
     }
   };
 
-  const handleView = (expense: Expense) => {
+  const handleView = async (expense: Expense) => {
     setViewingExpense(expense);
     setShowViewModal(true);
+    setReceiptSignedUrl(null);
+    
+    // Fetch signed URL for receipt if available
+    if (expense.receiptUrl) {
+      setLoadingReceiptUrl(true);
+      try {
+        const response = await getExpenseReceiptSignedUrl(expense._id, 'inline');
+        if (response?.success && response?.url) {
+          setReceiptSignedUrl(response.url);
+        } else {
+          // Fallback to original URL if signed URL generation fails
+          setReceiptSignedUrl(expense.receiptUrl);
+        }
+      } catch (error) {
+        console.error('Error fetching signed URL:', error);
+        // Fallback to original URL on error
+        setReceiptSignedUrl(expense.receiptUrl);
+      } finally {
+        setLoadingReceiptUrl(false);
+      }
+    }
   };
 
   const handleCancel = () => {
@@ -785,7 +808,7 @@ const ExpensesPage = () => {
 
       {/* View Expense Modal */}
       {showViewModal && viewingExpense && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">Expense Details</h2>
@@ -793,6 +816,7 @@ const ExpensesPage = () => {
                 onClick={() => {
                   setShowViewModal(false);
                   setViewingExpense(null);
+                  setReceiptSignedUrl(null);
                 }}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
               >
@@ -872,36 +896,48 @@ const ExpensesPage = () => {
                     <p className="text-sm font-medium text-gray-600">Receipt</p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-600 mb-1">Receipt Available</p>
-                        <a
-                          href={viewingExpense.receiptUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 underline text-sm"
-                        >
-                          View Receipt
-                        </a>
+                    {loadingReceiptUrl ? (
+                      <div className="text-center py-4">
+                        <p className="text-gray-600">Loading receipt...</p>
                       </div>
-                      <button
-                        onClick={() => window.open(viewingExpense.receiptUrl, '_blank')}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
-                      >
-                        <Eye size={16} />
-                        Open Receipt
-                      </button>
-                    </div>
-                    {viewingExpense.receiptUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
-                      <div className="mt-4">
-                        <img
-                          src={viewingExpense.receiptUrl}
-                          alt="Receipt"
-                          className="max-w-full h-auto rounded-lg border border-gray-200"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
+                    ) : receiptSignedUrl ? (
+                      <>
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm text-gray-600 mb-1">Receipt Available</p>
+                            <a
+                              href={receiptSignedUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline text-sm"
+                            >
+                              View Receipt
+                            </a>
+                          </div>
+                          <button
+                            onClick={() => window.open(receiptSignedUrl, '_blank')}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+                          >
+                            <Eye size={16} />
+                            Open Receipt
+                          </button>
+                        </div>
+                        {receiptSignedUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
+                          <div className="mt-4">
+                            <img
+                              src={receiptSignedUrl}
+                              alt="Receipt"
+                              className="max-w-full h-auto rounded-lg border border-gray-200"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-600">Failed to load receipt URL</p>
                       </div>
                     )}
                   </div>
@@ -948,6 +984,7 @@ const ExpensesPage = () => {
                   handleEdit(viewingExpense);
                   setShowViewModal(false);
                   setViewingExpense(null);
+                  setReceiptSignedUrl(null);
                 }}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 transition-colors"
               >
@@ -958,6 +995,7 @@ const ExpensesPage = () => {
                 onClick={() => {
                   setShowViewModal(false);
                   setViewingExpense(null);
+                  setReceiptSignedUrl(null);
                 }}
                 className="text-gray-600 hover:text-gray-900 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
