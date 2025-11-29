@@ -2,7 +2,7 @@ import {
   MdDashboard,
   MdOutlineMap,
 } from "react-icons/md";
-import { FaTruck, FaCogs, FaUserTie } from "react-icons/fa";
+import { FaTruck, FaCogs, FaUserTie, FaRoute } from "react-icons/fa";
 
 type DispatchSidebarLinks = {
   key: string;
@@ -32,6 +32,11 @@ export const GpsSidebarLinks: DispatchSidebarLinks[] = [
         key: "/admin/gpsvehicle/livetracking/trailer",
         icon: <FaCogs />, // or another trailer-specific icon if you want
         label: "Trailer Tracking",
+      },
+      {
+        key: "/admin/gpsvehicle/livetracking/trip",
+        icon: <FaRoute />,
+        label: "Trip Tracking",
       },
     ],
   },
