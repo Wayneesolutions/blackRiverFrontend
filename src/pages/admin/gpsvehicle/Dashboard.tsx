@@ -1,4 +1,4 @@
-import  { useState, useEffect, useMemo } from "react";
+import  { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -28,19 +28,12 @@ interface FleetUnit {
   status?: string;
 }
 
-const formatNumber = (value?: string | number | null) => {
-  if (value === null || value === undefined || value === "") return "—";
-  const numeric = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(numeric)) return String(value);
-  return numeric.toLocaleString();
-};
-
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [fleetUnits, setFleetUnits] = useState<FleetUnit[]>([]);
-  const [fleetLoading, setFleetLoading] = useState(false);
-  const [fleetError, setFleetError] = useState<string | null>(null);
+  const [, setFleetUnits] = useState<FleetUnit[]>([]);
+  const [, setFleetLoading] = useState(false);
+  const [, setFleetError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {

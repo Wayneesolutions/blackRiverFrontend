@@ -110,7 +110,6 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                 cost: formData.cost || null,
                 volume: formData.volume || null,
                 volumeUnit: formData.volumeUnit || 'l',
-                type: formData.type || null,
                 status: formData.status || 'pending',
                 address: formData.address || null,
             };
