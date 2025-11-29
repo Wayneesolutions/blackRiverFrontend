@@ -659,7 +659,7 @@ function WorkOrdersPage() {
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
                                             {order.odometerReading 
                                                 ? order.odometerReading.toLocaleString() 
-                                                : (order.vehicleId?.odometer ? order.vehicleId.odometer.toLocaleString() : 'N/A')}
+                                                : 'N/A'}
                                         </td>
                                         <td className="px-4 py-4 text-sm text-gray-600 max-w-xs">
                                             <div className="truncate" title={

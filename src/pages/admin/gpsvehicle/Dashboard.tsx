@@ -28,7 +28,6 @@ interface FleetUnit {
   status?: string;
 }
 
-
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);

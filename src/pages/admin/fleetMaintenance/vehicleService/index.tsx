@@ -22,7 +22,7 @@ import {
 // Types
 interface ServiceFormData {
   vehicleId: string;
-  serviceType: 'oil-change' | 'tire-rotation' | 'bike-inspection' | 'general-maintenance' | 'other';
+  serviceType: 'oil-change' | 'tire-rotation' | 'brake-inspection' | 'general-maintenance' | 'other';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   dueDate: string;
   dueMileage: number;
@@ -207,13 +207,13 @@ const VehicleServiceManagement = () => {
   const openEditModal = (service: VehicleServiceResponse) => {
     setSelectedService(service);
     setFormData({
-      vehicleId: service.vehicleId._id,
+      vehicleId: service.vehicleId?._id || '',
       serviceType: service.serviceType as any,
       priority: service.priority as any,
-      dueDate: service.dueDate.split('T')[0], // Convert to YYYY-MM-DD format
-      dueMileage: service.dueMileage,
-      assignedMechanic: service.assignedMechanic._id,
-      description: service.description
+      dueDate: service.dueDate ? service.dueDate.split('T')[0] : '', // Convert to YYYY-MM-DD format
+      dueMileage: service.dueMileage || 0,
+      assignedMechanic: (typeof service.assignedMechanic === 'object' && service.assignedMechanic?._id) || (typeof service.assignedMechanic === 'string' ? service.assignedMechanic : ''),
+      description: service.description || ''
     });
     setShowEditModal(true);
   };
@@ -243,10 +243,10 @@ const VehicleServiceManagement = () => {
   };
 
   const filteredServices = services.filter(service =>
-    service.vehicleId.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (service.vehicleId?.plateNumber?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
     service.serviceType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.assignedMechanic.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.assignedMechanic.last_name.toLowerCase().includes(searchTerm.toLowerCase())
+    (typeof service.assignedMechanic === 'object' && service.assignedMechanic?.first_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (typeof service.assignedMechanic === 'object' && service.assignedMechanic?.last_name?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -348,9 +348,9 @@ const VehicleServiceManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {service.vehicleId.plateNumber || service.vehicleId.internalId}
+                            {service.vehicleId?.plateNumber || service.vehicleId?.internalId || 'N/A'}
                           </div>
-                          <div className="text-sm text-gray-500">{service.vehicleId.make} {service.vehicleId.model}</div>
+                          <div className="text-sm text-gray-500">{service.vehicleId?.make || ''} {service.vehicleId?.model || ''}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -380,10 +380,12 @@ const VehicleServiceManagement = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(service.dueDate).toLocaleDateString()}
+                        {service.dueDate ? new Date(service.dueDate).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {service.assignedMechanic.first_name} {service.assignedMechanic.last_name}
+                        {typeof service.assignedMechanic === 'object' && service.assignedMechanic 
+                          ? `${service.assignedMechanic.first_name || ''} ${service.assignedMechanic.last_name || ''}`.trim() || 'N/A'
+                          : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center gap-2">
@@ -446,7 +448,7 @@ const VehicleServiceManagement = () => {
                   >
                     <option value="oil-change">Oil Change</option>
                     <option value="tire-rotation">Tire Rotation</option>
-                    <option value="bike-inspection">Bike Inspection</option>
+                    <option value="brake-inspection">Brake Inspection</option>
                     <option value="general-maintenance">General Maintenance</option>
                     <option value="other">Other</option>
                   </select>
@@ -571,7 +573,7 @@ const VehicleServiceManagement = () => {
                   >
                     <option value="oil-change">Oil Change</option>
                     <option value="tire-rotation">Tire Rotation</option>
-                    <option value="bike-inspection">Bike Inspection</option>
+                    <option value="brake-inspection">Brake Inspection</option>
                     <option value="general-maintenance">General Maintenance</option>
                     <option value="other">Other</option>
                   </select>

@@ -878,12 +878,12 @@ const Index = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            {trip.truck?.licensePlate || trip.truck?.unitNo || trip.truck?.internalId || trip.truck?.makeModel || "N/A"}
+                            {trip.truck?.plateNumber || trip.truck?.internalId || (trip.truck?.make && trip.truck?.model ? `${trip.truck.make} ${trip.truck.model}` : trip.truck?.make || trip.truck?.model) || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            {trip.trailer?.licensePlate || trip.trailer?.unitNo || trip.trailer?.makeModel || "N/A"}
+                            {trip.trailer?.plateNumber || trip.trailer?.trailerNumber || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

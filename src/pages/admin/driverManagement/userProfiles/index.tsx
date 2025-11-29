@@ -42,7 +42,7 @@ const UserProfilesPortfolio: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
   const [lastFetchedRange, setLastFetchedRange] = useState<{ startDate?: string; endDate?: string } | null>(null);
-  const [pagination, setPagination] = useState<{ currentPage: number; totalItems: number; totalPages: number }>({
+  const [, setPagination] = useState<{ currentPage: number; totalItems: number; totalPages: number }>({
     currentPage: 1,
     totalItems: 0,
     totalPages: 0
