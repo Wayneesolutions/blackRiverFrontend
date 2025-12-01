@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Eye, Edit, Filter, Calendar, DollarSign, Users, TrendingUp,
-     Trash2, X, CheckCircle, AlertCircle, CreditCard, Building2 } from 'lucide-react';
-import { createInvoice, listInvoices,  updateInvoice, deleteInvoice, listLoad, createPaymentSession } from "../../../../axios/api/account.invoices";
+     Trash2, X, CheckCircle, AlertCircle, Building2, Download } from 'lucide-react';
+import { createInvoice, listInvoices,  updateInvoice, deleteInvoice, listTrips } from "../../../../axios/api/account.invoices";
+import jsPDF from 'jspdf';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 interface Invoice {
     _id: string;
     clientName: string;
     clientEmail: string;
-    loadId: string;
+    loadId?: string; // Legacy field
+    tripId?: string; // New field
     amount: number;
     currency: string;
     status: 'paid' | 'pending';
@@ -21,39 +23,49 @@ interface Invoice {
     updatedAt: string;
 }
 
-interface Load {
-    _id?: string;
-    orderId?: string;
-    loadNumber?: string;
-    pickupLocation?: string;
-    deliveryLocation?: string;
-    driverName?: string;
-    customerName?: string;
-    customerEmail?: string;
-    customer?: {
-        name?: string;
+interface Trip {
+    _id: string;
+    tripNumber: string;
+    status: string;
+    driver?: {
+        _id: string;
+        name: string;
         email?: string;
-        company?: string;
     };
-    route?: {
-        selectPickup?: {
-            place?: string;
-            longitude?: string;
-            latitude?: string;
-        };
-        selectDropOff?: {
-            place?: string;
-            longitude?: string;
-            latitude?: string;
-        };
-        multipleDropOffs?: boolean;
-        selectReturn?: string;
-        wayPoints?: any[];
+    truck?: {
+        _id: string;
+        plateNumber?: string;
+        internalId?: string;
     };
-    status?: string;
-    notes?: string;
-    assignedAt?: string;
-    [key: string]: any;
+    orders?: Array<{
+        _id: string;
+        orderNumber: string;
+        customerOrderNo?: string;
+        customer?: {
+            _id: string;
+            name: string;
+            email: string;
+            phone?: string;
+            address?: string;
+            company?: string;
+        };
+        pickupLocation?: {
+            place?: string;
+        };
+        deliveryLocation?: {
+            place?: string;
+        };
+    }>;
+    startLocation?: {
+        place?: string;
+    };
+    endLocation?: {
+        place?: string;
+    };
+    plannedStartDate?: string;
+    plannedEndDate?: string;
+    actualStartDate?: string;
+    actualEndDate?: string;
 }
 
 type TabType = 'list' | 'view' | 'edit' | 'create';
@@ -70,7 +82,7 @@ const InvoiceManagement: React.FC = () => {
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
     const [invoices, setInvoices] = useState<Invoice[]>([]);
-    const [loads, setLoads] = useState<Load[]>([]);
+    const [trips, setTrips] = useState<Trip[]>([]);
     const [loading, setLoading] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [deleteModal, setDeleteModal] = useState<{ show: boolean; invoiceId: string | null }>({ show: false, invoiceId: null });
@@ -104,7 +116,7 @@ const InvoiceManagement: React.FC = () => {
         }
         
         fetchInvoices();
-        fetchLoads();
+        fetchTrips();
     }, []);
 
     const showNotification = (type: 'success' | 'error', message: string) => {
@@ -128,20 +140,171 @@ const InvoiceManagement: React.FC = () => {
         }
     };
 
-    const handleCreatePaymentLink = async (invoice: Invoice) => {
+    const handleDownloadPDF = (invoice: Invoice) => {
         try {
-            const response = await createPaymentSession(invoice._id);
-            if (response && response.success && response.url) {
-                // Copy the payment URL to clipboard
-                const paymentUrl = `${window.location.origin}/invoice/${invoice._id}`;
-                await navigator.clipboard.writeText(paymentUrl);
-                showNotification('success', 'Payment link copied to clipboard!');
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            const margin = 20;
+            const contentWidth = pageWidth - (margin * 2);
+            
+            // Color scheme - using RGB values directly
+            const primaryR = 67, primaryG = 56, primaryB = 202; // Indigo
+            const secondaryR = 99, secondaryG = 102, secondaryB = 241; // Lighter indigo
+            const textR = 31, textG = 41, textB = 55; // Gray-800
+            const lightGrayR = 243, lightGrayG = 244, lightGrayB = 246; // Gray-100
+            
+            // Header with colored background
+            doc.setFillColor(primaryR, primaryG, primaryB);
+            doc.rect(0, 0, pageWidth, 50, 'F');
+            
+            // Company/Invoice Title
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(28);
+            doc.setFont('helvetica', 'bold');
+            doc.text('INVOICE', pageWidth / 2, 25, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Professional Invoice Document', pageWidth / 2, 35, { align: 'center' });
+            
+            // Reset text color
+            doc.setTextColor(textR, textG, textB);
+            
+            // Invoice Details Box (Top Right)
+            const boxX = pageWidth - margin - 80;
+            let yPos = 60;
+            
+            doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
+            doc.roundedRect(boxX, yPos, 80, 50, 3, 3, 'F');
+            
+            doc.setFontSize(9);
+            doc.setTextColor(107, 114, 128); // Gray-500
+            doc.text('Invoice Number', boxX + 5, yPos + 8);
+            doc.text('Invoice Date', boxX + 5, yPos + 18);
+            doc.text('Due Date', boxX + 5, yPos + 28);
+            doc.text('Status', boxX + 5, yPos + 38);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(textR, textG, textB);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`#${invoice._id.slice(-8).toUpperCase()}`, boxX + 5, yPos + 15);
+            doc.setFont('helvetica', 'normal');
+            doc.text(formatDate(invoice.invoiceDate), boxX + 5, yPos + 25);
+            doc.text(formatDate(invoice.dueDate), boxX + 5, yPos + 35);
+            
+            // Status badge
+            const statusR = invoice.status === 'paid' ? 34 : 251;
+            const statusG = invoice.status === 'paid' ? 197 : 191;
+            const statusB = invoice.status === 'paid' ? 94 : 36;
+            doc.setFillColor(statusR, statusG, statusB);
+            doc.roundedRect(boxX + 5, yPos + 40, 30, 6, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+            doc.text(invoice.status.toUpperCase(), boxX + 20, yPos + 44, { align: 'center' });
+            doc.setTextColor(textR, textG, textB);
+            
+            // Bill To Section
+            yPos = 60;
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Bill To:', margin, yPos);
+            yPos += 8;
+            
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.text(invoice.clientName, margin, yPos);
+            yPos += 7;
+            
+            if (invoice.clientEmail) {
+                doc.setFontSize(10);
+                doc.setTextColor(107, 114, 128);
+                doc.text(invoice.clientEmail, margin, yPos);
+                doc.setTextColor(textR, textG, textB);
+                yPos += 10;
             } else {
-                showNotification('error', response?.message || 'Failed to create payment link');
+                yPos += 5;
             }
+            
+            // Line separator
+            yPos += 5;
+            doc.setDrawColor(229, 231, 235); // Gray-200
+            doc.setLineWidth(0.5);
+            doc.line(margin, yPos, pageWidth - margin, yPos);
+            yPos += 15;
+            
+            // Items/Summary Section
+            doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
+            doc.roundedRect(margin, yPos, contentWidth, 8, 2, 2, 'F');
+            
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Description', margin + 5, yPos + 6);
+            doc.text('Amount', pageWidth - margin - 5, yPos + 6, { align: 'right' });
+            
+            yPos += 15;
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            doc.text('Service/Product', margin + 5, yPos);
+            doc.text(`${invoice.currency} ${parseFloat(invoice.amount.toString()).toFixed(2)}`, pageWidth - margin - 5, yPos, { align: 'right' });
+            
+            // Total Section
+            yPos += 20;
+            doc.setDrawColor(209, 213, 219); // Gray-300
+            doc.setLineWidth(0.5);
+            doc.line(margin, yPos, pageWidth - margin, yPos);
+            yPos += 10;
+            
+            doc.setFillColor(secondaryR, secondaryG, secondaryB);
+            doc.roundedRect(margin, yPos, contentWidth, 20, 3, 3, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Total Amount Due', margin + 10, yPos + 8);
+            doc.setFontSize(18);
+            doc.text(`${invoice.currency} ${parseFloat(invoice.amount.toString()).toFixed(2)}`, pageWidth - margin - 10, yPos + 15, { align: 'right' });
+            doc.setTextColor(textR, textG, textB);
+            
+            // Notes Section
+            if (invoice.notes) {
+                yPos += 30;
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Additional Notes:', margin, yPos);
+                yPos += 8;
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(75, 85, 99); // Gray-600
+                const splitNotes = doc.splitTextToSize(invoice.notes, contentWidth - 10);
+                doc.text(splitNotes, margin + 5, yPos);
+                doc.setTextColor(textR, textG, textB);
+            }
+            
+            // Footer
+            const footerY = pageHeight - 30;
+            doc.setDrawColor(229, 231, 235);
+            doc.setLineWidth(0.5);
+            doc.line(margin, footerY, pageWidth - margin, footerY);
+            
+            doc.setFontSize(9);
+            doc.setTextColor(107, 114, 128);
+            doc.text('Thank you for your business!', pageWidth / 2, footerY + 10, { align: 'center' });
+            doc.text('If you have any questions about this invoice, please contact us.', pageWidth / 2, footerY + 16, { align: 'center' });
+            
+            // Page number
+            doc.text(`Page 1 of 1`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+            
+            // Save PDF
+            const fileName = `Invoice_${invoice._id.slice(-8)}_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+            
+            showNotification('success', 'Invoice PDF downloaded successfully');
         } catch (error) {
-            console.error('Error creating payment link:', error);
-            showNotification('error', 'Failed to create payment link');
+            console.error('Error generating PDF:', error);
+            showNotification('error', 'Failed to generate PDF');
         }
     };
 
@@ -188,7 +351,7 @@ const InvoiceManagement: React.FC = () => {
         }
     };
 
-    const fetchLoads = async () => {
+    const fetchTrips = async () => {
         try {
             const userInfo: any = getLocalUserInfo();
             
@@ -202,43 +365,43 @@ const InvoiceManagement: React.FC = () => {
             // Allow HR and dispatchers to call API even if company is not visible in localStorage
             // The backend will handle company filtering based on the authenticated user
             if (!isSuperadmin && !isHR && !hasCompany) {
-                setLoads([]);
+                setTrips([]);
                 return;
             }
 
-            console.log('🔍 Starting to fetch loads...');
-            const response = await listLoad();
-            console.log('📡 Load API Response:', response);
+            console.log('🔍 Starting to fetch trips...');
+            const response = await listTrips();
+            console.log('📡 Trip API Response:', response);
             console.log('📡 Response type:', typeof response);
             console.log('📡 Response keys:', response ? Object.keys(response) : 'null');
             
             // Handle different response structures
-            let loadData = null;
+            let tripData = null;
             if (response && response.data) {
-                loadData = response.data;
-                console.log('✅ Found data in response.data:', loadData);
+                tripData = response.data;
+                console.log('✅ Found data in response.data:', tripData);
             } else if (response && Array.isArray(response)) {
-                loadData = response;
-                console.log('✅ Response is array:', loadData);
+                tripData = response;
+                console.log('✅ Response is array:', tripData);
             } else if (response && response.success && response.data) {
-                loadData = response.data;
-                console.log('✅ Found data in response.success.data:', loadData);
+                tripData = response.data;
+                console.log('✅ Found data in response.success.data:', tripData);
             } else {
                 console.log('❌ No data found in response structure');
             }
             
-            if (loadData && Array.isArray(loadData)) {
-                console.log('✅ Setting loads with data:', loadData);
-                console.log('✅ Number of loads:', loadData.length);
-                setLoads(loadData);
+            if (tripData && Array.isArray(tripData)) {
+                console.log('✅ Setting trips with data:', tripData);
+                console.log('✅ Number of trips:', tripData.length);
+                setTrips(tripData);
             } else {
-                console.log('❌ No valid load data found in response:', response);
-                setLoads([]);
+                console.log('❌ No valid trip data found in response:', response);
+                setTrips([]);
             }
         } catch (error) {
-            console.error('❌ Error fetching loads:', error);
+            console.error('❌ Error fetching trips:', error);
             console.error('❌ Error details:', error);
-            setLoads([]);
+            setTrips([]);
         }
     };
 
@@ -497,6 +660,13 @@ const InvoiceManagement: React.FC = () => {
                                                 <Eye className="h-4 w-4" />
                                             </button>
                                             <button
+                                                onClick={() => handleDownloadPDF(invoice)}
+                                                className="text-purple-600 hover:text-purple-800 transition-colors"
+                                                title="Download PDF"
+                                            >
+                                                <Download className="h-4 w-4" />
+                                            </button>
+                                            <button
                                                 onClick={() => {
                                                     setSelectedInvoice(invoice);
                                                     setActiveTab('edit');
@@ -506,15 +676,6 @@ const InvoiceManagement: React.FC = () => {
                                             >
                                                 <Edit className="h-4 w-4" />
                                             </button>
-                                            {invoice.status === 'pending' && (
-                                                <button
-                                                    onClick={() => handleCreatePaymentLink(invoice)}
-                                                    className="text-green-600 hover:text-green-800 transition-colors"
-                                                    title="Create Payment Link"
-                                                >
-                                                    <CreditCard className="h-4 w-4" />
-                                                </button>
-                                            )}
                                             <button
                                                 onClick={() => setDeleteModal({ show: true, invoiceId: invoice._id })}
                                                 className="text-red-600 hover:text-red-800 transition-colors"
@@ -781,7 +942,7 @@ const InvoiceManagement: React.FC = () => {
         const [newInvoice, setNewInvoice] = useState({
             clientName: '',
             clientEmail: '',
-            loadId: '',
+            tripId: '',
             amount: '',
             currency: 'USD',
             dueDate: '',
@@ -795,32 +956,36 @@ const InvoiceManagement: React.FC = () => {
             }));
         };
 
-        const handleLoadSelect = (loadId: string) => {
-            console.log('Selected load ID:', loadId);
-            const selectedLoad = loads.find(load => (load._id || load.orderId) === loadId);
-            console.log('Selected load data:', selectedLoad);
+        const handleTripSelect = (tripId: string) => {
+            console.log('Selected trip ID:', tripId);
+            const selectedTrip = trips.find(trip => trip._id === tripId);
+            console.log('Selected trip data:', selectedTrip);
             
-            if (selectedLoad) {
-                const customerName = selectedLoad.customerName || selectedLoad.customer?.name || '';
-                const customerEmail = selectedLoad.customerEmail || selectedLoad.customer?.email || '';
+            if (selectedTrip && selectedTrip.orders && selectedTrip.orders.length > 0) {
+                // Get customer from first order (trips can have multiple orders with same customer)
+                const firstOrder = selectedTrip.orders[0];
+                const customer = firstOrder.customer;
                 
-                console.log('Auto-filling customer details:', {
+                const customerName = customer?.name || '';
+                const customerEmail = customer?.email || '';
+                
+                console.log('Auto-filling customer details from trip:', {
                     customerName,
-                    customerEmail
+                    customerEmail,
+                    tripNumber: selectedTrip.tripNumber
                 });
                 
                 setNewInvoice(prev => ({
                     ...prev,
-                    loadId: loadId,
+                    tripId: tripId,
                     clientName: customerName,
                     clientEmail: customerEmail,
-                    // Don't auto-fill company - let user enter manually if needed
                 }));
             } else {
-                console.log('No load found with ID:', loadId);
+                console.log('No trip found with ID or trip has no orders:', tripId);
                 setNewInvoice(prev => ({
                     ...prev,
-                    loadId: loadId
+                    tripId: tripId
                 }));
             }
         };
@@ -841,7 +1006,7 @@ const InvoiceManagement: React.FC = () => {
                     setNewInvoice({
                         clientName: '',
                         clientEmail: '',
-                        loadId: '',
+                        tripId: '',
                         amount: '',
                         currency: 'USD',
                         dueDate: '',
@@ -888,29 +1053,31 @@ const InvoiceManagement: React.FC = () => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Select Load (Optional)
+                                    Select Trip (Optional)
                                 </label>
                                 <select
-                                    value={newInvoice.loadId}
-                                    onChange={(e) => handleLoadSelect(e.target.value)}
+                                    value={newInvoice.tripId}
+                                    onChange={(e) => handleTripSelect(e.target.value)}
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     disabled={loading}
                                 >
                                     <option value="">
-                                        {loading ? "Loading loads..." : loads.length === 0 ? "No loads available - Check console for details" : "Select a load..."}
+                                        {loading ? "Loading trips..." : trips.length === 0 ? "No trips available - Check console for details" : "Select a trip..."}
                                     </option>
-                                    {loads.map((load) => {
-                                        const loadId = load._id || load.orderId || Math.random().toString();
-                                        const loadNumber = load.loadNumber || load.orderId?.slice(-8) || 'Unknown Load';
-                                        const pickupLocation = load.pickupLocation || load.route?.selectPickup?.place || "N/A";
-                                        const deliveryLocation = load.deliveryLocation || load.route?.selectDropOff?.place || "N/A";
+                                    {trips.map((trip) => {
+                                        const tripId = trip._id;
+                                        const tripNumber = trip.tripNumber || 'Unknown Trip';
+                                        const startLocation = trip.startLocation?.place || trip.orders?.[0]?.pickupLocation?.place || "N/A";
+                                        const endLocation = trip.endLocation?.place || trip.orders?.[trip.orders.length - 1]?.deliveryLocation?.place || "N/A";
+                                        const customer = trip.orders?.[0]?.customer;
+                                        const customerName = customer?.name || '';
+                                        const customerEmail = customer?.email || '';
                                         
                                         return (
-                                            <option key={loadId} value={loadId}>
-                                                {loadNumber} - {pickupLocation} → {deliveryLocation}
-                                                {load.customerName && ` (${load.customerName})`}
-                                                {load.customerEmail && ` [Email: ${load.customerEmail}]`}
-                                                {load.driverName && ` [Driver: ${load.driverName}]`}
+                                            <option key={tripId} value={tripId}>
+                                                {tripNumber} - {startLocation} → {endLocation}
+                                                {customerName && ` (${customerName})`}
+                                                {customerEmail && ` [Email: ${customerEmail}]`}
                                             </option>
                                         );
                                     })}
@@ -918,16 +1085,16 @@ const InvoiceManagement: React.FC = () => {
 
                                 <div className="flex items-center justify-between mt-1">
                                     <p className="text-xs text-gray-500">
-                                        Selecting a load will auto-fill customer details if available
-                                        {loads.length > 0 && ` (${loads.length} loads available)`}
+                                        Selecting a trip will auto-fill customer details if available
+                                        {trips.length > 0 && ` (${trips.length} trips available)`}
                                     </p>
-                                    {newInvoice.loadId && (
+                                    {newInvoice.tripId && (
                                         <button
                                             type="button"
                                             onClick={() => {
                                                 setNewInvoice(prev => ({
                                                     ...prev,
-                                                    loadId: '',
+                                                    tripId: '',
                                                     clientName: '',
                                                     clientEmail: ''
                                                 }));
@@ -938,12 +1105,12 @@ const InvoiceManagement: React.FC = () => {
                                         </button>
                                     )}
                                 </div>
-                                {newInvoice.loadId && !newInvoice.clientName && (
+                                {newInvoice.tripId && !newInvoice.clientName && (
                                     <p className="text-xs text-amber-600 mt-1">
-                                        ⚠️ Selected load has no customer name - please fill manually
+                                        ⚠️ Selected trip has no customer name - please fill manually
                                     </p>
                                 )}
-                                {newInvoice.loadId && newInvoice.clientName && !newInvoice.clientEmail && (
+                                {newInvoice.tripId && newInvoice.clientName && !newInvoice.clientEmail && (
                                     <p className="text-xs text-blue-600 mt-1">
                                         ℹ️ Customer name found, but no email available - please add email manually if needed
                                     </p>
@@ -953,8 +1120,8 @@ const InvoiceManagement: React.FC = () => {
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Client Name *
-                                    {newInvoice.loadId && newInvoice.clientName && (
-                                        <span className="text-xs text-green-600 ml-2">✓ Auto-filled from load</span>
+                                    {newInvoice.tripId && newInvoice.clientName && (
+                                        <span className="text-xs text-green-600 ml-2">✓ Auto-filled from trip</span>
                                     )}
                                 </label>
                                 <input
@@ -962,7 +1129,7 @@ const InvoiceManagement: React.FC = () => {
                                     value={newInvoice.clientName}
                                     onChange={(e) => handleInputChange('clientName', e.target.value)}
                                     className={`w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                        newInvoice.loadId && newInvoice.clientName 
+                                        newInvoice.tripId && newInvoice.clientName 
                                             ? 'border-green-300 bg-green-50' 
                                             : 'border-gray-300'
                                     }`}
@@ -974,8 +1141,8 @@ const InvoiceManagement: React.FC = () => {
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Client Email
-                                    {newInvoice.loadId && newInvoice.clientEmail && (
-                                        <span className="text-xs text-green-600 ml-2">✓ Auto-filled from load</span>
+                                    {newInvoice.tripId && newInvoice.clientEmail && (
+                                        <span className="text-xs text-green-600 ml-2">✓ Auto-filled from trip</span>
                                     )}
                                 </label>
                                 <input
@@ -983,7 +1150,7 @@ const InvoiceManagement: React.FC = () => {
                                     value={newInvoice.clientEmail}
                                     onChange={(e) => handleInputChange('clientEmail', e.target.value)}
                                     className={`w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                        newInvoice.loadId && newInvoice.clientEmail 
+                                        newInvoice.tripId && newInvoice.clientEmail 
                                             ? 'border-green-300 bg-green-50' 
                                             : 'border-gray-300'
                                     }`}

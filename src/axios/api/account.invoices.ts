@@ -76,6 +76,27 @@ export const deleteInvoice = async (id: string) => {
     }
 };
 
+// Get trips for invoice creation (replaces listLoad)
+export const listTrips = async () => {
+    try {
+        console.log('🚀 Making API call to: hr/invoice-trips');
+        console.log('🔑 Token in localStorage:', localStorage.getItem('token'));
+        
+        const res: AxiosResponse = await apiClient.get(`hr/invoice-trips`);
+        console.log('✅ API Response received:', res);
+        console.log('✅ Response status:', res.status);
+        console.log('✅ Response data:', res.data);
+        return res.data;
+    } catch (error) {
+        console.error('❌ API Error:', error);
+        console.error('❌ Error response:', (error as Error).response);
+        console.error('❌ Error message:', (error as Error).message);
+        
+        return (error as Error).response?.data;
+    }
+}
+
+// Legacy: Keep listLoad for backward compatibility (deprecated)
 export const listLoad = async () =>{
     try {
         console.log('🚀 Making API call to: dispatcher/invoice-loads');

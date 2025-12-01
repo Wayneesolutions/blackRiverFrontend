@@ -42,10 +42,5 @@ export const CompilanceSidebarLinks: CompilanceSidebarLink[] = [
         key: "incidents",
         icon: <FaExclamationTriangle />,
         label: "Incidents & Accidents",
-    },
-    {
-        key: "invoices",
-        icon: <FaFileInvoiceDollar />,
-        label: "Fleet Invoices",
     }
 ];

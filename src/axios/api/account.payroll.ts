@@ -32,9 +32,10 @@ export const createPayroll = async (data: any) => {
 };
 
 
-export const listPayrolls = async () => {
+export const listPayrolls = async (searchParam?: string) => {
     try {
-        const res: AxiosResponse = await apiClient.get(`hr/list-payroll`);
+        const url = searchParam ? `hr/list-payroll${searchParam}` : `hr/list-payroll`;
+        const res: AxiosResponse = await apiClient.get(url);
         return res.data;
     } catch (error: any) {
         const err = error as Error;

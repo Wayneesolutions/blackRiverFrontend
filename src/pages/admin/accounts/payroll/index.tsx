@@ -225,7 +225,12 @@ const PayrollManagement = () => {
 
             const response = await getEmployees();
             if (response?.success) {
-                setEmployees(response.data || []);
+                // Filter out contact, customer, reporter, and admin roles on frontend as well
+                const restrictedRoles = ['contact', 'customer', 'reporter', 'admin'];
+                const filteredEmployees = (response.data || []).filter((emp: Employee) => 
+                    !restrictedRoles.includes(emp.role?.toLowerCase())
+                );
+                setEmployees(filteredEmployees);
             } else if (response?.message) {
                 showNotification('error', response.message);
             }
@@ -234,7 +239,7 @@ const PayrollManagement = () => {
         }
     };
 
-    const fetchPayrolls = async () => {
+    const fetchPayrolls = async (searchQuery?: string) => {
         setLoading(true);
         try {
             const userInfo: any = getLocalUserInfo();
@@ -254,10 +259,18 @@ const PayrollManagement = () => {
                 return;
             }
 
-            const response = await listPayrolls();
+            // Use provided search query or current searchTerm
+            const searchValue = searchQuery !== undefined ? searchQuery : searchTerm;
+            const searchParam = searchValue ? `?search=${encodeURIComponent(searchValue)}` : '';
+            const response = await listPayrolls(searchParam);
             if (response?.success) {
                 const data = response.data || [];
-                setPayrollData(data);
+                // Filter out any payrolls for restricted roles (double check)
+                const restrictedRoles = ['contact', 'customer', 'reporter', 'admin'];
+                const filteredData = data.filter((payroll: Payroll) => 
+                    payroll.userId && !restrictedRoles.includes(payroll.userId.role?.toLowerCase())
+                );
+                setPayrollData(filteredData);
                 if (response.message && data.length === 0) {
                     setEmptyStateMessage(response.message);
                 } else {
@@ -388,6 +401,15 @@ const PayrollManagement = () => {
         fetchEmployees();
         fetchPayrolls();
     }, []);
+
+    // Debounced search effect
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            fetchPayrolls(searchTerm);
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -663,8 +685,17 @@ const PayrollManagement = () => {
             return false; // Skip payrolls with null userId
         }
         
-        const matchesSearch = payroll.userId.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            payroll.userId.role.toLowerCase().includes(searchTerm.toLowerCase());
+        // Exclude restricted roles
+        const restrictedRoles = ['contact', 'customer', 'reporter', 'admin'];
+        if (restrictedRoles.includes(payroll.userId.role?.toLowerCase())) {
+            return false;
+        }
+        
+        // Search by name or internal ID
+        const searchLower = searchTerm.toLowerCase();
+        const matchesSearch = searchTerm === '' || 
+            payroll.userId.name?.toLowerCase().includes(searchLower) ||
+            payroll.userId.internalId?.toLowerCase().includes(searchLower);
         
         const matchesFilter = filterStatus === 'all' || 
             payroll.userId.role.toLowerCase() === filterStatus.toLowerCase();
@@ -806,7 +837,7 @@ const PayrollManagement = () => {
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                                 <input
                                     type="text"
-                                    placeholder="Search by employee name or role..."
+                                    placeholder="Search by employee name or internal ID..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -822,9 +853,8 @@ const PayrollManagement = () => {
                                     <option value="driver">Driver</option>
                                     <option value="dispatcher">Dispatcher</option>
                                     <option value="hr">HR</option>
-                                    <option value="contact">Contact</option>
-                                    <option value="customer">Customer</option>
-                                    <option value="reporter">Reporter</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="employee">Employee</option>
                                 </select>
                             </div>
                         </div>
