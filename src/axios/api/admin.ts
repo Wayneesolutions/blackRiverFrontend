@@ -275,6 +275,26 @@ export const getComplianceInvoices = async (params?: {
   }
 };
 
+export const updateComplianceInvoice = async (id: string, data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`admin/compliance-invoices/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const deleteComplianceInvoice = async (id: string, type: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`admin/compliance-invoices/${id}?type=${type}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
 // Incident API Functions
 export const getIncidents = async (params?: { status?: string; type?: string; location?: string; driver?: string; search?: string; page?: number; limit?: number }) => {
   try {
