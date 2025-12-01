@@ -151,3 +151,30 @@ export const isTokenValid = (): boolean => {
   return true;
 };
 
+/**
+ * Get dashboard route based on user role
+ * @returns string - dashboard route path
+ */
+export const getDashboardRoute = (): string => {
+  const role = getUserRole();
+  
+  if (!role) {
+    return '/admin';
+  }
+  
+  switch (role) {
+    case 'dispatcher':
+      return '/dispatch';
+    case 'hr':
+      return '/Management';
+    case 'Fleet Maintenance Manager':
+      return '/fleetmaintenance';
+    case 'Compliance Manager':
+      return '/compliance';
+    case 'admin':
+    case 'superadmin':
+    default:
+      return '/admin';
+  }
+};
+

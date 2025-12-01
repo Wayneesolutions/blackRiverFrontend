@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react'
 import { FleetMaintainSidebarlinks } from '../../utils/FleetMaintainSidebarlinks'
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { FaChevronDown, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
 import Logo from "../../assets/FleetGo.png";
-import { getUserRole } from "../../utils/auth";
+import { getUserRole, getDashboardRoute } from "../../utils/auth";
 import { FLEET_COLORS } from "../../pages/admin/fleetMaintenance/colorUtils";
 
 interface SidebarProps {
@@ -15,6 +15,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
     const [openMenus, setOpenMenus] = useState<string[]>([]);
     const [, setHoveredMenu] = useState<string | null>(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const navigate = useNavigate();
     const userRole = getUserRole();
     const isFleetMaintenanceManager = userRole === 'Fleet Maintenance Manager';
 
@@ -88,7 +89,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                     className="flex-shrink-0 flex justify-between items-center bg-white shadow-lg rounded-xl px-4 py-3 m-3 mb-4 z-10 relative border"
                     style={{ borderColor: FLEET_COLORS.focusRing }}
                 >
-                    <div className="flex items-center">
+                    <div 
+                        className="flex items-center cursor-pointer" 
+                        onClick={() => navigate(getDashboardRoute())}
+                    >
                         {!isCollapsed && (
 
                             <div className="flex items-center space-x-2">
