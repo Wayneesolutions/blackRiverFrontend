@@ -21,6 +21,7 @@ export const quickStats = async () => {
 };
 
 
+// Note: Backend endpoint still uses "loads-per-month" but returns trip data
 export const loadsPerMonth = async () => {
     try {
         const res: AxiosResponse = await apiClient.get("admin/loads-per-month");

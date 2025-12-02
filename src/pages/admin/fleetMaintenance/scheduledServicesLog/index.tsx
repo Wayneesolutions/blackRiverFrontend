@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ExcelJS from 'exceljs';
-import { Plus, Edit, Trash2, Search, Calendar, Wrench, Download } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Calendar, Wrench, Download, AlertCircle, Clock } from 'lucide-react';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import {
   listVehicleServices,
@@ -189,6 +189,92 @@ const ScheduledServicesLog: React.FC = () => {
       return matchesSearch && matchesType;
     });
   }, [services, searchTerm, filterServiceType]);
+
+  // Calculate summary statistics
+  const summaryStats = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+    // Calculate incoming maintenance (services due within next 7,500 km or 30 days)
+    const incomingServices = services.filter((service) => {
+      if (service.status === 'completed') return false;
+      
+      // Check if service has a due date within 30 days
+      if (service.dueDate) {
+        const dueDate = new Date(service.dueDate);
+        const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysUntilDue >= 0 && daysUntilDue <= 30) {
+          return true;
+        }
+      }
+      
+      // Include services with odometer readings as they may be due soon
+      if (service.odometer) {
+        return true;
+      }
+      
+      // Include all pending and in-progress services as incoming maintenance
+      return service.status === 'pending' || service.status === 'in-progress';
+    });
+
+    const incomingMaintenance = incomingServices.length;
+    
+    // Get breakdown by status
+    const incomingByStatus = {
+      pending: incomingServices.filter(s => s.status === 'pending').length,
+      inProgress: incomingServices.filter(s => s.status === 'in-progress').length,
+      dueSoon: incomingServices.filter(s => {
+        if (!s.dueDate) return false;
+        const dueDate = new Date(s.dueDate);
+        const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return daysUntilDue >= 0 && daysUntilDue <= 7;
+      }).length
+    };
+
+    // Get unique units needing maintenance
+    const unitsNeedingMaintenance = new Set(incomingServices.map(s => s.unitNo)).size;
+
+    // Recent activity - completed services in last 30 days
+    const recentServices = services.filter((service) => {
+      if (service.status !== 'completed') return false;
+      if (!service.serviceDate) return false;
+      const serviceDate = new Date(service.serviceDate);
+      serviceDate.setHours(0, 0, 0, 0);
+      return serviceDate >= thirtyDaysAgo;
+    });
+
+    const recentActivity = recentServices.length;
+
+    // Get most recent service date
+    const mostRecentDate = recentServices.length > 0
+      ? recentServices
+          .map(s => s.serviceDate ? new Date(s.serviceDate) : null)
+          .filter(Boolean)
+          .sort((a, b) => (b as Date).getTime() - (a as Date).getTime())[0]
+      : null;
+
+    // Get service type breakdown for recent activity
+    const serviceTypeBreakdown = recentServices.reduce((acc, service) => {
+      const type = getServiceTypeLabel(service.serviceType);
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const topServiceType = Object.entries(serviceTypeBreakdown)
+      .sort(([, a], [, b]) => b - a)[0];
+
+    return {
+      incomingMaintenance,
+      incomingByStatus,
+      unitsNeedingMaintenance,
+      recentActivity,
+      mostRecentDate,
+      topServiceType: topServiceType ? `${topServiceType[0]} (${topServiceType[1]})` : null
+    };
+  }, [services, units]);
 
   const handleExportServices = async () => {
     if (!filteredServices.length) {
@@ -429,6 +515,77 @@ const ScheduledServicesLog: React.FC = () => {
             {error}
           </div>
         )}
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Incoming Maintenance Card */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-600 mb-1">Incoming Maintenance</p>
+                <p className="text-3xl font-bold text-orange-600 mb-2">{summaryStats.incomingMaintenance}</p>
+                <p className="text-xs text-gray-500">Services due within next 7,500 km or 30 days</p>
+              </div>
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <AlertCircle className="h-8 w-8 text-orange-600" />
+              </div>
+            </div>
+            <div className="border-t border-gray-100 pt-4 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Pending</span>
+                <span className="font-semibold text-gray-900">{summaryStats.incomingByStatus.pending}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">In Progress</span>
+                <span className="font-semibold text-gray-900">{summaryStats.incomingByStatus.inProgress}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Due in 7 days</span>
+                <span className="font-semibold text-orange-600">{summaryStats.incomingByStatus.dueSoon}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100">
+                <span className="text-gray-600">Units Affected</span>
+                <span className="font-semibold text-gray-900">{summaryStats.unitsNeedingMaintenance}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activity Card */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-600 mb-1">Recent Activity</p>
+                <p className="text-3xl font-bold text-blue-600 mb-2">{summaryStats.recentActivity}</p>
+                <p className="text-xs text-gray-500">Completed services in last 30 days</p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <Clock className="h-8 w-8 text-blue-600" />
+              </div>
+            </div>
+            <div className="border-t border-gray-100 pt-4 space-y-2">
+              {summaryStats.mostRecentDate && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Most Recent</span>
+                  <span className="font-semibold text-gray-900">
+                    {formatDate(summaryStats.mostRecentDate.toISOString())}
+                  </span>
+                </div>
+              )}
+              {summaryStats.topServiceType && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Top Service Type</span>
+                  <span className="font-semibold text-blue-600 text-right max-w-[60%] truncate" title={summaryStats.topServiceType}>
+                    {summaryStats.topServiceType}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100">
+                <span className="text-gray-600">Total Completed</span>
+                <span className="font-semibold text-gray-900">{summaryStats.recentActivity}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">

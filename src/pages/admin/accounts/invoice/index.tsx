@@ -5,20 +5,48 @@ import { createInvoice, listInvoices,  updateInvoice, deleteInvoice, listTrips }
 import jsPDF from 'jspdf';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
+interface CompanyInfo {
+    _id?: string;
+    companyName?: string;
+    address?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    taxNumber?: string;
+    logoUrl?: string;
+}
+
+interface ServiceBreakdownItem {
+    description: string;
+    quantity?: number;
+    unitPrice: number;
+    amount: number;
+    taxRate?: number;
+    taxAmount?: number;
+}
+
 interface Invoice {
     _id: string;
     clientName: string;
     clientEmail: string;
+    clientCompany?: string;
+    clientAddress?: string;
+    clientPhone?: string;
     loadId?: string; // Legacy field
-    tripId?: string; // New field
-    amount: number;
+    tripId?: string | Trip; // New field - can be populated
+    amount: number | string;
     currency: string;
     status: 'paid' | 'pending';
     invoiceDate: string;
     dueDate: string;
     paymentDate: string | null;
+    paymentTerms?: string;
     invoiceUrl: string;
     notes: string;
+    serviceBreakdown?: ServiceBreakdownItem[];
+    subtotal?: number;
+    taxAmount?: number;
+    taxNumber?: string;
+    company?: CompanyInfo | string;
     createdAt: string;
     updatedAt: string;
 }
@@ -31,16 +59,49 @@ interface Trip {
         _id: string;
         name: string;
         email?: string;
+        phone?: string;
     };
     truck?: {
         _id: string;
         plateNumber?: string;
+        licensePlate?: string;
         internalId?: string;
+        makeModel?: string;
+        unitType?: string;
+    };
+    trailer?: {
+        _id: string;
+        plateNumber?: string;
+        licensePlate?: string;
+        makeModel?: string;
+        unitType?: string;
+        type?: string;
+        capacity?: string;
     };
     orders?: Array<{
         _id: string;
         orderNumber: string;
         customerOrderNo?: string;
+        commodity?: string;
+        weight?: number;
+        weightUnit?: string;
+        orderType?: string;
+        equipment?: string[];
+        noOfPackages?: number;
+        noOfPackagesType?: string;
+        temperature?: number;
+        additionalInfo?: {
+            HAZMAT?: boolean;
+            TARP?: boolean;
+            OverDimension?: boolean;
+            CSA?: boolean;
+        };
+        dimensions?: {
+            length?: number;
+            width?: number;
+            height?: number;
+            unit?: string;
+        };
         customer?: {
             _id: string;
             name: string;
@@ -62,10 +123,14 @@ interface Trip {
     endLocation?: {
         place?: string;
     };
+    route?: {
+        totalDistance?: number;
+    };
     plannedStartDate?: string;
     plannedEndDate?: string;
     actualStartDate?: string;
     actualEndDate?: string;
+    notes?: string;
 }
 
 type TabType = 'list' | 'view' | 'edit' | 'create';
@@ -154,6 +219,9 @@ const InvoiceManagement: React.FC = () => {
             const textR = 31, textG = 41, textB = 55; // Gray-800
             const lightGrayR = 243, lightGrayG = 244, lightGrayB = 246; // Gray-100
             
+            // Get company info
+            const company = typeof invoice.company === 'object' && invoice.company ? invoice.company : null;
+            
             // Header with colored background
             doc.setFillColor(primaryR, primaryG, primaryB);
             doc.rect(0, 0, pageWidth, 50, 'F');
@@ -164,49 +232,108 @@ const InvoiceManagement: React.FC = () => {
             doc.setFont('helvetica', 'bold');
             doc.text('INVOICE', pageWidth / 2, 25, { align: 'center' });
             
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Professional Invoice Document', pageWidth / 2, 35, { align: 'center' });
+        
             
             // Reset text color
             doc.setTextColor(textR, textG, textB);
             
-            // Invoice Details Box (Top Right)
-            const boxX = pageWidth - margin - 80;
+            // Company Details Section (Top Left)
             let yPos = 60;
+            if (company) {
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text(company.companyName || 'Company Name', margin, yPos);
+                yPos += 7;
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                if (company.address) {
+                    const addressLines = doc.splitTextToSize(company.address, 80);
+                    doc.text(addressLines, margin, yPos);
+                    yPos += addressLines.length * 5;
+                }
+                if (company.contactPhone) {
+                    doc.text(`Phone: ${company.contactPhone}`, margin, yPos);
+                    yPos += 6;
+                }
+                if (company.contactEmail) {
+                    doc.text(`Email: ${company.contactEmail}`, margin, yPos);
+                    yPos += 6;
+                }
+                if (company.taxNumber) {
+                    doc.text(`Tax Number: ${company.taxNumber}`, margin, yPos);
+                    yPos += 6;
+                }
+                yPos += 5;
+            }
+            
+            // Invoice Details Box (Top Right) - Properly positioned
+            const boxX = pageWidth - margin - 90;
+            const boxY = 60;
+            const boxWidth = 90;
+            const boxHeight = 55;
             
             doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
-            doc.roundedRect(boxX, yPos, 80, 50, 3, 3, 'F');
+            doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 3, 3, 'F');
             
             doc.setFontSize(9);
             doc.setTextColor(107, 114, 128); // Gray-500
-            doc.text('Invoice Number', boxX + 5, yPos + 8);
-            doc.text('Invoice Date', boxX + 5, yPos + 18);
-            doc.text('Due Date', boxX + 5, yPos + 28);
-            doc.text('Status', boxX + 5, yPos + 38);
+            doc.text('Invoice Number', boxX + 5, boxY + 8);
+            doc.text('Invoice Date', boxX + 5, boxY + 18);
+            doc.text('Due Date', boxX + 5, boxY + 28);
+            doc.text('Status', boxX + 5, boxY + 38);
             
             doc.setFontSize(10);
             doc.setTextColor(textR, textG, textB);
             doc.setFont('helvetica', 'bold');
-            doc.text(`#${invoice._id.slice(-8).toUpperCase()}`, boxX + 5, yPos + 15);
+            doc.text(`#${invoice._id.slice(-8).toUpperCase()}`, boxX + 5, boxY + 15);
             doc.setFont('helvetica', 'normal');
-            doc.text(formatDate(invoice.invoiceDate), boxX + 5, yPos + 25);
-            doc.text(formatDate(invoice.dueDate), boxX + 5, yPos + 35);
+            doc.text(formatDate(invoice.invoiceDate), boxX + 5, boxY + 25);
+            doc.text(formatDate(invoice.dueDate), boxX + 5, boxY + 35);
             
             // Status badge
             const statusR = invoice.status === 'paid' ? 34 : 251;
             const statusG = invoice.status === 'paid' ? 197 : 191;
             const statusB = invoice.status === 'paid' ? 94 : 36;
             doc.setFillColor(statusR, statusG, statusB);
-            doc.roundedRect(boxX + 5, yPos + 40, 30, 6, 2, 2, 'F');
+            doc.roundedRect(boxX + 5, boxY + 40, 35, 6, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(8);
             doc.setFont('helvetica', 'bold');
-            doc.text(invoice.status.toUpperCase(), boxX + 20, yPos + 44, { align: 'center' });
+            doc.text(invoice.status.toUpperCase(), boxX + 22.5, boxY + 44, { align: 'center' });
             doc.setTextColor(textR, textG, textB);
             
-            // Bill To Section
+            // Company Details Section (Top Left) - Below header
             yPos = 60;
+            if (company) {
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text(company.companyName || 'Company Name', margin, yPos);
+                yPos += 7;
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                if (company.address) {
+                    const addressLines = doc.splitTextToSize(company.address, 100);
+                    doc.text(addressLines, margin, yPos);
+                    yPos += addressLines.length * 5;
+                }
+                if (company.contactPhone) {
+                    doc.text(`Phone: ${company.contactPhone}`, margin, yPos);
+                    yPos += 6;
+                }
+                if (company.contactEmail) {
+                    doc.text(`Email: ${company.contactEmail}`, margin, yPos);
+                    yPos += 6;
+                }
+                if (company.taxNumber) {
+                    doc.text(`Tax Number: ${company.taxNumber}`, margin, yPos);
+                    yPos += 6;
+                }
+                yPos += 5;
+            }
+            
+            // Bill To Section (Customer Details) - Below company, left side
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
             doc.text('Bill To:', margin, yPos);
@@ -217,13 +344,285 @@ const InvoiceManagement: React.FC = () => {
             doc.text(invoice.clientName, margin, yPos);
             yPos += 7;
             
+            if (invoice.clientCompany) {
+                doc.setFontSize(10);
+                doc.setTextColor(107, 114, 128);
+                doc.text(invoice.clientCompany, margin, yPos);
+                doc.setTextColor(textR, textG, textB);
+                yPos += 7;
+            }
+            
+            if (invoice.clientAddress) {
+                doc.setFontSize(10);
+                doc.setTextColor(107, 114, 128);
+                const addressLines = doc.splitTextToSize(invoice.clientAddress, 100);
+                doc.text(addressLines, margin, yPos);
+                yPos += addressLines.length * 5;
+                doc.setTextColor(textR, textG, textB);
+            }
+            
             if (invoice.clientEmail) {
                 doc.setFontSize(10);
                 doc.setTextColor(107, 114, 128);
                 doc.text(invoice.clientEmail, margin, yPos);
                 doc.setTextColor(textR, textG, textB);
+                yPos += 6;
+            }
+            
+            if (invoice.clientPhone) {
+                doc.setFontSize(10);
+                doc.setTextColor(107, 114, 128);
+                doc.text(`Phone: ${invoice.clientPhone}`, margin, yPos);
+                doc.setTextColor(textR, textG, textB);
+                yPos += 6;
+            }
+            
+            yPos += 10;
+            
+            // Trip Information Section (if trip exists)
+            const trip = typeof invoice.tripId === 'object' && invoice.tripId ? invoice.tripId : null;
+            if (trip) {
                 yPos += 10;
-            } else {
+                doc.setDrawColor(229, 231, 235); // Gray-200
+                doc.setLineWidth(0.5);
+                doc.line(margin, yPos, pageWidth - margin, yPos);
+                yPos += 12;
+                
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Trip Information:', margin, yPos);
+                yPos += 10;
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                
+                // Trip Number
+                if (trip.tripNumber) {
+                    doc.setTextColor(107, 114, 128); // Gray-500
+                    doc.text('Trip Number:', margin, yPos);
+                    doc.setTextColor(textR, textG, textB);
+                    doc.text(trip.tripNumber, margin + 50, yPos);
+                    yPos += 7;
+                }
+                
+                // Vehicle Information (without internal IDs)
+                if (trip.truck) {
+                    doc.setTextColor(107, 114, 128);
+                    doc.text('Truck:', margin, yPos);
+                    doc.setTextColor(textR, textG, textB);
+                    const vehicleInfo = [
+                        trip.truck.licensePlate || trip.truck.plateNumber,
+                        trip.truck.makeModel,
+                        trip.truck.unitType ? `(${trip.truck.unitType})` : ''
+                    ].filter(Boolean).join(' ');
+                    doc.text(vehicleInfo || 'N/A', margin + 50, yPos);
+                    yPos += 7;
+                }
+                
+                // Trailer Type
+                if (trip.trailer) {
+                    doc.setTextColor(107, 114, 128);
+                    doc.text('Trailer:', margin, yPos);
+                    doc.setTextColor(textR, textG, textB);
+                    const trailerTypeMap: { [key: string]: string } = {
+                        'dry_van': 'Dry Van',
+                        'refrigerated': 'Reefer',
+                        'flatbed': 'Flatbed',
+                        'tanker': 'Tanker',
+                        'container': 'Container'
+                    };
+                    const trailerType = trip.trailer.type ? trailerTypeMap[trip.trailer.type] || trip.trailer.type : '';
+                    const trailerInfo = [
+                        trip.trailer.licensePlate || trip.trailer.plateNumber,
+                        trailerType,
+                        trip.trailer.capacity ? `(${trip.trailer.capacity})` : ''
+                    ].filter(Boolean).join(' ');
+                    doc.text(trailerInfo || 'N/A', margin + 50, yPos);
+                    yPos += 7;
+                }
+                
+                // Origin and Destination
+                if (trip.startLocation && trip.startLocation.place) {
+                    doc.setTextColor(107, 114, 128);
+                    doc.text('Origin:', margin, yPos);
+                    doc.setTextColor(textR, textG, textB);
+                    doc.text(trip.startLocation.place, margin + 50, yPos);
+                    yPos += 7;
+                }
+                
+                if (trip.endLocation && trip.endLocation.place) {
+                    doc.setTextColor(107, 114, 128);
+                    doc.text('Destination:', margin, yPos);
+                    doc.setTextColor(textR, textG, textB);
+                    doc.text(trip.endLocation.place, margin + 50, yPos);
+                    yPos += 7;
+                }
+                
+                // Distance (Miles covered)
+                if (trip.route && trip.route.totalDistance) {
+                    doc.setTextColor(107, 114, 128);
+                    doc.text('Miles Covered:', margin, yPos);
+                    doc.setTextColor(textR, textG, textB);
+                    const distanceKm = trip.route.totalDistance.toFixed(2);
+                    const distanceMiles = (trip.route.totalDistance * 0.621371).toFixed(2);
+                    doc.text(`${distanceMiles} miles (${distanceKm} km)`, margin + 50, yPos);
+                    yPos += 7;
+                }
+                
+                // Load Details Section
+                if (trip.orders && trip.orders.length > 0) {
+                    yPos += 3;
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(textR, textG, textB);
+                    doc.text('Load Details:', margin, yPos);
+                    yPos += 8;
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'normal');
+                    
+                    // Calculate total weight
+                    let totalWeight = 0;
+                    const weightUnits: string[] = [];
+                    const commodities: string[] = [];
+                    const orderTypes: string[] = [];
+                    const equipmentList: string[] = [];
+                    let hasTemperature = false;
+                    let temperatureValue: number | null = null;
+                    const specialFlags: string[] = [];
+                    
+                    trip.orders.forEach((order: any) => {
+                        if (order.weight) {
+                            totalWeight += order.weight;
+                            if (order.weightUnit && !weightUnits.includes(order.weightUnit)) {
+                                weightUnits.push(order.weightUnit);
+                            }
+                        }
+                        if (order.commodity && !commodities.includes(order.commodity)) {
+                            commodities.push(order.commodity);
+                        }
+                        if (order.orderType && !orderTypes.includes(order.orderType)) {
+                            orderTypes.push(order.orderType);
+                        }
+                        if (order.equipment && Array.isArray(order.equipment)) {
+                            order.equipment.forEach((eq: string) => {
+                                if (!equipmentList.includes(eq)) {
+                                    equipmentList.push(eq);
+                                }
+                            });
+                        }
+                        if (order.temperature !== null && order.temperature !== undefined) {
+                            hasTemperature = true;
+                            temperatureValue = order.temperature;
+                        }
+                        if (order.additionalInfo) {
+                            if (order.additionalInfo.HAZMAT) specialFlags.push('HAZMAT');
+                            if (order.additionalInfo.TARP) specialFlags.push('TARP');
+                            if (order.additionalInfo.OverDimension) specialFlags.push('Over Dimension');
+                            if (order.additionalInfo.CSA) specialFlags.push('CSA');
+                        }
+                    });
+                    
+                    // Product/Load Type
+                    if (commodities.length > 0) {
+                        doc.setTextColor(107, 114, 128);
+                        doc.text('Product/Load Type:', margin, yPos);
+                        doc.setTextColor(textR, textG, textB);
+                        doc.text(commodities.join(', '), margin + 50, yPos);
+                        yPos += 7;
+                    }
+                    
+                    // Order Type
+                    if (orderTypes.length > 0) {
+                        doc.setTextColor(107, 114, 128);
+                        doc.text('Order Type:', margin, yPos);
+                        doc.setTextColor(textR, textG, textB);
+                        doc.text(orderTypes.join(', '), margin + 50, yPos);
+                        yPos += 7;
+                    }
+                    
+                    // Total Load Weight
+                    if (totalWeight > 0) {
+                        doc.setTextColor(107, 114, 128);
+                        doc.text('Total Load Weight:', margin, yPos);
+                        doc.setTextColor(textR, textG, textB);
+                        const weightUnit = weightUnits.length > 0 ? weightUnits[0] : 'kg';
+                        doc.text(`${totalWeight.toFixed(2)} ${weightUnit}`, margin + 50, yPos);
+                        yPos += 7;
+                    }
+                    
+                    // Equipment
+                    if (equipmentList.length > 0) {
+                        doc.setTextColor(107, 114, 128);
+                        doc.text('Equipment:', margin, yPos);
+                        doc.setTextColor(textR, textG, textB);
+                        doc.text(equipmentList.join(', '), margin + 50, yPos);
+                        yPos += 7;
+                    }
+                    
+                    // Temperature (for refrigerated loads)
+                    if (hasTemperature && temperatureValue !== null) {
+                        doc.setTextColor(107, 114, 128);
+                        doc.text('Temperature:', margin, yPos);
+                        doc.setTextColor(textR, textG, textB);
+                        doc.text(`${temperatureValue}°C`, margin + 50, yPos);
+                        yPos += 7;
+                    }
+                    
+                    // Special Flags
+                    if (specialFlags.length > 0) {
+                        doc.setTextColor(107, 114, 128);
+                        doc.text('Special Requirements:', margin, yPos);
+                        doc.setTextColor(textR, textG, textB);
+                        doc.text(specialFlags.join(', '), margin + 50, yPos);
+                        yPos += 7;
+                    }
+                    
+                    yPos += 3;
+                }
+                
+                // Trip Dates
+                if (trip.actualStartDate) {
+                    doc.setTextColor(107, 114, 128);
+                    doc.text('Start Date:', margin, yPos);
+                    doc.setTextColor(textR, textG, textB);
+                    doc.text(formatDate(trip.actualStartDate), margin + 50, yPos);
+                    yPos += 7;
+                }
+                
+                if (trip.actualEndDate) {
+                    doc.setTextColor(107, 114, 128);
+                    doc.text('End Date:', margin, yPos);
+                    doc.setTextColor(textR, textG, textB);
+                    doc.text(formatDate(trip.actualEndDate), margin + 50, yPos);
+                    yPos += 7;
+                }
+                
+                // Orders Information (without internal IDs) - Show after load details
+                if (trip.orders && trip.orders.length > 0) {
+                    yPos += 3;
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(textR, textG, textB);
+                    doc.text('Orders:', margin, yPos);
+                    yPos += 7;
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'normal');
+                    trip.orders.forEach((order: any, index: number) => {
+                        if (yPos > pageHeight - 60) {
+                            doc.addPage();
+                            yPos = margin + 20;
+                        }
+                        doc.setTextColor(textR, textG, textB);
+                        // Only show customer order number and customer name, not internal order number
+                        const orderInfo = [
+                            order.customerOrderNo || `Order ${index + 1}`,
+                            order.customer?.name ? `- ${order.customer.name}` : ''
+                        ].filter(Boolean).join(' ');
+                        doc.text(`  ${index + 1}. ${orderInfo}`, margin + 5, yPos);
+                        yPos += 6;
+                    });
+                }
+                
                 yPos += 5;
             }
             
@@ -234,28 +633,106 @@ const InvoiceManagement: React.FC = () => {
             doc.line(margin, yPos, pageWidth - margin, yPos);
             yPos += 15;
             
-            // Items/Summary Section
+            // Service Breakdown Section
             doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
             doc.roundedRect(margin, yPos, contentWidth, 8, 2, 2, 'F');
             
-            doc.setFontSize(11);
+            // Column positions - properly spaced to avoid overlap
+            // Page width is typically 210mm, margin is 20mm
+            // Column layout with generous spacing:
+            // Description (25-80mm, 55mm max width) | Qty (90mm) | Unit Price (right 140mm) | Amount (right 170mm) | Tax (right 185mm)
+            const colDesc = margin + 5; // Description column start (25mm)
+            const colQty = margin + 85; // Quantity column start (105mm) - ensures Description ends at ~80mm with 5mm gap
+            const colUnitPrice = pageWidth - margin - 50; // Unit Price column end (140mm) - right-aligned, ensures gap after Qty
+            const colAmount = pageWidth - margin - 20; // Amount column end (170mm) - right-aligned, ensures gap after Unit Price
+            const colTax = pageWidth - margin - 5; // Tax column end (185mm) - right-aligned
+            
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
-            doc.text('Description', margin + 5, yPos + 6);
-            doc.text('Amount', pageWidth - margin - 5, yPos + 6, { align: 'right' });
+            doc.text('Description', colDesc, yPos + 6);
+            doc.text('Qty', colQty, yPos + 6);
+            doc.text('Unit Price', colUnitPrice, yPos + 6, { align: 'right' });
+            doc.text('Amount', colAmount, yPos + 6, { align: 'right' });
+            doc.text('Tax', colTax, yPos + 6, { align: 'right' });
             
             yPos += 15;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(10);
-            doc.text('Service/Product', margin + 5, yPos);
-            doc.text(`${invoice.currency} ${parseFloat(invoice.amount.toString()).toFixed(2)}`, pageWidth - margin - 5, yPos, { align: 'right' });
+            
+            // Calculate totals
+            let subtotal = 0;
+            let totalTax = 0;
+            
+            if (invoice.serviceBreakdown && invoice.serviceBreakdown.length > 0) {
+                // Use service breakdown
+                invoice.serviceBreakdown.forEach((item) => {
+                    if (yPos > pageHeight - 60) {
+                        doc.addPage();
+                        yPos = margin + 20;
+                    }
+                    const itemAmount = item.amount || (item.unitPrice * (item.quantity || 1));
+                    const itemTax = item.taxAmount || (itemAmount * ((item.taxRate || 0) / 100));
+                    subtotal += itemAmount;
+                    totalTax += itemTax;
+                    
+                    // Limit description width to prevent overflow into Qty column
+                    const maxDescWidth = colQty - colDesc - 5; // Leave 5mm gap before Qty column
+                    doc.text(item.description || 'Service', colDesc, yPos, { maxWidth: maxDescWidth });
+                    doc.text((item.quantity || 1).toString(), colQty, yPos);
+                    doc.text(`${invoice.currency} ${(item.unitPrice || 0).toFixed(2)}`, colUnitPrice, yPos, { align: 'right' });
+                    doc.text(`${invoice.currency} ${itemAmount.toFixed(2)}`, colAmount, yPos, { align: 'right' });
+                    doc.text(`${invoice.currency} ${itemTax.toFixed(2)}`, colTax, yPos, { align: 'right' });
+                    yPos += 7;
+                });
+            } else {
+                // Fallback to single line item
+                const amount = parseFloat(invoice.amount.toString());
+                subtotal = invoice.subtotal || amount;
+                totalTax = invoice.taxAmount || 0;
+                
+                // Limit description width to prevent overflow into Qty column
+                const maxDescWidth = colQty - colDesc - 5; // Leave 5mm gap before Qty column
+                doc.text('Freight Services', colDesc, yPos, { maxWidth: maxDescWidth });
+                doc.text('1', colQty, yPos);
+                doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colUnitPrice, yPos, { align: 'right' });
+                doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colAmount, yPos, { align: 'right' });
+                doc.text(`${invoice.currency} ${totalTax.toFixed(2)}`, colTax, yPos, { align: 'right' });
+                yPos += 7;
+            }
+            
+            // Subtotal and Tax Section
+            yPos += 5;
+            doc.setDrawColor(209, 213, 219); // Gray-300
+            doc.setLineWidth(0.5);
+            doc.line(margin, yPos, pageWidth - margin, yPos);
+            yPos += 8;
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Subtotal:', colAmount, yPos, { align: 'right' });
+            doc.setFont('helvetica', 'normal');
+            doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colTax, yPos, { align: 'right' });
+            yPos += 7;
+            
+            if (totalTax > 0) {
+                doc.setFont('helvetica', 'bold');
+                const taxLabel = invoice.taxNumber 
+                    ? `Tax (${invoice.taxNumber}):` 
+                    : (company && company.taxNumber ? `Tax (${company.taxNumber}):` : 'Tax (GST/HST):');
+                doc.text(taxLabel, colAmount, yPos, { align: 'right' });
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${invoice.currency} ${totalTax.toFixed(2)}`, colTax, yPos, { align: 'right' });
+                yPos += 7;
+            }
             
             // Total Section
-            yPos += 20;
+            yPos += 5;
             doc.setDrawColor(209, 213, 219); // Gray-300
             doc.setLineWidth(0.5);
             doc.line(margin, yPos, pageWidth - margin, yPos);
             yPos += 10;
             
+            const totalAmount = subtotal + totalTax;
             doc.setFillColor(secondaryR, secondaryG, secondaryB);
             doc.roundedRect(margin, yPos, contentWidth, 20, 3, 3, 'F');
             
@@ -264,7 +741,7 @@ const InvoiceManagement: React.FC = () => {
             doc.setFont('helvetica', 'bold');
             doc.text('Total Amount Due', margin + 10, yPos + 8);
             doc.setFontSize(18);
-            doc.text(`${invoice.currency} ${parseFloat(invoice.amount.toString()).toFixed(2)}`, pageWidth - margin - 10, yPos + 15, { align: 'right' });
+            doc.text(`${invoice.currency} ${totalAmount.toFixed(2)}`, pageWidth - margin - 10, yPos + 15, { align: 'right' });
             doc.setTextColor(textR, textG, textB);
             
             // Notes Section

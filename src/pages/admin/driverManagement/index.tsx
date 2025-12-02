@@ -24,34 +24,23 @@ interface HRDashboardStats {
   activeDrivers: number;
   totalLoads: number;
   newJoinersThisMonth: number;
-}
-
-// Minimal static fallback data
-const STATIC_FALLBACK = {
-  totalEmployees: 8,
-  pendingDocumentRenewals: 3,
-  newJoinersThisMonth: 2,
   documents: {
-    pending: 3,
-    total: 45
-  },
+    pending: number;
+  };
   companyDocuments: {
-    total: 12,
-    expiringSoon: 2
-  },
+    total: number;
+    expiringSoon: number;
+  };
   attendance: {
-    presentToday: 7,
-    absentToday: 1
-  },
+    presentToday: number;
+  };
   employeePortfolio: {
-    completed: 6,
-    inProgress: 2
-  },
+    completed: number;
+  };
   issues: {
-    open: 2,
-    resolved: 15
-  }
-};
+    open: number;
+  };
+}
 
 const index = () => {
   const navigate = useNavigate();
@@ -111,7 +100,7 @@ const index = () => {
             <div>
               <p className="text-gray-500 text-sm font-medium">Total Employees</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                {dashboardStats?.totalEmployees || STATIC_FALLBACK.totalEmployees}
+                {dashboardStats?.totalEmployees ?? 0}
               </p>
             </div>
             <div className="bg-purple-50 p-3 rounded-lg">
@@ -129,7 +118,7 @@ const index = () => {
             <div>
               <p className="text-gray-500 text-sm font-medium">Pending Document Renewals</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                {dashboardStats?.pendingDocumentRenewals || STATIC_FALLBACK.pendingDocumentRenewals}
+                {dashboardStats?.pendingDocumentRenewals ?? 0}
               </p>
             </div>
             <div className="bg-orange-50 p-3 rounded-lg">
@@ -147,7 +136,7 @@ const index = () => {
             <div>
               <p className="text-gray-500 text-sm font-medium">New Joiners This Month</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                {dashboardStats?.newJoinersThisMonth || STATIC_FALLBACK.newJoinersThisMonth}
+                {dashboardStats?.newJoinersThisMonth ?? 0}
               </p>
             </div>
             <div className="bg-pink-50 p-3 rounded-lg">
@@ -157,8 +146,8 @@ const index = () => {
         </div>
       </div>
 
-      {/* Quick Access Sections */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* Quick Access Sections - 6 cards in 2 rows */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
         {/* Documents */}
         <div 
           onClick={() => navigate(`${basePath}/documents`)}
@@ -168,7 +157,9 @@ const index = () => {
             <div className="bg-orange-50 p-2 rounded-lg">
               <FileText className="h-5 w-5 text-orange-600" />
             </div>
-            <span className="text-lg font-bold text-gray-900">{STATIC_FALLBACK.documents.pending}</span>
+            <span className="text-lg font-bold text-gray-900">
+              {dashboardStats?.documents?.pending ?? 0}
+            </span>
           </div>
           <p className="text-sm font-medium text-gray-700">Documents</p>
           <p className="text-xs text-gray-500 mt-1">Pending</p>
@@ -183,10 +174,14 @@ const index = () => {
             <div className="bg-blue-50 p-2 rounded-lg">
               <FolderOpen className="h-5 w-5 text-blue-600" />
             </div>
-            <span className="text-lg font-bold text-gray-900">{STATIC_FALLBACK.companyDocuments.total}</span>
+            <span className="text-lg font-bold text-gray-900">
+              {dashboardStats?.companyDocuments?.total ?? 0}
+            </span>
           </div>
           <p className="text-sm font-medium text-gray-700">Company Docs</p>
-          <p className="text-xs text-gray-500 mt-1">{STATIC_FALLBACK.companyDocuments.expiringSoon} expiring</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {dashboardStats?.companyDocuments?.expiringSoon ?? 0} expiring
+          </p>
         </div>
 
         {/* Attendance */}
@@ -198,7 +193,9 @@ const index = () => {
             <div className="bg-green-50 p-2 rounded-lg">
               <Clock className="h-5 w-5 text-green-600" />
             </div>
-            <span className="text-lg font-bold text-green-600">{STATIC_FALLBACK.attendance.presentToday}</span>
+            <span className="text-lg font-bold text-green-600">
+              {dashboardStats?.attendance?.presentToday ?? 0}
+            </span>
           </div>
           <p className="text-sm font-medium text-gray-700">Attendance</p>
           <p className="text-xs text-gray-500 mt-1">Present today</p>
@@ -213,7 +210,9 @@ const index = () => {
             <div className="bg-indigo-50 p-2 rounded-lg">
               <Briefcase className="h-5 w-5 text-indigo-600" />
             </div>
-            <span className="text-lg font-bold text-gray-900">{STATIC_FALLBACK.employeePortfolio.completed}</span>
+            <span className="text-lg font-bold text-gray-900">
+              {dashboardStats?.employeePortfolio?.completed ?? 0}
+            </span>
           </div>
           <p className="text-sm font-medium text-gray-700">Portfolio</p>
           <p className="text-xs text-gray-500 mt-1">Completed</p>
@@ -228,7 +227,9 @@ const index = () => {
             <div className="bg-red-50 p-2 rounded-lg">
               <AlertCircle className="h-5 w-5 text-red-600" />
             </div>
-            <span className="text-lg font-bold text-red-600">{STATIC_FALLBACK.issues.open}</span>
+            <span className="text-lg font-bold text-red-600">
+              {dashboardStats?.issues?.open ?? 0}
+            </span>
           </div>
           <p className="text-sm font-medium text-gray-700">Issues</p>
           <p className="text-xs text-gray-500 mt-1">Open</p>
@@ -243,7 +244,7 @@ const index = () => {
             <div className="bg-purple-50 p-2 rounded-lg">
               <Users className="h-5 w-5 text-purple-600" />
             </div>
-            <span className="text-lg font-bold text-gray-900">{dashboardStats?.totalEmployees || STATIC_FALLBACK.totalEmployees}</span>
+            <span className="text-lg font-bold text-gray-900">{dashboardStats?.totalEmployees ?? 0}</span>
           </div>
           <p className="text-sm font-medium text-gray-700">Employees</p>
           <p className="text-xs text-gray-500 mt-1">Total</p>

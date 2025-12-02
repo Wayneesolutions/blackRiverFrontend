@@ -1,13 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-import { useNavigate, useLocation } from 'react-router-dom';
-=======
 import { useNavigate } from 'react-router-dom';
->>>>>>> 3c22d1c (WIP: save local changes before pulling)
-=======
-import { useNavigate } from 'react-router-dom';
->>>>>>> Stashed changes
 import {
   CheckCircle,
   XCircle,
@@ -44,13 +36,6 @@ interface ToastNotification {
 
 const AttendanceTracking = () => {
   const navigate = useNavigate();
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-  const location = useLocation();
-=======
->>>>>>> 3c22d1c (WIP: save local changes before pulling)
-=======
->>>>>>> Stashed changes
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -275,29 +260,8 @@ const AttendanceTracking = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div 
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => {
-              // Check if we're in admin route or HR route
-              const isAdminRoute = location.pathname.startsWith('/admin/Management');
-              // Navigate to user-profiles - use the same base path as current location
-              if (isAdminRoute) {
-                // For admin, navigate to /admin/Management/user-profiles
-                navigate('/admin/Management/user-profiles', { replace: false });
-              } else {
-                // For HR, navigate to /Management/user-profiles
-                navigate('/Management/user-profiles', { replace: false });
-              }
-            }}
-=======
             onClick={() => navigate(`${getBasePath()}/employee-profiles`)}
             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
->>>>>>> 3c22d1c (WIP: save local changes before pulling)
-=======
-            onClick={() => navigate(`${getBasePath()}/employee-profiles`)}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
->>>>>>> Stashed changes
           >
             <div className="flex items-center justify-between">
               <div>

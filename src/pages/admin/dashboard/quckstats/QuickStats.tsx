@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -23,7 +24,8 @@ const COLORS = ["#3b82f6", "#10b981"];
 interface Stats {
   totalVehicles: number;
   driversOnDuty: number;
-  activeLoads: number;
+  activeTrips: number;
+  activeLoads?: number; // Keep for backward compatibility
   pendingWorkOrders: number;
   pendingInvoices: number;
 }
@@ -69,9 +71,11 @@ interface Alerts {
 }
 
 export default function QuickStatsUI() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<Stats>({
     totalVehicles: 0,
     driversOnDuty: 0,
+    activeTrips: 0,
     activeLoads: 0,
     pendingWorkOrders: 0,
     pendingInvoices: 0,
@@ -125,7 +129,8 @@ export default function QuickStatsUI() {
         setStats({
           totalVehicles: statsData.totalVehicles || 0,
           driversOnDuty: statsData.driversOnDuty || 0,
-          activeLoads: statsData.activeLoads || 0,
+          activeTrips: statsData.activeTrips || statsData.activeLoads || 0,
+          activeLoads: statsData.activeTrips || statsData.activeLoads || 0, // Keep for backward compatibility
           pendingWorkOrders: statsData.pendingWorkOrders || 0,
           pendingInvoices: statsData.pendingInvoices || 0,
         });
@@ -276,39 +281,44 @@ export default function QuickStatsUI() {
           value={stats.totalVehicles} 
           icon={<Truck className="h-6 w-6 text-blue-600" />}
           color="blue"
+          onClick={() => navigate("/admin/fleetmaintenance/fleet-units")}
         />
         <StatCard 
           title="Drivers on Duty" 
           value={stats.driversOnDuty} 
           icon={<Users className="h-6 w-6 text-green-600" />}
           color="green"
+          onClick={() => navigate("/admin/dispatch/drivers")}
         />
         <StatCard 
-          title="Active Loads" 
-          value={stats.activeLoads} 
+          title="Active Trips" 
+          value={stats.activeTrips || stats.activeLoads || 0} 
           icon={<Package className="h-6 w-6 text-purple-600" />}
           color="purple"
+          onClick={() => navigate("/admin/dispatch/trips")}
         />
         <StatCard 
           title="Pending Work Orders" 
           value={stats.pendingWorkOrders} 
           icon={<Wrench className="h-6 w-6 text-orange-600" />}
           color="orange"
+          onClick={() => navigate("/admin/fleetmaintenance/general-repairs-log")}
         />
         <StatCard 
           title="Pending Invoices" 
           value={stats.pendingInvoices} 
           icon={<FileText className="h-6 w-6 text-red-600" />}
           color="red"
+          onClick={() => navigate("/admin/accounts/invoice")}
         />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/admin/dispatch/trips")}>
           <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
             <Package className="h-5 w-5 text-blue-600" />
-            Loads per Month
+            Trips per Month
           </h3>
           {loadsData.length > 0 ? (
             <div style={{ width: "100%", height: 300 }}>
@@ -337,7 +347,7 @@ export default function QuickStatsUI() {
                   <Bar 
                     dataKey="value" 
                     fill="#3b82f6" 
-                    name="Loads" 
+                    name="Trips" 
                     radius={[6, 6, 0, 0]}
                     maxBarSize={80}
                   />
@@ -347,12 +357,12 @@ export default function QuickStatsUI() {
           ) : (
             <div className="h-64 flex flex-col items-center justify-center text-gray-400">
               <Package className="h-16 w-16 mb-3 opacity-30" />
-              <p>No load data available</p>
+              <p>No trip data available</p>
             </div>
           )}
         </Card>
 
-        <Card>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/admin/accounts/invoice")}>
           <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
             <FileText className="h-5 w-5 text-green-600" />
             Revenue Trend
@@ -391,43 +401,7 @@ export default function QuickStatsUI() {
           )}
         </Card>
 
-        <Card>
-          <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-            <Truck className="h-5 w-5 text-purple-600" />
-            Fuel & Odometer
-          </h3>
-          {fuelData.length > 0 && (fuelData[0].value > 0 || fuelData[1].value > 0) ? (
-            <div style={{ width: "100%", height: 240 }}>
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie
-                    data={fuelData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={50}
-                    outerRadius={90}
-                    paddingAngle={5}
-                    label={({ value }) => `${value}`}
-                  >
-                    {fuelData.map((_, i) => (
-                      <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend 
-                    wrapperStyle={{ fontSize: '12px' }}
-                    iconType="circle"
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-56 flex flex-col items-center justify-center text-gray-400">
-              <Truck className="h-16 w-16 mb-3 opacity-30" />
-              <p>No fuel data available</p>
-            </div>
-          )}
-        </Card>
+       
       </div>
 
       {/* Recent Alerts */}
@@ -453,10 +427,15 @@ export default function QuickStatsUI() {
                 title="Maintenance Due" 
                 count={alerts.maintenanceDue?.length || 0}
                 icon={<Wrench className="h-4 w-4" />}
+                onClick={() => navigate("/admin/fleetmaintenance/scheduled-services-log")}
               >
                 {alerts.maintenanceDue && alerts.maintenanceDue.length > 0 ? (
                   alerts.maintenanceDue.map((vehicle, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200 hover:bg-red-100 transition-colors">
+                    <div 
+                      key={idx} 
+                      className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
+                      onClick={() => navigate("/admin/fleetmaintenance/scheduled-services-log")}
+                    >
                       <div className="flex items-center gap-3">
                         <Truck className="h-5 w-5 text-red-600" />
                         <div>
@@ -483,10 +462,15 @@ export default function QuickStatsUI() {
                 title="Document Expiry" 
                 count={alerts.expiringDocs?.length || 0}
                 icon={<FileText className="h-4 w-4" />}
+                onClick={() => navigate("/admin/Management/documents")}
               >
                 {alerts.expiringDocs && alerts.expiringDocs.length > 0 ? (
                   alerts.expiringDocs.map((doc, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200 hover:bg-yellow-100 transition-colors">
+                    <div 
+                      key={idx} 
+                      className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200 hover:bg-yellow-100 transition-colors cursor-pointer"
+                      onClick={() => navigate("/admin/Management/documents")}
+                    >
                       <div className="flex items-center gap-3">
                         <Users className="h-5 w-5 text-yellow-600" />
                         <div>
@@ -508,22 +492,27 @@ export default function QuickStatsUI() {
                 )}
               </AlertSection>
 
-              {/* Delayed Loads */}
+              {/* Delayed Trips */}
               <AlertSection 
-                title="Delayed Loads" 
+                title="Delayed Trips" 
                 count={alerts.delayedLoads?.length || 0}
                 icon={<Clock className="h-4 w-4" />}
+                onClick={() => navigate("/admin/dispatch/trips")}
               >
                 {alerts.delayedLoads && alerts.delayedLoads.length > 0 ? (
-                  alerts.delayedLoads.map((load, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-orange-50 rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors">
+                  alerts.delayedLoads.map((trip, idx) => (
+                    <div 
+                      key={idx} 
+                      className="flex justify-between items-center p-3 bg-orange-50 rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors cursor-pointer"
+                      onClick={() => navigate("/admin/dispatch/trips")}
+                    >
                       <div className="flex items-center gap-3">
                         <Package className="h-5 w-5 text-orange-600" />
                         <div>
-                          <div className="font-medium text-gray-800">Load #{load.loadId || load._id}</div>
+                          <div className="font-medium text-gray-800">Trip #{trip.loadId || trip._id}</div>
                           <div className="text-xs text-gray-600 flex items-center gap-1 mt-1">
                             <Calendar className="h-3 w-3" />
-                            Delivery: {formatDate(load.deliveryDate)} • Status: {load.status}
+                            Delivery: {formatDate(trip.deliveryDate)} • Status: {trip.status}
                           </div>
                         </div>
                       </div>
@@ -533,7 +522,7 @@ export default function QuickStatsUI() {
                 ) : (
                   <div className="text-sm text-gray-600 p-3 bg-green-50 rounded-lg border border-green-200 flex items-center gap-2">
                     <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                    All loads on track
+                    All trips on track
                   </div>
                 )}
               </AlertSection>
@@ -546,7 +535,7 @@ export default function QuickStatsUI() {
           <h3 className="text-lg font-semibold mb-4 text-gray-800">Summary</h3>
           <div className="space-y-3">
             <SummaryItem label="Total Vehicles" value={stats.totalVehicles} icon={<Truck className="h-4 w-4 text-blue-600" />} />
-            <SummaryItem label="Active Loads" value={stats.activeLoads} icon={<Package className="h-4 w-4 text-purple-600" />} />
+            <SummaryItem label="Active Trips" value={stats.activeTrips || stats.activeLoads || 0} icon={<Package className="h-4 w-4 text-purple-600" />} />
             <SummaryItem label="Drivers on Duty" value={stats.driversOnDuty} icon={<Users className="h-4 w-4 text-green-600" />} />
             <SummaryItem label="Pending Work Orders" value={stats.pendingWorkOrders} icon={<Wrench className="h-4 w-4 text-orange-600" />} />
             <SummaryItem label="Pending Invoices" value={stats.pendingInvoices} icon={<FileText className="h-4 w-4 text-red-600" />} />
@@ -579,7 +568,7 @@ export default function QuickStatsUI() {
 
 /* ----------------- Helper Components ----------------- */
 
-function StatCard({ title, value, icon, color }: { title: string; value: number; icon: React.ReactNode; color: string }) {
+function StatCard({ title, value, icon, color, onClick }: { title: string; value: number; icon: React.ReactNode; color: string; onClick?: () => void }) {
   const colorClasses: Record<string, string> = {
     blue: 'bg-blue-50 border-blue-100',
     green: 'bg-green-50 border-green-100',
@@ -589,7 +578,10 @@ function StatCard({ title, value, icon, color }: { title: string; value: number;
   };
 
   return (
-    <div className={`${colorClasses[color]} rounded-xl p-5 shadow-sm border hover:shadow-md transition-shadow`}>
+    <div 
+      className={`${colorClasses[color]} rounded-xl p-5 shadow-sm border hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
       <div className="flex items-center justify-between mb-3">
         <div className="text-sm font-medium text-gray-700">{title}</div>
         {icon}
@@ -599,18 +591,24 @@ function StatCard({ title, value, icon, color }: { title: string; value: number;
   );
 }
 
-function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Card({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   return (
-    <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 ${className}`}>
+    <div 
+      className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 ${className}`}
+      onClick={onClick}
+    >
       {children}
     </div>
   );
 }
 
-function AlertSection({ title, children, count, icon }: { title: string; children: React.ReactNode; count: number; icon: React.ReactNode }) {
+function AlertSection({ title, children, count, icon, onClick }: { title: string; children: React.ReactNode; count: number; icon: React.ReactNode; onClick?: () => void }) {
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
+      <div 
+        className={`flex items-center justify-between mb-3 ${onClick ? 'cursor-pointer hover:text-gray-900 transition-colors' : ''}`}
+        onClick={onClick}
+      >
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
           {icon}
           {title}

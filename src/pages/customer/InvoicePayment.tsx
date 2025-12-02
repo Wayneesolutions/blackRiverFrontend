@@ -3,20 +3,122 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { CreditCard, CheckCircle, XCircle, Clock, Calendar, User, Mail, Building, Loader2 } from 'lucide-react';
 import { getPublicInvoice, createPaymentSession } from '../../axios/api/account.invoices';
 
+interface Trip {
+    _id: string;
+    tripNumber?: string;
+    status?: string;
+    driver?: {
+        _id: string;
+        name: string;
+        email?: string;
+        phone?: string;
+    };
+    truck?: {
+        _id: string;
+        unitNo?: string;
+        licensePlate?: string;
+        plateNumber?: string;
+        makeModel?: string;
+        internalId?: string;
+        unitType?: string;
+    };
+    trailer?: {
+        _id: string;
+        unitNo?: string;
+        licensePlate?: string;
+        plateNumber?: string;
+        makeModel?: string;
+        unitType?: string;
+        type?: string;
+        capacity?: string;
+    };
+    startLocation?: {
+        place?: string;
+    };
+    endLocation?: {
+        place?: string;
+    };
+    route?: {
+        totalDistance?: number;
+    };
+    plannedStartDate?: string;
+    plannedEndDate?: string;
+    actualStartDate?: string;
+    actualEndDate?: string;
+    orders?: Array<{
+        _id: string;
+        orderNumber: string;
+        customerOrderNo?: string;
+        commodity?: string;
+        weight?: number;
+        weightUnit?: string;
+        orderType?: string;
+        equipment?: string[];
+        noOfPackages?: number;
+        noOfPackagesType?: string;
+        temperature?: number;
+        additionalInfo?: {
+            HAZMAT?: boolean;
+            TARP?: boolean;
+            OverDimension?: boolean;
+            CSA?: boolean;
+        };
+        customer?: {
+            name: string;
+            email?: string;
+        };
+        pickupLocation?: {
+            place?: string;
+        };
+        deliveryLocation?: {
+            place?: string;
+        };
+    }>;
+    notes?: string;
+}
+
+interface CompanyInfo {
+    _id?: string;
+    companyName?: string;
+    address?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    taxNumber?: string;
+    logoUrl?: string;
+}
+
+interface ServiceBreakdownItem {
+    description: string;
+    quantity?: number;
+    unitPrice: number;
+    amount: number;
+    taxRate?: number;
+    taxAmount?: number;
+}
+
 interface Invoice {
     _id: string;
     clientName: string;
     clientEmail: string;
     clientCompany?: string;
-    loadId: string;
+    clientAddress?: string;
+    clientPhone?: string;
+    loadId?: string;
+    tripId?: string | Trip;
     amount: string;
     currency: string;
     status: 'paid' | 'pending';
     invoiceDate: string;
     dueDate: string;
     paymentDate: string | null;
+    paymentTerms?: string;
     invoiceUrl: string;
     notes: string;
+    serviceBreakdown?: ServiceBreakdownItem[];
+    subtotal?: number;
+    taxAmount?: number;
+    taxNumber?: string;
+    company?: CompanyInfo | string;
     createdAt: string;
     updatedAt: string;
 }
@@ -187,6 +289,24 @@ const InvoicePayment: React.FC = () => {
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                             <h2 className="text-xl font-semibold text-gray-900 mb-4">Invoice Details</h2>
                             
+                            {/* Company Information */}
+                            {invoice.company && typeof invoice.company === 'object' && (
+                                <div className="mb-6 pb-6 border-b border-gray-200">
+                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">From</h3>
+                                    <div className="space-y-2">
+                                        <div className="font-semibold text-gray-900">{invoice.company.companyName}</div>
+                                        {invoice.company.address && (
+                                            <div className="text-gray-600 text-sm">{invoice.company.address}</div>
+                                        )}
+                                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                                            {invoice.company.contactPhone && <span>Phone: {invoice.company.contactPhone}</span>}
+                                            {invoice.company.contactEmail && <span>Email: {invoice.company.contactEmail}</span>}
+                                            {invoice.company.taxNumber && <span>Tax #: {invoice.company.taxNumber}</span>}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Client Information */}
                                 <div>
@@ -194,18 +314,27 @@ const InvoicePayment: React.FC = () => {
                                     <div className="space-y-2">
                                         <div className="flex items-center">
                                             <User className="h-4 w-4 text-gray-400 mr-2" />
-                                            <span className="text-gray-900">{invoice.clientName}</span>
+                                            <span className="text-gray-900 font-medium">{invoice.clientName}</span>
                                         </div>
+                                        {invoice.clientCompany && (
+                                            <div className="flex items-center">
+                                                <Building className="h-4 w-4 text-gray-400 mr-2" />
+                                                <span className="text-gray-600">{invoice.clientCompany}</span>
+                                            </div>
+                                        )}
+                                        {invoice.clientAddress && (
+                                            <div className="text-gray-600 text-sm ml-6">{invoice.clientAddress}</div>
+                                        )}
                                         {invoice.clientEmail && (
                                             <div className="flex items-center">
                                                 <Mail className="h-4 w-4 text-gray-400 mr-2" />
                                                 <span className="text-gray-600">{invoice.clientEmail}</span>
                                             </div>
                                         )}
-                                        {invoice.clientCompany && (
+                                        {invoice.clientPhone && (
                                             <div className="flex items-center">
-                                                <Building className="h-4 w-4 text-gray-400 mr-2" />
-                                                <span className="text-gray-600">{invoice.clientCompany}</span>
+                                                <Mail className="h-4 w-4 text-gray-400 mr-2" />
+                                                <span className="text-gray-600">Phone: {invoice.clientPhone}</span>
                                             </div>
                                         )}
                                     </div>
@@ -232,6 +361,252 @@ const InvoicePayment: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Service Breakdown */}
+                            {invoice.serviceBreakdown && invoice.serviceBreakdown.length > 0 && (
+                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">Service Breakdown</h3>
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Tax</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200">
+                                                {invoice.serviceBreakdown.map((item, index) => {
+                                                    const itemAmount = item.amount || (item.unitPrice * (item.quantity || 1));
+                                                    const itemTax = item.taxAmount || (itemAmount * ((item.taxRate || 0) / 100));
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td className="px-4 py-3 text-sm text-gray-900">{item.description}</td>
+                                                            <td className="px-4 py-3 text-sm text-gray-600 text-center">{item.quantity || 1}</td>
+                                                            <td className="px-4 py-3 text-sm text-gray-600 text-right">{formatCurrency(item.unitPrice.toString(), invoice.currency)}</td>
+                                                            <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">{formatCurrency(itemAmount.toString(), invoice.currency)}</td>
+                                                            <td className="px-4 py-3 text-sm text-gray-600 text-right">{formatCurrency(itemTax.toString(), invoice.currency)}</td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                            <tfoot className="bg-gray-50">
+                                                <tr>
+                                                    <td colSpan={3} className="px-4 py-3 text-sm font-medium text-gray-900 text-right">Subtotal:</td>
+                                                    <td className="px-4 py-3 text-sm font-medium text-gray-900 text-right">
+                                                        {formatCurrency((invoice.subtotal || parseFloat(invoice.amount)).toString(), invoice.currency)}
+                                                    </td>
+                                                    <td></td>
+                                                </tr>
+                                                {invoice.taxAmount && invoice.taxAmount > 0 && (
+                                                    <tr>
+                                                        <td colSpan={3} className="px-4 py-3 text-sm font-medium text-gray-900 text-right">
+                                                            Tax {invoice.taxNumber ? `(${invoice.taxNumber})` : '(GST/HST)'}:
+                                                        </td>
+                                                        <td className="px-4 py-3 text-sm font-medium text-gray-900 text-right">
+                                                            {formatCurrency(invoice.taxAmount.toString(), invoice.currency)}
+                                                        </td>
+                                                        <td></td>
+                                                    </tr>
+                                                )}
+                                                <tr>
+                                                    <td colSpan={3} className="px-4 py-3 text-sm font-bold text-gray-900 text-right">Total:</td>
+                                                    <td className="px-4 py-3 text-sm font-bold text-gray-900 text-right">
+                                                        {formatCurrency(invoice.amount, invoice.currency)}
+                                                    </td>
+                                                    <td></td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Trip & Load Information */}
+                            {invoice.tripId && typeof invoice.tripId === 'object' && (
+                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">Trip & Load Information</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {invoice.tripId.tripNumber && (
+                                            <div>
+                                                <span className="text-xs font-medium text-gray-500">Trip Number</span>
+                                                <p className="text-gray-900 font-medium">{invoice.tripId.tripNumber}</p>
+                                            </div>
+                                        )}
+                                        {invoice.tripId.truck && (
+                                            <div>
+                                                <span className="text-xs font-medium text-gray-500">Truck</span>
+                                                <p className="text-gray-900 font-medium">
+                                                    {[
+                                                        invoice.tripId.truck.licensePlate || invoice.tripId.truck.plateNumber,
+                                                        invoice.tripId.truck.makeModel,
+                                                        invoice.tripId.truck.unitType ? `(${invoice.tripId.truck.unitType})` : ''
+                                                    ].filter(Boolean).join(' ') || 'N/A'}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {invoice.tripId.trailer && (
+                                            <div>
+                                                <span className="text-xs font-medium text-gray-500">Trailer</span>
+                                                <p className="text-gray-900 font-medium">
+                                                    {(() => {
+                                                        const trailerTypeMap: { [key: string]: string } = {
+                                                            'dry_van': 'Dry Van',
+                                                            'refrigerated': 'Reefer',
+                                                            'flatbed': 'Flatbed',
+                                                            'tanker': 'Tanker',
+                                                            'container': 'Container'
+                                                        };
+                                                        const trailerType = invoice.tripId.trailer?.type 
+                                                            ? (trailerTypeMap[invoice.tripId.trailer.type] || invoice.tripId.trailer.type)
+                                                            : '';
+                                                        return [
+                                                            invoice.tripId.trailer.licensePlate || invoice.tripId.trailer.plateNumber,
+                                                            trailerType,
+                                                            invoice.tripId.trailer.capacity ? `(${invoice.tripId.trailer.capacity})` : ''
+                                                        ].filter(Boolean).join(' ') || 'N/A';
+                                                    })()}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {invoice.tripId.startLocation?.place && (
+                                            <div>
+                                                <span className="text-xs font-medium text-gray-500">Origin</span>
+                                                <p className="text-gray-900 font-medium">{invoice.tripId.startLocation.place}</p>
+                                            </div>
+                                        )}
+                                        {invoice.tripId.endLocation?.place && (
+                                            <div>
+                                                <span className="text-xs font-medium text-gray-500">Destination</span>
+                                                <p className="text-gray-900 font-medium">{invoice.tripId.endLocation.place}</p>
+                                            </div>
+                                        )}
+                                        {invoice.tripId.route?.totalDistance && (
+                                            <div>
+                                                <span className="text-xs font-medium text-gray-500">Miles Covered</span>
+                                                <p className="text-gray-900 font-medium">
+                                                    {((invoice.tripId.route.totalDistance || 0) * 0.621371).toFixed(2)} miles ({invoice.tripId.route.totalDistance.toFixed(2)} km)
+                                                </p>
+                                            </div>
+                                        )}
+                                        {invoice.tripId.actualStartDate && (
+                                            <div>
+                                                <span className="text-xs font-medium text-gray-500">Start Date</span>
+                                                <p className="text-gray-900 font-medium">{formatDate(invoice.tripId.actualStartDate)}</p>
+                                            </div>
+                                        )}
+                                        {invoice.tripId.actualEndDate && (
+                                            <div>
+                                                <span className="text-xs font-medium text-gray-500">End Date</span>
+                                                <p className="text-gray-900 font-medium">{formatDate(invoice.tripId.actualEndDate)}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Load Details */}
+                                    {invoice.tripId.orders && invoice.tripId.orders.length > 0 && (() => {
+                                        let totalWeight = 0;
+                                        const weightUnits: string[] = [];
+                                        const commodities: string[] = [];
+                                        const orderTypes: string[] = [];
+                                        const equipmentList: string[] = [];
+                                        let hasTemperature = false;
+                                        let temperatureValue: number | null = null;
+                                        const specialFlags: string[] = [];
+                                        
+                                        invoice.tripId.orders.forEach((order) => {
+                                            if (order.weight) {
+                                                totalWeight += order.weight;
+                                                if (order.weightUnit && !weightUnits.includes(order.weightUnit)) {
+                                                    weightUnits.push(order.weightUnit);
+                                                }
+                                            }
+                                            if (order.commodity && !commodities.includes(order.commodity)) {
+                                                commodities.push(order.commodity);
+                                            }
+                                            if (order.orderType && !orderTypes.includes(order.orderType)) {
+                                                orderTypes.push(order.orderType);
+                                            }
+                                            if (order.equipment && Array.isArray(order.equipment)) {
+                                                order.equipment.forEach((eq) => {
+                                                    if (!equipmentList.includes(eq)) {
+                                                        equipmentList.push(eq);
+                                                    }
+                                                });
+                                            }
+                                            if (order.temperature !== null && order.temperature !== undefined) {
+                                                hasTemperature = true;
+                                                temperatureValue = order.temperature;
+                                            }
+                                            if (order.additionalInfo) {
+                                                if (order.additionalInfo.HAZMAT) specialFlags.push('HAZMAT');
+                                                if (order.additionalInfo.TARP) specialFlags.push('TARP');
+                                                if (order.additionalInfo.OverDimension) specialFlags.push('Over Dimension');
+                                                if (order.additionalInfo.CSA) specialFlags.push('CSA');
+                                            }
+                                        });
+                                        
+                                        return (
+                                            <div className="mt-6 pt-6 border-t border-gray-200">
+                                                <h4 className="text-sm font-medium text-gray-700 mb-3">Load Details</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {commodities.length > 0 && (
+                                                        <div>
+                                                            <span className="text-xs font-medium text-gray-500">Product/Load Type</span>
+                                                            <p className="text-gray-900 font-medium">{commodities.join(', ')}</p>
+                                                        </div>
+                                                    )}
+                                                    {orderTypes.length > 0 && (
+                                                        <div>
+                                                            <span className="text-xs font-medium text-gray-500">Order Type</span>
+                                                            <p className="text-gray-900 font-medium">{orderTypes.join(', ')}</p>
+                                                        </div>
+                                                    )}
+                                                    {totalWeight > 0 && (
+                                                        <div>
+                                                            <span className="text-xs font-medium text-gray-500">Total Load Weight</span>
+                                                            <p className="text-gray-900 font-medium">
+                                                                {totalWeight.toFixed(2)} {weightUnits.length > 0 ? weightUnits[0] : 'kg'}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                    {equipmentList.length > 0 && (
+                                                        <div>
+                                                            <span className="text-xs font-medium text-gray-500">Equipment</span>
+                                                            <p className="text-gray-900 font-medium">{equipmentList.join(', ')}</p>
+                                                        </div>
+                                                    )}
+                                                    {hasTemperature && temperatureValue !== null && (
+                                                        <div>
+                                                            <span className="text-xs font-medium text-gray-500">Temperature</span>
+                                                            <p className="text-gray-900 font-medium">{temperatureValue}°C</p>
+                                                        </div>
+                                                    )}
+                                                    {specialFlags.length > 0 && (
+                                                        <div>
+                                                            <span className="text-xs font-medium text-gray-500">Special Requirements</span>
+                                                            <p className="text-gray-900 font-medium">{specialFlags.join(', ')}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="mt-4">
+                                                    <span className="text-xs font-medium text-gray-500">Orders</span>
+                                                    <div className="mt-2 space-y-2">
+                                                        {invoice.tripId.orders.map((order, index) => (
+                                                            <div key={order._id} className="text-sm text-gray-700">
+                                                                <span className="font-medium">{index + 1}. {order.customerOrderNo || `Order ${index + 1}`}</span>
+                                                                {order.customer?.name && <span className="text-gray-500"> - {order.customer.name}</span>}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            )}
 
                             {/* Notes */}
                             {invoice.notes && (

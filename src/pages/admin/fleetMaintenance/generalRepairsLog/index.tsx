@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ExcelJS from 'exceljs';
-import { Plus, Edit, Trash2, Search, Wrench, FileText, Download } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Wrench, FileText, Download, AlertCircle, Clock } from 'lucide-react';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import {
   listGeneralRepairs,
@@ -237,6 +237,77 @@ const GeneralRepairsLog: React.FC = () => {
       );
     });
   }, [repairs, searchTerm]);
+
+  // Calculate summary statistics
+  const summaryStats = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+    
+    // Count recent repairs (within last 30 days) as potential incoming maintenance indicators
+    const recentRepairs = repairs.filter((repair) => {
+      if (!repair.serviceDate) return false;
+      const serviceDate = new Date(repair.serviceDate);
+      serviceDate.setHours(0, 0, 0, 0);
+      return serviceDate >= thirtyDaysAgo;
+    });
+
+    const incomingMaintenance = recentRepairs.length;
+
+    // Get repairs from last 7 days (more urgent)
+    const urgentRepairs = recentRepairs.filter((repair) => {
+      if (!repair.serviceDate) return false;
+      const serviceDate = new Date(repair.serviceDate);
+      serviceDate.setHours(0, 0, 0, 0);
+      return serviceDate >= sevenDaysAgo;
+    }).length;
+
+    // Get unique units with recent repairs
+    const unitsWithRecentRepairs = new Set(recentRepairs.map(r => r.unitNumber)).size;
+
+    // Get most recent repair date
+    const mostRecentRepairDate = recentRepairs.length > 0
+      ? recentRepairs
+          .map(r => r.serviceDate ? new Date(r.serviceDate) : null)
+          .filter(Boolean)
+          .sort((a, b) => (b as Date).getTime() - (a as Date).getTime())[0]
+      : null;
+
+    // Recent Activity - all repairs in last 30 days
+    const recentActivity = recentRepairs.length;
+
+    // Get repair type breakdown (based on description keywords)
+    const repairTypeBreakdown = recentRepairs.reduce((acc, repair) => {
+      const desc = (repair.description || '').toLowerCase();
+      let type = 'Other';
+      if (desc.includes('tire') || desc.includes('tyre')) type = 'Tires';
+      else if (desc.includes('brake')) type = 'Brakes';
+      else if (desc.includes('accident') || desc.includes('collision')) type = 'Accident';
+      else if (desc.includes('engine')) type = 'Engine';
+      else if (desc.includes('transmission')) type = 'Transmission';
+      else if (desc.includes('electrical')) type = 'Electrical';
+      
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const topRepairType = Object.entries(repairTypeBreakdown)
+      .sort(([, a], [, b]) => b - a)[0];
+
+    return {
+      incomingMaintenance,
+      urgentRepairs,
+      unitsWithRecentRepairs,
+      recentActivity,
+      mostRecentRepairDate,
+      topRepairType: topRepairType ? `${topRepairType[0]} (${topRepairType[1]})` : null
+    };
+  }, [repairs]);
 
   const handleExportRepairs = async () => {
     if (!filteredRepairs.length) {
@@ -484,6 +555,81 @@ const GeneralRepairsLog: React.FC = () => {
           {error && !requiresCompanySetup && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>
           )}
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Incoming Maintenance Card */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-600 mb-1">Incoming Maintenance</p>
+                <p className="text-3xl font-bold text-orange-600 mb-2">{summaryStats.incomingMaintenance}</p>
+                <p className="text-xs text-gray-500">Recent repairs requiring attention</p>
+              </div>
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <AlertCircle className="h-8 w-8 text-orange-600" />
+              </div>
+            </div>
+            <div className="border-t border-gray-100 pt-4 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Last 7 Days</span>
+                <span className="font-semibold text-orange-600">{summaryStats.urgentRepairs}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Last 30 Days</span>
+                <span className="font-semibold text-gray-900">{summaryStats.incomingMaintenance}</span>
+              </div>
+              {summaryStats.mostRecentRepairDate && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Most Recent</span>
+                  <span className="font-semibold text-gray-900">
+                    {formatDate(summaryStats.mostRecentRepairDate.toISOString())}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100">
+                <span className="text-gray-600">Units Affected</span>
+                <span className="font-semibold text-gray-900">{summaryStats.unitsWithRecentRepairs}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Repairs Activity Card */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-600 mb-1">Recent Repairs / Activity</p>
+                <p className="text-3xl font-bold text-blue-600 mb-2">{summaryStats.recentActivity}</p>
+                <p className="text-xs text-gray-500">Repairs logged in last 30 days</p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <Clock className="h-8 w-8 text-blue-600" />
+              </div>
+            </div>
+            <div className="border-t border-gray-100 pt-4 space-y-2">
+              {summaryStats.mostRecentRepairDate && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Most Recent</span>
+                  <span className="font-semibold text-gray-900">
+                    {formatDate(summaryStats.mostRecentRepairDate.toISOString())}
+                  </span>
+                </div>
+              )}
+              {summaryStats.topRepairType && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Top Repair Type</span>
+                  <span className="font-semibold text-blue-600 text-right max-w-[60%] truncate" title={summaryStats.topRepairType}>
+                    {summaryStats.topRepairType}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100">
+                <span className="text-gray-600">Total Repairs</span>
+                <span className="font-semibold text-gray-900">{summaryStats.recentActivity}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
