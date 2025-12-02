@@ -185,11 +185,15 @@ const UserProfilesPortfolio: React.FC = () => {
   const handleExportToExcel = async () => {
     try {
       const workbook = new ExcelJS.Workbook();
+<<<<<<< Updated upstream
 <<<<<<< HEAD
       const worksheet = workbook.addWorksheet('Employee Portfolio');
 =======
       const worksheet = workbook.addWorksheet('Employee Profiles Portfolio');
 >>>>>>> 3c22d1c (WIP: save local changes before pulling)
+=======
+      const worksheet = workbook.addWorksheet('Employee Profiles Portfolio');
+>>>>>>> Stashed changes
 
       // Define columns
       worksheet.columns = [

@@ -92,7 +92,7 @@ const ComplianceInvoices = () => {
           setInvoices([]);
         }
       } catch (error) {
-        console.error('Error fetching compliance invoices:', error);
+        console.error('Error fetching fleet invoices:', error);
         setInvoices([]);
       } finally {
         setLoading(false);
@@ -147,7 +147,7 @@ const ComplianceInvoices = () => {
     try {
       setExporting(true);
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet("Compliance Invoices");
+      const worksheet = workbook.addWorksheet("Fleet Invoices");
 
       worksheet.columns = [
         { header: "Invoice Number", key: "invoiceNumber", width: 18 },
@@ -199,7 +199,7 @@ const ComplianceInvoices = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `Compliance_Invoices_${new Date()
+      link.download = `Fleet_Invoices_${new Date()
         .toISOString()
         .split("T")[0]}.xlsx`;
       document.body.appendChild(link);
@@ -231,7 +231,7 @@ const ComplianceInvoices = () => {
               <ClipboardList className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Compliance Invoices</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Fleet Invoices</h1>
               <p className="text-gray-600 mt-1 flex items-center gap-2">
                 <Wrench className="w-4 h-4" />
                 Invoices automatically generated from Fleet Maintenance records.
@@ -331,40 +331,7 @@ const ComplianceInvoices = () => {
           </div>
         </div>
 
-        {/* Summary */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3 text-gray-500 text-sm">
-              <TruckIcon className="w-5 h-5 text-blue-500" />
-              Invoices logged
-            </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{summary.total}</p>
-          </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3 text-gray-500 text-sm">
-              <Users className="w-5 h-5 text-green-500" />
-              Passed inspection
-            </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{summary.passed}</p>
-          </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3 text-gray-500 text-sm">
-              <UserCog className="w-5 h-5 text-amber-500" />
-              Needs follow-up
-            </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{summary.followUps}</p>
-          </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3 text-gray-500 text-sm">
-              <Wrench className="w-5 h-5 text-purple-500" />
-              Parts spend (static)
-            </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900">
-              ${summary.totalPartsSpend.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </p>
-          </div>
-        </div>
-
+     
      
 
         {/* Table */}
@@ -415,7 +382,7 @@ const ComplianceInvoices = () => {
                       {invoice.serviceProvider}
                     </span>
                     <div className="text-xs text-gray-500 mt-1">{invoice.location}</div>
-                    <p className="text-xs text-gray-400">Mechanic of record captured in compliance module.</p>
+                    <p className="text-xs text-gray-400">Mechanic of record captured in fleet module.</p>
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-700">
                     <div className="font-medium text-gray-900">{invoice.description}</div>
@@ -424,7 +391,7 @@ const ComplianceInvoices = () => {
                   <td className="px-4 py-4 text-sm text-gray-900">
                     <div className="font-semibold">{invoice.serviceCategory}</div>
                     <div className="text-xs text-gray-500">{invoice.location}</div>
-                    <p className="text-xs text-gray-400 mt-1">Captured via compliance visit log.</p>
+                    <p className="text-xs text-gray-400 mt-1">Captured via fleet visit log.</p>
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-900">
                     {invoice.odometer ? `${invoice.odometer.toLocaleString()} km` : "N/A"}
