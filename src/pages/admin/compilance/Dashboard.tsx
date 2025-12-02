@@ -255,11 +255,13 @@ function Dashboard() {
     icon,
     stats,
     type,
+    onHeaderClick,
   }: {
     title: string;
     icon: React.ReactNode;
     stats: CvsaStats | TicketStats | IncidentStats;
     type: "cvsa" | "tickets" | "incidents";
+    onHeaderClick?: () => void;
   }) => {
     const getPassRate = () => {
       if (type === "cvsa") {
@@ -286,7 +288,10 @@ function Dashboard() {
 
     return (
       <div className="rounded-2xl shadow-lg p-6 border border-gray-100" style={{ background: "linear-gradient(135deg, #ffffff, rgba(1,106,178,0.04))" }}>
-        <div className="flex items-center justify-between mb-6">
+        <div 
+          onClick={onHeaderClick}
+          className={`flex items-center justify-between mb-6 ${onHeaderClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+        >
           <div className="flex items-center gap-3">
             <div
               className="p-3 rounded-lg border"
@@ -300,11 +305,16 @@ function Dashboard() {
             </div>
             <h2 className="text-xl font-bold text-gray-800">{title}</h2>
           </div>
-          <div className="text-right">
-            <div className={`text-3xl font-bold ${getColor()}`}>{getPassRate()}%</div>
-            <div className="text-xs text-gray-500">
-              {type === "cvsa" ? "Pass Rate" : type === "tickets" ? "Paid Rate" : "Resolution Rate"}
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <div className={`text-3xl font-bold ${getColor()}`}>{getPassRate()}%</div>
+              <div className="text-xs text-gray-500">
+                {type === "cvsa" ? "Pass Rate" : type === "tickets" ? "Paid Rate" : "Resolution Rate"}
+              </div>
             </div>
+            {onHeaderClick && (
+              <span className="text-sm text-gray-500">View All →</span>
+            )}
           </div>
         </div>
 
@@ -370,6 +380,7 @@ function Dashboard() {
                 label="Total Amount"
                 value={`$${((stats as TicketStats).totalAmount || 0).toLocaleString()}`}
                 tone="gradient"
+                onClick={() => navigate("/admin/compliance/tickets")}
               />
             </>
           )}
@@ -488,19 +499,48 @@ function Dashboard() {
           icon={<FaClipboardCheck />}
           stats={cvsaStats}
           type="cvsa"
+          onHeaderClick={() => navigate("/admin/compliance/cvsa-inspection")}
         />
         <ComplianceSection
           title="Tickets"
           icon={<FaFileInvoiceDollar />}
           stats={ticketStats}
           type="tickets"
+          onHeaderClick={() => navigate("/admin/compliance/tickets")}
         />
         <ComplianceSection
           title="Incidents"
           icon={<FaCarCrash />}
           stats={incidentStats}
           type="incidents"
+          onHeaderClick={() => navigate("/admin/compliance/incidents")}
         />
+      </div>
+
+      {/* Monthly Report Section */}
+      <div 
+        onClick={() => navigate("/admin/compliance/monthly-report")}
+        className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 cursor-pointer hover:shadow-xl transition-shadow"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div
+              className="p-3 rounded-lg border"
+              style={{
+                background: hexToRgba(FLEET_COLORS.primary, 0.08),
+                borderColor: hexToRgba(FLEET_COLORS.primary, 0.2),
+                color: FLEET_COLORS.primary
+              }}
+            >
+              <FaChartLine />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Monthly Report</h2>
+              <p className="text-sm text-gray-500 mt-1">View comprehensive monthly compliance reports</p>
+            </div>
+          </div>
+          <span className="text-sm text-gray-500">View Report →</span>
+        </div>
       </div>
 
     

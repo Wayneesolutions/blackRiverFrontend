@@ -1,5 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
+<<<<<<< HEAD
 import { useNavigate, useLocation } from 'react-router-dom';
+=======
+import { useNavigate } from 'react-router-dom';
+>>>>>>> 3c22d1c (WIP: save local changes before pulling)
 import {
   CheckCircle,
   XCircle,
@@ -11,6 +15,7 @@ import {
   Clock as ClockIcon
 } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
+import { getUserRole } from '../../../../utils/auth';
 
 import { listAttendance as apiListAttendance, upsertAttendance as apiUpsertAttendance, deleteAttendance as apiDeleteAttendance } from '../../../../axios/api/attendance';
 import { getAllEmployees as apiGetEmployees } from '../../../../axios/api/employee';
@@ -35,11 +40,19 @@ interface ToastNotification {
 
 const AttendanceTracking = () => {
   const navigate = useNavigate();
+<<<<<<< HEAD
   const location = useLocation();
+=======
+>>>>>>> 3c22d1c (WIP: save local changes before pulling)
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+
+  const getBasePath = () => {
+    const role = getUserRole();
+    return role === 'hr' ? '/Management' : '/admin/Management';
+  };
 
   const [employees, setEmployees] = useState<{_id: string; name: string}[]>([]);
 
@@ -255,6 +268,7 @@ const AttendanceTracking = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div 
+<<<<<<< HEAD
             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
             onClick={() => {
               // Check if we're in admin route or HR route
@@ -268,6 +282,10 @@ const AttendanceTracking = () => {
                 navigate('/Management/user-profiles', { replace: false });
               }
             }}
+=======
+            onClick={() => navigate(`${getBasePath()}/employee-profiles`)}
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
+>>>>>>> 3c22d1c (WIP: save local changes before pulling)
           >
             <div className="flex items-center justify-between">
               <div>

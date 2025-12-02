@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { Truck, Users, Package, Loader2, Search, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
+import { Truck, Users, Package, Loader2, Search, ChevronLeft, ChevronRight, Filter, X, Route } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { 
   getDispatcherDashboard, 
   listDriver, 
   listTrip
 } from "../../../../axios/api/distapcher";
 import { listFleetUnits, type FleetUnitDto } from "../../../../axios/api/fleet.units";
+import { getUserRole } from "../../../../utils/auth";
 
 interface DashboardStats {
   vehicles: {
@@ -87,6 +89,11 @@ interface Trip {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
+  const userRole = getUserRole();
+  const isDispatcher = userRole === 'dispatcher';
+  const basePath = isDispatcher ? '/dispatch' : '/admin/dispatch';
+  
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -394,9 +401,12 @@ const Index = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {/* Vehicles Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
+          <div 
+            onClick={() => navigate(`${basePath}/fleets`)}
+            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 cursor-pointer hover:shadow-xl transition-shadow"
+          >
+            <div className="mb-4">
+              <div className="p-3 bg-blue-100 rounded-lg w-fit">
                 <Truck className="w-6 h-6 text-blue-600" />
               </div>
             </div>
@@ -415,9 +425,12 @@ const Index = () => {
           </div>
 
           {/* Drivers Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-              <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-100 rounded-lg">
+          <div 
+            onClick={() => navigate(`${basePath}/drivers`)}
+            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 cursor-pointer hover:shadow-xl transition-shadow"
+          >
+            <div className="mb-4">
+              <div className="p-3 bg-green-100 rounded-lg w-fit">
                 <Users className="w-6 h-6 text-green-600" />
               </div>
             </div>
@@ -427,7 +440,7 @@ const Index = () => {
               <div>
                 <span className="text-gray-500">Active:</span>
                 <span className="ml-1 font-semibold text-green-600">{stats?.drivers.active || 0}</span>
-                </div>
+              </div>
               <div>
                 <span className="text-gray-500">On Shift:</span>
                 <span className="ml-1 font-semibold text-blue-600">{stats?.drivers.onShift || 0}</span>
@@ -436,9 +449,12 @@ const Index = () => {
           </div>
 
           {/* Trailers Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
+          <div 
+            onClick={() => navigate(`${basePath}/fleets`)}
+            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 cursor-pointer hover:shadow-xl transition-shadow"
+          >
+            <div className="mb-4">
+              <div className="p-3 bg-purple-100 rounded-lg w-fit">
                 <Package className="w-6 h-6 text-purple-600" />
               </div>
             </div>
@@ -448,19 +464,22 @@ const Index = () => {
               <div>
                 <span className="text-gray-500">Active:</span>
                 <span className="ml-1 font-semibold text-green-600">{stats?.trailers.active || 0}</span>
-          </div>
+              </div>
               <div>
                 <span className="text-gray-500">In Use:</span>
                 <span className="ml-1 font-semibold text-blue-600">{stats?.trailers.inUse || 0}</span>
+              </div>
             </div>
           </div>
-        </div>
 
           {/* Trips Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <Truck className="w-6 h-6 text-orange-600" />
+          <div 
+            onClick={() => navigate(`${basePath}/trips`)}
+            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500 cursor-pointer hover:shadow-xl transition-shadow"
+          >
+            <div className="mb-4">
+              <div className="p-3 bg-orange-100 rounded-lg w-fit">
+                <Route className="w-6 h-6 text-orange-600" />
               </div>
             </div>
             <h3 className="text-gray-600 text-sm font-medium mb-1">Total Trips</h3>
@@ -469,18 +488,16 @@ const Index = () => {
               <div className="flex gap-4">
                 <div>
                   <span className="text-gray-500">Planned:</span>
-                  <span className="ml-1 font-semibold text-yellow-600">{stats?.trips.planned || 0}</span>
+                  <span className="ml-1 font-semibold text-orange-600">{stats?.trips.planned || 0}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">In Progress:</span>
                   <span className="ml-1 font-semibold text-blue-600">{stats?.trips.inProgress || 0}</span>
                 </div>
               </div>
-              <div className="flex gap-4 pt-1 border-t border-gray-200">
-                <div>
-                  <span className="text-gray-500">Completed:</span>
-                  <span className="ml-1 font-semibold text-green-600">{stats?.trips.completed || 0}</span>
-                </div>
+              <div>
+                <span className="text-gray-500">Completed:</span>
+                <span className="ml-1 font-semibold text-green-600">{stats?.trips.completed || 0}</span>
               </div>
               <div className="flex gap-4 pt-1 border-t border-gray-200">
                 <div>

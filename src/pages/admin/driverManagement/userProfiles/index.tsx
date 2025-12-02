@@ -88,11 +88,11 @@ const UserProfilesPortfolio: React.FC = () => {
         } else {
           setProfiles([]);
           setRequiresCompanySetup(!!response.requiresCompanySetup);
-          setError(response.message || 'Failed to fetch user profiles');
+          setError(response.message || 'Failed to fetch employee profiles');
         }
       } catch (err: any) {
         if (!isMounted) return;
-        const message = err?.response?.data?.message || err?.message || 'Failed to fetch user profiles';
+        const message = err?.response?.data?.message || err?.message || 'Failed to fetch employee profiles';
         setError(message);
         setProfiles([]);
       } finally {
@@ -124,8 +124,8 @@ const UserProfilesPortfolio: React.FC = () => {
   const showDriverColumns = selectedRole === 'driver';
   const summaryGridCols = showDriverColumns ? 'lg:grid-cols-5' : 'lg:grid-cols-4';
   const emptyStateMessage = requiresCompanySetup
-    ? 'Complete your company setup to start seeing user records.'
-    : 'No users found matching your criteria';
+    ? 'Complete your company setup to start seeing employee records.'
+    : 'No employees found matching your criteria';
 
   // Calculate summary statistics
   const summaryStats = useMemo(() => {
@@ -185,7 +185,11 @@ const UserProfilesPortfolio: React.FC = () => {
   const handleExportToExcel = async () => {
     try {
       const workbook = new ExcelJS.Workbook();
+<<<<<<< HEAD
       const worksheet = workbook.addWorksheet('Employee Portfolio');
+=======
+      const worksheet = workbook.addWorksheet('Employee Profiles Portfolio');
+>>>>>>> 3c22d1c (WIP: save local changes before pulling)
 
       // Define columns
       worksheet.columns = [
@@ -309,7 +313,7 @@ const UserProfilesPortfolio: React.FC = () => {
                 </h1>
                 <p className="text-gray-600 mt-1 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" />
-                  Comprehensive view of user performance, payroll, and attendance
+                  Comprehensive view of employee performance, payroll, and attendance
                 </p>
                 {fetchedRangeLabel && (
                   <p className="text-xs text-gray-500 mt-1">
@@ -331,7 +335,7 @@ const UserProfilesPortfolio: React.FC = () => {
 
         {requiresCompanySetup && (
           <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800">
-            Please complete your company setup to view and manage user profiles.
+            Please complete your company setup to view and manage employee profiles.
           </div>
         )}
 
@@ -346,7 +350,7 @@ const UserProfilesPortfolio: React.FC = () => {
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm mb-1">Total Users</p>
+                <p className="text-gray-600 text-sm mb-1">Total Employees</p>
                 <p className="text-3xl font-bold text-purple-600">{summaryStats.totalUsers}</p>
               </div>
               <Users className="text-purple-600" size={32} />
@@ -457,7 +461,7 @@ const UserProfilesPortfolio: React.FC = () => {
 
         {loading && (
           <div className="mb-4 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-indigo-700">
-            Loading user profiles...
+            Loading employee profiles...
           </div>
         )}
 
@@ -467,7 +471,7 @@ const UserProfilesPortfolio: React.FC = () => {
             <table className="w-full">
               <thead className="text-white" style={{ background: ACCENT_GRADIENT }}>
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">User</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Employee</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Role</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Earnings</th>
                   {showDriverColumns ? (
@@ -487,7 +491,7 @@ const UserProfilesPortfolio: React.FC = () => {
                 {loading ? (
                   <tr>
                     <td colSpan={showDriverColumns ? 10 : 7} className="px-6 py-12 text-center text-gray-500">
-                      Loading user profiles...
+                      Loading employee profiles...
                     </td>
                   </tr>
                 ) : filteredProfiles.length === 0 ? (

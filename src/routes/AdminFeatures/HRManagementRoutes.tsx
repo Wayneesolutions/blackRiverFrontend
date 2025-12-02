@@ -21,14 +21,15 @@ function DriverManagementRoutes() {
             <Routes>
                 <Route element={<Layout />}>
                     <Route index element={<Dashboard />} />
-                    <Route path="drivers" element={<Driver />} />
-                    <Route path="employeelist" element={<EmployeeList />} />
-                    <Route path="documents" element={<Documents />} />
-                    <Route path="company-documents" element={<CompanyDocuments />} />
-                    <Route path="vehicle-documents" element={<VehicleDocuments />} />
-                    <Route path="attendence" element={<Attendence />} />
-                    <Route path="issues" element={<Issues />} />
-                    <Route path="user-profiles" element={<UserProfilesPortfolio />} />
+                    <Route path="/drivers" element={<Driver />} />
+                    {/* <Route path="/scheduling" element={<Scheduling />} /> */}
+                    <Route path="/employeelist" element={<EmployeeList />} />
+                    <Route path="/documents" element={<Documents />} />
+                    <Route path="/company-documents" element={<CompanyDocuments />} />
+                    <Route path="/vehicle-documents" element={<VehicleDocuments />} />
+                    <Route path="/attendence" element={<Attendence />} />
+                    <Route path="/issues" element={<Issues />} />
+                    <Route path="/employee-profiles" element={<UserProfilesPortfolio />} />
                 </Route>
             </Routes>
         </Suspense>

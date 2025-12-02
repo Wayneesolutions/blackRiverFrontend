@@ -130,10 +130,16 @@ const StatCard = ({
   value,
   subtitle = '',
   trend = null,
-}: StatCardProps) => {
+  onClick,
+}: StatCardProps & { onClick?: () => void }) => {
 
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+      <div 
+        onClick={onClick}
+        className={`bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow ${
+          onClick ? 'cursor-pointer hover:scale-105' : ''
+        }`}
+      >
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-600">{title}</p>
@@ -179,21 +185,25 @@ const StatCard = ({
             title="Total Revenue" 
             value={`$${totalRevenue.toLocaleString()}`} 
             subtitle={`${invoices.length} invoices`}
+            onClick={() => navigate('/admin/accounts/invoice')}
           />
           <StatCard 
             title="Total Expenses" 
             value={`$${totalExpenses.toLocaleString()}`} 
             subtitle={`${expenses.length} transactions`}
+            onClick={() => navigate('/admin/accounts/expenses')}
           />
           <StatCard 
             title="Total Payroll" 
             value={`$${totalPayroll.toLocaleString()}`} 
             subtitle={`${totalEmployees} employees`}
+            onClick={() => navigate('/admin/accounts/payroll')}
           />
           <StatCard 
             title="Net Profit" 
             value={`$${(totalRevenue - totalExpenses - totalPayroll).toLocaleString()}`} 
             subtitle="Revenue - Expenses - Payroll"
+            onClick={() => navigate('/admin/accounts/invoice')}
           />
         </div>
 
@@ -205,6 +215,7 @@ const StatCard = ({
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Recent Invoices</h3>
                 <button
+                  onClick={() => navigate('/admin/accounts/invoice')}
                   className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
                   style={primaryButtonStyle}
                 >
@@ -244,8 +255,14 @@ const StatCard = ({
 
           {/* Recent Expenses */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100" style={sectionCardStyle}>
-            <div className="p-6 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Recent Expenses</h3>
+            <div 
+              onClick={() => navigate('/admin/accounts/expenses')}
+              className="p-6 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Recent Expenses</h3>
+                <span className="text-sm text-gray-500">View All →</span>
+              </div>
             </div>
             <div className="p-6">
               {loading ? (
@@ -265,8 +282,8 @@ const StatCard = ({
               ) : (
                 <div className="text-center py-4 text-gray-500">No expenses found</div>
               )}
-              <button 
-                onClick={() => navigate('/accounts/expenses')}
+                <button 
+                onClick={() => navigate('/admin/accounts/expenses')}
                 className="w-full mt-4 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 style={primaryButtonStyle}
               >
@@ -282,27 +299,36 @@ const StatCard = ({
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Alerts & Notifications</h3>
           <div className="space-y-3">
             {pendingRevenue > 0 && (
-              <div className="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div 
+                onClick={() => navigate('/admin/accounts/invoice')}
+                className="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg cursor-pointer hover:bg-yellow-100 transition-colors"
+              >
                 <AlertCircle className="text-yellow-600 mr-3" size={20} />
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium text-yellow-800">Pending Invoices</p>
                   <p className="text-xs text-yellow-600">${pendingRevenue.toLocaleString()} in pending payments</p>
                 </div>
               </div>
             )}
             {totalPayroll > 0 && (
-              <div className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div 
+                onClick={() => navigate('/admin/accounts/payroll')}
+                className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
+              >
                 <Calendar className="text-blue-600 mr-3" size={20} />
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium text-blue-800">Payroll Summary</p>
                   <p className="text-xs text-blue-600">${totalPayroll.toLocaleString()} total payroll for {totalEmployees} employees</p>
                 </div>
               </div>
             )}
             {totalExpenses > 0 && (
-              <div className="flex items-center p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div 
+                onClick={() => navigate('/admin/accounts/expenses')}
+                className="flex items-center p-3 bg-red-50 border border-red-200 rounded-lg cursor-pointer hover:bg-red-100 transition-colors"
+              >
                 <FileText className="text-red-600 mr-3" size={20} />
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium text-red-800">Total Expenses</p>
                   <p className="text-xs text-red-600">${totalExpenses.toLocaleString()} in {expenses.length} transactions</p>
                 </div>

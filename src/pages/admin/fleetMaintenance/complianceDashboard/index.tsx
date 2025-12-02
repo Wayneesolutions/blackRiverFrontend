@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   CheckCircle,
@@ -11,6 +12,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
+import { getUserRole } from '../../../../utils/auth';
 import {
   fetchComplianceDashboard,
   type ComplianceDashboardResponse,
@@ -33,11 +35,17 @@ const formatCurrency = (amount: number) => {
 };
 
 const ComplianceDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'ytd'>('month');
   const [data, setData] = useState<ComplianceDashboardResponse['data'] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
+
+  const getBasePath = () => {
+    const role = getUserRole();
+    return role === 'Fleet Maintenance Manager' ? '/fleetmaintenance' : '/admin/fleetmaintenance';
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -121,8 +129,8 @@ const ComplianceDashboard: React.FC = () => {
               onClick={() => setSelectedPeriod('month')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                 selectedPeriod === 'month'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 !text-white !shadow'
+                  : 'bg-gray-100 !text-gray-600 hover:bg-gray-200'
               }`}
             >
               This Month
@@ -131,7 +139,7 @@ const ComplianceDashboard: React.FC = () => {
               onClick={() => setSelectedPeriod('ytd')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                 selectedPeriod === 'ytd'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 !text-white shadow'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -147,7 +155,10 @@ const ComplianceDashboard: React.FC = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div 
+                onClick={() => navigate(`${getBasePath()}/regulatory-safety`)}
+                className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 cursor-pointer hover:shadow-xl transition-shadow"
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-600 text-sm mb-1">Safety Alerts</p>
@@ -158,7 +169,10 @@ const ComplianceDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div 
+                onClick={() => navigate(`${getBasePath()}/scheduled-services-log`)}
+                className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 cursor-pointer hover:shadow-xl transition-shadow"
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-600 text-sm mb-1">Overdue Services</p>
@@ -169,7 +183,10 @@ const ComplianceDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div 
+                onClick={() => navigate(`${getBasePath()}/invoices`)}
+                className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 cursor-pointer hover:shadow-xl transition-shadow"
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-600 text-sm mb-1">Total Maintenance</p>
@@ -204,7 +221,10 @@ const ComplianceDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div 
+                onClick={() => navigate(`${getBasePath()}/fleet-units`)}
+                className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 cursor-pointer hover:shadow-xl transition-shadow"
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-600 text-sm mb-1">Inactive Units</p>
@@ -217,15 +237,21 @@ const ComplianceDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-6">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <AlertTriangle className="w-6 h-6 text-red-600" />
+              <div 
+                onClick={() => navigate(`${getBasePath()}/regulatory-safety`)}
+                className="p-6 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-100 rounded-lg">
+                      <AlertTriangle className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">Safety Fleet Monitor</h2>
+                      <p className="text-sm text-gray-500">Units with safety expiry within 30 days or expired</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">Safety Compliance Monitor</h2>
-                    <p className="text-sm text-gray-500">Units with safety expiry within 30 days or expired</p>
-                  </div>
+                  <span className="text-sm text-gray-500">View All →</span>
                 </div>
               </div>
               <div className="overflow-x-auto">
@@ -295,15 +321,21 @@ const ComplianceDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-6">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Calendar className="w-6 h-6 text-blue-600" />
+              <div 
+                onClick={() => navigate(`${getBasePath()}/scheduled-services-log`)}
+                className="p-6 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Calendar className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">Scheduled Service Status</h2>
+                      <p className="text-sm text-gray-500">Next service due for each active unit</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">Scheduled PM Status</h2>
-                    <p className="text-sm text-gray-500">Next service due for each active unit</p>
-                  </div>
+                  <span className="text-sm text-gray-500">View All →</span>
                 </div>
               </div>
               <div className="overflow-x-auto">
@@ -379,17 +411,23 @@ const ComplianceDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-indigo-100 rounded-lg">
-                    <FileText className="w-6 h-6 text-indigo-600" />
+              <div 
+                onClick={() => navigate(`${getBasePath()}/invoices`)}
+                className="p-6 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <FileText className="w-6 h-6 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">Invoice Breakdown</h2>
+                      <p className="text-sm text-gray-500">
+                        Compare scheduled, general, and safety maintenance spending
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">Invoice Breakdown</h2>
-                    <p className="text-sm text-gray-500">
-                      Compare scheduled, general, and safety maintenance spending
-                    </p>
-                  </div>
+                  <span className="text-sm text-gray-500">View All →</span>
                 </div>
               </div>
               <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">

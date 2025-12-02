@@ -381,7 +381,7 @@ const EmployeeDocumentsPage = () => {
             </div>
           </div>
           
-          <div className="grid grid-cols-5 gap-4">
+          {/* <div className="grid grid-cols-5 gap-4">
             {documentTypes.map((docType, index) => {
               const count = documentStats.documentTypes[docType.name] || 0;
               return (
@@ -398,7 +398,7 @@ const EmployeeDocumentsPage = () => {
                 </div>
               );
             })}
-          </div>
+          </div> */}
         </div>
       )}
 

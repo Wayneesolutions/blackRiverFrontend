@@ -14,7 +14,7 @@ type FleetMaintainSidebarlinks = {
 export const FleetMaintainSidebarlinks: FleetMaintainSidebarlinks[] = [
 
     {
-        key: "/admin/fleetmaintenance/compliance-dashboard",
+        key: "/admin/fleetmaintenance",
         icon: <MdDashboard />,
         label: "Dashboard",
     },

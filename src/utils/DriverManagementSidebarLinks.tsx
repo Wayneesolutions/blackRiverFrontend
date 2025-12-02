@@ -42,7 +42,7 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     label: "Attendance Tracking",
   },
   {
-    key: "/admin/Management/user-profiles",
+    key: "/admin/Management/employee-profiles",
     icon: <MdPersonPin />,
     label: "Employee Portfolio",
   },
