@@ -185,7 +185,7 @@ const UserProfilesPortfolio: React.FC = () => {
   const handleExportToExcel = async () => {
     try {
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('User Profiles Portfolio');
+      const worksheet = workbook.addWorksheet('Employee Portfolio');
 
       // Define columns
       worksheet.columns = [
@@ -273,7 +273,7 @@ const UserProfilesPortfolio: React.FC = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `User_Portfolio_${timePeriod}_${selectedRole === 'all' ? 'AllRoles' : selectedRole}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.download = `Employee_Portfolio_${timePeriod}_${selectedRole === 'all' ? 'AllRoles' : selectedRole}_${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -305,7 +305,7 @@ const UserProfilesPortfolio: React.FC = () => {
                   className="text-4xl font-bold bg-clip-text text-transparent"
                   style={{ backgroundImage: ACCENT_GRADIENT }}
                 >
-                  User Portfolio
+                  Employee Portfolio
                 </h1>
                 <p className="text-gray-600 mt-1 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" />

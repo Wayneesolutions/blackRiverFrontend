@@ -50,7 +50,7 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
   {
     key: "/admin/Management/user-profiles",
     icon: <MdPersonPin />,
-    label: "User Portfolio",
+    label: "Employee Portfolio",
   },
   {
     key: "/admin/Management/issues",
