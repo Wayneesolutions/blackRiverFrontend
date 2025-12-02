@@ -46,6 +46,11 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
     icon: <MdEventNote />,
     label: "Scheduler",
   },
+  {
+    key: "/admin/dispatch/scheduling",
+    icon: <MdEventNote />,
+    label: "Scheduling",
+  },
 
   // Resources - now flat
   {
