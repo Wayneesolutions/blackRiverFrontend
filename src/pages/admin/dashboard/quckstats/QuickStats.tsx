@@ -9,17 +9,11 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
   CartesianGrid,
 } from "recharts";
 import { Truck, Users, Package, Wrench, FileText, AlertTriangle, Calendar, Clock, RefreshCw } from "lucide-react";
 import { quickStats, loadsPerMonth, revenueTrend, fuelEfficiency, recentAlerts } from "../../../../axios/api/main.dashboard";
 import ExpiringDocumentsPopup from "../../../../components/common/ExpiringDocumentsPopup";
-
-const COLORS = ["#3b82f6", "#10b981"];
 
 interface Stats {
   totalVehicles: number;
@@ -36,11 +30,6 @@ interface LoadData {
 }
 
 interface RevenueData {
-  name: string;
-  value: number;
-}
-
-interface FuelData {
   name: string;
   value: number;
 }
@@ -82,7 +71,6 @@ export default function QuickStatsUI() {
   });
   const [loadsData, setLoadsData] = useState<LoadData[]>([]);
   const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
-  const [fuelData, setFuelData] = useState<FuelData[]>([]);
   const [alerts, setAlerts] = useState<Alerts>({
     maintenanceDue: [],
     expiringDocs: [],
@@ -183,23 +171,12 @@ export default function QuickStatsUI() {
         setRevenueData([]);
       }
 
-      // Process Fuel Efficiency
+      // Process Fuel Efficiency (data fetched but not displayed in UI currently)
       if (results[3].status === 'fulfilled' && results[3].value?.success) {
-        const fuelInfo = results[3].value.data;
-        if (fuelInfo) {
-          const avgMileage = fuelInfo.avgMileage || 0;
-          const totalFuel = fuelInfo.totalFuel || 0;
-          
-          setFuelData([
-            { name: "Avg Odometer (km)", value: Math.round(avgMileage) },
-            { name: "Total Fuel (%)", value: Math.round(totalFuel) },
-          ]);
-        } else {
-          setFuelData([]);
-        }
+        // Fuel efficiency data is fetched but not currently displayed
+        // Keeping the API call for potential future use
       } else {
         console.error("Failed to fetch fuel efficiency:", results[3]);
-        setFuelData([]);
       }
 
       // Process Alerts - handle separately as it might fail

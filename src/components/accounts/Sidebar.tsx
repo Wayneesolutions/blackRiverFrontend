@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { AccountSidebarlinks } from '../../utils/AccountSidebarlinks'
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { FaChevronDown, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
 import { FaUsers } from "react-icons/fa";
 import Logo from "../../assets/FleetGo.png";

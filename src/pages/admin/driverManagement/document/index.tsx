@@ -83,26 +83,6 @@ const EmployeeDocumentsPage = () => {
     'Maintenance Crew (Mechanics)', 'Fleet Maintenance Manager', 'Compliance Manager'
   ];
 
-  // Document types configuration
-  const documentTypes = [
-    { name: 'Employment Contract', required: true },
-    { name: 'ID Document', required: true },
-    { name: 'Passport', required: true },
-    { name: 'Work Permit', required: true },
-    { name: 'Background Check', required: true },
-    { name: 'Tax Document', required: true },
-    { name: 'Payroll Document', required: true },
-    { name: 'Driving Licence', required: false },
-    { name: 'Travel Document', required: false },
-    { name: 'Medical Certificate', required: false },
-    { name: 'Training Certificate', required: false },
-    { name: 'Performance Review', required: false },
-    { name: 'Drug Test', required: false },
-    { name: 'Insurance Policy', required: false },
-    { name: 'Company Policy', required: false },
-    { name: 'Emergency Contact', required: false },
-    { name: 'Other', required: false }
-  ];
 
   // Fetch data on component mount and when filters change
   useEffect(() => {

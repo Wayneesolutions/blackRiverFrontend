@@ -3,9 +3,6 @@ import ExcelJS from "exceljs";
 import {
   Download,
   Filter,
-  Truck as TruckIcon,
-  UserCog,
-  Users,
   Wrench,
   ClipboardList,
   Search,
@@ -118,23 +115,23 @@ const ComplianceInvoices = () => {
 
   const filteredInvoices = invoices; // Already filtered by API
 
-  const summary = useMemo(() => {
-    const passed = filteredInvoices.filter((invoice) => invoice.passedInspection).length;
-    const followUps = filteredInvoices.length - passed;
-    const totalPartsSpend = filteredInvoices.reduce((sum, invoice) => {
-      return (
-        sum +
-        invoice.parts.reduce((partsSum, part) => partsSum + part.cost, 0)
-      );
-    }, 0);
-
-    return {
-      total: filteredInvoices.length,
-      passed,
-      followUps,
-      totalPartsSpend,
-    };
-  }, [filteredInvoices]);
+  // Summary calculation removed - can be added later if needed for display
+  // const summary = useMemo(() => {
+  //   const passed = filteredInvoices.filter((invoice) => invoice.passedInspection).length;
+  //   const followUps = filteredInvoices.length - passed;
+  //   const totalPartsSpend = filteredInvoices.reduce((sum, invoice) => {
+  //     return (
+  //       sum +
+  //       invoice.parts.reduce((partsSum, part) => partsSum + part.cost, 0)
+  //     );
+  //   }, 0);
+  //   return {
+  //     total: filteredInvoices.length,
+  //     passed,
+  //     followUps,
+  //     totalPartsSpend,
+  //   };
+  // }, [filteredInvoices]);
 
   // Removed serviceReminders - can be added later if needed
 

@@ -2,7 +2,7 @@ import {
     MdDashboard,
 } from "react-icons/md";
 import { RiBillLine } from "react-icons/ri";
-import { FaClipboardCheck, FaChartBar, FaTicketAlt, FaExclamationTriangle, FaFileInvoiceDollar } from "react-icons/fa";
+import { FaClipboardCheck, FaChartBar, FaTicketAlt, FaExclamationTriangle } from "react-icons/fa";
 
 type CompilanceSidebarLink = {
     key: string;

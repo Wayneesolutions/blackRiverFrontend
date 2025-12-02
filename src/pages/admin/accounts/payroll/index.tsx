@@ -78,6 +78,7 @@ interface Payroll {
         _id: string;
         name: string;
         role: string;
+        internalId?: string;
     };
     baseSalary: number;
     bonus: number;
@@ -739,7 +740,7 @@ const PayrollManagement = () => {
                     <p className="text-gray-500">{emptyStateMessage}</p>
                 </div>
                 <button
-                    onClick={fetchPayrolls}
+                    onClick={() => fetchPayrolls()}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow"
                 >
                     Refresh
