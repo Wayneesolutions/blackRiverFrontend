@@ -22,6 +22,11 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     label: "Home",
   },
   {
+    key: "/admin/Management/drivers",
+    icon: <FaUsers />,
+    label: "Drivers",
+  },
+  {
     key: "/admin/Management/employeelist",
     icon: <FaUsers />,
     label: "Employees",
