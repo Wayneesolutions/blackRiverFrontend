@@ -49,6 +49,13 @@ const features = [
         icon: BillingIcon,
         route: "/admin/accounts",
     },
+    {
+        id: "health and safety",
+        title: "Health and Safety",
+        description: "Integrated module for managing health & safety alongside human resources, driver payroll, and service billing — including compliance, incident reporting, training records, and billing workflows.",
+        icon: BillingIcon,
+        route: "/admin/healthandsafety",
+    }
 ];
 
 const Index = () => {

@@ -32,9 +32,14 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     label: "Employees",
   },
   {
+    key: "/admin/Management/driverdocuments",
+    icon: <MdDocumentScanner />,
+    label: "Driver Documents",
+  },
+  {
     key: "/admin/Management/documents",
     icon: <MdDocumentScanner />,
-    label: "Documents",
+    label: "Employee Documents",
   },
   {
     key: "/admin/Management/company-documents",
@@ -50,6 +55,11 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/employee-profiles",
     icon: <MdPersonPin />,
     label: "Employee Portfolio",
+  },
+  {
+    key: "/admin/Management/driver-profiles",
+    icon: <MdPersonPin />,
+    label: "Driver Portfolio",
   },
   {
     key: "/admin/Management/issues",

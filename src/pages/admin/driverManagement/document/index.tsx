@@ -77,9 +77,9 @@ const EmployeeDocumentsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Available roles
+  // Available roles (excluding driver - drivers should use Driver Documents)
   const roles = [
-    'driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter',
+    'dispatcher', 'hr', 'contact', 'customer', 'reporter',
     'Maintenance Crew (Mechanics)', 'Fleet Maintenance Manager', 'Compliance Manager'
   ];
 
@@ -109,9 +109,17 @@ const EmployeeDocumentsPage = () => {
       ]);
 
       const documents = Array.isArray(documentsResponse?.data) ? documentsResponse.data : [];
-      setEmployeeDocuments(documents);
+      // Filter out drivers for Employee Documents (drivers should use Driver Documents)
+      const filteredDocuments = documents.filter(
+        (doc) => doc.employee?.role !== 'driver'
+      );
+      setEmployeeDocuments(filteredDocuments);
       setDocumentStats(statsResponse?.data || null);
-      setEmployees(Array.isArray(employeesResponse?.data) ? employeesResponse.data : []);
+      // Filter employees to exclude drivers
+      const filteredEmployees = Array.isArray(employeesResponse?.data) 
+        ? employeesResponse.data.filter((emp: any) => emp.role !== 'driver')
+        : [];
+      setEmployees(filteredEmployees);
       setTotalPages(documentsResponse?.pagination?.pages || 1);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -133,7 +141,11 @@ const EmployeeDocumentsPage = () => {
         'createdAt',
         'desc'
       );
-      setEmployeeDocuments(response.data || []);
+      // Filter out drivers for Employee Documents (drivers should use Driver Documents)
+      const filteredDocuments = (response.data || []).filter(
+        (doc) => doc.employee?.role !== 'driver'
+      );
+      setEmployeeDocuments(filteredDocuments);
       setCurrentPage(1);
     } catch (error) {
       console.error('Error searching documents:', error);

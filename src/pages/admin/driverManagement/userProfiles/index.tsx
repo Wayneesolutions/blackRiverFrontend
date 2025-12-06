@@ -77,11 +77,15 @@ const UserProfilesPortfolio: React.FC = () => {
         if (!isMounted) return;
 
         if (response.success) {
-          setProfiles(((response.data as UserProfileDto[]) || []) as UserProfile[]);
+          // Filter out drivers for Employee Portfolio (drivers should use Driver Portfolio)
+          const filteredData = ((response.data as UserProfileDto[]) || []).filter(
+            (profile) => profile.role !== 'driver'
+          ) as UserProfile[];
+          setProfiles(filteredData);
           setRequiresCompanySetup(!!response.requiresCompanySetup);
           setPagination({
             currentPage: response.pagination?.currentPage || 1,
-            totalItems: response.pagination?.totalItems || response.data?.length || 0,
+            totalItems: filteredData.length,
             totalPages: response.pagination?.totalPages || 1
           });
           setLastFetchedRange(response.filters || null);
@@ -443,7 +447,6 @@ const UserProfilesPortfolio: React.FC = () => {
                 style={focusRingStyle}
               >
                 <option value="all">All Roles</option>
-                <option value="driver">Driver</option>
                 <option value="dispatcher">Dispatcher</option>
                 <option value="hr">HR</option>
                 <option value="reporter">Reporter</option>
