@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Edit, Trash2, Plus, X, Save, RefreshCw, AlertCircle, User, Phone, Upload, Search, Briefcase, MapPin, FileText, Heart, CreditCard, Globe, Building2 } from 'lucide-react';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+import * as driverApi from '../../../../axios/api/driver';
 
 // Type definitions
 interface Driver {
@@ -24,6 +25,7 @@ interface Driver {
   profileImageUrl?: string | null;
   lastModified?: string;
   role?: string;
+  joinDate?: string;
 }
 
 interface DriverFormData {
@@ -33,6 +35,7 @@ interface DriverFormData {
   company: string;
   employmentDetails: string;
   internalId: string;
+  joinDate: string;
   phone: string;
   mobile: string;
   citizenship: string;
@@ -46,70 +49,9 @@ interface DriverFormData {
   password: string;
   role: string;
   status: string;
+  policies?: string;
 }
 
-interface ApiResponse {
-  success: boolean;
-  data?: Driver[] | Driver | DriverFormData;
-  message?: string;
-}
-
-// Mock API functions
-const mockApi = {
-  getAllDrivers: async (): Promise<ApiResponse> => {
-    return {
-      success: true,
-      data: [
-        {
-          _id: '1',
-          internalId: 'DRV-001',
-          name: 'John Smith',
-          email: 'john.smith@example.com',
-          phone: '+1-555-0123',
-          mobile: '+1-555-0124',
-          company: 'ABC Logistics',
-          gender: 'Male',
-          csa: 'Yes',
-          status: 'active',
-          address: '123 Main St, Toronto, ON',
-          citizenship: 'Canadian',
-          country: 'Canada',
-          employmentDetails: 'Full-time driver since 2020',
-          wsib: 'WSIB-12345',
-          fastCard: 'FAST-67890',
-          medicalTracking: 'Medical expires: Dec 2025',
-          profileImageUrl: null,
-          lastModified: '2024-12-01'
-        },
-        {
-          _id: '2',
-          internalId: 'DRV-002',
-          name: 'Sarah Johnson',
-          email: 'sarah.j@example.com',
-          phone: '+1-555-0125',
-          mobile: '+1-555-0126',
-          company: 'XYZ Transport',
-          gender: 'Female',
-          csa: 'No',
-          status: 'active',
-          address: '456 Oak Ave, Vancouver, BC',
-          citizenship: 'Canadian',
-          country: 'Canada',
-          employmentDetails: 'Part-time driver since 2022',
-          wsib: 'WSIB-54321',
-          fastCard: 'FAST-09876',
-          medicalTracking: 'Medical expires: June 2026',
-          profileImageUrl: null,
-          lastModified: '2024-11-28'
-        }
-      ] as Driver[]
-    };
-  },
-  createDriver: async (data: DriverFormData): Promise<ApiResponse> => ({ success: true, data }),
-  updateDriver: async (_id: string, data: DriverFormData): Promise<ApiResponse> => ({ success: true, data }),
-  deleteDriver: async (_id: string): Promise<ApiResponse> => ({ success: true }),
-  updateDriverStatus: async (_id: string, _status: string): Promise<ApiResponse> => ({ success: true })
-};
 
 const DriverManagement = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -119,14 +61,16 @@ const DriverManagement = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; driverId: string | null }>({ show: false, driverId: null });
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   const [formData, setFormData] = useState<DriverFormData>({
     name: '',
     email: '',
     gender: '',
-    company: '',
+    company: '', // Keep in interface but not used in form
     employmentDetails: '',
     internalId: '',
+    joinDate: '',
     phone: '',
     mobile: '',
     citizenship: '',
@@ -150,9 +94,22 @@ const DriverManagement = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await mockApi.getAllDrivers();
+      const response = await driverApi.getAllDrivers(1, 100, searchTerm);
       if (response.success && Array.isArray(response.data)) {
-        setDrivers(response.data);
+        // Transform backend response to match frontend Driver interface
+        const transformedDrivers = response.data.map((driver: any) => {
+          // Ensure profileImageUrl is properly preserved and decoded if needed
+          const profileImageUrl = driver.profileImageUrl 
+            ? (typeof driver.profileImageUrl === 'string' ? driver.profileImageUrl.trim() : null)
+            : null;
+          
+          return {
+            ...driver,
+            profileImageUrl: profileImageUrl || null,
+            lastModified: driver.updatedAt ? new Date(driver.updatedAt).toLocaleDateString() : undefined
+          };
+        });
+        setDrivers(transformedDrivers);
       } else {
         setError(response.message || 'Failed to fetch drivers');
       }
@@ -169,9 +126,10 @@ const DriverManagement = () => {
       name: '',
       email: '',
       gender: '',
-      company: '',
+      company: '', // Keep in interface but not used in form
       employmentDetails: '',
       internalId: '',
+      joinDate: '',
       phone: '',
       mobile: '',
       citizenship: '',
@@ -184,7 +142,8 @@ const DriverManagement = () => {
       file: null,
       password: '',
       role: 'driver',
-      status: 'active'
+      status: 'active',
+      policies: ''
     });
   };
 
@@ -194,54 +153,148 @@ const DriverManagement = () => {
       return;
     }
 
+    if (!formData.password) {
+      alert('Password is required for new drivers');
+      return;
+    }
+
     try {
       const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => {
-        const formKey = key as keyof DriverFormData;
-        if (key === 'file' && formData.file) {
-          formDataToSend.append('file', formData.file);
-        } else if (formData[formKey] && key !== 'file') {
-          formDataToSend.append(key, String(formData[formKey]));
-        }
-      });
+      
+      // Append all form fields
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('phone', formData.phone);
+      formDataToSend.append('password', formData.password);
+      formDataToSend.append('role', formData.role || 'driver');
+      formDataToSend.append('status', formData.status || 'active');
+      
+      if (formData.country) formDataToSend.append('country', formData.country);
+      // Always send policies (required field, can be empty string)
+      formDataToSend.append('policies', formData.policies || '');
+      if (formData.internalId) formDataToSend.append('internalId', formData.internalId);
+      if (formData.joinDate) formDataToSend.append('joinDate', formData.joinDate);
+      if (formData.gender) formDataToSend.append('gender', formData.gender);
+      if (formData.employmentDetails) formDataToSend.append('employmentDetails', formData.employmentDetails);
+      if (formData.mobile) formDataToSend.append('mobile', formData.mobile);
+      if (formData.citizenship) formDataToSend.append('citizenship', formData.citizenship);
+      if (formData.address) formDataToSend.append('address', formData.address);
+      if (formData.wsib) formDataToSend.append('wsib', formData.wsib);
+      if (formData.fastCard) formDataToSend.append('fastCard', formData.fastCard);
+      if (formData.medicalTracking) formDataToSend.append('medicalTracking', formData.medicalTracking);
+      if (formData.csa) formDataToSend.append('csa', formData.csa);
+      
+      // Append file if exists
+      if (formData.file) {
+        formDataToSend.append('file', formData.file);
+      }
 
-      const response = await mockApi.createDriver(formData);
+      const response = await driverApi.createDriver(formDataToSend);
       if (response.success) {
         await fetchDrivers();
         resetForm();
         setShowSidebar(false);
         alert('Driver created successfully!');
+      } else {
+        alert(response.message || 'Failed to create driver');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating driver:', error);
-      alert('Failed to create driver');
+      alert(error.response?.data?.message || error.message || 'Failed to create driver');
     }
   };
 
-  const handleEdit = (driver: Driver) => {
-    setEditingId(driver._id);
-    setFormData({
-      name: driver.name || '',
-      email: driver.email || '',
-      gender: driver.gender || '',
-      company: driver.company || '',
-      employmentDetails: driver.employmentDetails || '',
-      internalId: driver.internalId || '',
-      phone: driver.phone || '',
-      mobile: driver.mobile || '',
-      citizenship: driver.citizenship || '',
-      country: driver.country || '',
-      address: driver.address || '',
-      wsib: driver.wsib || '',
-      fastCard: driver.fastCard || '',
-      medicalTracking: driver.medicalTracking || '',
-      csa: driver.csa || '',
-      file: null,
-      password: '',
-      role: driver.role || 'driver',
-      status: driver.status || 'active'
-    });
-    setShowSidebar(true);
+  const handleEdit = async (driver: Driver) => {
+    try {
+      setLoading(true);
+      // Fetch full driver details from API
+      const response = await driverApi.getDriverById(driver._id);
+      if (response.success && response.data) {
+        const driverData = response.data;
+        setEditingId(driver._id);
+        setFormData({
+          name: driverData.name || '',
+          email: driverData.email || '',
+          gender: driverData.gender || '',
+          company: '', // Not used in form, auto-assigned by backend
+          employmentDetails: driverData.employmentDetails || '',
+          internalId: driverData.internalId || '',
+          joinDate: driverData.joinDate ? new Date(driverData.joinDate).toISOString().split('T')[0] : '',
+          phone: driverData.phone || '',
+          mobile: driverData.mobile || '',
+          citizenship: driverData.citizenship || '',
+          country: driverData.country || '',
+          address: driverData.address || '',
+          wsib: driverData.wsib || '',
+          fastCard: driverData.fastCard || '',
+          medicalTracking: driverData.medicalTracking || '',
+          csa: driverData.csa || '',
+          file: null,
+          password: '', // Don't pre-fill password
+          role: driverData.role || 'driver',
+          status: driverData.status || 'active',
+          policies: driverData.policies || ''
+        });
+        setShowSidebar(true);
+      } else {
+        // Fallback to using driver object directly if API fails
+        setEditingId(driver._id);
+        setFormData({
+          name: driver.name || '',
+          email: driver.email || '',
+          gender: driver.gender || '',
+          company: '', // Not used in form, auto-assigned by backend
+          employmentDetails: driver.employmentDetails || '',
+          internalId: driver.internalId || '',
+          joinDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
+          phone: driver.phone || '',
+          mobile: driver.mobile || '',
+          citizenship: driver.citizenship || '',
+          country: driver.country || '',
+          address: driver.address || '',
+          wsib: driver.wsib || '',
+          fastCard: driver.fastCard || '',
+          medicalTracking: driver.medicalTracking || '',
+          csa: driver.csa || '',
+          file: null,
+          password: '',
+          role: driver.role || 'driver',
+          status: driver.status || 'active',
+          policies: ''
+        });
+        setShowSidebar(true);
+      }
+    } catch (error) {
+      console.error('Error fetching driver details:', error);
+      // Fallback to using driver object directly
+      setEditingId(driver._id);
+      setFormData({
+        name: driver.name || '',
+        email: driver.email || '',
+        gender: driver.gender || '',
+        company: '', // Not used in form, auto-assigned by backend
+        employmentDetails: driver.employmentDetails || '',
+        internalId: driver.internalId || '',
+        joinDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
+        phone: driver.phone || '',
+        mobile: driver.mobile || '',
+        citizenship: driver.citizenship || '',
+        country: driver.country || '',
+        address: driver.address || '',
+        wsib: driver.wsib || '',
+        fastCard: driver.fastCard || '',
+        medicalTracking: driver.medicalTracking || '',
+        csa: driver.csa || '',
+        file: null,
+        password: '',
+        role: driver.role || 'driver',
+        status: driver.status || 'active',
+        policies: ''
+      });
+      setShowSidebar(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdate = async () => {
@@ -249,26 +302,48 @@ const DriverManagement = () => {
 
     try {
       const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => {
-        const formKey = key as keyof DriverFormData;
-        if (key === 'file' && formData.file) {
-          formDataToSend.append('file', formData.file);
-        } else if (formData[formKey] && key !== 'file') {
-          formDataToSend.append(key, String(formData[formKey]));
-        }
-      });
+      
+      // Append all form fields (password is optional for update)
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('phone', formData.phone);
+      formDataToSend.append('role', formData.role || 'driver');
+      formDataToSend.append('status', formData.status || 'active');
+      
+      if (formData.password) formDataToSend.append('password', formData.password);
+      if (formData.country) formDataToSend.append('country', formData.country);
+      // Always send policies (required field, can be empty string)
+      formDataToSend.append('policies', formData.policies || '');
+      if (formData.internalId) formDataToSend.append('internalId', formData.internalId);
+      if (formData.joinDate) formDataToSend.append('joinDate', formData.joinDate);
+      if (formData.gender) formDataToSend.append('gender', formData.gender);
+      if (formData.employmentDetails) formDataToSend.append('employmentDetails', formData.employmentDetails);
+      if (formData.mobile) formDataToSend.append('mobile', formData.mobile);
+      if (formData.citizenship) formDataToSend.append('citizenship', formData.citizenship);
+      if (formData.address) formDataToSend.append('address', formData.address);
+      if (formData.wsib) formDataToSend.append('wsib', formData.wsib);
+      if (formData.fastCard) formDataToSend.append('fastCard', formData.fastCard);
+      if (formData.medicalTracking) formDataToSend.append('medicalTracking', formData.medicalTracking);
+      if (formData.csa) formDataToSend.append('csa', formData.csa);
+      
+      // Append file if exists
+      if (formData.file) {
+        formDataToSend.append('file', formData.file);
+      }
 
-      const response = await mockApi.updateDriver(editingId, formData);
+      const response = await driverApi.updateDriver(editingId, formDataToSend);
       if (response.success) {
         await fetchDrivers();
         setEditingId(null);
         resetForm();
         setShowSidebar(false);
         alert('Driver updated successfully!');
+      } else {
+        alert(response.message || 'Failed to update driver');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating driver:', error);
-      alert('Failed to update driver');
+      alert(error.response?.data?.message || error.message || 'Failed to update driver');
     }
   };
 
@@ -280,14 +355,16 @@ const DriverManagement = () => {
     if (!deleteConfirm.driverId) return;
     
     try {
-      const response = await mockApi.deleteDriver(deleteConfirm.driverId);
+      const response = await driverApi.deleteDriver(deleteConfirm.driverId);
       if (response.success) {
         await fetchDrivers();
         alert('Driver deleted successfully!');
+      } else {
+        alert(response.message || 'Failed to delete driver');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting driver:', error);
-      alert('Failed to delete driver');
+      alert(error.response?.data?.message || error.message || 'Failed to delete driver');
     } finally {
       setDeleteConfirm({ show: false, driverId: null });
     }
@@ -296,12 +373,15 @@ const DriverManagement = () => {
   const toggleStatus = async (id: string, currentStatus: string) => {
     try {
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-      const response = await mockApi.updateDriverStatus(id, newStatus);
+      const response = await driverApi.updateDriverStatus(id, newStatus);
       if (response.success) {
         await fetchDrivers();
+      } else {
+        alert(response.message || 'Failed to update driver status');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating driver status:', error);
+      alert(error.response?.data?.message || error.message || 'Failed to update driver status');
     }
   };
 
@@ -315,10 +395,11 @@ const DriverManagement = () => {
     setFormData(prev => ({ ...prev, file }));
   };
 
+  // Filter drivers locally (backend also does server-side filtering)
   const filteredDrivers = drivers.filter(driver =>
-    driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    driver.internalId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    driver.email.toLowerCase().includes(searchTerm.toLowerCase())
+    driver.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    driver.internalId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    driver.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -445,14 +526,22 @@ const DriverManagement = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="h-10 w-10 flex-shrink-0">
-                              {driver.profileImageUrl ? (
-                                <img className="h-10 w-10 rounded-full object-cover" src={driver.profileImageUrl} alt="" />
+                              {driver.profileImageUrl && !imageErrors.has(driver._id) ? (
+                                <img 
+                                  className="h-10 w-10 rounded-full object-cover" 
+                                  src={driver.profileImageUrl} 
+                                  alt={driver.name || 'Driver'}
+                                  onError={() => {
+                                    // Mark this image as failed to load
+                                    setImageErrors(prev => new Set(prev).add(driver._id));
+                                  }}
+                                />
                               ) : (
                                 <div 
                                   className="h-10 w-10 rounded-full flex items-center justify-center text-white font-semibold"
                                   style={{ background: FLEET_COLORS.gradientVertical }}
                                 >
-                                  {driver.name.charAt(0)}
+                                  {driver.name?.charAt(0) || '?'}
                                 </div>
                               )}
                             </div>
@@ -609,13 +698,33 @@ const DriverManagement = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Internal ID</label>
                 <input
                   type="text"
-                  name="company"
-                  value={formData.company}
+                  name="internalId"
+                  value={formData.internalId}
                   onChange={handleInputChange}
-                  placeholder="Enter company name"
+                  placeholder="e.g., DRV-001 (auto-generated if empty)"
+                  style={{ borderColor: '#d1d5db' }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = FLEET_COLORS.primary;
+                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = '';
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
+                <input
+                  type="date"
+                  name="joinDate"
+                  value={formData.joinDate}
+                  onChange={handleInputChange}
                   style={{ borderColor: '#d1d5db' }}
                   onFocus={(e) => {
                     e.target.style.borderColor = FLEET_COLORS.primary;
@@ -637,6 +746,27 @@ const DriverManagement = () => {
                   onChange={handleInputChange}
                   rows={3}
                   placeholder="Employment history, position, etc."
+                  style={{ borderColor: '#d1d5db' }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = FLEET_COLORS.primary;
+                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = '';
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Policies</label>
+                <textarea
+                  name="policies"
+                  value={formData.policies}
+                  onChange={handleInputChange}
+                  rows={3}
+                  placeholder="Company policies, terms, etc."
                   style={{ borderColor: '#d1d5db' }}
                   onFocus={(e) => {
                     e.target.style.borderColor = FLEET_COLORS.primary;
@@ -726,6 +856,57 @@ const DriverManagement = () => {
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none"
                 />
               </div>
+
+              {!editingId && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Enter password"
+                    required={!editingId}
+                    style={{ borderColor: '#d1d5db' }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = FLEET_COLORS.primary;
+                      e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#d1d5db';
+                      e.target.style.boxShadow = '';
+                    }}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                  />
+                </div>
+              )}
+
+              {editingId && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    New Password <span className="text-gray-400 text-xs">(leave blank to keep current)</span>
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Enter new password (optional)"
+                    style={{ borderColor: '#d1d5db' }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = FLEET_COLORS.primary;
+                      e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#d1d5db';
+                      e.target.style.boxShadow = '';
+                    }}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Citizenship Section */}

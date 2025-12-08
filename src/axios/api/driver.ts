@@ -7,15 +7,26 @@ export interface Driver {
   name: string;
   email: string;
   phone: string;
-  country: string;
-  role: string;
+  mobile?: string;
+  company?: string;
+  gender?: string;
+  csa?: string;
   status: 'active' | 'inactive';
+  address?: string;
+  citizenship?: string;
+  country?: string;
+  employmentDetails?: string;
+  wsib?: string;
+  fastCard?: string;
+  medicalTracking?: string;
+  role?: string;
   internalId: string;
   joinDate: string;
-  profileImageUrl?: string;
+  profileImageUrl?: string | null;
   policies?: string;
-  createdAt: string;
-  updatedAt: string;
+  lastModified?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // API Functions
@@ -29,7 +40,7 @@ export const getAllDrivers = async (page: number = 1, limit: number = 10, search
     if (search) params.append('search', search);
     if (status) params.append('status', status);
     
-    const res: AxiosResponse = await apiClient.get(`dispatcher/driver?${params.toString()}`);
+    const res: AxiosResponse = await apiClient.get(`hr/driver?${params.toString()}`);
     console.log('🔍 Driver API response:', res.data);
     return res.data;
   } catch (error) {
