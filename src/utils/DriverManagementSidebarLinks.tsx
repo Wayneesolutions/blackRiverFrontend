@@ -1,12 +1,17 @@
 import {
-  MdDashboard, // Home
-  MdDocumentScanner, // Documents
-  MdAccessTime, // Attendance Tracking
-  MdErrorOutline, // Issues
-  MdPersonPin, // User Profiles
+  MdDashboard,            // Home
+  MdDocumentScanner,      // Scanning / Document Review
+  MdAccessTime,           // Attendance
+  MdErrorOutline,         // Issues
+  MdPerson,               // Profile / Portfolio
 } from "react-icons/md";
-import { FaUsers } from "react-icons/fa"; // Employee List, Vehicle Documents
-import { FaFolderOpen } from "react-icons/fa"; // Company Documents
+
+import { FaUserTie } from "react-icons/fa";      // Employees
+import { FaTruck } from "react-icons/fa";        // Drivers
+import { FaIdCard } from "react-icons/fa";       // Driver Portfolio
+import { FaFolderOpen } from "react-icons/fa";   // Company Documents
+import { FaClipboardList } from "react-icons/fa"; // Employee Documents
+
 
 type DriverSidebarLink = {
   key: string;
@@ -23,12 +28,12 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
   },
   {
     key: "/admin/Management/drivers",
-    icon: <FaUsers />,
+    icon: <FaTruck />,
     label: "Drivers",
   },
   {
     key: "/admin/Management/employeelist",
-    icon: <FaUsers />,
+    icon: <FaUserTie />,
     label: "Employees",
   },
   {
@@ -38,7 +43,7 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
   },
   {
     key: "/admin/Management/documents",
-    icon: <MdDocumentScanner />,
+    icon: <FaClipboardList />,
     label: "Employee Documents",
   },
   {
@@ -53,12 +58,12 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
   },
   {
     key: "/admin/Management/employee-profiles",
-    icon: <MdPersonPin />,
+    icon: <MdPerson />,
     label: "Employee Portfolio",
   },
   {
     key: "/admin/Management/driver-profiles",
-    icon: <MdPersonPin />,
+    icon: <FaIdCard />,
     label: "Driver Portfolio",
   },
   {
@@ -67,3 +72,4 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     label: "Issues",
   },
 ];
+

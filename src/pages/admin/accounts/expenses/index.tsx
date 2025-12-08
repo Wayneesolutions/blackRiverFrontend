@@ -20,8 +20,6 @@ interface Expense {
   description?: string;
   date?: string | Date;
   receiptUrl?: string;
-  taxType?: string;
-  vendor?: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
@@ -74,10 +72,6 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 const ExpensesPage = () => {
   const [activeTab, setActiveTab] = useState('list');
   const [filterType, setFilterType] = useState('all');
-  const [filterVendor, setFilterVendor] = useState('all');
-  const [filterTaxType, setFilterTaxType] = useState('all');
-  const [filterEmployee, setFilterEmployee] = useState('all');
-  const [groupBy, setGroupBy] = useState<'none' | 'vendor' | 'taxType' | 'employee'>('none');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
@@ -96,17 +90,13 @@ const ExpensesPage = () => {
     description: string;
     date: string;
     receiptFile: File | null;
-    taxType: string;
-    vendor: string;
   }>({
     userId: '',
     type: '',
     amount: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
-    receiptFile: null,
-    taxType: '',
-    vendor: ''
+    receiptFile: null
   });
 
   // Fetch expenses on component mount
@@ -231,10 +221,6 @@ const ExpensesPage = () => {
       formDataToSend.append('amount', formData.amount);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('date', formData.date);
-      formDataToSend.append('taxType', formData.taxType);
-      if (formData.vendor) {
-        formDataToSend.append('vendor', formData.vendor);
-      }
       
       if (formData.receiptFile) {
         formDataToSend.append('file', formData.receiptFile);
@@ -252,9 +238,7 @@ const ExpensesPage = () => {
             amount: '',
             description: '',
             date: new Date().toISOString().split('T')[0],
-            receiptFile: null,
-            taxType: '',
-            vendor: ''
+            receiptFile: null
           });
           setActiveTab('list');
           fetchExpenses();
@@ -272,9 +256,7 @@ const ExpensesPage = () => {
             amount: '',
             description: '',
             date: new Date().toISOString().split('T')[0],
-            receiptFile: null,
-            taxType: '',
-            vendor: ''
+            receiptFile: null
           });
           setActiveTab('list');
           fetchExpenses();
@@ -301,9 +283,7 @@ const ExpensesPage = () => {
       amount: expense.amount.toString(),
       description: expense.description || '',
       date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      receiptFile: null,
-      taxType: expense.taxType || '',
-      vendor: expense.vendor || ''
+      receiptFile: null
     });
     setActiveTab('create');
   };
@@ -368,9 +348,7 @@ const ExpensesPage = () => {
       amount: '',
       description: '',
       date: new Date().toISOString().split('T')[0],
-      receiptFile: null,
-      taxType: '',
-      vendor: ''
+      receiptFile: null
     });
     setActiveTab('list');
   };
@@ -414,51 +392,13 @@ const ExpensesPage = () => {
     return employee?.role || employee?.position;
   };
 
-  const filteredExpenses = expenses.filter(expense => {
-    const typeMatch = filterType === 'all' || expense.type === filterType;
-    const vendorMatch = filterVendor === 'all' || expense.vendor === filterVendor;
-    const taxTypeMatch = filterTaxType === 'all' || expense.taxType === filterTaxType;
-    const employeeMatch = filterEmployee === 'all' || 
-      (typeof expense.userId === 'object' && expense.userId !== null 
-        ? expense.userId._id === filterEmployee
-        : expense.userId === filterEmployee);
-    return typeMatch && vendorMatch && taxTypeMatch && employeeMatch;
-  });
-
-  // Get unique vendors and tax types for filters
-  const uniqueVendors = Array.from(new Set(expenses.map(e => e.vendor).filter(Boolean)));
-  const uniqueTaxTypes = Array.from(new Set(expenses.map(e => e.taxType).filter(Boolean)));
-
-  // Group expenses
-  const groupedExpenses = (() => {
-    if (groupBy === 'none') return null;
-    
-    const groups: Record<string, Expense[]> = {};
-    filteredExpenses.forEach(expense => {
-      let key = '';
-      if (groupBy === 'vendor') {
-        key = expense.vendor || 'No Vendor';
-      } else if (groupBy === 'taxType') {
-        key = expense.taxType || 'No Tax Type';
-      } else if (groupBy === 'employee') {
-        key = getEmployeeName(expense.userId);
-      }
-      
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(expense);
-    });
-    
-    return groups;
-  })();
+  const filteredExpenses = expenses.filter(expense =>
+    filterType === 'all' || expense.type === filterType
+  );
 
   const totalAmount = filteredExpenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
 
   const expenseTypes = [
-    'Fuel Receipts',
-    'Repair Bills',
-    'Shop Invoices',
-    'Compliance Fees',
-    'Insurance Charges',
     'Additives',
     'Cash',
     'Cash Advance',
@@ -477,12 +417,6 @@ const ExpensesPage = () => {
     'Truck and Trailer Parts',
     'Truck Repair',
     'Truck Service'
-  ];
-
-  const taxTypes = [
-    'IFTA',
-    'GST/PST/HST',
-    'None'
   ];
 
   if (loading && !emptyStateMessage) {
@@ -531,9 +465,7 @@ const ExpensesPage = () => {
                   amount: '',
                   description: '',
                   date: new Date().toISOString().split('T')[0],
-                  receiptFile: null,
-                  taxType: '',
-                  vendor: ''
+                  receiptFile: null
                 });
                 setActiveTab('create');
               }}
@@ -546,7 +478,7 @@ const ExpensesPage = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
@@ -564,7 +496,7 @@ const ExpensesPage = () => {
               <div>
                 <p className="text-gray-600 text-sm">Fuel Expenses</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${expenses.filter(e => e.type && (e.type.includes('Fuel') || e.type === 'Fuel Receipts')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
+                  ${expenses.filter(e => e.type && e.type.includes('Fuel')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-blue-100 p-3 rounded-full">
@@ -578,7 +510,7 @@ const ExpensesPage = () => {
               <div>
                 <p className="text-gray-600 text-sm">Maintenance</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${expenses.filter(e => e.type && (e.type.includes('Repair') || e.type.includes('Maintenance') || e.type === 'Repair Bills' || e.type === 'Shop Invoices')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
+                  ${expenses.filter(e => e.type && (e.type.includes('Repair') || e.type.includes('Maintenance'))).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-green-100 p-3 rounded-full">
@@ -597,34 +529,6 @@ const ExpensesPage = () => {
               </div>
               <div className="bg-purple-100 p-3 rounded-full">
                 <span className="text-2xl">💰</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Compliance Fees</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ${expenses.filter(e => e.type === 'Compliance Fees').reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
-                </p>
-              </div>
-              <div className="bg-yellow-100 p-3 rounded-full">
-                <FileText className="text-yellow-600" size={24} />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Insurance Charges</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ${expenses.filter(e => e.type === 'Insurance Charges').reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
-                </p>
-              </div>
-              <div className="bg-red-100 p-3 rounded-full">
-                <Receipt className="text-red-600" size={24} />
               </div>
             </div>
           </div>
@@ -659,65 +563,21 @@ const ExpensesPage = () => {
             {activeTab === 'list' && (
               <div>
                 {/* Filters */}
-                <div className="mb-6 space-y-4">
-                  <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <Filter size={20} className="text-gray-500" />
-                      <span className="text-sm font-medium text-gray-700">Filters:</span>
+                      <select
+                        value={filterType}
+                        onChange={(e) => setFilterType(e.target.value)}
+                        className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="all">All Types</option>
+                        {expenseTypes.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
                     </div>
-                    <select
-                      value={filterType}
-                      onChange={(e) => setFilterType(e.target.value)}
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="all">All Types</option>
-                      {expenseTypes.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={filterVendor}
-                      onChange={(e) => setFilterVendor(e.target.value)}
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="all">All Vendors</option>
-                      {uniqueVendors.map(vendor => (
-                        <option key={vendor} value={vendor}>{vendor}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={filterTaxType}
-                      onChange={(e) => setFilterTaxType(e.target.value)}
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="all">All Tax Types</option>
-                      {uniqueTaxTypes.map(taxType => (
-                        <option key={taxType} value={taxType}>{taxType}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={filterEmployee}
-                      onChange={(e) => setFilterEmployee(e.target.value)}
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="all">All Employees</option>
-                      {employees.map(emp => (
-                        <option key={emp._id} value={emp._id}>{emp.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-medium text-gray-700">Group By:</span>
-                    <select
-                      value={groupBy}
-                      onChange={(e) => setGroupBy(e.target.value as 'none' | 'vendor' | 'taxType' | 'employee')}
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="none">No Grouping</option>
-                      <option value="vendor">Vendor</option>
-                      <option value="taxType">Tax Type</option>
-                      <option value="employee">Employee/Driver</option>
-                    </select>
                   </div>
                 </div>
 
@@ -728,179 +588,66 @@ const ExpensesPage = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {groupBy !== 'none' && groupedExpenses ? (
-                      // Grouped view
-                      Object.entries(groupedExpenses).map(([groupKey, groupExpenses]) => {
-                        const groupTotal = groupExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-                        return (
-                          <div key={groupKey} className="border border-gray-300 rounded-lg overflow-hidden">
-                            <div className="bg-gray-100 px-4 py-3 border-b border-gray-300">
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold text-gray-900">
-                                  {groupBy === 'vendor' && 'Vendor: '}
-                                  {groupBy === 'taxType' && 'Tax Type: '}
-                                  {groupBy === 'employee' && 'Employee: '}
-                                  {groupKey}
-                                </h3>
-                                <span className="text-sm font-medium text-gray-700">
-                                  {groupExpenses.length} expense(s) • Total: ${groupTotal.toLocaleString()}
+                    {filteredExpenses.map((expense) => (
+                      <div key={expense._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="text-2xl">{getTypeIcon(expense.type)}</div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(expense.type)}`}>
+                                  {expense.type}
+                                </span>
+                                <span className="text-lg font-semibold text-gray-900">
+                                  ${(expense.amount || 0).toLocaleString()}
                                 </span>
                               </div>
-                            </div>
-                            <div className="divide-y divide-gray-200">
-                              {groupExpenses.map((expense) => (
-                                <div key={expense._id} className="p-4 hover:bg-gray-50 transition-colors">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                      <div className="text-2xl">{getTypeIcon(expense.type)}</div>
-                                      <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(expense.type)}`}>
-                                            {expense.type}
-                                          </span>
-                                          <span className="text-lg font-semibold text-gray-900">
-                                            ${(expense.amount || 0).toLocaleString()}
-                                          </span>
-                                        </div>
-                                        <p className="text-gray-600 text-sm mb-1">{expense.description || 'No description'}</p>
-                                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                                          {groupBy !== 'employee' && (
-                                            <span className="flex items-center gap-1">
-                                              <User size={12} />
-                                              {getEmployeeName(expense.userId)}
-                                            </span>
-                                          )}
-                                          <span className="flex items-center gap-1">
-                                            <Calendar size={12} />
-                                            {expense.date ? new Date(expense.date).toLocaleDateString() : 'No date'}
-                                          </span>
-                                          {groupBy !== 'vendor' && expense.vendor && (
-                                            <span className="flex items-center gap-1">
-                                              <Building2 size={12} />
-                                              {expense.vendor}
-                                            </span>
-                                          )}
-                                          {groupBy !== 'taxType' && expense.taxType && (
-                                            <span className="flex items-center gap-1">
-                                              <FileText size={12} />
-                                              {expense.taxType}
-                                            </span>
-                                          )}
-                                          {expense.receiptUrl && (
-                                            <span className="flex items-center gap-1">
-                                              <Receipt size={12} />
-                                              Receipt Available
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                      <button 
-                                        onClick={() => handleView(expense)}
-                                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        title="View Details"
-                                      >
-                                        <Eye size={16} />
-                                      </button>
-                                      <button 
-                                        onClick={() => handleEdit(expense)}
-                                        className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                        title="Edit Expense"
-                                      >
-                                        <Edit size={16} />
-                                      </button>
-                                      <button 
-                                        onClick={() => handleDelete(expense._id)}
-                                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                        title="Delete Expense"
-                                      >
-                                        <Trash2 size={16} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      // Ungrouped view
-                      filteredExpenses.map((expense) => (
-                        <div key={expense._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="text-2xl">{getTypeIcon(expense.type)}</div>
-                              <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(expense.type)}`}>
-                                    {expense.type}
-                                  </span>
-                                  <span className="text-lg font-semibold text-gray-900">
-                                    ${(expense.amount || 0).toLocaleString()}
-                                  </span>
-                                </div>
-                                <p className="text-gray-600 text-sm mb-1">{expense.description || 'No description'}</p>
-                                <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <p className="text-gray-600 text-sm mb-1">{expense.description || 'No description'}</p>
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span className="flex items-center gap-1">
+                                  <User size={12} />
+                                  {getEmployeeName(expense.userId)}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Calendar size={12} />
+                                  {expense.date ? new Date(expense.date).toLocaleDateString() : 'No date'}
+                                </span>
+                                {expense.receiptUrl && (
                                   <span className="flex items-center gap-1">
-                                    <User size={12} />
-                                    {getEmployeeName(expense.userId)}
+                                    <Receipt size={12} />
+                                    Receipt Available
                                   </span>
-                                  <span className="flex items-center gap-1">
-                                    <Calendar size={12} />
-                                    {expense.date ? new Date(expense.date).toLocaleDateString() : 'No date'}
-                                  </span>
-                                  {expense.vendor && (
-                                    <span className="flex items-center gap-1">
-                                      <Building2 size={12} />
-                                      {expense.vendor}
-                                    </span>
-                                  )}
-                                  {expense.taxType && (
-                                    <span className="flex items-center gap-1">
-                                      <FileText size={12} />
-                                      {expense.taxType}
-                                    </span>
-                                  )}
-                                  {expense.receiptUrl && (
-                                    <span className="flex items-center gap-1">
-                                      <Receipt size={12} />
-                                      Receipt Available
-                                    </span>
-                                  )}
-                                </div>
+                                )}
                               </div>
                             </div>
+                          </div>
 
-                            <div className="flex items-center gap-2">
-                              <button 
-                                onClick={() => handleView(expense)}
-                                className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="View Details"
-                              >
-                                <Eye size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleEdit(expense)}
-                                className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                title="Edit Expense"
-                              >
-                                <Edit size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleDelete(expense._id)}
-                                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Delete Expense"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => handleView(expense)}
+                              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="View Details"
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button 
+                              onClick={() => handleEdit(expense)}
+                              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Edit Expense"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(expense._id)}
+                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Expense"
+                            >
+                              <Trash2 size={16} />
+                            </button>
                           </div>
                         </div>
-                      ))
-                    )}
+                      </div>
+                    ))}
 
                     {filteredExpenses.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
@@ -957,40 +704,6 @@ const ExpensesPage = () => {
                           <option key={type} value={type}>{type}</option>
                         ))}
                       </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tax Type *
-                      </label>
-                      <select
-                        name="taxType"
-                        value={formData.taxType}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">Select Tax Type</option>
-                        {taxTypes.map(taxType => (
-                          <option key={taxType} value={taxType}>{taxType}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Vendor/Payee
-                      </label>
-                      <input
-                        type="text"
-                        name="vendor"
-                        value={formData.vendor}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter vendor or payee name"
-                      />
                     </div>
                   </div>
 
@@ -1174,33 +887,6 @@ const ExpensesPage = () => {
                   </p>
                 </div>
               )}
-
-              {/* Tax Type and Vendor */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {viewingExpense.taxType && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <FileText size={18} className="text-gray-500" />
-                      <p className="text-sm font-medium text-gray-600">Tax Type</p>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-900">
-                      {viewingExpense.taxType}
-                    </p>
-                  </div>
-                )}
-
-                {viewingExpense.vendor && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Building2 size={18} className="text-gray-500" />
-                      <p className="text-sm font-medium text-gray-600">Vendor/Payee</p>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-900">
-                      {viewingExpense.vendor}
-                    </p>
-                  </div>
-                )}
-              </div>
 
               {/* Receipt */}
               {viewingExpense.receiptUrl && (
