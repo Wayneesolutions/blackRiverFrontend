@@ -5,6 +5,16 @@ import {
   AlertCircle,
   Calendar,
   FileText,
+  DollarSign,
+  Calculator,
+  Receipt,
+  ChartLine,
+  Handshake,
+  CreditCard,
+  TrendingDown,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
 } from 'lucide-react';
 import { listInvoices } from '../../../axios/api/account.invoices';
 import { listExpenses } from '../../../axios/api/account.expense';
@@ -112,11 +122,35 @@ const Dashboard = () => {
   const pendingRevenue = invoices
     .filter((inv) => inv.status === 'pending')
     .reduce((sum, inv) => sum + normalizeAmount(inv.amount), 0);
-
+  
+  // Calculate pending/unpaid invoices
+  const pendingInvoices = invoices.filter((inv) => inv.status === 'pending' || inv.status === 'unpaid');
+  const totalPendingUnpaidInvoices = pendingInvoices.reduce((sum, inv) => sum + normalizeAmount(inv.amount), 0);
+  const pendingInvoicesCount = pendingInvoices.length;
+  
+  // Calculate overdue invoices
+  const overdueInvoices = invoices.filter((inv) => inv.status === 'overdue');
+  const totalOverdueAmount = overdueInvoices.reduce((sum, inv) => sum + normalizeAmount(inv.amount), 0);
+  
   const totalExpenses = expenses.reduce((sum, exp) => sum + normalizeAmount(exp.amount), 0);
+  
+  // Calculate expense categories for top 5
+  const expenseCategories = expenses.reduce((acc: Record<string, number>, exp) => {
+    const category = exp.type || 'Uncategorized';
+    acc[category] = (acc[category] || 0) + normalizeAmount(exp.amount);
+    return acc;
+  }, {});
+  const topExpenseCategories = Object.entries(expenseCategories)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([category, amount]) => ({ category, amount }));
 
   const totalPayroll = payrolls.reduce((sum, payroll) => sum + normalizeAmount(payroll.totalSalary), 0);
   const totalEmployees = payrolls.length;
+  
+  // Placeholder for settlements - to be implemented when settlement API is available
+  const totalPendingSettlements = 0; // TODO: Fetch from settlement API
+  const pendingSettlementsCount = 0; // TODO: Fetch from settlement API
 
   const recentExpenses: RecentExpense[] = expenses.slice(0, 4).map((exp) => ({
     type: exp.type || 'Unknown',
@@ -180,31 +214,448 @@ const StatCard = ({
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard 
-            title="Total Revenue" 
-            value={`$${totalRevenue.toLocaleString()}`} 
-            subtitle={`${invoices.length} invoices`}
-            onClick={() => navigate('/admin/accounts/invoice')}
-          />
-          <StatCard 
-            title="Total Expenses" 
-            value={`$${totalExpenses.toLocaleString()}`} 
-            subtitle={`${expenses.length} transactions`}
-            onClick={() => navigate('/admin/accounts/expenses')}
-          />
-          <StatCard 
-            title="Total Payroll" 
-            value={`$${totalPayroll.toLocaleString()}`} 
-            subtitle={`${totalEmployees} employees`}
-            onClick={() => navigate('/admin/accounts/payroll')}
-          />
-          <StatCard 
-            title="Net Profit" 
-            value={`$${(totalRevenue - totalExpenses - totalPayroll).toLocaleString()}`} 
-            subtitle="Revenue - Expenses - Payroll"
-            onClick={() => navigate('/admin/accounts/invoice')}
-          />
+        <div className="space-y-6 mb-8">
+          {/* First Row - Core Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard 
+              title="Total Revenue" 
+              value={`$${totalRevenue.toLocaleString()}`} 
+              subtitle={`${invoices.length} invoices`}
+              onClick={() => navigate('/admin/accounts/invoice')}
+            />
+            <StatCard 
+              title="Total Expenses" 
+              value={`$${totalExpenses.toLocaleString()}`} 
+              subtitle={`${expenses.length} transactions`}
+              onClick={() => navigate('/admin/accounts/expenses')}
+            />
+            <StatCard 
+              title="Total Payroll" 
+              value={`$${totalPayroll.toLocaleString()}`} 
+              subtitle={`${totalEmployees} employees`}
+              onClick={() => navigate('/admin/accounts/payroll')}
+            />
+            <StatCard 
+              title="Net Profit" 
+              value={`$${(totalRevenue - totalExpenses - totalPayroll).toLocaleString()}`} 
+              subtitle="Revenue - Expenses - Payroll"
+              onClick={() => navigate('/admin/accounts/invoice')}
+            />
+          </div>
+          {/* Second Row - Enhanced Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            <StatCard 
+              title="Pending/Unpaid Invoices" 
+              value={`$${totalPendingUnpaidInvoices.toLocaleString()}`} 
+              subtitle={`${pendingInvoicesCount} invoices`}
+              onClick={() => navigate('/admin/accounts/invoice')}
+            />
+            <StatCard 
+              title="Open/Pending Settlements" 
+              value={`$${totalPendingSettlements.toLocaleString()}`} 
+              subtitle={`${pendingSettlementsCount} settlements`}
+              onClick={() => navigate('/admin/accounts/settlement')}
+            />
+          </div>
+        </div>
+
+        {/* Module Sections */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Accounts Management Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style={sectionCardStyle}>
+            <div 
+              className="p-6 border-b border-gray-100"
+              style={{ background: FLEET_COLORS.gradient }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white bg-opacity-20 rounded-lg">
+                    <ChartLine className="text-white" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Accounts Management</h3>
+                    <p className="text-sm text-white text-opacity-90">Chart of Accounts & Financial Categories</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/admin/accounts/accounts-management/chart-of-accounts')}
+                  className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-sm font-medium transition-all"
+                >
+                  View →
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div 
+                    onClick={() => navigate('/admin/accounts/invoice')}
+                    className="p-4 bg-blue-50 rounded-lg border border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="text-blue-600" size={18} />
+                      <span className="text-sm font-semibold text-gray-700">Revenue</span>
+                    </div>
+                    <p className="text-xs text-gray-600">Trip settlements, load payments</p>
+                  </div>
+                  <div 
+                    onClick={() => navigate('/admin/accounts/expenses')}
+                    className="p-4 bg-red-50 rounded-lg border border-red-100 cursor-pointer hover:bg-red-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingDown className="text-red-600" size={18} />
+                      <span className="text-sm font-semibold text-gray-700">Expenses</span>
+                    </div>
+                    <p className="text-xs text-gray-600">Fuel, repairs, maintenance</p>
+                  </div>
+                  <div 
+                    onClick={() => navigate('/admin/accounts/settlement')}
+                    className="p-4 bg-green-50 rounded-lg border border-green-100 cursor-pointer hover:bg-green-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Handshake className="text-green-600" size={18} />
+                      <span className="text-sm font-semibold text-gray-700">Settlements</span>
+                    </div>
+                    <p className="text-xs text-gray-600">Driver & owner-operator pay</p>
+                  </div>
+                  <div 
+                    onClick={() => navigate('/admin/accounts/settlement')}
+                    className="p-4 bg-purple-50 rounded-lg border border-purple-100 cursor-pointer hover:bg-purple-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Receipt className="text-purple-600" size={18} />
+                      <span className="text-sm font-semibold text-gray-700">Deductions</span>
+                    </div>
+                    <p className="text-xs text-gray-600">Advances, repairs, insurance</p>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 mb-3">
+                    <strong className="text-gray-900">Auto-Posting:</strong> Every financial entry automatically posts to the correct account
+                  </p>
+                  <button
+                    onClick={() => navigate('/admin/accounts/accounts-management/chart-of-accounts')}
+                    className="w-full px-4 py-3 rounded-lg text-base font-semibold transition-colors text-white shadow-lg"
+                    style={{ background: FLEET_COLORS.gradient }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '0.9';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    📊 Manage Chart of Accounts
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Settlement Module Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style={sectionCardStyle}>
+            <div 
+              className="p-6 border-b border-gray-100"
+              style={{ background: FLEET_COLORS.gradient }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white bg-opacity-20 rounded-lg">
+                    <Calculator className="text-white" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Settlement Module</h3>
+                    <p className="text-sm text-white text-opacity-90">Driver & Owner-Operator Settlements</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/admin/accounts/settlement')}
+                  className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-sm font-medium transition-all"
+                >
+                  View →
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div 
+                    onClick={() => navigate('/admin/accounts/settlement?section=trip-calculations')}
+                    className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                  >
+                    <CheckCircle2 className="text-green-600 mt-0.5" size={18} />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900">Trip-wise Calculations</p>
+                      <p className="text-xs text-gray-600">Miles, Rate, FSC, Accessorials</p>
+                    </div>
+                    <ArrowRight className="text-gray-400" size={16} />
+                  </div>
+                  <div 
+                    onClick={() => navigate('/admin/accounts/settlement?section=pay-methods')}
+                    className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                  >
+                    <CheckCircle2 className="text-green-600 mt-0.5" size={18} />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900">Pay Methods</p>
+                      <p className="text-xs text-gray-600">Per mile / Per load basis</p>
+                    </div>
+                    <ArrowRight className="text-gray-400" size={16} />
+                  </div>
+                  <div 
+                    onClick={() => navigate('/admin/accounts/settlement?section=deductions-addons')}
+                    className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                  >
+                    <CheckCircle2 className="text-green-600 mt-0.5" size={18} />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900">Deductions & Additions</p>
+                      <p className="text-xs text-gray-600">Fuel, advances, bonuses, reimbursements</p>
+                    </div>
+                    <ArrowRight className="text-gray-400" size={16} />
+                  </div>
+                  <div 
+                    onClick={() => navigate('/admin/accounts/settlement?section=unpaid')}
+                    className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                  >
+                    <Clock className="text-yellow-600 mt-0.5" size={18} />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900">Unpaid/Addons</p>
+                      <p className="text-xs text-gray-600">View pending settlements and additions</p>
+                    </div>
+                    <ArrowRight className="text-gray-400" size={16} />
+                  </div>
+                </div>
+                <div 
+                  onClick={() => navigate('/admin/accounts/settlement?section=auto-consolidated')}
+                  className="pt-4 border-t border-gray-200 bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg cursor-pointer hover:from-blue-100 hover:to-green-100 transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-gray-700">Auto-Consolidated Settlement</span>
+                    <ArrowRight className="text-gray-400" size={16} />
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    When a trip is completed, Logistiq automatically calculates and generates a ready-to-approve settlement sheet
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate('/admin/accounts/settlement')}
+                  className="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors text-white"
+                  style={{ background: FLEET_COLORS.gradient }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.9';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                >
+                  View Settlements
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Expense Management Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style={sectionCardStyle}>
+            <div 
+              className="p-6 border-b border-gray-100"
+              style={{ background: FLEET_COLORS.gradient }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white bg-opacity-20 rounded-lg">
+                    <Receipt className="text-white" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Expense Management</h3>
+                    <p className="text-sm text-white text-opacity-90">Track & Record All Company Expenses</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/admin/accounts/expenses')}
+                  className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-sm font-medium transition-all"
+                >
+                  View →
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                {/* Top 5 Expense Categories */}
+                {topExpenseCategories.length > 0 && (
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-4 border border-orange-200">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <TrendingDown className="text-orange-600" size={16} />
+                      Top 5 Expense Categories
+                    </h4>
+                    <div className="space-y-2">
+                      {topExpenseCategories.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <span className="text-xs text-gray-700">{item.category}</span>
+                          <span className="text-xs font-semibold text-gray-900">${item.amount.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-orange-50 rounded-lg border border-orange-100">
+                    <CreditCard className="text-orange-600 mb-2" size={20} />
+                    <p className="text-xs font-semibold text-gray-700">Fuel Receipts</p>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <FileText className="text-blue-600 mb-2" size={20} />
+                    <p className="text-xs font-semibold text-gray-700">Repairs & Shop</p>
+                  </div>
+                  <div className="p-3 bg-green-50 rounded-lg border border-green-100">
+                    <CheckCircle2 className="text-green-600 mb-2" size={20} />
+                    <p className="text-xs font-semibold text-gray-700">Compliance Fees</p>
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
+                    <DollarSign className="text-purple-600 mb-2" size={20} />
+                    <p className="text-xs font-semibold text-gray-700">Insurance & Tolls</p>
+                  </div>
+                </div>
+                <div className="space-y-2 pt-2 border-t border-gray-200">
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle2 className="text-green-600" size={16} />
+                    <span>Upload receipts with images</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle2 className="text-green-600" size={16} />
+                    <span>Map to truck/driver & accounts</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle2 className="text-green-600" size={16} />
+                    <span>Auto-reflect in P&L & settlements</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => navigate('/admin/accounts/expenses')}
+                    className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors text-white"
+                    style={{ background: FLEET_COLORS.gradient }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '0.9';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                  >
+                    Manage Expenses
+                  </button>
+                  <button
+                    onClick={() => navigate('/admin/accounts/expenses')}
+                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  >
+                    Receipts Archive
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Invoicing Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style={sectionCardStyle}>
+            <div 
+              className="p-6 border-b border-gray-100"
+              style={{ background: FLEET_COLORS.gradient }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white bg-opacity-20 rounded-lg">
+                    <FileText className="text-white" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Invoicing</h3>
+                    <p className="text-sm text-white text-opacity-90">Billing & Payment Management</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/admin/accounts/invoice')}
+                  className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-sm font-medium transition-all"
+                >
+                  View →
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                {/* Total Overdue Amount - Key Financial Metric */}
+                {totalOverdueAmount > 0 && (
+                  <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-gray-600 mb-1">Total Overdue Amount</p>
+                        <p className="text-xl font-bold text-red-700">${totalOverdueAmount.toLocaleString()}</p>
+                      </div>
+                      <AlertCircle className="text-red-600" size={24} />
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">{overdueInvoices.length} overdue invoice(s)</p>
+                  </div>
+                )}
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <div className="p-3 bg-green-100 rounded-lg text-center">
+                    <p className="text-lg font-bold text-green-800">
+                      {invoices.filter(inv => inv.status === 'paid').length}
+                    </p>
+                    <p className="text-xs text-green-700">Paid</p>
+                  </div>
+                  <div className="p-3 bg-yellow-100 rounded-lg text-center">
+                    <p className="text-lg font-bold text-yellow-800">
+                      {invoices.filter(inv => inv.status === 'pending').length}
+                    </p>
+                    <p className="text-xs text-yellow-700">Pending</p>
+                  </div>
+                  <div className="p-3 bg-red-100 rounded-lg text-center">
+                    <p className="text-lg font-bold text-red-800">
+                      {invoices.filter(inv => inv.status === 'overdue').length}
+                    </p>
+                    <p className="text-xs text-red-700">Overdue</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle2 className="text-green-600" size={16} />
+                    <span>Auto-generate from completed loads</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle2 className="text-green-600" size={16} />
+                    <span>View paid / unpaid / overdue status</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle2 className="text-green-600" size={16} />
+                    <span>Apply payments & export PDF</span>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-gray-200">
+                  <p className="text-xs text-gray-600 mb-3">
+                    Invoices use load details, rate confirmations, and accessorial charges automatically
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => navigate('/admin/accounts/invoice')}
+                      className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors text-white"
+                      style={{ background: FLEET_COLORS.gradient }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.opacity = '0.9';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.opacity = '1';
+                      }}
+                    >
+                      Manage Invoices
+                    </button>
+                    <button
+                      onClick={() => navigate('/admin/accounts/invoice?action=create')}
+                      className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-green-600 text-white hover:bg-green-700"
+                    >
+                      New Invoice
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Financial Overview & Recent Activity */}
