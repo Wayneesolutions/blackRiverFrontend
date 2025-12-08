@@ -8,6 +8,7 @@ const Dashboard = lazy(() => import("../../pages/admin/accounts/index"));
 const Invoices = lazy(() => import("../../pages/admin/accounts/invoice/index"))
 const Expenses = lazy(() => import("../../pages/admin/accounts/expenses/index"))
 const Payroll = lazy(() => import("../../pages/admin/accounts/payroll/index"))
+const MonthlySalaryReport = lazy(() => import("../../pages/admin/accounts/payroll/MonthlySalaryReport"))
 
 
 function AccountsRoutes() {
@@ -18,7 +19,8 @@ function AccountsRoutes() {
                     <Route index element={<Dashboard />} />
                     <Route path="/invoice" element={<Invoices />} />
                     <Route path="/expenses" element={<Expenses />} />
-                     <Route path="/payroll" element={<Payroll />} />
+                    <Route path="/payroll" element={<Payroll />} />
+                    <Route path="/payroll/monthly-report" element={<MonthlySalaryReport />} />
                 </Route>
             </Routes>
         </Suspense>

@@ -93,3 +93,45 @@ export const getDriverCompletedTrips = async (driverId: string, startDate?: stri
         return err.response?.data;
     }
 };
+
+// Automated Payroll Generation
+export const generateAutomatedPayroll = async (data: {
+    userId: string;
+    month: number;
+    year: number;
+    baseSalary?: number;
+}) => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`hr/generate-payroll`, data);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Bulk Generate Payrolls
+export const bulkGeneratePayrolls = async (data: {
+    employeeIds: string[];
+    month: number;
+    year: number;
+}) => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`hr/bulk-generate-payrolls`, data);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Monthly Salary Report
+export const getMonthlySalaryReport = async (month: number, year: number) => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`hr/monthly-salary-report?month=${month}&year=${year}`);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
