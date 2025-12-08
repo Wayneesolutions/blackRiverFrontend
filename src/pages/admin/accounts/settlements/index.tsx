@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Search, Plus, Edit, Trash2, Download, Upload, Filter, DollarSign, TrendingDown, TrendingUp, MapPin, FileText, Users } from 'lucide-react';
+import  { useState } from 'react';
+import { Search, Plus, Edit, Trash2, Download, Filter, DollarSign, TrendingDown, TrendingUp, MapPin, FileText, Users } from 'lucide-react';
 
 export default function SettlementSystem() {
   const [activeTab, setActiveTab] = useState('driver-settlements');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Driver/O-O Settlements Data
-  const [settlements, setSettlements] = useState([
+  const [settlements, ] = useState([
     { id: 1, settlementId: 'STL-2024-001', payPeriod: 'Dec 1-15, 2024', payee: 'John Smith', status: 'Paid', grossPay: 4500, deductions: 450, netPay: 4050 },
     { id: 2, settlementId: 'STL-2024-002', payPeriod: 'Dec 1-15, 2024', payee: 'Mike Johnson', status: 'Pending', grossPay: 5200, deductions: 520, netPay: 4680 },
     { id: 3, settlementId: 'STL-2024-003', payPeriod: 'Dec 1-15, 2024', payee: 'Sarah Williams', status: 'Processing', grossPay: 3800, deductions: 380, netPay: 3420 },
@@ -14,7 +14,7 @@ export default function SettlementSystem() {
   ]);
 
   // Deductions & Additions Data
-  const [deductions, setDeductions] = useState([
+  const [deductions,] = useState([
     { id: 1, name: 'Escrow Contribution', type: 'Deduction', recurrence: 'Weekly', amount: 150, assignedTo: 'John Smith' },
     { id: 2, name: 'Safety Bonus', type: 'Addition', recurrence: 'Monthly', amount: 200, assignedTo: 'Mike Johnson' },
     { id: 3, name: 'Fuel Advance', type: 'Deduction', recurrence: 'One-time', amount: 500, assignedTo: 'Sarah Williams' },
@@ -22,7 +22,7 @@ export default function SettlementSystem() {
   ]);
 
   // Miles Tracking Data
-  const [milesTracking, setMilesTracking] = useState([
+  const [milesTracking, ] = useState([
     { id: 1, date: '2024-12-05', vehicle: 'TRK-101', driver: 'John Smith', state: 'CA', totalMiles: 450, loadedMiles: 420, emptyMiles: 30, iftaMiles: 450 },
     { id: 2, date: '2024-12-05', vehicle: 'TRK-102', driver: 'Mike Johnson', state: 'TX', totalMiles: 520, loadedMiles: 500, emptyMiles: 20, iftaMiles: 520 },
     { id: 3, date: '2024-12-04', vehicle: 'TRK-103', driver: 'Sarah Williams', state: 'NV', totalMiles: 380, loadedMiles: 350, emptyMiles: 30, iftaMiles: 380 },

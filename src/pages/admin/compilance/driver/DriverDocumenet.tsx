@@ -232,6 +232,9 @@ function DriverDocument() {
     data.append("documentNumber", formData.documentNumber);
     data.append("expiryDate", formData.expiryDate);
     data.append("issuedAt", formData.issuedAt);
+    
+    // Add employee/driver ID to FormData (required by backend)
+    data.append("employee", selectedDriver._id);
 
     if (selectedFile) {
       data.append("document", selectedFile);
@@ -242,7 +245,7 @@ function DriverDocument() {
       if (editingDoc) {
         res = await updateDriverDocument(editingDoc._id, data);
       } else {
-        res = await createDriverDocument(selectedDriver._id, data);
+        res = await createDriverDocument(data);
       }
 
       if (res?.success) {

@@ -8,6 +8,8 @@ interface Employee {
     role: string;
     details?: {
         mileRate?: number;
+        hourlyRate?: number;
+        baseSalary?: number;
         [key: string]: any;
     };
 }
@@ -70,6 +72,29 @@ interface DriverPayrollSummary {
     totalDistanceMiles: number;
     totalEarnings: number;
     ratePerMile: number;
+}
+
+interface AttendanceRecord {
+    _id: string;
+    date: string;
+    checkIn?: string;
+    checkOut?: string;
+    hoursWorked?: number;
+    status: 'present' | 'absent';
+    overtimeHours?: number;
+}
+
+interface AttendanceSummary {
+    totalDays: number;
+    presentDays: number;
+    absentDays: number;
+    totalHours: number;
+    regularHours: number;
+    overtimeHours: number;
+    hourlyRate: number;
+    regularEarnings: number;
+    overtimeEarnings: number;
+    totalEarnings: number;
 }
 
 interface Payroll {
@@ -138,6 +163,13 @@ interface Payroll {
     }>;
     totalMiles?: number;
     ratePerMile?: number;
+    // Employee attendance fields (optional)
+    totalHours?: number;
+    regularHours?: number;
+    overtimeHours?: number;
+    hourlyRate?: number;
+    presentDays?: number;
+    absentDays?: number;
 }
 
 interface PayrollFormData {
@@ -174,9 +206,12 @@ const PayrollManagement = () => {
     const [payrollData, setPayrollData] = useState<Payroll[]>([]);
     const [driverTrips, setDriverTrips] = useState<Trip[]>([]);
     const [driverPayrollSummary, setDriverPayrollSummary] = useState<DriverPayrollSummary | null>(null);
+    const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+    const [attendanceSummary, setAttendanceSummary] = useState<AttendanceSummary | null>(null);
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
     const [loading, setLoading] = useState(false);
     const [loadingTrips, setLoadingTrips] = useState(false);
+    const [loadingAttendance, setLoadingAttendance] = useState(false);
     const [notification, setNotification] = useState<Notification | null>(null);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
@@ -866,8 +901,8 @@ const PayrollManagement = () => {
                             </div>
                             <div className="p-3 rounded-full bg-blue-100 flex-shrink-0">
                                 <DollarSign className="text-blue-600" size={24} />
+                            </div>
                         </div>
-                    </div>
                     </div>
                     <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
                         <div className="flex items-center justify-between">
@@ -877,8 +912,8 @@ const PayrollManagement = () => {
                             </div>
                             <div className="p-3 rounded-full bg-green-100 flex-shrink-0">
                                 <Users className="text-green-600" size={24} />
+                            </div>
                         </div>
-                    </div>
                     </div>
                     <div className="bg-white p-6 border-gray-200 rounded-xl shadow-sm border">
                         <div className="flex items-center justify-between">

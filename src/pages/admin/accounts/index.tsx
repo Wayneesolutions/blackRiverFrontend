@@ -9,14 +9,11 @@ import {
   Calculator,
   Receipt,
   ChartLine,
-  Users,
   Handshake,
   CreditCard,
   TrendingDown,
   ArrowRight,
-  CheckCircle2,
-  Clock,
-  XCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { listInvoices } from '../../../axios/api/account.invoices';
 import { listExpenses } from '../../../axios/api/account.expense';
