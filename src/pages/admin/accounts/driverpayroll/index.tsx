@@ -1,9 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Clock, Truck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Truck } from 'lucide-react';
+
+// Type definitions
+interface Driver {
+  _id: string;
+  name: string;
+  role: string;
+  details?: {
+    mileRate?: number;
+  };
+}
+
+interface Trip {
+  _id: string;
+  tripNumber?: string;
+  startLocation?: { place: string };
+  endLocation?: { place: string };
+  actualEndDate?: string;
+  distance?: number;
+  distanceInMiles?: number;
+  mileRate?: number;
+  earnings?: string;
+  truck?: { plateNumber?: string };
+  status?: string;
+  selected?: boolean;
+}
+
+interface TripSummary {
+  totalTrips: number;
+  totalDistanceKm: number;
+  totalDistanceMiles: number;
+  totalEarnings: number;
+  ratePerMile: number;
+}
+
+interface DriverPayroll {
+  _id: string;
+  userId: {
+    _id: string;
+    name: string;
+    role: string;
+  };
+  baseSalary: number;
+  bonus: number;
+  deductions: number;
+  totalSalary: number;
+  payDate: string;
+  startDate: string;
+  endDate: string;
+  totalMiles?: number;
+  ratePerMile?: number;
+  trips?: Trip[];
+}
+
+interface Notification {
+  type: 'success' | 'error';
+  message: string;
+}
+
+interface FormData {
+  userId: string;
+  bonus: string;
+  deductions: string;
+  payDate: string;
+  startDate: string;
+  endDate: string;
+}
 
 // Mock API functions - replace with your actual API
 const mockAPI = {
-  getDrivers: async () => ({
+  getDrivers: async (): Promise<{ success: boolean; data: Driver[] }> => ({
     success: true,
     data: [
       { _id: '1', name: 'John Smith', role: 'driver', details: { mileRate: 0.65 } },
@@ -12,7 +78,7 @@ const mockAPI = {
     ]
   }),
   
-  getDriverTrips: async (driverId, startDate, endDate) => ({
+  getDriverTrips: async (_driverId: string, _startDate: string, _endDate: string): Promise<{ success: boolean; data: Trip[]; summary?: TripSummary }> => ({
     success: true,
     data: [
       {
@@ -51,7 +117,7 @@ const mockAPI = {
     }
   }),
   
-  listDriverPayrolls: async () => ({
+  listDriverPayrolls: async (): Promise<{ success: boolean; data: DriverPayroll[] }> => ({
     success: true,
     data: [
       {
@@ -74,39 +140,39 @@ const mockAPI = {
     ]
   }),
   
-  createPayroll: async (data) => ({
+  createPayroll: async (_data: Partial<DriverPayroll>): Promise<{ success: boolean; message: string }> => ({
     success: true,
     message: 'Driver payroll created successfully!'
   }),
   
-  updatePayroll: async (id, data) => ({
+  updatePayroll: async (_id: string, _data: Partial<DriverPayroll>): Promise<{ success: boolean; message: string }> => ({
     success: true,
     message: 'Driver payroll updated successfully!'
   }),
   
-  deletePayroll: async (id) => ({
+  deletePayroll: async (_id: string): Promise<{ success: boolean; message: string }> => ({
     success: true,
     message: 'Driver payroll deleted successfully!'
   })
 };
 
 const DriverPayrollManagement = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedPayroll, setSelectedPayroll] = useState(null);
-  const [drivers, setDrivers] = useState([]);
-  const [payrollData, setPayrollData] = useState([]);
-  const [driverTrips, setDriverTrips] = useState([]);
-  const [driverPayrollSummary, setDriverPayrollSummary] = useState(null);
-  const [selectedDriver, setSelectedDriver] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [loadingTrips, setLoadingTrips] = useState(false);
-  const [notification, setNotification] = useState(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [showViewModal, setShowViewModal] = useState<boolean>(false);
+  const [selectedPayroll, setSelectedPayroll] = useState<DriverPayroll | null>(null);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [payrollData, setPayrollData] = useState<DriverPayroll[]>([]);
+  const [driverTrips, setDriverTrips] = useState<Trip[]>([]);
+  const [driverPayrollSummary, setDriverPayrollSummary] = useState<TripSummary | null>(null);
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingTrips, setLoadingTrips] = useState<boolean>(false);
+  const [notification, setNotification] = useState<Notification | null>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     userId: '',
     bonus: '0',
     deductions: '0',
@@ -115,7 +181,7 @@ const DriverPayrollManagement = () => {
     endDate: ''
   });
 
-  const showNotification = (type, message) => {
+  const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 5000);
   };
@@ -145,7 +211,7 @@ const DriverPayrollManagement = () => {
     }
   };
 
-  const fetchDriverTrips = async (driverId, startDate, endDate) => {
+  const fetchDriverTrips = async (driverId: string, startDate: string, endDate: string) => {
     setLoadingTrips(true);
     try {
       const response = await mockAPI.getDriverTrips(driverId, startDate, endDate);
@@ -160,10 +226,7 @@ const DriverPayrollManagement = () => {
 
         if (response.summary) {
           setDriverPayrollSummary(response.summary);
-          setFormData(prev => ({
-            ...prev,
-            baseSalary: response.summary.totalEarnings.toString()
-          }));
+          // baseSalary is calculated from trips, not stored in formData
         }
       } else {
         showNotification('error', 'Failed to fetch driver trips');
@@ -183,7 +246,7 @@ const DriverPayrollManagement = () => {
     fetchPayrolls();
   }, []);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     if (name === 'userId') {
@@ -214,7 +277,7 @@ const DriverPayrollManagement = () => {
     }
   };
 
-  const handleDateRangeChange = (startDate, endDate) => {
+  const handleDateRangeChange = (startDate: string, endDate: string) => {
     setFormData(prev => ({
       ...prev,
       startDate,
@@ -226,7 +289,7 @@ const DriverPayrollManagement = () => {
     }
   };
 
-  const toggleTripSelection = (tripId) => {
+  const toggleTripSelection = (tripId: string) => {
     setDriverTrips(prev => prev.map(trip => 
       trip._id === tripId ? { ...trip, selected: !trip.selected } : trip
     ));
@@ -267,7 +330,8 @@ const DriverPayrollManagement = () => {
     
     try {
       const selectedTotals = getSelectedTripsTotals();
-      const payload = {
+      // Create payload with userId as string (will be converted to object by backend)
+      const payload: any = {
         userId: formData.userId,
         baseSalary: selectedTotals.totalEarnings,
         bonus: parseFloat(formData.bonus) || 0,
@@ -350,12 +414,12 @@ const DriverPayrollManagement = () => {
     }
   };
 
-  const openViewModal = (payroll) => {
+  const openViewModal = (payroll: DriverPayroll) => {
     setSelectedPayroll(payroll);
     setShowViewModal(true);
   };
 
-  const openEditModal = (payroll) => {
+  const openEditModal = (payroll: DriverPayroll) => {
     setSelectedPayroll(payroll);
     const payDateFormatted = payroll.payDate ? payroll.payDate.split('T')[0] : '';
     
@@ -370,7 +434,7 @@ const DriverPayrollManagement = () => {
     setShowEditModal(true);
   };
 
-  const openDeleteModal = (payroll) => {
+  const openDeleteModal = (payroll: DriverPayroll) => {
     setSelectedPayroll(payroll);
     setShowDeleteModal(true);
   };

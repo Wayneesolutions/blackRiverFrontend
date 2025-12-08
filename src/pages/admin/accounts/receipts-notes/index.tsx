@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { Search, Plus, Edit, Trash2, Download, Upload, Filter, Receipt, FileText, Eye, Calendar, DollarSign, User, Tag, Paperclip, Image as ImageIcon } from 'lucide-react';
 
 export default function ReceiptsFinancialNotes() {
@@ -7,7 +7,7 @@ export default function ReceiptsFinancialNotes() {
   const [selectedExpenseType, setSelectedExpenseType] = useState('All');
 
   // Receipts Archive Data
-  const [receipts, setReceipts] = useState([
+  const [receipts,] = useState([
     { 
       id: 1, 
       date: '2024-12-05', 
@@ -61,7 +61,7 @@ export default function ReceiptsFinancialNotes() {
   ]);
 
   // Financial Notes Data
-  const [financialNotes, setFinancialNotes] = useState([
+  const [financialNotes,] = useState([
     { 
       id: 1, 
       date: '2024-12-05 10:30 AM', 

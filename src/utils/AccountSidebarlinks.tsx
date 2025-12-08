@@ -8,7 +8,6 @@ import {
     FaTools, 
     FaReceipt 
 } from "react-icons/fa"; 
-import { TbChartArcs } from "react-icons/tb";
 
 type AccountSidebarlinks = {
     key: string;

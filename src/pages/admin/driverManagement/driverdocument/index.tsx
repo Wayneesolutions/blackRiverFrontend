@@ -3,8 +3,17 @@ import { FileText, Search, Upload, Eye, Download, Trash2, CheckCircle, XCircle, 
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 
 // Import your actual API functions here
-// import { getAllDriverDocuments, getDriverDocumentStats, ... } from '../../../../axios/api/compilance.driverdoc';
-// import { getAllDrivers } from '../../../../axios/api/driver';
+import { 
+  createDriverDocument, 
+  updateDriverDocument,
+  deleteDriverDocument
+} from '../../../../axios/api/compilance.driverdoc';
+import { getAllDrivers } from '../../../../axios/api/driver';
+import { 
+  getAllEmployeeDocuments,
+  getDocumentsByEmployee,
+  getEmployeeDocumentStats 
+} from '../../../../axios/api/employeeDocument';
 
 type NotificationType = 'success' | 'error' | 'info';
 
@@ -124,17 +133,68 @@ const DriverDocumentsPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Replace with your actual API calls
-      // const [documentsResponse, statsResponse, driversResponse] = await Promise.all([
-      //   getAllDriverDocuments(1, 10, selectedDriver?._id),
-      //   getDriverDocumentStats(),
-      //   getAllDrivers()
-      // ]);
       
-      // Mock data for demonstration
-      setDriverDocuments([]);
-      setDocumentStats({ totalDocuments: 0, validDocuments: 0, pendingDocuments: 0, expiredDocuments: 0 });
-      setDrivers([]);
+      // Fetch drivers
+      const driversResponse = await getAllDrivers(1, 100);
+      if (driversResponse.success && Array.isArray(driversResponse.data)) {
+        setDrivers(driversResponse.data);
+      }
+      
+      // Fetch documents and stats
+      if (selectedDriver?._id) {
+        // Fetch documents for selected driver
+        const documentsResponse = await getDocumentsByEmployee(selectedDriver._id);
+        if (documentsResponse.success && Array.isArray(documentsResponse.data)) {
+          // Transform EmployeeDocument[] to DriverDocument[]
+          const driverDocs = documentsResponse.data.map((doc: any) => ({
+            ...doc,
+            driver: doc.employee || selectedDriver._id
+          }));
+          setDriverDocuments([{
+            driver: {
+              _id: selectedDriver._id,
+              name: selectedDriver.name || '',
+              internalId: selectedDriver.internalId || ''
+            },
+            documents: driverDocs
+          }]);
+        }
+      } else {
+        // Fetch all documents with driver role filter
+        const allDocumentsResponse = await getAllEmployeeDocuments(1, 100, undefined, undefined, undefined, 'driver');
+        if (allDocumentsResponse.success && Array.isArray(allDocumentsResponse.data)) {
+          // Transform EmployeeWithDocuments[] to DriverWithDocuments[]
+          const transformedDocs = allDocumentsResponse.data.map((item: any) => ({
+            driver: item.employee ? {
+              _id: item.employee._id || item.employee,
+              name: item.employee.name || '',
+              internalId: item.employee.internalId || ''
+            } : {
+              _id: '',
+              name: '',
+              internalId: ''
+            },
+            documents: item.documents ? item.documents.map((doc: any) => ({
+              ...doc,
+              driver: doc.employee || item.employee?._id || item.employee
+            })) : []
+          }));
+          setDriverDocuments(transformedDocs);
+        }
+      }
+      
+      // Fetch document stats
+      const statsResponse = await getEmployeeDocumentStats();
+      if (statsResponse.success && statsResponse.data) {
+        setDocumentStats({
+          totalDocuments: statsResponse.data.totalDocuments || 0,
+          validDocuments: statsResponse.data.validDocuments || 0,
+          pendingDocuments: statsResponse.data.pendingDocuments || 0,
+          expiredDocuments: statsResponse.data.expiredDocuments || 0
+        });
+      } else {
+        setDocumentStats({ totalDocuments: 0, validDocuments: 0, pendingDocuments: 0, expiredDocuments: 0 });
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -606,7 +666,8 @@ const UploadDocumentModal = ({
     try {
       setLoading(true);
       const submitData = new FormData();
-      submitData.append('driver', formData.driver);
+      // Use 'employee' field since drivers are stored as employees in the backend
+      submitData.append('employee', formData.driver);
       submitData.append('documentType', formData.documentType);
       submitData.append('status', formData.status);
       
@@ -814,8 +875,7 @@ const ViewDocumentModal = ({
   document,
   driverName,
   onClose,
-  onEdit,
-  addNotification
+  onEdit
 }: {
   document: DriverDocument;
   driverName: string;

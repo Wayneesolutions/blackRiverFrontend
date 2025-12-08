@@ -1,9 +1,79 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, Clock, Briefcase, UserCheck, UserX } from 'lucide-react';
 
+// Type definitions
+interface Employee {
+  _id: string;
+  name: string;
+  role: string;
+  details?: {
+    hourlyRate?: number;
+    baseSalary?: number;
+  };
+}
+
+interface AttendanceRecord {
+  _id: string;
+  date: string;
+  checkIn?: string;
+  checkOut?: string;
+  hoursWorked?: number;
+  status: 'present' | 'absent';
+  overtimeHours?: number;
+}
+
+interface AttendanceSummary {
+  totalDays: number;
+  presentDays: number;
+  absentDays: number;
+  totalHours: number;
+  regularHours: number;
+  overtimeHours: number;
+  hourlyRate: number;
+  regularEarnings: number;
+  overtimeEarnings: number;
+  totalEarnings: number;
+}
+
+interface Payroll {
+  _id: string;
+  userId: {
+    _id: string;
+    name: string;
+    role: string;
+  };
+  baseSalary: number;
+  bonus: number;
+  deductions: number;
+  totalSalary: number;
+  payDate: string;
+  startDate: string;
+  endDate: string;
+  totalHours: number;
+  regularHours: number;
+  overtimeHours: number;
+  hourlyRate: number;
+  presentDays: number;
+  absentDays: number;
+}
+
+interface Notification {
+  type: 'success' | 'error';
+  message: string;
+}
+
+interface FormData {
+  userId: string;
+  bonus: string;
+  deductions: string;
+  payDate: string;
+  startDate: string;
+  endDate: string;
+}
+
 // Mock API functions - replace with your actual API
 const mockAPI = {
-  getEmployees: async () => ({
+  getEmployees: async (): Promise<{ success: boolean; data: Employee[] }> => ({
     success: true,
     data: [
       { _id: '1', name: 'Sarah Johnson', role: 'HR', details: { hourlyRate: 25, baseSalary: 4000 } },
@@ -12,7 +82,7 @@ const mockAPI = {
     ]
   }),
   
-  getEmployeeAttendance: async (employeeId, startDate, endDate) => ({
+  getEmployeeAttendance: async (_employeeId: string, _startDate: string, _endDate: string): Promise<{ success: boolean; data: AttendanceRecord[]; summary?: AttendanceSummary }> => ({
     success: true,
     data: [
       {
@@ -71,7 +141,7 @@ const mockAPI = {
     }
   }),
   
-  listEmployeePayrolls: async () => ({
+  listEmployeePayrolls: async (): Promise<{ success: boolean; data: Payroll[] }> => ({
     success: true,
     data: [
       {
@@ -94,40 +164,40 @@ const mockAPI = {
     ]
   }),
   
-  createPayroll: async (data) => ({
+  createPayroll: async (_data: Partial<Payroll>): Promise<{ success: boolean; message: string }> => ({
     success: true,
     message: 'Employee payroll created successfully!'
   }),
   
-  updatePayroll: async (id, data) => ({
+  updatePayroll: async (_id: string, _data: Partial<Payroll>): Promise<{ success: boolean; message: string }> => ({
     success: true,
     message: 'Employee payroll updated successfully!'
   }),
   
-  deletePayroll: async (id) => ({
+  deletePayroll: async (_id: string): Promise<{ success: boolean; message: string }> => ({
     success: true,
     message: 'Employee payroll deleted successfully!'
   })
 };
 
 const EmployeePayrollManagement = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterRole, setFilterRole] = useState('all');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedPayroll, setSelectedPayroll] = useState(null);
-  const [employees, setEmployees] = useState([]);
-  const [payrollData, setPayrollData] = useState([]);
-  const [attendanceRecords, setAttendanceRecords] = useState([]);
-  const [attendanceSummary, setAttendanceSummary] = useState(null);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [loadingAttendance, setLoadingAttendance] = useState(false);
-  const [notification, setNotification] = useState(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [filterRole, setFilterRole] = useState<string>('all');
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [showViewModal, setShowViewModal] = useState<boolean>(false);
+  const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [payrollData, setPayrollData] = useState<Payroll[]>([]);
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [attendanceSummary, setAttendanceSummary] = useState<AttendanceSummary | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingAttendance, setLoadingAttendance] = useState<boolean>(false);
+  const [notification, setNotification] = useState<Notification | null>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     userId: '',
     bonus: '0',
     deductions: '0',
@@ -136,7 +206,7 @@ const EmployeePayrollManagement = () => {
     endDate: ''
   });
 
-  const showNotification = (type, message) => {
+  const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 5000);
   };
@@ -166,7 +236,7 @@ const EmployeePayrollManagement = () => {
     }
   };
 
-  const fetchEmployeeAttendance = async (employeeId, startDate, endDate) => {
+  const fetchEmployeeAttendance = async (employeeId: string, startDate: string, endDate: string) => {
     setLoadingAttendance(true);
     try {
       const response = await mockAPI.getEmployeeAttendance(employeeId, startDate, endDate);
@@ -176,10 +246,7 @@ const EmployeePayrollManagement = () => {
 
         if (response.summary) {
           setAttendanceSummary(response.summary);
-          setFormData(prev => ({
-            ...prev,
-            baseSalary: response.summary.totalEarnings.toString()
-          }));
+          // baseSalary is calculated from attendance summary, not stored in formData
         }
       } else {
         showNotification('error', 'Failed to fetch attendance records');
@@ -199,7 +266,7 @@ const EmployeePayrollManagement = () => {
     fetchPayrolls();
   }, []);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     if (name === 'userId') {
@@ -230,7 +297,7 @@ const EmployeePayrollManagement = () => {
     }
   };
 
-  const handleDateRangeChange = (startDate, endDate) => {
+  const handleDateRangeChange = (startDate: string, endDate: string) => {
     setFormData(prev => ({
       ...prev,
       startDate,
@@ -256,7 +323,8 @@ const EmployeePayrollManagement = () => {
     setLoading(true);
     
     try {
-      const payload = {
+      // Create payload with userId as string (will be converted to object by backend)
+      const payload: any = {
         userId: formData.userId,
         baseSalary: attendanceSummary.totalEarnings,
         bonus: parseFloat(formData.bonus) || 0,
@@ -342,12 +410,12 @@ const EmployeePayrollManagement = () => {
     }
   };
 
-  const openViewModal = (payroll) => {
+  const openViewModal = (payroll: Payroll) => {
     setSelectedPayroll(payroll);
     setShowViewModal(true);
   };
 
-  const openEditModal = (payroll) => {
+  const openEditModal = (payroll: Payroll) => {
     setSelectedPayroll(payroll);
     const payDateFormatted = payroll.payDate ? payroll.payDate.split('T')[0] : '';
     
@@ -362,7 +430,7 @@ const EmployeePayrollManagement = () => {
     setShowEditModal(true);
   };
 
-  const openDeleteModal = (payroll) => {
+  const openDeleteModal = (payroll: Payroll) => {
     setSelectedPayroll(payroll);
     setShowDeleteModal(true);
   };
@@ -568,8 +636,8 @@ const EmployeePayrollManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         <div className="flex flex-col">
-                          <span>{payroll.totalHours}h</span>
-                          {payroll.overtimeHours > 0 && (
+                          <span>{payroll.totalHours || 0}h</span>
+                          {(payroll.overtimeHours || 0) > 0 && (
                             <span className="text-xs text-orange-600">+{payroll.overtimeHours}h OT</span>
                           )}
                         </div>
@@ -687,6 +755,18 @@ const EmployeePayrollManagement = () => {
                             name="startDate"
                             value={formData.startDate}
                             onChange={(e) => handleDateRangeChange(e.target.value, formData.endDate)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            End Date <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="date"
+                            name="endDate"
+                            value={formData.endDate}
+                            onChange={(e) => handleDateRangeChange(formData.startDate, e.target.value)}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
@@ -1018,7 +1098,7 @@ const EmployeePayrollManagement = () => {
                     </div>
                     <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
                       <Clock className="text-orange-600 mx-auto mb-2" size={24} />
-                      <div className="text-2xl font-bold text-gray-900">{selectedPayroll.overtimeHours}h</div>
+                      <div className="text-2xl font-bold text-gray-900">{selectedPayroll.overtimeHours || 0}h</div>
                       <div className="text-xs text-gray-600">Overtime Hours</div>
                     </div>
                   </div>
@@ -1043,10 +1123,10 @@ const EmployeePayrollManagement = () => {
                     <div className="flex justify-between items-center p-3 bg-white rounded-lg">
                       <div>
                         <span className="text-sm font-medium text-gray-700">Overtime Hours</span>
-                        <span className="text-xs text-gray-500 ml-2">({selectedPayroll.overtimeHours}h @ ${(selectedPayroll.hourlyRate * 1.5).toFixed(2)}/hr)</span>
+                        <span className="text-xs text-gray-500 ml-2">({selectedPayroll.overtimeHours || 0}h @ ${((selectedPayroll.hourlyRate || 0) * 1.5).toFixed(2)}/hr)</span>
                       </div>
                       <span className="text-lg font-bold text-orange-600">
-                        ${(selectedPayroll.overtimeHours * selectedPayroll.hourlyRate * 1.5).toFixed(2)}
+                        ${((selectedPayroll.overtimeHours || 0) * (selectedPayroll.hourlyRate || 0) * 1.5).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-white rounded-lg">

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { CSSProperties } from 'react';
-import { Search, Filter, Calendar, Users, DollarSign, Clock, TrendingUp, MapPin, FileText, Eye, X, User as UserIcon, Mail, AlertCircle, Download, Truck } from 'lucide-react';
+import { Search, Calendar, Users, DollarSign, Clock, TrendingUp, MapPin, FileText, Eye, X, User as UserIcon, Mail, AlertCircle, Download, Truck } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import ExcelJS from 'exceljs';
 import { fetchUserProfiles, type UserProfileDto, type UserProfilesTimeRange } from '../../../../axios/api/hr.userProfiles';

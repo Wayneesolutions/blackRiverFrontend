@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Search, Plus, Edit, Trash2, Download, Upload, Filter, Wrench, DollarSign, Package, Clock, TrendingUp, Calendar, FileText, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Search, Plus, Edit, Trash2, Download, Filter, Wrench, DollarSign, Package, TrendingUp, Calendar, FileText, AlertCircle } from 'lucide-react';
 
 export default function FleetMaintenanceFinance() {
   const [activeTab, setActiveTab] = useState('expense-summary');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Maintenance Expense Summary Data
-  const [expenseSummary, setExpenseSummary] = useState([
+  const [expenseSummary, ] = useState([
     { id: 1, vehicle: 'TRK-101', totalExpense: 12500, costPerMile: 0.45, breakdown: 'Tires: $3500, Engine: $6000, PM: $3000', topExpenses: ['Tires', 'Engine', 'PM'] },
     { id: 2, vehicle: 'TRK-102', totalExpense: 8900, costPerMile: 0.38, breakdown: 'Brakes: $2400, PM: $2500, Oil: $4000', topExpenses: ['Oil', 'Brakes', 'PM'] },
     { id: 3, vehicle: 'TRK-103', totalExpense: 15200, costPerMile: 0.52, breakdown: 'Engine: $8000, Tires: $4200, PM: $3000', topExpenses: ['Engine', 'Tires', 'PM'] },
@@ -14,7 +14,7 @@ export default function FleetMaintenanceFinance() {
   ]);
 
   // Parts Cost Log Data
-  const [partsCostLog, setPartsCostLog] = useState([
+  const [partsCostLog, ] = useState([
     { id: 1, partNumber: 'BRK-2024-001', description: 'Brake Pads - Front', unitCost: 245.00, dateOfUse: '2024-12-01', vehicle: 'TRK-101', quantity: 2 },
     { id: 2, partNumber: 'TIR-2024-045', description: 'Michelin Tire 11R22.5', unitCost: 450.00, dateOfUse: '2024-12-03', vehicle: 'TRK-103', quantity: 4 },
     { id: 3, partNumber: 'OIL-2024-128', description: 'Engine Oil Filter', unitCost: 28.50, dateOfUse: '2024-12-04', vehicle: 'TRK-102', quantity: 1 },
@@ -22,7 +22,7 @@ export default function FleetMaintenanceFinance() {
   ]);
 
   // Shop Labor Rate Setup Data
-  const [laborRates, setLaborRates] = useState([
+  const [laborRates, ] = useState([
     { id: 1, rateType: 'Internal Labor', rate: 85.00, description: 'In-house mechanic hourly rate', isActive: true },
     { id: 2, rateType: 'External Shop - Premium', rate: 125.00, description: 'Authorized dealer service rate', isActive: true },
     { id: 3, rateType: 'External Shop - Standard', rate: 95.00, description: 'Independent shop rate', isActive: true },
@@ -30,7 +30,7 @@ export default function FleetMaintenanceFinance() {
   ]);
 
   // Maintenance Plan Financials Data
-  const [maintenancePlans, setMaintenancePlans] = useState([
+  const [maintenancePlans, ] = useState([
     { id: 1, planName: 'Quarterly PM', vehicle: 'TRK-101', plannedCost: 3000, actualCost: 3200, variance: 200, status: 'Completed' },
     { id: 2, planName: 'Annual DOT Inspection', vehicle: 'TRK-102', plannedCost: 850, actualCost: 820, variance: -30, status: 'Completed' },
     { id: 3, planName: 'Quarterly PM', vehicle: 'TRK-103', plannedCost: 3000, actualCost: 0, variance: 0, status: 'Scheduled' },

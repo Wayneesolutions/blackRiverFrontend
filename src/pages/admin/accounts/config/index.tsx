@@ -1,16 +1,60 @@
-import React, { useState } from 'react';
-import { Search, Plus, Edit, Trash2, Download, Upload, Filter, X, Save, AlertCircle, CheckCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Search, Plus, Edit, Trash2, Download, Filter, X, Save, AlertCircle, CheckCircle } from 'lucide-react';
+
+// Type definitions
+interface Account {
+  id: number;
+  number: string;
+  name: string;
+  type: string;
+  balance: number;
+}
+
+interface TaxCode {
+  id: number;
+  code: string;
+  description: string;
+  rate: number;
+  category: string;
+}
+
+interface PaymentMethod {
+  id: number;
+  method: string;
+  description: string;
+  preferred: string;
+}
+
+interface SmsBilling {
+  id: number;
+  timestamp: string;
+  recipient: string;
+  content: string;
+  cost: number;
+  account: string;
+}
+
+type TabType = 'chart-of-accounts' | 'tax-codes' | 'payment-methods' | 'sms-billing';
+
+type DataItem = Account | TaxCode | PaymentMethod | SmsBilling;
+
+interface Notification {
+  message: string;
+  type: 'success' | 'error';
+}
+
+type FormData = Partial<Account & TaxCode & PaymentMethod>;
 
 export default function AccountsSetup() {
-  const [activeTab, setActiveTab] = useState('chart-of-accounts');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [modalType, setModalType] = useState('');
-  const [notification, setNotification] = useState(null);
+  const [activeTab, setActiveTab] = useState<TabType>('chart-of-accounts');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [editingItem, setEditingItem] = useState<DataItem | null>(null);
+  const [modalType, setModalType] = useState<TabType>('chart-of-accounts');
+  const [notification, setNotification] = useState<Notification | null>(null);
 
   // Chart of Accounts Data
-  const [accounts, setAccounts] = useState([
+  const [accounts, setAccounts] = useState<Account[]>([
     { id: 1, number: '1000', name: 'Cash', type: 'Asset', balance: 50000 },
     { id: 2, number: '1100', name: 'Accounts Receivable', type: 'Asset', balance: 25000 },
     { id: 3, number: '1200', name: 'Inventory', type: 'Asset', balance: 15000 },
@@ -22,7 +66,7 @@ export default function AccountsSetup() {
   ]);
 
   // Tax Codes Data
-  const [taxCodes, setTaxCodes] = useState([
+  const [taxCodes, setTaxCodes] = useState<TaxCode[]>([
     { id: 1, code: 'GST', description: 'Goods and Services Tax', rate: 5, category: 'Sales Tax' },
     { id: 2, code: 'PST', description: 'Provincial Sales Tax', rate: 7, category: 'Sales Tax' },
     { id: 3, code: 'HST', description: 'Harmonized Sales Tax', rate: 13, category: 'Sales Tax' },
@@ -31,7 +75,7 @@ export default function AccountsSetup() {
   ]);
 
   // Payment Methods Data
-  const [paymentMethods, setPaymentMethods] = useState([
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
     { id: 1, method: 'ACH', description: 'Direct Deposit - Bank Account', preferred: 'Driver' },
     { id: 2, method: 'Cheque', description: 'Check Payment - Series: CHK-2024', preferred: 'Vendor' },
     { id: 3, method: 'Wire Transfer', description: 'Wire Transfer', preferred: 'Carrier' },
@@ -39,22 +83,22 @@ export default function AccountsSetup() {
   ]);
 
   // SMS Billing Data
-  const [smsBilling, setSmsBilling] = useState([
+  const [smsBilling, setSmsBilling] = useState<SmsBilling[]>([
     { id: 1, timestamp: '2024-12-06 10:30', recipient: '+1234567890', content: 'Load pickup reminder...', cost: 0.05, account: 'SMS-001' },
     { id: 2, timestamp: '2024-12-06 09:15', recipient: '+1987654321', content: 'Delivery confirmation...', cost: 0.05, account: 'SMS-001' },
     { id: 3, timestamp: '2024-12-05 16:45', recipient: '+1122334455', content: 'Schedule update...', cost: 0.05, account: 'SMS-001' }
   ]);
 
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState<FormData>({});
 
-  const tabs = [
+  const tabs: { id: TabType; label: string }[] = [
     { id: 'chart-of-accounts', label: 'Chart of Accounts' },
     { id: 'tax-codes', label: 'Tax Code Setup' },
     { id: 'payment-methods', label: 'Payment Methods' },
     { id: 'sms-billing', label: 'SMS Billing Tracking' }
   ];
 
-  const showNotification = (message, type = 'success') => {
+  const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   };
@@ -66,14 +110,14 @@ export default function AccountsSetup() {
     setShowModal(true);
   };
 
-  const handleEdit = (item) => {
+  const handleEdit = (item: DataItem) => {
     setEditingItem(item);
-    setFormData(item);
+    setFormData(item as FormData);
     setModalType(activeTab);
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this item?')) {
       switch (activeTab) {
         case 'chart-of-accounts':
@@ -93,34 +137,34 @@ export default function AccountsSetup() {
     }
   };
 
-  const handleSave = (e) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     
     const newItem = {
       ...formData,
       id: editingItem ? editingItem.id : Date.now()
-    };
+    } as DataItem;
 
     switch (activeTab) {
       case 'chart-of-accounts':
         if (editingItem) {
-          setAccounts(accounts.map(a => a.id === editingItem.id ? newItem : a));
+          setAccounts(accounts.map(a => a.id === editingItem.id ? (newItem as Account) : a));
         } else {
-          setAccounts([...accounts, newItem]);
+          setAccounts([...accounts, newItem as Account]);
         }
         break;
       case 'tax-codes':
         if (editingItem) {
-          setTaxCodes(taxCodes.map(t => t.id === editingItem.id ? newItem : t));
+          setTaxCodes(taxCodes.map(t => t.id === editingItem.id ? (newItem as TaxCode) : t));
         } else {
-          setTaxCodes([...taxCodes, newItem]);
+          setTaxCodes([...taxCodes, newItem as TaxCode]);
         }
         break;
       case 'payment-methods':
         if (editingItem) {
-          setPaymentMethods(paymentMethods.map(p => p.id === editingItem.id ? newItem : p));
+          setPaymentMethods(paymentMethods.map(p => p.id === editingItem.id ? (newItem as PaymentMethod) : p));
         } else {
-          setPaymentMethods([...paymentMethods, newItem]);
+          setPaymentMethods([...paymentMethods, newItem as PaymentMethod]);
         }
         break;
     }
@@ -130,12 +174,18 @@ export default function AccountsSetup() {
   };
 
   const handleExport = () => {
-    let data;
+    let data: DataItem[];
     switch (activeTab) {
       case 'chart-of-accounts': data = accounts; break;
       case 'tax-codes': data = taxCodes; break;
       case 'payment-methods': data = paymentMethods; break;
       case 'sms-billing': data = smsBilling; break;
+      default: data = [];
+    }
+    
+    if (data.length === 0) {
+      showNotification('No data to export', 'error');
+      return;
     }
     
     const csv = [
@@ -152,7 +202,7 @@ export default function AccountsSetup() {
     showNotification('Data exported successfully', 'success');
   };
 
-  const filteredData = () => {
+  const filteredData = (): DataItem[] => {
     const term = searchTerm.toLowerCase();
     switch (activeTab) {
       case 'chart-of-accounts':
@@ -317,7 +367,7 @@ export default function AccountsSetup() {
                       value={formData.description || ''}
                       onChange={(e) => setFormData({...formData, description: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows="3"
+                      rows={3}
                       required
                     />
                   </div>
@@ -448,7 +498,7 @@ export default function AccountsSetup() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredData().map(account => (
+                  {(filteredData() as Account[]).map(account => (
                     <tr key={account.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{account.number}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.name}</td>
@@ -495,7 +545,7 @@ export default function AccountsSetup() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredData().map(tax => (
+                  {(filteredData() as TaxCode[]).map(tax => (
                     <tr key={tax.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tax.code}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{tax.description}</td>
@@ -537,7 +587,7 @@ export default function AccountsSetup() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredData().map(method => (
+                  {(filteredData() as PaymentMethod[]).map(method => (
                     <tr key={method.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{method.method}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{method.description}</td>
@@ -590,7 +640,7 @@ export default function AccountsSetup() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredData().map(sms => (
+                    {(filteredData() as SmsBilling[]).map(sms => (
                       <tr key={sms.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sms.timestamp}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sms.recipient}</td>

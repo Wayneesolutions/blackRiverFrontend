@@ -34,42 +34,51 @@ export const getDriverDocumentsById = async (driverId: string) => {
 };
 
 
-export const createDriverDocument = async (driverId: string, data: FormData) => {
+export const createDriverDocument = async (data: FormData) => {
     try {
-        const res: AxiosResponse = await apiClient.post(`hr/driver-document/${driverId}`, data, {
+        // Extract employee ID from FormData (drivers are stored as employees)
+        const employeeId = data.get('employee') as string;
+        if (!employeeId) {
+            return { success: false, message: 'Employee/Driver ID is required' };
+        }
+        
+        // Use employee-documents endpoint since drivers are stored as employees
+        const res: AxiosResponse = await apiClient.post(`/employee-documents`, data, {
             headers: { "Content-Type": "multipart/form-data" },
         });
         console.log("==createDriverDocument res ", res);
         return res.data;
     } catch (error: any) {
         const err = error as Error;
-        return err.response?.data;
+        return err.response?.data || { success: false, message: err.response?.data?.message || 'Failed to create document' };
     }
 };
 
 
 export const updateDriverDocument = async (id: string, data: FormData) => {
     try {
-        const res: AxiosResponse = await apiClient.put(`hr/driver-document/${id}`, data, {
+        // Use employee-documents endpoint since drivers are stored as employees
+        const res: AxiosResponse = await apiClient.put(`/employee-documents/${id}`, data, {
             headers: { "Content-Type": "multipart/form-data" },
         });
         console.log("==updateDriverDocument res ", res);
         return res.data;
     } catch (error: any) {
         const err = error as Error;
-        return err.response?.data;
+        return err.response?.data || { success: false, message: err.response?.data?.message || 'Failed to update document' };
     }
 };
 
 
 export const deleteDriverDocument = async (id: string) => {
     try {
-        const res: AxiosResponse = await apiClient.delete(`hr/driver-document/${id}`);
+        // Use employee-documents endpoint since drivers are stored as employees
+        const res: AxiosResponse = await apiClient.delete(`/employee-documents/${id}`);
         console.log("==deleteDriverDocument res ", res);
         return res.data;
     } catch (error: any) {
         const err = error as Error;
-        return err.response?.data;
+        return err.response?.data || { success: false, message: err.response?.data?.message || 'Failed to delete document' };
     }
 };
 

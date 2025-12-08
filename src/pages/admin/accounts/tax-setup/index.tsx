@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Settings, RefreshCw, MapPin, Calculator, DollarSign, FileText, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
 
+type TabType = 'ifta' | 'sales' | 'payroll' | 'vendor';
+
 export default function TaxConfigurationPage() {
-  const [activeTab, setActiveTab] = useState('ifta');
+  const [activeTab, setActiveTab] = useState<TabType>('ifta');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
@@ -43,12 +45,12 @@ export default function TaxConfigurationPage() {
     setEditingItem(null);
   };
 
-  const handleEdit = (item) => {
+  const handleEdit = (item:any) => {
     setEditingItem(item);
     setShowAddModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id:any) => {
     if (confirm('Are you sure you want to delete this item?')) {
       if (activeTab === 'ifta') setIftaRates(iftaRates.filter(i => i.id !== id));
       if (activeTab === 'sales') setSalesTaxRules(salesTaxRules.filter(i => i.id !== id));
@@ -204,7 +206,7 @@ export default function TaxConfigurationPage() {
   };
 
   const getTabInfo = () => {
-    const info = {
+    const info: Record<TabType, { title: string; description: string; icon: React.ReactElement }> = {
       ifta: {
         title: 'IFTA Rate Tables',
         description: 'Manages state/province-specific fuel tax rates',
