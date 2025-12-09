@@ -25,6 +25,7 @@ const DriverManagement = lazy(() => import("./AdminFeatures/HRManagementRoutes")
 const ComplianceRoute = lazy(() => import('./AdminFeatures/CompilanceRoute'))
 const FleetMaintainRoute = lazy(() => import("./AdminFeatures/FleetMaintainRoutes"))
 const AccountsRoute = lazy(() => import("./AdminFeatures/AccountsRoutes"))
+const HealthSafetyRoutes = lazy(() => import("./AdminFeatures/HealthSafetyRoutes"))
 const Subscription = lazy(() => import("../pages/admin/subscription/index"))
 
 // Debug wrapper to log route changes
@@ -118,6 +119,10 @@ function AdminRoute() {
         <Route 
           path="fleetmaintenance/*" 
           element={<FleetMaintainRoute />} 
+        />
+        <Route 
+          path="healthandsafety/*" 
+          element={<HealthSafetyRoutes />} 
         />
       </Routes>
       </RouteDebugger>

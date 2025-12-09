@@ -52,8 +52,8 @@ const features = [
     {
         id: "health and safety",
         title: "Health and Safety",
-        description: "Integrated module for managing health & safety alongside human resources, driver payroll, and service billing — including compliance, incident reporting, training records, and billing workflows.",
-        icon: BillingIcon,
+        description: "Comprehensive health & safety management including incident reporting, safety inspections, training records, medical documentation, and compliance tracking.",
+        icon: ComplianceIcon,
         route: "/admin/healthandsafety",
     }
 ];
