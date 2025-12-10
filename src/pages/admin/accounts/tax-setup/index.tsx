@@ -1,62 +1,431 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, RefreshCw, MapPin, Calculator, DollarSign, FileText, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
+import {
+  getIftaRates,
+  createIftaRate,
+  updateIftaRate,
+  deleteIftaRate,
+  getSalesTaxRules,
+  createSalesTaxRule,
+  updateSalesTaxRule,
+  deleteSalesTaxRule,
+  getPayrollTaxFormulas,
+  createPayrollTaxFormula,
+  updatePayrollTaxFormula,
+  deletePayrollTaxFormula,
+  getVendorTaxes,
+  createVendorTax,
+  updateVendorTax,
+  deleteVendorTax,
+  type IftaRate,
+  type SalesTaxRule,
+  type PayrollTaxFormula,
+  type VendorTax
+} from '../../../../axios/api/account.taxSetup';
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'info' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />,
+    warning: <FaExclamationCircle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 type TabType = 'ifta' | 'sales' | 'payroll' | 'vendor';
 
 export default function TaxConfigurationPage() {
   const [activeTab, setActiveTab] = useState<TabType>('ifta');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Sample data for IFTA Rate Tables
-  const [iftaRates, setIftaRates] = useState([
-    { id: 1, jurisdiction: 'California', rate: '0.533', effectiveDate: '2024-07-01' },
-    { id: 2, jurisdiction: 'Texas', rate: '0.200', effectiveDate: '2024-01-01' },
-    { id: 3, jurisdiction: 'Ontario', rate: '0.143', effectiveDate: '2024-01-01' }
-  ]);
+  // Data states
+  const [iftaRates, setIftaRates] = useState<IftaRate[]>([]);
+  const [salesTaxRules, setSalesTaxRules] = useState<SalesTaxRule[]>([]);
+  const [payrollFormulas, setPayrollFormulas] = useState<PayrollTaxFormula[]>([]);
+  const [vendorTaxes, setVendorTaxes] = useState<VendorTax[]>([]);
 
-  // Sample data for Sales Tax Jurisdictions
-  const [salesTaxRules, setSalesTaxRules] = useState([
-    { id: 1, name: 'US Interstate', type: 'Destination', qbSync: true },
-    { id: 2, name: 'Canada GST/HST', type: 'Origin', qbSync: true },
-    { id: 3, name: 'California Local', type: 'Destination', qbSync: false }
-  ]);
+  // Form states
+  const [iftaFormData, setIftaFormData] = useState({
+    jurisdiction: '',
+    rate: '',
+    effectiveDate: ''
+  });
 
-  // Sample data for Payroll Tax Formulas
-  const [payrollFormulas, setPayrollFormulas] = useState([
-    { id: 1, bracket: '$0 - $50,000', rate: '15%', classification: 'Employee' },
-    { id: 2, bracket: '$50,001 - $100,000', rate: '20.5%', classification: 'Employee' },
-    { id: 3, bracket: 'Owner-Operator', rate: '0%', classification: 'Owner-Operator' }
-  ]);
+  const [salesFormData, setSalesFormData] = useState({
+    name: '',
+    type: 'Destination' as 'Origin' | 'Destination',
+    qbSync: false
+  });
 
-  // Sample data for Vendor Tax Categories
-  const [vendorTaxes, setVendorTaxes] = useState([
-    { id: 1, taxName: 'ON HST 13%', rate: '13%', payableAccount: '2210', expenseAccount: '5100' },
-    { id: 2, taxName: 'BC PST 7%', rate: '7%', payableAccount: '2220', expenseAccount: '5110' },
-    { id: 3, taxName: 'US Sales Tax', rate: 'Variable', payableAccount: '2230', expenseAccount: '5120' }
-  ]);
+  const [payrollFormData, setPayrollFormData] = useState({
+    bracket: '',
+    rate: '',
+    classification: 'Employee' as 'Employee' | 'Owner-Operator'
+  });
 
-  const handleAutoUpdate = () => {
-    alert('Fetching latest tax rates from external source...');
+  const [vendorFormData, setVendorFormData] = useState({
+    taxName: '',
+    rate: '',
+    payableAccount: '',
+    expenseAccount: ''
+  });
+
+  // Toast notification helpers
+  const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    const id = Date.now();
+    setNotifications((prev: ToastNotification[]) => [...prev, { id, type, message }]);
   };
 
+  const removeNotification = (id: number) => {
+    setNotifications((prev: ToastNotification[]) => prev.filter((n: ToastNotification) => n.id !== id));
+  };
+
+  const confirmAction = (message: string, onConfirm: () => void) => {
+    if (window.confirm(message)) {
+      onConfirm();
+    }
+  };
+
+  // Fetch data functions
+  const fetchIftaRates = async () => {
+    setLoading(true);
+    try {
+      const response = await getIftaRates({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        setIftaRates(response.data.map((item: any) => ({
+          ...item,
+          effectiveDate: item.effectiveDate ? new Date(item.effectiveDate).toISOString().split('T')[0] : ''
+        })));
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch IFTA rates');
+      }
+    } catch (error: any) {
+      console.error('Error fetching IFTA rates:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching IFTA rates');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSalesTaxRules = async () => {
+    setLoading(true);
+    try {
+      const response = await getSalesTaxRules({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        setSalesTaxRules(response.data);
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch sales tax rules');
+      }
+    } catch (error: any) {
+      console.error('Error fetching sales tax rules:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching sales tax rules');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPayrollFormulas = async () => {
+    setLoading(true);
+    try {
+      const response = await getPayrollTaxFormulas({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        setPayrollFormulas(response.data);
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch payroll tax formulas');
+      }
+    } catch (error: any) {
+      console.error('Error fetching payroll tax formulas:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching payroll tax formulas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchVendorTaxes = async () => {
+    setLoading(true);
+    try {
+      const response = await getVendorTaxes({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        setVendorTaxes(response.data);
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch vendor taxes');
+      }
+    } catch (error: any) {
+      console.error('Error fetching vendor taxes:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching vendor taxes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load data on mount and tab change
+  useEffect(() => {
+    if (activeTab === 'ifta') {
+      fetchIftaRates();
+    } else if (activeTab === 'sales') {
+      fetchSalesTaxRules();
+    } else if (activeTab === 'payroll') {
+      fetchPayrollFormulas();
+    } else if (activeTab === 'vendor') {
+      fetchVendorTaxes();
+    }
+  }, [activeTab, searchTerm]);
+
+  // Handle form submissions
+  const handleIftaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = {
+        jurisdiction: iftaFormData.jurisdiction,
+        rate: iftaFormData.rate,
+        effectiveDate: iftaFormData.effectiveDate
+      };
+
+      const response = editingItem?._id
+        ? await updateIftaRate(editingItem._id, data)
+        : await createIftaRate(data);
+
+      if (response?.success) {
+        setShowAddModal(false);
+        resetIftaForm();
+        await fetchIftaRates();
+        showNotification('success', editingItem?._id ? 'IFTA rate updated successfully' : 'IFTA rate created successfully');
+      } else {
+        showNotification('error', response?.message || 'Failed to save IFTA rate');
+      }
+    } catch (error: any) {
+      console.error('Error saving IFTA rate:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while saving IFTA rate');
+    }
+  };
+
+  const handleSalesSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = {
+        name: salesFormData.name,
+        type: salesFormData.type,
+        qbSync: salesFormData.qbSync
+      };
+
+      const response = editingItem?._id
+        ? await updateSalesTaxRule(editingItem._id, data)
+        : await createSalesTaxRule(data);
+
+      if (response?.success) {
+        setShowAddModal(false);
+        resetSalesForm();
+        await fetchSalesTaxRules();
+        showNotification('success', editingItem?._id ? 'Sales tax rule updated successfully' : 'Sales tax rule created successfully');
+      } else {
+        showNotification('error', response?.message || 'Failed to save sales tax rule');
+      }
+    } catch (error: any) {
+      console.error('Error saving sales tax rule:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while saving sales tax rule');
+    }
+  };
+
+  const handlePayrollSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = {
+        bracket: payrollFormData.bracket,
+        rate: payrollFormData.rate,
+        classification: payrollFormData.classification
+      };
+
+      const response = editingItem?._id
+        ? await updatePayrollTaxFormula(editingItem._id, data)
+        : await createPayrollTaxFormula(data);
+
+      if (response?.success) {
+        setShowAddModal(false);
+        resetPayrollForm();
+        await fetchPayrollFormulas();
+        showNotification('success', editingItem?._id ? 'Payroll tax formula updated successfully' : 'Payroll tax formula created successfully');
+      } else {
+        showNotification('error', response?.message || 'Failed to save payroll tax formula');
+      }
+    } catch (error: any) {
+      console.error('Error saving payroll tax formula:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while saving payroll tax formula');
+    }
+  };
+
+  const handleVendorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = {
+        taxName: vendorFormData.taxName,
+        rate: vendorFormData.rate,
+        payableAccount: vendorFormData.payableAccount,
+        expenseAccount: vendorFormData.expenseAccount
+      };
+
+      const response = editingItem?._id
+        ? await updateVendorTax(editingItem._id, data)
+        : await createVendorTax(data);
+
+      if (response?.success) {
+        setShowAddModal(false);
+        resetVendorForm();
+        await fetchVendorTaxes();
+        showNotification('success', editingItem?._id ? 'Vendor tax updated successfully' : 'Vendor tax created successfully');
+      } else {
+        showNotification('error', response?.message || 'Failed to save vendor tax');
+      }
+    } catch (error: any) {
+      console.error('Error saving vendor tax:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while saving vendor tax');
+    }
+  };
+
+  // Reset form functions
+  const resetIftaForm = () => {
+    setIftaFormData({ jurisdiction: '', rate: '', effectiveDate: '' });
+    setEditingItem(null);
+  };
+
+  const resetSalesForm = () => {
+    setSalesFormData({ name: '', type: 'Destination', qbSync: false });
+    setEditingItem(null);
+  };
+
+  const resetPayrollForm = () => {
+    setPayrollFormData({ bracket: '', rate: '', classification: 'Employee' });
+    setEditingItem(null);
+  };
+
+  const resetVendorForm = () => {
+    setVendorFormData({ taxName: '', rate: '', payableAccount: '', expenseAccount: '' });
+    setEditingItem(null);
+  };
+
+  // Handlers
   const handleAddNew = () => {
+    resetIftaForm();
+    resetSalesForm();
+    resetPayrollForm();
+    resetVendorForm();
     setShowAddModal(true);
     setEditingItem(null);
   };
 
-  const handleEdit = (item:any) => {
+  const handleEdit = (item: any) => {
     setEditingItem(item);
+    if (activeTab === 'ifta') {
+      setIftaFormData({
+        jurisdiction: item.jurisdiction || '',
+        rate: item.rate || '',
+        effectiveDate: item.effectiveDate ? new Date(item.effectiveDate).toISOString().split('T')[0] : ''
+      });
+    } else if (activeTab === 'sales') {
+      setSalesFormData({
+        name: item.name || '',
+        type: item.type || 'Destination',
+        qbSync: item.qbSync || false
+      });
+    } else if (activeTab === 'payroll') {
+      setPayrollFormData({
+        bracket: item.bracket || '',
+        rate: item.rate || '',
+        classification: item.classification || 'Employee'
+      });
+    } else if (activeTab === 'vendor') {
+      setVendorFormData({
+        taxName: item.taxName || '',
+        rate: item.rate || '',
+        payableAccount: item.payableAccount || '',
+        expenseAccount: item.expenseAccount || ''
+      });
+    }
     setShowAddModal(true);
   };
 
-  const handleDelete = (id:any) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-      if (activeTab === 'ifta') setIftaRates(iftaRates.filter(i => i.id !== id));
-      if (activeTab === 'sales') setSalesTaxRules(salesTaxRules.filter(i => i.id !== id));
-      if (activeTab === 'payroll') setPayrollFormulas(payrollFormulas.filter(i => i.id !== id));
-      if (activeTab === 'vendor') setVendorTaxes(vendorTaxes.filter(i => i.id !== id));
-    }
+  const handleDelete = (id: string) => {
+    confirmAction('Are you sure you want to delete this item?', async () => {
+      try {
+        let response;
+        if (activeTab === 'ifta') {
+          response = await deleteIftaRate(id);
+          if (response?.success) {
+            await fetchIftaRates();
+            showNotification('success', 'IFTA rate deleted successfully');
+          }
+        } else if (activeTab === 'sales') {
+          response = await deleteSalesTaxRule(id);
+          if (response?.success) {
+            await fetchSalesTaxRules();
+            showNotification('success', 'Sales tax rule deleted successfully');
+          }
+        } else if (activeTab === 'payroll') {
+          response = await deletePayrollTaxFormula(id);
+          if (response?.success) {
+            await fetchPayrollFormulas();
+            showNotification('success', 'Payroll tax formula deleted successfully');
+          }
+        } else if (activeTab === 'vendor') {
+          response = await deleteVendorTax(id);
+          if (response?.success) {
+            await fetchVendorTaxes();
+            showNotification('success', 'Vendor tax deleted successfully');
+          }
+        }
+
+        if (!response?.success) {
+          showNotification('error', response?.message || 'Failed to delete item');
+        }
+      } catch (error: any) {
+        console.error('Error deleting item:', error);
+        showNotification('error', error?.response?.data?.message || 'An error occurred while deleting item');
+      }
+    });
+  };
+
+  const handleAutoUpdate = () => {
+    showNotification('info', 'Fetching latest tax rates from external source...');
+    // TODO: Implement auto-update functionality
   };
 
   const renderTable = () => {
@@ -74,21 +443,31 @@ export default function TaxConfigurationPage() {
                 </tr>
               </thead>
               <tbody>
-                {iftaRates.map((item) => (
-                  <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm text-slate-700">{item.jurisdiction}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">${item.rate}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">{item.effectiveDate}</td>
-                    <td className="px-4 py-3 text-right">
-                      <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-800">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-slate-500">Loading...</td>
                   </tr>
-                ))}
+                ) : iftaRates.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-slate-500">No IFTA rates found</td>
+                  </tr>
+                ) : (
+                  iftaRates.map((item) => (
+                    <tr key={item._id || item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="px-4 py-3 text-sm text-slate-700">{item.jurisdiction}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">${item.rate}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">{item.effectiveDate}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -107,25 +486,35 @@ export default function TaxConfigurationPage() {
                 </tr>
               </thead>
               <tbody>
-                {salesTaxRules.map((item) => (
-                  <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm text-slate-700">{item.name}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">{item.type}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs ${item.qbSync ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {item.qbSync ? 'Enabled' : 'Disabled'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-800">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-slate-500">Loading...</td>
                   </tr>
-                ))}
+                ) : salesTaxRules.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-slate-500">No sales tax rules found</td>
+                  </tr>
+                ) : (
+                  salesTaxRules.map((item) => (
+                    <tr key={item._id || item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="px-4 py-3 text-sm text-slate-700">{item.name}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">{item.type}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`px-2 py-1 rounded-full text-xs ${item.qbSync ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {item.qbSync ? 'Enabled' : 'Disabled'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -144,25 +533,35 @@ export default function TaxConfigurationPage() {
                 </tr>
               </thead>
               <tbody>
-                {payrollFormulas.map((item) => (
-                  <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm text-slate-700">{item.bracket}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">{item.rate}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs ${item.classification === 'Employee' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-                        {item.classification}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-800">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-slate-500">Loading...</td>
                   </tr>
-                ))}
+                ) : payrollFormulas.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-slate-500">No payroll tax formulas found</td>
+                  </tr>
+                ) : (
+                  payrollFormulas.map((item) => (
+                    <tr key={item._id || item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="px-4 py-3 text-sm text-slate-700">{item.bracket}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">{item.rate}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`px-2 py-1 rounded-full text-xs ${item.classification === 'Employee' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                          {item.classification}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -182,22 +581,32 @@ export default function TaxConfigurationPage() {
                 </tr>
               </thead>
               <tbody>
-                {vendorTaxes.map((item) => (
-                  <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm text-slate-700">{item.taxName}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">{item.rate}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">{item.payableAccount}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">{item.expenseAccount}</td>
-                    <td className="px-4 py-3 text-right">
-                      <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-800">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-slate-500">Loading...</td>
                   </tr>
-                ))}
+                ) : vendorTaxes.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-slate-500">No vendor taxes found</td>
+                  </tr>
+                ) : (
+                  vendorTaxes.map((item) => (
+                    <tr key={item._id || item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="px-4 py-3 text-sm text-slate-700">{item.taxName}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">{item.rate}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">{item.payableAccount}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">{item.expenseAccount}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -235,6 +644,17 @@ export default function TaxConfigurationPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10000] space-y-2">
+        {notifications.map(notification => (
+          <ToastNotificationComponent
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -289,10 +709,19 @@ export default function TaxConfigurationPage() {
                 <p className="text-slate-600 text-sm">{tabInfo.description}</p>
               </div>
             </div>
-            <button onClick={handleAddNew} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              <Plus className="w-4 h-4" />
-              Add New
-            </button>
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button onClick={handleAddNew} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <Plus className="w-4 h-4" />
+                Add New
+              </button>
+            </div>
           </div>
 
           {renderTable()}
@@ -300,7 +729,7 @@ export default function TaxConfigurationPage() {
 
         {/* Add/Edit Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-slate-800">
@@ -310,14 +739,171 @@ export default function TaxConfigurationPage() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <form className="space-y-4">
+              <form onSubmit={activeTab === 'ifta' ? handleIftaSubmit : activeTab === 'sales' ? handleSalesSubmit : activeTab === 'payroll' ? handlePayrollSubmit : handleVendorSubmit} className="space-y-4">
                 {activeTab === 'ifta' && (
                   <>
-                    <input type="text" placeholder="Jurisdiction" className="w-full px-4 py-2 border border-slate-300 rounded-lg" />
-                    <input type="text" placeholder="Tax Rate" className="w-full px-4 py-2 border border-slate-300 rounded-lg" />
-                    <input type="date" className="w-full px-4 py-2 border border-slate-300 rounded-lg" />
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Jurisdiction (State/Province)</label>
+                      <input
+                        type="text"
+                        value={iftaFormData.jurisdiction}
+                        onChange={(e) => setIftaFormData({ ...iftaFormData, jurisdiction: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Jurisdiction"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Fuel Tax Rate (per gallon/liter)</label>
+                      <input
+                        type="text"
+                        value={iftaFormData.rate}
+                        onChange={(e) => setIftaFormData({ ...iftaFormData, rate: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Tax Rate"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Effective Date</label>
+                      <input
+                        type="date"
+                        value={iftaFormData.effectiveDate}
+                        onChange={(e) => setIftaFormData({ ...iftaFormData, effectiveDate: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                    </div>
                   </>
                 )}
+
+                {activeTab === 'sales' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Rule Name</label>
+                      <input
+                        type="text"
+                        value={salesFormData.name}
+                        onChange={(e) => setSalesFormData({ ...salesFormData, name: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Rule Name"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Tax Type (Origin vs. Destination)</label>
+                      <select
+                        value={salesFormData.type}
+                        onChange={(e) => setSalesFormData({ ...salesFormData, type: e.target.value as 'Origin' | 'Destination' })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="Destination">Destination</option>
+                        <option value="Origin">Origin</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={salesFormData.qbSync}
+                          onChange={(e) => setSalesFormData({ ...salesFormData, qbSync: e.target.checked })}
+                          className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-slate-700">QuickBooks Sync</span>
+                      </label>
+                    </div>
+                  </>
+                )}
+
+                {activeTab === 'payroll' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Income Tax Bracket</label>
+                      <input
+                        type="text"
+                        value={payrollFormData.bracket}
+                        onChange={(e) => setPayrollFormData({ ...payrollFormData, bracket: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Income Tax Bracket"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Tax Rate</label>
+                      <input
+                        type="text"
+                        value={payrollFormData.rate}
+                        onChange={(e) => setPayrollFormData({ ...payrollFormData, rate: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Tax Rate"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Classification</label>
+                      <select
+                        value={payrollFormData.classification}
+                        onChange={(e) => setPayrollFormData({ ...payrollFormData, classification: e.target.value as 'Employee' | 'Owner-Operator' })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="Employee">Employee</option>
+                        <option value="Owner-Operator">Owner-Operator</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {activeTab === 'vendor' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Tax Rate Name</label>
+                      <input
+                        type="text"
+                        value={vendorFormData.taxName}
+                        onChange={(e) => setVendorFormData({ ...vendorFormData, taxName: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Tax Rate Name"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Rate</label>
+                      <input
+                        type="text"
+                        value={vendorFormData.rate}
+                        onChange={(e) => setVendorFormData({ ...vendorFormData, rate: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Rate"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Tax Payable Account</label>
+                      <input
+                        type="text"
+                        value={vendorFormData.payableAccount}
+                        onChange={(e) => setVendorFormData({ ...vendorFormData, payableAccount: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Tax Payable Account"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Tax Expense Account</label>
+                      <input
+                        type="text"
+                        value={vendorFormData.expenseAccount}
+                        onChange={(e) => setVendorFormData({ ...vendorFormData, expenseAccount: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Tax Expense Account"
+                        required
+                      />
+                    </div>
+                  </>
+                )}
+
                 <div className="flex gap-3 mt-6">
                   <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50">
                     Cancel

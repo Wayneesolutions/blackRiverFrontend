@@ -262,7 +262,7 @@ const EmployeeDocumentsPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       {/* Notifications Container */}
-      <div className="fixed top-4 right-4 z-[1000] flex flex-col gap-2 max-w-md">
+      <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-2 max-w-md">
         {notifications.map(notification => (
           <Notification
             key={notification.id}
@@ -1098,6 +1098,25 @@ const UploadDocumentModal = ({
     'Medical Certificate',
     'Driving Licence',
     'Travel Document',
+    'Commercial Driver\'s License (CDL)',
+    'Medical Certificate (DOT Physical)',
+    'Drug Test Results',
+    'Alcohol Test Results',
+    'Driving Record (MVR)',
+    'DOT Physical Card',
+    'CDL Training Certificate',
+    'Defensive Driving Certificate',
+    'Hazmat Endorsement',
+    'Tanker Endorsement',
+    'Doubles/Triples Endorsement',
+    'Passenger Endorsement',
+    'School Bus Endorsement',
+    'Vehicle Inspection Certification',
+    'Safety Training Certificate',
+    'Hours of Service (HOS) Records',
+    'Emergency Contact Form',
+    'Road Test Certificate',
+    'TSA Security Clearance',
     'Other'
   ];
 

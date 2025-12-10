@@ -523,71 +523,123 @@ const EmployeesPage = () => {
       const submitData: any = { ...formData };
       
       // If driver role is selected, include all driver-specific data
-      if (formData.role === 'driver') {
+      if (formData.role === 'driver' || editingEmployee?.role === 'driver') {
         // Preserve the company ObjectId from basic form if it exists
         const companyObjectId = submitData.company;
         
         // Extract company checkbox value before assigning (it's a boolean, not ObjectId)
         const companyFlagValue = driverFormData.company;
         
-        // Add all driver form data (excluding duplicates that are in basic form)
-        Object.assign(submitData, driverFormData);
+        // Add all driver form data - ensure ALL fields are included even if empty
+        const driverData: any = {
+          incorporation: driverFormData.incorporation || '',
+          employeeCode: driverFormData.employeeCode || submitData.internalId || '',
+          postalCode: driverFormData.postalCode || '',
+          fleet: driverFormData.fleet || '',
+          citizenship: driverFormData.citizenship || '',
+          paymentMethod: driverFormData.paymentMethod || '',
+          account: driverFormData.account || '',
+          wsib: driverFormData.wsib !== undefined ? driverFormData.wsib : false,
+          wsibAccountNo: driverFormData.wsibAccountNo || '',
+          expiryDate: driverFormData.expiryDate || '',
+          remark: driverFormData.remark || '',
+          gstNo: driverFormData.gstNo || '',
+          profileImage: driverFormData.profileImage || '',
+          companyFlag: companyFlagValue !== undefined ? companyFlagValue : false,
+          cell1: driverFormData.cell1 || '',
+          cell2: driverFormData.cell2 || '',
+          extension: driverFormData.extension || '',
+          fax: driverFormData.fax || '',
+          gender: driverFormData.gender || '',
+          dateOfBirth: driverFormData.dateOfBirth || '',
+          termDate: driverFormData.termDate || '',
+          csa: driverFormData.csa !== undefined ? driverFormData.csa : false,
+          fastCardNo: driverFormData.fastCardNo || '',
+          fastCardExpiry: driverFormData.fastCardExpiry || '',
+          medicalRequired: driverFormData.medicalRequired !== undefined ? driverFormData.medicalRequired : false,
+          defaultChargeName: driverFormData.defaultChargeName || '',
+          defaultCurrency: driverFormData.defaultCurrency || '',
+          chargesAppliedOn: driverFormData.chargesAppliedOn || '',
+          defaultMode: driverFormData.defaultMode || '',
+          defaultAmount: driverFormData.defaultAmount !== undefined ? driverFormData.defaultAmount : 0,
+          defaultRemarks: driverFormData.defaultRemarks || '',
+          defaultPayrollType: driverFormData.defaultPayrollType || '',
+          paymentCurrency: driverFormData.paymentCurrency || '',
+          mileRate: driverFormData.mileRate !== undefined ? driverFormData.mileRate : 0,
+          mileRateTeam: driverFormData.mileRateTeam !== undefined ? driverFormData.mileRateTeam : 0,
+          emptyMileRate: driverFormData.emptyMileRate !== undefined ? driverFormData.emptyMileRate : 0,
+          emptyMileRateTeam: driverFormData.emptyMileRateTeam !== undefined ? driverFormData.emptyMileRateTeam : 0,
+          hourlyRate: driverFormData.hourlyRate !== undefined ? driverFormData.hourlyRate : 0,
+          weightRate: driverFormData.weightRate !== undefined ? driverFormData.weightRate : 0,
+          percentageRate: driverFormData.percentageRate !== undefined ? driverFormData.percentageRate : 0,
+          localTaxNo: driverFormData.localTaxNo || '',
+          federalTaxNo: driverFormData.federalTaxNo || '',
+          sinNo: driverFormData.sinNo || '',
+          craAccountNo: driverFormData.craAccountNo || '',
+          fedTaxExempt: driverFormData.fedTaxExempt !== undefined ? driverFormData.fedTaxExempt : false,
+          provTaxExempt: driverFormData.provTaxExempt !== undefined ? driverFormData.provTaxExempt : false,
+          cppQppExempt: driverFormData.cppQppExempt !== undefined ? driverFormData.cppQppExempt : false,
+          eiExempt: driverFormData.eiExempt !== undefined ? driverFormData.eiExempt : false,
+          qpipExempt: driverFormData.qpipExempt !== undefined ? driverFormData.qpipExempt : false,
+          payPeriod: driverFormData.payPeriod || '',
+          vacationPay: driverFormData.vacationPay || '',
+          ltl: driverFormData.ltl !== undefined ? driverFormData.ltl : false,
+          onSettlements: driverFormData.onSettlements !== undefined ? driverFormData.onSettlements : false,
+          settlementCurrencyByOrder: driverFormData.settlementCurrencyByOrder !== undefined ? driverFormData.settlementCurrencyByOrder : false,
+          isDefault: driverFormData.isDefault !== undefined ? driverFormData.isDefault : false
+        };
         
-        // Restore the company ObjectId if it was set in basic form (driverFormData.company is boolean)
+        // Merge driver data into submitData
+        Object.assign(submitData, driverData);
+        
+        // Restore the company ObjectId if it was set in basic form
         if (companyObjectId && typeof companyObjectId === 'string') {
           submitData.company = companyObjectId;
         } else {
-          // Remove the boolean 'company' field if it exists (to avoid conflict with company ObjectId)
+          // Remove the boolean 'company' field to avoid conflict
           delete submitData.company;
         }
-        
-        // Map company checkbox to companyFlag (avoid conflict with company ObjectId)
-        submitData.companyFlag = companyFlagValue;
-        
-        // Use cell1 or cell2 as additional contact if phone not provided in basic form
-        // But don't override basic phone - cell1/cell2 are additional contacts
-        
-        // Handle date conversions - ensure they're in the correct format
-        if (driverFormData.expiryDate) submitData.expiryDate = driverFormData.expiryDate;
-        if (driverFormData.dateOfBirth) submitData.dateOfBirth = driverFormData.dateOfBirth;
-        if (driverFormData.termDate) submitData.termDate = driverFormData.termDate;
-        if (driverFormData.fastCardExpiry) submitData.fastCardExpiry = driverFormData.fastCardExpiry;
         
         // Use joinDate for hireDate (joinDate from basic form is used as hireDate for drivers)
         if (submitData.joinDate) {
           submitData.hireDate = submitData.joinDate;
         }
-        
-        // Map employeeCode to details if different from internalId
-        if (driverFormData.employeeCode && driverFormData.employeeCode !== submitData.internalId) {
-          // Keep employeeCode in details
-        }
       }
       
       // Remove empty password for updates
       if (editingEmployee && !submitData.password) {
-        const { password, ...dataWithoutPassword } = submitData;
-        Object.assign(submitData, dataWithoutPassword);
+        delete submitData.password;
       }
+      
+      // Log the data being sent for debugging
+      console.log('📤 Submitting employee data:', {
+        isUpdate: !!editingEmployee,
+        employeeId: editingEmployee?._id,
+        role: submitData.role,
+        hasDriverData: formData.role === 'driver' || editingEmployee?.role === 'driver',
+        dataKeys: Object.keys(submitData)
+      });
       
       if (editingEmployee) {
         // Update existing employee
         const response = await updateEmployee(editingEmployee._id, submitData);
-        console.log('Update employee response:', response);
+        console.log('📥 Update employee response:', response);
         
         // Check if response exists and has success property
         if (response && response.success === true) {
           addNotification('success', response.message || 'Employee updated successfully');
-          fetchEmployees();
+          
+          // Close modal and reset state
           setShowAddModal(false);
           resetForm();
+          
+          // Refresh the employee list to show updated data
+          await fetchEmployees();
         } else {
           // Handle both success: false and error responses
-          // Prioritize detailed errors from errors array over generic message
           let errorMessage = 'Failed to update employee';
           
           if (Array.isArray(response?.errors) && response.errors.length > 0) {
-            // Extract detailed validation errors
             const errorDetails = response.errors.map((e: any) => {
               const field = e.path || e.field || '';
               const msg = e.msg || e.message || '';

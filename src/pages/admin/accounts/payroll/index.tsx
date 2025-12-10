@@ -74,28 +74,9 @@ interface DriverPayrollSummary {
     ratePerMile: number;
 }
 
-interface AttendanceRecord {
-    _id: string;
-    date: string;
-    checkIn?: string;
-    checkOut?: string;
-    hoursWorked?: number;
-    status: 'present' | 'absent';
-    overtimeHours?: number;
-}
 
-interface AttendanceSummary {
-    totalDays: number;
-    presentDays: number;
-    absentDays: number;
-    totalHours: number;
-    regularHours: number;
-    overtimeHours: number;
-    hourlyRate: number;
-    regularEarnings: number;
-    overtimeEarnings: number;
-    totalEarnings: number;
-}
+
+
 
 interface Payroll {
     _id: string;
@@ -206,12 +187,9 @@ const PayrollManagement = () => {
     const [payrollData, setPayrollData] = useState<Payroll[]>([]);
     const [driverTrips, setDriverTrips] = useState<Trip[]>([]);
     const [driverPayrollSummary, setDriverPayrollSummary] = useState<DriverPayrollSummary | null>(null);
-    const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
-    const [attendanceSummary, setAttendanceSummary] = useState<AttendanceSummary | null>(null);
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
     const [loading, setLoading] = useState(false);
     const [loadingTrips, setLoadingTrips] = useState(false);
-    const [loadingAttendance, setLoadingAttendance] = useState(false);
     const [notification, setNotification] = useState<Notification | null>(null);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
@@ -725,7 +703,6 @@ const PayrollManagement = () => {
         }
 
         const startDate = new Date(formData.startDate);
-        const endDate = new Date(formData.endDate);
         const month = startDate.getMonth() + 1;
         const year = startDate.getFullYear();
 
