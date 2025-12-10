@@ -211,6 +211,32 @@ const DriverDocumentsPage = () => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
+  const getDriverName = (doc: DriverDocument): string => {
+    // If driver is an object with name, use it
+    if (typeof doc.driver === 'object' && doc.driver !== null && 'name' in doc.driver) {
+      return doc.driver.name;
+    }
+    
+    // If driver is a string ID, look it up in driverDocuments or drivers array
+    const driverId = typeof doc.driver === 'string' ? doc.driver : doc.driver?._id;
+    
+    if (driverId) {
+      // First, try to find in driverDocuments (which has the driver info)
+      const driverDoc = driverDocuments.find(drvDoc => drvDoc.driver._id === driverId);
+      if (driverDoc) {
+        return driverDoc.driver.name;
+      }
+      
+      // If not found, look in drivers array
+      const driver = drivers.find(d => d._id === driverId);
+      if (driver) {
+        return driver.name;
+      }
+    }
+    
+    return 'Unknown Driver';
+  };
+
   const handleViewDocument = (doc: DriverDocument) => {
     setViewingDocument(doc);
     setShowViewModal(true);
@@ -569,7 +595,7 @@ const DriverDocumentsPage = () => {
       {showViewModal && viewingDocument && (
         <ViewDocumentModal
           document={viewingDocument}
-          driverName={typeof viewingDocument.driver === 'string' ? 'Unknown Driver' : viewingDocument.driver.name}
+          driverName={getDriverName(viewingDocument)}
           onClose={() => {
             setShowViewModal(false);
             setViewingDocument(null);

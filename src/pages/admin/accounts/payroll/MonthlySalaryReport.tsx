@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, DollarSign, Users, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, AlertCircle, Download, Sparkles } from 'lucide-react';
+import { Calendar, DollarSign, Users, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle, Download, Sparkles } from 'lucide-react';
 import { getMonthlySalaryReport } from '../../../../axios/api/account.payroll';
 
 interface EmployeeReport {

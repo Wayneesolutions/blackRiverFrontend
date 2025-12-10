@@ -1,41 +1,169 @@
-import { useState } from 'react';
-import { Search, Plus, Edit, Trash2, Download, Filter, Wrench, DollarSign, Package, TrendingUp, Calendar, FileText, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Plus, Edit, Trash2, Download, Filter, Wrench, DollarSign, Package, TrendingUp, Calendar, FileText, AlertCircle, X } from 'lucide-react';
+import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
+import {
+  getMaintenanceExpenseSummary,
+  getPartsCostLog,
+  createPartsCostLog,
+  updatePartsCostLog,
+  deletePartsCostLog,
+  getLaborRates,
+  createLaborRate,
+  updateLaborRate,
+  deleteLaborRate,
+  getMaintenancePlans,
+  createMaintenancePlan,
+  updateMaintenancePlan,
+  deleteMaintenancePlan,
+  getFleetMaintenanceStats
+} from '../../../../axios/api/account.fleetMaintenance';
+import { listFleetUnits } from '../../../../axios/api/fleet.units';
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'info' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />,
+    warning: <FaExclamationCircle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
+
+interface ExpenseSummaryItem {
+  vehicle: string;
+  totalExpense: number;
+  costPerMile: number;
+  breakdown: string;
+  topExpenses: string[];
+}
+
+interface PartsCostLogItem {
+  _id?: string;
+  id?: string;
+  partNumber: string;
+  description: string;
+  unitCost: number;
+  quantity: number;
+  totalCost?: number;
+  dateOfUse: string;
+  vehicle: string;
+  vehicleId?: string;
+}
+
+interface LaborRateItem {
+  _id?: string;
+  id?: string;
+  rateType: string;
+  description: string;
+  rate: number;
+  isActive: boolean;
+}
+
+interface MaintenancePlanItem {
+  _id?: string;
+  id?: string;
+  planName: string;
+  vehicle: string;
+  vehicleId?: string;
+  plannedCost: number;
+  actualCost: number;
+  variance: number;
+  status: string;
+}
 
 export default function FleetMaintenanceFinance() {
   const [activeTab, setActiveTab] = useState('expense-summary');
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
 
-  // Maintenance Expense Summary Data
-  const [expenseSummary, ] = useState([
-    { id: 1, vehicle: 'TRK-101', totalExpense: 12500, costPerMile: 0.45, breakdown: 'Tires: $3500, Engine: $6000, PM: $3000', topExpenses: ['Tires', 'Engine', 'PM'] },
-    { id: 2, vehicle: 'TRK-102', totalExpense: 8900, costPerMile: 0.38, breakdown: 'Brakes: $2400, PM: $2500, Oil: $4000', topExpenses: ['Oil', 'Brakes', 'PM'] },
-    { id: 3, vehicle: 'TRK-103', totalExpense: 15200, costPerMile: 0.52, breakdown: 'Engine: $8000, Tires: $4200, PM: $3000', topExpenses: ['Engine', 'Tires', 'PM'] },
-    { id: 4, vehicle: 'TRK-104', totalExpense: 6800, costPerMile: 0.31, breakdown: 'PM: $2800, Brakes: $2000, Tires: $2000', topExpenses: ['PM', 'Brakes', 'Tires'] }
-  ]);
+  // Data states
+  const [expenseSummary, setExpenseSummary] = useState<ExpenseSummaryItem[]>([]);
+  const [partsCostLog, setPartsCostLog] = useState<PartsCostLogItem[]>([]);
+  const [laborRates, setLaborRates] = useState<LaborRateItem[]>([]);
+  const [maintenancePlans, setMaintenancePlans] = useState<MaintenancePlanItem[]>([]);
+  const [fleetUnits, setFleetUnits] = useState<any[]>([]);
+  
+  // Stats
+  const [stats, setStats] = useState({
+    totalMaintenanceCost: 0,
+    avgCostPerMile: 0,
+    partsInventoryValue: 0,
+    partsInventoryCount: 0,
+    pendingPMPlans: 0,
+    percentChange: 0
+  });
 
-  // Parts Cost Log Data
-  const [partsCostLog, ] = useState([
-    { id: 1, partNumber: 'BRK-2024-001', description: 'Brake Pads - Front', unitCost: 245.00, dateOfUse: '2024-12-01', vehicle: 'TRK-101', quantity: 2 },
-    { id: 2, partNumber: 'TIR-2024-045', description: 'Michelin Tire 11R22.5', unitCost: 450.00, dateOfUse: '2024-12-03', vehicle: 'TRK-103', quantity: 4 },
-    { id: 3, partNumber: 'OIL-2024-128', description: 'Engine Oil Filter', unitCost: 28.50, dateOfUse: '2024-12-04', vehicle: 'TRK-102', quantity: 1 },
-    { id: 4, partNumber: 'ENG-2024-012', description: 'Alternator Assembly', unitCost: 385.00, dateOfUse: '2024-12-05', vehicle: 'TRK-101', quantity: 1 }
-  ]);
+  // Modal states
+  const [showPartsModal, setShowPartsModal] = useState(false);
+  const [showLaborModal, setShowLaborModal] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [editingParts, setEditingParts] = useState<PartsCostLogItem | null>(null);
+  const [editingLabor, setEditingLabor] = useState<LaborRateItem | null>(null);
+  const [editingPlan, setEditingPlan] = useState<MaintenancePlanItem | null>(null);
 
-  // Shop Labor Rate Setup Data
-  const [laborRates, ] = useState([
-    { id: 1, rateType: 'Internal Labor', rate: 85.00, description: 'In-house mechanic hourly rate', isActive: true },
-    { id: 2, rateType: 'External Shop - Premium', rate: 125.00, description: 'Authorized dealer service rate', isActive: true },
-    { id: 3, rateType: 'External Shop - Standard', rate: 95.00, description: 'Independent shop rate', isActive: true },
-    { id: 4, rateType: 'Emergency Service', rate: 150.00, description: 'After-hours/emergency rate', isActive: true }
-  ]);
+  // Form data
+  const [partsFormData, setPartsFormData] = useState({
+    partNumber: '',
+    description: '',
+    unitCost: '',
+    quantity: '',
+    dateOfUse: new Date().toISOString().split('T')[0],
+    vehicle: '',
+    vehicleId: ''
+  });
 
-  // Maintenance Plan Financials Data
-  const [maintenancePlans, ] = useState([
-    { id: 1, planName: 'Quarterly PM', vehicle: 'TRK-101', plannedCost: 3000, actualCost: 3200, variance: 200, status: 'Completed' },
-    { id: 2, planName: 'Annual DOT Inspection', vehicle: 'TRK-102', plannedCost: 850, actualCost: 820, variance: -30, status: 'Completed' },
-    { id: 3, planName: 'Quarterly PM', vehicle: 'TRK-103', plannedCost: 3000, actualCost: 0, variance: 0, status: 'Scheduled' },
-    { id: 4, planName: '6-Month Service', vehicle: 'TRK-104', plannedCost: 1500, actualCost: 1650, variance: 150, status: 'In Progress' }
-  ]);
+  const [laborFormData, setLaborFormData] = useState({
+    rateType: '',
+    description: '',
+    rate: '',
+    isActive: true
+  });
+
+  const [planFormData, setPlanFormData] = useState({
+    planName: '',
+    vehicle: '',
+    vehicleId: '',
+    plannedCost: '',
+    actualCost: '',
+    status: 'Scheduled',
+    plannedDate: '',
+    completedDate: ''
+  });
 
   const tabs = [
     { id: 'expense-summary', label: 'Maintenance Expense Summary', icon: TrendingUp },
@@ -44,16 +172,485 @@ export default function FleetMaintenanceFinance() {
     { id: 'plan-financials', label: 'Maintenance Plan Financials', icon: Calendar }
   ];
 
+  // Fetch all data on mount
+  useEffect(() => {
+    const loadInitialData = async () => {
+      await Promise.all([
+        fetchStats(),
+        fetchFleetUnits(),
+        fetchExpenseSummary(),
+        fetchPartsCostLog(),
+        fetchLaborRates(),
+        fetchMaintenancePlans()
+      ]);
+    };
+    loadInitialData();
+  }, []);
+
+  // Fetch filtered data when tab/search changes
+  useEffect(() => {
+    if (activeTab === 'expense-summary') {
+      fetchExpenseSummary();
+    } else if (activeTab === 'parts-cost-log') {
+      fetchPartsCostLog();
+    } else if (activeTab === 'labor-rates') {
+      fetchLaborRates();
+    } else if (activeTab === 'plan-financials') {
+      fetchMaintenancePlans();
+    }
+  }, [activeTab, searchTerm]);
+
+  const fetchStats = async () => {
+    try {
+      const response = await getFleetMaintenanceStats();
+      if (response?.success && response.data) {
+        setStats({
+          totalMaintenanceCost: response.data.totalMaintenanceCost || 0,
+          avgCostPerMile: response.data.avgCostPerMile || 0,
+          partsInventoryValue: response.data.partsInventoryValue || 0,
+          partsInventoryCount: response.data.partsInventoryCount || 0,
+          pendingPMPlans: response.data.pendingPMPlans || 0,
+          percentChange: response.data.percentChange || 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  // Calculate stats from page data (called after data is loaded)
+  const calculateStatsFromPageData = () => {
+    // Calculate total maintenance cost from expense summary
+    const totalExpense = expenseSummary.reduce((sum, exp) => sum + (exp.totalExpense || 0), 0);
+    
+    // Calculate avg cost per mile from expense summary (weighted average)
+    const totalCostPerMileSum = expenseSummary.reduce((sum, exp) => sum + (exp.costPerMile || 0), 0);
+    const avgCostPerMileFromData = expenseSummary.length > 0 
+      ? totalCostPerMileSum / expenseSummary.length 
+      : 0;
+    
+    // Count pending PM plans
+    const pendingPlans = maintenancePlans.filter(p => p.status === 'Scheduled').length;
+    
+    // Update stats - always use calculated values from page data
+    setStats(prev => ({
+      totalMaintenanceCost: totalExpense, // Always use calculated from expense summary
+      avgCostPerMile: avgCostPerMileFromData || prev.avgCostPerMile, // Use calculated or fallback to API
+      partsInventoryValue: prev.partsInventoryValue || 0, // Keep from API (SpareParts)
+      partsInventoryCount: prev.partsInventoryCount || 0, // Keep from API (SpareParts)
+      pendingPMPlans: pendingPlans, // Always use calculated from maintenance plans
+      percentChange: prev.percentChange || 0 // Keep from API
+    }));
+  };
+
+  // Recalculate stats when expense summary or maintenance plans change
+  useEffect(() => {
+    // Always recalculate when data changes (even if empty, to show 0 correctly)
+    calculateStatsFromPageData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expenseSummary, maintenancePlans]);
+
+  const fetchFleetUnits = async () => {
+    try {
+      const response = await listFleetUnits();
+      if (response?.success && Array.isArray(response.data)) {
+        setFleetUnits(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching fleet units:', error);
+    }
+  };
+
+  const fetchExpenseSummary = async () => {
+    setLoading(true);
+    try {
+      const response = await getMaintenanceExpenseSummary({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        setExpenseSummary(response.data);
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch expense summary');
+      }
+    } catch (error: any) {
+      console.error('Error fetching expense summary:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching expense summary');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPartsCostLog = async () => {
+    setLoading(true);
+    try {
+      const response = await getPartsCostLog({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        const formatted = response.data.map((item: any) => ({
+          _id: item._id,
+          partNumber: item.partNumber,
+          description: item.description,
+          unitCost: item.unitCost,
+          quantity: item.quantity,
+          totalCost: item.totalCost || (item.unitCost * item.quantity),
+          dateOfUse: new Date(item.dateOfUse).toISOString().split('T')[0],
+          vehicle: item.vehicle,
+          vehicleId: item.vehicleId?._id || item.vehicleId
+        }));
+        setPartsCostLog(formatted);
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch parts cost log');
+      }
+    } catch (error: any) {
+      console.error('Error fetching parts cost log:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching parts cost log');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLaborRates = async () => {
+    setLoading(true);
+    try {
+      const response = await getLaborRates({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        setLaborRates(response.data);
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch labor rates');
+      }
+    } catch (error: any) {
+      console.error('Error fetching labor rates:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching labor rates');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMaintenancePlans = async () => {
+    setLoading(true);
+    try {
+      const response = await getMaintenancePlans({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        const formatted = response.data.map((item: any) => ({
+          _id: item._id,
+          planName: item.planName,
+          vehicle: item.vehicle,
+          vehicleId: item.vehicleId?._id || item.vehicleId,
+          plannedCost: item.plannedCost,
+          actualCost: item.actualCost || 0,
+          variance: item.variance || (item.actualCost - item.plannedCost),
+          status: item.status
+        }));
+        setMaintenancePlans(formatted);
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch maintenance plans');
+      }
+    } catch (error: any) {
+      console.error('Error fetching maintenance plans:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching maintenance plans');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Parts Cost Log handlers
+  const handleCreateParts = async () => {
+    try {
+      const data = {
+        partNumber: partsFormData.partNumber,
+        description: partsFormData.description,
+        unitCost: parseFloat(partsFormData.unitCost),
+        quantity: parseInt(partsFormData.quantity),
+        dateOfUse: partsFormData.dateOfUse,
+        vehicle: partsFormData.vehicle,
+        vehicleId: partsFormData.vehicleId || undefined
+      };
+      
+      const response = editingParts?._id 
+        ? await updatePartsCostLog(editingParts._id, data)
+        : await createPartsCostLog(data);
+      
+      if (response?.success) {
+        setShowPartsModal(false);
+        resetPartsForm();
+        await fetchPartsCostLog();
+        await fetchStats();
+        showNotification('success', editingParts?._id ? 'Parts cost log updated successfully' : 'Parts cost log created successfully');
+      } else {
+        showNotification('error', response?.message || 'Failed to save parts cost log');
+      }
+    } catch (error: any) {
+      console.error('Error saving parts cost log:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while saving parts cost log');
+    }
+  };
+
+  const handleEditParts = (item: PartsCostLogItem) => {
+    setEditingParts(item);
+    // Find the vehicle in fleet units to get the correct ID format
+    const vehicleUnit = fleetUnits.find(u => 
+      u._id === item.vehicleId || 
+      u.internalId === item.vehicle || 
+      u.unitNo === item.vehicle
+    );
+    
+    setPartsFormData({
+      partNumber: item.partNumber,
+      description: item.description,
+      unitCost: item.unitCost.toString(),
+      quantity: item.quantity.toString(),
+      dateOfUse: item.dateOfUse,
+      vehicle: item.vehicle,
+      vehicleId: vehicleUnit?._id || item.vehicleId || ''
+    });
+    setShowPartsModal(true);
+  };
+
+  const handleDeleteParts = async (id: string) => {
+    confirmAction('Are you sure you want to delete this parts cost log entry?', async () => {
+      try {
+        const response = await deletePartsCostLog(id);
+        if (response?.success) {
+          await fetchPartsCostLog();
+          await fetchStats();
+          showNotification('success', 'Parts cost log deleted successfully');
+        } else {
+          showNotification('error', response?.message || 'Failed to delete parts cost log');
+        }
+      } catch (error: any) {
+        console.error('Error deleting parts cost log:', error);
+        showNotification('error', error?.response?.data?.message || 'An error occurred while deleting parts cost log');
+      }
+    });
+  };
+
+  const resetPartsForm = () => {
+    setPartsFormData({
+      partNumber: '',
+      description: '',
+      unitCost: '',
+      quantity: '',
+      dateOfUse: new Date().toISOString().split('T')[0],
+      vehicle: '',
+      vehicleId: ''
+    });
+    setEditingParts(null);
+  };
+
+  // Labor Rates handlers
+  const handleCreateLabor = async () => {
+    try {
+      const data = {
+        rateType: laborFormData.rateType,
+        description: laborFormData.description,
+        rate: parseFloat(laborFormData.rate),
+        isActive: laborFormData.isActive
+      };
+      
+      const response = editingLabor?._id
+        ? await updateLaborRate(editingLabor._id, data)
+        : await createLaborRate(data);
+      
+      if (response?.success) {
+        setShowLaborModal(false);
+        resetLaborForm();
+        await fetchLaborRates();
+        await fetchStats();
+        showNotification('success', editingLabor?._id ? 'Labor rate updated successfully' : 'Labor rate created successfully');
+      } else {
+        showNotification('error', response?.message || 'Failed to save labor rate');
+      }
+    } catch (error: any) {
+      console.error('Error saving labor rate:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while saving labor rate');
+    }
+  };
+
+  const handleEditLabor = (item: LaborRateItem) => {
+    setEditingLabor(item);
+    setLaborFormData({
+      rateType: item.rateType,
+      description: item.description,
+      rate: item.rate.toString(),
+      isActive: item.isActive
+    });
+    setShowLaborModal(true);
+  };
+
+  const handleDeleteLabor = async (id: string) => {
+    confirmAction('Are you sure you want to delete this labor rate?', async () => {
+      try {
+        const response = await deleteLaborRate(id);
+        if (response?.success) {
+          await fetchLaborRates();
+          await fetchStats();
+          showNotification('success', 'Labor rate deleted successfully');
+        } else {
+          showNotification('error', response?.message || 'Failed to delete labor rate');
+        }
+      } catch (error: any) {
+        console.error('Error deleting labor rate:', error);
+        showNotification('error', error?.response?.data?.message || 'An error occurred while deleting labor rate');
+      }
+    });
+  };
+
+  const resetLaborForm = () => {
+    setLaborFormData({
+      rateType: '',
+      description: '',
+      rate: '',
+      isActive: true
+    });
+    setEditingLabor(null);
+  };
+
+  // Maintenance Plan handlers
+  const handleCreatePlan = async () => {
+    try {
+      const data = {
+        planName: planFormData.planName,
+        vehicle: planFormData.vehicle,
+        vehicleId: planFormData.vehicleId || undefined,
+        plannedCost: parseFloat(planFormData.plannedCost),
+        actualCost: planFormData.actualCost ? parseFloat(planFormData.actualCost) : 0,
+        status: planFormData.status,
+        plannedDate: planFormData.plannedDate || undefined,
+        completedDate: planFormData.completedDate || undefined
+      };
+      
+      const response = editingPlan?._id
+        ? await updateMaintenancePlan(editingPlan._id, data)
+        : await createMaintenancePlan(data);
+      
+      if (response?.success) {
+        setShowPlanModal(false);
+        resetPlanForm();
+        await fetchMaintenancePlans();
+        await fetchStats();
+        showNotification('success', editingPlan?._id ? 'Maintenance plan updated successfully' : 'Maintenance plan created successfully');
+      } else {
+        showNotification('error', response?.message || 'Failed to save maintenance plan');
+      }
+    } catch (error: any) {
+      console.error('Error saving maintenance plan:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while saving maintenance plan');
+    }
+  };
+
+  const handleEditPlan = (item: MaintenancePlanItem) => {
+    setEditingPlan(item);
+    // Find the vehicle in fleet units to get the correct ID format
+    const vehicleUnit = fleetUnits.find(u => 
+      u._id === item.vehicleId || 
+      u.internalId === item.vehicle || 
+      u.unitNo === item.vehicle
+    );
+    
+    setPlanFormData({
+      planName: item.planName,
+      vehicle: item.vehicle,
+      vehicleId: vehicleUnit?._id || item.vehicleId || '',
+      plannedCost: item.plannedCost.toString(),
+      actualCost: item.actualCost.toString(),
+      status: item.status,
+      plannedDate: '',
+      completedDate: ''
+    });
+    setShowPlanModal(true);
+  };
+
+  const handleDeletePlan = async (id: string) => {
+    confirmAction('Are you sure you want to delete this maintenance plan?', async () => {
+      try {
+        const response = await deleteMaintenancePlan(id);
+        if (response?.success) {
+          await fetchMaintenancePlans();
+          await fetchStats();
+          showNotification('success', 'Maintenance plan deleted successfully');
+        } else {
+          showNotification('error', response?.message || 'Failed to delete maintenance plan');
+        }
+      } catch (error: any) {
+        console.error('Error deleting maintenance plan:', error);
+        showNotification('error', error?.response?.data?.message || 'An error occurred while deleting maintenance plan');
+      }
+    });
+  };
+
+  const resetPlanForm = () => {
+    setPlanFormData({
+      planName: '',
+      vehicle: '',
+      vehicleId: '',
+      plannedCost: '',
+      actualCost: '',
+      status: 'Scheduled',
+      plannedDate: '',
+      completedDate: ''
+    });
+    setEditingPlan(null);
+  };
+
+  // Toast notification helpers
+  const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    const id = Date.now();
+    setNotifications((prev: ToastNotification[]) => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications((prev: ToastNotification[]) => prev.filter((n: ToastNotification) => n.id !== id));
+  };
+
+  const confirmAction = (message: string, onConfirm: () => void) => {
+    if (window.confirm(message)) {
+      onConfirm();
+    }
+  };
+
   // Summary Cards Data
   const summaryCards = [
-    { title: 'Total Maintenance Cost', value: '$43,400', change: '+5.2% vs last month', icon: DollarSign, color: 'blue' },
-    { title: 'Avg Cost Per Mile', value: '$0.42', change: 'Fleet Average', icon: TrendingUp, color: 'green' },
-    { title: 'Parts Inventory Value', value: '$18,235', change: '42 items in stock', icon: Package, color: 'purple' },
-    { title: 'Pending PM Plans', value: '3', change: 'Due this month', icon: AlertCircle, color: 'orange' }
+    { 
+      title: 'Total Maintenance Cost', 
+      value: `$${stats.totalMaintenanceCost.toLocaleString()}`, 
+      change: stats.percentChange !== 0 
+        ? `${stats.percentChange > 0 ? '+' : ''}${stats.percentChange.toFixed(1)}% vs last month`
+        : 'No previous data', 
+      icon: DollarSign, 
+      color: 'blue' 
+    },
+    { 
+      title: 'Avg Cost Per Mile', 
+      value: `$${stats.avgCostPerMile.toFixed(2)}`, 
+      change: 'Fleet Average', 
+      icon: TrendingUp, 
+      color: 'green' 
+    },
+    { 
+      title: 'Parts Inventory Value', 
+      value: `$${stats.partsInventoryValue.toLocaleString()}`, 
+      change: `${stats.partsInventoryCount || 0} items in stock`, 
+      icon: Package, 
+      color: 'purple' 
+    },
+    { 
+      title: 'Pending PM Plans', 
+      value: stats.pendingPMPlans.toString(), 
+      change: 'Due this month', 
+      icon: AlertCircle, 
+      color: 'orange' 
+    }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10000] space-y-2">
+        {notifications.map(notification => (
+          <ToastNotificationComponent
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="px-6 py-4">
@@ -64,10 +661,42 @@ export default function FleetMaintenanceFinance() {
                 Financial reporting and tracking for maintenance operations, parts costs, and service expenses
               </p>
             </div>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              New Maintenance Entry
-            </button>
+            {activeTab === 'parts-cost-log' && (
+              <button 
+                onClick={() => {
+                  resetPartsForm();
+                  setShowPartsModal(true);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                New Parts Entry
+              </button>
+            )}
+            {activeTab === 'labor-rates' && (
+              <button 
+                onClick={() => {
+                  resetLaborForm();
+                  setShowLaborModal(true);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                New Labor Rate
+              </button>
+            )}
+            {activeTab === 'plan-financials' && (
+              <button 
+                onClick={() => {
+                  resetPlanForm();
+                  setShowPlanModal(true);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                New Maintenance Plan
+              </button>
+            )}
           </div>
         </div>
 
@@ -146,8 +775,12 @@ export default function FleetMaintenanceFinance() {
             </div>
           </div>
 
+          {loading && (
+            <div className="p-8 text-center text-gray-500">Loading...</div>
+          )}
+
           {/* Maintenance Expense Summary */}
-          {activeTab === 'expense-summary' && (
+          {activeTab === 'expense-summary' && !loading && (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
@@ -161,40 +794,46 @@ export default function FleetMaintenanceFinance() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {expenseSummary.map(expense => (
-                    <tr key={expense.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{expense.vehicle}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${expense.totalExpense.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${expense.costPerMile}/mi</td>
-                      <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">{expense.breakdown}</td>
-                      <td className="px-6 py-4 text-sm">
-                        <div className="flex flex-wrap gap-1">
-                          {expense.topExpenses.map((type, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-                              {type}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex items-center gap-2">
-                          <button className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="View Details">
-                            <FileText className="w-4 h-4" />
-                          </button>
-                          <button className="p-1 text-green-600 hover:bg-green-50 rounded" title="Download Report">
-                            <Download className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+                  {expenseSummary.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-4 text-center text-gray-500">No data available</td>
                     </tr>
-                  ))}
+                  ) : (
+                    expenseSummary.map((expense, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{expense.vehicle}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${expense.totalExpense.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${expense.costPerMile.toFixed(2)}/mi</td>
+                        <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">{expense.breakdown}</td>
+                        <td className="px-6 py-4 text-sm">
+                          <div className="flex flex-wrap gap-1">
+                            {expense.topExpenses.map((type, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                                {type}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-2">
+                            <button className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="View Details">
+                              <FileText className="w-4 h-4" />
+                            </button>
+                            <button className="p-1 text-green-600 hover:bg-green-50 rounded" title="Download Report">
+                              <Download className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           )}
 
           {/* Parts Cost Log */}
-          {activeTab === 'parts-cost-log' && (
+          {activeTab === 'parts-cost-log' && !loading && (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
@@ -210,38 +849,44 @@ export default function FleetMaintenanceFinance() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {partsCostLog.map(part => (
-                    <tr key={part.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{part.partNumber}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{part.description}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${part.unitCost.toFixed(2)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{part.quantity}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${(part.unitCost * part.quantity).toFixed(2)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{part.dateOfUse}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                          {part.vehicle}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex items-center gap-2">
-                          <button className="p-1 text-blue-600 hover:bg-blue-50 rounded">
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button className="p-1 text-red-600 hover:bg-red-50 rounded">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+                  {partsCostLog.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-4 text-center text-gray-500">No parts cost log entries</td>
                     </tr>
-                  ))}
+                  ) : (
+                    partsCostLog.map((part) => (
+                      <tr key={part._id || part.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{part.partNumber}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{part.description}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${part.unitCost.toFixed(2)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{part.quantity}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${(part.totalCost || (part.unitCost * part.quantity)).toFixed(2)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{part.dateOfUse}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                            {part.vehicle}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => handleEditParts(part)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDeleteParts(part._id!)} className="p-1 text-red-600 hover:bg-red-50 rounded">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           )}
 
           {/* Shop Labor Rate Setup */}
-          {activeTab === 'labor-rates' && (
+          {activeTab === 'labor-rates' && !loading && (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
@@ -254,37 +899,43 @@ export default function FleetMaintenanceFinance() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {laborRates.map(rate => (
-                    <tr key={rate.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{rate.rateType}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{rate.description}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${rate.rate.toFixed(2)}/hr</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          rate.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {rate.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex items-center gap-2">
-                          <button className="p-1 text-blue-600 hover:bg-blue-50 rounded">
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button className="p-1 text-red-600 hover:bg-red-50 rounded">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+                  {laborRates.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-4 text-center text-gray-500">No labor rates configured</td>
                     </tr>
-                  ))}
+                  ) : (
+                    laborRates.map((rate) => (
+                      <tr key={rate._id || rate.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{rate.rateType}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{rate.description}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${rate.rate.toFixed(2)}/hr</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            rate.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {rate.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => handleEditLabor(rate)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDeleteLabor(rate._id!)} className="p-1 text-red-600 hover:bg-red-50 rounded">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           )}
 
           {/* Maintenance Plan Financials */}
-          {activeTab === 'plan-financials' && (
+          {activeTab === 'plan-financials' && !loading && (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
@@ -299,50 +950,383 @@ export default function FleetMaintenanceFinance() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {maintenancePlans.map(plan => (
-                    <tr key={plan.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{plan.planName}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium">{plan.vehicle}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${plan.plannedCost.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                        {plan.actualCost > 0 ? `$${plan.actualCost.toLocaleString()}` : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {plan.variance !== 0 ? (
-                          <span className={`font-semibold ${plan.variance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                            {plan.variance > 0 ? '+' : ''}${plan.variance.toLocaleString()}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          plan.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                          plan.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {plan.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex items-center gap-2">
-                          <button className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="View Report">
-                            <FileText className="w-4 h-4" />
-                          </button>
-                          <button className="p-1 text-gray-600 hover:bg-gray-50 rounded" title="Edit">
-                            <Edit className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+                  {maintenancePlans.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-4 text-center text-gray-500">No maintenance plans</td>
                     </tr>
-                  ))}
+                  ) : (
+                    maintenancePlans.map((plan) => (
+                      <tr key={plan._id || plan.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{plan.planName}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium">{plan.vehicle}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${plan.plannedCost.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                          {plan.actualCost > 0 ? `$${plan.actualCost.toLocaleString()}` : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {plan.variance !== 0 ? (
+                            <span className={`font-semibold ${plan.variance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                              {plan.variance > 0 ? '+' : ''}${plan.variance.toLocaleString()}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            plan.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                            plan.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {plan.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-2">
+                            <button className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="View Report">
+                              <FileText className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleEditPlan(plan)} className="p-1 text-gray-600 hover:bg-gray-50 rounded" title="Edit">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDeletePlan(plan._id!)} className="p-1 text-red-600 hover:bg-red-50 rounded" title="Delete">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           )}
         </div>
       </div>
+
+      {/* Parts Cost Log Modal */}
+      {showPartsModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">
+                {editingParts ? 'Edit Parts Cost Log Entry' : 'New Parts Cost Log Entry'}
+              </h2>
+              <button onClick={() => {
+                setShowPartsModal(false);
+                resetPartsForm();
+              }} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Part Number</label>
+                <input
+                  type="text"
+                  value={partsFormData.partNumber}
+                  onChange={(e) => setPartsFormData({...partsFormData, partNumber: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <input
+                  type="text"
+                  value={partsFormData.description}
+                  onChange={(e) => setPartsFormData({...partsFormData, description: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={partsFormData.unitCost}
+                    onChange={(e) => setPartsFormData({...partsFormData, unitCost: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                  <input
+                    type="number"
+                    value={partsFormData.quantity}
+                    onChange={(e) => setPartsFormData({...partsFormData, quantity: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date of Use</label>
+                <input
+                  type="date"
+                  value={partsFormData.dateOfUse}
+                  onChange={(e) => setPartsFormData({...partsFormData, dateOfUse: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Assigned To</label>
+                <select
+                  value={partsFormData.vehicleId || ''}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    // Find unit by _id
+                    const selected = fleetUnits.find(u => u._id === selectedId);
+                    
+                    if (selected) {
+                      // Use the actual unit identifier (internalId or unitNo) for display
+                      const displayValue = selected.internalId || selected.unitNo || selected._id;
+                      
+                      setPartsFormData({
+                        ...partsFormData,
+                        vehicle: displayValue,
+                        vehicleId: selected._id
+                      });
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select Vehicle</option>
+                  {fleetUnits.map(unit => {
+                    const displayName = unit.internalId || unit.unitNo || unit._id;
+                    const displayText = `${displayName}${unit.makeModel ? ` - ${unit.makeModel}` : ''}`;
+                    return (
+                      <option key={unit._id} value={unit._id}>
+                        {displayText}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setShowPartsModal(false);
+                    resetPartsForm();
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateParts}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {editingParts ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Labor Rate Modal */}
+      {showLaborModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">
+                {editingLabor ? 'Edit Labor Rate' : 'New Labor Rate'}
+              </h2>
+              <button onClick={() => {
+                setShowLaborModal(false);
+                resetLaborForm();
+              }} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rate Type</label>
+                <input
+                  type="text"
+                  value={laborFormData.rateType}
+                  onChange={(e) => setLaborFormData({...laborFormData, rateType: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={laborFormData.description}
+                  onChange={(e) => setLaborFormData({...laborFormData, description: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rate (per hour)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={laborFormData.rate}
+                  onChange={(e) => setLaborFormData({...laborFormData, rate: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={laborFormData.isActive}
+                    onChange={(e) => setLaborFormData({...laborFormData, isActive: e.target.checked})}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Active</span>
+                </label>
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setShowLaborModal(false);
+                    resetLaborForm();
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateLabor}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {editingLabor ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Maintenance Plan Modal */}
+      {showPlanModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">
+                {editingPlan ? 'Edit Maintenance Plan' : 'New Maintenance Plan'}
+              </h2>
+              <button onClick={() => {
+                setShowPlanModal(false);
+                resetPlanForm();
+              }} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Plan Name</label>
+                <input
+                  type="text"
+                  value={planFormData.planName}
+                  onChange={(e) => setPlanFormData({...planFormData, planName: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle</label>
+                <select
+                  value={planFormData.vehicleId || ''}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    // Find unit by _id
+                    const selected = fleetUnits.find(u => u._id === selectedId);
+                    
+                    if (selected) {
+                      // Use the actual unit identifier (internalId or unitNo) for display
+                      const displayValue = selected.internalId || selected.unitNo || selected._id;
+                      
+                      setPlanFormData({
+                        ...planFormData,
+                        vehicle: displayValue,
+                        vehicleId: selected._id
+                      });
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select Vehicle</option>
+                  {fleetUnits.map(unit => {
+                    const displayName = unit.internalId || unit.unitNo || unit._id;
+                    const displayText = `${displayName}${unit.makeModel ? ` - ${unit.makeModel}` : ''}`;
+                    return (
+                      <option key={unit._id} value={unit._id}>
+                        {displayText}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Planned Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={planFormData.plannedCost}
+                    onChange={(e) => setPlanFormData({...planFormData, plannedCost: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Actual Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={planFormData.actualCost}
+                    onChange={(e) => setPlanFormData({...planFormData, actualCost: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  value={planFormData.status}
+                  onChange={(e) => setPlanFormData({...planFormData, status: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setShowPlanModal(false);
+                    resetPlanForm();
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreatePlan}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {editingPlan ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

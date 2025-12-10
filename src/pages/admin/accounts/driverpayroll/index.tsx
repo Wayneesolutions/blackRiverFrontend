@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Truck } from 'lucide-react';
+import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips } from '../../../../axios/api/account.payroll';
 
 // Type definitions
 interface Driver {
@@ -14,16 +15,82 @@ interface Driver {
 interface Trip {
   _id: string;
   tripNumber?: string;
-  startLocation?: { place: string };
-  endLocation?: { place: string };
+  startLocation?: { 
+    place?: string;
+    latitude?: string;
+    longitude?: string;
+    placeId?: {
+      name?: string;
+      currentLocation?: {
+        address?: string;
+        latitude?: string;
+        longitude?: string;
+      };
+    };
+  };
+  endLocation?: { 
+    place?: string;
+    latitude?: string;
+    longitude?: string;
+    placeId?: {
+      name?: string;
+      currentLocation?: {
+        address?: string;
+        latitude?: string;
+        longitude?: string;
+      };
+    };
+  };
   actualEndDate?: string;
   distance?: number;
-  distanceInMiles?: number;
+  distanceInMiles?: number | string;
   mileRate?: number;
-  earnings?: string;
-  truck?: { plateNumber?: string };
+  earnings?: string | number;
+  truck?: { 
+    plateNumber?: string;
+    licensePlate?: string;
+    internalId?: string;
+  };
   status?: string;
   selected?: boolean;
+  route?: {
+    totalDistance?: number;
+    waypoints?: Array<{
+      place?: string;
+      latitude?: string;
+      longitude?: string;
+    }>;
+  };
+  orders?: Array<{
+    _id?: string;
+    orderNumber?: string;
+    pickupLocation?: {
+      place?: string;
+      latitude?: string;
+      longitude?: string;
+      placeId?: {
+        name?: string;
+        currentLocation?: {
+          address?: string;
+          latitude?: string;
+          longitude?: string;
+        };
+      };
+    };
+    deliveryLocation?: {
+      place?: string;
+      latitude?: string;
+      longitude?: string;
+      placeId?: {
+        name?: string;
+        currentLocation?: {
+          address?: string;
+          latitude?: string;
+          longitude?: string;
+        };
+      };
+    };
+  }>;
 }
 
 interface TripSummary {
@@ -67,95 +134,6 @@ interface FormData {
   endDate: string;
 }
 
-// Mock API functions - replace with your actual API
-const mockAPI = {
-  getDrivers: async (): Promise<{ success: boolean; data: Driver[] }> => ({
-    success: true,
-    data: [
-      { _id: '1', name: 'John Smith', role: 'driver', details: { mileRate: 0.65 } },
-      { _id: '2', name: 'Mike Johnson', role: 'driver', details: { mileRate: 0.60 } },
-      { _id: '3', name: 'David Wilson', role: 'driver', details: { mileRate: 0.70 } }
-    ]
-  }),
-  
-  getDriverTrips: async (_driverId: string, _startDate: string, _endDate: string): Promise<{ success: boolean; data: Trip[]; summary?: TripSummary }> => ({
-    success: true,
-    data: [
-      {
-        _id: 't1',
-        tripNumber: 'TRP-001',
-        startLocation: { place: 'Los Angeles, CA' },
-        endLocation: { place: 'Phoenix, AZ' },
-        actualEndDate: '2024-01-15',
-        distance: 603,
-        distanceInMiles: 375,
-        mileRate: 0.65,
-        earnings: '243.75',
-        truck: { plateNumber: 'CAL-123' },
-        status: 'completed'
-      },
-      {
-        _id: 't2',
-        tripNumber: 'TRP-002',
-        startLocation: { place: 'Phoenix, AZ' },
-        endLocation: { place: 'Dallas, TX' },
-        actualEndDate: '2024-01-18',
-        distance: 1691,
-        distanceInMiles: 1050,
-        mileRate: 0.65,
-        earnings: '682.50',
-        truck: { plateNumber: 'CAL-123' },
-        status: 'completed'
-      }
-    ],
-    summary: {
-      totalTrips: 2,
-      totalDistanceKm: 2294,
-      totalDistanceMiles: 1425,
-      totalEarnings: 926.25,
-      ratePerMile: 0.65
-    }
-  }),
-  
-  listDriverPayrolls: async (): Promise<{ success: boolean; data: DriverPayroll[] }> => ({
-    success: true,
-    data: [
-      {
-        _id: 'p1',
-        userId: { _id: '1', name: 'John Smith', role: 'driver' },
-        baseSalary: 926.25,
-        bonus: 100,
-        deductions: 50,
-        totalSalary: 976.25,
-        payDate: '2024-01-31',
-        startDate: '2024-01-01',
-        endDate: '2024-01-31',
-        totalMiles: 1425,
-        ratePerMile: 0.65,
-        trips: [
-          { _id: 't1', tripNumber: 'TRP-001', distanceInMiles: 375, earnings: '243.75' },
-          { _id: 't2', tripNumber: 'TRP-002', distanceInMiles: 1050, earnings: '682.50' }
-        ]
-      }
-    ]
-  }),
-  
-  createPayroll: async (_data: Partial<DriverPayroll>): Promise<{ success: boolean; message: string }> => ({
-    success: true,
-    message: 'Driver payroll created successfully!'
-  }),
-  
-  updatePayroll: async (_id: string, _data: Partial<DriverPayroll>): Promise<{ success: boolean; message: string }> => ({
-    success: true,
-    message: 'Driver payroll updated successfully!'
-  }),
-  
-  deletePayroll: async (_id: string): Promise<{ success: boolean; message: string }> => ({
-    success: true,
-    message: 'Driver payroll deleted successfully!'
-  })
-};
-
 const DriverPayrollManagement = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -186,26 +164,81 @@ const DriverPayrollManagement = () => {
     setTimeout(() => setNotification(null), 5000);
   };
 
-  const fetchDrivers = async () => {
+  const getLocalUserInfo = () => {
+    const userInfoString = localStorage.getItem('userInfo');
+    if (!userInfoString) return null;
     try {
-      const response = await mockAPI.getDrivers();
-      if (response?.success) {
-        setDrivers(response.data);
-      }
+      return JSON.parse(userInfoString);
     } catch (error) {
-      console.error('Error fetching drivers:', error);
+      console.error('Error parsing userInfo from localStorage:', error);
+      return null;
     }
   };
 
-  const fetchPayrolls = async () => {
+  const fetchDrivers = async () => {
+    try {
+      const userInfo: any = getLocalUserInfo();
+      const userRole = userInfo?.role || userInfo?.userData?.role;
+      const userCompany = userInfo?.company || userInfo?.userData?.company;
+      const isSuperadmin = userRole === 'superadmin';
+      const isHR = userRole === 'hr';
+      const hasCompany = Boolean(userCompany);
+
+      if (!isSuperadmin && !isHR && !hasCompany) {
+        setDrivers([]);
+        return;
+      }
+
+      const response = await getEmployees();
+      if (response?.success) {
+        // Filter only drivers
+        const driverList = (response.data || []).filter((emp: Driver) => 
+          emp.role?.toLowerCase() === 'driver'
+        );
+        setDrivers(driverList);
+      } else if (response?.message) {
+        showNotification('error', response.message);
+      }
+    } catch (error) {
+      console.error('Error fetching drivers:', error);
+      showNotification('error', 'Error fetching drivers');
+    }
+  };
+
+  const fetchPayrolls = async (searchQuery?: string) => {
     setLoading(true);
     try {
-      const response = await mockAPI.listDriverPayrolls();
+      const userInfo: any = getLocalUserInfo();
+      const userRole = userInfo?.role || userInfo?.userData?.role;
+      const userCompany = userInfo?.company || userInfo?.userData?.company;
+      const isSuperadmin = userRole === 'superadmin';
+      const isHR = userRole === 'hr';
+      const hasCompany = Boolean(userCompany);
+
+      if (!isSuperadmin && !isHR && !hasCompany) {
+        setPayrollData([]);
+        return;
+      }
+
+      const searchValue = searchQuery !== undefined ? searchQuery : searchTerm;
+      const searchParam = searchValue ? `?search=${encodeURIComponent(searchValue)}` : '';
+      const response = await listPayrolls(searchParam);
+      
       if (response?.success) {
-        setPayrollData(response.data || []);
+        // Filter to show only driver payrolls
+        const driverPayrolls = (response.data || []).filter((payroll: DriverPayroll) => 
+          payroll.userId && payroll.userId.role?.toLowerCase() === 'driver'
+        );
+        setPayrollData(driverPayrolls);
+      } else {
+        const message = response?.message || 'Failed to fetch driver payrolls';
+        setPayrollData([]);
+        showNotification('error', message);
       }
     } catch (error) {
       console.error('Error fetching payrolls:', error);
+      setPayrollData([]);
+      showNotification('error', 'Error fetching driver payrolls');
     } finally {
       setLoading(false);
     }
@@ -214,10 +247,25 @@ const DriverPayrollManagement = () => {
   const fetchDriverTrips = async (driverId: string, startDate: string, endDate: string) => {
     setLoadingTrips(true);
     try {
-      const response = await mockAPI.getDriverTrips(driverId, startDate, endDate);
+      const userInfo: any = getLocalUserInfo();
+      const userRole = userInfo?.role || userInfo?.userData?.role;
+      const userCompany = userInfo?.company || userInfo?.userData?.company;
+      const isSuperadmin = userRole === 'superadmin';
+      const isHR = userRole === 'hr';
+      const isDispatcher = userRole === 'dispatcher';
+      const hasCompany = Boolean(userCompany);
+
+      if (!isSuperadmin && !isHR && !isDispatcher && !hasCompany) {
+        setDriverTrips([]);
+        setDriverPayrollSummary(null);
+        setLoadingTrips(false);
+        return;
+      }
+
+      const response = await getDriverCompletedTrips(driverId, startDate, endDate);
       
       if (response?.success) {
-        const trips = (response.data || []).map((trip) => ({
+        const trips: Trip[] = (response.data || []).map((trip: any) => ({
           ...trip,
           selected: true // Auto-select all trips
         }));
@@ -226,16 +274,39 @@ const DriverPayrollManagement = () => {
 
         if (response.summary) {
           setDriverPayrollSummary(response.summary);
-          // baseSalary is calculated from trips, not stored in formData
+        } else {
+          // Fallback calculation if no summary provided
+          const totalMiles = trips.reduce((sum, trip) => {
+            const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+            return sum + miles;
+          }, 0);
+          const totalEarnings = trips.reduce((sum, trip) => {
+            const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+            return sum + earnings;
+          }, 0);
+          
+          const fallbackSummary: TripSummary = {
+            totalTrips: trips.length,
+            totalDistanceKm: trips.reduce((sum, trip) => sum + (trip.distance || 0), 0),
+            totalDistanceMiles: totalMiles,
+            totalEarnings: totalEarnings,
+            ratePerMile: trips[0]?.mileRate || 0
+          };
+          
+          setDriverPayrollSummary(fallbackSummary);
         }
       } else {
-        showNotification('error', 'Failed to fetch driver trips');
+        const errorMsg = response?.message || 'Failed to fetch driver trips';
+        showNotification('error', errorMsg);
         setDriverTrips([]);
         setDriverPayrollSummary(null);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching driver trips:', error);
-      showNotification('error', 'Error fetching driver trips');
+      const errorMsg = error?.response?.data?.message || error?.message || 'Error fetching driver trips';
+      showNotification('error', errorMsg);
+      setDriverTrips([]);
+      setDriverPayrollSummary(null);
     } finally {
       setLoadingTrips(false);
     }
@@ -245,6 +316,15 @@ const DriverPayrollManagement = () => {
     fetchDrivers();
     fetchPayrolls();
   }, []);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchPayrolls(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -268,7 +348,9 @@ const DriverPayrollManagement = () => {
         endDate
       }));
       
-      fetchDriverTrips(value, startDate, endDate);
+      if (value) {
+        fetchDriverTrips(value, startDate, endDate);
+      }
     } else {
       setFormData(prev => ({
         ...prev,
@@ -305,8 +387,14 @@ const DriverPayrollManagement = () => {
 
   const getSelectedTripsTotals = () => {
     const selectedTrips = driverTrips.filter(trip => trip.selected);
-    const totalMiles = selectedTrips.reduce((sum, trip) => sum + (trip.distanceInMiles || 0), 0);
-    const totalEarnings = selectedTrips.reduce((sum, trip) => sum + parseFloat(trip.earnings || '0'), 0);
+    const totalMiles = selectedTrips.reduce((sum, trip) => {
+      const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+      return sum + miles;
+    }, 0);
+    const totalEarnings = selectedTrips.reduce((sum, trip) => {
+      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+      return sum + earnings;
+    }, 0);
     
     return {
       count: selectedTrips.length,
@@ -321,7 +409,8 @@ const DriverPayrollManagement = () => {
       return;
     }
 
-    if (driverTrips.filter(t => t.selected).length === 0) {
+    const selectedTrips = driverTrips.filter(t => t.selected);
+    if (selectedTrips.length === 0) {
       showNotification('error', 'Please select at least one trip');
       return;
     }
@@ -330,7 +419,8 @@ const DriverPayrollManagement = () => {
     
     try {
       const selectedTotals = getSelectedTripsTotals();
-      // Create payload with userId as string (will be converted to object by backend)
+      
+      // Create payload for driver payroll
       const payload: any = {
         userId: formData.userId,
         baseSalary: selectedTotals.totalEarnings,
@@ -339,23 +429,25 @@ const DriverPayrollManagement = () => {
         payDate: formData.payDate,
         startDate: formData.startDate,
         endDate: formData.endDate,
-        tripIds: driverTrips.filter(t => t.selected).map(trip => trip._id),
+        tripIds: selectedTrips.map(trip => trip._id).filter(id => id),
         totalMiles: selectedTotals.totalMiles,
-        ratePerMile: driverPayrollSummary?.ratePerMile || 0
+        ratePerMile: driverPayrollSummary?.ratePerMile || selectedDriver?.details?.mileRate || 0
       };
 
-      const response = await mockAPI.createPayroll(payload);
+      const response = await createPayroll(payload);
       
       if (response?.success) {
-        showNotification('success', response.message);
+        showNotification('success', response.message || 'Driver payroll created successfully!');
         setShowCreateModal(false);
         resetForm();
         fetchPayrolls();
       } else {
-        showNotification('error', 'Failed to create driver payroll');
+        const errorMsg = response?.message || response?.error || 'Failed to create driver payroll';
+        showNotification('error', errorMsg);
       }
-    } catch (error) {
-      showNotification('error', 'Error creating driver payroll');
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.message || error?.message || 'Error creating driver payroll';
+      showNotification('error', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -364,28 +456,39 @@ const DriverPayrollManagement = () => {
   const handleUpdate = async () => {
     if (!selectedPayroll) return;
 
+    if (!formData.userId || !formData.payDate || !formData.startDate || !formData.endDate) {
+      showNotification('error', 'Please fill in all required fields');
+      return;
+    }
+
     setLoading(true);
     
     try {
-      const payload = {
+      const payload: any = {
+        userId: formData.userId,
+        baseSalary: selectedPayroll.baseSalary, // Keep existing baseSalary
         bonus: parseFloat(formData.bonus) || 0,
         deductions: parseFloat(formData.deductions) || 0,
-        payDate: formData.payDate
+        payDate: formData.payDate,
+        startDate: formData.startDate,
+        endDate: formData.endDate
       };
 
-      const response = await mockAPI.updatePayroll(selectedPayroll._id, payload);
+      const response = await updatePayroll(selectedPayroll._id, payload);
       
       if (response?.success) {
-        showNotification('success', response.message);
+        showNotification('success', response.message || 'Driver payroll updated successfully!');
         setShowEditModal(false);
         resetForm();
         setSelectedPayroll(null);
         fetchPayrolls();
       } else {
-        showNotification('error', 'Failed to update driver payroll');
+        const errorMsg = response?.message || response?.error || 'Failed to update driver payroll';
+        showNotification('error', errorMsg);
       }
-    } catch (error) {
-      showNotification('error', 'Error updating driver payroll');
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.message || error?.message || 'Error updating driver payroll';
+      showNotification('error', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -397,18 +500,20 @@ const DriverPayrollManagement = () => {
     setLoading(true);
     
     try {
-      const response = await mockAPI.deletePayroll(selectedPayroll._id);
+      const response = await deletePayroll(selectedPayroll._id);
       
       if (response?.success) {
-        showNotification('success', response.message);
+        showNotification('success', response.message || 'Driver payroll deleted successfully!');
         setShowDeleteModal(false);
         setSelectedPayroll(null);
         fetchPayrolls();
       } else {
-        showNotification('error', 'Failed to delete driver payroll');
+        const errorMsg = response?.message || response?.error || 'Failed to delete driver payroll';
+        showNotification('error', errorMsg);
       }
-    } catch (error) {
-      showNotification('error', 'Error deleting driver payroll');
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.message || error?.message || 'Error deleting driver payroll';
+      showNotification('error', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -822,25 +927,66 @@ const DriverPayrollManagement = () => {
                                   <td className="px-3 py-2 text-sm text-gray-600">
                                     <div className="flex items-center gap-1">
                                       <MapPin size={14} className="text-gray-400" />
-                                      <span>{trip.startLocation?.place || 'Unknown'}</span>
+                                      <span>
+                                        {(() => {
+                                          // Try to get location from trip, orders, or use Unknown
+                                          if (trip.startLocation?.place && trip.startLocation.place !== 'Unknown') {
+                                            return trip.startLocation.place;
+                                          }
+                                          if (trip.orders && trip.orders.length > 0) {
+                                            const firstOrder = Array.isArray(trip.orders) ? trip.orders[0] : trip.orders;
+                                            if (firstOrder?.pickupLocation?.place) {
+                                              return firstOrder.pickupLocation.place;
+                                            }
+                                            if (firstOrder?.pickupLocation?.placeId?.name) {
+                                              return firstOrder.pickupLocation.placeId.name;
+                                            }
+                                          }
+                                          return 'Unknown';
+                                        })()}
+                                      </span>
                                       <span className="text-gray-400">→</span>
-                                      <span>{trip.endLocation?.place || 'Unknown'}</span>
+                                      <span>
+                                        {(() => {
+                                          // Try to get location from trip, orders, or use Unknown
+                                          if (trip.endLocation?.place && trip.endLocation.place !== 'Unknown') {
+                                            return trip.endLocation.place;
+                                          }
+                                          if (trip.orders && trip.orders.length > 0) {
+                                            const orderArray = Array.isArray(trip.orders) ? trip.orders : [trip.orders];
+                                            const lastOrder = orderArray[orderArray.length - 1];
+                                            if (lastOrder?.deliveryLocation?.place) {
+                                              return lastOrder.deliveryLocation.place;
+                                            }
+                                            if (lastOrder?.deliveryLocation?.placeId?.name) {
+                                              return lastOrder.deliveryLocation.placeId.name;
+                                            }
+                                          }
+                                          return 'Unknown';
+                                        })()}
+                                      </span>
                                     </div>
                                   </td>
                                   <td className="px-3 py-2 text-sm text-gray-600">
                                     {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : '-'}
                                   </td>
                                   <td className="px-3 py-2 text-sm text-gray-600">
-                                    {trip.truck?.plateNumber || 'N/A'}
+                                    {trip.truck?.plateNumber || trip.truck?.licensePlate || trip.truck?.internalId || 'N/A'}
                                   </td>
                                   <td className="px-3 py-2 text-sm font-medium text-gray-900">
-                                    {trip.distanceInMiles || 0}
+                                    {(() => {
+                                      const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+                                      return miles || 0;
+                                    })()}
                                   </td>
                                   <td className="px-3 py-2 text-sm text-gray-600">
                                     ${trip.mileRate || 0}/mi
                                   </td>
                                   <td className="px-3 py-2 text-sm font-bold text-green-600">
-                                    ${parseFloat(trip.earnings || '0').toFixed(2)}
+                                    ${(() => {
+                                      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+                                      return earnings.toFixed(2);
+                                    })()}
                                   </td>
                                 </tr>
                               ))}
@@ -1069,19 +1215,82 @@ const DriverPayrollManagement = () => {
                               <td className="px-3 py-2 text-sm text-gray-600">
                                 <div className="flex items-center gap-1">
                                   <MapPin size={14} className="text-gray-400" />
-                                  <span>{trip.startLocation?.place || 'Unknown'}</span>
+                                  <span>
+                                    {(() => {
+                                      // Try to get location from trip, orders, or use Unknown
+                                      if (trip.startLocation?.place && trip.startLocation.place !== 'Unknown') {
+                                        return trip.startLocation.place;
+                                      }
+                                      if (trip.orders && trip.orders.length > 0) {
+                                        const firstOrder = Array.isArray(trip.orders) ? trip.orders[0] : trip.orders;
+                                        if (firstOrder?.pickupLocation?.place) {
+                                          return firstOrder.pickupLocation.place;
+                                        }
+                                        if (firstOrder?.pickupLocation?.placeId?.name) {
+                                          return firstOrder.pickupLocation.placeId.name;
+                                        }
+                                      }
+                                      return 'Unknown';
+                                    })()}
+                                  </span>
                                   <span className="text-gray-400">→</span>
-                                  <span>{trip.endLocation?.place || 'Unknown'}</span>
+                                  <span>
+                                    {(() => {
+                                      // Try to get location from trip, orders, or use Unknown
+                                      if (trip.endLocation?.place && trip.endLocation.place !== 'Unknown') {
+                                        return trip.endLocation.place;
+                                      }
+                                      if (trip.orders && trip.orders.length > 0) {
+                                        const orderArray = Array.isArray(trip.orders) ? trip.orders : [trip.orders];
+                                        const lastOrder = orderArray[orderArray.length - 1];
+                                        if (lastOrder?.deliveryLocation?.place) {
+                                          return lastOrder.deliveryLocation.place;
+                                        }
+                                        if (lastOrder?.deliveryLocation?.placeId?.name) {
+                                          return lastOrder.deliveryLocation.placeId.name;
+                                        }
+                                      }
+                                      return 'Unknown';
+                                    })()}
+                                  </span>
                                 </div>
                               </td>
                               <td className="px-3 py-2 text-sm text-gray-600">
                                 {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : '-'}
                               </td>
                               <td className="px-3 py-2 text-sm font-medium text-gray-900">
-                                {trip.distanceInMiles || 0} mi
+                                {(() => {
+                                  // Calculate miles from route or use stored value
+                                  let miles: number = 0;
+                                  if (trip.distanceInMiles) {
+                                    miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : trip.distanceInMiles;
+                                  } else if (trip.route && trip.route.totalDistance) {
+                                    miles = parseFloat((trip.route.totalDistance * 0.621371).toFixed(2));
+                                  }
+                                  return miles || 0;
+                                })()} mi
                               </td>
                               <td className="px-3 py-2 text-sm font-bold text-green-600">
-                                ${parseFloat(trip.earnings || '0').toFixed(2)}
+                                {(() => {
+                                  // Calculate earnings from miles and rate, or use stored value
+                                  let earnings: number = 0;
+                                  if (trip.earnings) {
+                                    earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : trip.earnings;
+                                  }
+                                  if (!earnings || earnings === 0) {
+                                    let miles: number = 0;
+                                    if (trip.distanceInMiles) {
+                                      miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : trip.distanceInMiles;
+                                    } else if (trip.route?.totalDistance) {
+                                      miles = parseFloat((trip.route.totalDistance * 0.621371).toFixed(2));
+                                    }
+                                    const rate = selectedPayroll.ratePerMile || 0;
+                                    if (miles && rate) {
+                                      earnings = parseFloat((miles * rate).toFixed(2));
+                                    }
+                                  }
+                                  return `$${earnings.toFixed(2)}`;
+                                })()}
                               </td>
                             </tr>
                           ))}
