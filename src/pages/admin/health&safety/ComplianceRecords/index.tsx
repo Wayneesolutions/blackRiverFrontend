@@ -479,11 +479,11 @@ const EnhancedComplianceRecords: React.FC = () => {
           <div className="flex flex-wrap gap-3">
             {[
               { id: 'all', label: 'All Records', icon: <FaFileContract />, count: stats.totalRecords },
-              { id: 'policies', label: 'Policies (Req 12)', icon: <FaBookOpen />, count: stats.policies },
-              { id: 'training', label: 'Training (Req 3)', icon: <FaUserCheck />, count: stats.training },
-              { id: 'incidents', label: 'Incidents (Req 1)', icon: <FaExclamationTriangle />, count: stats.incidents },
-              { id: 'hazards', label: 'Hazards (Req 2)', icon: <FaExclamationCircle />, count: stats.hazards },
-              { id: 'inspections', label: 'Inspections (Req 6)', icon: <FaClipboardCheck />, count: stats.inspections }
+              { id: 'policies', label: 'Policies', icon: <FaBookOpen />, count: stats.policies },
+              { id: 'training', label: 'Training', icon: <FaUserCheck />, count: stats.training },
+              { id: 'incidents', label: 'Incidents', icon: <FaExclamationTriangle />, count: stats.incidents },
+              { id: 'hazards', label: 'Hazards', icon: <FaExclamationCircle />, count: stats.hazards },
+              { id: 'inspections', label: 'Inspections', icon: <FaClipboardCheck />, count: stats.inspections }
             ].map((view) => (
               <button
                 key={view.id}

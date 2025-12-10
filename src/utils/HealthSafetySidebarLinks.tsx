@@ -9,7 +9,11 @@ import {
     FaChartBar,
     FaFileContract, // Added for policies to align with dashboard
     FaClipboardCheck, // For Safety Inspections
-    FaTruck // For Trucking Operations
+    FaTruck, // For Trucking Operations
+    FaComments, // For Toolbox Talks
+    FaAmbulance, // For Emergency Procedures
+    FaFolder, // For Document Library
+    FaBullhorn // For Safety Bulletins
 } from "react-icons/fa";
 
 type HealthSafetySidebarLink = {
@@ -34,7 +38,7 @@ export const HealthSafetySidebarLinks: HealthSafetySidebarLink[] = [
     {
         key: "inspections-hazards",
         icon: <FaShieldAlt />,
-        label: "Inspections & Hazards",
+        label: "Hazards Management",
     },
     {
         key: "safety-inspections",
@@ -67,6 +71,18 @@ export const HealthSafetySidebarLinks: HealthSafetySidebarLink[] = [
         icon: <FaTruck />,
         label: "Trucking Operations",
     },
+
+    {
+        key: "emergency-procedures",
+        icon: <FaAmbulance />,
+        label: "Emergency Procedures",
+    },
+    {
+        key: "document-library",
+        icon: <FaFolder />,
+        label: "Document Library",
+    },
+
     {
         key: "reports-analytics",
         icon: <FaChartBar />,

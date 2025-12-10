@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
     FaShieldAlt, 
     FaPlus, 
@@ -15,19 +16,10 @@ import {
     FaDownload,
     FaTimes,
     FaSave,
+    FaArrowRight,
 } from 'react-icons/fa';
 
-interface Inspection {
-    _id: string;
-    inspectionNumber: string;
-    date: string;
-    type: string;
-    inspector: string;
-    status: 'scheduled' | 'in-progress' | 'completed' | 'overdue';
-    findings: number;
-    hazards: number;
-    location: string;
-}
+// Inspection interface removed - inspections are now managed in SafetyInspections module
 
 interface Hazard {
     _id: string;
@@ -90,7 +82,7 @@ interface TruckingHazard {
 }
 
 const HazardControl = () => {
-    const [inspections, setInspections] = useState<Inspection[]>([]);
+    const navigate = useNavigate();
     const [hazards, setHazards] = useState<Hazard[]>([]);
     const [truckingHazards, setTruckingHazards] = useState<TruckingHazard[]>([]);
     const [observations, setObservations] = useState<DriverObservation[]>([]);
@@ -98,12 +90,11 @@ const HazardControl = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [filterRiskLevel, setFilterRiskLevel] = useState<string>('all');
-    const [activeTab, setActiveTab] = useState<'inspections' | 'hazards'>('hazards');
     const [hazardSubTab, setHazardSubTab] = useState<'reporting' | 'observations' | 'trucking-specific'>('reporting');
 
     const [selectedHazard, setSelectedHazard] = useState<Hazard | null>(null);
     const [showSidebar, setShowSidebar] = useState(false);
-    const [sidebarType, setSidebarType] = useState<'hazard' | 'inspection' | 'observation' | 'trucking-hazard' | null>(null);
+    const [sidebarType, setSidebarType] = useState<'hazard' | 'observation' | 'trucking-hazard' | null>(null);
     
     // Form states
     const [newHazard, setNewHazard] = useState({
@@ -113,13 +104,6 @@ const HazardControl = () => {
         reporter: '',
         likelihood: 3,
         severity: 3,
-    });
-    
-    const [newInspection, setNewInspection] = useState({
-        type: '',
-        inspector: '',
-        location: '',
-        date: new Date().toISOString().split('T')[0],
     });
     
     const [newObservation, setNewObservation] = useState({
@@ -379,11 +363,6 @@ const HazardControl = () => {
                 coachingNotes: 'Minor speed violation (5 over). Coaching provided on maintaining posted speeds.',
                 status: 'coached'
             }
-        ]);
-
-        setInspections([
-            { _id: '1', inspectionNumber: 'INS-2024-001', date: '2024-01-15', type: 'Yard Inspection', inspector: 'John Doe', status: 'completed', findings: 3, hazards: 1, location: 'Warehouse A' },
-            { _id: '2', inspectionNumber: 'INS-2024-002', date: '2024-01-25', type: 'Fire Extinguisher Check', inspector: 'Jane Smith', status: 'overdue', findings: 2, hazards: 0, location: 'Office Building' }
         ]);
 
         setLoading(false);
@@ -797,69 +776,7 @@ const HazardControl = () => {
         );
     };
 
-    const renderInspections = () => (
-        <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-gray-800">Safety Inspections</h3>
-                    <button 
-                        onClick={() => {
-                            setSidebarType('inspection');
-                            setShowSidebar(true);
-                        }}
-                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-2"
-                    >
-                        <FaPlus /> New Inspection
-                    </button>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inspection #</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inspector</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Findings</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hazards</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {inspections.map((inspection) => (
-                                <tr key={inspection._id} className="hover:bg-gray-50 transition">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{inspection.inspectionNumber}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{new Date(inspection.date).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{inspection.type}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{inspection.inspector}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{inspection.location}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{inspection.findings}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{inspection.hazards}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(inspection.status)}`}>
-                                            {inspection.status.replace('-', ' ').toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div className="flex items-center gap-2">
-                                            <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="View Details">
-                                                <FaEye />
-                                            </button>
-                                            <button className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition" title="Edit">
-                                                <FaEdit />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    );
+    // Inspections are now managed in the dedicated SafetyInspections module
 
     const handleSaveHazard = () => {
         const riskScore = newHazard.likelihood * newHazard.severity;
@@ -886,24 +803,7 @@ const HazardControl = () => {
         setSidebarType(null);
     };
 
-    const handleSaveInspection = () => {
-        const inspection: Inspection = {
-            _id: `I${inspections.length + 1}`,
-            inspectionNumber: `INS-2024-${String(inspections.length + 1).padStart(3, '0')}`,
-            date: newInspection.date,
-            type: newInspection.type,
-            inspector: newInspection.inspector,
-            status: 'scheduled',
-            findings: 0,
-            hazards: 0,
-            location: newInspection.location,
-        };
-        
-        setInspections([...inspections, inspection]);
-        setNewInspection({ type: '', inspector: '', location: '', date: new Date().toISOString().split('T')[0] });
-        setShowSidebar(false);
-        setSidebarType(null);
-    };
+    // Inspection handling removed - redirects to SafetyInspections module
 
     const handleSaveObservation = () => {
         const passedChecks = Object.values(newObservation.checklist).filter(Boolean).length;
@@ -985,7 +885,6 @@ const HazardControl = () => {
                     <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                         <h2 className="text-2xl font-bold text-gray-800">
                             {sidebarType === 'hazard' && 'Report New Hazard'}
-                            {sidebarType === 'inspection' && 'New Safety Inspection'}
                             {sidebarType === 'observation' && 'New Driver Observation'}
                             {sidebarType === 'trucking-hazard' && 'Report Trucking Hazard'}
                         </h2>
@@ -1089,56 +988,7 @@ const HazardControl = () => {
                             </div>
                         )}
 
-                        {sidebarType === 'inspection' && (
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Inspection Type *</label>
-                                    <input
-                                        type="text"
-                                        value={newInspection.type}
-                                        onChange={(e) => setNewInspection({ ...newInspection, type: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                                        placeholder="e.g., Yard Inspection, Fire Safety Check"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Inspector *</label>
-                                    <input
-                                        type="text"
-                                        value={newInspection.inspector}
-                                        onChange={(e) => setNewInspection({ ...newInspection, inspector: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                                        placeholder="Inspector name"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
-                                    <input
-                                        type="text"
-                                        value={newInspection.location}
-                                        onChange={(e) => setNewInspection({ ...newInspection, location: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                                        placeholder="Inspection location"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Scheduled Date *</label>
-                                    <input
-                                        type="date"
-                                        value={newInspection.date}
-                                        onChange={(e) => setNewInspection({ ...newInspection, date: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                                    />
-                                </div>
-                                <button
-                                    onClick={handleSaveInspection}
-                                    disabled={!newInspection.type || !newInspection.inspector || !newInspection.location}
-                                    className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <FaSave /> Schedule Inspection
-                                </button>
-                            </div>
-                        )}
+                        {/* Inspection form removed - redirects to SafetyInspections module */}
 
                         {sidebarType === 'observation' && (
                             <div className="space-y-4">
@@ -1400,38 +1250,9 @@ const HazardControl = () => {
                 <p className="text-gray-600">Manage safety inspections, hazard reporting, and driver observations</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg mb-6">
-                <div className="border-b border-gray-200">
-                    <div className="flex">
-                        <button
-                            onClick={() => setActiveTab('inspections')}
-                            className={`px-6 py-4 font-semibold transition ${
-                                activeTab === 'inspections'
-                                    ? 'text-blue-600 border-b-2 border-blue-600'
-                                    : 'text-gray-600 hover:text-gray-900'
-                            }`}
-                        >
-                            <FaClipboardCheck className="inline mr-2" />
-                            Inspections
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('hazards')}
-                            className={`px-6 py-4 font-semibold transition ${
-                                activeTab === 'hazards'
-                                    ? 'text-blue-600 border-b-2 border-blue-600'
-                                    : 'text-gray-600 hover:text-gray-900'
-                            }`}
-                        >
-                            <FaShieldAlt className="inline mr-2" />
-                            Hazard Management
-                        </button>
-                    </div>
-                </div>
-            </div>
+        
 
-            {activeTab === 'inspections' && renderInspections()}
-
-            {activeTab === 'hazards' && (
+            {(
                 <div>
                     <div className="bg-white rounded-xl shadow-lg mb-6">
                         <div className="border-b border-gray-200">
