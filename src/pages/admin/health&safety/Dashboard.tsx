@@ -10,6 +10,7 @@ import {
   FaTools, // For CAPA
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { getUserRole } from '../../../utils/auth';
 // Assuming FLEET_COLORS is defined in a utility file
 // For this example, I'll define some placeholders if FLEET_COLORS is unavailable.
 const FLEET_COLORS = {
@@ -69,6 +70,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, bgColor,
 // --- Main Dashboard Component ---
 const Dashboard = () => {
   const navigate = useNavigate();
+  const userRole = getUserRole();
+  const basePath = userRole === 'safety officer' ? '/healthandsafety' : '/admin/healthandsafety';
   // UPDATED: Focused on Federal Compliance and Risk Metrics
   const [stats, setStats] = useState({
     totalIncidents: 0,
@@ -117,7 +120,7 @@ const Dashboard = () => {
             icon={<FaTools size={24} />}
             color={stats.overdueCAPA > 0 ? FLEET_COLORS.danger : FLEET_COLORS.success} // RED if > 0
             bgColor={stats.overdueCAPA > 0 ? FLEET_COLORS.danger : FLEET_COLORS.success}
-            onClick={() => navigate("/admin/healthandsafety/committee-capa?filter=overdue")}
+            onClick={() => navigate(`${basePath}/committee-capa?filter=overdue`)}
           />
           {/* CRITICAL METRIC 2: Policy Acknowledgment Gaps */}
           <StatCard
@@ -126,7 +129,7 @@ const Dashboard = () => {
             icon={<FaFileContract size={24} />}
             color={stats.policyGaps > 0 ? FLEET_COLORS.warning : FLEET_COLORS.primary} // AMBER if > 0
             bgColor={stats.policyGaps > 0 ? FLEET_COLORS.warning : FLEET_COLORS.primary}
-            onClick={() => navigate("/admin/healthandsafety/policies-documents?filter=missing-ack")}
+            onClick={() => navigate(`${basePath}/policies-documents?filter=missing-ack`)}
           />
           {/* CRITICAL METRIC 3: Expired Certificates */}
           <StatCard
@@ -135,7 +138,7 @@ const Dashboard = () => {
             icon={<FaClipboardList size={24} />}
             color={stats.expiredCertificates > 0 ? FLEET_COLORS.warning : FLEET_COLORS.primary} // AMBER if > 0
             bgColor={stats.expiredCertificates > 0 ? FLEET_COLORS.warning : FLEET_COLORS.primary}
-            onClick={() => navigate("/admin/healthandsafety/training-certificates?filter=expired")}
+            onClick={() => navigate(`${basePath}/training-certificates?filter=expired`)}
           />
           {/* CRITICAL METRIC 4: Open Incidents */}
           <StatCard
@@ -144,7 +147,7 @@ const Dashboard = () => {
             icon={<FaExclamationTriangle size={24} />}
             color={FLEET_COLORS.primary}
             bgColor={FLEET_COLORS.primary}
-            onClick={() => navigate("/admin/healthandsafety/incidents-accidents?filter=open")}
+            onClick={() => navigate(`${basePath}/incidents-accidents?filter=open`)}
           />
         </div>
 
@@ -156,7 +159,7 @@ const Dashboard = () => {
             icon={<FaChartLine size={24} />}
             color={FLEET_COLORS.dark}
             bgColor={FLEET_COLORS.dark}
-            onClick={() => navigate("/admin/healthandsafety/reports-analytics")}
+            onClick={() => navigate(`${basePath}/reports-analytics`)}
           />
           <StatCard
             title="Open Hazards/Risk Assessments"
@@ -164,7 +167,7 @@ const Dashboard = () => {
             icon={<FaShieldAlt size={24} />}
             color={FLEET_COLORS.warning}
             bgColor={FLEET_COLORS.warning}
-            onClick={() => navigate("/admin/healthandsafety/inspections-hazards?filter=open")}
+            onClick={() => navigate(`${basePath}/inspections-hazards?filter=open`)}
           />
           <StatCard
             title="Overdue Inspections (Yard/Shop)"
@@ -172,7 +175,7 @@ const Dashboard = () => {
             icon={<FaShieldAlt size={24} />}
             color={FLEET_COLORS.primary}
             bgColor={FLEET_COLORS.primary}
-            onClick={() => navigate("/admin/healthandsafety/inspections-hazards?filter=overdue-inspections")}
+            onClick={() => navigate(`${basePath}/inspections-hazards?filter=overdue-inspections`)}
           />
           <StatCard
             title="Active Return-to-Work Cases"
@@ -180,7 +183,7 @@ const Dashboard = () => {
             icon={<FaUserInjured size={24} />}
             color={FLEET_COLORS.success}
             bgColor={FLEET_COLORS.success}
-            onClick={() => navigate("/admin/healthandsafety/incidents-accidents?filter=rtw")}
+            onClick={() => navigate(`${basePath}/incidents-accidents?filter=rtw`)}
           />
         </div>
 
@@ -213,21 +216,21 @@ const Dashboard = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
-              onClick={() => navigate("/admin/healthandsafety/incidents-accidents/report-new")}
+              onClick={() => navigate(`${basePath}/incidents-accidents/report-new`)}
               className="flex items-center gap-3 p-4 rounded-lg border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all"
             >
               <FaExclamationTriangle className="text-red-600" size={20} />
               <span className="font-medium">Report New Incident/Near-Miss</span>
             </button>
             <button
-              onClick={() => navigate("/admin/healthandsafety/inspections-hazards/report-hazard")}
+              onClick={() => navigate(`${basePath}/inspections-hazards/report-hazard`)}
               className="flex items-center gap-3 p-4 rounded-lg border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all"
             >
               <FaShieldAlt className="text-amber-600" size={20} />
               <span className="font-medium">Report New Hazard/Risk</span>
             </button>
             <button
-              onClick={() => navigate("/admin/healthandsafety/committee-capa")}
+              onClick={() => navigate(`${basePath}/committee-capa`)}
               className="flex items-center gap-3 p-4 rounded-lg border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all"
             >
               <FaTools className="text-blue-600" size={20} />

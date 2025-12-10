@@ -40,6 +40,8 @@ export default function LoginPage() {
             navigate('/fleetmaintenance', { replace: true });
           } else if (userRole === 'Compliance Manager') {
             navigate('/compliance', { replace: true });
+          } else if (userRole === 'safety officer') {
+            navigate('/healthandsafety', { replace: true });
           } else {
             navigate('/admin/dashboard', { replace: true });
           }
@@ -203,6 +205,8 @@ export default function LoginPage() {
           navigate('/fleetmaintenance', { replace: true });
         } else if (userRole === 'Compliance Manager') {
           navigate('/compliance', { replace: true });
+        } else if (userRole === 'safety officer') {
+          navigate('/healthandsafety', { replace: true });
         } else {
           navigate('/admin/dashboard', { replace: true });
         }

@@ -21,7 +21,31 @@ import {
   FaEnvelope,
   FaPrint
 } from 'react-icons/fa';
+import { FaCheckCircle as FaCheckCircleIcon, FaExclamationCircle, FaInfoCircle } from 'react-icons/fa';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+import {
+  createIncident,
+  getIncidents,
+  getIncidentById,
+  updateIncident,
+  deleteIncident,
+  updateInvestigation,
+  updateInjuryRecord,
+  createEmergencyContact,
+  getEmergencyContacts,
+  updateEmergencyContact,
+  deleteEmergencyContact,
+  createEmergencyProcedure,
+  getEmergencyProcedures,
+  updateEmergencyProcedure,
+  deleteEmergencyProcedure,
+  createFirstAidLog,
+  getFirstAidLogs,
+  getFirstAidLogById,
+  updateFirstAidLog,
+  deleteFirstAidLog
+} from '../../../../axios/api/healthSafety';
+import { getUserInfo } from '../../../../utils/auth';
 
 // ==================== DATA INTERFACES ====================
 interface MediaFile {
@@ -164,6 +188,51 @@ const TABS = {
   FIRST_AID_LOGS: 'firstaid'
 };
 
+// Toast notification interface
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'info' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircleIcon className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />,
+    warning: <FaExclamationCircle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
+
 const IncidentsAccidents = () => {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
@@ -181,56 +250,231 @@ const IncidentsAccidents = () => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [notificationId, setNotificationId] = useState(0);
 
+  // Incident form state
+  const [incidentFormData, setIncidentFormData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().slice(0, 5),
+    location: '',
+    locationType: 'warehouse' as 'warehouse' | 'yard' | 'shop' | 'highway' | 'other',
+    type: 'Workplace Incident' as 'Driver Injury' | 'Vehicle Accident' | 'Workplace Incident' | 'Near Miss',
+    severity: 'medium' as 'low' | 'medium' | 'high' | 'critical',
+    reportedBy: '',
+    reportedByRole: '',
+    description: '',
+    hasInjury: false
+  });
+  const [selectedPhotoFiles, setSelectedPhotoFiles] = useState<File[]>([]);
+  const [selectedVideoFiles, setSelectedVideoFiles] = useState<File[]>([]);
+
+  // Emergency Contact form state
+  const [showEmergencyContactModal, setShowEmergencyContactModal] = useState(false);
+  const [editingEmergencyContact, setEditingEmergencyContact] = useState<EmergencyContact | null>(null);
+  const [emergencyContactFormData, setEmergencyContactFormData] = useState({
+    name: '',
+    role: '',
+    phone: '',
+    email: '',
+    department: '',
+    isPrimary: false
+  });
+
+  // Emergency Procedure form state
+  const [showEmergencyProcedureModal, setShowEmergencyProcedureModal] = useState(false);
+  const [editingEmergencyProcedure, setEditingEmergencyProcedure] = useState<EmergencyProcedure | null>(null);
+  const [emergencyProcedureFormData, setEmergencyProcedureFormData] = useState({
+    title: '',
+    type: 'medical' as 'medical' | 'fire' | 'spill' | 'collision' | 'breakdown' | 'violence' | 'other',
+    procedure: ''
+  });
+  const [emergencyProcedureFile, setEmergencyProcedureFile] = useState<File | null>(null);
+
+  // First Aid Log form state
+  const [showFirstAidLogModal, setShowFirstAidLogModal] = useState(false);
+  const [editingFirstAidLog, setEditingFirstAidLog] = useState<FirstAidLog | null>(null);
+  const [firstAidLogFormData, setFirstAidLogFormData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().slice(0, 5),
+    location: '',
+    injuredPerson: '',
+    injuryDescription: '',
+    firstAidProvided: '',
+    treatedBy: '',
+    followUpRequired: false,
+    followUpNotes: ''
+  });
+
+  // Investigation form state
+  const [investigationFormData, setInvestigationFormData] = useState({
+    selectedIncidentId: '',
+    lead: '',
+    startDate: new Date().toISOString().split('T')[0],
+    rootCauseType: '' as '5-why' | 'fishbone' | '',
+    rootCause: '',
+    findings: [''],
+    analysis: ''
+  });
+
+  // Injury Record form state
+  const [injuryRecordFormData, setInjuryRecordFormData] = useState({
+    selectedIncidentId: '',
+    injuredWorker: '',
+    injuryDate: new Date().toISOString().split('T')[0],
+    injuryType: '',
+    bodyPart: '',
+    severity: '',
+    modifiedDutyPlan: '',
+    doctorRestrictions: '',
+    returnToWorkDate: '',
+    wcbClaimNumber: '',
+    progressNotes: [{ date: '', note: '', enteredBy: '' }]
+  });
+  const [selectedWcbFiles, setSelectedWcbFiles] = useState<File[]>([]);
+
+  const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    const id = notificationId + 1;
+    setNotificationId(id);
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const getLocalUserInfo = () => {
+    const userInfoString = localStorage.getItem('userInfo');
+    if (!userInfoString) return null;
+    try {
+      return JSON.parse(userInfoString);
+    } catch (error) {
+      console.error('Error parsing userInfo from localStorage:', error);
+      return null;
+    }
+  };
+
+  // Fetch all data on mount
   useEffect(() => {
-    // TODO: Fetch from API
-    setIncidents([
-      {
-        _id: '1',
-        incidentNumber: 'INC-2024-001',
-        date: '2024-01-15',
-        time: '14:30',
-        location: 'Warehouse A',
-        locationType: 'warehouse',
-        type: 'Workplace Incident',
-        severity: 'medium',
-        status: 'investigating',
-        reportedBy: 'John Doe',
-        reportedByRole: 'Warehouse Supervisor',
-        description: 'Employee slipped on wet floor',
-        hasInjury: true,
-        photoEvidence: [
-          { fileUrl: '/uploads/incident1.jpg', fileName: 'incident1.jpg', fileType: 'image', uploadedAt: '2024-01-15', uploadedBy: 'John Doe' }
-        ],
-        capa: {
-          capaNumber: 'CAPA-2024-001',
-          assignedTo: 'user123',
-          assignedToName: 'Safety Manager',
-          dueDate: '2024-02-15',
-          status: 'open',
-          description: 'Install non-slip mats in warehouse',
-          reminderSent: false,
-          escalationLevel: 0
-        }
-      }
-    ]);
-    
-    setEmergencyContacts([
-      { _id: '1', name: 'Emergency Services', role: 'Primary', phone: '911', department: 'External', isPrimary: true },
-      { _id: '2', name: 'Safety Manager', role: 'Safety', phone: '+1-555-0100', email: 'safety@company.com', department: 'Safety', isPrimary: false }
-    ]);
-    
-    setEmergencyProcedures([
-      { _id: '1', title: 'Medical Emergency Steps', type: 'medical', procedure: '1. Assess situation\n2. Call 911\n3. Provide first aid...', lastUpdated: '2024-01-01' },
-      { _id: '2', title: 'Fire Response & Evacuation', type: 'fire', procedure: '1. Sound alarm\n2. Evacuate building...', lastUpdated: '2024-01-01' }
-    ]);
-    
-    setFirstAidLogs([
-      { _id: '1', date: '2024-01-15', time: '14:30', location: 'Warehouse A', injuredPerson: 'John Doe', injuryDescription: 'Cut on hand', firstAidProvided: 'Cleaned and bandaged', treatedBy: 'Jane Smith', followUpRequired: false }
-    ]);
-    
-    setLoading(false);
+    fetchAllData();
   }, []);
+
+  // Fetch data when tab changes
+  useEffect(() => {
+    if (currentTab === TABS.INCIDENT_LIST) {
+      fetchIncidents();
+    } else if (currentTab === TABS.EMERGENCY_PROCS) {
+      fetchEmergencyContacts();
+      fetchEmergencyProcedures();
+    } else if (currentTab === TABS.FIRST_AID_LOGS) {
+      fetchFirstAidLogs();
+    }
+  }, [currentTab, searchTerm, filterStatus, filterType]);
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetchIncidents(),
+        fetchEmergencyContacts(),
+        fetchEmergencyProcedures(),
+        fetchFirstAidLogs()
+      ]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      showNotification('error', 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchIncidents = async () => {
+    try {
+      const response = await getIncidents({
+        status: filterStatus !== 'all' ? filterStatus : undefined,
+        type: filterType !== 'all' ? filterType : undefined,
+        search: searchTerm || undefined
+      });
+      if (response?.success && Array.isArray(response.data)) {
+        setIncidents(response.data.map((inc: any) => ({
+          _id: inc._id,
+          incidentNumber: inc.incidentNumber,
+          date: inc.date,
+          time: inc.time,
+          location: inc.location,
+          locationType: inc.locationType,
+          type: inc.type,
+          severity: inc.severity,
+          status: inc.status,
+          reportedBy: inc.reportedBy,
+          reportedByRole: inc.reportedByRole,
+          description: inc.description,
+          hasInjury: inc.hasInjury || false,
+          photoEvidence: inc.photoEvidence || [],
+          videoEvidence: inc.videoEvidence || [],
+          workerStatements: inc.workerStatements || [],
+          witnessReports: inc.witnessReports || [],
+          investigation: inc.investigation,
+          capa: inc.capa,
+          injuryRecord: inc.injuryRecord,
+          wcbClaimNumber: inc.wcbClaimNumber,
+          wcbDocuments: inc.wcbDocuments || []
+        })));
+      }
+    } catch (error: any) {
+      console.error('Error fetching incidents:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to fetch incidents');
+    }
+  };
+
+  const fetchEmergencyContacts = async () => {
+    try {
+      const response = await getEmergencyContacts();
+      if (response?.success && Array.isArray(response.data)) {
+        setEmergencyContacts(response.data);
+      }
+    } catch (error: any) {
+      console.error('Error fetching emergency contacts:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to fetch emergency contacts');
+    }
+  };
+
+  const fetchEmergencyProcedures = async () => {
+    try {
+      const response = await getEmergencyProcedures();
+      if (response?.success && Array.isArray(response.data)) {
+        setEmergencyProcedures(response.data);
+      }
+    } catch (error: any) {
+      console.error('Error fetching emergency procedures:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to fetch emergency procedures');
+    }
+  };
+
+  const fetchFirstAidLogs = async () => {
+    try {
+      const response = await getFirstAidLogs({
+        search: searchTerm || undefined
+      });
+      if (response?.success && Array.isArray(response.data)) {
+        setFirstAidLogs(response.data.map((log: any) => ({
+          _id: log._id,
+          date: log.date,
+          time: log.time,
+          location: log.location,
+          injuredPerson: log.injuredPerson,
+          injuryDescription: log.injuryDescription,
+          firstAidProvided: log.firstAidProvided,
+          treatedBy: log.treatedBy,
+          followUpRequired: log.followUpRequired || false,
+          followUpNotes: log.followUpNotes
+        })));
+      }
+    } catch (error: any) {
+      console.error('Error fetching first aid logs:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to fetch first aid logs');
+    }
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -253,18 +497,84 @@ const IncidentsAccidents = () => {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'video' | 'document') => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  // Handle incident creation
+  const handleCreateIncident = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!incidentFormType) return;
 
-    setUploadingFiles(true);
-    // TODO: Implement actual file upload to backend
-    setTimeout(() => {
-      setUploadingFiles(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    const userInfo = getLocalUserInfo();
+    const userName = userInfo?.userData?.name || userInfo?.name || 'Unknown User';
+    const userRole = userInfo?.userData?.role || userInfo?.role || 'Unknown Role';
+
+    const formData = new FormData();
+    formData.append('date', incidentFormData.date);
+    formData.append('time', incidentFormData.time);
+    formData.append('location', incidentFormData.location);
+    formData.append('locationType', incidentFormData.locationType);
+    formData.append('type', incidentFormType);
+    formData.append('severity', incidentFormData.severity);
+    formData.append('reportedBy', incidentFormData.reportedBy || userName);
+    formData.append('reportedByRole', incidentFormData.reportedByRole || userRole);
+    formData.append('description', incidentFormData.description);
+    formData.append('hasInjury', String(incidentFormData.hasInjury));
+
+    selectedPhotoFiles.forEach(file => {
+      formData.append('photoEvidence', file);
+    });
+
+    selectedVideoFiles.forEach(file => {
+      formData.append('videoEvidence', file);
+    });
+
+    try {
+      setUploadingFiles(true);
+      const response = await createIncident(formData);
+      if (response?.success) {
+        showNotification('success', 'Incident created successfully');
+        setShowIncidentForm(false);
+        setIncidentFormType(null);
+        setSelectedPhotoFiles([]);
+        setSelectedVideoFiles([]);
+        setIncidentFormData({
+          date: new Date().toISOString().split('T')[0],
+          time: new Date().toTimeString().slice(0, 5),
+          location: '',
+          locationType: 'warehouse',
+          type: 'Workplace Incident',
+          severity: 'medium',
+          reportedBy: '',
+          reportedByRole: '',
+          description: '',
+          hasInjury: false
+        });
+        await fetchIncidents();
+      } else {
+        showNotification('error', response?.message || 'Failed to create incident');
       }
-    }, 1000);
+    } catch (error: any) {
+      console.error('Error creating incident:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to create incident');
+    } finally {
+      setUploadingFiles(false);
+    }
+  };
+
+  // Handle incident deletion
+  const handleDeleteIncident = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this incident?')) return;
+    
+    try {
+      const response = await deleteIncident(id);
+      if (response?.success) {
+        showNotification('success', 'Incident deleted successfully');
+        await fetchIncidents();
+      } else {
+        showNotification('error', response?.message || 'Failed to delete incident');
+      }
+    } catch (error: any) {
+      console.error('Error deleting incident:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to delete incident');
+    }
   };
 
   const filteredIncidents = incidents.filter(incident => {
@@ -401,6 +711,13 @@ const IncidentsAccidents = () => {
                         >
                           <FaEye />
                         </button>
+                        <button 
+                          onClick={() => handleDeleteIncident(incident._id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" 
+                          title="Delete"
+                        >
+                          <FaTrash />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -413,13 +730,321 @@ const IncidentsAccidents = () => {
     </>
   );
 
+  // Handle investigation submission
+  const handleSubmitInvestigation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!investigationFormData.selectedIncidentId || !investigationFormData.lead || !investigationFormData.analysis) {
+      showNotification('error', 'Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const investigationData: any = {
+        lead: investigationFormData.lead,
+        startDate: investigationFormData.startDate,
+        findings: investigationFormData.analysis
+      };
+
+      if (investigationFormData.rootCauseType && investigationFormData.rootCause) {
+        investigationData.rootCauseAnalysis = {
+          type: investigationFormData.rootCauseType,
+          rootCause: investigationFormData.rootCause,
+          findings: investigationFormData.findings.filter(f => f.trim()),
+          analysis: investigationFormData.analysis
+        };
+      }
+
+      const response = await updateInvestigation(investigationFormData.selectedIncidentId, investigationData);
+      if (response?.success) {
+        showNotification('success', 'Investigation updated successfully');
+        setInvestigationFormData({
+          selectedIncidentId: '',
+          lead: '',
+          startDate: new Date().toISOString().split('T')[0],
+          rootCauseType: '',
+          rootCause: '',
+          findings: [''],
+          analysis: ''
+        });
+        await fetchIncidents();
+      } else {
+        showNotification('error', response?.message || 'Failed to update investigation');
+      }
+    } catch (error: any) {
+      console.error('Error updating investigation:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to update investigation');
+    }
+  };
+
+  // Handle injury record submission
+  const handleSubmitInjuryRecord = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!injuryRecordFormData.selectedIncidentId) {
+      showNotification('error', 'Please select an incident');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('injuredWorker', injuryRecordFormData.injuredWorker);
+    formData.append('injuryDate', injuryRecordFormData.injuryDate);
+    formData.append('injuryType', injuryRecordFormData.injuryType);
+    formData.append('bodyPart', injuryRecordFormData.bodyPart);
+    formData.append('severity', injuryRecordFormData.severity);
+    formData.append('modifiedDutyPlan', injuryRecordFormData.modifiedDutyPlan);
+    formData.append('doctorRestrictions', injuryRecordFormData.doctorRestrictions);
+    if (injuryRecordFormData.returnToWorkDate) {
+      formData.append('returnToWorkDate', injuryRecordFormData.returnToWorkDate);
+    }
+    if (injuryRecordFormData.wcbClaimNumber) {
+      formData.append('wcbClaimNumber', injuryRecordFormData.wcbClaimNumber);
+    }
+    if (injuryRecordFormData.progressNotes && injuryRecordFormData.progressNotes.length > 0) {
+      formData.append('progressNotes', JSON.stringify(injuryRecordFormData.progressNotes));
+    }
+
+    selectedWcbFiles.forEach(file => {
+      formData.append('wcbDocuments', file);
+    });
+
+    try {
+      setUploadingFiles(true);
+      const response = await updateInjuryRecord(injuryRecordFormData.selectedIncidentId, formData);
+      if (response?.success) {
+        showNotification('success', 'Injury record updated successfully');
+        setInjuryRecordFormData({
+          selectedIncidentId: '',
+          injuredWorker: '',
+          injuryDate: new Date().toISOString().split('T')[0],
+          injuryType: '',
+          bodyPart: '',
+          severity: '',
+          modifiedDutyPlan: '',
+          doctorRestrictions: '',
+          returnToWorkDate: '',
+          wcbClaimNumber: '',
+          progressNotes: [{ date: '', note: '', enteredBy: '' }]
+        });
+        setSelectedWcbFiles([]);
+        await fetchIncidents();
+      } else {
+        showNotification('error', response?.message || 'Failed to update injury record');
+      }
+    } catch (error: any) {
+      console.error('Error updating injury record:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to update injury record');
+    } finally {
+      setUploadingFiles(false);
+    }
+  };
+
+  // Handle emergency contact CRUD
+  const handleCreateEmergencyContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await createEmergencyContact(emergencyContactFormData);
+      if (response?.success) {
+        showNotification('success', 'Emergency contact created successfully');
+        setShowEmergencyContactModal(false);
+        setEmergencyContactFormData({
+          name: '',
+          role: '',
+          phone: '',
+          email: '',
+          department: '',
+          isPrimary: false
+        });
+        await fetchEmergencyContacts();
+      } else {
+        showNotification('error', response?.message || 'Failed to create emergency contact');
+      }
+    } catch (error: any) {
+      console.error('Error creating emergency contact:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to create emergency contact');
+    }
+  };
+
+  const handleUpdateEmergencyContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEmergencyContact) return;
+    try {
+      const response = await updateEmergencyContact(editingEmergencyContact._id!, emergencyContactFormData);
+      if (response?.success) {
+        showNotification('success', 'Emergency contact updated successfully');
+        setShowEmergencyContactModal(false);
+        setEditingEmergencyContact(null);
+        await fetchEmergencyContacts();
+      } else {
+        showNotification('error', response?.message || 'Failed to update emergency contact');
+      }
+    } catch (error: any) {
+      console.error('Error updating emergency contact:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to update emergency contact');
+    }
+  };
+
+  const handleDeleteEmergencyContact = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this emergency contact?')) return;
+    try {
+      const response = await deleteEmergencyContact(id);
+      if (response?.success) {
+        showNotification('success', 'Emergency contact deleted successfully');
+        await fetchEmergencyContacts();
+      } else {
+        showNotification('error', response?.message || 'Failed to delete emergency contact');
+      }
+    } catch (error: any) {
+      console.error('Error deleting emergency contact:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to delete emergency contact');
+    }
+  };
+
+  // Handle emergency procedure CRUD
+  const handleCreateEmergencyProcedure = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('title', emergencyProcedureFormData.title);
+    formData.append('type', emergencyProcedureFormData.type);
+    formData.append('procedure', emergencyProcedureFormData.procedure);
+    if (emergencyProcedureFile) {
+      formData.append('document', emergencyProcedureFile);
+    }
+
+    try {
+      setUploadingFiles(true);
+      const response = await createEmergencyProcedure(formData);
+      if (response?.success) {
+        showNotification('success', 'Emergency procedure created successfully');
+        setShowEmergencyProcedureModal(false);
+        setEmergencyProcedureFormData({
+          title: '',
+          type: 'medical',
+          procedure: ''
+        });
+        setEmergencyProcedureFile(null);
+        await fetchEmergencyProcedures();
+      } else {
+        showNotification('error', response?.message || 'Failed to create emergency procedure');
+      }
+    } catch (error: any) {
+      console.error('Error creating emergency procedure:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to create emergency procedure');
+    } finally {
+      setUploadingFiles(false);
+    }
+  };
+
+  const handleUpdateEmergencyProcedure = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEmergencyProcedure) return;
+    const formData = new FormData();
+    formData.append('title', emergencyProcedureFormData.title);
+    formData.append('type', emergencyProcedureFormData.type);
+    formData.append('procedure', emergencyProcedureFormData.procedure);
+    if (emergencyProcedureFile) {
+      formData.append('document', emergencyProcedureFile);
+    }
+
+    try {
+      setUploadingFiles(true);
+      const response = await updateEmergencyProcedure(editingEmergencyProcedure._id!, formData);
+      if (response?.success) {
+        showNotification('success', 'Emergency procedure updated successfully');
+        setShowEmergencyProcedureModal(false);
+        setEditingEmergencyProcedure(null);
+        setEmergencyProcedureFile(null);
+        await fetchEmergencyProcedures();
+      } else {
+        showNotification('error', response?.message || 'Failed to update emergency procedure');
+      }
+    } catch (error: any) {
+      console.error('Error updating emergency procedure:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to update emergency procedure');
+    } finally {
+      setUploadingFiles(false);
+    }
+  };
+
+  const handleDeleteEmergencyProcedure = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this emergency procedure?')) return;
+    try {
+      const response = await deleteEmergencyProcedure(id);
+      if (response?.success) {
+        showNotification('success', 'Emergency procedure deleted successfully');
+        await fetchEmergencyProcedures();
+      } else {
+        showNotification('error', response?.message || 'Failed to delete emergency procedure');
+      }
+    } catch (error: any) {
+      console.error('Error deleting emergency procedure:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to delete emergency procedure');
+    }
+  };
+
+  // Handle first aid log CRUD
+  const handleCreateFirstAidLog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await createFirstAidLog(firstAidLogFormData);
+      if (response?.success) {
+        showNotification('success', 'First aid log created successfully');
+        setShowFirstAidLogModal(false);
+        setFirstAidLogFormData({
+          date: new Date().toISOString().split('T')[0],
+          time: new Date().toTimeString().slice(0, 5),
+          location: '',
+          injuredPerson: '',
+          injuryDescription: '',
+          firstAidProvided: '',
+          treatedBy: '',
+          followUpRequired: false,
+          followUpNotes: ''
+        });
+        await fetchFirstAidLogs();
+      } else {
+        showNotification('error', response?.message || 'Failed to create first aid log');
+      }
+    } catch (error: any) {
+      console.error('Error creating first aid log:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to create first aid log');
+    }
+  };
+
+  const handleUpdateFirstAidLog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFirstAidLog) return;
+    try {
+      const response = await updateFirstAidLog(editingFirstAidLog._id!, firstAidLogFormData);
+      if (response?.success) {
+        showNotification('success', 'First aid log updated successfully');
+        setShowFirstAidLogModal(false);
+        setEditingFirstAidLog(null);
+        await fetchFirstAidLogs();
+      } else {
+        showNotification('error', response?.message || 'Failed to update first aid log');
+      }
+    } catch (error: any) {
+      console.error('Error updating first aid log:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to update first aid log');
+    }
+  };
+
+  const handleDeleteFirstAidLog = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this first aid log?')) return;
+    try {
+      const response = await deleteFirstAidLog(id);
+      if (response?.success) {
+        showNotification('success', 'First aid log deleted successfully');
+        await fetchFirstAidLogs();
+      } else {
+        showNotification('error', response?.message || 'Failed to delete first aid log');
+      }
+    } catch (error: any) {
+      console.error('Error deleting first aid log:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to delete first aid log');
+    }
+  };
+
   const renderInvestigations = () => {
-    const [selectedIncidentId, setSelectedIncidentId] = useState<string>('');
-    const [investigationLead, setInvestigationLead] = useState('');
-    const [rootCauseType, setRootCauseType] = useState<'5-why' | 'fishbone' | ''>('');
-    const [rootCause, setRootCause] = useState('');
-    const [findings, setFindings] = useState<string[]>(['']);
-    const [analysis, setAnalysis] = useState('');
 
     return (
       <div className="bg-white rounded-xl p-6 shadow-lg">
@@ -428,13 +1053,13 @@ const IncidentsAccidents = () => {
           <strong>Federal Requirement:</strong> Canada Labour Code requires employers to investigate and document all hazardous occurrences.
         </p>
         
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmitInvestigation}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Incident Reference *</label>
               <select 
-                value={selectedIncidentId}
-                onChange={(e) => setSelectedIncidentId(e.target.value)}
+                value={investigationFormData.selectedIncidentId}
+                onChange={(e) => setInvestigationFormData({ ...investigationFormData, selectedIncidentId: e.target.value })}
                 className="w-full border border-gray-300 p-2 rounded-lg focus:ring-purple-500"
               >
                 <option value="">Select Incident to Investigate...</option>
@@ -448,8 +1073,8 @@ const IncidentsAccidents = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Investigation Lead *</label>
               <input 
                 type="text" 
-                value={investigationLead}
-                onChange={(e) => setInvestigationLead(e.target.value)}
+                value={investigationFormData.lead}
+                onChange={(e) => setInvestigationFormData({ ...investigationFormData, lead: e.target.value })}
                 placeholder="Safety Manager Name" 
                 className="w-full border border-gray-300 p-2 rounded-lg focus:ring-purple-500" 
               />
@@ -466,8 +1091,8 @@ const IncidentsAccidents = () => {
                   <input 
                     type="radio" 
                     value="5-why" 
-                    checked={rootCauseType === '5-why'}
-                    onChange={(e) => setRootCauseType(e.target.value as '5-why')}
+                    checked={investigationFormData.rootCauseType === '5-why'}
+                    onChange={(e) => setInvestigationFormData({ ...investigationFormData, rootCauseType: e.target.value as '5-why' | 'fishbone' })}
                     className="mr-2"
                   />
                   5-Why Analysis
@@ -476,8 +1101,8 @@ const IncidentsAccidents = () => {
                   <input 
                     type="radio" 
                     value="fishbone" 
-                    checked={rootCauseType === 'fishbone'}
-                    onChange={(e) => setRootCauseType(e.target.value as 'fishbone')}
+                    checked={investigationFormData.rootCauseType === 'fishbone'}
+                    onChange={(e) => setInvestigationFormData({ ...investigationFormData, rootCauseType: e.target.value as '5-why' | 'fishbone' })}
                     className="mr-2"
                   />
                   Fishbone (Ishikawa) Diagram
@@ -485,7 +1110,7 @@ const IncidentsAccidents = () => {
               </div>
             </div>
 
-            {rootCauseType === '5-why' && (
+            {investigationFormData.rootCauseType === '5-why' && (
               <div className="space-y-3 mb-4">
                 <label className="block text-sm font-medium text-gray-700">5-Why Analysis</label>
                 {[1, 2, 3, 4, 5].map((num) => (
@@ -498,20 +1123,20 @@ const IncidentsAccidents = () => {
                     />
                   </div>
                 ))}
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Root Cause Identified</label>
-                  <input 
-                    type="text" 
-                    value={rootCause}
-                    onChange={(e) => setRootCause(e.target.value)}
-                    placeholder="Final root cause"
-                    className="w-full border border-gray-300 p-2 rounded-lg"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Root Cause Identified</label>
+                    <input 
+                      type="text" 
+                      value={investigationFormData.rootCause}
+                      onChange={(e) => setInvestigationFormData({ ...investigationFormData, rootCause: e.target.value })}
+                      placeholder="Final root cause"
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
               </div>
             )}
 
-            {rootCauseType === 'fishbone' && (
+            {investigationFormData.rootCauseType === 'fishbone' && (
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Fishbone Categories</label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -530,8 +1155,8 @@ const IncidentsAccidents = () => {
                   <label className="block text-xs text-gray-600 mb-1">Root Cause Identified</label>
                   <input 
                     type="text" 
-                    value={rootCause}
-                    onChange={(e) => setRootCause(e.target.value)}
+                    value={investigationFormData.rootCause}
+                    onChange={(e) => setInvestigationFormData({ ...investigationFormData, rootCause: e.target.value })}
                     placeholder="Final root cause"
                     className="w-full border border-gray-300 p-2 rounded-lg"
                   />
@@ -543,8 +1168,8 @@ const IncidentsAccidents = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Detailed Findings & Analysis *</label>
               <textarea 
                 rows={4} 
-                value={analysis}
-                onChange={(e) => setAnalysis(e.target.value)}
+                value={investigationFormData.analysis}
+                onChange={(e) => setInvestigationFormData({ ...investigationFormData, analysis: e.target.value })}
                 placeholder="Document the step-by-step root cause analysis process..." 
                 className="w-full border border-gray-300 p-2 rounded-lg"
               />
@@ -598,11 +1223,19 @@ const IncidentsAccidents = () => {
           </div>
 
           <div className="flex justify-end gap-3">
-            <button type="button" className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
-              Save Draft
+            <button type="button" onClick={() => setInvestigationFormData({
+              selectedIncidentId: '',
+              lead: '',
+              startDate: new Date().toISOString().split('T')[0],
+              rootCauseType: '',
+              rootCause: '',
+              findings: [''],
+              analysis: ''
+            })} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+              Clear
             </button>
-            <button type="button" className="px-4 py-2 bg-yellow-600 text-white rounded-lg shadow-md hover:bg-yellow-700 transition flex items-center gap-2">
-              <FaTools /> Generate CAPA from Investigation
+            <button type="submit" className="px-4 py-2 bg-purple-600 text-white rounded-lg shadow-md hover:bg-purple-700 transition flex items-center gap-2">
+              <FaTools /> Save Investigation
             </button>
           </div>
         </form>
@@ -611,12 +1244,6 @@ const IncidentsAccidents = () => {
   };
 
   const renderInjuryRTW = () => {
-    const [selectedIncidentId, setSelectedIncidentId] = useState('');
-    const [wcbClaimNumber, setWcbClaimNumber] = useState('');
-    const [doctorRestrictions, setDoctorRestrictions] = useState('');
-    const [modifiedDutyPlan, setModifiedDutyPlan] = useState('');
-    const [progressNotes, setProgressNotes] = useState<Array<{date: string; note: string}>>([{date: '', note: ''}]);
-
     return (
       <div className="bg-white rounded-xl p-6 shadow-lg">
         <h2 className="text-2xl font-bold mb-4">Injury Management & Return-to-Work (RTW)</h2>
@@ -624,24 +1251,29 @@ const IncidentsAccidents = () => {
           <strong>CLC Requirement:</strong> Supports Canada Labour Code requirements for injury documentation and managing modified duty plans.
         </p>
         
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmitInjuryRecord}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Related Incident *</label>
               <select 
-                value={selectedIncidentId}
-                onChange={(e) => setSelectedIncidentId(e.target.value)}
+                value={injuryRecordFormData.selectedIncidentId}
+                onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, selectedIncidentId: e.target.value })}
                 className="w-full border border-gray-300 p-2 rounded-lg focus:ring-purple-500"
               >
                 <option value="">Select Incident with Injury...</option>
-                {incidents.filter(i => i.hasInjury).map(i => (
+                {incidents.map(i => (
                   <option key={i._id} value={i._id}>{i.incidentNumber} - {i.type}</option>
                 ))}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date of Injury *</label>
-              <input type="date" className="w-full border border-gray-300 p-2 rounded-lg" />
+              <input 
+                type="date" 
+                value={injuryRecordFormData.injuryDate}
+                onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, injuryDate: e.target.value })}
+                className="w-full border border-gray-300 p-2 rounded-lg" 
+              />
             </div>
           </div>
 
@@ -649,8 +1281,23 @@ const IncidentsAccidents = () => {
             <h3 className="text-lg font-semibold mb-4">Injury Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Injury Type</label>
-                <select className="w-full border border-gray-300 p-2 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Injured Worker *</label>
+                <input 
+                  type="text" 
+                  value={injuryRecordFormData.injuredWorker}
+                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, injuredWorker: e.target.value })}
+                  placeholder="Worker Name" 
+                  className="w-full border border-gray-300 p-2 rounded-lg" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Injury Type *</label>
+                <select 
+                  value={injuryRecordFormData.injuryType}
+                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, injuryType: e.target.value })}
+                  className="w-full border border-gray-300 p-2 rounded-lg"
+                >
+                  <option value="">Select Injury Type</option>
                   <option>Cut/Laceration</option>
                   <option>Strain/Sprain</option>
                   <option>Fracture</option>
@@ -659,8 +1306,28 @@ const IncidentsAccidents = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Body Part Affected</label>
-                <input type="text" placeholder="e.g., Right Hand" className="w-full border border-gray-300 p-2 rounded-lg" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Body Part Affected *</label>
+                <input 
+                  type="text" 
+                  value={injuryRecordFormData.bodyPart}
+                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, bodyPart: e.target.value })}
+                  placeholder="e.g., Right Hand" 
+                  className="w-full border border-gray-300 p-2 rounded-lg" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Severity *</label>
+                <select 
+                  value={injuryRecordFormData.severity}
+                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, severity: e.target.value })}
+                  className="w-full border border-gray-300 p-2 rounded-lg"
+                >
+                  <option value="">Select Severity</option>
+                  <option>Minor</option>
+                  <option>Moderate</option>
+                  <option>Serious</option>
+                  <option>Critical</option>
+                </select>
               </div>
             </div>
           </div>
@@ -671,8 +1338,8 @@ const IncidentsAccidents = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Doctor Restrictions / Limitations *</label>
               <textarea 
                 rows={3} 
-                value={doctorRestrictions}
-                onChange={(e) => setDoctorRestrictions(e.target.value)}
+                value={injuryRecordFormData.doctorRestrictions}
+                onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, doctorRestrictions: e.target.value })}
                 placeholder="Enter all physician-mandated restrictions (e.g., No lifting over 10kg, No driving, Limited standing time 2 hours/day)..." 
                 className="w-full border border-gray-300 p-2 rounded-lg mb-4"
               />
@@ -681,8 +1348,8 @@ const IncidentsAccidents = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Modified Duty Work Assignment *</label>
               <textarea 
                 rows={3} 
-                value={modifiedDutyPlan}
-                onChange={(e) => setModifiedDutyPlan(e.target.value)}
+                value={injuryRecordFormData.modifiedDutyPlan}
+                onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, modifiedDutyPlan: e.target.value })}
                 placeholder="Describe the assigned modified work (e.g., Office filing, light dispatch duties, administrative tasks)..." 
                 className="w-full border border-gray-300 p-2 rounded-lg"
               />
@@ -696,15 +1363,20 @@ const IncidentsAccidents = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">WCB/WSIB Claim Number</label>
                 <input 
                   type="text" 
-                  value={wcbClaimNumber}
-                  onChange={(e) => setWcbClaimNumber(e.target.value)}
+                  value={injuryRecordFormData.wcbClaimNumber}
+                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, wcbClaimNumber: e.target.value })}
                   placeholder="Claim Number" 
                   className="w-full border border-gray-300 p-2 rounded-lg" 
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Expected Return-to-Work Date</label>
-                <input type="date" className="w-full border border-gray-300 p-2 rounded-lg" />
+                <input 
+                  type="date" 
+                  value={injuryRecordFormData.returnToWorkDate}
+                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, returnToWorkDate: e.target.value })}
+                  className="w-full border border-gray-300 p-2 rounded-lg" 
+                />
               </div>
             </div>
             <div className="mt-4">
@@ -713,38 +1385,56 @@ const IncidentsAccidents = () => {
                 type="file" 
                 multiple 
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                onChange={(e) => handleFileUpload(e, 'document')}
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files) {
+                    setSelectedWcbFiles(Array.from(files));
+                  }
+                }}
                 className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
               />
               <p className="text-xs text-gray-500 mt-1">Upload claim forms, medical reports, doctor notes, etc.</p>
+              {selectedWcbFiles.length > 0 && (
+                <p className="text-xs text-blue-600 mt-1">{selectedWcbFiles.length} file(s) selected</p>
+              )}
             </div>
           </div>
 
           <div className="border-t pt-6">
             <h3 className="text-lg font-semibold mb-4">Return-to-Work Progress Tracking</h3>
             <div className="space-y-3">
-              {progressNotes.map((note, idx) => (
+              {injuryRecordFormData.progressNotes.map((note, idx) => (
                 <div key={idx} className="border rounded-lg p-3">
                   <div className="grid grid-cols-2 gap-3 mb-2">
                     <input 
                       type="date" 
                       value={note.date}
                       onChange={(e) => {
-                        const updated = [...progressNotes];
+                        const updated = [...injuryRecordFormData.progressNotes];
                         updated[idx].date = e.target.value;
-                        setProgressNotes(updated);
+                        setInjuryRecordFormData({ ...injuryRecordFormData, progressNotes: updated });
                       }}
                       className="border border-gray-300 p-2 rounded-lg text-sm" 
                     />
-                    <input type="text" placeholder="Entered By" className="border border-gray-300 p-2 rounded-lg text-sm" />
+                    <input 
+                      type="text" 
+                      value={note.enteredBy}
+                      onChange={(e) => {
+                        const updated = [...injuryRecordFormData.progressNotes];
+                        updated[idx].enteredBy = e.target.value;
+                        setInjuryRecordFormData({ ...injuryRecordFormData, progressNotes: updated });
+                      }}
+                      placeholder="Entered By" 
+                      className="border border-gray-300 p-2 rounded-lg text-sm" 
+                    />
                   </div>
                   <textarea 
                     rows={2} 
                     value={note.note}
                     onChange={(e) => {
-                      const updated = [...progressNotes];
+                      const updated = [...injuryRecordFormData.progressNotes];
                       updated[idx].note = e.target.value;
-                      setProgressNotes(updated);
+                      setInjuryRecordFormData({ ...injuryRecordFormData, progressNotes: updated });
                     }}
                     placeholder="Log weekly follow-ups and progress toward full duty..." 
                     className="w-full border border-gray-300 p-2 rounded-lg text-sm"
@@ -753,7 +1443,10 @@ const IncidentsAccidents = () => {
               ))}
               <button 
                 type="button" 
-                onClick={() => setProgressNotes([...progressNotes, {date: '', note: ''}])}
+                onClick={() => setInjuryRecordFormData({ 
+                  ...injuryRecordFormData, 
+                  progressNotes: [...injuryRecordFormData.progressNotes, { date: '', note: '', enteredBy: '' }] 
+                })}
                 className="text-sm text-purple-600 hover:text-purple-800"
               >
                 + Add Progress Note
@@ -762,8 +1455,8 @@ const IncidentsAccidents = () => {
           </div>
 
           <div className="flex justify-end">
-            <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition flex items-center gap-2">
-              Save Injury Management Plan
+            <button type="submit" disabled={uploadingFiles} className="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition flex items-center gap-2 disabled:opacity-50">
+              {uploadingFiles ? 'Uploading...' : 'Save Injury Management Plan'}
             </button>
           </div>
         </form>
@@ -777,7 +1470,21 @@ const IncidentsAccidents = () => {
       <div className="bg-white rounded-xl p-6 shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Emergency Contacts</h2>
-          <button className="px-3 py-1 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700">
+          <button 
+            onClick={() => {
+              setEditingEmergencyContact(null);
+              setEmergencyContactFormData({
+                name: '',
+                role: '',
+                phone: '',
+                email: '',
+                department: '',
+                isPrimary: false
+              });
+              setShowEmergencyContactModal(true);
+            }}
+            className="px-3 py-1 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+          >
             <FaPlus className="inline mr-1" /> Add Contact
           </button>
         </div>
@@ -816,10 +1523,27 @@ const IncidentsAccidents = () => {
                   <td className="px-4 py-2">{contact.department}</td>
                   <td className="px-4 py-2">
                     <div className="flex gap-2">
-                      <button className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                      <button 
+                        onClick={() => {
+                          setEditingEmergencyContact(contact);
+                          setEmergencyContactFormData({
+                            name: contact.name,
+                            role: contact.role,
+                            phone: contact.phone,
+                            email: contact.email || '',
+                            department: contact.department,
+                            isPrimary: contact.isPrimary
+                          });
+                          setShowEmergencyContactModal(true);
+                        }}
+                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                      >
                         <FaEdit />
                       </button>
-                      <button className="p-1 text-red-600 hover:bg-red-50 rounded">
+                      <button 
+                        onClick={() => handleDeleteEmergencyContact(contact._id!)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      >
                         <FaTrash />
                       </button>
                     </div>
@@ -836,7 +1560,24 @@ const IncidentsAccidents = () => {
 
       {/* Emergency Procedures */}
       <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">Emergency Response Procedures</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Emergency Response Procedures</h2>
+          <button 
+            onClick={() => {
+              setEditingEmergencyProcedure(null);
+              setEmergencyProcedureFormData({
+                title: '',
+                type: 'medical',
+                procedure: ''
+              });
+              setEmergencyProcedureFile(null);
+              setShowEmergencyProcedureModal(true);
+            }}
+            className="px-3 py-1 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+          >
+            <FaPlus className="inline mr-1" /> Add Procedure
+          </button>
+        </div>
         <p className="mb-4 text-gray-700 text-sm">Centralized, accessible documents required for audits and immediate worker reference.</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -869,10 +1610,27 @@ const IncidentsAccidents = () => {
   );
 
   const renderFirstAidLogs = () => (
-    <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="bg-white rounded-xl p-6 shadow-lg">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">First Aid Logs</h2>
-        <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2">
+        <button 
+          onClick={() => {
+            setEditingFirstAidLog(null);
+            setFirstAidLogFormData({
+              date: new Date().toISOString().split('T')[0],
+              time: new Date().toTimeString().slice(0, 5),
+              location: '',
+              injuredPerson: '',
+              injuryDescription: '',
+              firstAidProvided: '',
+              treatedBy: '',
+              followUpRequired: false,
+              followUpNotes: ''
+            });
+            setShowFirstAidLogModal(true);
+          }}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
+        >
           <FaPlus /> New First Aid Entry
         </button>
       </div>
@@ -911,11 +1669,31 @@ const IncidentsAccidents = () => {
                 </td>
                 <td className="px-4 py-2">
                   <div className="flex gap-2">
-                    <button className="p-1 text-blue-600 hover:bg-blue-50 rounded">
-                      <FaEye />
-                    </button>
-                    <button className="p-1 text-yellow-600 hover:bg-yellow-50 rounded">
+                    <button 
+                      onClick={() => {
+                        setEditingFirstAidLog(log);
+                        setFirstAidLogFormData({
+                          date: new Date(log.date).toISOString().split('T')[0],
+                          time: log.time,
+                          location: log.location,
+                          injuredPerson: log.injuredPerson,
+                          injuryDescription: log.injuryDescription,
+                          firstAidProvided: log.firstAidProvided,
+                          treatedBy: log.treatedBy,
+                          followUpRequired: log.followUpRequired,
+                          followUpNotes: log.followUpNotes || ''
+                        });
+                        setShowFirstAidLogModal(true);
+                      }}
+                      className="p-1 text-yellow-600 hover:bg-yellow-50 rounded"
+                    >
                       <FaEdit />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteFirstAidLog(log._id!)}
+                      className="p-1 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <FaTrash />
                     </button>
                   </div>
                 </td>
@@ -1072,9 +1850,533 @@ const IncidentsAccidents = () => {
         {/* Tab Content */}
         {renderContent()}
 
+        {/* Toast Notifications */}
+        {notifications.map(notification => (
+          <ToastNotificationComponent
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+
+        {/* Incident Form Modal */}
+        {showIncidentForm && incidentFormType && (
+          <div className="fixed inset-0 flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+              <div className="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 className="text-xl font-bold">Report New {incidentFormType}</h3>
+                <button onClick={() => {
+                  setShowIncidentForm(false);
+                  setIncidentFormType(null);
+                  setSelectedPhotoFiles([]);
+                  setSelectedVideoFiles([]);
+                }} className="text-gray-500 hover:text-gray-800">
+                  <FaTimes />
+                </button>
+              </div>
+              <form onSubmit={handleCreateIncident} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <input 
+                      type="date" 
+                      value={incidentFormData.date}
+                      onChange={(e) => setIncidentFormData({ ...incidentFormData, date: e.target.value })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                    <input 
+                      type="time" 
+                      value={incidentFormData.time}
+                      onChange={(e) => setIncidentFormData({ ...incidentFormData, time: e.target.value })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                    <input 
+                      type="text" 
+                      value={incidentFormData.location}
+                      onChange={(e) => setIncidentFormData({ ...incidentFormData, location: e.target.value })}
+                      required
+                      placeholder="Location"
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Location Type *</label>
+                    <select 
+                      value={incidentFormData.locationType}
+                      onChange={(e) => setIncidentFormData({ ...incidentFormData, locationType: e.target.value as any })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    >
+                      <option value="warehouse">Warehouse</option>
+                      <option value="yard">Yard</option>
+                      <option value="shop">Shop</option>
+                      <option value="highway">Highway</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Severity *</label>
+                    <select 
+                      value={incidentFormData.severity}
+                      onChange={(e) => setIncidentFormData({ ...incidentFormData, severity: e.target.value as any })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Reported By *</label>
+                    <input 
+                      type="text" 
+                      value={incidentFormData.reportedBy}
+                      onChange={(e) => setIncidentFormData({ ...incidentFormData, reportedBy: e.target.value })}
+                      required
+                      placeholder="Reporter Name"
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Reported By Role</label>
+                  <input 
+                    type="text" 
+                    value={incidentFormData.reportedByRole}
+                    onChange={(e) => setIncidentFormData({ ...incidentFormData, reportedByRole: e.target.value })}
+                    placeholder="Role"
+                    className="w-full border border-gray-300 p-2 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                  <textarea 
+                    rows={4}
+                    value={incidentFormData.description}
+                    onChange={(e) => setIncidentFormData({ ...incidentFormData, description: e.target.value })}
+                    required
+                    placeholder="Describe the incident..."
+                    className="w-full border border-gray-300 p-2 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      checked={incidentFormData.hasInjury}
+                      onChange={(e) => setIncidentFormData({ ...incidentFormData, hasInjury: e.target.checked })}
+                      className="mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Injury Reported</span>
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Photo Evidence</label>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files) {
+                          setSelectedPhotoFiles(Array.from(files));
+                        }
+                      }}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Video Evidence</label>
+                    <input 
+                      type="file" 
+                      accept="video/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files) {
+                          setSelectedVideoFiles(Array.from(files));
+                        }
+                      }}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setShowIncidentForm(false);
+                      setIncidentFormType(null);
+                      setSelectedPhotoFiles([]);
+                      setSelectedVideoFiles([]);
+                    }}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={uploadingFiles}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    {uploadingFiles ? 'Creating...' : 'Create Incident'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Emergency Contact Modal */}
+        {showEmergencyContactModal && (
+          <div className="fixed inset-0 flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6">
+              <div className="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 className="text-xl font-bold">
+                  {editingEmergencyContact ? 'Edit Emergency Contact' : 'Add Emergency Contact'}
+                </h3>
+                <button onClick={() => {
+                  setShowEmergencyContactModal(false);
+                  setEditingEmergencyContact(null);
+                }} className="text-gray-500 hover:text-gray-800">
+                  <FaTimes />
+                </button>
+              </div>
+              <form onSubmit={editingEmergencyContact ? handleUpdateEmergencyContact : handleCreateEmergencyContact} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                    <input 
+                      type="text" 
+                      value={emergencyContactFormData.name}
+                      onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, name: e.target.value })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                    <input 
+                      type="text" 
+                      value={emergencyContactFormData.role}
+                      onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, role: e.target.value })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                    <input 
+                      type="tel" 
+                      value={emergencyContactFormData.phone}
+                      onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, phone: e.target.value })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input 
+                      type="email" 
+                      value={emergencyContactFormData.email}
+                      onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, email: e.target.value })}
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Department *</label>
+                  <input 
+                    type="text" 
+                    value={emergencyContactFormData.department}
+                    onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, department: e.target.value })}
+                    required
+                    className="w-full border border-gray-300 p-2 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      checked={emergencyContactFormData.isPrimary}
+                      onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, isPrimary: e.target.checked })}
+                      className="mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Primary Contact</span>
+                  </label>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setShowEmergencyContactModal(false);
+                      setEditingEmergencyContact(null);
+                    }}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    {editingEmergencyContact ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Emergency Procedure Modal */}
+        {showEmergencyProcedureModal && (
+          <div className="fixed inset-0 flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6">
+              <div className="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 className="text-xl font-bold">
+                  {editingEmergencyProcedure ? 'Edit Emergency Procedure' : 'Add Emergency Procedure'}
+                </h3>
+                <button onClick={() => {
+                  setShowEmergencyProcedureModal(false);
+                  setEditingEmergencyProcedure(null);
+                }} className="text-gray-500 hover:text-gray-800">
+                  <FaTimes />
+                </button>
+              </div>
+              <form onSubmit={editingEmergencyProcedure ? handleUpdateEmergencyProcedure : handleCreateEmergencyProcedure} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                    <input 
+                      type="text" 
+                      value={emergencyProcedureFormData.title}
+                      onChange={(e) => setEmergencyProcedureFormData({ ...emergencyProcedureFormData, title: e.target.value })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                    <select 
+                      value={emergencyProcedureFormData.type}
+                      onChange={(e) => setEmergencyProcedureFormData({ ...emergencyProcedureFormData, type: e.target.value as any })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    >
+                      <option value="medical">Medical</option>
+                      <option value="fire">Fire</option>
+                      <option value="spill">Spill</option>
+                      <option value="collision">Collision</option>
+                      <option value="breakdown">Breakdown</option>
+                      <option value="violence">Violence</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Procedure *</label>
+                  <textarea 
+                    rows={8}
+                    value={emergencyProcedureFormData.procedure}
+                    onChange={(e) => setEmergencyProcedureFormData({ ...emergencyProcedureFormData, procedure: e.target.value })}
+                    required
+                    placeholder="Enter the emergency procedure steps..."
+                    className="w-full border border-gray-300 p-2 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Document Upload (Optional)</label>
+                  <input 
+                    type="file" 
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setEmergencyProcedureFile(file);
+                      }
+                    }}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                  />
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setShowEmergencyProcedureModal(false);
+                      setEditingEmergencyProcedure(null);
+                    }}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={uploadingFiles}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    {uploadingFiles ? 'Saving...' : (editingEmergencyProcedure ? 'Update' : 'Create')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* First Aid Log Modal */}
+        {showFirstAidLogModal && (
+          <div className="fixed inset-0 flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6">
+              <div className="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 className="text-xl font-bold">
+                  {editingFirstAidLog ? 'Edit First Aid Log' : 'New First Aid Entry'}
+                </h3>
+                <button onClick={() => {
+                  setShowFirstAidLogModal(false);
+                  setEditingFirstAidLog(null);
+                }} className="text-gray-500 hover:text-gray-800">
+                  <FaTimes />
+                </button>
+              </div>
+              <form onSubmit={editingFirstAidLog ? handleUpdateFirstAidLog : handleCreateFirstAidLog} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <input 
+                      type="date" 
+                      value={firstAidLogFormData.date}
+                      onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, date: e.target.value })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                    <input 
+                      type="time" 
+                      value={firstAidLogFormData.time}
+                      onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, time: e.target.value })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                  <input 
+                    type="text" 
+                    value={firstAidLogFormData.location}
+                    onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, location: e.target.value })}
+                    required
+                    className="w-full border border-gray-300 p-2 rounded-lg"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Injured Person *</label>
+                    <input 
+                      type="text" 
+                      value={firstAidLogFormData.injuredPerson}
+                      onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, injuredPerson: e.target.value })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Treated By *</label>
+                    <input 
+                      type="text" 
+                      value={firstAidLogFormData.treatedBy}
+                      onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, treatedBy: e.target.value })}
+                      required
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Injury Description *</label>
+                  <textarea 
+                    rows={3}
+                    value={firstAidLogFormData.injuryDescription}
+                    onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, injuryDescription: e.target.value })}
+                    required
+                    className="w-full border border-gray-300 p-2 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">First Aid Provided *</label>
+                  <textarea 
+                    rows={3}
+                    value={firstAidLogFormData.firstAidProvided}
+                    onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, firstAidProvided: e.target.value })}
+                    required
+                    className="w-full border border-gray-300 p-2 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      checked={firstAidLogFormData.followUpRequired}
+                      onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, followUpRequired: e.target.checked })}
+                      className="mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Follow-up Required</span>
+                  </label>
+                </div>
+                {firstAidLogFormData.followUpRequired && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Follow-up Notes</label>
+                    <textarea 
+                      rows={2}
+                      value={firstAidLogFormData.followUpNotes}
+                      onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, followUpNotes: e.target.value })}
+                      className="w-full border border-gray-300 p-2 rounded-lg"
+                    />
+                  </div>
+                )}
+                <div className="flex justify-end gap-3 mt-6">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setShowFirstAidLogModal(false);
+                      setEditingFirstAidLog(null);
+                    }}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    {editingFirstAidLog ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Modal for Detailed Incident View */}
         {selectedIncidentForDetail && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex justify-center items-center z-50 p-4">
+          <div className="fixed inset-0 flex justify-center items-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
               <div className="flex justify-between items-center border-b pb-3 mb-4">
                 <h3 className="text-xl font-bold">Incident Detail: {selectedIncidentForDetail.incidentNumber}</h3>
@@ -1165,3 +2467,4 @@ const IncidentsAccidents = () => {
 };
 
 export default IncidentsAccidents;
+

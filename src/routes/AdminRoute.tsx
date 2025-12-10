@@ -59,6 +59,11 @@ function AdminRoute() {
   if (userRole === 'Compliance Manager') {
     return <Navigate to="/compliance" replace />;
   }
+  
+  // If safety officer tries to access admin routes, redirect to healthandsafety routes (without /admin prefix)
+  if (userRole === 'safety officer') {
+    return <Navigate to="/healthandsafety" replace />;
+  }
 
   return (
     <Suspense fallback={<Loading />}>

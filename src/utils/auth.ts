@@ -171,6 +171,8 @@ export const getDashboardRoute = (): string => {
       return '/fleetmaintenance';
     case 'Compliance Manager':
       return '/compliance';
+    case 'safety officer':
+      return '/healthandsafety';
     case 'admin':
     case 'superadmin':
     default:

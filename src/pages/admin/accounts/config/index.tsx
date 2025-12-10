@@ -1,49 +1,76 @@
-import { useState } from 'react';
-import { Search, Plus, Edit, Trash2, Download, Filter, X, Save, AlertCircle, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Plus, Edit, Trash2, Download, Filter, X, Save } from 'lucide-react';
+import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
+import {
+  getChartOfAccounts,
+  createChartOfAccount,
+  updateChartOfAccount,
+  deleteChartOfAccount,
+  getTaxCodes,
+  createTaxCode,
+  updateTaxCode,
+  deleteTaxCode,
+  getPaymentMethods,
+  createPaymentMethod,
+  updatePaymentMethod,
+  deletePaymentMethod,
+  getSmsBilling,
+  getSmsBillingStats,
+  type ChartOfAccount,
+  type AccountTaxCode,
+  type PaymentMethod,
+  type SmsBilling
+} from '../../../../axios/api/account.config';
 
-// Type definitions
-interface Account {
+interface ToastNotification {
   id: number;
-  number: string;
-  name: string;
-  type: string;
-  balance: number;
+  type: 'success' | 'error' | 'info' | 'warning';
+  message: string;
 }
 
-interface TaxCode {
-  id: number;
-  code: string;
-  description: string;
-  rate: number;
-  category: string;
-}
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />,
+    warning: <FaExclamationCircle className="text-yellow-500" size={24} />
+  };
 
-interface PaymentMethod {
-  id: number;
-  method: string;
-  description: string;
-  preferred: string;
-}
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
 
-interface SmsBilling {
-  id: number;
-  timestamp: string;
-  recipient: string;
-  content: string;
-  cost: number;
-  account: string;
-}
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 type TabType = 'chart-of-accounts' | 'tax-codes' | 'payment-methods' | 'sms-billing';
 
-type DataItem = Account | TaxCode | PaymentMethod | SmsBilling;
+type DataItem = ChartOfAccount | AccountTaxCode | PaymentMethod | SmsBilling;
 
-interface Notification {
-  message: string;
-  type: 'success' | 'error';
-}
-
-type FormData = Partial<Account & TaxCode & PaymentMethod>;
+type FormData = Partial<ChartOfAccount & AccountTaxCode & PaymentMethod>;
 
 export default function AccountsSetup() {
   const [activeTab, setActiveTab] = useState<TabType>('chart-of-accounts');
@@ -51,43 +78,19 @@ export default function AccountsSetup() {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<DataItem | null>(null);
   const [modalType, setModalType] = useState<TabType>('chart-of-accounts');
-  const [notification, setNotification] = useState<Notification | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
 
-  // Chart of Accounts Data
-  const [accounts, setAccounts] = useState<Account[]>([
-    { id: 1, number: '1000', name: 'Cash', type: 'Asset', balance: 50000 },
-    { id: 2, number: '1100', name: 'Accounts Receivable', type: 'Asset', balance: 25000 },
-    { id: 3, number: '1200', name: 'Inventory', type: 'Asset', balance: 15000 },
-    { id: 4, number: '2000', name: 'Accounts Payable', type: 'Liability', balance: 10000 },
-    { id: 5, number: '3000', name: 'Owner Equity', type: 'Equity', balance: 30000 },
-    { id: 6, number: '4000', name: 'Service Revenue', type: 'Revenue', balance: 45000 },
-    { id: 7, number: '5000', name: 'Fuel Expense', type: 'Expense', balance: 12000 },
-    { id: 8, number: '5100', name: 'Maintenance Expense', type: 'Expense', balance: 8000 }
-  ]);
-
-  // Tax Codes Data
-  const [taxCodes, setTaxCodes] = useState<TaxCode[]>([
-    { id: 1, code: 'GST', description: 'Goods and Services Tax', rate: 5, category: 'Sales Tax' },
-    { id: 2, code: 'PST', description: 'Provincial Sales Tax', rate: 7, category: 'Sales Tax' },
-    { id: 3, code: 'HST', description: 'Harmonized Sales Tax', rate: 13, category: 'Sales Tax' },
-    { id: 4, code: 'IFTA-CA', description: 'IFTA California Fuel Tax', rate: 0.538, category: 'IFTA' },
-    { id: 5, code: 'IFTA-TX', description: 'IFTA Texas Fuel Tax', rate: 0.20, category: 'IFTA' }
-  ]);
-
-  // Payment Methods Data
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
-    { id: 1, method: 'ACH', description: 'Direct Deposit - Bank Account', preferred: 'Driver' },
-    { id: 2, method: 'Cheque', description: 'Check Payment - Series: CHK-2024', preferred: 'Vendor' },
-    { id: 3, method: 'Wire Transfer', description: 'Wire Transfer', preferred: 'Carrier' },
-    { id: 4, method: 'Virtual Card', description: 'Virtual Payment Card', preferred: 'Vendor' }
-  ]);
-
-  // SMS Billing Data
-  const [smsBilling, setSmsBilling] = useState<SmsBilling[]>([
-    { id: 1, timestamp: '2024-12-06 10:30', recipient: '+1234567890', content: 'Load pickup reminder...', cost: 0.05, account: 'SMS-001' },
-    { id: 2, timestamp: '2024-12-06 09:15', recipient: '+1987654321', content: 'Delivery confirmation...', cost: 0.05, account: 'SMS-001' },
-    { id: 3, timestamp: '2024-12-05 16:45', recipient: '+1122334455', content: 'Schedule update...', cost: 0.05, account: 'SMS-001' }
-  ]);
+  // Data states
+  const [accounts, setAccounts] = useState<ChartOfAccount[]>([]);
+  const [taxCodes, setTaxCodes] = useState<AccountTaxCode[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [smsBilling, setSmsBilling] = useState<SmsBilling[]>([]);
+  const [smsStats, setSmsStats] = useState({
+    totalCost: 0,
+    totalMessages: 0,
+    avgCostPerSms: 0
+  });
 
   const [formData, setFormData] = useState<FormData>({});
 
@@ -98,10 +101,129 @@ export default function AccountsSetup() {
     { id: 'sms-billing', label: 'SMS Billing Tracking' }
   ];
 
-  const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
+  // Toast notification helpers
+  const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    const id = Date.now();
+    setNotifications((prev: ToastNotification[]) => [...prev, { id, type, message }]);
   };
+
+  const removeNotification = (id: number) => {
+    setNotifications((prev: ToastNotification[]) => prev.filter((n: ToastNotification) => n.id !== id));
+  };
+
+  const confirmAction = (message: string, onConfirm: () => void) => {
+    if (window.confirm(message)) {
+      onConfirm();
+    }
+  };
+
+  // Fetch data functions
+  const fetchChartOfAccounts = async () => {
+    setLoading(true);
+    try {
+      const response = await getChartOfAccounts({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        setAccounts(response.data);
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch chart of accounts');
+      }
+    } catch (error: any) {
+      console.error('Error fetching chart of accounts:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching chart of accounts');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTaxCodes = async () => {
+    setLoading(true);
+    try {
+      const response = await getTaxCodes({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        setTaxCodes(response.data);
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch tax codes');
+      }
+    } catch (error: any) {
+      console.error('Error fetching tax codes:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching tax codes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPaymentMethods = async () => {
+    setLoading(true);
+    try {
+      const response = await getPaymentMethods({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        setPaymentMethods(response.data);
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch payment methods');
+      }
+    } catch (error: any) {
+      console.error('Error fetching payment methods:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching payment methods');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSmsBilling = async () => {
+    setLoading(true);
+    try {
+      const response = await getSmsBilling({ search: searchTerm || undefined });
+      if (response?.success && Array.isArray(response.data)) {
+        const formatted = response.data.map((item: any) => ({
+          ...item,
+          timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).replace(',', '') : ''
+        }));
+        setSmsBilling(formatted);
+      } else {
+        showNotification('error', response?.message || 'Failed to fetch SMS billing');
+      }
+    } catch (error: any) {
+      console.error('Error fetching SMS billing:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while fetching SMS billing');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSmsStats = async () => {
+    try {
+      const response = await getSmsBillingStats();
+      if (response?.success && response.data) {
+        setSmsStats({
+          totalCost: response.data.totalCost || 0,
+          totalMessages: response.data.totalMessages || 0,
+          avgCostPerSms: response.data.avgCostPerSms || 0
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching SMS stats:', error);
+    }
+  };
+
+  // Load data on mount and tab/search change
+  useEffect(() => {
+    if (activeTab === 'chart-of-accounts') {
+      fetchChartOfAccounts();
+    } else if (activeTab === 'tax-codes') {
+      fetchTaxCodes();
+    } else if (activeTab === 'payment-methods') {
+      fetchPaymentMethods();
+    } else if (activeTab === 'sms-billing') {
+      fetchSmsBilling();
+      fetchSmsStats();
+    }
+  }, [activeTab, searchTerm]);
 
   const handleAdd = () => {
     setEditingItem(null);
@@ -117,60 +239,107 @@ export default function AccountsSetup() {
     setShowModal(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-      switch (activeTab) {
-        case 'chart-of-accounts':
-          setAccounts(accounts.filter(a => a.id !== id));
-          break;
-        case 'tax-codes':
-          setTaxCodes(taxCodes.filter(t => t.id !== id));
-          break;
-        case 'payment-methods':
-          setPaymentMethods(paymentMethods.filter(p => p.id !== id));
-          break;
-        case 'sms-billing':
-          setSmsBilling(smsBilling.filter(s => s.id !== id));
-          break;
+  const handleDelete = (id: string) => {
+    confirmAction('Are you sure you want to delete this item?', async () => {
+      try {
+        let response;
+        if (activeTab === 'chart-of-accounts') {
+          response = await deleteChartOfAccount(id);
+          if (response?.success) {
+            await fetchChartOfAccounts();
+            showNotification('success', 'Chart of account deleted successfully');
+          }
+        } else if (activeTab === 'tax-codes') {
+          response = await deleteTaxCode(id);
+          if (response?.success) {
+            await fetchTaxCodes();
+            showNotification('success', 'Tax code deleted successfully');
+          }
+        } else if (activeTab === 'payment-methods') {
+          response = await deletePaymentMethod(id);
+          if (response?.success) {
+            await fetchPaymentMethods();
+            showNotification('success', 'Payment method deleted successfully');
+          }
+        }
+
+        if (!response?.success) {
+          showNotification('error', response?.message || 'Failed to delete item');
+        }
+      } catch (error: any) {
+        console.error('Error deleting item:', error);
+        showNotification('error', error?.response?.data?.message || 'An error occurred while deleting item');
       }
-      showNotification('Item deleted successfully', 'success');
-    }
+    });
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const newItem = {
-      ...formData,
-      id: editingItem ? editingItem.id : Date.now()
-    } as DataItem;
-
-    switch (activeTab) {
-      case 'chart-of-accounts':
-        if (editingItem) {
-          setAccounts(accounts.map(a => a.id === editingItem.id ? (newItem as Account) : a));
+    try {
+      let response;
+      
+      if (activeTab === 'chart-of-accounts') {
+        const data = {
+          number: formData.number || '',
+          name: formData.name || '',
+          type: formData.type as 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'Expense',
+          balance: formData.balance || 0
+        };
+        
+        response = editingItem?._id
+          ? await updateChartOfAccount(editingItem._id, data)
+          : await createChartOfAccount(data);
+        
+        if (response?.success) {
+          setShowModal(false);
+          await fetchChartOfAccounts();
+          showNotification('success', editingItem?._id ? 'Chart of account updated successfully' : 'Chart of account created successfully');
         } else {
-          setAccounts([...accounts, newItem as Account]);
+          showNotification('error', response?.message || 'Failed to save chart of account');
         }
-        break;
-      case 'tax-codes':
-        if (editingItem) {
-          setTaxCodes(taxCodes.map(t => t.id === editingItem.id ? (newItem as TaxCode) : t));
+      } else if (activeTab === 'tax-codes') {
+        const data = {
+          code: formData.code || '',
+          description: formData.description || '',
+          rate: formData.rate || 0,
+          category: formData.category as 'Sales Tax' | 'IFTA' | 'Payroll'
+        };
+        
+        response = editingItem?._id
+          ? await updateTaxCode(editingItem._id, data)
+          : await createTaxCode(data);
+        
+        if (response?.success) {
+          setShowModal(false);
+          await fetchTaxCodes();
+          showNotification('success', editingItem?._id ? 'Tax code updated successfully' : 'Tax code created successfully');
         } else {
-          setTaxCodes([...taxCodes, newItem as TaxCode]);
+          showNotification('error', response?.message || 'Failed to save tax code');
         }
-        break;
-      case 'payment-methods':
-        if (editingItem) {
-          setPaymentMethods(paymentMethods.map(p => p.id === editingItem.id ? (newItem as PaymentMethod) : p));
+      } else if (activeTab === 'payment-methods') {
+        const data = {
+          method: formData.method || '',
+          description: formData.description || '',
+          preferred: formData.preferred as 'Driver' | 'Vendor' | 'Carrier'
+        };
+        
+        response = editingItem?._id
+          ? await updatePaymentMethod(editingItem._id, data)
+          : await createPaymentMethod(data);
+        
+        if (response?.success) {
+          setShowModal(false);
+          await fetchPaymentMethods();
+          showNotification('success', editingItem?._id ? 'Payment method updated successfully' : 'Payment method created successfully');
         } else {
-          setPaymentMethods([...paymentMethods, newItem as PaymentMethod]);
+          showNotification('error', response?.message || 'Failed to save payment method');
         }
-        break;
+      }
+    } catch (error: any) {
+      console.error('Error saving item:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while saving item');
     }
-
-    setShowModal(false);
-    showNotification(editingItem ? 'Updated successfully' : 'Added successfully', 'success');
   };
 
   const handleExport = () => {
@@ -184,13 +353,22 @@ export default function AccountsSetup() {
     }
     
     if (data.length === 0) {
-      showNotification('No data to export', 'error');
+      showNotification('error', 'No data to export');
       return;
     }
     
     const csv = [
-      Object.keys(data[0]).join(','),
-      ...data.map(row => Object.values(row).join(','))
+      Object.keys(data[0]).filter(key => key !== '_id' && key !== '__v').join(','),
+      ...data.map(row => {
+        const obj = row as any;
+        return Object.keys(obj)
+          .filter(key => key !== '_id' && key !== '__v')
+          .map(key => {
+            const value = obj[key];
+            return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
+          })
+          .join(',');
+      })
     ].join('\n');
     
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -199,7 +377,7 @@ export default function AccountsSetup() {
     a.href = url;
     a.download = `${activeTab}-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    showNotification('Data exported successfully', 'success');
+    showNotification('success', 'Data exported successfully');
   };
 
   const filteredData = (): DataItem[] => {
@@ -224,7 +402,8 @@ export default function AccountsSetup() {
       case 'sms-billing':
         return smsBilling.filter(s => 
           s.recipient.includes(term) || 
-          s.content.toLowerCase().includes(term)
+          s.content.toLowerCase().includes(term) ||
+          s.account.toLowerCase().includes(term)
         );
       default:
         return [];
@@ -235,7 +414,7 @@ export default function AccountsSetup() {
     if (!showModal) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -413,15 +592,16 @@ export default function AccountsSetup() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Notification */}
-      {notification && (
-        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${
-          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } text-white`}>
-          {notification.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-          {notification.message}
-        </div>
-      )}
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10000] space-y-2">
+        {notifications.map(notification => (
+          <ToastNotificationComponent
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
 
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
@@ -498,34 +678,44 @@ export default function AccountsSetup() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {(filteredData() as Account[]).map(account => (
-                    <tr key={account.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{account.number}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          account.type === 'Asset' ? 'bg-green-100 text-green-800' :
-                          account.type === 'Liability' ? 'bg-red-100 text-red-800' :
-                          account.type === 'Equity' ? 'bg-blue-100 text-blue-800' :
-                          account.type === 'Revenue' ? 'bg-purple-100 text-purple-800' :
-                          'bg-orange-100 text-orange-800'
-                        }`}>
-                          {account.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${account.balance.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => handleEdit(account)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => handleDelete(account.id)} className="p-1 text-red-600 hover:bg-red-50 rounded">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading...</td>
                     </tr>
-                  ))}
+                  ) : filteredData().length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No accounts found</td>
+                    </tr>
+                  ) : (
+                    (filteredData() as ChartOfAccount[]).map(account => (
+                      <tr key={account._id || account.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{account.number}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            account.type === 'Asset' ? 'bg-green-100 text-green-800' :
+                            account.type === 'Liability' ? 'bg-red-100 text-red-800' :
+                            account.type === 'Equity' ? 'bg-blue-100 text-blue-800' :
+                            account.type === 'Revenue' ? 'bg-purple-100 text-purple-800' :
+                            'bg-orange-100 text-orange-800'
+                          }`}>
+                            {account.type}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${account.balance.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => handleEdit(account)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDelete(account._id || account.id?.toString() || '')} className="p-1 text-red-600 hover:bg-red-50 rounded">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -545,30 +735,40 @@ export default function AccountsSetup() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {(filteredData() as TaxCode[]).map(tax => (
-                    <tr key={tax.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tax.code}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{tax.description}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tax.rate}%</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          tax.category === 'IFTA' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                        }`}>
-                          {tax.category}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => handleEdit(tax)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => handleDelete(tax.id)} className="p-1 text-red-600 hover:bg-red-50 rounded">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading...</td>
                     </tr>
-                  ))}
+                  ) : filteredData().length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No tax codes found</td>
+                    </tr>
+                  ) : (
+                    (filteredData() as AccountTaxCode[]).map(tax => (
+                      <tr key={tax._id || tax.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tax.code}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{tax.description}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tax.rate}%</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            tax.category === 'IFTA' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                          }`}>
+                            {tax.category}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => handleEdit(tax)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDelete(tax._id || tax.id?.toString() || '')} className="p-1 text-red-600 hover:bg-red-50 rounded">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -587,27 +787,37 @@ export default function AccountsSetup() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {(filteredData() as PaymentMethod[]).map(method => (
-                    <tr key={method.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{method.method}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{method.description}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-                          {method.preferred}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => handleEdit(method)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => handleDelete(method.id)} className="p-1 text-red-600 hover:bg-red-50 rounded">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-8 text-center text-gray-500">Loading...</td>
                     </tr>
-                  ))}
+                  ) : filteredData().length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-8 text-center text-gray-500">No payment methods found</td>
+                    </tr>
+                  ) : (
+                    (filteredData() as PaymentMethod[]).map(method => (
+                      <tr key={method._id || method.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{method.method}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{method.description}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                            {method.preferred}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => handleEdit(method)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDelete(method._id || method.id?.toString() || '')} className="p-1 text-red-600 hover:bg-red-50 rounded">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -620,11 +830,11 @@ export default function AccountsSetup() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-blue-900">Total SMS Cost (Last 30 Days)</p>
-                    <p className="text-2xl font-bold text-blue-600">${(smsBilling.reduce((sum, sms) => sum + sms.cost, 0)).toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-blue-600">${smsStats.totalCost.toFixed(2)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-blue-700">Total Messages: {smsBilling.length}</p>
-                    <p className="text-xs text-blue-600">Avg Cost per SMS: $0.05</p>
+                    <p className="text-sm text-blue-700">Total Messages: {smsStats.totalMessages}</p>
+                    <p className="text-xs text-blue-600">Avg Cost per SMS: ${smsStats.avgCostPerSms.toFixed(2)}</p>
                   </div>
                 </div>
               </div>
@@ -640,15 +850,25 @@ export default function AccountsSetup() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {(filteredData() as SmsBilling[]).map(sms => (
-                      <tr key={sms.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sms.timestamp}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sms.recipient}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{sms.content}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${sms.cost.toFixed(2)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sms.account}</td>
+                    {loading ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading...</td>
                       </tr>
-                    ))}
+                    ) : filteredData().length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No SMS billing records found</td>
+                      </tr>
+                    ) : (
+                      (filteredData() as SmsBilling[]).map(sms => (
+                        <tr key={sms._id || sms.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sms.timestamp}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sms.recipient}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{sms.content}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${sms.cost.toFixed(2)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sms.account}</td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

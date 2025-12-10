@@ -6,6 +6,7 @@ import DispatcherRoute from "./DispatcherRoute";
 import HRRoute from "./HRRoute";
 import FleetMaintenanceRoute from "./FleetMaintenanceRoute";
 import ComplianceRoute from "./ComplianceRoute";
+import SafetyOfficerRoute from "./SafetyOfficerRoute";
 import InvoicePayment from "../pages/customer/InvoicePayment";
 import PublicRoute from "../components/auth/PublicRoute";
 import Loading from "../components/common/Loading";
@@ -57,6 +58,9 @@ const AppRoutes = () => {
       
       {/* Compliance Manager routes (without /admin prefix) */}
       <Route path='/compliance/*' element={<ComplianceRoute />}></Route>
+      
+      {/* Safety Officer routes (without /admin prefix) */}
+      <Route path='/healthandsafety/*' element={<SafetyOfficerRoute />}></Route>
       
       {/* Public customer routes */}
       <Route path='/invoice/:invoiceId' element={<InvoicePayment />}></Route>

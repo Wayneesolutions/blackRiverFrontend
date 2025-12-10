@@ -92,7 +92,7 @@ interface User {
   };
 }
 
-type Role = "driver" | "dispatcher" | "hr" | "contact" | "customer" | "reporter" | "Maintenance Crew (Mechanics)" | "Fleet Maintenance Manager" | "Compliance Manager";
+type Role = "driver" | "dispatcher" | "hr" | "contact" | "customer" | "reporter" | "Maintenance Crew (Mechanics)" | "Fleet Maintenance Manager" | "Compliance Manager" | "safety officer";
 
 // Driver-specific form data interface
 interface DriverFormData {
@@ -219,9 +219,9 @@ const Users = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; userId: string | null }>({ show: false, userId: null });
 
   // Available roles including drive
-  const rolesWithLoginAccess: Role[] = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Compliance Manager'];
+  const rolesWithLoginAccess: Role[] = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Compliance Manager', 'safety officer'];
 
-  const roleOptions: Role[] = ['driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', "Maintenance Crew (Mechanics)", "Fleet Maintenance Manager", "Compliance Manager"];
+  const roleOptions: Role[] = ['driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', "Maintenance Crew (Mechanics)", "Fleet Maintenance Manager", "Compliance Manager", "safety officer"];
 
   const [formData, setFormData] = useState({
     name: '',

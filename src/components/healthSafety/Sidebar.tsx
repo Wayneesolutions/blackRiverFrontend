@@ -31,9 +31,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
     );
   };
 
+  // Get base path based on user role
+  const getBasePath = () => {
+    return userRole === 'safety officer' ? '/healthandsafety' : '/admin/healthandsafety';
+  };
+
   // Helper function to check if route is active
   const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
-    const basePath = "/admin/healthandsafety";
+    const basePath = getBasePath();
     if (linkKey === 'health-safety-summary') {
       return (
         pathname === basePath ||
@@ -144,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                           {link.children.map((child: any) => (
                             <li key={child.key}>
                               <NavLink
-                                to={`/admin/healthandsafety/${child.key}`}
+                                to={`${getBasePath()}/${child.key}`}
                                 className={({ isActive }) => {
                                   const pathname = location.pathname;
                                   const activeState = isActiveLink(
@@ -158,7 +163,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                                 }}
                                 style={({ isActive }) => (isActive ? activeLinkStyle : { color: FLEET_COLORS.dark })}
                                 onClick={() => {
-                                  const targetPath = `/admin/healthandsafety/${child.key}`;
+                                  const targetPath = `${getBasePath()}/${child.key}`;
                                   console.log('🔗 Health & Safety Sidebar navigation to:', targetPath);
                                 }}
                               >
@@ -190,12 +195,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                     <NavLink
                       to={
                         link.key === 'health-safety-summary' 
-                          ? '/admin/healthandsafety'
-                          : `/admin/healthandsafety/${link.key}`
+                          ? getBasePath()
+                          : `${getBasePath()}/${link.key}`
                       }
                       className={({ isActive }) => {
                         const pathname = location.pathname;
-                        const basePath = "/admin/healthandsafety";
+                        const basePath = getBasePath();
                         // For health-safety-summary, check if we're on the index route
                         const isDashboardActive = link.key === 'health-safety-summary' && (pathname === basePath || pathname === `${basePath}/`);
                         const activeState = isDashboardActive || isActiveLink(
@@ -210,7 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                       style={({ isActive }) => (isActive ? activeLinkStyle : { color: FLEET_COLORS.dark })}
                       title={isCollapsed ? link.label : ''}
                       onClick={() => {
-                        const basePath = '/admin/healthandsafety';
+                        const basePath = getBasePath();
                         const targetPath = link.key === 'health-safety-summary' ? basePath : `${basePath}/${link.key}`;
                         console.log('🔗 Health & Safety Sidebar navigation to:', targetPath);
                       }}
