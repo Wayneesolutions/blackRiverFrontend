@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Edit, Trash2, Plus, X, Save, RefreshCw, AlertCircle, User, Phone, Upload, Search, Briefcase, MapPin, FileText, Heart, CreditCard, Globe, Building2 } from 'lucide-react';
+import { Edit, Trash2, Plus, X, Save, RefreshCw, AlertCircle, User, Phone, Upload, Search, Briefcase, MapPin, FileText, Heart, CreditCard, Globe, Building2, ChevronRight, ChevronLeft, CheckCircle, Eye } from 'lucide-react';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import * as driverApi from '../../../../axios/api/driver';
+import { getDocumentsByEmployee, createEmployeeDocument, EmployeeDocument } from '../../../../axios/api/employeeDocument';
 
 // Type definitions
 interface Driver {
@@ -26,6 +27,7 @@ interface Driver {
   lastModified?: string;
   role?: string;
   joinDate?: string;
+  documents?: EmployeeDocument[];
 }
 
 interface DriverFormData {
@@ -52,6 +54,17 @@ interface DriverFormData {
   policies?: string;
 }
 
+interface DriverDocumentForm {
+  documentType: string;
+  documentNumber: string;
+  issueDate: string;
+  expiryDate: string;
+  description: string;
+  status: string;
+  file: File | null;
+  _id?: string; // For existing documents
+}
+
 
 const DriverManagement = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -62,6 +75,10 @@ const DriverManagement = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; driverId: string | null }>({ show: false, driverId: null });
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const [driverDocuments, setDriverDocuments] = useState<DriverDocumentForm[]>([]);
+  const [existingDocuments, setExistingDocuments] = useState<EmployeeDocument[]>([]);
+  const [showDocumentsModal, setShowDocumentsModal] = useState<{ show: boolean; driver: Driver | null }>({ show: false, driver: null });
 
   const [formData, setFormData] = useState<DriverFormData>({
     name: '',
@@ -97,18 +114,32 @@ const DriverManagement = () => {
       const response = await driverApi.getAllDrivers(1, 100, searchTerm);
       if (response.success && Array.isArray(response.data)) {
         // Transform backend response to match frontend Driver interface
-        const transformedDrivers = response.data.map((driver: any) => {
-          // Ensure profileImageUrl is properly preserved and decoded if needed
-          const profileImageUrl = driver.profileImageUrl 
-            ? (typeof driver.profileImageUrl === 'string' ? driver.profileImageUrl.trim() : null)
-            : null;
-          
-          return {
-            ...driver,
-            profileImageUrl: profileImageUrl || null,
-            lastModified: driver.updatedAt ? new Date(driver.updatedAt).toLocaleDateString() : undefined
-          };
-        });
+        const transformedDrivers = await Promise.all(
+          response.data.map(async (driver: any) => {
+            // Ensure profileImageUrl is properly preserved and decoded if needed
+            const profileImageUrl = driver.profileImageUrl 
+              ? (typeof driver.profileImageUrl === 'string' ? driver.profileImageUrl.trim() : null)
+              : null;
+            
+            // Fetch documents for each driver
+            let documents: EmployeeDocument[] = [];
+            try {
+              const docsResponse = await getDocumentsByEmployee(driver._id);
+              if (docsResponse.success && Array.isArray(docsResponse.data)) {
+                documents = docsResponse.data;
+              }
+            } catch (err) {
+              console.error(`Error fetching documents for driver ${driver._id}:`, err);
+            }
+            
+            return {
+              ...driver,
+              profileImageUrl: profileImageUrl || null,
+              lastModified: driver.updatedAt ? new Date(driver.updatedAt).toLocaleDateString() : undefined,
+              documents
+            };
+          })
+        );
         setDrivers(transformedDrivers);
       } else {
         setError(response.message || 'Failed to fetch drivers');
@@ -145,14 +176,77 @@ const DriverManagement = () => {
       status: 'active',
       policies: ''
     });
+    setDriverDocuments([]);
+    setExistingDocuments([]);
+    setCurrentStep(1);
+  };
+
+  // Static driver document types
+  const DRIVER_DOCUMENT_TYPES = [
+    'Commercial Driver\'s License (CDL)',
+    'Medical Certificate (DOT Physical)',
+    'Drug Test Results',
+    'Alcohol Test Results',
+    'Background Check',
+    'Driving Record (MVR)',
+    'Insurance Certificate',
+    'DOT Physical Card',
+    'CDL Training Certificate',
+    'Defensive Driving Certificate',
+    'Hazmat Endorsement',
+    'Tanker Endorsement',
+    'Doubles/Triples Endorsement',
+    'Passenger Endorsement',
+    'School Bus Endorsement',
+    'Vehicle Inspection Certification',
+    'Safety Training Certificate',
+    'Hours of Service (HOS) Records',
+    'Employment Contract',
+    'Emergency Contact Form',
+    'Road Test Certificate',
+    'TSA Security Clearance',
+    'Other'
+  ];
+
+  const addDocument = () => {
+    setDriverDocuments([...driverDocuments, {
+      documentType: '',
+      documentNumber: '',
+      issueDate: '',
+      expiryDate: '',
+      description: '',
+      status: 'valid',
+      file: null
+    }]);
+  };
+
+  const removeDocument = (index: number) => {
+    setDriverDocuments(driverDocuments.filter((_, i) => i !== index));
+  };
+
+  const updateDocument = (index: number, field: keyof DriverDocumentForm, value: any) => {
+    const updated = [...driverDocuments];
+    updated[index] = { ...updated[index], [field]: value };
+    setDriverDocuments(updated);
+  };
+
+  const handleDocumentFileChange = (index: number, file: File | null) => {
+    updateDocument(index, 'file', file);
   };
 
   const handleCreate = async () => {
-    if (!formData.name || !formData.email || !formData.phone) {
-      alert('Please fill in all required fields (Name, Email, Phone)');
+    if (currentStep === 1) {
+      // Validate step 1
+      if (!formData.name || !formData.email || !formData.phone) {
+        alert('Please fill in all required fields (Name, Email, Phone)');
+        return;
+      }
+      // Move to step 2
+      setCurrentStep(2);
       return;
     }
 
+    // Step 2 - Create driver
     if (!formData.password) {
       alert('Password is required for new drivers');
       return;
@@ -191,6 +285,32 @@ const DriverManagement = () => {
 
       const response = await driverApi.createDriver(formDataToSend);
       if (response.success) {
+        const driverId = response.data?._id || response.data?.id;
+        
+        // Upload documents if any
+        if (driverId && driverDocuments.length > 0) {
+          try {
+            for (const doc of driverDocuments) {
+              if (doc.file && doc.documentType) {
+                const docFormData = new FormData();
+                docFormData.append('employee', driverId);
+                docFormData.append('documentType', doc.documentType);
+                docFormData.append('status', doc.status || 'valid');
+                if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
+                if (doc.issueDate) docFormData.append('issueDate', doc.issueDate);
+                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                if (doc.description) docFormData.append('description', doc.description);
+                docFormData.append('documentFile', doc.file);
+                
+                await createEmployeeDocument(docFormData);
+              }
+            }
+          } catch (docError) {
+            console.error('Error uploading documents:', docError);
+            alert('Driver created but some documents failed to upload. Please add them manually.');
+          }
+        }
+        
         await fetchDrivers();
         resetForm();
         setShowSidebar(false);
@@ -235,6 +355,32 @@ const DriverManagement = () => {
           status: driverData.status || 'active',
           policies: driverData.policies || ''
         });
+        
+        // Fetch existing documents
+        try {
+          const docsResponse = await getDocumentsByEmployee(driver._id);
+          if (docsResponse.success && Array.isArray(docsResponse.data)) {
+            setExistingDocuments(docsResponse.data);
+            // Convert existing documents to form format for editing
+            const formDocs = docsResponse.data.map((doc: EmployeeDocument) => ({
+              documentType: doc.documentType,
+              documentNumber: doc.documentNumber || '',
+              issueDate: doc.issueDate ? new Date(doc.issueDate).toISOString().split('T')[0] : '',
+              expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+              description: doc.description || '',
+              status: doc.status,
+              file: null,
+              _id: doc._id // Keep track of existing document ID
+            }));
+            setDriverDocuments(formDocs);
+          }
+        } catch (docError) {
+          console.error('Error fetching documents:', docError);
+          setExistingDocuments([]);
+          setDriverDocuments([]);
+        }
+        
+        setCurrentStep(1);
         setShowSidebar(true);
       } else {
         // Fallback to using driver object directly if API fails
@@ -243,7 +389,7 @@ const DriverManagement = () => {
           name: driver.name || '',
           email: driver.email || '',
           gender: driver.gender || '',
-          company: '', // Not used in form, auto-assigned by backend
+          company: '',
           employmentDetails: driver.employmentDetails || '',
           internalId: driver.internalId || '',
           joinDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
@@ -262,6 +408,24 @@ const DriverManagement = () => {
           status: driver.status || 'active',
           policies: ''
         });
+        
+        // Use documents from driver object if available
+        if (driver.documents && Array.isArray(driver.documents)) {
+          setExistingDocuments(driver.documents);
+          const formDocs = driver.documents.map((doc: EmployeeDocument) => ({
+            documentType: doc.documentType,
+            documentNumber: doc.documentNumber || '',
+            issueDate: doc.issueDate ? new Date(doc.issueDate).toISOString().split('T')[0] : '',
+            expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+            description: doc.description || '',
+            status: doc.status,
+            file: null,
+            _id: doc._id
+          }));
+          setDriverDocuments(formDocs);
+        }
+        
+        setCurrentStep(1);
         setShowSidebar(true);
       }
     } catch (error) {
@@ -272,7 +436,7 @@ const DriverManagement = () => {
         name: driver.name || '',
         email: driver.email || '',
         gender: driver.gender || '',
-        company: '', // Not used in form, auto-assigned by backend
+        company: '',
         employmentDetails: driver.employmentDetails || '',
         internalId: driver.internalId || '',
         joinDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
@@ -291,6 +455,23 @@ const DriverManagement = () => {
         status: driver.status || 'active',
         policies: ''
       });
+      
+      if (driver.documents && Array.isArray(driver.documents)) {
+        setExistingDocuments(driver.documents);
+        const formDocs = driver.documents.map((doc: EmployeeDocument) => ({
+          documentType: doc.documentType,
+          documentNumber: doc.documentNumber || '',
+          issueDate: doc.issueDate ? new Date(doc.issueDate).toISOString().split('T')[0] : '',
+          expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+          description: doc.description || '',
+          status: doc.status,
+          file: null,
+          _id: doc._id
+        }));
+        setDriverDocuments(formDocs);
+      }
+      
+      setCurrentStep(1);
       setShowSidebar(true);
     } finally {
       setLoading(false);
@@ -299,6 +480,12 @@ const DriverManagement = () => {
 
   const handleUpdate = async () => {
     if (!editingId) return;
+
+    if (currentStep === 1) {
+      // Move to step 2
+      setCurrentStep(2);
+      return;
+    }
 
     try {
       const formDataToSend = new FormData();
@@ -333,6 +520,50 @@ const DriverManagement = () => {
 
       const response = await driverApi.updateDriver(editingId, formDataToSend);
       if (response.success) {
+        // Handle documents - update existing or create new
+        if (driverDocuments.length > 0) {
+          try {
+            for (const doc of driverDocuments) {
+              if (doc.file && doc.documentType) {
+                const docFormData = new FormData();
+                docFormData.append('employee', editingId);
+                docFormData.append('documentType', doc.documentType);
+                docFormData.append('status', doc.status || 'valid');
+                if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
+                if (doc.issueDate) docFormData.append('issueDate', doc.issueDate);
+                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                if (doc.description) docFormData.append('description', doc.description);
+                docFormData.append('documentFile', doc.file);
+                
+                // If it's an existing document, update it; otherwise create new
+                if (doc._id) {
+                  // Update existing document
+                  const { updateEmployeeDocument } = await import('../../../../axios/api/employeeDocument');
+                  await updateEmployeeDocument(doc._id, docFormData);
+                } else {
+                  // Create new document
+                  await createEmployeeDocument(docFormData);
+                }
+              } else if (doc._id && doc.documentType) {
+                // Update existing document without file change
+                const { updateEmployeeDocument } = await import('../../../../axios/api/employeeDocument');
+                const docFormData = new FormData();
+                docFormData.append('employee', editingId);
+                docFormData.append('documentType', doc.documentType);
+                docFormData.append('status', doc.status || 'valid');
+                if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
+                if (doc.issueDate) docFormData.append('issueDate', doc.issueDate);
+                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                if (doc.description) docFormData.append('description', doc.description);
+                await updateEmployeeDocument(doc._id, docFormData);
+              }
+            }
+          } catch (docError) {
+            console.error('Error updating documents:', docError);
+            alert('Driver updated but some documents failed to update. Please check them manually.');
+          }
+        }
+        
         await fetchDrivers();
         setEditingId(null);
         resetForm();
@@ -426,6 +657,7 @@ const DriverManagement = () => {
                 onClick={() => {
                   resetForm();
                   setEditingId(null);
+                  setCurrentStep(1);
                   setShowSidebar(true);
                 }}
                 style={{ backgroundColor: FLEET_COLORS.primary }}
@@ -480,6 +712,7 @@ const DriverManagement = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile/Phone</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Modified</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
@@ -487,7 +720,7 @@ const DriverManagement = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={10} className="px-6 py-12 text-center">
+                      <td colSpan={11} className="px-6 py-12 text-center">
                         <div className="flex items-center justify-center text-gray-500">
                           <RefreshCw className="animate-spin h-5 w-5 mr-2" />
                           Loading drivers...
@@ -577,6 +810,27 @@ const DriverManagement = () => {
                           <div>{driver.mobile || '-'}</div>
                           <div className="text-xs text-gray-500">{driver.phone || ''}</div>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-900">
+                              {driver.documents?.length || 0}
+                            </span>
+                            {driver.documents && driver.documents.length > 0 && (
+                              <button
+                                onClick={() => setShowDocumentsModal({ show: true, driver })}
+                                className="text-blue-600 hover:text-blue-800 transition-colors"
+                                title="View Documents"
+                              >
+                                <Eye size={16} />
+                              </button>
+                            )}
+                          </div>
+                          {driver.documents && driver.documents.length > 0 && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {driver.documents.filter(d => d.status === 'valid').length} valid
+                            </div>
+                          )}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.lastModified || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center gap-3">
@@ -611,7 +865,7 @@ const DriverManagement = () => {
 
       {/* Sidebar Form */}
       {showSidebar && (
-        <div className="fixed right-0 top-0 h-full w-126 bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200">
+        <div className="fixed right-0 top-0 h-full w-156 bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200">
           {/* Sidebar Header */}
           <div 
             className="px-6 py-4 flex justify-between items-center"
@@ -632,8 +886,230 @@ const DriverManagement = () => {
             </button>
           </div>
 
+          {/* Step Indicator */}
+          {!editingId ? (
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 flex-1">
+                  <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-blue-600' : '!text-white'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                      currentStep >= 1 
+                        ? 'border-blue-600 bg-blue-50' 
+                        : 'border-gray-300 bg-white'
+                    }`}>
+                      {currentStep > 1 ? <CheckCircle size={16} className="text-blue-600" /> : '1'}
+                    </div>
+                    <span className="text-sm font-medium">Information</span>
+                  </div>
+                  <div className="flex-1 h-0.5 bg-gray-200 mx-2">
+                    <div 
+                      className={`h-full transition-all ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}
+                      style={{ width: currentStep >= 2 ? '100%' : '0%' }}
+                    />
+                  </div>
+                  <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                      currentStep >= 2 
+                        ? 'border-blue-600 bg-blue-50' 
+                        : 'border-gray-300 bg-white'
+                    }`}>
+                      2
+                    </div>
+                    <span className="text-sm font-medium">Documents</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentStep(1)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    currentStep === 1 
+                      ? 'bg-blue-600 !text-white' 
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  Information
+                </button>
+                <button
+                  onClick={() => setCurrentStep(2)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    currentStep === 2 
+                      ? 'bg-blue-600 !text-white' 
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  Documents ({driverDocuments.length})
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Sidebar Content */}
           <div className="flex-1 overflow-y-auto p-6 space-y-5">
+            {(currentStep === 2) ? (
+              /* Step 2: Documents Upload */
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2 font-semibold" style={{ color: FLEET_COLORS.primary }}>
+                    <FileText size={18} />
+                    <span>Driver Documents</span>
+                  </div>
+                  <button
+                    onClick={addDocument}
+                    className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+                  >
+                    <Plus size={16} />
+                    Add Document
+                  </button>
+                </div>
+
+                {driverDocuments.length === 0 ? (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-600 mb-2">No documents added yet</p>
+                    <p className="text-sm text-gray-500 mb-4">Click "Add Document" to upload driver documents</p>
+                    <button
+                      onClick={addDocument}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      Add First Document
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {driverDocuments.map((doc, index) => (
+                      <div key={doc._id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold text-gray-700">Document {index + 1}</h4>
+                            {doc._id && (
+                              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">Existing</span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => removeDocument(index)}
+                            className="text-red-600 hover:text-red-800 transition-colors"
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Document Type <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              value={doc.documentType}
+                              onChange={(e) => updateDocument(index, 'documentType', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              style={{ borderColor: '#d1d5db' }}
+                            >
+                              <option value="">Select Document Type</option>
+                              {DRIVER_DOCUMENT_TYPES.map((type) => (
+                                <option key={type} value={type}>{type}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Document Number</label>
+                              <input
+                                type="text"
+                                value={doc.documentNumber}
+                                onChange={(e) => updateDocument(index, 'documentNumber', e.target.value)}
+                                placeholder="e.g., CDL-123456"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                style={{ borderColor: '#d1d5db' }}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                              <select
+                                value={doc.status}
+                                onChange={(e) => updateDocument(index, 'status', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                style={{ borderColor: '#d1d5db' }}
+                              >
+                                <option value="valid">Valid</option>
+                                <option value="pending">Pending</option>
+                                <option value="expired">Expired</option>
+                                <option value="rejected">Rejected</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                              <input
+                                type="date"
+                                value={doc.issueDate}
+                                onChange={(e) => updateDocument(index, 'issueDate', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                style={{ borderColor: '#d1d5db' }}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                              <input
+                                type="date"
+                                value={doc.expiryDate}
+                                onChange={(e) => updateDocument(index, 'expiryDate', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                style={{ borderColor: '#d1d5db' }}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea
+                              value={doc.description}
+                              onChange={(e) => updateDocument(index, 'description', e.target.value)}
+                              rows={2}
+                              placeholder="Enter document description or notes..."
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                              style={{ borderColor: '#d1d5db' }}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Document File {!doc._id && <span className="text-red-500">*</span>}
+                            </label>
+                            <input
+                              type="file"
+                              onChange={(e) => handleDocumentFileChange(index, e.target.files?.[0] || null)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                              style={{ borderColor: '#d1d5db' }}
+                            />
+                            {doc.file && (
+                              <p className="text-xs mt-1 text-green-600 flex items-center gap-1">
+                                <CheckCircle size={12} />
+                                Selected: {doc.file.name}
+                              </p>
+                            )}
+                            {doc._id && !doc.file && (
+                              <p className="text-xs mt-1 text-gray-500">
+                                Leave empty to keep existing file
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Step 1: Driver Information */
+              <>
             {/* Personal Info Section */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
@@ -1153,31 +1629,194 @@ const DriverManagement = () => {
                 )}
               </div>
             </div>
+              </>
+            )}
           </div>
 
           {/* Sidebar Footer */}
           <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
             <div className="flex gap-3">
+              {!editingId && currentStep === 2 ? (
+                <>
+                  <button
+                    onClick={() => setCurrentStep(1)}
+                    className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    <ChevronLeft size={18} />
+                    Back
+                  </button>
+                  <button
+                    onClick={handleCreate}
+                    style={{ backgroundColor: FLEET_COLORS.primary }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
+                    className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
+                  >
+                    <Save size={18} />
+                    Create Driver
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setShowSidebar(false);
+                      setEditingId(null);
+                      resetForm();
+                    }}
+                    className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  {!editingId ? (
+                    <button
+                      onClick={handleCreate}
+                      style={{ backgroundColor: FLEET_COLORS.primary }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
+                      className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
+                    >
+                      Next
+                      <ChevronRight size={18} />
+                    </button>
+                  ) : (
+                    <>
+                      {currentStep === 1 ? (
+                        <button
+                          onClick={() => setCurrentStep(2)}
+                          style={{ backgroundColor: FLEET_COLORS.primary }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
+                          className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
+                        >
+                          Next
+                          <ChevronRight size={18} />
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setCurrentStep(1)}
+                            className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                          >
+                            <ChevronLeft size={18} />
+                            Back
+                          </button>
+                          <button
+                            onClick={handleUpdate}
+                            style={{ backgroundColor: FLEET_COLORS.primary }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
+                            className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
+                          >
+                            <Save size={18} />
+                            Update Driver
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Documents View Modal */}
+      {showDocumentsModal.show && showDocumentsModal.driver && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Driver Documents</h2>
+                <p className="text-sm text-gray-500 mt-1">{showDocumentsModal.driver.name} - {showDocumentsModal.driver.internalId}</p>
+              </div>
               <button
-                onClick={() => {
-                  setShowSidebar(false);
-                  setEditingId(null);
-                  resetForm();
-                }}
-                className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium"
+                onClick={() => setShowDocumentsModal({ show: false, driver: null })}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
               >
-                Cancel
+                <X size={24} />
               </button>
-              <button
-                onClick={editingId ? handleUpdate : handleCreate}
-                style={{ backgroundColor: FLEET_COLORS.primary }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
-                className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
-              >
-                <Save size={18} />
-                {editingId ? 'Update Driver' : 'Create Driver'}
-              </button>
+            </div>
+
+            <div className="p-6">
+              {showDocumentsModal.driver.documents && showDocumentsModal.driver.documents.length > 0 ? (
+                <div className="space-y-4">
+                  {showDocumentsModal.driver.documents.map((doc: EmployeeDocument) => (
+                    <div key={doc._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <FileText className="w-5 h-5 text-blue-500" />
+                            <h3 className="font-semibold text-gray-900">{doc.documentType}</h3>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              doc.status === 'valid' ? 'bg-green-100 text-green-700' :
+                              doc.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                              doc.status === 'expired' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {doc.status}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
+                            {doc.documentNumber && (
+                              <div>
+                                <span className="text-gray-500">Number:</span>
+                                <span className="ml-2 font-medium text-gray-900">{doc.documentNumber}</span>
+                              </div>
+                            )}
+                            {doc.issueDate && (
+                              <div>
+                                <span className="text-gray-500">Issue Date:</span>
+                                <span className="ml-2 font-medium text-gray-900">
+                                  {new Date(doc.issueDate).toLocaleDateString()}
+                                </span>
+                              </div>
+                            )}
+                            {doc.expiryDate && (
+                              <div>
+                                <span className="text-gray-500">Expiry Date:</span>
+                                <span className="ml-2 font-medium text-gray-900">
+                                  {new Date(doc.expiryDate).toLocaleDateString()}
+                                </span>
+                              </div>
+                            )}
+                            {doc.fileSize && (
+                              <div>
+                                <span className="text-gray-500">File Size:</span>
+                                <span className="ml-2 font-medium text-gray-900">
+                                  {(doc.fileSize / 1024).toFixed(2)} KB
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          {doc.description && (
+                            <div className="mt-3 text-sm">
+                              <span className="text-gray-500">Description:</span>
+                              <p className="mt-1 text-gray-900">{doc.description}</p>
+                            </div>
+                          )}
+                        </div>
+                        {doc.fileUrl && (
+                          <button
+                            onClick={() => window.open(doc.fileUrl, '_blank')}
+                            className="ml-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="View Document"
+                          >
+                            <Eye size={20} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 font-medium">No documents found</p>
+                  <p className="text-sm text-gray-500 mt-2">This driver has no documents uploaded yet.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1185,7 +1824,7 @@ const DriverManagement = () => {
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
             <div className="flex items-center gap-3 text-red-600 mb-4">
               <AlertCircle size={24} />
@@ -1203,7 +1842,7 @@ const DriverManagement = () => {
               </button>
               <button
                 onClick={confirmDeleteDriver}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+                className="flex-1 bg-red-600 hover:bg-red-700 !text-white px-4 py-2 rounded-lg transition-colors font-medium"
               >
                 Delete
               </button>

@@ -1,241 +1,389 @@
-import { useEffect, useState } from "react";
-import type { CSSProperties } from "react";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { COLORS, hexToRgba, getStatusColor } from '../../../theme/colors';
 import {
   FaShieldAlt,
   FaExclamationTriangle,
   FaClipboardList,
-  FaFileContract, // Policy/Acknowledgment Icon
+  FaFileContract,
   FaChartLine,
-  FaUserInjured, // For Active RTW Cases
-  FaTools, // For CAPA
-} from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+  FaUserInjured,
+  FaTools,
+  FaCalendarAlt,
+  FaBell,
+  FaArrowRight,
+  FaChevronRight,
+} from '../../../theme/icons';
 import { getUserRole } from '../../../utils/auth';
-// Assuming FLEET_COLORS is defined in a utility file
-// For this example, I'll define some placeholders if FLEET_COLORS is unavailable.
-const FLEET_COLORS = {
-  primary: "#1e40af", // Blue
-  dark: "#1f2937", // Dark Gray
-  success: "#10b981", // Green
-  warning: "#f59e0b", // Amber
-  danger: "#ef4444", // Red
-};
-
-// Helper function remains the same
-const hexToRgba = (hex: string, alpha = 1) => {
-  const parsed = hex.replace("#", "");
-  const bigint = parseInt(parsed, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
 
 interface StatCardProps {
   title: string;
   value: number | string;
   icon: React.ReactNode;
   color: string;
-  bgColor: string;
+  trend?: {
+    value: number;
+    direction: 'up' | 'down';
+    label: string;
+  };
   onClick?: () => void;
+  urgent?: boolean;
 }
 
-// StatCard component remains the same
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, bgColor, onClick }) => {
-  const cardStyle: CSSProperties = {
-    background: `linear-gradient(135deg, ${hexToRgba(bgColor, 0.1)} 0%, ${hexToRgba(bgColor, 0.05)} 100%)`,
-    border: `1px solid ${hexToRgba(bgColor, 0.2)}`,
-    cursor: onClick ? 'pointer' : 'default',
-  };
-
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, trend, onClick, urgent }) => {
   return (
     <div
-      className="rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-      style={cardStyle}
       onClick={onClick}
+      className="relative overflow-hidden rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
+      style={{
+        background: `linear-gradient(135deg, ${hexToRgba(color, 0.1)} 0%, ${hexToRgba(color, 0.05)} 100%)`,
+        border: `2px solid ${urgent ? color : hexToRgba(color, 0.2)}`,
+      }}
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="p-3 rounded-lg" style={{ background: hexToRgba(bgColor, 0.2) }}>
-          <div style={{ color }}>{icon}</div>
+      {/* Urgent Badge */}
+      {urgent && (
+        <div className="absolute top-3 right-3">
+          <span
+            className="px-3 py-1 rounded-full text-xs font-bold text-white animate-pulse"
+            style={{ backgroundColor: color }}
+          >
+            URGENT
+          </span>
         </div>
+      )}
+
+      {/* Icon */}
+      <div
+        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-md"
+        style={{ backgroundColor: hexToRgba(color, 0.15) }}
+      >
+        <div style={{ color }}>{icon}</div>
       </div>
-      <h3 className="text-2xl font-bold mb-1" style={{ color: FLEET_COLORS.dark }}>
+
+      {/* Value */}
+      <div className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
         {value}
-      </h3>
-      <p className="text-sm text-gray-600">{title}</p>
+      </div>
+
+      {/* Title */}
+      <div className="text-sm font-medium text-gray-600 mb-3">{title}</div>
+
+      {/* Trend Indicator */}
+      {trend && (
+        <div className="flex items-center text-xs">
+          <span
+            className={`flex items-center font-semibold ${
+              trend.direction === 'up' ? 'text-red-600' : 'text-green-600'
+            }`}
+          >
+            {trend.direction === 'up' ? '↑' : '↓'} {trend.value}%
+          </span>
+          <span className="ml-2 text-gray-500">{trend.label}</span>
+        </div>
+      )}
+
+      {/* Hover Arrow */}
+      <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+        <FaArrowRight style={{ color }} />
+      </div>
+
+      {/* Background Pattern */}
+      <div
+        className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full opacity-5"
+        style={{ backgroundColor: color }}
+      />
     </div>
   );
 };
 
-// --- Main Dashboard Component ---
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const userRole = getUserRole();
   const basePath = userRole === 'safety officer' ? '/healthandsafety' : '/admin/healthandsafety';
-  // UPDATED: Focused on Federal Compliance and Risk Metrics
   const [stats, setStats] = useState({
-    totalIncidents: 0,
-    openIncidents: 0,
-    overdueCAPA: 0, // CRITICAL: From Req 7
-    policyGaps: 0, // CRITICAL: From Req 4, 12
-    expiredCertificates: 0, // CRITICAL: From Req 3
-    openHazards: 0, // From Req 2
-    overdueInspections: 0, // From Req 6
-    activeRTWCases: 0, // From Req 9
+    overdueCAPA: 5,
+    policyGaps: 18,
+    expiredCertificates: 7,
+    openIncidents: 3,
+    totalIncidents: 12,
+    openHazards: 9,
+    overdueInspections: 3,
+    activeRTWCases: 2,
   });
 
+  const [recentActivity, setRecentActivity] = useState([
+    {
+      id: '1',
+      type: 'incident',
+      title: 'Driver Injury Report Filed',
+      description: 'John Doe - Warehouse A',
+      time: '2 hours ago',
+      status: 'investigating',
+    },
+    {
+      id: '2',
+      type: 'capa',
+      title: 'CAPA Overdue',
+      description: 'Forklift Brake Repair',
+      time: '5 hours ago',
+      status: 'overdue',
+    },
+    {
+      id: '3',
+      type: 'training',
+      title: 'Training Expiring Soon',
+      description: '5 employees - WHMIS',
+      time: '1 day ago',
+      status: 'expiring',
+    },
+  ]);
+
+  const [upcomingTasks, setUpcomingTasks] = useState([
+    { id: '1', title: 'Monthly H&S Committee Meeting', date: '2025-12-15', type: 'meeting' },
+    { id: '2', title: 'Quarterly Shop Inspection', date: '2025-12-18', type: 'inspection' },
+    { id: '3', title: 'Policy Renewal: Fire Safety', date: '2025-12-20', type: 'policy' },
+  ]);
+
   useEffect(() => {
-    // Placeholder data reflecting client's compliance requirements
-    setStats({
-      totalIncidents: 12,
-      openIncidents: 3,
-      overdueCAPA: 5, // High priority risk, should be red/amber
-      policyGaps: 18, // High priority compliance risk
-      expiredCertificates: 7, // High priority compliance risk
-      openHazards: 9,
-      overdueInspections: 3,
-      activeRTWCases: 2, // Modified duty/injury management
-    });
+    // Fetch dashboard data
+    // TODO: Replace with API call
   }, []);
 
+  const handleNavigation = (path: string) => {
+    navigate(`${basePath}/${path}`);
+  };
+
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background.secondary }}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: FLEET_COLORS.dark }}>
-            Health & Safety Compliance Summary 🚦
-          </h1>
-          <p className="text-gray-600">
-            Monitor, manage, and verify federal compliance requirements across the organization.
+        <div className="mb-10">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-4xl font-bold" style={{ color: COLORS.text.primary }}>
+              Health & Safety Dashboard
+            </h1>
+            <button
+              className="px-6 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center space-x-2"
+              style={{ background: COLORS.gradients.primary }}
+            >
+              <FaBell size={18} />
+              <span>View All Alerts</span>
+              <span className="ml-2 bg-white/30 px-2 py-1 rounded-full text-xs">
+                {stats.overdueCAPA + stats.expiredCertificates}
+              </span>
+            </button>
+          </div>
+          <p className="text-lg text-gray-600">
+            Monitor federal compliance and manage safety operations across your organization.
           </p>
         </div>
 
-        {/* COMPLIANCE & RISK GRID (Top Priority Metrics) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* CRITICAL METRIC 1: Overdue CAPA */}
-          <StatCard
-            title="Overdue Corrective Actions (CAPA)"
-            value={stats.overdueCAPA}
-            icon={<FaTools size={24} />}
-            color={stats.overdueCAPA > 0 ? FLEET_COLORS.danger : FLEET_COLORS.success} // RED if > 0
-            bgColor={stats.overdueCAPA > 0 ? FLEET_COLORS.danger : FLEET_COLORS.success}
-            onClick={() => navigate(`${basePath}/committee-capa?filter=overdue`)}
-          />
-          {/* CRITICAL METRIC 2: Policy Acknowledgment Gaps */}
-          <StatCard
-            title="Policy Acknowledgment Gaps"
-            value={stats.policyGaps}
-            icon={<FaFileContract size={24} />}
-            color={stats.policyGaps > 0 ? FLEET_COLORS.warning : FLEET_COLORS.primary} // AMBER if > 0
-            bgColor={stats.policyGaps > 0 ? FLEET_COLORS.warning : FLEET_COLORS.primary}
-            onClick={() => navigate(`${basePath}/policies-documents?filter=missing-ack`)}
-          />
-          {/* CRITICAL METRIC 3: Expired Certificates */}
-          <StatCard
-            title="Expired Training Certificates"
-            value={stats.expiredCertificates}
-            icon={<FaClipboardList size={24} />}
-            color={stats.expiredCertificates > 0 ? FLEET_COLORS.warning : FLEET_COLORS.primary} // AMBER if > 0
-            bgColor={stats.expiredCertificates > 0 ? FLEET_COLORS.warning : FLEET_COLORS.primary}
-            onClick={() => navigate(`${basePath}/training-certificates?filter=expired`)}
-          />
-          {/* CRITICAL METRIC 4: Open Incidents */}
-          <StatCard
-            title="Open Incident Investigations"
-            value={stats.openIncidents}
-            icon={<FaExclamationTriangle size={24} />}
-            color={FLEET_COLORS.primary}
-            bgColor={FLEET_COLORS.primary}
-            onClick={() => navigate(`${basePath}/incidents-accidents?filter=open`)}
-          />
-        </div>
-
-        {/* PROACTIVE & ADMINISTRATIVE METRICS (Secondary Grid) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total Incidents (Last 12 Mo.)"
-            value={stats.totalIncidents}
-            icon={<FaChartLine size={24} />}
-            color={FLEET_COLORS.dark}
-            bgColor={FLEET_COLORS.dark}
-            onClick={() => navigate(`${basePath}/reports-analytics`)}
-          />
-          <StatCard
-            title="Open Hazards/Risk Assessments"
-            value={stats.openHazards}
-            icon={<FaShieldAlt size={24} />}
-            color={FLEET_COLORS.warning}
-            bgColor={FLEET_COLORS.warning}
-            onClick={() => navigate(`${basePath}/inspections-hazards?filter=open`)}
-          />
-          <StatCard
-            title="Overdue Inspections (Yard/Shop)"
-            value={stats.overdueInspections}
-            icon={<FaShieldAlt size={24} />}
-            color={FLEET_COLORS.primary}
-            bgColor={FLEET_COLORS.primary}
-            onClick={() => navigate(`${basePath}/inspections-hazards?filter=overdue-inspections`)}
-          />
-          <StatCard
-            title="Active Return-to-Work Cases"
-            value={stats.activeRTWCases}
-            icon={<FaUserInjured size={24} />}
-            color={FLEET_COLORS.success}
-            bgColor={FLEET_COLORS.success}
-            onClick={() => navigate(`${basePath}/incidents-accidents?filter=rtw`)}
-          />
-        </div>
-
-        {/* Visualizations/Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-lg lg:col-span-2">
-            <h2 className="text-xl font-bold mb-4" style={{ color: FLEET_COLORS.dark }}>
-              Incident Trend Analysis (12 Months)
-            </h2>
-            {/* Placeholder for Chart Component (e.g., using Chart.js or Recharts) */}
-            <div className="h-64 flex items-center justify-center text-gray-400 border-dashed border-2 rounded-lg">
-              [Line Chart Component: Incidents/Near-Misses per month]
-            </div>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h2 className="text-xl font-bold mb-4" style={{ color: FLEET_COLORS.dark }}>
-              Training Compliance Status
-            </h2>
-            {/* Placeholder for Chart Component */}
-            <div className="h-64 flex items-center justify-center text-gray-400 border-dashed border-2 rounded-lg">
-              [Doughnut Chart: Compliant, Nearing Expiry, Expired]
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions remains the same */}
-        <div className="bg-white rounded-xl p-6 shadow-lg">
-          <h2 className="text-xl font-bold mb-4" style={{ color: FLEET_COLORS.dark }}>
-            Quick Actions
+<<<<<<< HEAD
+        {/* Critical Metrics Grid */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4" style={{ color: COLORS.text.primary }}>
+            🚨 Critical Compliance Metrics
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => navigate(`${basePath}/incidents-accidents/report-new`)}
-              className="flex items-center gap-3 p-4 rounded-lg border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all"
-            >
-              <FaExclamationTriangle className="text-red-600" size={20} />
-              <span className="font-medium">Report New Incident/Near-Miss</span>
-            </button>
-            <button
-              onClick={() => navigate(`${basePath}/inspections-hazards/report-hazard`)}
-              className="flex items-center gap-3 p-4 rounded-lg border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all"
-            >
-              <FaShieldAlt className="text-amber-600" size={20} />
-              <span className="font-medium">Report New Hazard/Risk</span>
-            </button>
-            <button
-              onClick={() => navigate(`${basePath}/committee-capa`)}
-              className="flex items-center gap-3 p-4 rounded-lg border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all"
-            >
-              <FaTools className="text-blue-600" size={20} />
-              <span className="font-medium">Manage Corrective Actions</span>
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+              title="Overdue Corrective Actions (CAPA)"
+              value={stats.overdueCAPA}
+              icon={<FaTools size={28} />}
+              color={COLORS.status.danger}
+              urgent={stats.overdueCAPA > 0}
+              trend={{ value: 25, direction: 'up', label: 'vs last month' }}
+              onClick={() => navigate(`${basePath}/committee-capa?filter=overdue`)}
+            />
+            <StatCard
+              title="Policy Acknowledgment Gaps"
+              value={stats.policyGaps}
+              icon={<FaFileContract size={28} />}
+              color={COLORS.status.warning}
+              urgent={stats.policyGaps > 15}
+              onClick={() => navigate(`${basePath}/policies-documents?filter=missing-ack`)}
+            />
+            <StatCard
+              title="Expired Training Certificates"
+              value={stats.expiredCertificates}
+              icon={<FaClipboardList size={28} />}
+              color={COLORS.status.warning}
+              urgent={stats.expiredCertificates > 5}
+              onClick={() => navigate(`${basePath}/training-certificates?filter=expired`)}
+            />
+            <StatCard
+              title="Open Incident Investigations"
+              value={stats.openIncidents}
+              icon={<FaExclamationTriangle size={28} />}
+              color={COLORS.modules.incident}
+              onClick={() => navigate(`${basePath}/incidents-accidents?filter=investigating`)}
+            />
+          </div>
+        </div>
+
+        {/* Secondary Metrics */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4" style={{ color: COLORS.text.primary }}>
+            📊 Operations Overview
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+              title="Total Incidents (12 Months)"
+              value={stats.totalIncidents}
+              icon={<FaChartLine size={28} />}
+              color={COLORS.modules.reports}
+              trend={{ value: 15, direction: 'down', label: 'vs last year' }}
+              onClick={() => navigate(`${basePath}/reports-analytics`)}
+            />
+            <StatCard
+              title="Open Hazards & Risk Assessments"
+              value={stats.openHazards}
+              icon={<FaShieldAlt size={28} />}
+              color={COLORS.modules.hazard}
+              onClick={() => navigate(`${basePath}/inspections-hazards?filter=open`)}
+            />
+            <StatCard
+              title="Overdue Safety Inspections"
+              value={stats.overdueInspections}
+              icon={<FaClipboardList size={28} />}
+              color={COLORS.modules.inspection}
+              onClick={() => navigate(`${basePath}/inspections-hazards?filter=overdue`)}
+            />
+            <StatCard
+              title="Active Return-to-Work Cases"
+              value={stats.activeRTWCases}
+              icon={<FaUserInjured size={28} />}
+              color={COLORS.modules.committee}
+              onClick={() => navigate(`${basePath}/incidents-accidents?tab=injury-rtw`)}
+            />
+          </div>
+        </div>
+
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Recent Activity - Takes 2 columns */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold" style={{ color: COLORS.text.primary }}>
+                  Recent Activity
+                </h2>
+                <button className="text-sm font-semibold hover:underline" style={{ color: COLORS.primary.main }}>
+                  View All
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {recentActivity.map((activity) => {
+                  const statusColor = getStatusColor(activity.status);
+                  const icon =
+                    activity.type === 'incident' ? (
+                      <FaExclamationTriangle />
+                    ) : activity.type === 'capa' ? (
+                      <FaTools />
+                    ) : (
+                      <FaClipboardList />
+                    );
+
+                  return (
+                    <div
+                      key={activity.id}
+                      className="flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
+                      style={{ border: `1px solid ${COLORS.border.light}` }}
+                    >
+                      <div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: statusColor.bg, color: statusColor.text }}
+                      >
+                        {icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900">{activity.title}</div>
+                        <div className="text-sm text-gray-600">{activity.description}</div>
+                        <div className="text-xs text-gray-400 mt-1">{activity.time}</div>
+                      </div>
+                      <div
+                        className="px-3 py-1 rounded-full text-xs font-semibold"
+                        style={{
+                          backgroundColor: statusColor.bg,
+                          color: statusColor.text,
+                        }}
+                      >
+                        {activity.status.toUpperCase()}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Upcoming Tasks - Takes 1 column */}
+          <div>
+            <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
+              <h2 className="text-xl font-bold mb-4" style={{ color: COLORS.text.primary }}>
+                <FaCalendarAlt className="inline mr-2" style={{ color: COLORS.primary.main }} />
+                Upcoming Tasks
+              </h2>
+              <div className="space-y-3">
+                {upcomingTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                    style={{ border: `1px solid ${COLORS.border.light}` }}
+                  >
+                    <div className="flex-1">
+                      <div className="font-medium text-sm text-gray-900">{task.title}</div>
+                      <div className="text-xs text-gray-500 mt-1">{task.date}</div>
+                    </div>
+                    <FaChevronRight className="text-gray-400" size={14} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <h2 className="text-xl font-bold mb-4" style={{ color: COLORS.text.primary }}>
+                Quick Actions
+              </h2>
+              <div className="space-y-2">
+                <button
+                  onClick={() => navigate(`${basePath}/incidents-accidents`)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-red-50 transition-colors text-left"
+                  style={{ border: `2px solid ${COLORS.border.light}` }}
+                >
+                  <span className="flex items-center space-x-3">
+                    <FaExclamationTriangle style={{ color: COLORS.modules.incident }} />
+                    <span className="font-medium text-sm">Report Incident</span>
+                  </span>
+                  <FaChevronRight className="text-gray-400" size={14} />
+                </button>
+
+                <button
+                  onClick={() => navigate(`${basePath}/inspections-hazards`)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-amber-50 transition-colors text-left"
+                  style={{ border: `2px solid ${COLORS.border.light}` }}
+                >
+                  <span className="flex items-center space-x-3">
+                    <FaShieldAlt style={{ color: COLORS.modules.hazard }} />
+                    <span className="font-medium text-sm">Report Hazard</span>
+                  </span>
+                  <FaChevronRight className="text-gray-400" size={14} />
+                </button>
+
+                <button
+                  onClick={() => navigate(`${basePath}/committee-capa`)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-green-50 transition-colors text-left"
+                  style={{ border: `2px solid ${COLORS.border.light}` }}
+                >
+                  <span className="flex items-center space-x-3">
+                    <FaTools style={{ color: COLORS.modules.committee }} />
+                    <span className="font-medium text-sm">Manage CAPA</span>
+                  </span>
+                  <FaChevronRight className="text-gray-400" size={14} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -31,7 +31,7 @@ function DriverManagementRoutes() {
                     <Route path="/attendence" element={<Attendence />} />
                     <Route path="/issues" element={<Issues />} />
                     <Route path="/employee-profiles" element={<UserProfilesPortfolio />} />
-                    <Route path="/driverdocuments" element={<DriverDocuments />} />
+                   
                     <Route path="/driver-profiles" element={<DriverProfiles />} />
                 </Route>
             </Routes>
