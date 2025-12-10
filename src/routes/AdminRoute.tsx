@@ -12,7 +12,7 @@ const QuickStats = lazy(() => import("../pages/admin/dashboard/quckstats/QuickSt
 const Slots = lazy(() => import("../pages/admin/dashboard/slot/index"));
 const Member = lazy(() => import("../pages/admin/dashboard/member/index"));
 const Invoice = lazy(() => import("../pages/admin/dashboard/invoice/index"));
-const TruckProfile = lazy(() => import("../pages/admin/dashboard/truckProfile/index"));
+const TruckProfile = lazy(() => import("../pages/admin/fleetMaintenance/truckProfile/index"));
 
 const Integrations = lazy(() => import("../pages/admin/dashboard/setting/Api"))
 const UserManage = lazy(() => import("../pages/admin/dashboard/setting/Users"));

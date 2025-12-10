@@ -37,11 +37,6 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     label: "Employees",
   },
   {
-    key: "/admin/Management/driverdocuments",
-    icon: <MdDocumentScanner />,
-    label: "Driver Documents",
-  },
-  {
     key: "/admin/Management/documents",
     icon: <FaClipboardList />,
     label: "Employee Documents",
