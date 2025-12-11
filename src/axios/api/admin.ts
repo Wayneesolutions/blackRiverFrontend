@@ -384,11 +384,12 @@ export const getShifts = async (params?: { driverId?: string; startDate?: string
   }
 };
 
-export const getTruckProfile = async (unitNumber: string, dateRange?: string, driverFilter?: string) => {
+export const getTruckProfile = async (unitNumber: string, dateRange?: string, driverFilter?: string, unitType?: string) => {
   try {
     const params = new URLSearchParams();
     if (dateRange) params.append('dateRange', dateRange);
     if (driverFilter) params.append('driverFilter', driverFilter);
+    if (unitType) params.append('unitType', unitType);
     const queryString = params.toString();
     const url = `admin/truck-profile/${unitNumber}${queryString ? `?${queryString}` : ''}`;
     const res: AxiosResponse = await apiClient.get(url);

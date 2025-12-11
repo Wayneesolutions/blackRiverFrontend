@@ -15,7 +15,7 @@ interface FleetUnitOption {
 
 interface NewFuelReportSidebarProps {
     isOpen: boolean;
-    onClose: () => void;
+    onClose: (shouldRefresh?: boolean) => void;
     units: FleetUnitOption[];
     unitsLoading: boolean;
     currentUser: any;
@@ -118,7 +118,8 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                 throw new Error(response?.message || 'Failed to create fuel report');
             }
             setLoadingSubmit(false);
-            onClose();
+            // Pass true to refresh the list after closing
+            onClose(true);
         } catch (error: any) {
             console.error('Error creating fuel report:', error);
             alert(error?.message || 'Failed to create fuel report. Please try again.');
@@ -128,15 +129,19 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
 
     if (!isOpen) return null;
 
+    const handleClose = () => {
+        onClose(false);
+    };
+
     return (
         <>
-            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={onClose}></div>
+            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={handleClose}></div>
 
             <div className="fixed right-0 top-0 h-full w-126 bg-white border-l border-gray-200 shadow-lg z-[101] flex flex-col">
                 <div className="p-4 border-b border-gray-200 flex-shrink-0" style={{ background: FLEET_COLORS.gradient }}>
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-white">New Fuel Report</h2>
-                        <button onClick={onClose} className="text-white/80 hover:text-white">
+                        <button onClick={handleClose} className="text-white/80 hover:text-white">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
@@ -334,7 +339,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
 
                     <div className="flex justify-between items-center gap-3">
                         <button
-                            onClick={onClose}
+                            onClick={handleClose}
                             disabled={loadingSubmit}
                             className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-60"
                         >

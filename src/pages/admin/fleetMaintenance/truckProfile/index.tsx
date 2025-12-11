@@ -7,11 +7,12 @@ import {
   FaTicketAlt,
   FaExclamationTriangle,
   FaWrench,
-  FaBoxes,
-  FaUser,
   FaTrailer,
+  FaSpinner,
 } from "react-icons/fa";
 import { FLEET_COLORS } from "../colorUtils";
+import { getTruckProfile } from "../../../../axios/api/admin";
+import { listFleetUnits } from "../../../../axios/api/fleet.units";
 
 // Static data types
 type VehicleProfileData = {
@@ -122,357 +123,6 @@ type VehicleProfileData = {
   };
 };
 
-// Static data for trucks
-const staticTrucks: VehicleProfileData[] = [
-  {
-    _id: "truck-001",
-    unitNumber: "TRK-001",
-    licensePlate: "ABC-1234",
-    vinNo: "1HGBH41JXMN109186",
-    make: "Freightliner",
-    model: "Cascadia",
-    makeModel: "Freightliner Cascadia",
-    year: 2022,
-    status: "Active",
-    operationStatus: "In Service",
-    currentOdometer: 125430,
-    currentLocation: {
-      address: "Toronto, ON",
-      longitude: "-79.3832",
-      latitude: "43.6532",
-    },
-    internalId: "INT-TRK-001",
-    currentDriver: {
-      _id: "driver-001",
-      name: "John Smith",
-      email: "john.smith@example.com",
-      phone: "+1-555-0101",
-    },
-    currentAssignment: {
-      type: "load",
-      id: "load-001",
-      loadNumber: "LD-2024-001",
-      status: "In Transit",
-      customer: "ABC Logistics",
-      route: {
-        pickup: "Toronto, ON",
-        dropoff: "Montreal, QC",
-      },
-    },
-    assignmentHistory: [
-      {
-        type: "load",
-        id: "load-002",
-        loadNumber: "LD-2024-002",
-        driver: {
-          _id: "driver-001",
-          name: "John Smith",
-          email: "john.smith@example.com",
-          phone: "+1-555-0101",
-        },
-        status: "Completed",
-        assignedAt: new Date("2024-01-15"),
-        startedAt: new Date("2024-01-15"),
-        completedAt: new Date("2024-01-16"),
-      },
-    ],
-    compliance: {
-      cvsa: {
-        lastInspection: "2024-01-10",
-        result: "Pass",
-        violations: [],
-        officer: "Officer Johnson",
-      },
-      tickets: [
-        {
-          id: "ticket-001",
-          issued: "2024-01-05",
-          category: "Speeding",
-          amount: 150,
-          status: "Paid",
-        },
-      ],
-      incidents: [],
-      accidents: [],
-    },
-    fleet: {
-      serviceLogs: [
-        {
-          id: "service-001",
-          date: "2024-01-20",
-          vendor: "Fleet Service Center",
-          description: "Oil Change & Inspection",
-          cost: 250,
-        },
-        {
-          id: "service-002",
-          date: "2023-12-15",
-          vendor: "Fleet Service Center",
-          description: "Tire Replacement",
-          cost: 1200,
-        },
-      ],
-      repairs: [
-        {
-          id: "repair-001",
-          date: "2024-01-18",
-          issue: "Brake System Malfunction",
-          resolution: "Replaced brake pads and rotors",
-          downtimeHours: 8,
-        },
-      ],
-      spareParts: [
-        {
-          partNumber: "SP-001",
-          partName: "Air Filter",
-          description: "Heavy-duty air filter",
-          category: "Filters",
-          quantity: 2,
-          cost: 45,
-          reference: "REF-001",
-        },
-      ],
-    },
-  },
-  {
-    _id: "truck-002",
-    unitNumber: "TRK-002",
-    licensePlate: "XYZ-5678",
-    vinNo: "1HGBH41JXMN109187",
-    make: "Peterbilt",
-    model: "579",
-    makeModel: "Peterbilt 579",
-    year: 2023,
-    status: "Active",
-    operationStatus: "In Service",
-    currentOdometer: 89500,
-    currentLocation: {
-      address: "Vancouver, BC",
-      longitude: "-123.1216",
-      latitude: "49.2827",
-    },
-    internalId: "INT-TRK-002",
-    currentDriver: {
-      _id: "driver-002",
-      name: "Jane Doe",
-      email: "jane.doe@example.com",
-      phone: "+1-555-0102",
-    },
-    currentAssignment: {
-      type: "trip",
-      id: "trip-001",
-      tripNumber: "TR-2024-001",
-      status: "Scheduled",
-      customer: "XYZ Transport",
-      route: {
-        pickup: "Vancouver, BC",
-        dropoff: "Calgary, AB",
-      },
-    },
-    assignmentHistory: [],
-    compliance: {
-      cvsa: {
-        lastInspection: "2024-01-12",
-        result: "Pass",
-        violations: [],
-        officer: "Officer Williams",
-      },
-      tickets: [],
-      incidents: [],
-      accidents: [],
-    },
-    fleet: {
-      serviceLogs: [
-        {
-          id: "service-003",
-          date: "2024-01-15",
-          vendor: "Fleet Service Center",
-          description: "Regular Maintenance",
-          cost: 350,
-        },
-      ],
-      repairs: [],
-      spareParts: [
-        {
-          partNumber: "SP-002",
-          partName: "Oil Filter",
-          description: "Premium oil filter",
-          category: "Filters",
-          quantity: 4,
-          cost: 25,
-          reference: "REF-002",
-        },
-      ],
-    },
-  },
-];
-
-// Static data for trailers
-const staticTrailers: VehicleProfileData[] = [
-  {
-    _id: "trailer-001",
-    unitNumber: "TRL-001",
-    licensePlate: "TRL-1234",
-    vinNo: "1HGBH41JXMN109200",
-    make: "Great Dane",
-    model: "Reefer",
-    makeModel: "Great Dane Reefer",
-    year: 2021,
-    status: "Active",
-    operationStatus: "In Service",
-    currentOdometer: 0, // Trailers don't have odometers
-    currentLocation: {
-      address: "Toronto, ON",
-      longitude: "-79.3832",
-      latitude: "43.6532",
-    },
-    internalId: "INT-TRL-001",
-    currentDriver: null,
-    currentAssignment: {
-      type: "load",
-      id: "load-001",
-      loadNumber: "LD-2024-001",
-      status: "In Transit",
-      customer: "ABC Logistics",
-      route: {
-        pickup: "Toronto, ON",
-        dropoff: "Montreal, QC",
-      },
-    },
-    assignmentHistory: [
-      {
-        type: "load",
-        id: "load-003",
-        loadNumber: "LD-2024-003",
-        driver: {
-          _id: "driver-001",
-          name: "John Smith",
-          email: "john.smith@example.com",
-          phone: "+1-555-0101",
-        },
-        status: "Completed",
-        assignedAt: new Date("2024-01-10"),
-        startedAt: new Date("2024-01-10"),
-        completedAt: new Date("2024-01-11"),
-      },
-    ],
-    compliance: {
-      cvsa: {
-        lastInspection: "2024-01-08",
-        result: "Pass",
-        violations: [],
-        officer: "Officer Johnson",
-      },
-      tickets: [],
-      incidents: [],
-      accidents: [],
-    },
-    fleet: {
-      serviceLogs: [
-        {
-          id: "service-004",
-          date: "2024-01-18",
-          vendor: "Trailer Service Center",
-          description: "Refrigeration Unit Service",
-          cost: 450,
-        },
-        {
-          id: "service-005",
-          date: "2023-12-20",
-          vendor: "Trailer Service Center",
-          description: "Brake System Inspection",
-          cost: 180,
-        },
-      ],
-      repairs: [
-        {
-          id: "repair-002",
-          date: "2024-01-12",
-          issue: "Refrigeration Unit Failure",
-          resolution: "Replaced compressor unit",
-          downtimeHours: 12,
-        },
-      ],
-      spareParts: [
-        {
-          partNumber: "SP-003",
-          partName: "Trailer Light",
-          description: "LED tail light",
-          category: "Lighting",
-          quantity: 2,
-          cost: 35,
-          reference: "REF-003",
-        },
-      ],
-    },
-  },
-  {
-    _id: "trailer-002",
-    unitNumber: "TRL-002",
-    licensePlate: "TRL-5678",
-    vinNo: "1HGBH41JXMN109201",
-    make: "Utility",
-    model: "Dry Van",
-    makeModel: "Utility Dry Van",
-    year: 2022,
-    status: "Active",
-    operationStatus: "In Service",
-    currentOdometer: 0,
-    currentLocation: {
-      address: "Vancouver, BC",
-      longitude: "-123.1216",
-      latitude: "49.2827",
-    },
-    internalId: "INT-TRL-002",
-    currentDriver: null,
-    currentAssignment: {
-      type: "trip",
-      id: "trip-001",
-      tripNumber: "TR-2024-001",
-      status: "Scheduled",
-      customer: "XYZ Transport",
-      route: {
-        pickup: "Vancouver, BC",
-        dropoff: "Calgary, AB",
-      },
-    },
-    assignmentHistory: [],
-    compliance: {
-      cvsa: {
-        lastInspection: "2024-01-14",
-        result: "Pass",
-        violations: ["Minor tire wear"],
-        officer: "Officer Williams",
-      },
-      tickets: [],
-      incidents: [],
-      accidents: [],
-    },
-    fleet: {
-      serviceLogs: [
-        {
-          id: "service-006",
-          date: "2024-01-16",
-          vendor: "Trailer Service Center",
-          description: "Annual Inspection",
-          cost: 200,
-        },
-      ],
-      repairs: [],
-      spareParts: [
-        {
-          partNumber: "SP-004",
-          partName: "Trailer Door Seal",
-          description: "Weatherproof door seal",
-          category: "Seals",
-          quantity: 1,
-          cost: 85,
-          reference: "REF-004",
-        },
-      ],
-    },
-  },
-];
 
 const sectionCardStyle = {
   borderColor: FLEET_COLORS.focusRing,
@@ -483,78 +133,161 @@ const TruckProfile = () => {
   const [activeTab, setActiveTab] = useState<"truck" | "trailer">("truck");
   const [selectedUnit, setSelectedUnit] = useState<string>("");
   const [timeFilter, setTimeFilter] = useState<"30d" | "60d" | "90d" | "all">("30d");
+  const [units, setUnits] = useState<Array<{ unitNo: string; _id: string; unitType: string }>>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
 
-  const currentData = activeTab === "truck" ? staticTrucks : staticTrailers;
-  const selectedVehicle = currentData.find((v) => v.unitNumber === selectedUnit) || currentData[0];
-
-  // Set default selected unit when tab or data changes
+  // Fetch units list when tab changes
   useEffect(() => {
-    if (currentData.length > 0 && (!selectedUnit || !currentData.find((v) => v.unitNumber === selectedUnit))) {
-      setSelectedUnit(currentData[0].unitNumber);
+    const fetchUnits = async () => {
+      try {
+        setLoading(true);
+        const category = activeTab === "truck" ? "trucks" : "trailers";
+        const response = await listFleetUnits({ category });
+        if (response?.success && response?.data) {
+          const unitList = response.data.map((u: any) => ({
+            unitNo: u.unitNo,
+            _id: u._id,
+            unitType: u.unitType
+          }));
+          setUnits(unitList);
+          if (unitList.length > 0 && (!selectedUnit || !unitList.find((u: any) => u.unitNo === selectedUnit))) {
+            setSelectedUnit(unitList[0].unitNo);
+          }
+        } else {
+          setUnits([]);
+        }
+      } catch (error) {
+        console.error("Error fetching units:", error);
+        setUnits([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUnits();
+  }, [activeTab]);
+
+  // Fetch profile when unit or timeFilter changes
+  useEffect(() => {
+    if (!selectedUnit) {
+      setSelectedVehicle(null);
+      return;
     }
-  }, [activeTab, currentData, selectedUnit]);
 
-  // Filter data based on time filter
-  const getFilteredData = () => {
-    if (!selectedVehicle) return { 
-      serviceLogs: [], 
-      repairs: [], 
-      tickets: [], 
-      incidents: [], 
-      accidents: [],
-      assignmentHistory: []
+    const fetchProfile = async () => {
+      try {
+        setProfileLoading(true);
+        const unitType = activeTab === "truck" ? "Truck" : "trailer";
+        const dateRange = timeFilter === "all" ? undefined : timeFilter;
+        const response = await getTruckProfile(selectedUnit, dateRange, "all", unitType);
+        if (response?.success && response?.data) {
+          // Map API response to VehicleProfileData format
+          const profileData: VehicleProfileData = {
+            _id: response.data._id,
+            unitNumber: response.data.unitNumber,
+            licensePlate: response.data.licensePlate,
+            vinNo: response.data.vinNo,
+            make: response.data.make,
+            model: response.data.model,
+            makeModel: response.data.makeModel,
+            year: response.data.year,
+            status: response.data.status,
+            operationStatus: response.data.operationStatus,
+            currentOdometer: response.data.currentOdometer || 0,
+            currentLocation: response.data.currentLocation || {},
+            internalId: response.data.internalId,
+            currentDriver: response.data.currentDriver || null,
+            currentAssignment: response.data.currentAssignment || null,
+            assignmentHistory: response.data.assignmentHistory || [],
+            compliance: response.data.compliance || {
+              cvsa: {
+                lastInspection: "No inspections",
+                result: "N/A",
+                violations: [],
+                officer: "N/A"
+              },
+              tickets: [],
+              incidents: [],
+              accidents: []
+            },
+            fleet: response.data.fleet || {
+              serviceLogs: [],
+              repairs: [],
+              spareParts: []
+            }
+          };
+          setSelectedVehicle(profileData);
+        } else {
+          setSelectedVehicle(null);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        setSelectedVehicle(null);
+      } finally {
+        setProfileLoading(false);
+      }
     };
-    
-    const now = new Date();
-    let cutoffDate: Date | null = null;
-    
-    if (timeFilter === "30d") {
-      cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    } else if (timeFilter === "60d") {
-      cutoffDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
-    } else if (timeFilter === "90d") {
-      cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-    }
 
-    const filterByDate = (dateString: string | Date | undefined) => {
-      if (!cutoffDate) return true;
-      if (!dateString) return false;
-      const itemDate = dateString instanceof Date ? dateString : new Date(dateString);
-      return itemDate >= cutoffDate;
-    };
+    fetchProfile();
+  }, [selectedUnit, activeTab, timeFilter]);
 
-    return {
-      serviceLogs: cutoffDate 
-        ? selectedVehicle.fleet.serviceLogs.filter(log => filterByDate(log.date))
-        : selectedVehicle.fleet.serviceLogs,
-      repairs: cutoffDate
-        ? selectedVehicle.fleet.repairs.filter(repair => filterByDate(repair.date))
-        : selectedVehicle.fleet.repairs,
-      tickets: cutoffDate
-        ? selectedVehicle.compliance.tickets.filter(ticket => filterByDate(ticket.issued))
-        : selectedVehicle.compliance.tickets,
-      incidents: cutoffDate
-        ? selectedVehicle.compliance.incidents.filter(incident => filterByDate(incident.date))
-        : selectedVehicle.compliance.incidents,
-      accidents: cutoffDate
-        ? selectedVehicle.compliance.accidents.filter(accident => filterByDate(accident.date))
-        : selectedVehicle.compliance.accidents,
-      assignmentHistory: cutoffDate
-        ? selectedVehicle.assignmentHistory.filter(assignment => 
-            filterByDate(assignment.assignedAt) || 
-            filterByDate(assignment.startedAt) || 
-            filterByDate(assignment.completedAt)
-          )
-        : selectedVehicle.assignmentHistory,
-    };
+  // Use data directly from selectedVehicle (already filtered by backend based on timeFilter)
+  const filteredData = selectedVehicle ? {
+    serviceLogs: selectedVehicle.fleet.serviceLogs || [],
+    repairs: selectedVehicle.fleet.repairs || [],
+    tickets: selectedVehicle.compliance.tickets || [],
+    incidents: selectedVehicle.compliance.incidents || [],
+    accidents: selectedVehicle.compliance.accidents || [],
+    assignmentHistory: selectedVehicle.assignmentHistory || []
+  } : {
+    serviceLogs: [],
+    repairs: [],
+    tickets: [],
+    incidents: [],
+    accidents: [],
+    assignmentHistory: []
   };
 
-  const filteredData = getFilteredData();
-
-  const totalServiceCost = filteredData.serviceLogs.reduce((sum, log) => sum + log.cost, 0);
-  const totalRepairDowntime = filteredData.repairs.reduce((sum, repair) => sum + repair.downtimeHours, 0);
+  const totalServiceCost = filteredData.serviceLogs.reduce((sum, log) => sum + (log.cost || 0), 0);
+  const totalRepairDowntime = filteredData.repairs.reduce((sum, repair) => sum + (repair.downtimeHours || 0), 0);
   const totalTickets = filteredData.tickets.length;
   const totalIncidents = filteredData.incidents.length + filteredData.accidents.length;
+
+  // Loading state
+  if (loading || profileLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <FaSpinner className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading {activeTab === "truck" ? "truck" : "trailer"} profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // No units available
+  if (!selectedVehicle && units.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
+        <div className="max-w-7xl mx-auto">
+          <p className="text-gray-600 text-center py-12">No {activeTab === "truck" ? "trucks" : "trailers"} found.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // No selected vehicle
+  if (!selectedVehicle) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
+        <div className="max-w-7xl mx-auto">
+          <p className="text-gray-600 text-center py-12">No profile data available for selected unit.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
@@ -628,9 +361,9 @@ const TruckProfile = () => {
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 style={{ borderColor: FLEET_COLORS.focusRing }}
               >
-                {currentData.map((vehicle) => (
-                  <option key={vehicle._id} value={vehicle.unitNumber}>
-                    {vehicle.unitNumber} - {vehicle.makeModel}
+                {units.map((unit) => (
+                  <option key={unit._id} value={unit.unitNo}>
+                    {unit.unitNo}
                   </option>
                 ))}
               </select>
@@ -646,7 +379,6 @@ const TruckProfile = () => {
                 <option value="30d">Last 30 Days</option>
                 <option value="60d">Last 60 Days</option>
                 <option value="90d">Last 90 Days</option>
-                <option value="all">All Time</option>
               </select>
             </div>
           </div>
@@ -765,15 +497,15 @@ const TruckProfile = () => {
               <div className="flex items-center justify-between mb-3">
                 <FaClipboardCheck className="w-5 h-5 text-blue-500" />
                 <span className={`px-2 py-1 text-xs font-semibold rounded ${
-                  selectedVehicle.compliance.cvsa.result === "Pass" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                  selectedVehicle.compliance?.cvsa?.result === "Pass" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                 }`}>
-                  {selectedVehicle.compliance.cvsa.result}
+                  {selectedVehicle.compliance?.cvsa?.result || "N/A"}
                 </span>
               </div>
               <p className="text-sm font-semibold text-gray-700">Last CVSA Inspection</p>
-              <p className="text-xs text-gray-500 mt-1">{selectedVehicle.compliance.cvsa.lastInspection}</p>
-              <p className="text-xs text-gray-500">Officer: {selectedVehicle.compliance.cvsa.officer}</p>
-              {selectedVehicle.compliance.cvsa.violations.length > 0 && (
+              <p className="text-xs text-gray-500 mt-1">{selectedVehicle.compliance?.cvsa?.lastInspection || "N/A"}</p>
+              <p className="text-xs text-gray-500">Officer: {selectedVehicle.compliance?.cvsa?.officer || "N/A"}</p>
+              {selectedVehicle.compliance?.cvsa?.violations && selectedVehicle.compliance.cvsa.violations.length > 0 && (
                 <div className="mt-2">
                   <p className="text-xs font-semibold text-red-600">Violations:</p>
                   <ul className="text-xs text-gray-600 list-disc list-inside">
@@ -790,10 +522,10 @@ const TruckProfile = () => {
                 <FaTicketAlt className="w-5 h-5 text-yellow-500" />
                 <p className="text-sm font-semibold text-gray-700">Tickets</p>
                 {timeFilter !== "all" && (
-                  <span className="text-xs text-gray-500">({filteredData.tickets.length} in period)</span>
+                  <span className="text-xs text-gray-500">({filteredData.tickets?.length || 0} in period)</span>
                 )}
               </div>
-              {filteredData.tickets.length > 0 ? (
+              {filteredData.tickets && filteredData.tickets.length > 0 ? (
                 <div className="space-y-2">
                   {filteredData.tickets.map((ticket) => (
                     <div key={ticket.id} className="text-xs">
@@ -878,18 +610,22 @@ const TruckProfile = () => {
 
           <div className="mt-6">
             <h4 className="text-sm font-semibold text-gray-700 mb-3">Spare Parts</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {selectedVehicle.fleet.spareParts.map((part) => (
-                <div key={part.partNumber} className="border rounded-lg p-3">
-                  <p className="text-sm font-medium text-gray-900">{part.partName}</p>
-                  <p className="text-xs text-gray-500">{part.partNumber}</p>
-                  <div className="flex justify-between items-center mt-2">
-                    <p className="text-xs text-gray-600">Qty: {part.quantity}</p>
-                    <p className="text-xs font-semibold text-gray-900">CA$ {part.cost}</p>
+            {selectedVehicle.fleet?.spareParts && selectedVehicle.fleet.spareParts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {selectedVehicle.fleet.spareParts.map((part) => (
+                  <div key={part.partNumber} className="border rounded-lg p-3">
+                    <p className="text-sm font-medium text-gray-900">{part.partName}</p>
+                    <p className="text-xs text-gray-500">{part.partNumber}</p>
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-gray-600">Qty: {part.quantity}</p>
+                      <p className="text-xs font-semibold text-gray-900">CA$ {part.cost}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500 text-center py-4">No spare parts usage found</p>
+            )}
           </div>
         </section>
 
@@ -902,7 +638,7 @@ const TruckProfile = () => {
                 <h3 className="text-xl font-bold text-gray-900">Assignment History</h3>
               </div>
               {timeFilter !== "all" && (
-                <span className="text-sm text-gray-500">({filteredData.assignmentHistory.length} in period)</span>
+                <span className="text-sm text-gray-500">({filteredData.assignmentHistory?.length || 0} in period)</span>
               )}
             </div>
 

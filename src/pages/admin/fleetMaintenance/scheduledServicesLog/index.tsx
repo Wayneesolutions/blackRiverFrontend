@@ -36,6 +36,7 @@ interface ScheduledService {
   serviceType: VehicleServiceType;
   serviceDate?: string;
   dueDate?: string;
+  dueMileage?: number;
   odometer?: number;
   invoiceNo?: string;
   notes?: string;
@@ -118,7 +119,8 @@ const ScheduledServicesLog: React.FC = () => {
       serviceType: service.serviceType,
       serviceDate: service.serviceDate || undefined,
       dueDate: service.dueDate || undefined,
-      odometer: service.odometer ?? service.dueMileage ?? undefined,
+      dueMileage: service.dueMileage ?? undefined,
+      odometer: service.odometer ?? undefined,
       invoiceNo: service.invoiceNumber || undefined,
       notes: service.notes || undefined,
       status: service.status,
@@ -205,15 +207,19 @@ const ScheduledServicesLog: React.FC = () => {
       // Check if service has a due date within 30 days
       if (service.dueDate) {
         const dueDate = new Date(service.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
         const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         if (daysUntilDue >= 0 && daysUntilDue <= 30) {
           return true;
         }
       }
       
-      // Include services with odometer readings as they may be due soon
-      if (service.odometer) {
-        return true;
+      // Check if service is due based on mileage (within 7,500 km)
+      if (service.dueMileage && service.odometer !== undefined) {
+        const remainingKm = service.dueMileage - service.odometer;
+        if (remainingKm >= 0 && remainingKm <= 7500) {
+          return true;
+        }
       }
       
       // Include all pending and in-progress services as incoming maintenance
@@ -383,8 +389,8 @@ const ScheduledServicesLog: React.FC = () => {
   };
 
   const handleSaveService = async () => {
-    if (!formData.serviceDate || !formData.unitNo || !formData.serviceType || !formData.odometer) {
-      setFormError('Please fill in all required fields.');
+    if (!formData.serviceDate || !formData.unitNo || !formData.serviceType) {
+      setFormError('Please fill in all required fields (Service Date, Unit No., and Service Type).');
       return;
     }
 
@@ -402,14 +408,14 @@ const ScheduledServicesLog: React.FC = () => {
       serviceType: formData.serviceType as VehicleServiceType,
       priority: 'medium',
       dueDate: formData.serviceDate,
-      dueMileage: Number(formData.odometer || 0),
+      dueMileage: formData.odometer ? Number(formData.odometer) : 0,
       assignedMechanic: 'Fleet Team',
       description: formData.notes,
       status: 'completed',
       serviceDate: formData.serviceDate,
-      odometer: Number(formData.odometer || 0),
-      invoiceNumber: formData.invoiceNo,
-      notes: formData.notes
+      odometer: formData.odometer ? Number(formData.odometer) : undefined,
+      invoiceNumber: formData.invoiceNo || undefined,
+      notes: formData.notes || undefined
     };
 
     setSaving(true);
@@ -795,7 +801,7 @@ const ScheduledServicesLog: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Odometer/Hour *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Odometer/Hour</label>
                     <input
                       type="number"
                       value={formData.odometer}
@@ -804,11 +810,11 @@ const ScheduledServicesLog: React.FC = () => {
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="0"
+                      placeholder="0 (optional)"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Invoice No. *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Invoice No.</label>
                     <input
                       type="text"
                       value={formData.invoiceNo}
@@ -817,7 +823,7 @@ const ScheduledServicesLog: React.FC = () => {
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="INV-2024-001"
+                      placeholder="INV-2024-001 (optional)"
                     />
                   </div>
                 </div>

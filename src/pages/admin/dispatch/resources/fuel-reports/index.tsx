@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, Fuel } from "lucide-react";
 import { message } from "antd";
 import NewFuelReportSidebar from "./NewFuelReportSidebar";
@@ -73,6 +73,7 @@ const FuelReports = () => {
   const [userInfoReady, setUserInfoReady] = useState(false);
   const [units, setUnits] = useState<FleetUnitOption[]>([]);
   const [unitsLoading, setUnitsLoading] = useState(false);
+  const hasFetchedRef = useRef(false);
 
   const { drivers } = useDrivers();
   const unitsMap = useMemo(() => new Map(units.map((unit) => [unit.id, unit])), [units]);
@@ -133,11 +134,15 @@ const FuelReports = () => {
     try {
       const stored = localStorage.getItem("userInfo");
       if (stored) {
-        setUserInfo(JSON.parse(stored));
+        const parsedInfo = JSON.parse(stored);
+        setUserInfo(parsedInfo);
+        setUserInfoReady(true);
+      } else {
+        // No stored userInfo, but still mark as ready to prevent infinite waiting
+        setUserInfoReady(true);
       }
     } catch (error) {
       console.error("Error parsing userInfo from localStorage:", error);
-    } finally {
       setUserInfoReady(true);
     }
   }, []);
@@ -156,9 +161,14 @@ const FuelReports = () => {
     setCurrentPage(1);
   }, [statusFilter]);
 
-  const fetchFuelReports = async () => {
+  const fetchFuelReports = useCallback(async () => {
     try {
       setLoading(true);
+      setEmptyStateMessage(null);
+      hasFetchedRef.current = true;
+      
+      console.log('Fetching fuel reports with params:', { currentPage, pageSize, debouncedSearch, statusFilter });
+      
       const params: any = {
         page: currentPage,
         limit: pageSize,
@@ -170,8 +180,10 @@ const FuelReports = () => {
       if (statusFilter !== 'all') params.status = statusFilter;
       
       const res = await listFuelReport(params);
+      console.log('Fuel reports API response:', res);
       if (res.success) {
         const data = Array.isArray(res.data) ? res.data : [];
+        // Clear existing data and set new data to avoid duplicates
         setFuelReports(data);
         if (res.pagination) {
           setTotal(res.pagination.total);
@@ -194,7 +206,7 @@ const FuelReports = () => {
         setEmptyStateMessage(res?.message || "Failed to fetch fuel reports");
       }
     } catch (error: any) {
-      console.error(error);
+      console.error("Error fetching fuel reports:", error);
       setFuelReports([]);
       setTotal(0);
       setTotalPages(0);
@@ -202,7 +214,7 @@ const FuelReports = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, pageSize, debouncedSearch, statusFilter]);
 
   const getCurrentUserId = useMemo(
     () => userInfo?._id || userInfo?.userData?._id || "",
@@ -266,26 +278,59 @@ const FuelReports = () => {
     }
   }, []);
 
+  // Fetch fuel reports when user info is ready and when filters/pagination change
   useEffect(() => {
+    console.log('Fetch effect triggered:', { userInfoReady, hasUserInfo: !!userInfo, currentPage, pageSize, debouncedSearch, statusFilter });
+    
+    // Wait for userInfo to be loaded from localStorage
     if (!userInfoReady) {
+      console.log('Waiting for userInfoReady...');
       return;
     }
 
-    const userRole = userInfo?.role || userInfo?.userData?.role;
-    const userCompany = userInfo?.company || userInfo?.userData?.company;
+    // If no userInfo is available, try to get it from localStorage directly
+    let effectiveUserInfo = userInfo;
+    if (!effectiveUserInfo) {
+      try {
+        const stored = localStorage.getItem("userInfo");
+        if (stored) {
+          effectiveUserInfo = JSON.parse(stored);
+          console.log('Loaded userInfo from localStorage:', effectiveUserInfo);
+        }
+      } catch (error) {
+        console.error("Error getting userInfo from localStorage:", error);
+      }
+    }
+
+    // If still no userInfo, don't fetch (user might not be logged in)
+    if (!effectiveUserInfo) {
+      console.log('No userInfo available, skipping fetch');
+      setFuelReports([]);
+      setEmptyStateMessage("No user information available");
+      return;
+    }
+
+    const userRole = effectiveUserInfo?.role || effectiveUserInfo?.userData?.role;
+    const userCompany = effectiveUserInfo?.company || effectiveUserInfo?.userData?.company;
     const isSuperadmin = userRole === "superadmin";
     const isComplianceManager = userRole === "Compliance Manager";
+    const isFleetMaintenanceManager = userRole === "Fleet Maintenance Manager";
     const hasCompany = Boolean(userCompany);
 
-    if (!isSuperadmin && !hasCompany && !isComplianceManager) {
+    console.log('User permission check:', { userRole, userCompany, isSuperadmin, isComplianceManager, isFleetMaintenanceManager, hasCompany });
+
+    // Allow superadmin, Fleet Maintenance Manager, Compliance Manager, or users with company
+    if (!isSuperadmin && !isFleetMaintenanceManager && !isComplianceManager && !hasCompany) {
+      console.log('User does not have permission to view fuel reports');
       setFuelReports([]);
       setEmptyStateMessage(null);
       return;
     }
 
+    // Always fetch when dependencies change - this ensures data is fresh on page refresh
+    console.log('Calling fetchFuelReports...');
     fetchFuelReports();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfoReady, userInfo, currentPage, pageSize, debouncedSearch, statusFilter]);
+  }, [userInfoReady, userInfo, currentPage, pageSize, debouncedSearch, statusFilter, fetchFuelReports]);
 
   useEffect(() => {
     loadUnits();
@@ -750,9 +795,13 @@ const FuelReports = () => {
       {/* Sidebar Component */}
       <NewFuelReportSidebar
         isOpen={isSidebarOpen}
-        onClose={() => {
+        onClose={(shouldRefresh = true) => {
           setIsSidebarOpen(false);
-          fetchFuelReports();
+          if (shouldRefresh) {
+            // Reset to page 1 to show the newly created report (since sorted by createdAt desc)
+            setCurrentPage(1);
+            // The useEffect will trigger fetchFuelReports when currentPage changes
+          }
         }}
         units={units}
         unitsLoading={unitsLoading}

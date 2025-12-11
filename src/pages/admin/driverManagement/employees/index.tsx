@@ -344,16 +344,19 @@ const EmployeesPage = () => {
   // Available roles
   const roles = [
     'driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter',
-    'Fleet Maintenance Manager', 'Compliance Manager', 'Maintenance Crew (Mechanics)'
+    'Fleet Maintenance Manager', 'Compliance Manager', 'Maintenance Crew (Mechanics)', 'safety officer'
   ];
 
   // Roles that require login access (ID, username, password)
-  const rolesWithLoginAccess = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Compliance Manager'];
+  const rolesWithLoginAccess = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Compliance Manager', 'safety officer'];
 
   // Role display mapping - show different text in UI but pass correct value to backend
   const getRoleDisplayName = (role: string) => {
     if (role === 'Compliance Manager') {
       return 'Compliance Manager/Safety Manager';
+    }
+    if (role === 'safety officer') {
+      return 'Safety Officer';
     }
     return role.charAt(0).toUpperCase() + role.slice(1);
   };

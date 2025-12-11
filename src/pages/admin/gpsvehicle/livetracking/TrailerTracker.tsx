@@ -202,87 +202,135 @@ const ProfessionalTrailerTracker: React.FC = () => {
         fetchTrailersData();
     }, [fetchTrailersData]);
 
-    // Initialize map
-    useEffect(() => {
-        if (isLoaded && window.google && window.google.maps) {
-            const mapElement = document.getElementById('trailer-google-map');
-            if (mapElement && !map) {
-                console.log('🗺️ Initializing Google Map...');
-                
-                // Use first trailer location as center if available, otherwise use default
-                let center = { lat: 20.5937, lng: 78.9629 }; // Default to India
-                let zoom = 5;
-                
-                if (trailers.length > 0 && trailers[0].currentLocation) {
-                    const firstTrailer = trailers[0];
-                    const lat = Number(firstTrailer.currentLocation.latitude);
-                    const lng = Number(firstTrailer.currentLocation.longitude);
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        center = { lat, lng };
-                        zoom = 12;
-                        console.log('📍 Centering map on first trailer:', firstTrailer.plateNumber, center);
-                    }
-                }
-                
-                const mapOptions: google.maps.MapOptions = {
-                    center,
-                    zoom,
-                    mapTypeId: window.google.maps.MapTypeId.ROADMAP,
-                    clickableIcons: true,
-                    gestureHandling: 'greedy',
-                };
-
-                if (GOOGLE_MAPS_MAP_ID) {
-                    mapOptions.mapId = GOOGLE_MAPS_MAP_ID;
-                    console.log('✅ Using Google Maps Map ID:', GOOGLE_MAPS_MAP_ID);
-                } else {
-                    mapOptions.styles = [{
-                        featureType: 'poi',
-                        elementType: 'labels',
-                        stylers: [{ visibility: 'off' }]
-                    }];
-                    console.warn('⚠️ VITE_GOOGLE_MAP_ID not set, using standard map');
-                }
-
-                try {
-                    const rect = mapElement.getBoundingClientRect();
-                    console.log('📐 Map element dimensions:', { width: rect.width, height: rect.height });
-                    
-                    if (rect.width === 0 || rect.height === 0) {
-                        setTimeout(() => {
-                            const newMap = new window.google.maps.Map(mapElement, mapOptions);
-                            console.log('✅ Google Map initialized successfully (delayed)');
-                            setMap(newMap);
-                            setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
-                            setTimeout(() => {
-                                window.google.maps.event.trigger(newMap, 'resize');
-                            }, 200);
-                        }, 200);
-                    } else {
-                        const newMap = new window.google.maps.Map(mapElement, mapOptions);
-                        console.log('✅ Google Map initialized successfully');
-                        setMap(newMap);
-                        setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
-                        setTimeout(() => {
-                            window.google.maps.event.trigger(newMap, 'resize');
-                        }, 200);
-                    }
-                } catch (error) {
-                    console.error('❌ Error initializing map:', error);
-                }
-            } else if (map && trailers.length > 0 && trailers[0].currentLocation) {
-                // Re-center map when trailers are loaded
-                const firstTrailer = trailers[0];
-                const lat = Number(firstTrailer.currentLocation.latitude);
-                const lng = Number(firstTrailer.currentLocation.longitude);
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    map.setCenter({ lat, lng });
-                    map.setZoom(12);
-                    console.log('📍 Map re-centered on first trailer:', firstTrailer.plateNumber);
-                }
+    // Separate function to initialize the map
+    const initializeMap = useCallback((mapElement: HTMLElement) => {
+        if (map) {
+            console.log('⚠️ Map already initialized, skipping...');
+            return; // Prevent double initialization
+        }
+        
+        console.log('🗺️ Initializing Google Map...');
+        
+        // Use first trailer location as center if available, otherwise use default
+        let center = { lat: 20.5937, lng: 78.9629 }; // Default to India
+        let zoom = 5;
+        
+        if (trailers.length > 0 && trailers[0].currentLocation) {
+            const firstTrailer = trailers[0];
+            const lat = Number(firstTrailer.currentLocation.latitude);
+            const lng = Number(firstTrailer.currentLocation.longitude);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                center = { lat, lng };
+                zoom = 12;
+                console.log('📍 Centering map on first trailer:', firstTrailer.plateNumber, center);
             }
         }
-    }, [isLoaded, map, trailers]);
+        
+        const mapOptions: google.maps.MapOptions = {
+            center,
+            zoom,
+            mapTypeId: window.google.maps.MapTypeId.ROADMAP,
+            clickableIcons: true,
+            gestureHandling: 'greedy',
+            fullscreenControl: false,
+            streetViewControl: false,
+        };
+
+        if (GOOGLE_MAPS_MAP_ID) {
+            mapOptions.mapId = GOOGLE_MAPS_MAP_ID;
+            console.log('✅ Using Google Maps Map ID:', GOOGLE_MAPS_MAP_ID);
+        } else {
+            mapOptions.styles = [{
+                featureType: 'poi',
+                elementType: 'labels',
+                stylers: [{ visibility: 'off' }]
+            }];
+            console.warn('⚠️ VITE_GOOGLE_MAP_ID not set, using standard map');
+        }
+
+        try {
+            const rect = mapElement.getBoundingClientRect();
+            console.log('📐 Map element dimensions:', { width: rect.width, height: rect.height });
+            
+            // Wait for element to have dimensions
+            if (rect.width === 0 || rect.height === 0) {
+                console.log('⏳ Waiting for map element dimensions...');
+                const checkDimensions = setInterval(() => {
+                    const newRect = mapElement.getBoundingClientRect();
+                    if (newRect.width > 0 && newRect.height > 0) {
+                        clearInterval(checkDimensions);
+                        const newMap = new window.google.maps.Map(mapElement, mapOptions);
+                        console.log('✅ Google Map initialized successfully (after dimension check)');
+                        setMap(newMap);
+                        setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
+                        
+                        // Trigger resize after a short delay to ensure map renders properly
+                        setTimeout(() => {
+                            if (newMap) {
+                                window.google.maps.event.trigger(newMap, 'resize');
+                                console.log('✅ Map resize triggered');
+                            }
+                        }, 300);
+                    }
+                }, 50);
+                
+                // Cleanup interval after 5 seconds
+                setTimeout(() => clearInterval(checkDimensions), 5000);
+                return;
+            }
+
+            const newMap = new window.google.maps.Map(mapElement, mapOptions);
+            console.log('✅ Google Map initialized successfully');
+            setMap(newMap);
+            setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
+            
+            // Trigger resize after initialization to ensure proper rendering
+            setTimeout(() => {
+                if (newMap) {
+                    window.google.maps.event.trigger(newMap, 'resize');
+                    console.log('✅ Map resize triggered');
+                }
+            }, 300);
+        } catch (error) {
+            console.error('❌ Error initializing map:', error);
+        }
+    }, [map, trailers]);
+
+    // Initialize map - only run once when Google Maps API is loaded
+    useEffect(() => {
+        if (!isLoaded || !window.google || !window.google.maps || map) {
+            return;
+        }
+
+        const mapElement = document.getElementById('trailer-google-map');
+        if (!mapElement) {
+            console.warn('⚠️ Map element not found, retrying...');
+            // Retry after a short delay
+            const timeoutId = setTimeout(() => {
+                const retryElement = document.getElementById('trailer-google-map');
+                if (retryElement && !map) {
+                    initializeMap(retryElement);
+                }
+            }, 100);
+            return () => clearTimeout(timeoutId);
+        }
+
+        initializeMap(mapElement);
+    }, [isLoaded, map, initializeMap]); // Include initializeMap in dependencies
+
+    // Re-center map when trailers are loaded (only if map already exists)
+    useEffect(() => {
+        if (map && trailers.length > 0 && trailers[0].currentLocation && !selectedTrailer) {
+            const firstTrailer = trailers[0];
+            const lat = Number(firstTrailer.currentLocation.latitude);
+            const lng = Number(firstTrailer.currentLocation.longitude);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                map.setCenter({ lat, lng });
+                map.setZoom(12);
+                console.log('📍 Map re-centered on first trailer:', firstTrailer.plateNumber);
+            }
+        }
+    }, [map, trailers, selectedTrailer]);
 
     // Update markers on map
     const updateMarkers = useCallback(() => {
@@ -520,21 +568,21 @@ const ProfessionalTrailerTracker: React.FC = () => {
                         </div>
                     </div>
                 )}
-                {isLoaded && (
-                    <div 
-                        id="trailer-google-map" 
-                        className="absolute inset-0 w-full h-full"
-                        style={{ 
-                            width: '100%', 
-                            height: '100%',
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0
-                        }}
-                    ></div>
-                )}
+                {/* Always render map container to prevent it from being destroyed */}
+                <div 
+                    id="trailer-google-map" 
+                    className="absolute inset-0 w-full h-full"
+                    style={{ 
+                        width: '100%', 
+                        height: '100%',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: isLoaded ? 'transparent' : '#e5e7eb'
+                    }}
+                ></div>
 
                 {/* Selected Trailer Info Panel */}
                 {selectedTrailer && (
