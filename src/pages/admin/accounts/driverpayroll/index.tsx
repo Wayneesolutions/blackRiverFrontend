@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Truck } from 'lucide-react';
-import { createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips } from '../../../../axios/api/account.payroll';
+import { createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips, generateAIDriverPayroll, bulkGenerateAIDriverPayrolls } from '../../../../axios/api/account.payroll';
 import * as driverApi from '../../../../axios/api/driver';
 
 // Type definitions
@@ -161,7 +161,28 @@ const DriverPayrollManagement = () => {
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingTrips, setLoadingTrips] = useState<boolean>(false);
+  const [loadingAI, setLoadingAI] = useState<boolean>(false);
+  const [loadingBulkAI, setLoadingBulkAI] = useState<boolean>(false);
   const [notification, setNotification] = useState<Notification | null>(null);
+  const [showBulkGenerateModal, setShowBulkGenerateModal] = useState<boolean>(false);
+  const [bulkGenerateResult, setBulkGenerateResult] = useState<any>(null);
+  const [bulkDateRange, setBulkDateRange] = useState<{
+    startDate: string;
+    endDate: string;
+    payDate: string;
+  }>({
+    startDate: '',
+    endDate: '',
+    payDate: new Date().toISOString().split('T')[0]
+  });
+  const [aiAnalysis, setAiAnalysis] = useState<{
+    recommendedBonus: number;
+    recommendedDeductions: number;
+    performanceScore: number;
+    recommendations: string[];
+    performanceNotes: string;
+    reasoning: string;
+  } | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
     userId: '',
@@ -443,6 +464,86 @@ const DriverPayrollManagement = () => {
     };
   };
 
+  const handleBulkAIGeneration = async () => {
+    if (!bulkDateRange.startDate || !bulkDateRange.endDate) {
+      showNotification('error', 'Please select start date and end date');
+      return;
+    }
+
+    setLoadingBulkAI(true);
+    setBulkGenerateResult(null);
+
+    try {
+      const response = await bulkGenerateAIDriverPayrolls({
+        startDate: bulkDateRange.startDate,
+        endDate: bulkDateRange.endDate,
+        payDate: bulkDateRange.payDate || new Date().toISOString().split('T')[0]
+      });
+
+      if (response?.success) {
+        setBulkGenerateResult(response.data);
+        showNotification('success', response.message || 'Bulk payroll generation completed successfully!');
+        // Refresh payroll list
+        fetchPayrolls();
+        setShowBulkGenerateModal(false);
+      } else {
+        showNotification('error', response?.message || 'Failed to generate bulk payrolls');
+        setBulkGenerateResult(response?.data || null);
+      }
+    } catch (error: any) {
+      console.error('Error bulk generating payrolls:', error);
+      showNotification('error', error?.response?.data?.message || error?.message || 'Error bulk generating payrolls');
+    } finally {
+      setLoadingBulkAI(false);
+    }
+  };
+
+  const handleAICalculation = async () => {
+    if (!formData.userId || !formData.startDate || !formData.endDate) {
+      showNotification('error', 'Please select a driver and date range first');
+      return;
+    }
+
+    setLoadingAI(true);
+    setAiAnalysis(null);
+
+    try {
+      const response = await generateAIDriverPayroll({
+        driverId: formData.userId,
+        startDate: formData.startDate,
+        endDate: formData.endDate
+      });
+
+      if (response?.success && response?.data) {
+        const analysis = response.data;
+        setAiAnalysis({
+          recommendedBonus: analysis.recommendedBonus || 0,
+          recommendedDeductions: analysis.recommendedDeductions || 0,
+          performanceScore: analysis.performanceScore || 0,
+          recommendations: analysis.recommendations || [],
+          performanceNotes: analysis.performanceNotes || '',
+          reasoning: analysis.reasoning || ''
+        });
+
+        // Update form fields with AI recommendations
+        setFormData(prev => ({
+          ...prev,
+          bonus: (analysis.recommendedBonus || 0).toString(),
+          deductions: (analysis.recommendedDeductions || 0).toString()
+        }));
+
+        showNotification('success', 'AI payroll analysis completed successfully!');
+      } else {
+        showNotification('error', response?.message || 'Failed to generate AI analysis');
+      }
+    } catch (error: any) {
+      console.error('Error generating AI analysis:', error);
+      showNotification('error', error?.response?.data?.message || error?.message || 'Error generating AI analysis');
+    } finally {
+      setLoadingAI(false);
+    }
+  };
+
   const handleCreate = async () => {
     if (!formData.userId || !formData.payDate || !formData.startDate || !formData.endDate) {
       showNotification('error', 'Please fill in all required fields');
@@ -635,13 +736,24 @@ const DriverPayrollManagement = () => {
             </h1>
             <p className="text-gray-600 mt-2">Manage driver earnings based on trips and miles</p>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg transition-all font-medium flex items-center gap-2"
-          >
-            <Plus size={16} />
-            Create Driver Payroll
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowBulkGenerateModal(true)}
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all font-medium flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              AI Generate All Drivers Payroll
+            </button>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg transition-all font-medium flex items-center gap-2"
+            >
+              <Plus size={16} />
+              Create Driver Payroll
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -893,10 +1005,34 @@ const DriverPayrollManagement = () => {
                     {/* Trip Summary */}
                     {driverPayrollSummary && (
                       <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg">
-                        <h5 className="text-lg font-bold mb-4 flex items-center gap-2">
-                          <TrendingUp size={20} />
-                          Trip Summary for {selectedDriver?.name}
-                        </h5>
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h5 className="text-lg font-bold flex items-center gap-2">
+                              <TrendingUp size={20} />
+                              Trip Summary for {selectedDriver?.name}
+                            </h5>
+                          </div>
+                          <button
+                            onClick={handleAICalculation}
+                            disabled={loadingAI || !formData.userId || !formData.startDate || !formData.endDate}
+                            className="px-4 py-2 bg-white text-green-600 rounded-lg font-medium hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+                            title="Calculate bonus and deductions using AI"
+                          >
+                            {loadingAI ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                                Analyzing...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                                AI Calculate Salary
+                              </>
+                            )}
+                          </button>
+                        </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                           <div className="text-center">
                             <div className="text-3xl font-bold">{driverPayrollSummary.totalTrips}</div>
@@ -1085,6 +1221,70 @@ const DriverPayrollManagement = () => {
                       </div>
                     )}
                   </>
+                )}
+
+                {/* AI Analysis Results */}
+                {aiAnalysis && (
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h5 className="text-lg font-bold text-gray-900">AI Payroll Analysis</h5>
+                          <p className="text-sm text-gray-600">Performance Score: {aiAnalysis.performanceScore}/100</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setAiAnalysis(null)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="bg-white rounded-lg p-4 border border-green-200">
+                        <div className="text-sm text-gray-600 mb-1">Recommended Bonus</div>
+                        <div className="text-2xl font-bold text-green-600">${aiAnalysis.recommendedBonus.toFixed(2)}</div>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-red-200">
+                        <div className="text-sm text-gray-600 mb-1">Recommended Deductions</div>
+                        <div className="text-2xl font-bold text-red-600">${aiAnalysis.recommendedDeductions.toFixed(2)}</div>
+                      </div>
+                    </div>
+
+                    {aiAnalysis.reasoning && (
+                      <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
+                        <div className="text-sm font-medium text-gray-700 mb-2">AI Reasoning:</div>
+                        <p className="text-sm text-gray-600">{aiAnalysis.reasoning}</p>
+                      </div>
+                    )}
+
+                    {aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0 && (
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <div className="text-sm font-medium text-gray-700 mb-2">Recommendations:</div>
+                        <ul className="space-y-1">
+                          {aiAnalysis.recommendations.map((rec, idx) => (
+                            <li key={idx} className="text-sm text-gray-600 flex items-start gap-2">
+                              <span className="text-blue-500 mt-1">•</span>
+                              <span>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {aiAnalysis.performanceNotes && (
+                      <div className="mt-4 bg-white rounded-lg p-4 border border-gray-200">
+                        <div className="text-sm font-medium text-gray-700 mb-2">Performance Notes:</div>
+                        <p className="text-sm text-gray-600">{aiAnalysis.performanceNotes}</p>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 <div className="grid grid-cols-2 gap-4">
@@ -1454,6 +1654,179 @@ const DriverPayrollManagement = () => {
                 >
                   {loading ? 'Deleting...' : 'Delete'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Generate AI Payroll Modal */}
+        {showBulkGenerateModal && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  AI Generate Payroll for All Drivers
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowBulkGenerateModal(false);
+                    setBulkGenerateResult(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-blue-800">
+                    This will automatically calculate and create payroll for <strong>all drivers</strong> who have completed trips in the selected date range using AI analysis.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={bulkDateRange.startDate}
+                      onChange={(e) => setBulkDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={bulkDateRange.endDate}
+                      onChange={(e) => setBulkDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pay Date
+                  </label>
+                  <input
+                    type="date"
+                    value={bulkDateRange.payDate}
+                    onChange={(e) => setBulkDateRange(prev => ({ ...prev, payDate: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {loadingBulkAI && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-blue-800 font-medium">Processing all drivers...</p>
+                    <p className="text-xs text-blue-600 mt-1">This may take a few minutes</p>
+                  </div>
+                )}
+
+                {bulkGenerateResult && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h3 className="text-lg font-bold text-gray-900 mb-3">Generation Results</h3>
+                    <div className="grid grid-cols-4 gap-4 mb-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-gray-900">{bulkGenerateResult.summary?.total || 0}</div>
+                        <div className="text-xs text-gray-600">Total Drivers</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{bulkGenerateResult.summary?.successful || 0}</div>
+                        <div className="text-xs text-gray-600">Successful</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-red-600">{bulkGenerateResult.summary?.failed || 0}</div>
+                        <div className="text-xs text-gray-600">Failed</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-yellow-600">{bulkGenerateResult.summary?.skipped || 0}</div>
+                        <div className="text-xs text-gray-600">Skipped</div>
+                      </div>
+                    </div>
+
+                    {bulkGenerateResult.successful && bulkGenerateResult.successful.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Successfully Created ({bulkGenerateResult.successful.length})</h4>
+                        <div className="max-h-32 overflow-y-auto">
+                          {bulkGenerateResult.successful.map((item: any, idx: number) => (
+                            <div key={idx} className="text-xs text-gray-600 py-1 border-b border-gray-200">
+                              {item.driverName}: ${item.totalSalary.toFixed(2)} ({item.totalTrips} trips, {item.totalMiles.toFixed(0)} mi)
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {bulkGenerateResult.failed && bulkGenerateResult.failed.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium text-red-700 mb-2">Failed ({bulkGenerateResult.failed.length})</h4>
+                        <div className="max-h-32 overflow-y-auto">
+                          {bulkGenerateResult.failed.map((item: any, idx: number) => (
+                            <div key={idx} className="text-xs text-red-600 py-1 border-b border-red-200">
+                              {item.driverName || item.driverId}: {item.reason}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {bulkGenerateResult.skipped && bulkGenerateResult.skipped.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-medium text-yellow-700 mb-2">Skipped ({bulkGenerateResult.skipped.length})</h4>
+                        <div className="max-h-32 overflow-y-auto">
+                          {bulkGenerateResult.skipped.map((item: any, idx: number) => (
+                            <div key={idx} className="text-xs text-yellow-600 py-1 border-b border-yellow-200">
+                              {item.driverName || item.driverId}: {item.reason}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <button
+                    onClick={() => {
+                      setShowBulkGenerateModal(false);
+                      setBulkGenerateResult(null);
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                    disabled={loadingBulkAI}
+                  >
+                    {bulkGenerateResult ? 'Close' : 'Cancel'}
+                  </button>
+                  <button
+                    onClick={handleBulkAIGeneration}
+                    disabled={loadingBulkAI || !bulkDateRange.startDate || !bulkDateRange.endDate}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {loadingBulkAI ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Generate All Payrolls
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

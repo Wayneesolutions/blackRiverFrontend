@@ -135,3 +135,33 @@ export const getMonthlySalaryReport = async (month: number, year: number) => {
         return err.response?.data;
     }
 };
+
+// AI-powered Driver Payroll Analysis
+export const generateAIDriverPayroll = async (data: {
+    driverId: string;
+    startDate: string;
+    endDate: string;
+}) => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`hr/driver-payroll/ai-analysis`, data);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Bulk AI-powered Driver Payroll Generation (processes all drivers automatically)
+export const bulkGenerateAIDriverPayrolls = async (data: {
+    startDate: string;
+    endDate: string;
+    payDate?: string;
+}) => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`hr/driver-payroll/bulk-generate-ai`, data);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};

@@ -1092,6 +1092,7 @@ const InvoiceManagement: React.FC = () => {
                             <tr>
                                 <th className="text-left py-3 px-6 font-medium text-gray-500">Invoice ID</th>
                                 <th className="text-left py-3 px-6 font-medium text-gray-500">Client</th>
+                                <th className="text-left py-3 px-6 font-medium text-gray-500">Trip Details</th>
                                 <th className="text-left py-3 px-6 font-medium text-gray-500">Amount</th>
                                 <th className="text-left py-3 px-6 font-medium text-gray-500">Due Date</th>
                                 <th className="text-left py-3 px-6 font-medium text-gray-500">Status</th>
@@ -1099,71 +1100,109 @@ const InvoiceManagement: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {filteredInvoices.map((invoice) => (
-                                <tr key={invoice._id} className="hover:bg-gray-50">
-                                    <td className="py-4 px-6">
-                                        <div className="flex items-center">
-                                            <FileText className="h-4 w-4 text-gray-400 mr-2" />
-                                            <span className="font-mono text-sm">{invoice._id.slice(-8)}</span>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <div>
-                                            <div className="font-medium text-gray-900">{invoice.clientName}</div>
-                                            <div className="text-sm text-gray-500">{invoice.clientEmail}</div>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <span className="font-medium text-gray-900">{formatCurrency(Number(invoice.amount))}</span>
-                                    </td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">
-                                        {formatDate(invoice.dueDate)}
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(invoice.status)}`}>
-                                            {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                                        </span>
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedInvoice(invoice);
-                                                    setActiveTab('view');
-                                                }}
-                                                className="text-blue-600 hover:text-blue-800 transition-colors"
-                                                title="View Invoice"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDownloadPDF(invoice)}
-                                                className="text-purple-600 hover:text-purple-800 transition-colors"
-                                                title="Download PDF"
-                                            >
-                                                <Download className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedInvoice(invoice);
-                                                    setActiveTab('edit');
-                                                }}
-                                                className="text-gray-600 hover:text-gray-800 transition-colors"
-                                                title="Edit Invoice"
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => setDeleteModal({ show: true, invoiceId: invoice._id })}
-                                                className="text-red-600 hover:text-red-800 transition-colors"
-                                                title="Delete Invoice"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                            {filteredInvoices.map((invoice) => {
+                                const trip = typeof invoice.tripId === 'object' && invoice.tripId ? invoice.tripId : null;
+                                const tripNumber = trip?.tripNumber || (typeof invoice.tripId === 'string' ? invoice.tripId.slice(-8) : null);
+                                const startLocation = trip?.startLocation?.place || trip?.orders?.[0]?.pickupLocation?.place || 'N/A';
+                                const endLocation = trip?.endLocation?.place || trip?.orders?.[trip?.orders?.length - 1]?.deliveryLocation?.place || 'N/A';
+                                const ordersCount = trip?.orders?.length || 0;
+                                
+                                return (
+                                    <tr key={invoice._id} className="hover:bg-gray-50">
+                                        <td className="py-4 px-6">
+                                            <div className="flex items-center">
+                                                <FileText className="h-4 w-4 text-gray-400 mr-2" />
+                                                <span className="font-mono text-sm">{invoice._id.slice(-8)}</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <div>
+                                                <div className="font-medium text-gray-900">{invoice.clientName}</div>
+                                                <div className="text-sm text-gray-500">{invoice.clientEmail}</div>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            {trip ? (
+                                                <div className="space-y-1">
+                                                    {tripNumber && (
+                                                        <div className="font-medium text-gray-900 text-sm">
+                                                            {trip.tripNumber}
+                                                        </div>
+                                                    )}
+                                                    <div className="text-xs text-gray-600">
+                                                        {startLocation} → {endLocation}
+                                                    </div>
+                                                    {ordersCount > 0 && (
+                                                        <div className="text-xs text-gray-500">
+                                                            {ordersCount} {ordersCount === 1 ? 'order' : 'orders'}
+                                                        </div>
+                                                    )}
+                                                    {trip.truck && (
+                                                        <div className="text-xs text-gray-500">
+                                                            Truck: {trip.truck.plateNumber || trip.truck.licensePlate || trip.truck.internalId || 'N/A'}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : invoice.tripId ? (
+                                                <div className="text-sm text-gray-500">
+                                                    Trip: {typeof invoice.tripId === 'string' ? invoice.tripId.slice(-8) : 'N/A'}
+                                                </div>
+                                            ) : (
+                                                <div className="text-sm text-gray-400">-</div>
+                                            )}
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <span className="font-medium text-gray-900">{formatCurrency(Number(invoice.amount))}</span>
+                                        </td>
+                                        <td className="py-4 px-6 text-sm text-gray-900">
+                                            {formatDate(invoice.dueDate)}
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(invoice.status)}`}>
+                                                {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedInvoice(invoice);
+                                                        setActiveTab('view');
+                                                    }}
+                                                    className="text-blue-600 hover:text-blue-800 transition-colors"
+                                                    title="View Invoice"
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDownloadPDF(invoice)}
+                                                    className="text-purple-600 hover:text-purple-800 transition-colors"
+                                                    title="Download PDF"
+                                                >
+                                                    <Download className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedInvoice(invoice);
+                                                        setActiveTab('edit');
+                                                    }}
+                                                    className="text-gray-600 hover:text-gray-800 transition-colors"
+                                                    title="Edit Invoice"
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setDeleteModal({ show: true, invoiceId: invoice._id })}
+                                                    className="text-red-600 hover:text-red-800 transition-colors"
+                                                    title="Delete Invoice"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 )}
@@ -1232,10 +1271,6 @@ const InvoiceManagement: React.FC = () => {
                                         {selectedInvoice.paymentDate ? formatDate(selectedInvoice.paymentDate) : 'Not paid'}
                                     </p>
                                 </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">Load ID</label>
-                                    <p className="font-mono text-sm">{selectedInvoice.loadId || '-'}</p>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -1244,6 +1279,150 @@ const InvoiceManagement: React.FC = () => {
                         <div className="mt-6">
                             <label className="text-sm font-medium text-gray-500">Notes</label>
                             <p className="text-sm mt-1 p-3 bg-gray-50 rounded-md">{selectedInvoice.notes}</p>
+                        </div>
+                    )}
+
+                    {/* Trip/Load Details Section */}
+                    {selectedInvoice.tripId && (
+                        <div className="mt-6 border-t border-gray-200 pt-6">
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">Trip/Load Details</h3>
+                            {typeof selectedInvoice.tripId === 'object' && selectedInvoice.tripId ? (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {selectedInvoice.tripId.tripNumber && (
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">Trip Number</label>
+                                                <p className="text-sm font-medium">{selectedInvoice.tripId.tripNumber}</p>
+                                            </div>
+                                        )}
+                                        {selectedInvoice.tripId.status && (
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">Trip Status</label>
+                                                <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                                                    selectedInvoice.tripId.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                    selectedInvoice.tripId.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-blue-100 text-blue-800'
+                                                }`}>
+                                                    {selectedInvoice.tripId.status.charAt(0).toUpperCase() + selectedInvoice.tripId.status.slice(1)}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {selectedInvoice.tripId.truck && (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Truck</label>
+                                            <p className="text-sm">
+                                                {selectedInvoice.tripId.truck.plateNumber || selectedInvoice.tripId.truck.licensePlate || selectedInvoice.tripId.truck.internalId || 'N/A'}
+                                                {selectedInvoice.tripId.truck.makeModel && ` - ${selectedInvoice.tripId.truck.makeModel}`}
+                                                {selectedInvoice.tripId.truck.unitType && ` (${selectedInvoice.tripId.truck.unitType})`}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {selectedInvoice.tripId.trailer && (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Trailer</label>
+                                            <p className="text-sm">
+                                                {selectedInvoice.tripId.trailer.plateNumber || selectedInvoice.tripId.trailer.licensePlate || 'N/A'}
+                                                {selectedInvoice.tripId.trailer.makeModel && ` - ${selectedInvoice.tripId.trailer.makeModel}`}
+                                                {selectedInvoice.tripId.trailer.type && ` (${selectedInvoice.tripId.trailer.type})`}
+                                                {selectedInvoice.tripId.trailer.capacity && ` - ${selectedInvoice.tripId.trailer.capacity}`}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {selectedInvoice.tripId.startLocation?.place && (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Pickup Location</label>
+                                            <p className="text-sm">{selectedInvoice.tripId.startLocation.place}</p>
+                                        </div>
+                                    )}
+
+                                    {selectedInvoice.tripId.endLocation?.place && (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Delivery Location</label>
+                                            <p className="text-sm">{selectedInvoice.tripId.endLocation.place}</p>
+                                        </div>
+                                    )}
+
+                                    {selectedInvoice.tripId.route?.totalDistance && (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Distance</label>
+                                            <p className="text-sm">
+                                                {selectedInvoice.tripId.route.totalDistance.toFixed(2)} km 
+                                                ({(selectedInvoice.tripId.route.totalDistance * 0.621371).toFixed(2)} miles)
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {selectedInvoice.tripId.orders && selectedInvoice.tripId.orders.length > 0 && (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500 mb-2 block">Orders ({selectedInvoice.tripId.orders.length})</label>
+                                            <div className="space-y-2">
+                                                {selectedInvoice.tripId.orders.map((order: any, index: number) => (
+                                                    <div key={order._id || index} className="p-3 bg-gray-50 rounded-md">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <span className="font-medium text-sm">{order.orderNumber || `Order ${index + 1}`}</span>
+                                                            {order.customerOrderNo && (
+                                                                <span className="text-xs text-gray-500">PO: {order.customerOrderNo}</span>
+                                                            )}
+                                                        </div>
+                                                        {order.commodity && (
+                                                            <p className="text-xs text-gray-600">Commodity: {order.commodity}</p>
+                                                        )}
+                                                        {order.weight && (
+                                                            <p className="text-xs text-gray-600">
+                                                                Weight: {order.weight} {order.weightUnit || 'lbs'}
+                                                            </p>
+                                                        )}
+                                                        {order.pickupLocation?.place && (
+                                                            <p className="text-xs text-gray-600">Pickup: {order.pickupLocation.place}</p>
+                                                        )}
+                                                        {order.deliveryLocation?.place && (
+                                                            <p className="text-xs text-gray-600">Delivery: {order.deliveryLocation.place}</p>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {(selectedInvoice.tripId.plannedStartDate || selectedInvoice.tripId.actualStartDate) && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {selectedInvoice.tripId.plannedStartDate && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Planned Start Date</label>
+                                                    <p className="text-sm">{formatDate(selectedInvoice.tripId.plannedStartDate)}</p>
+                                                </div>
+                                            )}
+                                            {selectedInvoice.tripId.actualStartDate && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Actual Start Date</label>
+                                                    <p className="text-sm">{formatDate(selectedInvoice.tripId.actualStartDate)}</p>
+                                                </div>
+                                            )}
+                                            {selectedInvoice.tripId.plannedEndDate && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Planned End Date</label>
+                                                    <p className="text-sm">{formatDate(selectedInvoice.tripId.plannedEndDate)}</p>
+                                                </div>
+                                            )}
+                                            {selectedInvoice.tripId.actualEndDate && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Actual End Date</label>
+                                                    <p className="text-sm">{formatDate(selectedInvoice.tripId.actualEndDate)}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div>
+                                    <p className="text-sm text-gray-500">Trip ID: {selectedInvoice.tripId}</p>
+                                    <p className="text-xs text-gray-400 mt-1">Trip details not loaded. Please refresh the invoice.</p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -1269,7 +1448,6 @@ const InvoiceManagement: React.FC = () => {
                 const updateData = {
                     clientName: editForm.clientName,
                     clientEmail: editForm.clientEmail,
-                    loadId: editForm.loadId,
                     amount: editForm.amount.toString(),
                     currency: editForm.currency,
                     status: editForm.status,
@@ -1389,15 +1567,6 @@ const InvoiceManagement: React.FC = () => {
                                 </div>
                             )}
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Load ID</label>
-                                <input
-                                    type="text"
-                                    value={editForm.loadId}
-                                    onChange={(e) => handleInputChange('loadId', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
-                            </div>
                         </div>
                     </div>
 

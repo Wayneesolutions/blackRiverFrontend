@@ -7,7 +7,8 @@ import {
     FaHandshake, 
     FaTools, 
     FaReceipt 
-} from "react-icons/fa"; 
+} from "react-icons/fa";
+import { Sparkles } from "lucide-react"; 
 
 type AccountSidebarlinks = {
     key: string;
@@ -81,6 +82,10 @@ export const AccountSidebarlinks: AccountSidebarlinks[] = [
         icon: <FaChartLine />,
         label: "Accounting Config",
     },
-    
+    {
+        key: "/admin/accounts/cash-flow-insights",
+        icon: <Sparkles className="w-5 h-5" />,
+        label: "Cash Flow Insights",
+    },
 ];
 

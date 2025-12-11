@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Clock, Building2, Sparkles } from 'lucide-react';
-import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips, generateAutomatedPayroll } from "../../../../axios/api/account.payroll";
+import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, Building2, Sparkles } from 'lucide-react';
+import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, generateAutomatedPayroll } from "../../../../axios/api/account.payroll";
 
 interface Employee {
     _id: string;
@@ -14,65 +14,6 @@ interface Employee {
     };
 }
 
-interface Trip {
-    _id: string;
-    tripNumber: string;
-    startLocation?: {
-        place: string;
-        latitude: string;
-        longitude: string;
-    };
-    endLocation?: {
-        place: string;
-        latitude: string;
-        longitude: string;
-    };
-    route?: {
-        totalDistance?: number;
-        waypoints?: Array<{
-            place: string;
-            latitude: string;
-            longitude: string;
-        }>;
-    };
-    plannedStartDate?: string;
-    actualStartDate?: string;
-    actualEndDate?: string;
-    status: string;
-    distance: number; // km from backend
-    distanceInMiles: number; // miles from backend
-    mileRate: number; // from backend
-    earnings: string; // calculated earnings from backend
-    driverDetails?: {
-        _id: string;
-        name: string;
-        phone: string;
-    } | null;
-    driver?: {
-        _id: string;
-        name: string;
-        phone?: string;
-    };
-    truck?: {
-        _id: string;
-        plateNumber?: string;
-        internalId?: string;
-    };
-    trailer?: {
-        _id: string;
-        plateNumber?: string;
-        trailerNumber?: string;
-    };
-    selected?: boolean;
-}
-
-interface DriverPayrollSummary {
-    totalTrips: number;
-    totalDistanceKm: number;
-    totalDistanceMiles: number;
-    totalEarnings: number;
-    ratePerMile: number;
-}
 
 
 
@@ -185,11 +126,7 @@ const PayrollManagement = () => {
     const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [payrollData, setPayrollData] = useState<Payroll[]>([]);
-    const [driverTrips, setDriverTrips] = useState<Trip[]>([]);
-    const [driverPayrollSummary, setDriverPayrollSummary] = useState<DriverPayrollSummary | null>(null);
-    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
     const [loading, setLoading] = useState(false);
-    const [loadingTrips, setLoadingTrips] = useState(false);
     const [notification, setNotification] = useState<Notification | null>(null);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
 
@@ -242,8 +179,8 @@ const PayrollManagement = () => {
 
             const response = await getEmployees();
             if (response?.success) {
-                // Filter out contact, customer, reporter, and admin roles on frontend as well
-                const restrictedRoles = ['contact', 'customer', 'reporter', 'admin'];
+                // Filter out contact, customer, reporter, admin, and driver roles on frontend as well
+                const restrictedRoles = ['contact', 'customer', 'reporter', 'admin', 'driver'];
                 const filteredEmployees = (response.data || []).filter((emp: Employee) => 
                     !restrictedRoles.includes(emp.role?.toLowerCase())
                 );
@@ -283,7 +220,7 @@ const PayrollManagement = () => {
             if (response?.success) {
                 const data = response.data || [];
                 // Filter out any payrolls for restricted roles (double check)
-                const restrictedRoles = ['contact', 'customer', 'reporter', 'admin'];
+                const restrictedRoles = ['contact', 'customer', 'reporter', 'admin', 'driver'];
                 const filteredData = data.filter((payroll: Payroll) => 
                     payroll.userId && !restrictedRoles.includes(payroll.userId.role?.toLowerCase())
                 );
@@ -310,109 +247,6 @@ const PayrollManagement = () => {
         }
     };
 
-    // Fetch driver completed trips from API
-    const fetchDriverTrips = async (driverId: string, startDate?: string, endDate?: string) => {
-        setLoadingTrips(true);
-        try {
-            const userInfo: any = getLocalUserInfo();
-            
-            // Handle different userInfo structures (userData.company or direct company)
-            const userRole = userInfo?.role || userInfo?.userData?.role;
-            const userCompany = userInfo?.company || userInfo?.userData?.company;
-            const isSuperadmin = userRole === 'superadmin';
-            const isHR = userRole === 'hr';
-            const isDispatcher = userRole === 'dispatcher';
-            const hasCompany = Boolean(userCompany);
-
-            console.log('🔍 Fetching driver trips:', { driverId, startDate, endDate, userRole, hasCompany });
-
-            // Allow HR, dispatchers, and users with company to call API
-            // The backend will handle company filtering based on the authenticated user
-            if (!isSuperadmin && !isHR && !isDispatcher && !hasCompany) {
-                console.warn('⚠️ User does not have permission or company to fetch trips');
-                setDriverTrips([]);
-                setDriverPayrollSummary(null);
-                setLoadingTrips(false);
-                return;
-            }
-
-            console.log('📡 Calling API: getDriverCompletedTrips');
-            const response = await getDriverCompletedTrips(driverId, startDate, endDate);
-            console.log('📥 API Response:', response);
-            
-            if (response?.success) {
-                const trips: Trip[] = (response.data || []).map((trip: any) => ({
-                    ...trip,
-                    selected: false
-                }));
-                
-                console.log(`✅ Loaded ${trips.length} trips for driver`);
-                setDriverTrips(trips);
-
-                // Set summary data if available from backend
-                if (response.summary) {
-                    console.log('📊 Summary from backend:', response.summary);
-                    setDriverPayrollSummary(response.summary);
-                    
-                    // Update form data with calculated values (use 0 if no earnings)
-                    const earnings = response.summary.totalEarnings || 0;
-                    setFormData(prev => ({
-                        ...prev,
-                        totalMiles: (response.summary.totalDistanceMiles || 0).toString(),
-                        tripEarnings: earnings.toString(),
-                        ratePerMile: (response.summary.ratePerMile || 0).toString(),
-                        baseSalary: earnings.toString() // For drivers, base salary = trip earnings
-                    }));
-                } else {
-                    // Fallback calculation if no summary provided
-                    const totalMiles = trips.reduce((sum, trip) => sum + (trip.distanceInMiles || 0), 0);
-                    const totalEarnings = trips.reduce((sum, trip) => sum + parseFloat(trip.earnings || '0'), 0);
-                    
-                    const fallbackSummary = {
-                        totalTrips: trips.length,
-                        totalDistanceKm: trips.reduce((sum, trip) => sum + (trip.distance || 0), 0),
-                        totalDistanceMiles: totalMiles,
-                        totalEarnings: totalEarnings,
-                        ratePerMile: trips[0]?.mileRate || 0
-                    };
-                    
-                    console.log('📊 Fallback summary:', fallbackSummary);
-                    setDriverPayrollSummary(fallbackSummary);
-                    
-                    setFormData(prev => ({
-                        ...prev,
-                        totalMiles: totalMiles.toString(),
-                        tripEarnings: totalEarnings.toString(),
-                        baseSalary: totalEarnings.toString()
-                    }));
-                }
-                
-                // Show info message if no trips found
-                if (trips.length === 0) {
-                    console.log('ℹ️ No trips found for the selected date range');
-                }
-            } else {
-                const errorMsg = response?.message || 'Failed to fetch driver trips';
-                console.error('❌ API Error:', errorMsg, response);
-                showNotification('error', errorMsg);
-                setDriverTrips([]);
-                setDriverPayrollSummary(null);
-                // Reset baseSalary to 0 if no trips
-                setFormData(prev => ({
-                    ...prev,
-                    baseSalary: '0'
-                }));
-            }
-        } catch (error: any) {
-            console.error('❌ Exception fetching driver trips:', error);
-            const errorMsg = error?.response?.data?.message || error?.message || 'Error fetching driver trips';
-            showNotification('error', errorMsg);
-            setDriverTrips([]);
-            setDriverPayrollSummary(null);
-        } finally {
-            setLoadingTrips(false);
-        }
-    };
 
     useEffect(() => {
         fetchEmployees();
@@ -432,41 +266,12 @@ const PayrollManagement = () => {
         const { name, value } = e.target;
         
         if (name === 'userId') {
-            // Find the selected employee
-            const selectedEmp = employees.find(emp => emp._id === value);
-            setSelectedEmployee(selectedEmp || null);
-            
-            // Check if it's a driver
-            if (selectedEmp?.role?.toLowerCase() === 'driver') {
-                // Auto-fetch trips for driver with default date range (current month)
-                const today = new Date();
-                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-                const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                
-                const startDate = firstDay.toISOString().split('T')[0];
-                const endDate = lastDay.toISOString().split('T')[0];
-                
-                setFormData(prev => ({
-                    ...prev,
-                    [name]: value,
-                    startDate,
-                    endDate
-                }));
-                
-                // Fetch trips immediately
-                fetchDriverTrips(value, startDate, endDate);
-            } else {
-                // Reset driver-specific data when changing to non-driver employee
-                setDriverTrips([]);
-                setDriverPayrollSummary(null);
-                    setFormData(prev => ({
-                        ...prev,
-                        [name]: value,
-                        baseSalary: '',
-                        totalMiles: '0',
-                        tripEarnings: '0'
-                    }));
-            }
+            // Reset form data for employee selection
+            setFormData(prev => ({
+                ...prev,
+                [name]: value,
+                baseSalary: ''
+            }));
         } else {
             setFormData(prev => ({
                 ...prev,
@@ -475,44 +280,15 @@ const PayrollManagement = () => {
         }
     };
 
-    // Handle date range changes for driver load fetching
+    // Handle date range changes
     const handleDateRangeChange = (startDate: string, endDate: string) => {
         setFormData(prev => ({
             ...prev,
             startDate,
             endDate
         }));
-
-        // If selected employee is a driver and we have both dates, fetch trips
-        if (selectedEmployee?.role?.toLowerCase() === 'driver' && startDate && endDate) {
-            fetchDriverTrips(selectedEmployee._id, startDate, endDate);
-        }
     };
 
-    // Handle trip selection
-    const toggleTripSelection = (tripId: string) => {
-        setDriverTrips(prev => prev.map(trip => 
-            trip._id === tripId ? { ...trip, selected: !trip.selected } : trip
-        ));
-    };
-
-    const selectAllTrips = () => {
-        setDriverTrips(prev => prev.map(trip => ({ ...trip, selected: true })));
-    };
-
-    const deselectAllTrips = () => {
-        setDriverTrips(prev => prev.map(trip => ({ ...trip, selected: false })));
-    };
-
-    // Calculate selected trips totals
-    const getSelectedTripsTotals = () => {
-        const selectedTrips = driverTrips.filter(trip => trip.selected);
-        return {
-            count: selectedTrips.length,
-            totalMiles: selectedTrips.reduce((sum, trip) => sum + (trip.distanceInMiles || 0), 0),
-            totalEarnings: selectedTrips.reduce((sum, trip) => sum + parseFloat(trip.earnings || '0'), 0)
-        };
-    };
 
     const handleCreate = async () => {
         if (emptyStateMessage) {
@@ -544,18 +320,6 @@ const PayrollManagement = () => {
                 startDate: formData.startDate,
                 endDate: formData.endDate
             };
-
-            // Add driver-specific data if this is for a driver
-            if (selectedEmployee?.role?.toLowerCase() === 'driver' && driverPayrollSummary) {
-                payload.tripIds = driverTrips.map(trip => trip._id).filter(id => id); // Filter out any null/undefined IDs
-                payload.totalMiles = driverPayrollSummary.totalDistanceMiles;
-                payload.ratePerMile = driverPayrollSummary.ratePerMile;
-                console.log('🚚 Driver payroll payload:', {
-                    tripIds: payload.tripIds.length,
-                    totalMiles: payload.totalMiles,
-                    ratePerMile: payload.ratePerMile
-                });
-            }
 
             console.log('📤 Sending payroll payload:', payload);
 
@@ -691,9 +455,6 @@ const PayrollManagement = () => {
             totalMiles: '0',
             tripEarnings: '0'
         });
-        setSelectedEmployee(null);
-        setDriverTrips([]);
-        setDriverPayrollSummary(null);
     };
 
     const handleAutoGenerate = async () => {
@@ -764,8 +525,8 @@ const PayrollManagement = () => {
             return false; // Skip payrolls with null userId
         }
         
-        // Exclude restricted roles
-        const restrictedRoles = ['contact', 'customer', 'reporter', 'admin'];
+        // Exclude restricted roles (including drivers)
+        const restrictedRoles = ['contact', 'customer', 'reporter', 'admin', 'driver'];
         if (restrictedRoles.includes(payroll.userId.role?.toLowerCase())) {
             return false;
         }
@@ -972,21 +733,14 @@ const PayrollManagement = () => {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Role
                                         </th>
-                                        {/* Dynamic columns - show different data for drivers vs employees */}
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            <span className="block">Loads/Base Salary</span>
-                                            <span className="text-xs normal-case font-normal text-gray-400">(Drivers/Employees)</span>
+                                            Base Salary
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            <span className="block">Miles/Bonus</span>
-                                            <span className="text-xs normal-case font-normal text-gray-400">(Drivers/Employees)</span>
+                                            Bonus
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            <span className="block">Rate/Deductions</span>
-                                            <span className="text-xs normal-case font-normal text-gray-400">(Drivers/Employees)</span>
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Earnings
+                                            Deductions
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Total Pay
@@ -1001,14 +755,11 @@ const PayrollManagement = () => {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {filteredPayrolls.map((payroll) => {
-                                        const isDriver = payroll.userId?.role?.toLowerCase() === 'driver';
                                         return (
                                             <tr key={payroll._id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
-                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${
-                                                            isDriver ? 'bg-green-500' : 'bg-blue-500'
-                                                        }`}>
+                                                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium bg-blue-500">
                                                             {payroll.userId?.name?.charAt(0) || '?'}
                                                         </div>
                                                         <div className="ml-3">
@@ -1019,66 +770,23 @@ const PayrollManagement = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                                                        isDriver 
-                                                            ? 'bg-green-100 text-green-800' 
-                                                            : 'bg-gray-100 text-gray-800'
-                                                    }`}>
+                                                    <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
                                                         {payroll.userId?.role || 'Unknown'}
                                                     </span>
                                                 </td>
-                                                {/* Column 1: Trips (Driver) or Base Salary (Other) */}
+                                                {/* Base Salary */}
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {isDriver ? (
-                                                        <div className="flex flex-col">
-                                                            <span className="font-medium">{(payroll.trips?.length || payroll.loads?.length || 0)} trips</span>
-                                                            {(payroll.trips || payroll.loads) && (payroll.trips?.length || payroll.loads?.length || 0) > 0 && (
-                                                                <span className="text-xs text-gray-500 mt-1">
-                                                                    {(payroll.trips || payroll.loads || []).slice(0, 2).map((item: any) => 
-                                                                        item.tripNumber || item.details?.internalId || item._id?.slice(-6)
-                                                                    ).join(', ')}
-                                                                    {(payroll.trips?.length || payroll.loads?.length || 0) > 2 && ` +${(payroll.trips?.length || payroll.loads?.length || 0) - 2} more`}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <span>${payroll.baseSalary.toLocaleString()}</span>
-                                                    )}
+                                                    <span>${payroll.baseSalary.toLocaleString()}</span>
                                                 </td>
                                                 
-                                                {/* Column 2: Miles (Driver) or Bonus (Other) */}
+                                                {/* Bonus */}
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {isDriver ? (
-                                                        payroll.totalMiles ? (
-                                                            <span className="font-medium">{payroll.totalMiles.toLocaleString()} mi</span>
-                                                        ) : (
-                                                            <span className="text-gray-400">-</span>
-                                                        )
-                                                    ) : (
-                                                        <span className="text-green-600">+${payroll.bonus.toLocaleString()}</span>
-                                                    )}
+                                                    <span className="text-green-600">+${payroll.bonus.toLocaleString()}</span>
                                                 </td>
                                                 
-                                                {/* Column 3: Rate/Mile (Driver) or Deductions (Other) */}
+                                                {/* Deductions */}
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {isDriver ? (
-                                                        payroll.ratePerMile ? (
-                                                            <span>${payroll.ratePerMile}/mi</span>
-                                                        ) : (
-                                                            <span className="text-gray-400">-</span>
-                                                        )
-                                                    ) : (
-                                                        <span className="text-red-600">-${payroll.deductions.toLocaleString()}</span>
-                                                    )}
-                                                </td>
-                                                
-                                                {/* Column 4: Earnings (Driver) or blank (Other) */}
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    {isDriver ? (
-                                                        <span className="text-green-600">${payroll.baseSalary.toLocaleString()}</span>
-                                                    ) : (
-                                                        <span className="text-gray-400">-</span>
-                                                    )}
+                                                    <span className="text-red-600">-${payroll.deductions.toLocaleString()}</span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                                                     ${payroll.totalSalary.toLocaleString()}
@@ -1162,24 +870,11 @@ const PayrollManagement = () => {
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     >
                                         <option value="">Select Employee</option>
-                                        
-                                        {/* Drivers */}
-                                        {employees.filter(emp => emp.role.toLowerCase() === 'driver').map((emp) => (
+                                        {employees.map((emp) => (
                                             <option key={emp._id} value={emp._id}>
-                                                {emp.name} - Driver
+                                                {emp.name} - {emp.role}
                                             </option>
                                         ))}
-                                        
-                                        {/* Other Employees */}
-                                        {employees.filter(emp => emp.role.toLowerCase() !== 'driver').length > 0 && (
-                                        <optgroup label="Other Employees">
-                                            {employees.filter(emp => emp.role.toLowerCase() !== 'driver').map((emp) => (
-                                                <option key={emp._id} value={emp._id}>
-                                                    {emp.name} - {emp.role}
-                                                </option>
-                                            ))}
-                                        </optgroup>
-                                        )}
                                     </select>
                                 </div>
 
@@ -1288,228 +983,13 @@ const PayrollManagement = () => {
                                     />
                                 </div>
 
-                                {/* Driver-specific Trip Information */}
-                                {selectedEmployee?.role.toLowerCase() === 'driver' && (
-                                    <div className="space-y-4">
-                                        {/* Driver Info Header */}
-                                        <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg">
-                                            <h4 className="text-lg font-bold flex items-center gap-2">
-                                                <Users size={20} />
-                                                Driver: {selectedEmployee.name}
-                                            </h4>
-                                            <p className="text-green-100 text-sm mt-1">
-                                                Load data automatically loaded for current month. Adjust dates below to see different periods.
-                                            </p>
-                                        </div>
-
-                                        {/* Driver Load Summary */}
-                                        {driverPayrollSummary && (
-                                            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                                                <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                                                    <TrendingUp size={16} />
-                                                    Trip Summary
-                                                </h5>
-                                                <div className="grid grid-cols-3 gap-4">
-                                                    <div className="text-center">
-                                                        <div className="text-2xl font-bold text-green-600">{driverPayrollSummary.totalTrips}</div>
-                                                        <div className="text-xs text-gray-600">Total Trips</div>
-                                                    </div>
-                                                    <div className="text-center">
-                                                        <div className="text-2xl font-bold text-green-600">{driverPayrollSummary.totalDistanceMiles.toLocaleString()}</div>
-                                                        <div className="text-xs text-gray-600">Total Miles</div>
-                                                    </div>
-                                                    <div className="text-center">
-                                                        <div className="text-2xl font-bold text-green-600">${driverPayrollSummary.totalEarnings.toFixed(2)}</div>
-                                                        <div className="text-xs text-gray-600">Trip Earnings</div>
-                                                    </div>
-                                                </div>
-                                                <div className="mt-2 text-xs text-gray-500 text-center">
-                                                    Rate: ${driverPayrollSummary.ratePerMile}/mile
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Simple Route Display - Fallback */}
-                                        {driverTrips.length > 0 && (
-                                            <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                                <h6 className="text-sm font-medium text-gray-700 mb-3">Quick Route Overview</h6>
-                                                <div className="space-y-2">
-                                                    {driverTrips.slice(0, 3).map((trip) => (
-                                                        <div key={trip._id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                                            <div>
-                                                                <span className="font-medium">Trip: </span>
-                                                                <span className="text-gray-600">
-                                                                    {(trip.startLocation?.place || 'Unknown') + ' → ' + (trip.endLocation?.place || 'Unknown')}
-                                                                </span>
-                                                            </div>
-                                                            <div className="text-sm text-green-600 font-medium">
-                                                                {trip.distanceInMiles || 0} miles - ${parseFloat(trip.earnings || '0').toFixed(2)}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Trip Details Table */}
-                                        {driverTrips.length > 0 && (
-                                            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
-                                                    <h5 className="text-sm font-medium text-gray-700">Trip Details</h5>
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={selectAllTrips}
-                                                            className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                                                        >
-                                                            Select All
-                                                        </button>
-                                                        <button
-                                                            onClick={deselectAllTrips}
-                                                            className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                                                        >
-                                                            Deselect All
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div className="overflow-x-auto">
-                                                    <table className="w-full">
-                                                        <thead className="bg-gray-50">
-                                                            <tr>
-                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Select</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trip Number</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Route Details</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Completed Date</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Truck</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Miles</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rate</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Earnings</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-gray-200">
-                                                            {driverTrips.map((trip) => (
-                                                                <tr key={trip._id} className={`hover:bg-gray-50 ${trip.selected ? 'bg-blue-50' : ''}`}>
-                                                                    <td className="px-3 py-2">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            checked={trip.selected || false}
-                                                                            onChange={() => toggleTripSelection(trip._id)}
-                                                                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                                                        />
-                                                                    </td>
-                                                                    <td className="px-3 py-2 text-sm font-medium text-gray-900">{trip.tripNumber || trip._id?.slice(-6).toUpperCase()}</td>
-                                                                    <td className="px-3 py-2 text-sm text-gray-600">
-                                                                        <div className="space-y-1">
-                                                                            <div className="font-medium text-gray-900">
-                                                                                {(trip.startLocation?.place || 'Unknown') + ' → ' + (trip.endLocation?.place || 'Unknown')}
-                                                                            </div>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="px-3 py-2 text-sm text-gray-600">
-                                                                        <div className="space-y-1">
-                                                                            {trip.actualEndDate && (
-                                                                            <div className="font-medium">
-                                                                                    {new Date(trip.actualEndDate).toLocaleDateString()}
-                                                                            </div>
-                                                                            )}
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="px-3 py-2 text-sm text-gray-600">
-                                                                        {trip.truck?.plateNumber || trip.truck?.internalId || 'N/A'}
-                                                                    </td>
-                                                                    <td className="px-3 py-2 text-sm text-gray-900 font-medium">{trip.distanceInMiles || 0}</td>
-                                                                    <td className="px-3 py-2 text-sm text-gray-600">${trip.mileRate || 0}/mile</td>
-                                                                    <td className="px-3 py-2 text-sm font-bold text-green-600">${parseFloat(trip.earnings || '0').toFixed(2)}</td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                        <tfoot className="bg-gray-50">
-                                                            <tr>
-                                                                <td colSpan={5} className="px-3 py-2 text-sm font-medium text-gray-900 text-right">Selected Total:</td>
-                                                                <td className="px-3 py-2 text-sm font-bold text-gray-900">
-                                                                    {getSelectedTripsTotals().totalMiles}
-                                                                </td>
-                                                                <td className="px-3 py-2 text-sm text-gray-600">-</td>
-                                                                <td className="px-3 py-2 text-sm font-bold text-green-600">
-                                                                    ${getSelectedTripsTotals().totalEarnings.toFixed(2)}
-                                                                </td>
-                                                            </tr>
-                                                        </tfoot>
-                                                    </table>
-                                                </div>
-                                                
-                                                {/* Selected Trips Summary */}
-                                                {getSelectedTripsTotals().count > 0 && (
-                                                    <div className="bg-blue-50 p-4 border-t border-blue-200">
-                                                        <h6 className="text-sm font-medium text-blue-800 mb-2">Selected Trips Summary</h6>
-                                                        <div className="grid grid-cols-3 gap-4 text-sm">
-                                                            <div>
-                                                                <span className="text-blue-600 font-medium">Selected Trips:</span>
-                                                                <span className="ml-1 text-blue-800 font-bold">{getSelectedTripsTotals().count}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="text-blue-600 font-medium">Total Miles:</span>
-                                                                <span className="ml-1 text-blue-800 font-bold">{getSelectedTripsTotals().totalMiles.toLocaleString()}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="text-blue-600 font-medium">Total Earnings:</span>
-                                                                <span className="ml-1 text-blue-800 font-bold">${getSelectedTripsTotals().totalEarnings.toFixed(2)}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {/* Loading State */}
-                                        {loadingTrips && (
-                                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
-                                                <div className="text-sm text-blue-600 font-medium">Loading trip data...</div>
-                                                <div className="text-xs text-blue-500 mt-1">Please wait while we fetch driver trips...</div>
-                                            </div>
-                                        )}
-
-                                        {/* No Trips Message */}
-                                        {!loadingTrips && driverTrips.length === 0 && formData.startDate && formData.endDate && selectedEmployee && (
-                                            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <AlertCircle className="text-yellow-600" size={18} />
-                                                    <div className="text-sm font-medium text-yellow-800">No trips found</div>
-                                                </div>
-                                                <div className="text-xs text-yellow-700">
-                                                    No trips found for <strong>{selectedEmployee?.name || 'driver'}</strong> between <strong>{formData.startDate}</strong> and <strong>{formData.endDate}</strong>.
-                                                </div>
-                                                <div className="text-xs text-yellow-600 mt-1">
-                                                    Try adjusting the date range or check if the driver has completed any trips.
-                                                </div>
-                                            </div>
-                                        )}
-                                        
-                                        {/* No Date Range Selected */}
-                                        {!loadingTrips && driverTrips.length === 0 && (!formData.startDate || !formData.endDate) && selectedEmployee && (
-                                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                                <div className="text-sm text-gray-600">
-                                                    Please select a date range to view driver trips.
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
                                 {formData.baseSalary && (
-                                    <div className={`p-4 rounded-lg border ${
-                                        selectedEmployee?.role.toLowerCase() === 'driver' 
-                                            ? 'bg-green-50 border-green-200' 
-                                            : 'bg-blue-50 border-blue-200'
-                                    }`}>
+                                    <div className="p-4 rounded-lg border bg-blue-50 border-blue-200">
                                         <div className="flex justify-between items-center">
                                             <span className="text-sm font-medium text-gray-700">
-                                                {selectedEmployee?.role.toLowerCase() === 'driver' ? 'Total Driver Pay:' : 'Total Salary:'}
+                                                Total Salary:
                                             </span>
-                                            <span className={`text-xl font-bold ${
-                                                selectedEmployee?.role.toLowerCase() === 'driver' 
-                                                    ? 'text-green-600' 
-                                                    : 'text-blue-600'
-                                            }`}>
+                                            <span className="text-xl font-bold text-blue-600">
                                                 ${(
                                                     parseFloat(formData.baseSalary || '0') + 
                                                     parseFloat(formData.bonus || '0') - 
@@ -1517,11 +997,6 @@ const PayrollManagement = () => {
                                                 ).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </span>
                                         </div>
-                                        {selectedEmployee?.role?.toLowerCase() === 'driver' && driverPayrollSummary && (
-                                            <div className="mt-2 text-xs text-gray-600">
-                                                Based on {driverPayrollSummary.totalTrips} trips • {driverPayrollSummary.totalDistanceMiles.toLocaleString()} miles
-                                            </div>
-                                        )}
                                     </div>
                                 )}
 
@@ -1612,131 +1087,6 @@ const PayrollManagement = () => {
                                     </div>
                                 </div>
 
-                                {/* Driver-specific load details */}
-                                {selectedPayroll.userId.role.toLowerCase() === 'driver' && selectedPayroll.loads && (
-                                    <div className="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
-                                        <h5 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                            <Package size={20} className="text-green-600" />
-                                            Load Details ({selectedPayroll.loads.length} loads)
-                                        </h5>
-                                        
-                                        {selectedPayroll.loads.length > 0 ? (
-                                            <div className="space-y-4">
-                                                {selectedPayroll.loads.map((load, index) => (
-                                                    <div key={load._id} className="bg-white p-5 rounded-lg border border-green-200 shadow-sm">
-                                                        <div className="flex items-start justify-between mb-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                                                    <Package className="text-green-600" size={20} />
-                                                                </div>
-                                                                <div>
-                                                                    <h6 className="font-bold text-gray-900">
-                                                                        Load #{index + 1}
-                                                                    </h6>
-                                                                    <p className="text-sm text-gray-500">
-                                                                        {load.details?.internalId || load._id?.slice(-6).toUpperCase()}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <div className="space-y-3">
-                                                            {load.route && (
-                                                                <div>
-                                                                    <label className="text-sm font-semibold text-gray-600 mb-2 block flex items-center gap-1">
-                                                                        <MapPin size={14} />
-                                                                        Route
-                                                                    </label>
-                                                                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900">
-                                                                        {load.route.multipleDropOffs ? (
-                                                                            <span>Multiple Waypoints</span>
-                                                                        ) : (
-                                                                            <div className="flex items-center gap-2">
-                                                                                <span className="font-medium">{load.route.selectPickup?.place || 'Unknown'}</span>
-                                                                                <span className="text-gray-400">→</span>
-                                                                                <span className="font-medium">{load.route.selectDropOff?.place || 'Unknown'}</span>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-
-                                                            {load.assignedAt && (
-                                                                <div>
-                                                                    <label className="text-sm font-semibold text-gray-600 mb-2 block flex items-center gap-1">
-                                                                        <Clock size={14} />
-                                                                        Assigned
-                                                                    </label>
-                                                                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900">
-                                                                        {new Date(load.assignedAt).toLocaleString()}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                            
-                                                            {load.startedAt && (
-                                                                <div>
-                                                                    <label className="text-sm font-semibold text-gray-600 mb-2 block flex items-center gap-1">
-                                                                        <Clock size={14} />
-                                                                        Started
-                                                                    </label>
-                                                                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900">
-                                                                        {new Date(load.startedAt).toLocaleString()}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                            
-                                                            {load.completedAt && (
-                                                                <div>
-                                                                    <label className="text-sm font-semibold text-gray-600 mb-2 block flex items-center gap-1">
-                                                                        <CheckCircle size={14} />
-                                                                        Completed
-                                                                    </label>
-                                                                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900">
-                                                                        {new Date(load.completedAt).toLocaleString()}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="text-center py-6 text-gray-500">
-                                                No loads found for this payroll
-                                            </div>
-                                        )}
-
-                                        {/* Summary Card */}
-                                        {(selectedPayroll.totalMiles || selectedPayroll.ratePerMile) && (
-                                            <div className="mt-6 bg-white p-5 rounded-lg border-2 border-green-300 shadow-sm">
-                                                <h6 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                                    <TrendingUp className="text-green-600" size={18} />
-                                                    Summary
-                                                </h6>
-                                                <div className="grid grid-cols-3 gap-4">
-                                                    <div>
-                                                        <label className="text-xs font-semibold text-gray-600 uppercase">Total Miles</label>
-                                                        <div className="mt-1 text-2xl font-bold text-gray-900">
-                                                            {selectedPayroll.totalMiles?.toLocaleString() || 0}
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-xs font-semibold text-gray-600 uppercase">Rate per Mile</label>
-                                                        <div className="mt-1 text-2xl font-bold text-gray-900">
-                                                            ${selectedPayroll.ratePerMile || 0}
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-xs font-semibold text-gray-600 uppercase">Total Earnings</label>
-                                                        <div className="mt-1 text-2xl font-bold text-green-600">
-                                                            ${selectedPayroll.baseSalary.toLocaleString()}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
 
                                 {/* Payroll Summary */}
                                 <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
@@ -1891,9 +1241,7 @@ const PayrollManagement = () => {
                                     <select
                                         value={formData.userId}
                                         onChange={(e) => {
-                                            const emp = employees.find(em => em._id === e.target.value);
                                             setFormData({ ...formData, userId: e.target.value });
-                                            setSelectedEmployee(emp || null);
                                         }}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
