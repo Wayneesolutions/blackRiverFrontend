@@ -1,7 +1,18 @@
 @import "tailwindcss";
 
+/* Font Families */
+:root {
+  --font-poppins: sans-serif;
+  --font-futura: 'Montserrat', 'Futura', 'Trebuchet MS', Arial, sans-serif;
+}
+
 html {
   scroll-behavior: smooth;
+  font-family: var(--font-poppins);
+}
+
+body {
+  font-family: var(--font-poppins);
 }
 
 /* Custom toast notification animation - slide in from right */

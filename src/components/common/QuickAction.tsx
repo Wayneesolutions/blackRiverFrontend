@@ -27,129 +27,129 @@ const QuickAction: React.FC<QuickActionProps> = ({ onActionSelect }) => {
     // Define all available actions
     const availableActions: QuickActionOption[] = [
         // Navigation commands
-        { 
-            id: 'goto-dispatch', 
-            type: 'navigation', 
-            title: 'Go to Dispatch', 
+        {
+            id: 'goto-dispatch',
+            type: 'navigation',
+            title: 'Go to Dispatch',
             description: 'Open dispatch operations',
             path: '/admin/dispatch/operations',
             icon: <Package size={16} />,
             keywords: ['dispatch', 'operations', 'loads', 'delivery']
         },
-        { 
-            id: 'goto-drivers', 
-            type: 'navigation', 
-            title: 'Go to Drivers', 
+        {
+            id: 'goto-drivers',
+            type: 'navigation',
+            title: 'Go to Drivers',
             description: 'Manage drivers and documents',
             path: '/admin/Management/drivers',
             icon: <User size={16} />,
             keywords: ['drivers', 'driver management', 'employees']
         },
-        { 
-            id: 'goto-payroll', 
-            type: 'navigation', 
-            title: 'Go to Payroll', 
+        {
+            id: 'goto-payroll',
+            type: 'navigation',
+            title: 'Go to Payroll',
             description: 'View and manage payroll',
             path: '/admin/accounts/payroll',
             icon: <DollarSign size={16} />,
             keywords: ['payroll', 'payment', 'salary', 'wages']
         },
-        { 
-            id: 'goto-invoices', 
-            type: 'navigation', 
-            title: 'Go to Invoices', 
+        {
+            id: 'goto-invoices',
+            type: 'navigation',
+            title: 'Go to Invoices',
             description: 'Manage invoices',
             path: '/admin/accounts/invoice',
             icon: <FileText size={16} />,
             keywords: ['invoices', 'billing', 'invoicing', 'invoice']
         },
-        { 
-            id: 'goto-expenses', 
-            type: 'navigation', 
-            title: 'Go to Expenses', 
+        {
+            id: 'goto-expenses',
+            type: 'navigation',
+            title: 'Go to Expenses',
             description: 'Track expenses',
             path: '/admin/accounts/expenses',
             icon: <DollarSign size={16} />,
             keywords: ['expenses', 'spending', 'costs']
         },
-        { 
-            id: 'goto-gps', 
-            type: 'navigation', 
-            title: 'Go to GPS Tracking', 
+        {
+            id: 'goto-gps',
+            type: 'navigation',
+            title: 'Go to GPS Tracking',
             description: 'Track vehicles in real-time',
             path: '/admin/gpsvehicle/tracking',
             icon: <Truck size={16} />,
             keywords: ['gps', 'tracking', 'vehicles', 'location']
         },
-        { 
-            id: 'goto-compliance', 
-            type: 'navigation', 
-            title: 'Go to Compliance', 
+        {
+            id: 'goto-compliance',
+            type: 'navigation',
+            title: 'Go to Compliance',
             description: 'Compliance management',
             path: '/admin/compliance/documents',
             icon: <ShieldCheck size={16} />,
             keywords: ['compliance', 'regulations', 'safety']
         },
-        { 
-            id: 'goto-fleet', 
-            type: 'navigation', 
-            title: 'Go to Fleet Maintenance', 
+        {
+            id: 'goto-fleet',
+            type: 'navigation',
+            title: 'Go to Fleet Maintenance',
             description: 'Manage vehicle maintenance',
             path: '/admin/fleetmaintenance/schedule',
             icon: <Wrench size={16} />,
             keywords: ['fleet', 'maintenance', 'vehicles', 'service']
         },
-        { 
-            id: 'goto-profile', 
-            type: 'navigation', 
-            title: 'Go to My Profile', 
+        {
+            id: 'goto-profile',
+            type: 'navigation',
+            title: 'Go to My Profile',
             description: 'View your profile',
             path: '/admin/profile',
             icon: <UserCheck size={16} />,
             keywords: ['profile', 'account', 'settings', 'user']
         },
-        
+
         // Create commands
-        { 
-            id: 'create-load', 
-            type: 'create', 
-            title: 'Create New Load', 
+        {
+            id: 'create-load',
+            type: 'create',
+            title: 'Create New Load',
             description: 'Add a new delivery load',
             path: '/admin/dispatch/NewLoad',
             icon: <Plus size={16} />,
             keywords: ['create load', 'new load', 'add load']
         },
-        { 
-            id: 'create-driver', 
-            type: 'create', 
-            title: 'Create New Driver', 
+        {
+            id: 'create-driver',
+            type: 'create',
+            title: 'Create New Driver',
             description: 'Add a new driver',
             path: '/admin/Management/drivers',
             icon: <Plus size={16} />,
             keywords: ['create driver', 'new driver', 'add driver']
         },
-        { 
-            id: 'create-payroll', 
-            type: 'create', 
-            title: 'Create New Payroll', 
+        {
+            id: 'create-payroll',
+            type: 'create',
+            title: 'Create New Payroll',
             description: 'Generate payroll record',
             path: '/admin/accounts/payroll',
             icon: <Plus size={16} />,
             keywords: ['create payroll', 'new payroll', 'generate payroll']
         },
-        { 
-            id: 'create-invoice', 
-            type: 'create', 
-            title: 'Create New Invoice', 
+        {
+            id: 'create-invoice',
+            type: 'create',
+            title: 'Create New Invoice',
             description: 'Create invoice',
             path: '/admin/accounts/invoice',
             icon: <Plus size={16} />,
             keywords: ['create invoice', 'new invoice']
         },
-        { 
-            id: 'create-expense', 
-            type: 'create', 
-            title: 'Create New Expense', 
+        {
+            id: 'create-expense',
+            type: 'create',
+            title: 'Create New Expense',
             description: 'Record expense',
             path: '/admin/accounts/expenses',
             icon: <Plus size={16} />,
@@ -161,8 +161,8 @@ const QuickAction: React.FC<QuickActionProps> = ({ onActionSelect }) => {
     const filteredActions = availableActions.filter(action => {
         const searchQuery = query.toLowerCase();
         return action.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery)) ||
-               action.title.toLowerCase().includes(searchQuery) ||
-               action.description.toLowerCase().includes(searchQuery);
+            action.title.toLowerCase().includes(searchQuery) ||
+            action.description.toLowerCase().includes(searchQuery);
     });
 
     // Handle input changes
@@ -191,13 +191,13 @@ const QuickAction: React.FC<QuickActionProps> = ({ onActionSelect }) => {
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-                setSelectedIndex(prev => 
+                setSelectedIndex(prev =>
                     prev < filteredActions.length - 1 ? prev + 1 : 0
                 );
                 break;
             case 'ArrowUp':
                 e.preventDefault();
-                setSelectedIndex(prev => 
+                setSelectedIndex(prev =>
                     prev > 0 ? prev - 1 : filteredActions.length - 1
                 );
                 break;
@@ -228,7 +228,7 @@ const QuickAction: React.FC<QuickActionProps> = ({ onActionSelect }) => {
 
     return (
         <div className="relative flex-1 max-w-xl">
-            <div className="bg-white shadow-[0px_4px_4px_0px_#00000040] rounded-md">
+            <div className="bg-[#F4FAFF] rounded-md border border-white/30">
                 <div className="relative">
                     <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                         <Search size={16} />
@@ -252,7 +252,7 @@ const QuickAction: React.FC<QuickActionProps> = ({ onActionSelect }) => {
 
             {/* Dropdown Results */}
             {isOpen && filteredActions.length > 0 && (
-                <div 
+                <div
                     ref={dropdownRef}
                     className="absolute top-full mt-1.5 w-full bg-white border border-gray-200 rounded-lg shadow-2xl z-50 max-h-[400px] overflow-y-auto"
                 >
@@ -261,18 +261,16 @@ const QuickAction: React.FC<QuickActionProps> = ({ onActionSelect }) => {
                             <button
                                 key={action.id}
                                 onClick={() => handleActionSelect(action)}
-                                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${
-                                    index === selectedIndex 
-                                        ? 'bg-blue-50 border-blue-500' 
+                                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex
+                                        ? 'bg-blue-50 border-blue-500'
                                         : 'border-transparent hover:border-blue-300'
-                                }`}
+                                    }`}
                             >
                                 <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
-                                    <div className={`p-2 rounded-lg ${
-                                        action.type === 'create' ? 'bg-green-100 text-green-700' :
-                                        action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
-                                        'bg-gray-100 text-gray-700'
-                                    }`}>
+                                    <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' :
+                                            action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
+                                                'bg-gray-100 text-gray-700'
+                                        }`}>
                                         {action.icon}
                                     </div>
                                 </div>
@@ -294,13 +292,12 @@ const QuickAction: React.FC<QuickActionProps> = ({ onActionSelect }) => {
                                         {action.description}
                                     </p>
                                 </div>
-                                <ArrowRight 
-                                    className={`flex-shrink-0 transition-all ${
-                                        index === selectedIndex 
-                                            ? 'text-blue-600 opacity-100 translate-x-0' 
+                                <ArrowRight
+                                    className={`flex-shrink-0 transition-all ${index === selectedIndex
+                                            ? 'text-blue-600 opacity-100 translate-x-0'
                                             : 'text-gray-400 opacity-0 -translate-x-1'
-                                    }`} 
-                                    size={18} 
+                                        }`}
+                                    size={18}
                                 />
                             </button>
                         ))}

@@ -1,20 +1,18 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AdminSidebarLinks } from "../../utils/AdminSidebarLinks";
-import { FaChevronDown, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
+import { FaChevronDown, FaChevronRight } from "react-icons/fa";
 import NewLoad from "../../pages/admin/dispatch/NewLoad";
-import Logo from "../../assets/FleetGo.png"
-import { FLEET_COLORS } from "../../pages/admin/fleetMaintenance/colorUtils";
+import Logo from "../../assets/images/LI.png";
+import FullLogo from "../../assets/FleetGo.png";
 import { getDashboardRoute } from "../../utils/auth";
 
 interface SidebarProps {
-  isCollapsed: boolean;
-  onToggle: () => void;
+  isCollapsed?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
-  const [, setHoveredMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -29,10 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
     // Handle dashboard route (can be index or /admin/dashboard)
     if (linkKey === "dashboard" || linkKey === "/admin/dashboard") {
-      return (
-        pathname === "/admin/" ||
-        pathname === "/admin/dashboard"
-      );
+      return pathname === "/admin/" || pathname === "/admin/dashboard";
     }
     return isActive;
   };
@@ -40,138 +35,152 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   // Handle link click: either navigate or open drawer
   const handleClick = (link: any) => {
     if (link.action === "open-new-load") {
-      setSidebarOpen(true); // 👈 open drawer
+      setSidebarOpen(true);
     }
   };
 
-  const activeLinkStyle: React.CSSProperties = {
-    background: FLEET_COLORS.gradient,
-    color: "#fff",
-    boxShadow: `0 10px 25px ${FLEET_COLORS.focusRing}`,
-    borderLeft: `4px solid ${FLEET_COLORS.primary}`,
-  };
-
-  const collapsedIconColor = { color: FLEET_COLORS.light };
-
   return (
     <>
-      <aside
-        className={`${isCollapsed ? 'w-20' : 'w-64'} h-screen flex flex-col transition-all duration-300 ease-in-out relative z-10`}
-     
-      >
-        {/* Logo & status - fixed at top */}
-        <div
-          className="flex-shrink-0 flex justify-between items-center bg-white shadow-lg rounded-xl px-4 py-3 m-3 mb-4 z-10 relative border"
-          style={{ borderColor: FLEET_COLORS.focusRing }}
-        >
-          <div 
-            className="flex items-center cursor-pointer" 
+      <style>{`
+        .sidebar-scroll::-webkit-scrollbar {
+          width: 4px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+          background: #F3F4F6;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+          background: #9CA3AF;
+          border-radius: 2px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+          background: #6B7280;
+        }
+      `}</style>
+      
+      <aside className={`h-screen flex flex-col bg-white relative z-10 shadow-sm transition-all duration-300 ${
+        isCollapsed ? 'w-20' : 'w-56'
+      }`}>
+        {/* Logo - fixed at top */}
+        <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-gray-200">
+          <div
+            className="cursor-pointer flex items-center justify-center"
             onClick={() => navigate(getDashboardRoute())}
           >
-            {!isCollapsed && (
-              <div className="flex items-center space-x-2">
-                <img src={Logo} alt="FleetGo Logo" className="w-20 h-auto" />
-               
-              </div>
-            )}
-            {isCollapsed && (
-              <div
-                className="text-lg font-bold"
-                style={{ color: FLEET_COLORS.light }}
-              >
-                L
-              </div>
+            {isCollapsed ? (
+              <img 
+                src={Logo} 
+                alt="FleetGo Logo" 
+                className="h-auto w-6 transition-all duration-300" 
+              />
+            ) : (
+              <img 
+                src={FullLogo} 
+                alt="FleetGo Logo" 
+                className="h-auto max-h-10 transition-all duration-300" 
+              />
             )}
           </div>
-          <button
-            onClick={onToggle}
-            className="cursor-pointer transition-colors p-1 rounded-md"
-            style={{ color: FLEET_COLORS.dark }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = FLEET_COLORS.focusRing;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-            }}
-          >
-            {isCollapsed ? <FaBars size={16} style={collapsedIconColor} /> : <FaTimes size={16} style={collapsedIconColor} />}
-          </button>
         </div>
 
-        {/* Menu with independent scroll */}
-        <div
-          className="flex-1 mx-3 mb-3 bg-white shadow-lg rounded-xl flex flex-col relative overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent border"
-          style={{ borderColor: FLEET_COLORS.focusRing }}
+        {/* Menu with scroll */}
+        <div 
+          className="flex-1 flex flex-col relative overflow-y-auto overflow-x-hidden sidebar-scroll"
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#9CA3AF #F3F4F6'
+          }}
         >
-          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-            <ul className="space-y-1 p-3 relative">
+          <div className="flex-1">
+            <ul className="space-y-0 py-2 relative">
               {AdminSidebarLinks.map((link) => (
-                <li key={link.key || link.label} className="relative">
+                <li
+                  key={link.key || link.label}
+                  className="relative"
+                >
                   {link.children ? (
-                    // --- PARENT MENU (same as before) ---
+                    // --- PARENT MENU ---
                     <>
                       {/* Parent Menu Item */}
                       <button
-                        onClick={() => !isCollapsed && toggleMenu(link.key)}
-                        onMouseEnter={() => isCollapsed && setHoveredMenu(link.key)}
-                        onMouseLeave={() => isCollapsed && setHoveredMenu(null)}
+                        onClick={() => toggleMenu(link.key)}
                         data-menu-key={link.key}
-                        className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} w-full px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 group`}
-                        style={{
-                          color: FLEET_COLORS.dark,
-                        }}
-                        title={isCollapsed ? link.label : ''}
+                        className={`w-full transition-all duration-200 group ${
+                          isCollapsed 
+                            ? 'flex flex-col items-center justify-center px-2 py-2' 
+                            : 'flex items-center px-4 py-2 gap-3'
+                        } ${
+                          openMenus.includes(link.key) 
+                            ? 'bg-[#42aeec]/10' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                        title={link.label}
                       >
-                        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
-                          <span className={`${isCollapsed ? 'text-2xl' : 'text-xl'} transition-all duration-200 group-hover:scale-110`}>
-                            {link.icon}
-                          </span>
-                          {!isCollapsed && <span className="font-medium">{link.label}</span>}
-                        </div>
+                        <span 
+                          className={`transition-all duration-200 ${
+                            isCollapsed ? 'text-2xl mb-1' : 'text-xl flex-shrink-0'
+                          } ${
+                            openMenus.includes(link.key)
+                              ? 'text-[#42aeec]'
+                              : 'text-gray-600 group-hover:text-[#42aeec]'
+                          }`}
+                        >
+                          {link.icon}
+                        </span>
                         {!isCollapsed && (
-                          <span className="transition-transform duration-200">
-                            {openMenus.includes(link.key) ? (
-                              <FaChevronDown className="text-gray-400 text-xs" />
-                            ) : (
-                              <FaChevronRight className="text-gray-400 text-xs" />
-                            )}
-                          </span>
+                          <>
+                            <span className={`flex-1 text-sm font-medium transition-colors text-left ${
+                              openMenus.includes(link.key)
+                                ? 'text-[#42aeec]'
+                                : 'text-gray-700 group-hover:text-[#42aeec]'
+                            }`}>
+                              {link.label}
+                            </span>
+                            <span className="text-gray-400 flex-shrink-0">
+                              {openMenus.includes(link.key) ? (
+                                <FaChevronDown className="text-xs" />
+                              ) : (
+                                <FaChevronRight className="text-xs" />
+                              )}
+                            </span>
+                          </>
                         )}
                       </button>
 
-                      {/* Expanded children (unchanged) */}
+                      {/* Expanded children */}
                       {!isCollapsed && openMenus.includes(link.key) && (
-                        <ul
-                          className="ml-6 mt-2 space-y-1 border-l-2 pl-4"
-                          style={{ borderColor: FLEET_COLORS.focusRing }}
-                        >
-                          {link.children.map((child) => (
-                            <li key={child.key}>
-                              <NavLink
-                                to={`/admin/${child.key}`}
-                                onClick={() => {
-                                  console.log('🔗 Sidebar navigation to:', `/admin/${child.key}`);
-                                }}
-                                className={({ isActive }) => {
-                                  const pathname = window.location.pathname;
-                                  const activeState = isActiveLink(
-                                    child.key,
-                                    isActive,
-                                    pathname
-                                  );
-                                  return `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out group ${
-                                    activeState ? "text-white" : "text-gray-600"
-                                  }`;
-                                }}
-                                style={({ isActive }) => (isActive ? activeLinkStyle : { color: FLEET_COLORS.dark })}
+                        <ul className="bg-gray-50/50">
+                          {link.children.map((child) => {
+                            const pathname = window.location.pathname;
+                            const activeState = isActiveLink(
+                              child.key,
+                              pathname.includes(`/admin/${child.key}`),
+                              pathname
+                            );
+                            return (
+                              <li
+                                key={child.key}
+                                className="border-b border-gray-100 last:border-b-0"
                               >
-                                <span className="text-base group-hover:scale-110 transition-transform duration-200">
-                                  {child.icon}
-                                </span>
-                                <span>{child.label}</span>
-                              </NavLink>
-                            </li>
-                          ))}
+                                <NavLink
+                                  to={`/admin/${child.key}`}
+                                  onClick={() => {
+                                    console.log(
+                                      "🔗 Sidebar navigation to:",
+                                      `/admin/${child.key}`
+                                    );
+                                  }}
+                                  className={`flex items-center px-4 py-2 pl-12 gap-3 text-sm font-medium transition-all duration-200 ease-in-out group ${
+                                    activeState
+                                      ? "bg-[#42aeec]/10 text-[#42aeec]"
+                                      : "text-gray-600 hover:bg-gray-100 hover:text-[#42aeec]"
+                                  }`}
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60 flex-shrink-0"></span>
+                                  <span className="flex-1 text-left">{child.label}</span>
+                                </NavLink>
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
                     </>
@@ -179,22 +188,38 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                     // --- SPECIAL ACTION (open drawer) ---
                     <button
                       onClick={() => handleClick(link)}
-                      className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out group`}
-                      style={{ color: FLEET_COLORS.dark }}
-                      title={isCollapsed ? link.label : ''}
+                      className={`w-full transition-all duration-200 group ${
+                        isCollapsed 
+                          ? 'flex flex-col items-center justify-center px-2 py-2' 
+                          : 'flex items-center px-4 py-2 gap-3'
+                      } hover:bg-gray-50`}
+                      title={link.label}
                     >
-                      <span className={`${isCollapsed ? 'text-2xl' : 'text-xl'} transition-all duration-200 group-hover:scale-110`}>
+                      <span 
+                        className={`transition-all duration-200 ${
+                          isCollapsed ? 'text-2xl mb-1' : 'text-xl flex-shrink-0'
+                        } text-gray-600 group-hover:text-[#42aeec]`}
+                      >
                         {link.icon}
                       </span>
-                      {!isCollapsed && <span className="font-medium">{link.label}</span>}
+                      {!isCollapsed && (
+                        <span className="flex-1 text-sm font-medium text-gray-700 group-hover:text-[#42aeec] text-left">
+                          {link.label}
+                        </span>
+                      )}
                     </button>
                   ) : (
-                    // --- NORMAL LINK (same as before) ---
+                    // --- NORMAL LINK ---
                     <NavLink
-                      to={link.key === "dashboard" ? "/admin/" : `/admin/${link.key}`}
+                      to={
+                        link.key === "dashboard" ? "/admin/" : `/admin/${link.key}`
+                      }
                       onClick={() => {
-                        const targetPath = link.key === "dashboard" ? "/admin/" : `/admin/${link.key}`;
-                        console.log('🔗 Sidebar navigation to:', targetPath);
+                        const targetPath =
+                          link.key === "dashboard"
+                            ? "/admin/"
+                            : `/admin/${link.key}`;
+                        console.log("🔗 Sidebar navigation to:", targetPath);
                       }}
                       className={({ isActive }) => {
                         const pathname = window.location.pathname;
@@ -203,31 +228,61 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                           isActive,
                           pathname
                         );
-                        return `flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out group ${
-                          activeState ? "text-white" : "text-gray-700"
+                        return `w-full transition-all duration-200 group ${
+                          isCollapsed 
+                            ? 'flex flex-col items-center justify-center px-2 py-2' 
+                            : 'flex items-center px-4 py-2 gap-3'
+                        } ${
+                          activeState 
+                            ? "bg-[#42aeec]/10 text-[#42aeec]" 
+                            : "text-gray-600 hover:bg-gray-50 hover:text-[#42aeec]"
                         }`;
                       }}
-                      style={({ isActive }) => (isActive ? activeLinkStyle : { color: FLEET_COLORS.dark })}
-                      title={isCollapsed ? link.label : ''}
+                      title={link.label}
                     >
-                      <span className={`${isCollapsed ? 'text-2xl' : 'text-xl'} transition-all duration-200 group-hover:scale-110`} style={collapsedIconColor}>
-                        {link.icon}
-                      </span>
-                      {!isCollapsed && <span className="font-medium">{link.label}</span>}
+                      {({ isActive }) => {
+                        const pathname = window.location.pathname;
+                        const activeState = isActiveLink(
+                          link.key,
+                          isActive,
+                          pathname
+                        );
+                        return (
+                          <>
+                            <span 
+                              className={`transition-all duration-200 ${
+                                isCollapsed ? 'text-2xl mb-1' : 'text-xl flex-shrink-0'
+                              } ${
+                                activeState ? 'text-[#42aeec]' : 'text-gray-600 group-hover:text-[#42aeec]'
+                              }`}
+                            >
+                              {link.icon}
+                            </span>
+                            {!isCollapsed && (
+                              <span className={`flex-1 text-sm font-medium text-left ${
+                                activeState ? 'text-[#42aeec]' : 'text-gray-700 group-hover:text-[#42aeec]'
+                              }`}>
+                                {link.label}
+                              </span>
+                            )}
+                          </>
+                        );
+                      }}
                     </NavLink>
                   )}
                 </li>
               ))}
             </ul>
-            <div className="h-4"></div>
+            <div className="h-2"></div>
           </div>
         </div>
       </aside>
 
       {/* --- Drawer for New Load --- */}
       <div
-        className={`fixed top-0 right-0 h-full max-w-5xl w-full bg-white bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 border-opacity-50 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-full max-w-5xl w-full bg-white bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 border-opacity-50 ${
+          sidebarOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         <NewLoad onClose={() => setSidebarOpen(false)} />
       </div>

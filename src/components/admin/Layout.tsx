@@ -5,7 +5,6 @@ import Header from "./Header";
 import ExpiringDriverDocumentsPopup from "../common/ExpiringDriverDocumentsPopup";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { useExpiringDriverDocuments } from "../../hooks/useExpiringDriverDocuments";
-import { FLEET_COLORS } from "../../pages/admin/fleetMaintenance/colorUtils";
 
 // Wrapper to log route changes and catch rendering issues
 const OutletWrapper = () => {
@@ -40,8 +39,7 @@ const Layout = () => {
                 <ErrorBoundary>
                     <div className="flex-shrink-0 h-screen overflow-hidden">
                         <Sidebar 
-                            isCollapsed={isSidebarCollapsed} 
-                            onToggle={toggleSidebar} 
+                            isCollapsed={isSidebarCollapsed}
                         />
                     </div>
                 </ErrorBoundary>
@@ -50,13 +48,16 @@ const Layout = () => {
                 <div className="flex flex-col flex-1 h-full overflow-hidden">
                     {/* Header - fixed at top */}
                     <ErrorBoundary>
-                        <div className="flex-shrink-0 pl-5">
-                            <Header />
+                        <div className="flex-shrink-0">
+                            <Header 
+                                isSidebarCollapsed={isSidebarCollapsed}
+                                onToggleSidebar={toggleSidebar}
+                            />
                         </div>
                     </ErrorBoundary>
                     
                     {/* Main content with scroll */}
-                    <main className="flex-1 overflow-y-auto pl-5 p-4 pb-20">
+                    <main className="flex-1 overflow-y-auto pb-20">
                         <ErrorBoundary
                             fallback={
                                 <div className="p-8 bg-white rounded-lg shadow">
@@ -64,7 +65,7 @@ const Layout = () => {
                                     <p className="text-gray-600 mb-4">The page failed to load. Please check the console for details.</p>
                                     <button
                                         onClick={() => window.location.href = '/admin/dashboard'}
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                        className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700"
                                     >
                                         Go to Dashboard
                                     </button>
@@ -76,14 +77,7 @@ const Layout = () => {
                     </main>
                 </div>
                 
-                {/* Footer fixed at bottom */}
-
-                <footer
-                    className="text-center text-white py-4 text-md fixed bottom-0 left-0 w-full z-50"
-                    style={{ background: FLEET_COLORS.dark }}
-                >
-                    Logistics All rights reserved
-                </footer>
+             
                 
                 {/* Global Expiring Driver Documents Popup */}
                 <ErrorBoundary>
