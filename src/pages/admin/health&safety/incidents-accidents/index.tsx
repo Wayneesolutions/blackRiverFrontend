@@ -1152,10 +1152,10 @@ const IncidentManagement: React.FC = () => {
                         >
                           <FaTrash />
                         </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -1580,9 +1580,6 @@ const IncidentManagement: React.FC = () => {
           <strong className="text-amber-800">Federal Requirement:</strong> Canada Labour
           Code requires employers to investigate and document all hazardous occurrences.
         </p>
-      </div>
-
-      <form onSubmit={handleSubmitInvestigation} className="space-y-8">
       </div>
 
       <form onSubmit={handleSubmitInvestigation} className="space-y-8">

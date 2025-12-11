@@ -178,7 +178,6 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
 
-<<<<<<< HEAD
         {/* Critical Metrics Grid */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4" style={{ color: COLORS.text.primary }}>
