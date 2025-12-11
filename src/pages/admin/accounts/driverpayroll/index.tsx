@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Truck } from 'lucide-react';
-import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips } from '../../../../axios/api/account.payroll';
+import { createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips } from '../../../../axios/api/account.payroll';
+import * as driverApi from '../../../../axios/api/driver';
 
 // Type definitions
 interface Driver {
@@ -8,7 +9,10 @@ interface Driver {
   name: string;
   role: string;
   details?: {
-    mileRate?: number;
+    salaryPerMile?: number;
+    salaryPerMileSnow?: number;
+    salaryPerMileHighTemp?: number;
+    highTempThreshold?: number;
   };
 }
 
@@ -44,7 +48,13 @@ interface Trip {
   actualEndDate?: string;
   distance?: number;
   distanceInMiles?: number | string;
-  mileRate?: number;
+  baseRate?: number;
+  snowRate?: number;
+  highTempRate?: number;
+  weatherConditions?: {
+    snow?: boolean;
+    highTemperature?: boolean;
+  };
   earnings?: string | number;
   truck?: { 
     plateNumber?: string;
@@ -99,6 +109,9 @@ interface TripSummary {
   totalDistanceMiles: number;
   totalEarnings: number;
   ratePerMile: number;
+  baseRate?: number;
+  snowRate?: number;
+  highTempRate?: number;
 }
 
 interface DriverPayroll {
@@ -189,12 +202,36 @@ const DriverPayrollManagement = () => {
         return;
       }
 
-      const response = await getEmployees();
+      // Use driver API to get drivers with full details including salaryPerMile
+      const response = await driverApi.getAllDrivers(1, 100);
       if (response?.success) {
-        // Filter only drivers
-        const driverList = (response.data || []).filter((emp: Driver) => 
-          emp.role?.toLowerCase() === 'driver'
-        );
+        // Map driver data to include details - backend returns details object with salaryPerMile
+        const driverList = (response.data || []).map((driver: any) => {
+          // Backend returns driver with details object containing salaryPerMile fields
+          // Check both nested details and direct properties (in case backend flattens it)
+          const salaryPerMile = driver.details?.salaryPerMile ?? driver.salaryPerMile ?? 0;
+          const salaryPerMileSnow = driver.details?.salaryPerMileSnow ?? driver.salaryPerMileSnow ?? 0;
+          const salaryPerMileHighTemp = driver.details?.salaryPerMileHighTemp ?? driver.salaryPerMileHighTemp ?? 0;
+          const highTempThreshold = driver.details?.highTempThreshold ?? driver.highTempThreshold ?? 35;
+          
+          console.log('Driver data:', {
+            name: driver.name,
+            details: driver.details,
+            salaryPerMile: salaryPerMile
+          });
+          
+          return {
+            _id: driver._id,
+            name: driver.name,
+            role: driver.role || 'driver',
+            details: {
+              salaryPerMile: Number(salaryPerMile) || 0,
+              salaryPerMileSnow: Number(salaryPerMileSnow) || 0,
+              salaryPerMileHighTemp: Number(salaryPerMileHighTemp) || 0,
+              highTempThreshold: Number(highTempThreshold) || 35
+            }
+          };
+        });
         setDrivers(driverList);
       } else if (response?.message) {
         showNotification('error', response.message);
@@ -290,7 +327,10 @@ const DriverPayrollManagement = () => {
             totalDistanceKm: trips.reduce((sum, trip) => sum + (trip.distance || 0), 0),
             totalDistanceMiles: totalMiles,
             totalEarnings: totalEarnings,
-            ratePerMile: trips[0]?.mileRate || 0
+            ratePerMile: trips[0]?.baseRate || 0,
+            baseRate: trips[0]?.baseRate || 0,
+            snowRate: trips[0]?.snowRate || 0,
+            highTempRate: trips[0]?.highTempRate || 0
           };
           
           setDriverPayrollSummary(fallbackSummary);
@@ -431,7 +471,7 @@ const DriverPayrollManagement = () => {
         endDate: formData.endDate,
         tripIds: selectedTrips.map(trip => trip._id).filter(id => id),
         totalMiles: selectedTotals.totalMiles,
-        ratePerMile: driverPayrollSummary?.ratePerMile || selectedDriver?.details?.mileRate || 0
+        ratePerMile: driverPayrollSummary?.ratePerMile || driverPayrollSummary?.baseRate || selectedDriver?.details?.salaryPerMile || 0
       };
 
       const response = await createPayroll(payload);
@@ -809,7 +849,9 @@ const DriverPayrollManagement = () => {
                         <option value="">Choose a driver...</option>
                         {drivers.map((driver) => (
                           <option key={driver._id} value={driver._id}>
-                            {driver.name} - Rate: ${driver.details?.mileRate || 0}/mile
+                            {driver.name} - Base: ${driver.details?.salaryPerMile || 0}/mi
+                            {driver.details?.salaryPerMileSnow ? ` | Snow: +$${driver.details.salaryPerMileSnow}/mi` : ''}
+                            {driver.details?.salaryPerMileHighTemp ? ` | High Temp: +$${driver.details.salaryPerMileHighTemp}/mi` : ''}
                           </option>
                         ))}
                       </select>
@@ -855,7 +897,7 @@ const DriverPayrollManagement = () => {
                           <TrendingUp size={20} />
                           Trip Summary for {selectedDriver?.name}
                         </h5>
-                        <div className="grid grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                           <div className="text-center">
                             <div className="text-3xl font-bold">{driverPayrollSummary.totalTrips}</div>
                             <div className="text-sm text-green-100">Total Trips</div>
@@ -865,9 +907,21 @@ const DriverPayrollManagement = () => {
                             <div className="text-sm text-green-100">Total Miles</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-3xl font-bold">${driverPayrollSummary.ratePerMile}</div>
-                            <div className="text-sm text-green-100">Rate per Mile</div>
+                            <div className="text-3xl font-bold">${driverPayrollSummary.baseRate || driverPayrollSummary.ratePerMile || 0}</div>
+                            <div className="text-sm text-green-100">Base Rate/mi</div>
                           </div>
+                          {(driverPayrollSummary.snowRate && driverPayrollSummary.snowRate > 0) && (
+                            <div className="text-center">
+                              <div className="text-2xl font-bold">+${driverPayrollSummary.snowRate}</div>
+                              <div className="text-xs text-green-100">Snow Premium/mi</div>
+                            </div>
+                          )}
+                          {(driverPayrollSummary.highTempRate && driverPayrollSummary.highTempRate > 0) && (
+                            <div className="text-center">
+                              <div className="text-2xl font-bold">+${driverPayrollSummary.highTempRate}</div>
+                              <div className="text-xs text-green-100">High Temp Premium/mi</div>
+                            </div>
+                          )}
                           <div className="text-center">
                             <div className="text-3xl font-bold">${driverPayrollSummary.totalEarnings.toFixed(2)}</div>
                             <div className="text-sm text-green-100">Total Earnings</div>
@@ -980,7 +1034,9 @@ const DriverPayrollManagement = () => {
                                     })()}
                                   </td>
                                   <td className="px-3 py-2 text-sm text-gray-600">
-                                    ${trip.mileRate || 0}/mi
+                                    ${trip.baseRate || 0}/mi
+                                    {trip.weatherConditions?.snow && trip.snowRate ? ` + $${trip.snowRate} (snow)` : ''}
+                                    {trip.weatherConditions?.highTemperature && trip.highTempRate ? ` + $${trip.highTempRate} (high temp)` : ''}
                                   </td>
                                   <td className="px-3 py-2 text-sm font-bold text-green-600">
                                     ${(() => {
@@ -1284,7 +1340,7 @@ const DriverPayrollManagement = () => {
                                     } else if (trip.route?.totalDistance) {
                                       miles = parseFloat((trip.route.totalDistance * 0.621371).toFixed(2));
                                     }
-                                    const rate = selectedPayroll.ratePerMile || 0;
+                                    const rate = selectedPayroll.ratePerMile || 0; // This comes from payroll record
                                     if (miles && rate) {
                                       earnings = parseFloat((miles * rate).toFixed(2));
                                     }

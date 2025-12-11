@@ -123,6 +123,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [weightUnit, setWeightUnit] = useState("");
     const [temperature, setTemperature] = useState("");
     const [temperatureUnit, setTemperatureUnit] = useState("Celsius");
+    const [weatherConditions, setWeatherConditions] = useState({
+        snow: false,
+        highTemperature: false
+    });
     const [dimensionL, setDimensionL] = useState("");
     const [dimensionB, setDimensionB] = useState("");
     const [dimensionH, setDimensionH] = useState("");
@@ -232,6 +236,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setWeightUnit(order.weightUnit || 'kg');
             setTemperature(order.temperature?.toString() || '');
             setTemperatureUnit(order.temperatureUnit || 'Celsius');
+            setWeatherConditions({
+                snow: order.weatherConditions?.snow || false,
+                highTemperature: order.weatherConditions?.highTemperature || false
+            });
             setDimensionL(order.dimensions?.length?.toString() || '');
             setDimensionB(order.dimensions?.width?.toString() || '');
             setDimensionH(order.dimensions?.height?.toString() || '');
@@ -706,6 +714,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 weightUnit: weightUnit || 'kg',
                 temperature: temperature ? parseFloat(temperature) : null,
                 temperatureUnit: temperatureUnit || 'Celsius',
+                weatherConditions: {
+                    snow: weatherConditions.snow,
+                    highTemperature: weatherConditions.highTemperature
+                },
                 dimensions: {
                     length: dimensionL ? parseFloat(dimensionL) : 0,
                     width: dimensionB ? parseFloat(dimensionB) : 0,
@@ -1273,6 +1285,33 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 <option value="Celsius">Celsius</option>
                                                 <option value="Fahrenheit">Fahrenheit</option>
                                             </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Weather Conditions */}
+                                    <div className="flex items-center">
+                                        <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                            Weather Conditions
+                                        </label>
+                                        <div className="flex-1 flex gap-4">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={weatherConditions.snow}
+                                                    onChange={(e) => setWeatherConditions(prev => ({ ...prev, snow: e.target.checked }))}
+                                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                />
+                                                <span className="text-sm text-gray-700">Snow Conditions</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={weatherConditions.highTemperature}
+                                                    onChange={(e) => setWeatherConditions(prev => ({ ...prev, highTemperature: e.target.checked }))}
+                                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                />
+                                                <span className="text-sm text-gray-700">High Temperature</span>
+                                            </label>
                                         </div>
                                     </div>
 

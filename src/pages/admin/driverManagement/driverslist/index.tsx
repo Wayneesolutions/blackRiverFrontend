@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Edit, Trash2, Plus, X, Save, RefreshCw, AlertCircle, User, Phone, Upload, Search, Briefcase, MapPin, FileText, Heart, CreditCard, Globe, Building2, ChevronRight, ChevronLeft, CheckCircle, Eye } from 'lucide-react';
+import { Edit, Trash2, Plus, X, Save, RefreshCw, AlertCircle, User, Phone, Upload, Search, Briefcase, MapPin, FileText, Heart, CreditCard, Globe, Building2, ChevronRight, ChevronLeft, CheckCircle, Eye, DollarSign, Snowflake, Thermometer } from 'lucide-react';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import * as driverApi from '../../../../axios/api/driver';
-import { getDocumentsByEmployee, createEmployeeDocument, EmployeeDocument } from '../../../../axios/api/employeeDocument';
+import { getDocumentsByEmployee, createEmployeeDocument, getSignedEmployeeDocumentUrl } from '../../../../axios/api/employeeDocument';
+import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
 
 // Type definitions
 interface Driver {
@@ -52,6 +53,11 @@ interface DriverFormData {
   role: string;
   status: string;
   policies?: string;
+  // Salary per mile fields
+  salaryPerMile?: string;
+  salaryPerMileSnow?: string;
+  salaryPerMileHighTemp?: string;
+  highTempThreshold?: string;
 }
 
 interface DriverDocumentForm {
@@ -100,7 +106,12 @@ const DriverManagement = () => {
     file: null,
     password: '',
     role: 'driver',
-    status: 'active'
+    status: 'active',
+    // Salary per mile fields
+    salaryPerMile: '',
+    salaryPerMileSnow: '',
+    salaryPerMileHighTemp: '',
+    highTempThreshold: '35'
   });
 
   useEffect(() => {
@@ -132,10 +143,33 @@ const DriverManagement = () => {
               console.error(`Error fetching documents for driver ${driver._id}:`, err);
             }
             
+            // Transform driver data to ensure all fields are properly mapped
+            // Backend should already provide transformed data, but we ensure all fields exist
             return {
-              ...driver,
+              _id: driver._id,
+              internalId: driver.internalId || '',
+              name: driver.name || '',
+              email: driver.email || '',
+              phone: driver.phone || '',
+              mobile: driver.mobile || driver.details?.cell1 || '',
+              company: driver.company || (typeof driver.company === 'object' ? driver.company?.companyName : '') || '-',
+              gender: driver.gender || driver.details?.gender || '',
+              csa: driver.csa || (driver.details?.csa ? 'Yes' : (driver.details?.csa === false ? 'No' : '')) || 'N/A',
+              status: driver.status || 'active',
+              address: driver.address || driver.location?.address || '',
+              citizenship: driver.citizenship || driver.details?.citizenship || '',
+              country: driver.country || '',
+              employmentDetails: driver.employmentDetails || driver.details?.remark || '',
+              wsib: driver.wsib || (driver.details?.wsib ? 'Yes' : (driver.details?.wsib === false ? 'No' : '')),
+              fastCard: driver.fastCard || driver.details?.fastCardNo || '',
+              medicalTracking: driver.medicalTracking || (driver.details?.medicalRequired ? 'Yes' : (driver.details?.medicalRequired === false ? 'No' : '')),
               profileImageUrl: profileImageUrl || null,
+              role: driver.role || 'driver',
+              joinDate: driver.joinDate || '',
+              policies: driver.policies || '',
               lastModified: driver.updatedAt ? new Date(driver.updatedAt).toLocaleDateString() : undefined,
+              createdAt: driver.createdAt,
+              updatedAt: driver.updatedAt,
               documents
             };
           })
@@ -174,7 +208,12 @@ const DriverManagement = () => {
       password: '',
       role: 'driver',
       status: 'active',
-      policies: ''
+      policies: '',
+      // Salary per mile fields
+      salaryPerMile: '',
+      salaryPerMileSnow: '',
+      salaryPerMileHighTemp: '',
+      highTempThreshold: '35'
     });
     setDriverDocuments([]);
     setExistingDocuments([]);
@@ -332,28 +371,35 @@ const DriverManagement = () => {
       if (response.success && response.data) {
         const driverData = response.data;
         setEditingId(driver._id);
+        
+        // Properly map fields from backend response (which may have details/location nested objects)
         setFormData({
           name: driverData.name || '',
           email: driverData.email || '',
-          gender: driverData.gender || '',
+          gender: driverData.gender || driverData.details?.gender || '',
           company: '', // Not used in form, auto-assigned by backend
-          employmentDetails: driverData.employmentDetails || '',
+          employmentDetails: driverData.employmentDetails || driverData.details?.remark || '',
           internalId: driverData.internalId || '',
           joinDate: driverData.joinDate ? new Date(driverData.joinDate).toISOString().split('T')[0] : '',
           phone: driverData.phone || '',
-          mobile: driverData.mobile || '',
-          citizenship: driverData.citizenship || '',
+          mobile: driverData.mobile || driverData.details?.cell1 || '',
+          citizenship: driverData.citizenship || driverData.details?.citizenship || '',
           country: driverData.country || '',
-          address: driverData.address || '',
-          wsib: driverData.wsib || '',
-          fastCard: driverData.fastCard || '',
-          medicalTracking: driverData.medicalTracking || '',
-          csa: driverData.csa || '',
+          address: driverData.address || driverData.location?.address || '',
+          wsib: driverData.wsib || (driverData.details?.wsib === true ? 'Yes' : (driverData.details?.wsib === false ? 'No' : '')),
+          fastCard: driverData.fastCard || driverData.details?.fastCardNo || '',
+          medicalTracking: driverData.medicalTracking || (driverData.details?.medicalRequired === true ? 'Yes' : (driverData.details?.medicalRequired === false ? 'No' : '')),
+          csa: driverData.csa || (driverData.details?.csa === true ? 'Yes' : (driverData.details?.csa === false ? 'No' : '')),
           file: null,
           password: '', // Don't pre-fill password
           role: driverData.role || 'driver',
           status: driverData.status || 'active',
-          policies: driverData.policies || ''
+          policies: driverData.policies || '',
+          // Salary per mile fields
+          salaryPerMile: driverData.details?.salaryPerMile?.toString() || driverData.salaryPerMile?.toString() || '',
+          salaryPerMileSnow: driverData.details?.salaryPerMileSnow?.toString() || driverData.salaryPerMileSnow?.toString() || '',
+          salaryPerMileHighTemp: driverData.details?.salaryPerMileHighTemp?.toString() || driverData.salaryPerMileHighTemp?.toString() || '',
+          highTempThreshold: driverData.details?.highTempThreshold?.toString() || driverData.highTempThreshold?.toString() || '35'
         });
         
         // Fetch existing documents
@@ -512,6 +558,12 @@ const DriverManagement = () => {
       if (formData.fastCard) formDataToSend.append('fastCard', formData.fastCard);
       if (formData.medicalTracking) formDataToSend.append('medicalTracking', formData.medicalTracking);
       if (formData.csa) formDataToSend.append('csa', formData.csa);
+      
+      // Append salary per mile fields
+      if (formData.salaryPerMile !== undefined) formDataToSend.append('salaryPerMile', formData.salaryPerMile);
+      if (formData.salaryPerMileSnow !== undefined) formDataToSend.append('salaryPerMileSnow', formData.salaryPerMileSnow);
+      if (formData.salaryPerMileHighTemp !== undefined) formDataToSend.append('salaryPerMileHighTemp', formData.salaryPerMileHighTemp);
+      if (formData.highTempThreshold !== undefined) formDataToSend.append('highTempThreshold', formData.highTempThreshold);
       
       // Append file if exists
       if (formData.file) {
@@ -815,15 +867,31 @@ const DriverManagement = () => {
                             <span className="text-sm font-medium text-gray-900">
                               {driver.documents?.length || 0}
                             </span>
-                            {driver.documents && driver.documents.length > 0 && (
-                              <button
-                                onClick={() => setShowDocumentsModal({ show: true, driver })}
-                                className="text-blue-600 hover:text-blue-800 transition-colors"
-                                title="View Documents"
-                              >
-                                <Eye size={16} />
-                              </button>
-                            )}
+                            <button
+                              onClick={async () => {
+                                // Refresh documents when opening modal to ensure we have latest data
+                                try {
+                                  const docsResponse = await getDocumentsByEmployee(driver._id);
+                                  if (docsResponse.success && Array.isArray(docsResponse.data)) {
+                                    const driverWithUpdatedDocs = {
+                                      ...driver,
+                                      documents: docsResponse.data
+                                    };
+                                    setShowDocumentsModal({ show: true, driver: driverWithUpdatedDocs });
+                                  } else {
+                                    setShowDocumentsModal({ show: true, driver });
+                                  }
+                                } catch (err) {
+                                  console.error(`Error fetching documents for driver ${driver._id}:`, err);
+                                  setShowDocumentsModal({ show: true, driver });
+                                }
+                              }}
+                              className="text-blue-600 hover:text-blue-800 transition-colors disabled:text-gray-400 disabled:cursor-not-allowed"
+                              title="View Documents"
+                              disabled={!driver.documents || driver.documents.length === 0}
+                            >
+                              <Eye size={16} />
+                            </button>
                           </div>
                           {driver.documents && driver.documents.length > 0 && (
                             <div className="text-xs text-gray-500 mt-1">
@@ -1582,6 +1650,126 @@ const DriverManagement = () => {
               </div>
             </div>
 
+            {/* Salary Per Mile Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                <DollarSign size={18} />
+                <span>Salary Per Mile</span>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-xs text-blue-700">
+                  <strong>Note:</strong> These rates are used to calculate driver salary based on miles driven and weather conditions during trips.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Base Salary Per Mile ($)
+                </label>
+                <input
+                  type="number"
+                  name="salaryPerMile"
+                  value={formData.salaryPerMile}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 0.50"
+                  step="0.01"
+                  min="0"
+                  style={{ borderColor: '#d1d5db' }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = FLEET_COLORS.primary;
+                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = '';
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">Base rate per mile for all trips</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                  <Snowflake size={16} className="text-blue-500" />
+                  Snow Condition Premium Per Mile ($)
+                </label>
+                <input
+                  type="number"
+                  name="salaryPerMileSnow"
+                  value={formData.salaryPerMileSnow}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 0.25"
+                  step="0.01"
+                  min="0"
+                  style={{ borderColor: '#d1d5db' }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = FLEET_COLORS.primary;
+                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = '';
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">Additional premium per mile for trips in snow conditions</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                  <Thermometer size={16} className="text-red-500" />
+                  High Temperature Premium Per Mile ($)
+                </label>
+                <input
+                  type="number"
+                  name="salaryPerMileHighTemp"
+                  value={formData.salaryPerMileHighTemp}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 0.30"
+                  step="0.01"
+                  min="0"
+                  style={{ borderColor: '#d1d5db' }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = FLEET_COLORS.primary;
+                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = '';
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">Additional premium per mile for trips in high temperature conditions</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  High Temperature Threshold (°C)
+                </label>
+                <input
+                  type="number"
+                  name="highTempThreshold"
+                  value={formData.highTempThreshold}
+                  onChange={handleInputChange}
+                  placeholder="35"
+                  step="1"
+                  min="0"
+                  style={{ borderColor: '#d1d5db' }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = FLEET_COLORS.primary;
+                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = '';
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">Temperature threshold in Celsius (default: 35°C) above which high temperature premium applies</p>
+              </div>
+            </div>
+
             {/* Driver Profile Upload Section */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
@@ -1742,7 +1930,10 @@ const DriverManagement = () => {
             <div className="p-6">
               {showDocumentsModal.driver.documents && showDocumentsModal.driver.documents.length > 0 ? (
                 <div className="space-y-4">
-                  {showDocumentsModal.driver.documents.map((doc: EmployeeDocument) => (
+                  {showDocumentsModal.driver.documents.map((doc: EmployeeDocument) => {
+                    // Ensure document has required fields
+                    if (!doc || !doc._id) return null;
+                    return (
                     <div key={doc._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -1799,7 +1990,22 @@ const DriverManagement = () => {
                         </div>
                         {doc.fileUrl && (
                           <button
-                            onClick={() => window.open(doc.fileUrl, '_blank')}
+                            onClick={async () => {
+                              try {
+                                // Get signed URL for S3 files
+                                const signedUrlResponse = await getSignedEmployeeDocumentUrl(doc._id, 'inline');
+                                if (signedUrlResponse.success && signedUrlResponse.url) {
+                                  window.open(signedUrlResponse.url, '_blank');
+                                } else {
+                                  // Fallback to direct URL if signed URL fails
+                                  window.open(doc.fileUrl, '_blank');
+                                }
+                              } catch (error) {
+                                console.error('Error getting signed URL:', error);
+                                // Fallback to direct URL on error
+                                window.open(doc.fileUrl, '_blank');
+                              }
+                            }}
                             className="ml-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="View Document"
                           >
@@ -1808,7 +2014,8 @@ const DriverManagement = () => {
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12">
