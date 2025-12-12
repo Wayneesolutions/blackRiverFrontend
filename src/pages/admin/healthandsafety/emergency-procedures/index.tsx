@@ -20,7 +20,25 @@ import {
   FaMapMarkerAlt,
   FaClipboardList,
   FaEye,
+  FaTimes,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaInfoCircle,
 } from 'react-icons/fa';
+import {
+  createEmergencyContact,
+  getEmergencyContacts,
+  updateEmergencyContact,
+  deleteEmergencyContact,
+  createEmergencyProcedure,
+  getEmergencyProcedures,
+  updateEmergencyProcedure,
+  deleteEmergencyProcedure,
+  createFirstAidLog,
+  getFirstAidLogs,
+  updateFirstAidLog,
+  deleteFirstAidLog,
+} from '../../../../axios/api/healthSafety';
 
 interface EmergencyContact {
   _id: string;
@@ -64,6 +82,50 @@ interface FirstAidLog {
   relatedIncident?: string;
 }
 
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'info' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaTimesCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />,
+    warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
+
 const EmergencyProcedures: React.FC = () => {
   const [contacts, setContacts] = useState<EmergencyContact[]>([]);
   const [procedures, setProcedures] = useState<EmergencyProcedure[]>([]);
@@ -76,6 +138,9 @@ const EmergencyProcedures: React.FC = () => {
   const [showFirstAidForm, setShowFirstAidForm] = useState(false);
   const [editingContact, setEditingContact] = useState<EmergencyContact | null>(null);
   const [editingProcedure, setEditingProcedure] = useState<EmergencyProcedure | null>(null);
+  const [editingFirstAid, setEditingFirstAid] = useState<FirstAidLog | null>(null);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const [newContact, setNewContact] = useState({
     name: '',
@@ -107,117 +172,50 @@ const EmergencyProcedures: React.FC = () => {
     relatedIncident: '',
   });
 
+  const addNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [contactsRes, proceduresRes, firstAidRes] = await Promise.all([
+        getEmergencyContacts(),
+        getEmergencyProcedures(),
+        getFirstAidLogs(),
+      ]);
+
+      if (contactsRes.success) {
+        setContacts(contactsRes.data || []);
+      } else {
+        addNotification('error', contactsRes.message || 'Failed to load emergency contacts');
+      }
+
+      if (proceduresRes.success) {
+        setProcedures(proceduresRes.data || []);
+      } else {
+        addNotification('error', proceduresRes.message || 'Failed to load emergency procedures');
+      }
+
+      if (firstAidRes.success) {
+        setFirstAidLogs(firstAidRes.data || []);
+      } else {
+        addNotification('error', firstAidRes.message || 'Failed to load first aid logs');
+      }
+    } catch (error: any) {
+      addNotification('error', error.message || 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Mock data
-    setContacts([
-      {
-        _id: '1',
-        name: 'Emergency Services',
-        role: 'Emergency Response',
-        phone: '911',
-        department: 'External',
-        isPrimary: true,
-        available24_7: true,
-      },
-      {
-        _id: '2',
-        name: 'Safety Manager - David Chen',
-        role: 'Safety Manager',
-        phone: '+1-555-0100',
-        email: 'safety@company.com',
-        department: 'Safety',
-        isPrimary: false,
-        available24_7: false,
-        alternatePhone: '+1-555-0101',
-      },
-      {
-        _id: '3',
-        name: 'Operations Manager - Sarah Lee',
-        role: 'Operations Manager',
-        phone: '+1-555-0200',
-        email: 'ops@company.com',
-        department: 'Operations',
-        isPrimary: false,
-      },
-    ]);
-
-    setProcedures([
-      {
-        _id: '1',
-        title: 'Medical Emergency Response',
-        type: 'medical',
-        procedure: '1. Assess the situation and ensure scene safety\n2. Call 911 immediately\n3. Provide first aid if trained\n4. Do not move injured person unless in immediate danger\n5. Notify safety manager\n6. Document incident',
-        lastUpdated: '2025-01-01',
-        quickReferenceSteps: ['Assess', 'Call 911', 'First Aid', 'Notify', 'Document'],
-      },
-      {
-        _id: '2',
-        title: 'Fire Response & Evacuation',
-        type: 'fire',
-        procedure: '1. Sound the fire alarm\n2. Evacuate building immediately\n3. Close doors behind you\n4. Proceed to assembly point\n5. Do not use elevators\n6. Account for all personnel',
-        lastUpdated: '2025-01-01',
-        quickReferenceSteps: ['Alarm', 'Evacuate', 'Close Doors', 'Assembly Point', 'Head Count'],
-      },
-      {
-        _id: '3',
-        title: 'Hazardous Material Spill',
-        type: 'spill',
-        procedure: '1. Evacuate area\n2. Contain spill if safe to do so\n3. Call CANUTEC 1-888-226-8832\n4. Contact local authorities\n5. Use spill kit for small spills\n6. Document incident',
-        lastUpdated: '2025-01-01',
-        quickReferenceSteps: ['Evacuate', 'Contain', 'Call CANUTEC', 'Authorities', 'Document'],
-      },
-      {
-        _id: '4',
-        title: 'Vehicle Collision Response',
-        type: 'collision',
-        procedure: '1. Ensure safety of all persons\n2. Call emergency services if injuries\n3. Document scene with photos\n4. Exchange information with other parties\n5. Notify dispatch immediately\n6. Complete incident report within 24 hours',
-        lastUpdated: '2025-01-01',
-        quickReferenceSteps: ['Safety First', 'Call 911', 'Document', 'Exchange Info', 'Notify Dispatch', 'Report'],
-      },
-      {
-        _id: '5',
-        title: 'Roadside Breakdown Procedure',
-        type: 'breakdown',
-        procedure: '1. Move vehicle to safe location if possible\n2. Activate hazard lights\n3. Set up warning triangles/flares\n4. Call dispatch for assistance\n5. Stay with vehicle if safe\n6. Document breakdown details',
-        lastUpdated: '2025-01-01',
-        quickReferenceSteps: ['Safe Location', 'Hazard Lights', 'Warning Devices', 'Call Dispatch', 'Stay Safe'],
-      },
-      {
-        _id: '6',
-        title: 'Workplace Violence Response',
-        type: 'violence',
-        procedure: '1. Remove yourself from immediate danger\n2. Call 911 if threat is active\n3. Notify security/supervisor\n4. Document incident\n5. Provide support to affected employees\n6. Follow company violence prevention policy',
-        lastUpdated: '2025-01-01',
-        quickReferenceSteps: ['Remove from Danger', 'Call 911', 'Notify Security', 'Document', 'Support', 'Follow Policy'],
-      },
-    ]);
-
-    setFirstAidLogs([
-      {
-        _id: '1',
-        date: '2025-12-08',
-        time: '14:35',
-        location: 'Warehouse A',
-        injuredPerson: 'Mike Johnson',
-        injuryDescription: 'Cut on hand from sharp edge',
-        firstAidProvided: 'Cleaned wound, applied antiseptic, bandaged',
-        treatedBy: 'Jane Smith (First Aid Certified)',
-        followUpRequired: false,
-      },
-      {
-        _id: '2',
-        date: '2025-12-05',
-        time: '10:20',
-        location: 'Office',
-        injuredPerson: 'Sarah Lee',
-        injuryDescription: 'Minor burn from coffee',
-        firstAidProvided: 'Cold water applied, burn gel',
-        treatedBy: 'Bob Wilson',
-        followUpRequired: false,
-      },
-    ]);
-
-    setLoading(false);
+    fetchData();
   }, []);
 
   const getProcedureIcon = (type: EmergencyProcedure['type']) => {
@@ -274,20 +272,40 @@ const EmergencyProcedures: React.FC = () => {
               {editingContact ? 'Edit Emergency Contact' : 'Add New Emergency Contact'}
             </h3>
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                if (editingContact) {
-                  setContacts(contacts.map(c => (c._id === editingContact._id ? { ...editingContact, ...newContact } : c)));
-                } else {
-                  setContacts([...contacts, { 
-                    ...newContact, 
-                    email: newContact.email || '',
-                    alternatePhone: newContact.alternatePhone || '',
-                    _id: String(contacts.length + 1) 
-                  }]);
+                try {
+                  setSubmitting(true);
+                  let result;
+                  if (editingContact) {
+                    result = await updateEmergencyContact(editingContact._id, newContact);
+                  } else {
+                    result = await createEmergencyContact(newContact);
+                  }
+
+                  if (result.success) {
+                    addNotification('success', result.message || (editingContact ? 'Contact updated successfully' : 'Contact created successfully'));
+                    setShowContactForm(false);
+                    setEditingContact(null);
+                    setNewContact({
+                      name: '',
+                      role: '',
+                      phone: '',
+                      email: '',
+                      department: '',
+                      isPrimary: false,
+                      available24_7: false,
+                      alternatePhone: '',
+                    });
+                    await fetchData();
+                  } else {
+                    addNotification('error', result.message || 'Failed to save contact');
+                  }
+                } catch (error: any) {
+                  addNotification('error', error.message || 'An error occurred');
+                } finally {
+                  setSubmitting(false);
                 }
-                setShowContactForm(false);
-                setEditingContact(null);
               }}
               className="space-y-4"
             >
@@ -390,9 +408,10 @@ const EmergencyProcedures: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 flex items-center gap-2"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <FaSave /> {editingContact ? 'Update Contact' : 'Save Contact'}
+                  <FaSave /> {submitting ? 'Saving...' : (editingContact ? 'Update Contact' : 'Save Contact')}
                 </button>
               </div>
             </form>
@@ -440,7 +459,21 @@ const EmergencyProcedures: React.FC = () => {
                     <FaEdit size={14} />
                   </button>
                   <button
-                    onClick={() => setContacts(contacts.filter(c => c._id !== contact._id))}
+                    onClick={async () => {
+                      if (window.confirm('Are you sure you want to delete this contact?')) {
+                        try {
+                          const result = await deleteEmergencyContact(contact._id);
+                          if (result.success) {
+                            addNotification('success', result.message || 'Contact deleted successfully');
+                            await fetchData();
+                          } else {
+                            addNotification('error', result.message || 'Failed to delete contact');
+                          }
+                        } catch (error: any) {
+                          addNotification('error', error.message || 'An error occurred');
+                        }
+                      }
+                    }}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                     title="Delete Contact"
                   >
@@ -584,6 +617,26 @@ const EmergencyProcedures: React.FC = () => {
                     </div>
                   </div>
                   <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={async () => {
+                        if (window.confirm('Are you sure you want to delete this procedure?')) {
+                          try {
+                            const result = await deleteEmergencyProcedure(proc._id);
+                            if (result.success) {
+                              addNotification('success', result.message || 'Procedure deleted successfully');
+                              await fetchData();
+                            } else {
+                              addNotification('error', result.message || 'Failed to delete procedure');
+                            }
+                          } catch (error: any) {
+                            addNotification('error', error.message || 'An error occurred');
+                          }
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+                    >
+                      <FaTrash /> Delete
+                    </button>
                     <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
                       <FaDownload /> Download PDF
                     </button>
@@ -597,6 +650,167 @@ const EmergencyProcedures: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Procedure Form Modal */}
+      {showProcedureForm && (
+        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black bg-opacity-50" onClick={() => setShowProcedureForm(false)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold">
+                {editingProcedure ? 'Edit Emergency Procedure' : 'Add New Emergency Procedure'}
+              </h2>
+              <button
+                onClick={() => setShowProcedureForm(false)}
+                className="text-gray-500 hover:text-gray-800 transition-colors"
+              >
+                <FaTimes size={24} />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  setSubmitting(true);
+                  const formData = new FormData();
+                  formData.append('title', newProcedure.title);
+                  formData.append('type', newProcedure.type);
+                  formData.append('procedure', newProcedure.procedure);
+                  formData.append('quickReferenceSteps', JSON.stringify(newProcedure.quickReferenceSteps.filter(s => s.trim())));
+
+                  let result;
+                  if (editingProcedure) {
+                    result = await updateEmergencyProcedure(editingProcedure._id, formData);
+                  } else {
+                    result = await createEmergencyProcedure(formData);
+                  }
+
+                  if (result.success) {
+                    addNotification('success', result.message || (editingProcedure ? 'Procedure updated successfully' : 'Procedure created successfully'));
+                    setShowProcedureForm(false);
+                    setEditingProcedure(null);
+                    setNewProcedure({
+                      title: '',
+                      type: 'medical',
+                      procedure: '',
+                      quickReferenceSteps: [''],
+                    });
+                    await fetchData();
+                  } else {
+                    addNotification('error', result.message || 'Failed to save procedure');
+                  }
+                } catch (error: any) {
+                  addNotification('error', error.message || 'An error occurred');
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+              className="p-6 space-y-6"
+            >
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={newProcedure.title}
+                  onChange={(e) => setNewProcedure({ ...newProcedure, title: e.target.value })}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-orange-500"
+                  placeholder="Procedure Title"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Type *</label>
+                <select
+                  required
+                  value={newProcedure.type}
+                  onChange={(e) => setNewProcedure({ ...newProcedure, type: e.target.value as any })}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-orange-500"
+                >
+                  <option value="medical">Medical</option>
+                  <option value="fire">Fire</option>
+                  <option value="spill">Spill</option>
+                  <option value="collision">Collision</option>
+                  <option value="breakdown">Breakdown</option>
+                  <option value="violence">Violence</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Procedure Details *</label>
+                <textarea
+                  required
+                  rows={8}
+                  value={newProcedure.procedure}
+                  onChange={(e) => setNewProcedure({ ...newProcedure, procedure: e.target.value })}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-orange-500"
+                  placeholder="Enter detailed procedure steps..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Quick Reference Steps</label>
+                {newProcedure.quickReferenceSteps.map((step, idx) => (
+                  <div key={idx} className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={step}
+                      onChange={(e) => {
+                        const newSteps = [...newProcedure.quickReferenceSteps];
+                        newSteps[idx] = e.target.value;
+                        setNewProcedure({ ...newProcedure, quickReferenceSteps: newSteps });
+                      }}
+                      className="flex-1 border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-orange-500"
+                      placeholder={`Step ${idx + 1}`}
+                    />
+                    {newProcedure.quickReferenceSteps.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newSteps = newProcedure.quickReferenceSteps.filter((_, i) => i !== idx);
+                          setNewProcedure({ ...newProcedure, quickReferenceSteps: newSteps });
+                        }}
+                        className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                      >
+                        <FaTrash />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setNewProcedure({ ...newProcedure, quickReferenceSteps: [...newProcedure.quickReferenceSteps, ''] })}
+                  className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center gap-2"
+                >
+                  <FaPlus /> Add Step
+                </button>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowProcedureForm(false);
+                    setEditingProcedure(null);
+                  }}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300"
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FaSave /> {submitting ? 'Saving...' : (editingProcedure ? 'Update Procedure' : 'Save Procedure')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -659,9 +873,48 @@ const EmergencyProcedures: React.FC = () => {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="View Details">
-                      <FaEye />
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingFirstAid(log);
+                          setNewFirstAidLog({
+                            date: log.date,
+                            time: log.time,
+                            location: log.location,
+                            injuredPerson: log.injuredPerson,
+                            injuryDescription: log.injuryDescription,
+                            firstAidProvided: log.firstAidProvided,
+                            treatedBy: log.treatedBy,
+                            followUpRequired: log.followUpRequired,
+                            relatedIncident: log.relatedIncident || '',
+                          });
+                          setShowFirstAidForm(true);
+                        }}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (window.confirm('Are you sure you want to delete this first aid log?')) {
+                            try {
+                              const result = await deleteFirstAidLog(log._id);
+                              if (result.success) {
+                                addNotification('success', result.message || 'First aid log deleted successfully');
+                                await fetchData();
+                              } else {
+                                addNotification('error', result.message || 'Failed to delete first aid log');
+                              }
+                            } catch (error: any) {
+                              addNotification('error', error.message || 'An error occurred');
+                            }
+                          }
+                        }}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -669,6 +922,207 @@ const EmergencyProcedures: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* First Aid Log Form Modal */}
+      {showFirstAidForm && (
+        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black bg-opacity-50" onClick={() => setShowFirstAidForm(false)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold">
+                {editingFirstAid ? 'Edit First Aid Log' : 'New First Aid Log'}
+              </h2>
+              <button
+                onClick={() => setShowFirstAidForm(false)}
+                className="text-gray-500 hover:text-gray-800 transition-colors"
+              >
+                <FaTimes size={24} />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  setSubmitting(true);
+                  const data: any = {
+                    date: newFirstAidLog.date,
+                    time: newFirstAidLog.time,
+                    location: newFirstAidLog.location,
+                    injuredPerson: newFirstAidLog.injuredPerson,
+                    injuryDescription: newFirstAidLog.injuryDescription,
+                    firstAidProvided: newFirstAidLog.firstAidProvided,
+                    treatedBy: newFirstAidLog.treatedBy,
+                    followUpRequired: newFirstAidLog.followUpRequired,
+                  };
+
+                  if (newFirstAidLog.relatedIncident) {
+                    data.relatedIncident = newFirstAidLog.relatedIncident;
+                  }
+
+                  let result;
+                  if (editingFirstAid) {
+                    result = await updateFirstAidLog(editingFirstAid._id, data);
+                  } else {
+                    result = await createFirstAidLog(data);
+                  }
+
+                  if (result.success) {
+                    addNotification('success', result.message || (editingFirstAid ? 'First aid log updated successfully' : 'First aid log created successfully'));
+                    setShowFirstAidForm(false);
+                    setEditingFirstAid(null);
+                    setNewFirstAidLog({
+                      date: new Date().toISOString().split('T')[0],
+                      time: new Date().toTimeString().slice(0, 5),
+                      location: '',
+                      injuredPerson: '',
+                      injuryDescription: '',
+                      firstAidProvided: '',
+                      treatedBy: '',
+                      followUpRequired: false,
+                      relatedIncident: '',
+                    });
+                    await fetchData();
+                  } else {
+                    addNotification('error', result.message || 'Failed to save first aid log');
+                  }
+                } catch (error: any) {
+                  addNotification('error', error.message || 'An error occurred');
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+              className="p-6 space-y-6"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={newFirstAidLog.date}
+                    onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, date: e.target.value })}
+                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Time *</label>
+                  <input
+                    type="time"
+                    required
+                    value={newFirstAidLog.time}
+                    onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, time: e.target.value })}
+                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Location *</label>
+                <input
+                  type="text"
+                  required
+                  value={newFirstAidLog.location}
+                  onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, location: e.target.value })}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  placeholder="Location where incident occurred"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Injured Person *</label>
+                <input
+                  type="text"
+                  required
+                  value={newFirstAidLog.injuredPerson}
+                  onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, injuredPerson: e.target.value })}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  placeholder="Name of injured person"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Injury Description *</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={newFirstAidLog.injuryDescription}
+                  onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, injuryDescription: e.target.value })}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  placeholder="Describe the injury..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">First Aid Provided *</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={newFirstAidLog.firstAidProvided}
+                  onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, firstAidProvided: e.target.value })}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  placeholder="Describe the first aid treatment provided..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Treated By *</label>
+                <input
+                  type="text"
+                  required
+                  value={newFirstAidLog.treatedBy}
+                  onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, treatedBy: e.target.value })}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  placeholder="Name of person who provided first aid"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Related Incident (Optional)</label>
+                <input
+                  type="text"
+                  value={newFirstAidLog.relatedIncident}
+                  onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, relatedIncident: e.target.value })}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  placeholder="Incident number or reference"
+                />
+              </div>
+
+              <div>
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newFirstAidLog.followUpRequired}
+                    onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, followUpRequired: e.target.checked })}
+                    className="w-5 h-5 text-red-600 focus:ring-red-500 rounded"
+                  />
+                  <span className="font-medium text-gray-700">Follow-up Required</span>
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowFirstAidForm(false);
+                    setEditingFirstAid(null);
+                  }}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300"
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FaSave /> {submitting ? 'Saving...' : (editingFirstAid ? 'Update Log' : 'Save Log')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -746,6 +1200,17 @@ const EmergencyProcedures: React.FC = () => {
             <li>✅ Mobile-friendly access for field employees</li>
           </ul>
         </div>
+      </div>
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10001] space-y-2">
+        {notifications.map((notification) => (
+          <ToastNotificationComponent
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 // components/Header.tsx
 import { useState, useRef, useEffect } from "react";
 import { FaSignOutAlt, FaUser, FaCog, FaBars } from "react-icons/fa";
-import { Search, Clock, X } from "lucide-react";
+import { Search, Clock, X, LogOut, AlertCircle } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +14,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSidebar }) => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [recentSearches, setRecentSearches] = useState<string[]>([
         "Nowa Admin Dashboard - Themeforest",
@@ -62,9 +63,16 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
     }, [isSearchOpen]);
 
     const handleLogout = () => {
-        if (window.confirm('Are you sure you want to logout?')) {
-            logout();
-        }
+        setShowLogoutModal(true);
+    };
+
+    const confirmLogout = () => {
+        setShowLogoutModal(false);
+        logout();
+    };
+
+    const cancelLogout = () => {
+        setShowLogoutModal(false);
     };
 
     const handleProfileClick = () => {
@@ -219,6 +227,59 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                                 </p>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Logout Confirmation Modal */}
+            {showLogoutModal && (
+                <div 
+                    className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                    onClick={cancelLogout}
+                >
+                    <div 
+                        className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div className="p-6 border-b border-gray-200">
+                            <div className="flex items-center gap-4">
+                                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                    <LogOut className="text-red-600" size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-900">Confirm Logout</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Are you sure you want to logout?</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6">
+                            <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                <AlertCircle className="text-amber-600 flex-shrink-0 mt-0.5" size={20} />
+                                <p className="text-sm text-amber-800">
+                                    You'll need to sign in again to access your account after logging out.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+                            <button
+                                onClick={cancelLogout}
+                                className="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmLogout}
+                                className="px-6 py-2.5 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-red-500/30"
+                            >
+                                <LogOut size={18} />
+                                Logout
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

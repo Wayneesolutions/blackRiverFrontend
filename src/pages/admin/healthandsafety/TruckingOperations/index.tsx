@@ -16,8 +16,66 @@ import {
   FaCamera,
   FaThermometerHalf,
   FaExclamationTriangle,
+  FaTimes,
+  FaInfoCircle,
 } from '../../../../theme/icons';
 import type { LoadSecurementLog, ReeferFoodSafetyLog, WinterSafetyChecklist, FuelingSpillPreventionLog, DangerousGoodsLog } from '../../../../types';
+import {
+  getLoadSecurementLogs,
+  getReeferFoodSafetyLogs,
+  getWinterSafetyChecklists,
+  getFuelingSpillLogs,
+  getDangerousGoodsLogs,
+  createLoadSecurement,
+  createReeferFoodSafety,
+  createWinterSafety,
+  createFuelingSpill,
+  createDangerousGoods,
+} from '../../../../axios/api/healthSafety';
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'info' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaTimesCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />,
+    warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const TABS = {
   LOAD_SECUREMENT: 'load-securement',
@@ -32,270 +90,360 @@ const TruckingOperations: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Sample Data
+  // Data
   const [loadSecurementLogs, setLoadSecurementLogs] = useState<LoadSecurementLog[]>([]);
   const [reeferLogs, setReeferLogs] = useState<ReeferFoodSafetyLog[]>([]);
   const [winterChecklists, setWinterChecklists] = useState<WinterSafetyChecklist[]>([]);
   const [fuelingLogs, setFuelingLogs] = useState<FuelingSpillPreventionLog[]>([]);
   const [tdgLogs, setTdgLogs] = useState<DangerousGoodsLog[]>([]);
 
+  // Form states for each type
+  const [loadSecurementForm, setLoadSecurementForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().slice(0, 5),
+    driverId: '',
+    driverName: '',
+    vehicleNumber: '',
+    trailerNumber: '',
+    loadType: '',
+    loadWeight: '',
+    loadDescription: '',
+    destination: '',
+    securedBy: 'straps' as 'straps' | 'chains' | 'tarps' | 'combination' | 'bulkhead' | 'other',
+    numberOfStraps: '',
+    numberOfChains: '',
+    tarpUsed: false,
+    checklistComplete: false,
+    meetsStandards: false,
+    standardsReference: '',
+    deficienciesNoted: '',
+  });
+
+  const [reeferForm, setReeferForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().slice(0, 5),
+    driverId: '',
+    driverName: '',
+    vehicleNumber: '',
+    trailerNumber: '',
+    temperatureRecorded: '',
+    temperatureUnit: 'celsius' as 'celsius' | 'fahrenheit',
+    targetTemperature: '',
+    withinRange: false,
+    interiorCleanliness: 'excellent' as 'excellent' | 'good' | 'fair' | 'poor',
+    odorDetected: false,
+    odorDescription: '',
+    visibleContamination: false,
+    contaminationDetails: '',
+    lastSanitized: '',
+    sanitationMethod: '',
+    sanitationVerified: false,
+    deficienciesFound: false,
+    deficiencyList: [] as string[],
+    correctiveActionTaken: '',
+  });
+
+  const [winterForm, setWinterForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().slice(0, 5),
+    location: '',
+    performedBy: '',
+    performedById: '',
+    vehicleNumber: '',
+    areaInspected: '',
+    snowIceRemoved: false,
+    walkwaysCleared: false,
+    saltApplied: false,
+    tiresInspected: false,
+    tireChainCondition: 'good' as 'good' | 'fair' | 'replacement-needed' | 'n/a',
+    heatingSystemFunctional: false,
+    defrostFunctional: false,
+    wipersCondition: 'good' as 'good' | 'fair' | 'replacement-needed',
+    antifreezeLevels: 'adequate' as 'adequate' | 'low' | 'empty',
+    emergencyKitPresent: false,
+    hazardsIdentified: false,
+    hazardDetails: '',
+    correctiveAction: '',
+    temperature: '',
+    weatherConditions: '',
+  });
+
+  const [fuelingForm, setFuelingForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().slice(0, 5),
+    location: '',
+    performedBy: '',
+    performedById: '',
+    vehicleNumber: '',
+    vehicleParked: false,
+    engineOff: false,
+    parkingBrakeSet: false,
+    spillKitPresent: false,
+    areaInspected: false,
+    fuelType: 'diesel' as 'diesel' | 'gasoline' | 'DEF' | 'propane' | 'natural-gas',
+    quantityDispensed: '',
+    nozzleSecured: false,
+    overflowPrevented: false,
+    spillOccurred: false,
+    spillDetails: {
+      quantity: '',
+      causeOfSpill: '',
+      responseActions: '',
+      cleanupMethod: '',
+      disposalMethod: '',
+      reportFiled: false,
+      incidentNumber: '',
+    },
+    capsSecured: false,
+    noLeaksDetected: false,
+    areaClean: false,
+  });
+
+  const [tdgForm, setTdgForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().slice(0, 5),
+    driverId: '',
+    driverName: '',
+    vehicleNumber: '',
+    trailerNumber: '',
+    shippingDocument: '',
+    unNumber: '',
+    properShippingName: '',
+    class: '',
+    packingGroup: '',
+    quantity: '',
+    placardingRequired: false,
+    placardingComplete: false,
+    placardsInspected: false,
+    emergencyResponseInfo: false,
+    tdgCertificateCurrent: false,
+    securityPlan: false,
+    incidentOccurred: false,
+    incidentDetails: '',
+    segregationCorrect: false,
+    packagingIntact: false,
+    labelsLegible: false,
+  });
+
+  const addNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch all data in parallel
+      const [loadSecurementRes, reeferRes, winterRes, fuelingRes, tdgRes] = await Promise.all([
+        getLoadSecurementLogs({ search: searchTerm || undefined, status: filterStatus !== 'all' ? filterStatus : undefined }),
+        getReeferFoodSafetyLogs({ search: searchTerm || undefined, status: filterStatus !== 'all' ? filterStatus : undefined }),
+        getWinterSafetyChecklists({ search: searchTerm || undefined, status: filterStatus !== 'all' ? filterStatus : undefined }),
+        getFuelingSpillLogs({ search: searchTerm || undefined, status: filterStatus !== 'all' ? filterStatus : undefined }),
+        getDangerousGoodsLogs({ search: searchTerm || undefined, status: filterStatus !== 'all' ? filterStatus : undefined }),
+      ]);
+
+      if (loadSecurementRes.success) {
+        setLoadSecurementLogs(loadSecurementRes.data || []);
+      } else {
+        addNotification('error', loadSecurementRes.message || 'Failed to load load securement logs');
+      }
+
+      if (reeferRes.success) {
+        setReeferLogs(reeferRes.data || []);
+      } else {
+        addNotification('error', reeferRes.message || 'Failed to load reefer food safety logs');
+      }
+
+      if (winterRes.success) {
+        setWinterChecklists(winterRes.data || []);
+      } else {
+        addNotification('error', winterRes.message || 'Failed to load winter safety checklists');
+      }
+
+      if (fuelingRes.success) {
+        setFuelingLogs(fuelingRes.data || []);
+      } else {
+        addNotification('error', fuelingRes.message || 'Failed to load fueling spill logs');
+      }
+
+      if (tdgRes.success) {
+        setTdgLogs(tdgRes.data || []);
+      } else {
+        addNotification('error', tdgRes.message || 'Failed to load dangerous goods logs');
+      }
+
+    } catch (error: any) {
+      console.error('Error fetching trucking operations data:', error);
+      addNotification('error', error?.response?.data?.message || 'Failed to load trucking operations data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Mock data for Load Securement
-    setLoadSecurementLogs([
-      {
-        _id: '1',
-        logNumber: 'LS-2025-001',
-        date: '2025-12-10',
-        time: '08:30',
-        driverId: 'D001',
-        driverName: 'John Smith',
-        vehicleNumber: 'TRK-101',
-        trailerNumber: 'TRL-201',
-        loadType: 'Palletized Freight',
-        loadWeight: 18000,
-        loadDescription: '20 pallets of electronics',
-        destination: 'Vancouver, BC',
-        securedBy: 'straps',
-        numberOfStraps: 8,
-        checklistComplete: true,
-        meetsStandards: true,
-        standardsReference: 'FMCSA/CVSA',
-        driverSignature: 'signed',
-        photoEvidence: [
-          { fileUrl: '/photos/ls1.jpg', fileName: 'Load Front View', fileType: 'image', uploadedAt: '2025-12-10', uploadedBy: 'John Smith' },
-        ],
-      },
-    ]);
+    fetchData();
+  }, [searchTerm, filterStatus]);
 
-    // Mock data for Reefer Safety
-    setReeferLogs([
-      {
-        _id: '1',
-        logNumber: 'RF-2025-001',
-        date: '2025-12-10',
-        time: '09:15',
-        driverId: 'D002',
-        driverName: 'Jane Doe',
-        vehicleNumber: 'TRK-102',
-        trailerNumber: 'REEFER-301',
-        temperatureRecorded: -18,
-        temperatureUnit: 'celsius',
-        targetTemperature: -18,
-        withinRange: true,
-        interiorCleanliness: 'excellent',
-        odorDetected: false,
-        visibleContamination: false,
-        lastSanitized: '2025-12-08',
-        sanitationMethod: 'Chemical wash + UV treatment',
-        sanitationVerified: true,
-        deficienciesFound: false,
-        driverSignature: 'signed',
-      },
-    ]);
+  const handleCreateEntry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
 
-    // Mock data for Winter Safety
-    setWinterChecklists([
-      {
-        _id: '1',
-        checklistNumber: 'WS-2025-001',
-        date: '2025-12-10',
-        time: '08:00',
-        location: 'Yard - Parking Lot A',
-        performedBy: 'Safety Manager',
-        performedById: 'SM001',
-        vehicleNumber: 'TRK-101',
-        snowIceRemoved: true,
-        walkwaysCleared: true,
-        saltApplied: true,
-        tiresInspected: true,
-        tireChainCondition: 'good',
-        heatingSystemFunctional: true,
-        defrostFunctional: true,
-        wipersCondition: 'good',
-        antifreezeLevels: 'adequate',
-        emergencyKitPresent: true,
-        hazardsIdentified: false,
-        temperature: -5,
-        weatherConditions: 'Clear, cold',
-        signature: 'signed',
-      },
-      {
-        _id: '2',
-        checklistNumber: 'WS-2025-002',
-        date: '2025-12-08',
-        time: '07:30',
-        location: 'Shop - Vehicle Bay 3',
-        performedBy: 'Yard Supervisor',
-        performedById: 'YS001',
-        vehicleNumber: 'TRK-205',
-        snowIceRemoved: true,
-        walkwaysCleared: true,
-        saltApplied: false,
-        tiresInspected: true,
-        tireChainCondition: 'replacement-needed',
-        heatingSystemFunctional: true,
-        defrostFunctional: false,
-        wipersCondition: 'fair',
-        antifreezeLevels: 'low',
-        emergencyKitPresent: true,
-        hazardsIdentified: true,
-        hazardDetails: 'Defrost not working, antifreeze low, tire chains need replacement',
-        correctiveAction: 'Schedule maintenance for defrost system, top up antifreeze, order new tire chains',
-        temperature: -8,
-        weatherConditions: 'Snowing, icy',
-        signature: 'signed',
-      },
-    ]);
+    try {
+      let result;
+      const formData = new FormData();
 
-    // Mock data for Fueling/Spill Prevention
-    setFuelingLogs([
-      {
-        _id: '1',
-        logNumber: 'FP-2025-001',
-        date: '2025-12-10',
-        time: '10:00',
-        location: 'Yard Fuel Station',
-        performedBy: 'John Smith',
-        performedById: 'D001',
-        vehicleNumber: 'TRK-101',
-        vehicleParked: true,
-        engineOff: true,
-        parkingBrakeSet: true,
-        spillKitPresent: true,
-        areaInspected: true,
-        fuelType: 'diesel',
-        quantityDispensed: 200,
-        nozzleSecured: true,
-        overflowPrevented: true,
-        spillOccurred: false,
-        capsSecured: true,
-        noLeaksDetected: true,
-        areaClean: true,
-        signature: 'signed',
-      },
-      {
-        _id: '2',
-        logNumber: 'FP-2025-002',
-        date: '2025-12-08',
-        time: '14:30',
-        location: 'Yard Fuel Station - Pump 2',
-        performedBy: 'Jane Driver',
-        performedById: 'D002',
-        vehicleNumber: 'TRK-102',
-        vehicleParked: true,
-        engineOff: true,
-        parkingBrakeSet: true,
-        spillKitPresent: true,
-        areaInspected: true,
-        fuelType: 'diesel',
-        quantityDispensed: 150,
-        nozzleSecured: true,
-        overflowPrevented: true,
-        spillOccurred: true,
-        spillDetails: {
-          quantity: 5,
-          causeOfSpill: 'Nozzle drip after removal',
-          responseActions: 'Immediately contained with spill kit, area cordoned off',
-          cleanupMethod: 'Absorbent pads and spill kit materials',
-          disposalMethod: 'Proper hazardous waste disposal',
-          reportFiled: true,
-          incidentNumber: 'INC-2025-045',
-        },
-        capsSecured: true,
-        noLeaksDetected: true,
-        areaClean: true,
-        signature: 'signed',
-      },
-    ]);
+      switch (activeTab) {
+        case TABS.LOAD_SECUREMENT:
+          // Convert form data to proper format
+          const loadSecurementData: any = {
+            ...loadSecurementForm,
+            loadWeight: loadSecurementForm.loadWeight ? parseFloat(loadSecurementForm.loadWeight) : undefined,
+            numberOfStraps: loadSecurementForm.numberOfStraps ? parseInt(loadSecurementForm.numberOfStraps) : undefined,
+            numberOfChains: loadSecurementForm.numberOfChains ? parseInt(loadSecurementForm.numberOfChains) : undefined,
+          };
+          // Required fields that should always be included
+          const requiredLoadSecurementFields = ['date', 'time', 'driverName', 'vehicleNumber', 'loadType', 'securedBy'];
+          Object.keys(loadSecurementData).forEach(key => {
+            const value = loadSecurementData[key];
+            // Include required fields even if empty, or include non-empty optional fields
+            if (requiredLoadSecurementFields.includes(key) || (value !== null && value !== undefined && value !== '')) {
+              if (value !== null && value !== undefined) {
+                formData.append(key, String(value));
+              }
+            }
+          });
+          result = await createLoadSecurement(formData);
+          break;
 
-    // Mock data for TDG/Dangerous Goods
-    setTdgLogs([
-      {
-        _id: '1',
-        logNumber: 'TDG-2025-001',
-        date: '2025-12-10',
-        time: '11:00',
-        driverId: 'D003',
-        driverName: 'Bob Wilson',
-        vehicleNumber: 'TRK-103',
-        trailerNumber: 'TRL-203',
-        shippingDocument: 'SD-2025-12345',
-        unNumber: 'UN1203',
-        properShippingName: 'Gasoline',
-        class: '3',
-        packingGroup: 'II',
-        quantity: '500 L',
-        placardingRequired: true,
-        placardingComplete: true,
-        placardsInspected: true,
-        emergencyResponseInfo: true,
-        tdgCertificateCurrent: true,
-        securityPlan: true,
-        incidentOccurred: false,
-        segregationCorrect: true,
-        packagingIntact: true,
-        labelsLegible: true,
-        driverSignature: 'signed',
-      },
-      {
-        _id: '2',
-        logNumber: 'TDG-2025-002',
-        date: '2025-12-05',
-        time: '09:15',
-        driverId: 'D004',
-        driverName: 'Alice Martinez',
-        vehicleNumber: 'TRK-104',
-        trailerNumber: 'TRL-204',
-        shippingDocument: 'SD-2025-12346',
-        unNumber: 'UN1993',
-        properShippingName: 'Flammable Liquid, N.O.S.',
-        class: '3',
-        packingGroup: 'III',
-        quantity: '1000 L',
-        placardingRequired: true,
-        placardingComplete: true,
-        placardsInspected: true,
-        emergencyResponseInfo: true,
-        tdgCertificateCurrent: true,
-        securityPlan: true,
-        incidentOccurred: false,
-        segregationCorrect: true,
-        packagingIntact: true,
-        labelsLegible: true,
-        driverSignature: 'signed',
-      },
-      {
-        _id: '3',
-        logNumber: 'TDG-2025-003',
-        date: '2025-12-01',
-        time: '13:20',
-        driverId: 'D005',
-        driverName: 'Charlie Brown',
-        vehicleNumber: 'TRK-105',
-        trailerNumber: 'TRL-205',
-        shippingDocument: 'SD-2025-12347',
-        unNumber: 'UN1075',
-        properShippingName: 'Liquefied Petroleum Gas',
-        class: '2.1',
-        packingGroup: 'N/A',
-        quantity: '2000 kg',
-        placardingRequired: true,
-        placardingComplete: true,
-        placardsInspected: true,
-        emergencyResponseInfo: true,
-        tdgCertificateCurrent: false,
-        securityPlan: true,
-        incidentOccurred: false,
-        segregationCorrect: true,
-        packagingIntact: true,
-        labelsLegible: true,
-        driverSignature: 'signed',
-      },
-    ]);
+        case TABS.REEFER_SAFETY:
+          const reeferData: any = {
+            ...reeferForm,
+            temperatureRecorded: reeferForm.temperatureRecorded ? parseFloat(reeferForm.temperatureRecorded) : undefined,
+            targetTemperature: reeferForm.targetTemperature ? parseFloat(reeferForm.targetTemperature) : undefined,
+            lastSanitized: reeferForm.lastSanitized || undefined,
+            deficiencyList: reeferForm.deficiencyList.length > 0 ? reeferForm.deficiencyList : undefined,
+          };
+          // Required fields that should always be included
+          const requiredReeferFields = ['date', 'time', 'driverName', 'vehicleNumber', 'trailerNumber', 'temperatureRecorded', 'targetTemperature', 'interiorCleanliness'];
+          const reeferFormData = new FormData();
+          Object.keys(reeferData).forEach(key => {
+            const value = reeferData[key];
+            // Include required fields even if empty, or include non-empty optional fields
+            if (requiredReeferFields.includes(key) || (value !== null && value !== undefined && value !== '')) {
+              if (Array.isArray(value)) {
+                reeferFormData.append(key, JSON.stringify(value));
+              } else if (value !== null && value !== undefined) {
+                reeferFormData.append(key, String(value));
+              }
+            }
+          });
+          result = await createReeferFoodSafety(reeferFormData);
+          break;
 
-    setLoading(false);
-  }, []);
+        case TABS.WINTER_SAFETY:
+          const winterData: any = {
+            ...winterForm,
+            temperature: winterForm.temperature ? parseFloat(winterForm.temperature) : undefined,
+            time: winterForm.time || undefined,
+            performedById: winterForm.performedById || undefined,
+            areaInspected: winterForm.areaInspected || undefined,
+            hazardDetails: winterForm.hazardsIdentified ? winterForm.hazardDetails : undefined,
+            correctiveAction: winterForm.hazardsIdentified ? winterForm.correctiveAction : undefined,
+          };
+          // Required fields that should always be included
+          const requiredWinterFields = ['date', 'location', 'performedBy'];
+          // Remove undefined and empty values, but keep required fields
+          Object.keys(winterData).forEach(key => {
+            if (!requiredWinterFields.includes(key) && (winterData[key] === undefined || winterData[key] === '')) {
+              delete winterData[key];
+            }
+          });
+          result = await createWinterSafety(winterData);
+          break;
+
+        case TABS.FUELING_SPILL:
+          const fuelingData: any = {
+            ...fuelingForm,
+            quantityDispensed: fuelingForm.quantityDispensed ? parseFloat(fuelingForm.quantityDispensed) : undefined,
+            spillDetails: fuelingForm.spillOccurred ? fuelingForm.spillDetails : undefined,
+            performedById: fuelingForm.performedById || undefined,
+            vehicleNumber: fuelingForm.vehicleNumber || undefined,
+          };
+          // Required fields that should always be included
+          const requiredFuelingFields = ['date', 'time', 'location', 'performedBy', 'fuelType'];
+          // Remove undefined and empty values, but keep required fields
+          Object.keys(fuelingData).forEach(key => {
+            if (!requiredFuelingFields.includes(key) && (fuelingData[key] === undefined || (typeof fuelingData[key] === 'object' && fuelingData[key] !== null && Object.keys(fuelingData[key]).length === 0))) {
+              delete fuelingData[key];
+            }
+          });
+          result = await createFuelingSpill(fuelingData);
+          break;
+
+        case TABS.TDG_LOGS:
+          const tdgData: any = { ...tdgForm };
+          // Required fields that should always be included
+          const requiredTdgFields = ['date', 'time', 'driverName', 'vehicleNumber', 'shippingDocument', 'unNumber', 'properShippingName', 'class', 'quantity'];
+          Object.keys(tdgData).forEach(key => {
+            const value = tdgData[key];
+            // Include required fields even if empty, or include non-empty optional fields
+            if (requiredTdgFields.includes(key) || (value !== null && value !== undefined && value !== '')) {
+              if (value !== null && value !== undefined) {
+                formData.append(key, String(value));
+              }
+            }
+          });
+          result = await createDangerousGoods(formData);
+          break;
+
+        default:
+          throw new Error('Invalid tab');
+      }
+
+      if (result.success) {
+        addNotification('success', result.message || 'Log entry created successfully');
+        setShowModal(false);
+        fetchData(); // Refresh data
+        // Reset forms
+        setLoadSecurementForm({
+          date: new Date().toISOString().split('T')[0],
+          time: new Date().toTimeString().slice(0, 5),
+          driverId: '',
+          driverName: '',
+          vehicleNumber: '',
+          trailerNumber: '',
+          loadType: '',
+          loadWeight: '',
+          loadDescription: '',
+          destination: '',
+          securedBy: 'straps',
+          numberOfStraps: '',
+          numberOfChains: '',
+          tarpUsed: false,
+          checklistComplete: false,
+          meetsStandards: false,
+          standardsReference: '',
+          deficienciesNoted: '',
+        });
+      } else {
+        addNotification('error', result.message || 'Failed to create log entry');
+      }
+    } catch (error: any) {
+      console.error('Error creating log entry:', error);
+      addNotification('error', error?.response?.data?.message || 'Failed to create log entry');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // === RENDER FUNCTIONS FOR EACH TAB ===
 
@@ -824,6 +972,17 @@ const TruckingOperations: React.FC = () => {
 
   return (
     <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background.secondary }}>
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10000] space-y-2">
+        {notifications.map(notification => (
+          <ToastNotificationComponent
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
@@ -836,6 +995,7 @@ const TruckingOperations: React.FC = () => {
             </p>
           </div>
           <button
+            onClick={() => setShowModal(true)}
             className="px-6 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all flex items-center space-x-2"
             style={{ background: COLORS.gradients.trucking }}
           >
@@ -911,8 +1071,449 @@ const TruckingOperations: React.FC = () => {
         </div>
 
         {/* Content Area */}
-        {renderContent()}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-gray-600 text-lg">Loading trucking operations data...</div>
+          </div>
+        ) : (
+          renderContent()
+        )}
       </div>
+
+      {/* Create Log Entry Modal */}
+      {showModal && (
+        <div 
+          className="fixed inset-0 flex justify-center items-center z-[10001] p-4 bg-black bg-opacity-50" 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowModal(false);
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold">
+                New {activeTab === TABS.LOAD_SECUREMENT ? 'Load Securement' :
+                     activeTab === TABS.REEFER_SAFETY ? 'Reefer Food Safety' :
+                     activeTab === TABS.WINTER_SAFETY ? 'Winter Safety' :
+                     activeTab === TABS.FUELING_SPILL ? 'Fueling & Spill' :
+                     'Dangerous Goods'} Log Entry
+              </h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-500 hover:text-gray-800 transition-colors"
+              >
+                <FaTimes size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateEntry} className="p-6 space-y-6">
+              {activeTab === TABS.LOAD_SECUREMENT && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <input
+                      type="date"
+                      required
+                      value={loadSecurementForm.date}
+                      onChange={(e) => setLoadSecurementForm({...loadSecurementForm, date: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                    <input
+                      type="time"
+                      required
+                      value={loadSecurementForm.time}
+                      onChange={(e) => setLoadSecurementForm({...loadSecurementForm, time: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={loadSecurementForm.driverName}
+                      onChange={(e) => setLoadSecurementForm({...loadSecurementForm, driverName: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number *</label>
+                    <input
+                      type="text"
+                      required
+                      value={loadSecurementForm.vehicleNumber}
+                      onChange={(e) => setLoadSecurementForm({...loadSecurementForm, vehicleNumber: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Load Type *</label>
+                    <input
+                      type="text"
+                      required
+                      value={loadSecurementForm.loadType}
+                      onChange={(e) => setLoadSecurementForm({...loadSecurementForm, loadType: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Secured By *</label>
+                    <select
+                      required
+                      value={loadSecurementForm.securedBy}
+                      onChange={(e) => setLoadSecurementForm({...loadSecurementForm, securedBy: e.target.value as any})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="straps">Straps</option>
+                      <option value="chains">Chains</option>
+                      <option value="tarps">Tarps</option>
+                      <option value="combination">Combination</option>
+                      <option value="bulkhead">Bulkhead</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Meets Standards</label>
+                    <input
+                      type="checkbox"
+                      checked={loadSecurementForm.meetsStandards}
+                      onChange={(e) => setLoadSecurementForm({...loadSecurementForm, meetsStandards: e.target.checked})}
+                      className="w-5 h-5"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === TABS.REEFER_SAFETY && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <input
+                      type="date"
+                      required
+                      value={reeferForm.date}
+                      onChange={(e) => setReeferForm({...reeferForm, date: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                    <input
+                      type="time"
+                      required
+                      value={reeferForm.time}
+                      onChange={(e) => setReeferForm({...reeferForm, time: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={reeferForm.driverName}
+                      onChange={(e) => setReeferForm({...reeferForm, driverName: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number *</label>
+                    <input
+                      type="text"
+                      required
+                      value={reeferForm.vehicleNumber}
+                      onChange={(e) => setReeferForm({...reeferForm, vehicleNumber: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Trailer Number *</label>
+                    <input
+                      type="text"
+                      required
+                      value={reeferForm.trailerNumber}
+                      onChange={(e) => setReeferForm({...reeferForm, trailerNumber: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Temperature Recorded *</label>
+                    <input
+                      type="number"
+                      required
+                      value={reeferForm.temperatureRecorded}
+                      onChange={(e) => setReeferForm({...reeferForm, temperatureRecorded: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Target Temperature *</label>
+                    <input
+                      type="number"
+                      required
+                      value={reeferForm.targetTemperature}
+                      onChange={(e) => setReeferForm({...reeferForm, targetTemperature: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Interior Cleanliness *</label>
+                    <select
+                      required
+                      value={reeferForm.interiorCleanliness}
+                      onChange={(e) => setReeferForm({...reeferForm, interiorCleanliness: e.target.value as any})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="excellent">Excellent</option>
+                      <option value="good">Good</option>
+                      <option value="fair">Fair</option>
+                      <option value="poor">Poor</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === TABS.WINTER_SAFETY && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <input
+                      type="date"
+                      required
+                      value={winterForm.date}
+                      onChange={(e) => setWinterForm({...winterForm, date: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                    <input
+                      type="text"
+                      required
+                      value={winterForm.location}
+                      onChange={(e) => setWinterForm({...winterForm, location: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Performed By *</label>
+                    <input
+                      type="text"
+                      required
+                      value={winterForm.performedBy}
+                      onChange={(e) => setWinterForm({...winterForm, performedBy: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <div className="space-y-2">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={winterForm.snowIceRemoved}
+                          onChange={(e) => setWinterForm({...winterForm, snowIceRemoved: e.target.checked})}
+                          className="mr-2"
+                        />
+                        Snow/Ice Removed
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={winterForm.walkwaysCleared}
+                          onChange={(e) => setWinterForm({...winterForm, walkwaysCleared: e.target.checked})}
+                          className="mr-2"
+                        />
+                        Walkways Cleared
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={winterForm.heatingSystemFunctional}
+                          onChange={(e) => setWinterForm({...winterForm, heatingSystemFunctional: e.target.checked})}
+                          className="mr-2"
+                        />
+                        Heating System Functional
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === TABS.FUELING_SPILL && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <input
+                      type="date"
+                      required
+                      value={fuelingForm.date}
+                      onChange={(e) => setFuelingForm({...fuelingForm, date: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                    <input
+                      type="text"
+                      required
+                      value={fuelingForm.location}
+                      onChange={(e) => setFuelingForm({...fuelingForm, location: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Performed By *</label>
+                    <input
+                      type="text"
+                      required
+                      value={fuelingForm.performedBy}
+                      onChange={(e) => setFuelingForm({...fuelingForm, performedBy: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Type *</label>
+                    <select
+                      required
+                      value={fuelingForm.fuelType}
+                      onChange={(e) => setFuelingForm({...fuelingForm, fuelType: e.target.value as any})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="diesel">Diesel</option>
+                      <option value="gasoline">Gasoline</option>
+                      <option value="DEF">DEF</option>
+                      <option value="propane">Propane</option>
+                      <option value="natural-gas">Natural Gas</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <div className="space-y-2">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={fuelingForm.vehicleParked}
+                          onChange={(e) => setFuelingForm({...fuelingForm, vehicleParked: e.target.checked})}
+                          className="mr-2"
+                        />
+                        Vehicle Parked
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={fuelingForm.engineOff}
+                          onChange={(e) => setFuelingForm({...fuelingForm, engineOff: e.target.checked})}
+                          className="mr-2"
+                        />
+                        Engine Off
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={fuelingForm.spillOccurred}
+                          onChange={(e) => setFuelingForm({...fuelingForm, spillOccurred: e.target.checked})}
+                          className="mr-2"
+                        />
+                        Spill Occurred
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === TABS.TDG_LOGS && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <input
+                      type="date"
+                      required
+                      value={tdgForm.date}
+                      onChange={(e) => setTdgForm({...tdgForm, date: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={tdgForm.driverName}
+                      onChange={(e) => setTdgForm({...tdgForm, driverName: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">UN Number *</label>
+                    <input
+                      type="text"
+                      required
+                      value={tdgForm.unNumber}
+                      onChange={(e) => setTdgForm({...tdgForm, unNumber: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Proper Shipping Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={tdgForm.properShippingName}
+                      onChange={(e) => setTdgForm({...tdgForm, properShippingName: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Class *</label>
+                    <input
+                      type="text"
+                      required
+                      value={tdgForm.class}
+                      onChange={(e) => setTdgForm({...tdgForm, class: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
+                    <input
+                      type="text"
+                      required
+                      value={tdgForm.quantity}
+                      onChange={(e) => setTdgForm({...tdgForm, quantity: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-4 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: COLORS.modules.trucking }}
+                >
+                  {submitting ? 'Creating...' : 'Create Log Entry'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

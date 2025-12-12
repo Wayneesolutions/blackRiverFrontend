@@ -38,6 +38,50 @@ interface UserProfile {
   details?: any;
 }
 
+interface ToastNotification {
+  id: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notifications, removeNotification }: { notifications: ToastNotification[]; removeNotification: (id: string) => void }) => {
+  const icons = {
+    success: <CheckCircle className="text-green-500" size={24} />,
+    error: <XCircle className="text-red-500" size={24} />,
+    info: <User className="text-blue-500" size={24} />,
+    warning: <XCircle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  return (
+    <div className="fixed top-4 right-4 z-[10000] space-y-2">
+      {notifications.map((notification) => (
+        <div
+          key={notification.id}
+          className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}
+        >
+          <div className="flex-shrink-0 mt-0.5">
+            {icons[notification.type]}
+          </div>
+          <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+          <button
+            onClick={() => removeNotification(notification.id)}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -53,6 +97,21 @@ const ProfilePage = () => {
     newPassword: '',
     confirmPassword: ''
   });
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+
+  const addNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    setNotifications((prev) => [...prev, { id, type, message }]);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      removeNotification(id);
+    }, 5000);
+  };
+
+  const removeNotification = (id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
   const focusHandlers = getFocusStyles();
   const sharedInputProps = {
     ...focusHandlers,
@@ -83,11 +142,11 @@ const ProfilePage = () => {
         setEditForm(response.data);
       } else {
         console.error('Failed to fetch profile:', response);
-        message.error('Failed to fetch profile');
+        addNotification('error', response?.message || 'Failed to fetch profile');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile:', error);
-      message.error('Error fetching profile');
+      addNotification('error', error?.response?.data?.message || 'Error fetching profile');
     } finally {
       setFetchLoading(false);
     }
@@ -113,19 +172,30 @@ const ProfilePage = () => {
   };
 
   const handleSaveProfile = async () => {
+    // Validation
+    if (!editForm.name || !editForm.name.trim()) {
+      addNotification('error', 'Name is required');
+      return;
+    }
+
+    if (editForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) {
+      addNotification('error', 'Please enter a valid email address');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await updateCurrentUserProfile(editForm);
       if (response && response.success) {
         setProfile(response.data);
         setIsEditing(false);
-        message.success('Profile updated successfully!');
+        addNotification('success', 'Profile updated successfully!');
       } else {
-        message.error(response?.message || 'Failed to update profile');
+        addNotification('error', response?.message || 'Failed to update profile');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error);
-      message.error('Error updating profile');
+      addNotification('error', error?.response?.data?.message || 'Error updating profile');
     } finally {
       setLoading(false);
     }
@@ -134,17 +204,17 @@ const ProfilePage = () => {
   const handleChangePassword = async () => {
     // Validation
     if (!passwordForm.newPassword || !passwordForm.confirmPassword) {
-      message.error('All password fields are required');
+      addNotification('error', 'All password fields are required');
       return;
     }
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      message.error('New password and confirm password do not match');
+      addNotification('error', 'New password and confirm password do not match');
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      message.error('Password must be at least 6 characters long');
+      addNotification('error', 'Password must be at least 6 characters long');
       return;
     }
 
@@ -155,18 +225,18 @@ const ProfilePage = () => {
       });
 
       if (response && response.success) {
-        message.success('Password changed successfully!');
+        addNotification('success', 'Password changed successfully!');
         setShowPasswordSection(false);
         setPasswordForm({
           newPassword: '',
           confirmPassword: ''
         });
       } else {
-        message.error(response?.message || 'Failed to change password');
+        addNotification('error', response?.message || 'Failed to change password');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error changing password:', error);
-      message.error('Error changing password');
+      addNotification('error', error?.response?.data?.message || 'Error changing password');
     } finally {
       setLoading(false);
     }
@@ -252,10 +322,21 @@ const ProfilePage = () => {
           {/* Email */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
-            <div className="px-4 py-3 bg-gray-50 rounded-lg">
-              <p className="text-gray-900 font-medium">{profile.email || 'Not set'}</p>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+            {isEditing ? (
+              <input
+                type="email"
+                name="email"
+                value={editForm.email || ''}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all"
+                placeholder="Enter your email address"
+                {...sharedInputProps}
+              />
+            ) : (
+              <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                <p className="text-gray-900 font-medium">{profile.email || 'Not set'}</p>
+              </div>
+            )}
           </div>
 
           {/* Phone */}
@@ -548,6 +629,12 @@ const ProfilePage = () => {
         )}
       </div>
       </div>
+
+      {/* Toast Notifications */}
+      <ToastNotificationComponent
+        notifications={notifications}
+        removeNotification={removeNotification}
+      />
     </div>
   );
 };

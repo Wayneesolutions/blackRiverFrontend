@@ -564,7 +564,64 @@ const PayrollManagement = () => {
 
             const response = await updatePayroll(selectedPayroll._id, payload);
             
-            if (response?.success) {
+            // Check if editing from bulk AI modal (has _bulkIndex property)
+            const isBulkEdit = selectedPayroll && (selectedPayroll as any)._bulkIndex !== undefined;
+            
+            if (isBulkEdit) {
+                // Update bulk AI payroll list directly (no API call)
+                const bulkIndex = (selectedPayroll as any)._bulkIndex;
+                setBulkAIPayrolls(prev => {
+                    const updated = [...prev];
+                    updated[bulkIndex] = {
+                        ...updated[bulkIndex],
+                        baseSalary: parseFloat(formData.baseSalary),
+                        bonus: parseFloat(formData.bonus || '0'),
+                        deductions: parseFloat(formData.deductions || '0'),
+                        country: formData.country || 'USA',
+                        federalIncomeTaxCA: parseFloat(formData.federalIncomeTaxCA || '0'),
+                        provincialIncomeTaxCA: parseFloat(formData.provincialIncomeTaxCA || '0'),
+                        cpp: parseFloat(formData.cpp || '0'),
+                        ei: parseFloat(formData.ei || '0'),
+                        provincialHealthTaxCA: parseFloat(formData.provincialHealthTaxCA || '0'),
+                        federalIncomeTaxUS: parseFloat(formData.federalIncomeTaxUS || '0'),
+                        stateIncomeTaxUS: parseFloat(formData.stateIncomeTaxUS || '0'),
+                        socialSecurityTax: parseFloat(formData.socialSecurityTax || '0'),
+                        medicareTax: parseFloat(formData.medicareTax || '0'),
+                        stateDisabilityInsurance: parseFloat(formData.stateDisabilityInsurance || '0'),
+                        localTax: parseFloat(formData.localTax || '0')
+                    };
+                    
+                    // Recalculate total
+                    const base = updated[bulkIndex].baseSalary || 0;
+                    const bonus = updated[bulkIndex].bonus || 0;
+                    const deductions = updated[bulkIndex].deductions || 0;
+                    const country = updated[bulkIndex].country || 'USA';
+                    let totalTaxes = 0;
+                    if (country === 'Canada') {
+                        totalTaxes = (updated[bulkIndex].federalIncomeTaxCA || 0) + 
+                                   (updated[bulkIndex].provincialIncomeTaxCA || 0) + 
+                                   (updated[bulkIndex].cpp || 0) + 
+                                   (updated[bulkIndex].ei || 0) + 
+                                   (updated[bulkIndex].provincialHealthTaxCA || 0);
+                    } else {
+                        totalTaxes = (updated[bulkIndex].federalIncomeTaxUS || 0) + 
+                                   (updated[bulkIndex].stateIncomeTaxUS || 0) + 
+                                   (updated[bulkIndex].socialSecurityTax || 0) + 
+                                   (updated[bulkIndex].medicareTax || 0) + 
+                                   (updated[bulkIndex].stateDisabilityInsurance || 0) + 
+                                   (updated[bulkIndex].localTax || 0);
+                    }
+                    updated[bulkIndex].totalSalary = Math.round((base + bonus - deductions - totalTaxes) * 100) / 100;
+                    
+                    return updated;
+                });
+                
+                showNotification('success', 'Taxes updated successfully!');
+                setShowEditModal(false);
+                resetForm();
+                setSelectedPayroll(null);
+            } else if (response?.success) {
+                // Regular update for existing payroll
                 showNotification('success', response.message || 'Payroll updated successfully!');
                 setShowEditModal(false);
                 resetForm();
@@ -781,7 +838,12 @@ const PayrollManagement = () => {
     const updateBulkPayroll = (index: number, field: string, value: any) => {
         setBulkAIPayrolls(prev => {
             const updated = [...prev];
-            const numValue = field === 'baseSalary' || field === 'bonus' || field === 'deductions' 
+            const numValue = (field === 'baseSalary' || field === 'bonus' || field === 'deductions' || 
+                             field === 'federalIncomeTaxCA' || field === 'provincialIncomeTaxCA' || 
+                             field === 'cpp' || field === 'ei' || field === 'provincialHealthTaxCA' ||
+                             field === 'federalIncomeTaxUS' || field === 'stateIncomeTaxUS' || 
+                             field === 'socialSecurityTax' || field === 'medicareTax' || 
+                             field === 'stateDisabilityInsurance' || field === 'localTax')
                 ? (value === '' ? '0' : value)
                 : value;
             
@@ -790,11 +852,32 @@ const PayrollManagement = () => {
                 [field]: numValue
             };
             
-            // Recalculate total salary
+            // Recalculate total salary including taxes
             const base = parseFloat(updated[index].baseSalary || 0);
             const bonus = parseFloat(updated[index].bonus || 0);
             const deductions = parseFloat(updated[index].deductions || 0);
-            updated[index].totalSalary = Math.round((base + bonus - deductions) * 100) / 100;
+            
+            // Calculate total taxes
+            let totalTaxes = 0;
+            const country = updated[index].country || 'USA';
+            if (country === 'Canada') {
+                totalTaxes = 
+                    parseFloat(updated[index].federalIncomeTaxCA || '0') +
+                    parseFloat(updated[index].provincialIncomeTaxCA || '0') +
+                    parseFloat(updated[index].cpp || '0') +
+                    parseFloat(updated[index].ei || '0') +
+                    parseFloat(updated[index].provincialHealthTaxCA || '0');
+            } else {
+                totalTaxes = 
+                    parseFloat(updated[index].federalIncomeTaxUS || '0') +
+                    parseFloat(updated[index].stateIncomeTaxUS || '0') +
+                    parseFloat(updated[index].socialSecurityTax || '0') +
+                    parseFloat(updated[index].medicareTax || '0') +
+                    parseFloat(updated[index].stateDisabilityInsurance || '0') +
+                    parseFloat(updated[index].localTax || '0');
+            }
+            
+            updated[index].totalSalary = Math.round((base + bonus - deductions - totalTaxes) * 100) / 100;
             
             return updated;
         });
@@ -814,14 +897,28 @@ const PayrollManagement = () => {
             // Create payrolls one by one
             for (const payroll of bulkAIPayrolls) {
                 try {
-                    const payload = {
+                    const payload: any = {
                         userId: payroll.userId,
                         baseSalary: parseFloat(payroll.baseSalary || 0),
                         bonus: parseFloat(payroll.bonus || 0),
                         deductions: parseFloat(payroll.deductions || 0),
                         payDate: typeof payroll.payDate === 'string' ? payroll.payDate : new Date(payroll.payDate).toISOString().split('T')[0],
                         startDate: typeof payroll.startDate === 'string' ? payroll.startDate : new Date(payroll.startDate).toISOString().split('T')[0],
-                        endDate: typeof payroll.endDate === 'string' ? payroll.endDate : new Date(payroll.endDate).toISOString().split('T')[0]
+                        endDate: typeof payroll.endDate === 'string' ? payroll.endDate : new Date(payroll.endDate).toISOString().split('T')[0],
+                        country: payroll.country || 'USA',
+                        // Canada taxes
+                        federalIncomeTaxCA: parseFloat(payroll.federalIncomeTaxCA || '0'),
+                        provincialIncomeTaxCA: parseFloat(payroll.provincialIncomeTaxCA || '0'),
+                        cpp: parseFloat(payroll.cpp || '0'),
+                        ei: parseFloat(payroll.ei || '0'),
+                        provincialHealthTaxCA: parseFloat(payroll.provincialHealthTaxCA || '0'),
+                        // USA taxes
+                        federalIncomeTaxUS: parseFloat(payroll.federalIncomeTaxUS || '0'),
+                        stateIncomeTaxUS: parseFloat(payroll.stateIncomeTaxUS || '0'),
+                        socialSecurityTax: parseFloat(payroll.socialSecurityTax || '0'),
+                        medicareTax: parseFloat(payroll.medicareTax || '0'),
+                        stateDisabilityInsurance: parseFloat(payroll.stateDisabilityInsurance || '0'),
+                        localTax: parseFloat(payroll.localTax || '0')
                     };
                     
                     const response = await createPayroll(payload);
@@ -1165,7 +1262,7 @@ const PayrollManagement = () => {
                 </div>
 
                 {(showCreateModal || showEditModal) && (
-                    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+                    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center overflow-auto p-4">
                         <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
                             <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
@@ -2367,6 +2464,7 @@ const PayrollManagement = () => {
                                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Base Salary</th>
                                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th>
                                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deductions</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Taxes</th>
                                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
                                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                                                         </tr>
@@ -2428,6 +2526,78 @@ const PayrollManagement = () => {
                                                                     />
                                                                 </td>
                                                                 <td className="px-4 py-3">
+                                                                    {(() => {
+                                                                        const country = payroll.country || 'USA';
+                                                                        const totalTaxes = country === 'Canada'
+                                                                            ? (parseFloat(payroll.federalIncomeTaxCA || '0') +
+                                                                               parseFloat(payroll.provincialIncomeTaxCA || '0') +
+                                                                               parseFloat(payroll.cpp || '0') +
+                                                                               parseFloat(payroll.ei || '0') +
+                                                                               parseFloat(payroll.provincialHealthTaxCA || '0'))
+                                                                            : (parseFloat(payroll.federalIncomeTaxUS || '0') +
+                                                                               parseFloat(payroll.stateIncomeTaxUS || '0') +
+                                                                               parseFloat(payroll.socialSecurityTax || '0') +
+                                                                               parseFloat(payroll.medicareTax || '0') +
+                                                                               parseFloat(payroll.stateDisabilityInsurance || '0') +
+                                                                               parseFloat(payroll.localTax || '0'));
+                                                                        return (
+                                                                            <div className="space-y-1">
+                                                                                <div className="text-xs font-semibold text-red-600">
+                                                                                    ${totalTaxes.toFixed(2)}
+                                                                                </div>
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        const currentPayroll = bulkAIPayrolls[index];
+                                                                                        // Store the bulk index for later update
+                                                                                        (currentPayroll as any)._bulkIndex = index;
+                                                                                        
+                                                                                        // Create a payroll-like object for the edit modal
+                                                                                        const payrollForEdit = {
+                                                                                            ...currentPayroll,
+                                                                                            userId: {
+                                                                                                _id: currentPayroll.userId,
+                                                                                                name: currentPayroll.employee?.name || 'Unknown',
+                                                                                                role: currentPayroll.employee?.role || 'Unknown'
+                                                                                            },
+                                                                                            baseSalary: typeof currentPayroll.baseSalary === 'number' ? currentPayroll.baseSalary : parseFloat(currentPayroll.baseSalary || '0'),
+                                                                                            bonus: typeof currentPayroll.bonus === 'number' ? currentPayroll.bonus : parseFloat(currentPayroll.bonus || '0'),
+                                                                                            deductions: typeof currentPayroll.deductions === 'number' ? currentPayroll.deductions : parseFloat(currentPayroll.deductions || '0'),
+                                                                                            payDate: typeof currentPayroll.payDate === 'string' 
+                                                                                                ? currentPayroll.payDate 
+                                                                                                : new Date(currentPayroll.payDate).toISOString(),
+                                                                                            startDate: typeof currentPayroll.startDate === 'string' 
+                                                                                                ? currentPayroll.startDate 
+                                                                                                : new Date(currentPayroll.startDate).toISOString(),
+                                                                                            endDate: typeof currentPayroll.endDate === 'string' 
+                                                                                                ? currentPayroll.endDate 
+                                                                                                : new Date(currentPayroll.endDate).toISOString(),
+                                                                                            country: currentPayroll.country || 'USA',
+                                                                                            federalIncomeTaxCA: typeof currentPayroll.federalIncomeTaxCA === 'number' ? currentPayroll.federalIncomeTaxCA : parseFloat(currentPayroll.federalIncomeTaxCA || '0'),
+                                                                                            provincialIncomeTaxCA: typeof currentPayroll.provincialIncomeTaxCA === 'number' ? currentPayroll.provincialIncomeTaxCA : parseFloat(currentPayroll.provincialIncomeTaxCA || '0'),
+                                                                                            cpp: typeof currentPayroll.cpp === 'number' ? currentPayroll.cpp : parseFloat(currentPayroll.cpp || '0'),
+                                                                                            ei: typeof currentPayroll.ei === 'number' ? currentPayroll.ei : parseFloat(currentPayroll.ei || '0'),
+                                                                                            provincialHealthTaxCA: typeof currentPayroll.provincialHealthTaxCA === 'number' ? currentPayroll.provincialHealthTaxCA : parseFloat(currentPayroll.provincialHealthTaxCA || '0'),
+                                                                                            federalIncomeTaxUS: typeof currentPayroll.federalIncomeTaxUS === 'number' ? currentPayroll.federalIncomeTaxUS : parseFloat(currentPayroll.federalIncomeTaxUS || '0'),
+                                                                                            stateIncomeTaxUS: typeof currentPayroll.stateIncomeTaxUS === 'number' ? currentPayroll.stateIncomeTaxUS : parseFloat(currentPayroll.stateIncomeTaxUS || '0'),
+                                                                                            socialSecurityTax: typeof currentPayroll.socialSecurityTax === 'number' ? currentPayroll.socialSecurityTax : parseFloat(currentPayroll.socialSecurityTax || '0'),
+                                                                                            medicareTax: typeof currentPayroll.medicareTax === 'number' ? currentPayroll.medicareTax : parseFloat(currentPayroll.medicareTax || '0'),
+                                                                                            stateDisabilityInsurance: typeof currentPayroll.stateDisabilityInsurance === 'number' ? currentPayroll.stateDisabilityInsurance : parseFloat(currentPayroll.stateDisabilityInsurance || '0'),
+                                                                                            localTax: typeof currentPayroll.localTax === 'number' ? currentPayroll.localTax : parseFloat(currentPayroll.localTax || '0')
+                                                                                        };
+                                                                                        
+                                                                                        // Use openEditModal to properly set up the form
+                                                                                        openEditModal(payrollForEdit as any);
+                                                                                    }}
+                                                                                    className="text-blue-600 hover:text-blue-800 text-xs underline cursor-pointer"
+                                                                                >
+                                                                                    Edit
+                                                                                </button>
+                                                                            </div>
+                                                                        );
+                                                                    })()}
+                                                                </td>
+                                                                <td className="px-4 py-3">
                                                                     <span className="font-semibold text-gray-900">
                                                                         ${parseFloat(payroll.totalSalary || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                                     </span>
@@ -2437,15 +2607,29 @@ const PayrollManagement = () => {
                                                                         onClick={async () => {
                                                                             try {
                                                                                 setLoading(true);
-                                                                                const payload = {
-                                                                                    userId: payroll.userId,
-                                                                                    baseSalary: parseFloat(payroll.baseSalary || 0),
-                                                                                    bonus: parseFloat(payroll.bonus || 0),
-                                                                                    deductions: parseFloat(payroll.deductions || 0),
-                                                                                    payDate: typeof payroll.payDate === 'string' ? payroll.payDate : new Date(payroll.payDate).toISOString().split('T')[0],
-                                                                                    startDate: typeof payroll.startDate === 'string' ? payroll.startDate : new Date(payroll.startDate).toISOString().split('T')[0],
-                                                                                    endDate: typeof payroll.endDate === 'string' ? payroll.endDate : new Date(payroll.endDate).toISOString().split('T')[0]
-                                                                                };
+                    const payload: any = {
+                        userId: payroll.userId,
+                        baseSalary: parseFloat(payroll.baseSalary || 0),
+                        bonus: parseFloat(payroll.bonus || 0),
+                        deductions: parseFloat(payroll.deductions || 0),
+                        payDate: typeof payroll.payDate === 'string' ? payroll.payDate : new Date(payroll.payDate).toISOString().split('T')[0],
+                        startDate: typeof payroll.startDate === 'string' ? payroll.startDate : new Date(payroll.startDate).toISOString().split('T')[0],
+                        endDate: typeof payroll.endDate === 'string' ? payroll.endDate : new Date(payroll.endDate).toISOString().split('T')[0],
+                        country: payroll.country || 'USA',
+                        // Canada taxes
+                        federalIncomeTaxCA: parseFloat(payroll.federalIncomeTaxCA || '0'),
+                        provincialIncomeTaxCA: parseFloat(payroll.provincialIncomeTaxCA || '0'),
+                        cpp: parseFloat(payroll.cpp || '0'),
+                        ei: parseFloat(payroll.ei || '0'),
+                        provincialHealthTaxCA: parseFloat(payroll.provincialHealthTaxCA || '0'),
+                        // USA taxes
+                        federalIncomeTaxUS: parseFloat(payroll.federalIncomeTaxUS || '0'),
+                        stateIncomeTaxUS: parseFloat(payroll.stateIncomeTaxUS || '0'),
+                        socialSecurityTax: parseFloat(payroll.socialSecurityTax || '0'),
+                        medicareTax: parseFloat(payroll.medicareTax || '0'),
+                        stateDisabilityInsurance: parseFloat(payroll.stateDisabilityInsurance || '0'),
+                        localTax: parseFloat(payroll.localTax || '0')
+                    };
                                                                                 const response = await createPayroll(payload);
                                                                                 if (response?.success) {
                                                                                     showNotification('success', `Payroll created for ${payroll.employee?.name}`);

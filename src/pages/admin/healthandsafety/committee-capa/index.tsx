@@ -34,6 +34,7 @@ import {
   deleteCommitteeMember,
   createCAPA,
   getCAPAs,
+  getCAPAById,
   updateCAPA,
   deleteCAPA
 } from '../../../../axios/api/healthSafety';
@@ -263,7 +264,11 @@ const EnhancedCommitteeCAPA = () => {
     dueDate: new Date().toISOString().split('T')[0],
     status: 'open' as 'open' | 'in-progress' | 'completed' | 'overdue',
     assignedTo: '',
-    priority: 'medium' as 'low' | 'medium' | 'high' | 'critical'
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'critical',
+    description: '',
+    rootCause: '',
+    correctiveAction: '',
+    preventiveAction: ''
   });
 
   const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
@@ -280,7 +285,12 @@ const EnhancedCommitteeCAPA = () => {
     try {
       const response = await getCommitteeMembers();
       if (response?.success && Array.isArray(response.data)) {
-        setMembers(response.data);
+        setMembers(response.data.map((member: any) => ({
+          ...member,
+          trainingCompleted: member.trainingCompleted || [],
+          meetingAttendance: member.meetingAttendance || [],
+          responsibilities: member.responsibilities || []
+        })));
       }
     } catch (error: any) {
       console.error('Error fetching committee members:', error);
@@ -295,33 +305,60 @@ const EnhancedCommitteeCAPA = () => {
         search: searchTerm || undefined
       });
       if (response?.success && Array.isArray(response.data)) {
-        setCapas(response.data.map((item: any) => ({
-          _id: item._id,
-          capaNumber: item.capaNumber,
-          title: item.title,
-          type: item.type,
-          source: item.source,
-          issueDate: item.issueDate,
-          dueDate: item.dueDate,
-          status: item.status,
-          assignedTo: typeof item.assignedTo === 'object' && item.assignedTo?.name 
-            ? item.assignedTo.name 
-            : item.assignedTo || 'Unknown',
-          priority: item.priority,
-          description: item.description || '',
-          rootCause: item.rootCause,
-          correctiveActions: item.correctiveActions || [],
-          preventiveActions: item.preventiveActions || [],
-          resourcesRequired: item.resourcesRequired || [],
-          estimatedCost: item.estimatedCost,
-          reminderSchedule: item.reminderSchedule || { reminderDays: [], emailsSent: [] },
-          escalationRules: item.escalationRules || { escalateIfOverdueBy: 0, escalateTo: '', escalationLevel: 'supervisor', escalationTriggered: false },
-          verificationRequired: item.verificationRequired || false,
-          verificationChecklist: item.verificationChecklist || [],
-          evidenceUrls: item.evidenceUrls || [],
-          effectiveness: item.effectiveness || 'not-assessed',
-          sourceReference: item.sourceReference || { type: 'incident', recordId: '', recordTitle: '', linkUrl: '' }
-        })));
+        setCapas(response.data.map((item: any) => {
+          // Handle assignedTo - could be object with name/email or string
+          let assignedToName = 'Unknown';
+          if (typeof item.assignedTo === 'object' && item.assignedTo) {
+            assignedToName = item.assignedTo.name || item.assignedTo.email || 'Unknown';
+          } else if (typeof item.assignedTo === 'string' && item.assignedTo) {
+            assignedToName = item.assignedTo;
+          }
+
+          // Handle correctiveAction and preventiveAction - could be string or array
+          let correctiveActions: string[] = [];
+          if (Array.isArray(item.correctiveActions)) {
+            correctiveActions = item.correctiveActions;
+          } else if (item.correctiveAction) {
+            correctiveActions = [item.correctiveAction];
+          } else if (typeof item.correctiveActions === 'string') {
+            correctiveActions = [item.correctiveActions];
+          }
+
+          let preventiveActions: string[] = [];
+          if (Array.isArray(item.preventiveActions)) {
+            preventiveActions = item.preventiveActions;
+          } else if (item.preventiveAction) {
+            preventiveActions = [item.preventiveAction];
+          } else if (typeof item.preventiveActions === 'string') {
+            preventiveActions = [item.preventiveActions];
+          }
+
+          return {
+            _id: item._id,
+            capaNumber: item.capaNumber || '',
+            title: item.title || '',
+            type: item.type || 'corrective',
+            source: item.source || '',
+            issueDate: item.issueDate || new Date().toISOString(),
+            dueDate: item.dueDate || new Date().toISOString(),
+            status: item.status || 'open',
+            assignedTo: assignedToName,
+            priority: item.priority || 'medium',
+            description: item.description || '',
+            rootCause: item.rootCause || '',
+            correctiveActions: correctiveActions,
+            preventiveActions: preventiveActions,
+            resourcesRequired: item.resourcesRequired || [],
+            estimatedCost: item.estimatedCost,
+            reminderSchedule: item.reminderSchedule || { reminderDays: [], emailsSent: [] },
+            escalationRules: item.escalationRules || { escalateIfOverdueBy: 0, escalateTo: '', escalationLevel: 'supervisor', escalationTriggered: false },
+            verificationRequired: item.verificationRequired || false,
+            verificationChecklist: item.verificationChecklist || [],
+            evidenceUrls: item.evidenceUrls || [],
+            effectiveness: item.effectiveness || 'not-assessed',
+            sourceReference: item.sourceReference || { type: 'incident', recordId: '', recordTitle: '', linkUrl: '' }
+          };
+        }));
       }
     } catch (error: any) {
       console.error('Error fetching CAPAs:', error);
@@ -359,291 +396,10 @@ const EnhancedCommitteeCAPA = () => {
     }
   }, [filterStatus, searchTerm, activeTab]);
 
-  useEffect(() => {
-    const mockMembers: CommitteeMember[] = [
-      {
-        _id: '1',
-        name: 'John Doe',
-        role: 'Chairperson (Supervisor)',
-        department: 'Operations',
-        email: 'john.doe@company.com',
-        phone: '+1-234-567-8900',
-        termStartDate: '2024-01-01',
-        termEndDate: '2025-12-31',
-        trainingCompleted: [
-          { trainingName: 'H&S Committee Training', completionDate: '2024-01-15', expiryDate: '2026-01-15' },
-          { trainingName: 'Incident Investigation', completionDate: '2024-02-01', expiryDate: '2026-02-01' }
-        ],
-        meetingAttendance: [
-          { meetingId: 'M1', meetingDate: '2025-11-15', attended: true },
-          { meetingId: 'M2', meetingDate: '2025-10-15', attended: true }
-        ],
-        responsibilities: ['Chair meetings', 'Review incidents', 'Approve action items'],
-        status: 'active'
-      },
-      {
-        _id: '2',
-        name: 'Jane Smith',
-        role: 'Employee Representative',
-        department: 'HR',
-        email: 'jane.smith@company.com',
-        phone: '+1-234-567-8901',
-        termStartDate: '2024-03-01',
-        termEndDate: '2025-12-31',
-        trainingCompleted: [
-          { trainingName: 'H&S Committee Training', completionDate: '2024-03-10' }
-        ],
-        meetingAttendance: [
-          { meetingId: 'M1', meetingDate: '2025-11-15', attended: true },
-          { meetingId: 'M2', meetingDate: '2025-10-15', attended: false, notes: 'On vacation' }
-        ],
-        responsibilities: ['Worker safety concerns', 'Policy feedback'],
-        status: 'active'
-      },
-      {
-        _id: '3',
-        name: 'Bob Johnson',
-        role: 'H&S Representative',
-        department: 'Shop',
-        email: 'bob.j@company.com',
-        phone: '+1-234-567-8902',
-        termStartDate: '2024-02-01',
-        termEndDate: '2025-12-31',
-        trainingCompleted: [
-          { trainingName: 'H&S Committee Training', completionDate: '2024-02-05' },
-          { trainingName: 'Hazard Assessment', completionDate: '2024-03-01', expiryDate: '2026-03-01' }
-        ],
-        meetingAttendance: [
-          { meetingId: 'M1', meetingDate: '2025-11-15', attended: true },
-          { meetingId: 'M2', meetingDate: '2025-10-15', attended: true }
-        ],
-        responsibilities: ['Workplace inspections', 'Hazard reports', 'Safety audits'],
-        status: 'active'
-      }
-    ];
-    setMembers(mockMembers);
-
-    const mockMinutes: MeetingMinute[] = [
-      {
-        _id: 'M1',
-        meetingNumber: 'HSC-2025-11',
-        date: '2025-11-15',
-        title: 'Monthly H&S Committee Meeting - November',
-        attendees: ['John Doe', 'Jane Smith', 'Bob Johnson'],
-        absentMembers: [],
-        meetingTemplate: {
-          agendaItems: [
-            { item: 'Review October Incident Log', presenter: 'John Doe', duration: 15, outcome: 'Reviewed 3 incidents', status: 'discussed' },
-            { item: 'Discuss Forklift SOP Updates', presenter: 'Bob Johnson', duration: 20, outcome: 'SOP approved', status: 'resolved' },
-            { item: 'Winter Yard Safety Prep', presenter: 'Jane Smith', duration: 10, outcome: 'Action items created', status: 'discussed' }
-          ],
-          safetyTopics: ['Slip/fall prevention', 'PPE compliance', 'Forklift operations'],
-          incidentReviewRequired: true,
-          hazardReviewRequired: true
-        },
-        notesSummary: 'Committee reviewed 3 workplace incidents from October. Approved updated Forklift SOP. Generated 2 CAPA items for winter safety preparations.',
-        hazardsDiscussed: ['HAZ-2025-034', 'HAZ-2025-035'],
-        inspectionReportsReviewed: ['INS-2025-089'],
-        incidentsReviewed: ['INC-2025-087', 'INC-2025-088'],
-        actionItemsGenerated: ['CAPA-2025-001', 'CAPA-2025-003'],
-        attachments: ['/meetings/nov-2025-slides.pdf', '/meetings/incident-summary.pdf'],
-        approvalStatus: 'approved',
-        approvedBy: 'John Doe',
-        approvedDate: '2025-11-16',
-        nextMeetingDate: '2025-12-15',
-        nextMeetingAgenda: 'Review November incidents, discuss new TDG policy'
-      },
-      {
-        _id: 'M2',
-        meetingNumber: 'HSC-2025-10',
-        date: '2025-10-15',
-        title: 'Quarterly Audit Review - Q3 2025',
-        attendees: ['John Doe', 'Bob Johnson'],
-        absentMembers: ['Jane Smith'],
-        meetingTemplate: {
-          agendaItems: [
-            { item: 'Q3 Safety Audit Results', presenter: 'John Doe', duration: 30, outcome: 'Identified 5 findings', status: 'discussed' },
-            { item: 'Emergency Lighting Issues', presenter: 'Bob Johnson', duration: 15, outcome: 'CAPA created', status: 'resolved' }
-          ],
-          safetyTopics: ['Emergency preparedness', 'Facility maintenance'],
-          incidentReviewRequired: false,
-          hazardReviewRequired: true
-        },
-        notesSummary: 'Reviewed Q3 audit findings. Identified need for emergency lighting upgrades in yard area.',
-        hazardsDiscussed: ['HAZ-2025-030'],
-        inspectionReportsReviewed: ['INS-2025-075'],
-        incidentsReviewed: [],
-        actionItemsGenerated: ['CAPA-2025-002'],
-        attachments: ['/meetings/q3-audit.pdf'],
-        approvalStatus: 'approved',
-        approvedBy: 'John Doe',
-        approvedDate: '2025-10-16',
-        nextMeetingDate: '2025-11-15',
-        nextMeetingAgenda: 'Monthly safety review'
-      }
-    ];
-    setMinutes(mockMinutes);
-
-    const mockCapas: CAPA[] = [
-      {
-        _id: '1',
-        capaNumber: 'CAPA-2025-001',
-        title: 'Revise Safety Training Program',
-        type: 'corrective',
-        source: 'Incident Report',
-        sourceReference: {
-          type: 'incident',
-          recordId: 'INC-2024-089',
-          recordTitle: 'Slip and Fall - Warehouse',
-          linkUrl: '/incidents/INC-2024-089'
-        },
-        issueDate: '2025-11-15',
-        dueDate: '2025-12-10',
-        status: 'overdue',
-        assignedTo: 'John Doe',
-        assignedToEmail: 'john.doe@company.com',
-        priority: 'high',
-        description: 'Update safety training to include comprehensive slip/fall prevention module.',
-        rootCause: 'Inadequate initial safety training for warehouse staff.',
-        correctiveActions: [
-          'Develop new slip/fall prevention training module',
-          'Add wet floor signage protocols',
-          'Train all warehouse staff by Dec 10'
-        ],
-        preventiveActions: ['Quarterly refresher training', 'Monthly safety reminders'],
-        resourcesRequired: ['Training materials', 'External trainer', '$2,000 budget'],
-        estimatedCost: 2000,
-        reminderSchedule: {
-          reminderDays: [14, 7, 3, 1],
-          lastReminderSent: '2025-12-09',
-          nextReminderDate: '2025-12-10',
-          emailsSent: [
-            { date: '2025-11-26', recipient: 'john.doe@company.com' },
-            { date: '2025-12-03', recipient: 'john.doe@company.com' },
-            { date: '2025-12-09', recipient: 'john.doe@company.com' }
-          ]
-        },
-        escalationRules: {
-          escalateIfOverdueBy: 3,
-          escalateTo: 'Operations Manager',
-          escalationLevel: 'manager',
-          escalationTriggered: true,
-          escalationDate: '2025-12-11',
-          escalationNotes: 'Item overdue, escalated to Ops Manager'
-        },
-        verificationRequired: true,
-        verificationChecklist: [
-          { item: 'Training module developed', verified: false },
-          { item: 'All staff trained', verified: false },
-          { item: 'Signage installed', verified: false }
-        ],
-        evidenceUrls: [],
-        followUpDate: '2026-01-10',
-        effectiveness: 'not-assessed'
-      },
-      {
-        _id: '2',
-        capaNumber: 'CAPA-2025-002',
-        title: 'Install Yard Emergency Lighting',
-        type: 'preventive',
-        source: 'Safety Audit',
-        sourceReference: {
-          type: 'audit',
-          recordId: 'AUD-2025-Q3',
-          recordTitle: 'Q3 Safety Audit',
-          linkUrl: '/audits/AUD-2025-Q3'
-        },
-        issueDate: '2025-10-20',
-        dueDate: '2026-02-01',
-        status: 'in-progress',
-        assignedTo: 'Bob Johnson',
-        assignedToEmail: 'bob.j@company.com',
-        priority: 'medium',
-        description: 'Install emergency lighting in yard loading areas to ensure visibility during power outages.',
-        rootCause: 'Inadequate emergency lighting coverage identified during Q3 audit.',
-        correctiveActions: ['Purchase emergency lights', 'Install in 3 loading zones', 'Test backup batteries'],
-        preventiveActions: ['Quarterly lighting inspections', 'Annual battery replacement'],
-        resourcesRequired: ['6 emergency light units', 'Electrical contractor', '$5,000 budget'],
-        estimatedCost: 5000,
-        reminderSchedule: {
-          reminderDays: [30, 14, 7],
-          nextReminderDate: '2026-01-02',
-          emailsSent: [
-            { date: '2025-11-20', recipient: 'bob.j@company.com' }
-          ]
-        },
-        escalationRules: {
-          escalateIfOverdueBy: 7,
-          escalateTo: 'Safety Manager',
-          escalationLevel: 'supervisor',
-          escalationTriggered: false
-        },
-        verificationRequired: true,
-        verificationChecklist: [
-          { item: 'Lights purchased', verified: true, verifiedBy: 'Bob Johnson', verifiedDate: '2025-11-01' },
-          { item: 'Installation completed', verified: false },
-          { item: 'Functionality tested', verified: false }
-        ],
-        evidenceUrls: ['/evidence/lighting-quote.pdf'],
-        followUpDate: '2026-03-01',
-        effectiveness: 'not-assessed'
-      },
-      {
-        _id: '3',
-        capaNumber: 'CAPA-2025-003',
-        title: 'Update Forklift SOP & Retrain Operators',
-        type: 'corrective',
-        source: 'Hazard Log',
-        sourceReference: {
-          type: 'hazard',
-          recordId: 'HAZ-2025-034',
-          recordTitle: 'Forklift Near-Miss',
-          linkUrl: '/hazards/HAZ-2025-034'
-        },
-        issueDate: '2025-12-01',
-        dueDate: '2026-01-30',
-        status: 'open',
-        assignedTo: 'Jane Smith',
-        assignedToEmail: 'jane.smith@company.com',
-        priority: 'critical',
-        description: 'Update Forklift SOP with new load securement procedures and retrain all operators.',
-        rootCause: 'Outdated SOP did not reflect current best practices.',
-        correctiveActions: [
-          'Revise Forklift SOP sections 3-5',
-          'Conduct mandatory retraining for 12 operators',
-          'Update operator certification records'
-        ],
-        preventiveActions: ['Annual SOP review', 'Quarterly operator competency checks'],
-        resourcesRequired: ['External forklift trainer', 'Updated training materials'],
-        estimatedCost: 1500,
-        reminderSchedule: {
-          reminderDays: [30, 14, 7, 1],
-          nextReminderDate: '2025-12-31',
-          emailsSent: []
-        },
-        escalationRules: {
-          escalateIfOverdueBy: 5,
-          escalateTo: 'Operations Manager',
-          escalationLevel: 'manager',
-          escalationTriggered: false
-        },
-        verificationRequired: true,
-        verificationChecklist: [
-          { item: 'SOP updated', verified: false },
-          { item: 'All operators retrained', verified: false },
-          { item: 'Certificates updated', verified: false }
-        ],
-        evidenceUrls: [],
-        followUpDate: '2026-02-28',
-        effectiveness: 'not-assessed'
-      }
-    ];
-    setCapas(mockCapas);
-    setLoading(false);
-  }, []);
+  // Mock data removed - using real API data only
 
   // Helper Functions
-  const getStatusColor = (status: CAPA['status']) => {
+  const getStatusColor = (status: CAPA['status'] | undefined) => {
     const statusMap: { [key in CAPA['status']]: string } = {
       'completed': 'bg-green-100 text-green-800',
       'in-progress': 'bg-blue-100 text-blue-800',
@@ -651,17 +407,17 @@ const EnhancedCommitteeCAPA = () => {
       'overdue': 'bg-red-100 text-red-800',
       'cancelled': 'bg-gray-100 text-gray-800'
     };
-    return statusMap[status];
+    return statusMap[status || 'open'];
   };
 
-  const getPriorityColor = (priority: CAPA['priority']) => {
+  const getPriorityColor = (priority: CAPA['priority'] | undefined) => {
     const priorityMap: { [key in CAPA['priority']]: string } = {
       'critical': 'bg-red-600 text-white',
       'high': 'bg-orange-500 text-white',
       'medium': 'bg-yellow-500 text-white',
       'low': 'bg-green-500 text-white'
     };
-    return priorityMap[priority];
+    return priorityMap[priority || 'medium'];
   };
 
   const getDaysUntilDue = (dueDate: string): number => {
@@ -750,7 +506,11 @@ const EnhancedCommitteeCAPA = () => {
       dueDate: new Date().toISOString().split('T')[0],
       status: 'open',
       assignedTo: '',
-      priority: 'medium'
+      priority: 'medium',
+      description: '',
+      rootCause: '',
+      correctiveAction: '',
+      preventiveAction: ''
     });
     setShowCAPAModal(true);
   };
@@ -770,13 +530,17 @@ const EnhancedCommitteeCAPA = () => {
       dueDate: capa.dueDate ? new Date(capa.dueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       status: capa.status || 'open',
       assignedTo: assignedToId,
-      priority: capa.priority || 'medium'
+      priority: capa.priority || 'medium',
+      description: capa.description || '',
+      rootCause: capa.rootCause || '',
+      correctiveAction: Array.isArray(capa.correctiveActions) ? capa.correctiveActions.join('\n') : (capa.correctiveActions || ''),
+      preventiveAction: Array.isArray(capa.preventiveActions) ? capa.preventiveActions.join('\n') : (capa.preventiveActions || '')
     });
     setShowCAPAModal(true);
   };
 
   const handleDeleteCAPA = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this CAPA?')) return;
+    if (!window.confirm('Are you sure you want to delete this CAPA? This action cannot be undone.')) return;
     
     try {
       const response = await deleteCAPA(id);
@@ -794,18 +558,42 @@ const EnhancedCommitteeCAPA = () => {
 
   const handleSubmitCAPA = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!capaFormData.title || !capaFormData.type || !capaFormData.source || !capaFormData.issueDate || !capaFormData.dueDate || !capaFormData.assignedTo) {
+      showNotification('error', 'Please fill in all required fields');
+      return;
+    }
+
     try {
+      // Prepare payload for API
+      const payload = {
+        title: capaFormData.title.trim(),
+        type: capaFormData.type,
+        source: capaFormData.source.trim(),
+        issueDate: capaFormData.issueDate,
+        dueDate: capaFormData.dueDate,
+        status: capaFormData.status,
+        assignedTo: capaFormData.assignedTo,
+        priority: capaFormData.priority,
+        description: capaFormData.description || '',
+        rootCause: capaFormData.rootCause || '',
+        correctiveAction: capaFormData.correctiveAction || '',
+        preventiveAction: capaFormData.preventiveAction || ''
+      };
+
       if (editingCAPA) {
-        const response = await updateCAPA(editingCAPA._id, capaFormData);
+        const response = await updateCAPA(editingCAPA._id, payload);
         if (response?.success) {
           showNotification('success', 'CAPA updated successfully');
           setShowCAPAModal(false);
+          setEditingCAPA(null);
           fetchCAPAs();
         } else {
           showNotification('error', response?.message || 'Failed to update CAPA');
         }
       } else {
-        const response = await createCAPA(capaFormData);
+        const response = await createCAPA(payload);
         if (response?.success) {
           showNotification('success', 'CAPA created successfully');
           setShowCAPAModal(false);
@@ -816,18 +604,18 @@ const EnhancedCommitteeCAPA = () => {
       }
     } catch (error: any) {
       console.error('Error saving CAPA:', error);
-      showNotification('error', error?.response?.data?.message || 'Failed to save CAPA');
+      showNotification('error', error?.response?.data?.message || error?.message || 'Failed to save CAPA');
     }
   };
 
   const filteredCapas = capas.filter(capa => {
     const matchesSearch = 
-      capa.capaNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      capa.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (capa.capaNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (capa.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (typeof capa.assignedTo === 'string' && capa.assignedTo.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesStatus = filterStatus === 'all' || capa.status === filterStatus;
-    const matchesPriority = filterPriority === 'all' || capa.priority === filterPriority;
+    const matchesStatus = filterStatus === 'all' || (capa.status || 'open') === filterStatus;
+    const matchesPriority = filterPriority === 'all' || (capa.priority || 'medium') === filterPriority;
     
     return matchesSearch && matchesStatus && matchesPriority;
   });
@@ -835,13 +623,14 @@ const EnhancedCommitteeCAPA = () => {
   // Statistics
   const capaStats = {
     total: capas.length,
-    overdue: capas.filter(c => c.status === 'overdue').length,
+    overdue: capas.filter(c => (c.status || 'open') === 'overdue').length,
     dueThisWeek: capas.filter(c => {
+      if (!c.dueDate) return false;
       const days = getDaysUntilDue(c.dueDate);
-      return days >= 0 && days <= 7 && c.status !== 'completed';
+      return days >= 0 && days <= 7 && (c.status || 'open') !== 'completed';
     }).length,
-    inProgress: capas.filter(c => c.status === 'in-progress').length,
-    completed: capas.filter(c => c.status === 'completed').length
+    inProgress: capas.filter(c => (c.status || 'open') === 'in-progress').length,
+    completed: capas.filter(c => (c.status || 'open') === 'completed').length
   };
 
   // ============================================================================
@@ -878,7 +667,7 @@ const EnhancedCommitteeCAPA = () => {
                 <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                   member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                 }`}>
-                  {member.status.toUpperCase()}
+                  {(member.status || 'unknown').toUpperCase()}
                 </span>
               </div>
               
@@ -895,13 +684,13 @@ const EnhancedCommitteeCAPA = () => {
 
               <div className="mb-4">
                 <p className="text-xs font-bold text-gray-600 mb-1">TRAINING COMPLETED:</p>
-                {member.trainingCompleted.length === 0 ? (
+                {(!member.trainingCompleted || member.trainingCompleted.length === 0) ? (
                   <p className="text-xs text-red-600">⚠️ No training recorded</p>
                 ) : (
                   member.trainingCompleted.map((training, idx) => (
                     <div key={idx} className="text-xs bg-green-50 p-2 rounded mb-1">
-                      <div className="font-semibold text-green-900">{training.trainingName}</div>
-                      <div className="text-green-700">Completed: {new Date(training.completionDate).toLocaleDateString()}</div>
+                      <div className="font-semibold text-green-900">{training.trainingName || 'N/A'}</div>
+                      <div className="text-green-700">Completed: {training.completionDate ? new Date(training.completionDate).toLocaleDateString() : 'N/A'}</div>
                     </div>
                   ))
                 )}
@@ -909,7 +698,11 @@ const EnhancedCommitteeCAPA = () => {
 
               <div className="mb-4">
                 <p className="text-xs font-bold text-gray-600 mb-1">MEETING ATTENDANCE:</p>
-                <p className="text-sm">{member.meetingAttendance.filter(a => a.attended).length} / {member.meetingAttendance.length} meetings attended</p>
+                <p className="text-sm">
+                  {member.meetingAttendance && member.meetingAttendance.length > 0 
+                    ? `${member.meetingAttendance.filter(a => a.attended).length} / ${member.meetingAttendance.length} meetings attended`
+                    : 'No attendance records'}
+                </p>
               </div>
 
               <div className="flex gap-2 pt-3 border-t">
@@ -970,7 +763,7 @@ const EnhancedCommitteeCAPA = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <FaUser />
-                    <span>{minute.attendees.length} attended</span>
+                    <span>{(minute.attendees || []).length} attended</span>
                   </div>
                   <div className="text-red-600 font-semibold">{minute.meetingNumber}</div>
                 </div>
@@ -1019,19 +812,19 @@ const EnhancedCommitteeCAPA = () => {
                   <div className="space-y-1 text-xs">
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="w-3 h-3 text-orange-600" />
-                      <span>{minute.hazardsDiscussed.length} Hazards</span>
+                      <span>{(minute.hazardsDiscussed || []).length} Hazards</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertCircle className="w-3 h-3 text-red-600" />
-                      <span>{minute.incidentsReviewed.length} Incidents</span>
+                      <span>{(minute.incidentsReviewed || []).length} Incidents</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-3 h-3 text-blue-600" />
-                      <span>{minute.inspectionReportsReviewed.length} Inspections</span>
+                      <span>{(minute.inspectionReportsReviewed || []).length} Inspections</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <ClipboardList className="w-3 h-3 text-purple-600" />
-                      <span>{minute.actionItemsGenerated.length} CAPAs Generated</span>
+                      <span>{(minute.actionItemsGenerated || []).length} CAPAs Generated</span>
                     </div>
                   </div>
                 </div>
@@ -1041,43 +834,50 @@ const EnhancedCommitteeCAPA = () => {
               <div>
                 <p className="text-xs font-bold text-gray-600 mb-2">AGENDA ITEMS:</p>
                 <div className="space-y-2">
-                  {minute.meetingTemplate.agendaItems.map((agenda, idx) => (
+                  {(minute.meetingTemplate?.agendaItems || []).map((agenda, idx) => (
                     <div key={idx} className="bg-gray-50 p-2 rounded">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-900">{agenda.item}</p>
-                          <p className="text-xs text-gray-600">Presenter: {agenda.presenter} • {agenda.duration} min</p>
-                          <p className="text-xs text-gray-700 mt-1">{agenda.outcome}</p>
+                          <p className="text-sm font-semibold text-gray-900">{agenda.item || 'N/A'}</p>
+                          <p className="text-xs text-gray-600">Presenter: {agenda.presenter || 'N/A'} • {agenda.duration || 0} min</p>
+                          <p className="text-xs text-gray-700 mt-1">{agenda.outcome || 'N/A'}</p>
                         </div>
                         <span className={`px-2 py-1 rounded text-xs font-bold ${
                           agenda.status === 'resolved' ? 'bg-green-100 text-green-800' :
                           agenda.status === 'discussed' ? 'bg-blue-100 text-blue-800' :
                           'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {agenda.status}
+                          {agenda.status || 'pending'}
                         </span>
                       </div>
                     </div>
                   ))}
+                  {(!minute.meetingTemplate?.agendaItems || minute.meetingTemplate.agendaItems.length === 0) && (
+                    <p className="text-xs text-gray-500">No agenda items recorded</p>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Notes Summary */}
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <p className="text-xs font-bold text-gray-600 mb-2">MEETING NOTES:</p>
-              <p className="text-sm text-gray-800">{minute.notesSummary}</p>
-            </div>
+            {minute.notesSummary && (
+              <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                <p className="text-xs font-bold text-gray-600 mb-2">MEETING NOTES:</p>
+                <p className="text-sm text-gray-800">{minute.notesSummary}</p>
+              </div>
+            )}
 
             {/* Approval Info */}
             {minute.approvalStatus === 'approved' && (
               <div className="bg-green-50 p-3 rounded-lg">
                 <p className="text-xs text-green-800">
-                  <strong>Approved by:</strong> {minute.approvedBy} on {new Date(minute.approvedDate!).toLocaleDateString()}
+                  <strong>Approved by:</strong> {minute.approvedBy || 'N/A'} {minute.approvedDate && `on ${new Date(minute.approvedDate).toLocaleDateString()}`}
                 </p>
-                <p className="text-xs text-green-700 mt-1">
-                  <strong>Next Meeting:</strong> {new Date(minute.nextMeetingDate).toLocaleDateString()} - {minute.nextMeetingAgenda}
-                </p>
+                {minute.nextMeetingDate && (
+                  <p className="text-xs text-green-700 mt-1">
+                    <strong>Next Meeting:</strong> {new Date(minute.nextMeetingDate).toLocaleDateString()} {minute.nextMeetingAgenda && `- ${minute.nextMeetingAgenda}`}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -1204,20 +1004,20 @@ const EnhancedCommitteeCAPA = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-xl font-bold">{capa.title}</h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${getPriorityColor(capa.priority)}`}>
-                        {capa.priority.toUpperCase()}
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${getPriorityColor(capa.priority || 'medium')}`}>
+                        {(capa.priority || 'medium').toUpperCase()}
                       </span>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
-                      <span className="font-mono font-bold">{capa.capaNumber}</span>
+                      <span className="font-mono font-bold">{capa.capaNumber || 'N/A'}</span>
                       <span>•</span>
-                      <span>{capa.type === 'corrective' ? 'Corrective Action' : 'Preventive Action'}</span>
+                      <span>{(capa.type || 'corrective') === 'corrective' ? 'Corrective Action' : 'Preventive Action'}</span>
                       <span>•</span>
-                      <span>Source: {capa.source}</span>
+                      <span>Source: {capa.source || 'N/A'}</span>
                     </div>
                   </div>
                   <span className={`px-4 py-2 rounded-lg text-sm font-bold ${getStatusColor(capa.status)}`}>
-                    {capa.status.replace('-', ' ').toUpperCase()}
+                    {(capa.status || 'open').replace('-', ' ').toUpperCase()}
                   </span>
                 </div>
               </div>
@@ -1264,19 +1064,21 @@ const EnhancedCommitteeCAPA = () => {
                       </div>
                     )}
 
-                    <div>
-                      <p className="text-xs font-bold text-gray-600 mb-2">CORRECTIVE ACTIONS:</p>
-                      <ul className="space-y-1">
-                        {capa.correctiveActions.map((action, idx) => (
-                          <li key={idx} className="text-sm text-gray-800 flex gap-2">
-                            <span className="text-green-600">✓</span>
-                            <span>{action}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    {capa.correctiveActions && capa.correctiveActions.length > 0 && (
+                      <div>
+                        <p className="text-xs font-bold text-gray-600 mb-2">CORRECTIVE ACTIONS:</p>
+                        <ul className="space-y-1">
+                          {capa.correctiveActions.map((action, idx) => (
+                            <li key={idx} className="text-sm text-gray-800 flex gap-2">
+                              <span className="text-green-600">✓</span>
+                              <span>{action}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
-                    {capa.preventiveActions.length > 0 && (
+                    {capa.preventiveActions && capa.preventiveActions.length > 0 && (
                       <div>
                         <p className="text-xs font-bold text-gray-600 mb-2">PREVENTIVE ACTIONS:</p>
                         <ul className="space-y-1">
@@ -1315,21 +1117,27 @@ const EnhancedCommitteeCAPA = () => {
                     </div>
 
                     {/* Source Reference Link */}
-                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                      <p className="text-xs font-bold text-blue-900 mb-2 flex items-center gap-2">
-                        <Link className="w-4 h-4" /> SOURCE RECORD
-                      </p>
-                      <div className="text-sm">
-                        <p className="text-blue-800 font-semibold">{capa.sourceReference.recordTitle}</p>
-                        <p className="text-blue-700 text-xs">ID: {capa.sourceReference.recordId}</p>
-                        <button className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline">
-                          View Original Record →
-                        </button>
+                    {capa.sourceReference && capa.sourceReference.recordTitle && (
+                      <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <p className="text-xs font-bold text-blue-900 mb-2 flex items-center gap-2">
+                          <Link className="w-4 h-4" /> SOURCE RECORD
+                        </p>
+                        <div className="text-sm">
+                          <p className="text-blue-800 font-semibold">{capa.sourceReference.recordTitle}</p>
+                          {capa.sourceReference.recordId && (
+                            <p className="text-blue-700 text-xs">ID: {capa.sourceReference.recordId}</p>
+                          )}
+                          {capa.sourceReference.linkUrl && (
+                            <button className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline">
+                              View Original Record →
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Verification Checklist */}
-                    {capa.verificationRequired && (
+                    {capa.verificationRequired && capa.verificationChecklist && capa.verificationChecklist.length > 0 && (
                       <div className="bg-green-50 p-3 rounded-lg border border-green-200">
                         <p className="text-xs font-bold text-green-900 mb-2 flex items-center gap-2">
                           <CheckCheck className="w-4 h-4" /> VERIFICATION CHECKLIST
@@ -1346,9 +1154,9 @@ const EnhancedCommitteeCAPA = () => {
                                 <p className={`text-sm ${check.verified ? 'text-green-900 line-through' : 'text-gray-800'}`}>
                                   {check.item}
                                 </p>
-                                {check.verified && (
+                                {check.verified && check.verifiedBy && (
                                   <p className="text-xs text-green-700">
-                                    ✓ {check.verifiedBy} on {new Date(check.verifiedDate!).toLocaleDateString()}
+                                    ✓ {check.verifiedBy} {check.verifiedDate && `on ${new Date(check.verifiedDate).toLocaleDateString()}`}
                                   </p>
                                 )}
                               </div>
@@ -1359,7 +1167,7 @@ const EnhancedCommitteeCAPA = () => {
                     )}
 
                     {/* Reminder Schedule */}
-                    {capa.reminderSchedule.emailsSent.length > 0 && (
+                    {capa.reminderSchedule && capa.reminderSchedule.emailsSent && capa.reminderSchedule.emailsSent.length > 0 && (
                       <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
                         <p className="text-xs font-bold text-yellow-900 mb-2 flex items-center gap-2">
                           <Bell className="w-4 h-4" /> REMINDER HISTORY
@@ -1378,14 +1186,17 @@ const EnhancedCommitteeCAPA = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4 border-t">
-                  <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition font-semibold flex items-center justify-center gap-2">
-                    <Eye className="w-4 h-4" /> View Details
+                  <button 
+                    onClick={() => handleEditCAPA(capa)}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition font-semibold flex items-center justify-center gap-2"
+                  >
+                    <Edit className="w-4 h-4" /> Edit CAPA
                   </button>
-                  <button className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition font-semibold flex items-center justify-center gap-2">
-                    <Edit className="w-4 h-4" /> Update Status
-                  </button>
-                  <button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition font-semibold flex items-center justify-center gap-2">
-                    <Camera className="w-4 h-4" /> Add Evidence
+                  <button 
+                    onClick={() => handleDeleteCAPA(capa._id)}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition font-semibold flex items-center justify-center gap-2"
+                  >
+                    <FaTrash className="w-4 h-4" /> Delete
                   </button>
                 </div>
               </div>
@@ -1496,7 +1307,7 @@ const EnhancedCommitteeCAPA = () => {
 
         {/* Committee Member Modal */}
         {showMemberModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-white/30 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
@@ -1584,13 +1395,30 @@ const EnhancedCommitteeCAPA = () => {
 
         {/* CAPA Modal */}
         {showCAPAModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-white/30 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
                   <h2 className="text-2xl font-bold">{editingCAPA ? 'Edit CAPA' : 'New CAPA'}</h2>
                   <button
-                    onClick={() => setShowCAPAModal(false)}
+                    onClick={() => {
+                      setShowCAPAModal(false);
+                      setEditingCAPA(null);
+                      setCapaFormData({
+                        title: '',
+                        type: 'corrective',
+                        source: '',
+                        issueDate: new Date().toISOString().split('T')[0],
+                        dueDate: new Date().toISOString().split('T')[0],
+                        status: 'open',
+                        assignedTo: '',
+                        priority: 'medium',
+                        description: '',
+                        rootCause: '',
+                        correctiveAction: '',
+                        preventiveAction: ''
+                      });
+                    }}
                     className="text-gray-400 hover:text-gray-600"
                   >
                     <FaTimes size={24} />
@@ -1704,7 +1532,24 @@ const EnhancedCommitteeCAPA = () => {
                 <div className="flex justify-end gap-4 pt-4 border-t">
                   <button
                     type="button"
-                    onClick={() => setShowCAPAModal(false)}
+                    onClick={() => {
+                      setShowCAPAModal(false);
+                      setEditingCAPA(null);
+                      setCapaFormData({
+                        title: '',
+                        type: 'corrective',
+                        source: '',
+                        issueDate: new Date().toISOString().split('T')[0],
+                        dueDate: new Date().toISOString().split('T')[0],
+                        status: 'open',
+                        assignedTo: '',
+                        priority: 'medium',
+                        description: '',
+                        rootCause: '',
+                        correctiveAction: '',
+                        preventiveAction: ''
+                      });
+                    }}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
                     Cancel

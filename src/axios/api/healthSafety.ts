@@ -255,6 +255,88 @@ export const deleteFirstAidLog = async (id: string) => {
   }
 };
 
+// ==================== DOCUMENT LIBRARY APIs ====================
+export const createDocument = async (formData: FormData) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('health-safety/document-library', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getDocuments = async (params?: {
+  search?: string;
+  category?: string;
+  retentionStatus?: string;
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.retentionStatus) queryParams.append('retentionStatus', params.retentionStatus);
+    
+    const url = queryParams.toString() 
+      ? `health-safety/document-library?${queryParams.toString()}`
+      : 'health-safety/document-library';
+    
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getDocumentById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`health-safety/document-library/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const updateDocument = async (id: string, formData: FormData) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`health-safety/document-library/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const deleteDocument = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`health-safety/document-library/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getDocumentSignedUrl = async (id: string, disposition: 'inline' | 'attachment' = 'attachment') => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`health-safety/document-library/${id}/signed-url?disposition=${disposition}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
 // ==================== INSPECTION APIs ====================
 export const createInspection = async (data: any) => {
   try {
@@ -854,6 +936,181 @@ export const generateReport = async (data: any) => {
 export const deleteReport = async (id: string) => {
   try {
     const res: AxiosResponse = await apiClient.delete(`health-safety/report/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+// ==================== TRUCKING OPERATIONS APIs ====================
+
+// Load Securement APIs
+export const createLoadSecurement = async (formData: FormData) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('health-safety/load-securement', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getLoadSecurementLogs = async (params?: {
+  search?: string;
+  status?: string;
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+    
+    const url = queryParams.toString() 
+      ? `health-safety/load-securement?${queryParams.toString()}`
+      : 'health-safety/load-securement';
+    
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+// Reefer Food Safety APIs
+export const createReeferFoodSafety = async (data: FormData | any) => {
+  try {
+    const isFormData = data instanceof FormData;
+    const res: AxiosResponse = await apiClient.post('health-safety/reefer-food-safety', data, isFormData ? {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    } : {});
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getReeferFoodSafetyLogs = async (params?: {
+  search?: string;
+  status?: string;
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+    
+    const url = queryParams.toString() 
+      ? `health-safety/reefer-food-safety?${queryParams.toString()}`
+      : 'health-safety/reefer-food-safety';
+    
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+// Winter Safety APIs
+export const createWinterSafety = async (data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('health-safety/winter-safety', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getWinterSafetyChecklists = async (params?: {
+  search?: string;
+  status?: string;
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+    
+    const url = queryParams.toString() 
+      ? `health-safety/winter-safety?${queryParams.toString()}`
+      : 'health-safety/winter-safety';
+    
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+// Fueling Spill APIs
+export const createFuelingSpill = async (data: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('health-safety/fueling-spill', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getFuelingSpillLogs = async (params?: {
+  search?: string;
+  status?: string;
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+    
+    const url = queryParams.toString() 
+      ? `health-safety/fueling-spill?${queryParams.toString()}`
+      : 'health-safety/fueling-spill';
+    
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+// Dangerous Goods (TDG) APIs
+export const createDangerousGoods = async (formData: FormData) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('health-safety/dangerous-goods', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getDangerousGoodsLogs = async (params?: {
+  search?: string;
+  status?: string;
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+    
+    const url = queryParams.toString() 
+      ? `health-safety/dangerous-goods?${queryParams.toString()}`
+      : 'health-safety/dangerous-goods';
+    
+    const res: AxiosResponse = await apiClient.get(url);
     return res.data;
   } catch (error) {
     console.log(error);

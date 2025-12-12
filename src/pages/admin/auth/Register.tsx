@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Truck, MapPin, Users, Shield, CheckCircle, Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, Phone, Building2, FileCheck, HeartPulse, ChevronDown, ChevronUp } from "lucide-react";
 import { registerAdmin } from "../../../axios/api/auth";
+import { getCompany } from "../../../axios/api/admin";
 import { useNavigate, Link } from "react-router-dom";
 import { message } from 'antd';
+import { setUserCredentials } from "../../../redux/slices/userSlice";
+import { useDispatch } from "react-redux";
 import Logo from "../../../assets/FleetGo.png"
 
 export default function RegistrationPage() {
@@ -20,21 +23,13 @@ export default function RegistrationPage() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showMoreFeatures, setShowMoreFeatures] = useState(false);
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (saved) {
-      const t = window.setTimeout(() => {
-        setSaved(false);
-        navigate('/');
-      }, 2000);
-      return () => window.clearTimeout(t);
-    }
-  }, [saved, navigate]);
+  // Remove the old useEffect that navigates to login
 
   function validate() {
     const e: Record<string, string> = {};
@@ -76,11 +71,93 @@ export default function RegistrationPage() {
       const response = await registerAdmin(payload);
       
       if (response && response.success === true) {
-        setSaved(true);
+        const token = response.token || response.data?.token || response.data?.accessToken;
+        const userData = response.data || response;
+
+        if (!token || !userData) {
+          const errorMsg = "Registration successful but failed to get authentication token. Please login.";
+          setErrors({ submit: errorMsg });
+          message.error(errorMsg);
+          setLoading(false);
+          // Navigate to login after a delay
+          setTimeout(() => {
+            navigate('/');
+          }, 2000);
+          return;
+        }
+
+        // Clean up old localStorage keys
+        localStorage.removeItem('adminInfo');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userData');
+
+        // Persist the token immediately
+        localStorage.setItem("token", token);
+        sessionStorage.setItem("tokenSetTime", Date.now().toString());
+
+        // Normalize user data
+        const rawCompany = userData.company || userData.companyId || userData.companyInfo || userData.companyData;
+
+        let normalizedCompany: any = undefined;
+        if (rawCompany) {
+          if (typeof rawCompany === 'string') {
+            normalizedCompany = { _id: rawCompany };
+          } else if (typeof rawCompany === 'object') {
+            const companyId = rawCompany._id || rawCompany.id;
+            normalizedCompany = {
+              _id: companyId,
+              companyName: rawCompany.companyName || rawCompany.name,
+              ...rawCompany,
+            };
+          }
+        } else if (userData.role && userData.role !== 'superadmin') {
+          try {
+            const companyResponse = await getCompany();
+            if (companyResponse?.success && companyResponse?.data?._id) {
+              const companyData = companyResponse.data;
+              normalizedCompany = {
+                _id: companyData._id,
+                companyName: companyData.companyName || companyData.name,
+                ...companyData,
+              };
+            }
+          } catch (companyError) {
+            console.warn('Unable to fetch company details during registration:', companyError);
+          }
+        }
+
+        const normalizedUserData = {
+          _id: userData.id || userData._id,
+          name: userData.name || userData.email,
+          email: userData.email,
+          role: userData.role || 'admin',
+          status: userData.status || 'active',
+          company: normalizedCompany,
+        };
+
+        const userInfoPayload = {
+          userData: normalizedUserData,
+          role: normalizedUserData.role,
+          company: normalizedUserData.company,
+        };
+
+        // Store authentication data
+        localStorage.setItem("userInfo", JSON.stringify(userInfoPayload));
+
+        // Update Redux
+        dispatch(setUserCredentials(userInfoPayload));
+
+        // Show success message
         message.success({
           content: response.message || 'Account created successfully! Your 7-day free trial has started.',
-          duration: 5,
+          duration: 3,
         });
+
+        // Navigate to admin dashboard after a short delay
+        setTimeout(() => {
+          navigate('/admin/dashboard', { replace: true });
+        }, 1500);
       } else {
         const errorMessage = response?.message || "Registration failed. Please try again.";
         setErrors({ submit: errorMessage });
@@ -105,18 +182,6 @@ export default function RegistrationPage() {
       </div>
 
       <div className="w-full max-w-6xl relative">
-        {/* Success Notification */}
-        {saved && (
-          <div className="fixed top-6 right-6 bg-white border-l-4 border-emerald-500 text-gray-800 px-5 py-3 rounded-lg shadow-xl flex items-center gap-3 animate-slide-in z-50">
-            <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold">Success!</p>
-              <p className="text-xs text-gray-600">Account created. Redirecting...</p>
-            </div>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
           {/* Left Side - Branding & Features (2 columns) */}

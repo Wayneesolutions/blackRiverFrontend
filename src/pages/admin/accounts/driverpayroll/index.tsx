@@ -569,11 +569,26 @@ const DriverPayrollManagement = () => {
           reasoning: analysis.reasoning || ''
         });
 
-        // Update form fields with AI recommendations
+        // Update form fields with AI recommendations including tax suggestions
         setFormData(prev => ({
           ...prev,
           bonus: (analysis.recommendedBonus || 0).toString(),
-          deductions: (analysis.recommendedDeductions || 0).toString()
+          deductions: (analysis.recommendedDeductions || 0).toString(),
+          // Update tax fields if suggestions are provided
+          ...(analysis.suggestedTaxes && {
+            country: analysis.suggestedTaxes.country || prev.country,
+            federalIncomeTaxCA: (analysis.suggestedTaxes.federalIncomeTaxCA || 0).toString(),
+            provincialIncomeTaxCA: (analysis.suggestedTaxes.provincialIncomeTaxCA || 0).toString(),
+            cpp: (analysis.suggestedTaxes.cpp || 0).toString(),
+            ei: (analysis.suggestedTaxes.ei || 0).toString(),
+            provincialHealthTaxCA: (analysis.suggestedTaxes.provincialHealthTaxCA || 0).toString(),
+            federalIncomeTaxUS: (analysis.suggestedTaxes.federalIncomeTaxUS || 0).toString(),
+            stateIncomeTaxUS: (analysis.suggestedTaxes.stateIncomeTaxUS || 0).toString(),
+            socialSecurityTax: (analysis.suggestedTaxes.socialSecurityTax || 0).toString(),
+            medicareTax: (analysis.suggestedTaxes.medicareTax || 0).toString(),
+            stateDisabilityInsurance: (analysis.suggestedTaxes.stateDisabilityInsurance || 0).toString(),
+            localTax: (analysis.suggestedTaxes.localTax || 0).toString()
+          })
         }));
 
         showNotification('success', 'AI payroll analysis completed successfully!');
@@ -1996,12 +2011,122 @@ const DriverPayrollManagement = () => {
                       <span className="text-sm font-medium text-gray-700">Deductions</span>
                       <span className="text-lg font-bold text-red-600">-${selectedPayroll.deductions.toLocaleString()}</span>
                     </div>
+                    <div className="flex justify-between items-center p-3 bg-white rounded-lg">
+                      <span className="text-sm font-medium text-gray-700">Taxes</span>
+                      <span className="text-lg font-bold text-red-600">
+                        -${(() => {
+                          let totalTax = 0;
+                          const country = selectedPayroll.country || 'USA';
+                          if (country === 'Canada') {
+                            totalTax = 
+                              (selectedPayroll.federalIncomeTaxCA || 0) +
+                              (selectedPayroll.provincialIncomeTaxCA || 0) +
+                              (selectedPayroll.cpp || 0) +
+                              (selectedPayroll.ei || 0) +
+                              (selectedPayroll.provincialHealthTaxCA || 0);
+                          } else {
+                            totalTax = 
+                              (selectedPayroll.federalIncomeTaxUS || 0) +
+                              (selectedPayroll.stateIncomeTaxUS || 0) +
+                              (selectedPayroll.socialSecurityTax || 0) +
+                              (selectedPayroll.medicareTax || 0) +
+                              (selectedPayroll.stateDisabilityInsurance || 0) +
+                              (selectedPayroll.localTax || 0);
+                          }
+                          return totalTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        })()}
+                      </span>
+                    </div>
                     <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-600 to-green-700 rounded-lg">
-                      <span className="text-sm font-medium text-white">Total Pay</span>
-                      <span className="text-2xl font-bold text-white">${selectedPayroll.totalSalary.toLocaleString()}</span>
+                      <span className="text-sm font-medium text-white">Net Pay</span>
+                      <span className="text-2xl font-bold text-white">${selectedPayroll.totalSalary.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                   </div>
                 </div>
+
+                {/* Tax Information */}
+                {(() => {
+                  const country = selectedPayroll.country || 'USA';
+                  const totalTaxes = country === 'Canada'
+                    ? ((selectedPayroll.federalIncomeTaxCA || 0) +
+                       (selectedPayroll.provincialIncomeTaxCA || 0) +
+                       (selectedPayroll.cpp || 0) +
+                       (selectedPayroll.ei || 0) +
+                       (selectedPayroll.provincialHealthTaxCA || 0))
+                    : ((selectedPayroll.federalIncomeTaxUS || 0) +
+                       (selectedPayroll.stateIncomeTaxUS || 0) +
+                       (selectedPayroll.socialSecurityTax || 0) +
+                       (selectedPayroll.medicareTax || 0) +
+                       (selectedPayroll.stateDisabilityInsurance || 0) +
+                       (selectedPayroll.localTax || 0));
+                  
+                  if (totalTaxes > 0) {
+                    return (
+                      <div className="bg-purple-50 p-6 rounded-xl border border-purple-200">
+                        <h5 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                          <DollarSign size={20} className="text-purple-600" />
+                          Tax Information ({country})
+                        </h5>
+                        {country === 'Canada' ? (
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="flex justify-between p-2 bg-white rounded">
+                              <span className="text-sm text-gray-600">Federal Income Tax:</span>
+                              <span className="text-sm font-medium">${(selectedPayroll.federalIncomeTaxCA || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-white rounded">
+                              <span className="text-sm text-gray-600">Provincial Income Tax:</span>
+                              <span className="text-sm font-medium">${(selectedPayroll.provincialIncomeTaxCA || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-white rounded">
+                              <span className="text-sm text-gray-600">CPP:</span>
+                              <span className="text-sm font-medium">${(selectedPayroll.cpp || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-white rounded">
+                              <span className="text-sm text-gray-600">EI:</span>
+                              <span className="text-sm font-medium">${(selectedPayroll.ei || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-white rounded">
+                              <span className="text-sm text-gray-600">Provincial Health Tax:</span>
+                              <span className="text-sm font-medium">${(selectedPayroll.provincialHealthTaxCA || 0).toFixed(2)}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="flex justify-between p-2 bg-white rounded">
+                              <span className="text-sm text-gray-600">Federal Income Tax:</span>
+                              <span className="text-sm font-medium">${(selectedPayroll.federalIncomeTaxUS || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-white rounded">
+                              <span className="text-sm text-gray-600">State Income Tax:</span>
+                              <span className="text-sm font-medium">${(selectedPayroll.stateIncomeTaxUS || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-white rounded">
+                              <span className="text-sm text-gray-600">Social Security:</span>
+                              <span className="text-sm font-medium">${(selectedPayroll.socialSecurityTax || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-white rounded">
+                              <span className="text-sm text-gray-600">Medicare:</span>
+                              <span className="text-sm font-medium">${(selectedPayroll.medicareTax || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-white rounded">
+                              <span className="text-sm text-gray-600">SDI:</span>
+                              <span className="text-sm font-medium">${(selectedPayroll.stateDisabilityInsurance || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-white rounded">
+                              <span className="text-sm text-gray-600">Local Tax:</span>
+                              <span className="text-sm font-medium">${(selectedPayroll.localTax || 0).toFixed(2)}</span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="mt-3 pt-3 border-t border-purple-300 flex justify-between items-center">
+                          <span className="text-sm font-semibold text-gray-700">Total Taxes:</span>
+                          <span className="text-lg font-bold text-purple-600">${totalTaxes.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
 
                 {/* Payment Info */}
                 <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">

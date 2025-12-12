@@ -19,7 +19,18 @@ import {
   FaEye,
   FaEdit,
   FaTag,
+  FaTimes,
+  FaTimesCircle,
+  FaInfoCircle,
 } from 'react-icons/fa';
+import {
+  createDocument,
+  getDocuments,
+  getDocumentById,
+  updateDocument,
+  deleteDocument,
+  getDocumentSignedUrl,
+} from '../../../../axios/api/healthSafety';
 
 interface Document {
   _id: string;
@@ -55,6 +66,50 @@ interface Document {
   allowedRoles?: string[];
 }
 
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'info' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaTimesCircle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />,
+    warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
+
 const DocumentLibrary: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,105 +119,61 @@ const DocumentLibrary: React.FC = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [editingDocument, setEditingDocument] = useState<Document | null>(null);
+  const [newDocument, setNewDocument] = useState({
+    title: '',
+    description: '',
+    category: 'Other' as Document['category'],
+    documentType: 'pdf' as Document['documentType'],
+    retentionPeriod: '24',
+    retentionStartDate: new Date().toISOString().split('T')[0],
+    autoDelete: false,
+    retentionNotes: '',
+    requiredForAudit: false,
+    auditCategory: '',
+    relatedIncident: '',
+    relatedHazard: '',
+    relatedInspection: '',
+    accessLevel: 'public' as Document['accessLevel'],
+    tags: [] as string[],
+    file: null as File | null,
+  });
+
+  const addNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const result = await getDocuments({
+        search: searchTerm || undefined,
+        category: filterCategory !== 'all' ? filterCategory : undefined,
+        retentionStatus: filterRetention !== 'all' ? filterRetention : undefined,
+      });
+
+      if (result.success) {
+        setDocuments(result.data || []);
+      } else {
+        addNotification('error', result.message || 'Failed to load documents');
+      }
+    } catch (error: any) {
+      addNotification('error', error.message || 'Failed to load documents');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Mock data
-    const mockDocuments: Document[] = [
-      {
-        _id: '1',
-        documentNumber: 'DOC-2025-001',
-        title: 'December Safety Meeting Minutes',
-        description: 'Monthly safety committee meeting minutes',
-        category: 'Safety Meeting',
-        documentType: 'pdf',
-        fileUrl: '/documents/safety-meeting-dec-2025.pdf',
-        fileName: 'safety-meeting-dec-2025.pdf',
-        fileSize: 245760, // 240 KB
-        uploadedBy: 'Safety Manager',
-        uploadedDate: '2025-12-01',
-        tags: ['safety-committee', 'monthly-meeting', '2025'],
-        retentionPeriod: 24, // 24 months
-        retentionStartDate: '2025-12-01',
-        retentionEndDate: '2027-12-01',
-        retentionStatus: 'active',
-        autoDelete: false,
-        requiredForAudit: true,
-        auditCategory: 'Safety Committee',
-        accessLevel: 'public',
-      },
-      {
-        _id: '2',
-        documentNumber: 'DOC-2025-002',
-        title: 'Incident Investigation Report - INC-2025-045',
-        description: 'Root cause analysis for workplace incident',
-        category: 'Investigation',
-        documentType: 'pdf',
-        fileUrl: '/documents/investigation-inc-045.pdf',
-        fileName: 'investigation-inc-045.pdf',
-        fileSize: 512000, // 500 KB
-        uploadedBy: 'Safety Manager',
-        uploadedDate: '2025-12-05',
-        tags: ['incident', 'investigation', 'root-cause'],
-        retentionPeriod: 36, // 36 months (3 years for investigations)
-        retentionStartDate: '2025-12-05',
-        retentionEndDate: '2028-12-05',
-        retentionStatus: 'active',
-        autoDelete: false,
-        requiredForAudit: true,
-        auditCategory: 'Incident Management',
-        relatedIncident: 'INC-2025-045',
-        accessLevel: 'restricted',
-        allowedRoles: ['safety-manager', 'hr', 'management'],
-      },
-      {
-        _id: '3',
-        documentNumber: 'DOC-2024-150',
-        title: 'January 2024 Toolbox Talk - Winter Driving',
-        description: 'Toolbox talk attendance and notes',
-        category: 'Toolbox Talk',
-        documentType: 'word',
-        fileUrl: '/documents/toolbox-talk-winter-2024.docx',
-        fileName: 'toolbox-talk-winter-2024.docx',
-        fileSize: 128000, // 125 KB
-        uploadedBy: 'Operations Manager',
-        uploadedDate: '2024-01-15',
-        tags: ['toolbox-talk', 'winter-driving', '2024'],
-        retentionPeriod: 24, // 24 months
-        retentionStartDate: '2024-01-15',
-        retentionEndDate: '2026-01-15',
-        retentionStatus: 'expiring-soon',
-        autoDelete: true,
-        requiredForAudit: true,
-        auditCategory: 'Training & Communication',
-        accessLevel: 'public',
-      },
-      {
-        _id: '4',
-        documentNumber: 'DOC-2023-080',
-        title: 'Q3 2023 Safety Inspection Report',
-        description: 'Quarterly facility safety inspection',
-        category: 'Inspection',
-        documentType: 'pdf',
-        fileUrl: '/documents/inspection-q3-2023.pdf',
-        fileName: 'inspection-q3-2023.pdf',
-        fileSize: 1024000, // 1 MB
-        uploadedBy: 'Safety Inspector',
-        uploadedDate: '2023-09-30',
-        tags: ['inspection', 'quarterly', '2023'],
-        retentionPeriod: 24, // 24 months
-        retentionStartDate: '2023-09-30',
-        retentionEndDate: '2025-09-30',
-        retentionStatus: 'expired',
-        autoDelete: true,
-        requiredForAudit: true,
-        auditCategory: 'Inspections',
-        accessLevel: 'public',
-      },
-    ];
-
-    setDocuments(mockDocuments);
-    setLoading(false);
-  }, []);
+    fetchData();
+  }, [searchTerm, filterCategory, filterRetention]);
 
   const calculateRetentionStatus = (endDate: string): Document['retentionStatus'] => {
     const end = new Date(endDate);
@@ -408,14 +419,43 @@ const DocumentLibrary: React.FC = () => {
                           >
                             <FaEye />
                           </button>
-                          <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="Download">
+                          <button
+                            onClick={async () => {
+                              try {
+                                const result = await getDocumentSignedUrl(doc._id, 'attachment');
+                                if (result.success && result.signedUrl) {
+                                  window.open(result.signedUrl, '_blank');
+                                } else {
+                                  addNotification('error', result.message || 'Failed to get download link');
+                                }
+                              } catch (error: any) {
+                                addNotification('error', error.message || 'Failed to download document');
+                              }
+                            }}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="Download"
+                          >
                             <FaDownload />
                           </button>
-                          {doc.retentionStatus === 'expired' && doc.autoDelete && (
-                            <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
-                              <FaTrash />
-                            </button>
-                          )}
+                          <button
+                            onClick={async () => {
+                              if (window.confirm('Are you sure you want to delete this document?')) {
+                                try {
+                                  const result = await deleteDocument(doc._id);
+                                  if (result.success) {
+                                    addNotification('success', result.message || 'Document deleted successfully');
+                                    await fetchData();
+                                  } else {
+                                    addNotification('error', result.message || 'Failed to delete document');
+                                  }
+                                } catch (error: any) {
+                                  addNotification('error', error.message || 'An error occurred');
+                                }
+                              }
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete"
+                          >
+                            <FaTrash />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -440,6 +480,443 @@ const DocumentLibrary: React.FC = () => {
             <li>✅ Access control by role and confidentiality level</li>
           </ul>
         </div>
+      </div>
+
+      {/* Upload Document Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black bg-opacity-50" onClick={() => setShowUploadModal(false)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold">
+                {editingDocument ? 'Edit Document' : 'Upload New Document'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowUploadModal(false);
+                  setEditingDocument(null);
+                  setNewDocument({
+                    title: '',
+                    description: '',
+                    category: 'Other',
+                    documentType: 'pdf',
+                    retentionPeriod: '24',
+                    retentionStartDate: new Date().toISOString().split('T')[0],
+                    autoDelete: false,
+                    retentionNotes: '',
+                    requiredForAudit: false,
+                    auditCategory: '',
+                    relatedIncident: '',
+                    relatedHazard: '',
+                    relatedInspection: '',
+                    accessLevel: 'public',
+                    tags: [],
+                    file: null,
+                  });
+                }}
+                className="text-gray-500 hover:text-gray-800 transition-colors"
+              >
+                <FaTimes size={24} />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  setSubmitting(true);
+                  const formData = new FormData();
+                  
+                  if (!editingDocument && !newDocument.file) {
+                    addNotification('error', 'Please select a file to upload');
+                    return;
+                  }
+
+                  if (newDocument.file) {
+                    formData.append('file', newDocument.file);
+                  }
+                  
+                  formData.append('title', newDocument.title);
+                  formData.append('description', newDocument.description || '');
+                  formData.append('category', newDocument.category);
+                  formData.append('documentType', newDocument.documentType);
+                  formData.append('retentionPeriod', newDocument.retentionPeriod);
+                  formData.append('retentionStartDate', newDocument.retentionStartDate);
+                  formData.append('autoDelete', String(newDocument.autoDelete));
+                  formData.append('retentionNotes', newDocument.retentionNotes || '');
+                  formData.append('requiredForAudit', String(newDocument.requiredForAudit));
+                  formData.append('auditCategory', newDocument.auditCategory || '');
+                  formData.append('relatedIncident', newDocument.relatedIncident || '');
+                  formData.append('relatedHazard', newDocument.relatedHazard || '');
+                  formData.append('relatedInspection', newDocument.relatedInspection || '');
+                  formData.append('accessLevel', newDocument.accessLevel);
+                  formData.append('tags', JSON.stringify(newDocument.tags));
+
+                  let result;
+                  if (editingDocument) {
+                    result = await updateDocument(editingDocument._id, formData);
+                  } else {
+                    result = await createDocument(formData);
+                  }
+
+                  if (result.success) {
+                    addNotification('success', result.message || (editingDocument ? 'Document updated successfully' : 'Document uploaded successfully'));
+                    setShowUploadModal(false);
+                    setEditingDocument(null);
+                    setNewDocument({
+                      title: '',
+                      description: '',
+                      category: 'Other',
+                      documentType: 'pdf',
+                      retentionPeriod: '24',
+                      retentionStartDate: new Date().toISOString().split('T')[0],
+                      autoDelete: false,
+                      retentionNotes: '',
+                      requiredForAudit: false,
+                      auditCategory: '',
+                      relatedIncident: '',
+                      relatedHazard: '',
+                      relatedInspection: '',
+                      accessLevel: 'public',
+                      tags: [],
+                      file: null,
+                    });
+                    await fetchData();
+                  } else {
+                    addNotification('error', result.message || 'Failed to save document');
+                  }
+                } catch (error: any) {
+                  addNotification('error', error.message || 'An error occurred');
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+              className="p-6 space-y-6"
+            >
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={newDocument.title}
+                  onChange={(e) => setNewDocument({ ...newDocument, title: e.target.value })}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  placeholder="Document Title"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                <textarea
+                  rows={3}
+                  value={newDocument.description}
+                  onChange={(e) => setNewDocument({ ...newDocument, description: e.target.value })}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  placeholder="Document description..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
+                  <select
+                    required
+                    value={newDocument.category}
+                    onChange={(e) => setNewDocument({ ...newDocument, category: e.target.value as any })}
+                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Safety Meeting">Safety Meeting</option>
+                    <option value="Toolbox Talk">Toolbox Talk</option>
+                    <option value="Safety Bulletin">Safety Bulletin</option>
+                    <option value="Investigation">Investigation</option>
+                    <option value="Policy">Policy</option>
+                    <option value="Inspection">Inspection</option>
+                    <option value="Training">Training</option>
+                    <option value="First Aid">First Aid</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Document Type *</label>
+                  <select
+                    required
+                    value={newDocument.documentType}
+                    onChange={(e) => setNewDocument({ ...newDocument, documentType: e.target.value as any })}
+                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="pdf">PDF</option>
+                    <option value="word">Word</option>
+                    <option value="image">Image</option>
+                    <option value="excel">Excel</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              {!editingDocument && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">File *</label>
+                  <input
+                    type="file"
+                    required={!editingDocument}
+                    onChange={(e) => setNewDocument({ ...newDocument, file: e.target.files?.[0] || null })}
+                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Retention Period (months) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={newDocument.retentionPeriod}
+                    onChange={(e) => setNewDocument({ ...newDocument, retentionPeriod: e.target.value })}
+                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Retention Start Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={newDocument.retentionStartDate}
+                    onChange={(e) => setNewDocument({ ...newDocument, retentionStartDate: e.target.value })}
+                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Access Level</label>
+                  <select
+                    value={newDocument.accessLevel}
+                    onChange={(e) => setNewDocument({ ...newDocument, accessLevel: e.target.value as any })}
+                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="public">Public</option>
+                    <option value="restricted">Restricted</option>
+                    <option value="confidential">Confidential</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Audit Category</label>
+                  <input
+                    type="text"
+                    value={newDocument.auditCategory}
+                    onChange={(e) => setNewDocument({ ...newDocument, auditCategory: e.target.value })}
+                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., Safety Committee"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-6">
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newDocument.autoDelete}
+                    onChange={(e) => setNewDocument({ ...newDocument, autoDelete: e.target.checked })}
+                    className="w-5 h-5 text-blue-600 focus:ring-blue-500 rounded"
+                  />
+                  <span className="font-medium text-gray-700">Auto Delete After Retention</span>
+                </label>
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newDocument.requiredForAudit}
+                    onChange={(e) => setNewDocument({ ...newDocument, requiredForAudit: e.target.checked })}
+                    className="w-5 h-5 text-blue-600 focus:ring-blue-500 rounded"
+                  />
+                  <span className="font-medium text-gray-700">Required for Audit</span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Tags (comma-separated)</label>
+                <input
+                  type="text"
+                  value={newDocument.tags.join(', ')}
+                  onChange={(e) => {
+                    const tags = e.target.value.split(',').map(t => t.trim()).filter(t => t);
+                    setNewDocument({ ...newDocument, tags });
+                  }}
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  placeholder="tag1, tag2, tag3"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUploadModal(false);
+                    setEditingDocument(null);
+                  }}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300"
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting ? 'Saving...' : (editingDocument ? 'Update Document' : 'Upload Document')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Document Detail Modal */}
+      {showDetailModal && selectedDocument && (
+        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black bg-opacity-50" onClick={() => setShowDetailModal(false)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Document Details</h2>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="text-gray-500 hover:text-gray-800 transition-colors"
+              >
+                <FaTimes size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">{selectedDocument.title}</h3>
+                <p className="text-sm text-gray-500">{selectedDocument.documentNumber}</p>
+              </div>
+
+              {selectedDocument.description && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-1">Description</h4>
+                  <p className="text-gray-600">{selectedDocument.description}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-1">Category</h4>
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">{selectedDocument.category}</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-1">Type</h4>
+                  <span className="text-gray-600">{selectedDocument.documentType.toUpperCase()}</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-1">Uploaded</h4>
+                  <p className="text-gray-600">{new Date(selectedDocument.uploadedDate).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-400">by {selectedDocument.uploadedBy}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-1">File Size</h4>
+                  <p className="text-gray-600">{formatFileSize(selectedDocument.fileSize)}</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-gray-700 mb-1">Retention</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-500">Period:</span> <span className="text-gray-700">{selectedDocument.retentionPeriod} months</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">End Date:</span> <span className="text-gray-700">{new Date(selectedDocument.retentionEndDate).toLocaleDateString()}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Status:</span> 
+                    <span className={`ml-2 ${
+                      selectedDocument.retentionStatus === 'active' ? 'text-green-700' :
+                      selectedDocument.retentionStatus === 'expiring-soon' ? 'text-yellow-700' :
+                      selectedDocument.retentionStatus === 'expired' ? 'text-red-700' : 'text-gray-700'
+                    }`}>
+                      {selectedDocument.retentionStatus}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {selectedDocument.tags && selectedDocument.tags.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">Tags</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedDocument.tags.map((tag, idx) => (
+                      <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-sm">
+                        <FaTag className="inline mr-1" size={10} />
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-4 border-t">
+                <button
+                  onClick={async () => {
+                    try {
+                      const result = await getDocumentSignedUrl(selectedDocument._id, 'attachment');
+                      if (result.success && result.signedUrl) {
+                        window.open(result.signedUrl, '_blank');
+                      } else {
+                        addNotification('error', result.message || 'Failed to get download link');
+                      }
+                    } catch (error: any) {
+                      addNotification('error', error.message || 'Failed to download document');
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                >
+                  <FaDownload /> Download
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingDocument(selectedDocument);
+                    setNewDocument({
+                      title: selectedDocument.title,
+                      description: selectedDocument.description || '',
+                      category: selectedDocument.category,
+                      documentType: selectedDocument.documentType,
+                      retentionPeriod: String(selectedDocument.retentionPeriod),
+                      retentionStartDate: selectedDocument.retentionStartDate,
+                      autoDelete: selectedDocument.autoDelete,
+                      retentionNotes: selectedDocument.retentionNotes || '',
+                      requiredForAudit: selectedDocument.requiredForAudit,
+                      auditCategory: selectedDocument.auditCategory || '',
+                      relatedIncident: selectedDocument.relatedIncident || '',
+                      relatedHazard: selectedDocument.relatedHazard || '',
+                      relatedInspection: selectedDocument.relatedInspection || '',
+                      accessLevel: selectedDocument.accessLevel,
+                      tags: selectedDocument.tags || [],
+                      file: null,
+                    });
+                    setShowDetailModal(false);
+                    setShowUploadModal(true);
+                  }}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"
+                >
+                  <FaEdit /> Edit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10001] space-y-2">
+        {notifications.map((notification) => (
+          <ToastNotificationComponent
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
       </div>
     </div>
   );

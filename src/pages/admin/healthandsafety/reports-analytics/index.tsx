@@ -39,6 +39,19 @@ interface ToastNotification {
   message: string;
 }
 
+interface Report {
+  _id: string;
+  reportNumber: string;
+  title: string;
+  type: string;
+  period: string;
+  generatedDate: string;
+  status: 'generated' | 'pending' | 'failed';
+  fileUrl?: string;
+  fileName?: string;
+  fileType?: string;
+}
+
 const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
   const icons = {
     success: <FaCheckCircle className="text-green-500" size={24} />,
@@ -131,10 +144,12 @@ const ReportsAnalytics = () => {
           activePolicies: response.data.activePolicies || 0,
           expiringCertificates: response.data.expiringCertificates || 0
         });
+      } else if (response && !response.success) {
+        showNotification('error', response.message || 'Failed to fetch statistics');
       }
     } catch (error: any) {
       console.error('Error fetching stats:', error);
-      showNotification('error', error?.response?.data?.message || 'Failed to fetch statistics');
+      showNotification('error', error?.response?.data?.message || error?.message || 'Failed to fetch statistics');
     }
   };
 
@@ -143,9 +158,14 @@ const ReportsAnalytics = () => {
       const response = await getIncidentTrends({ periodType: selectedPeriod });
       if (response?.success && Array.isArray(response.data)) {
         setIncidentTrends(response.data);
+      } else if (response && !response.success) {
+        console.error('Failed to fetch trends:', response.message);
+      } else {
+        setIncidentTrends([]);
       }
     } catch (error: any) {
       console.error('Error fetching trends:', error);
+      setIncidentTrends([]);
     }
   };
 
@@ -154,9 +174,15 @@ const ReportsAnalytics = () => {
       const response = await getInspectionStatus({ periodType: selectedPeriod });
       if (response?.success && response.data) {
         setInspectionStatus(response.data);
+      } else if (response && !response.success) {
+        console.error('Failed to fetch inspection status:', response.message);
+        setInspectionStatus({});
+      } else {
+        setInspectionStatus({});
       }
     } catch (error: any) {
       console.error('Error fetching inspection status:', error);
+      setInspectionStatus({});
     }
   };
 
@@ -167,18 +193,26 @@ const ReportsAnalytics = () => {
       if (response?.success && Array.isArray(response.data)) {
         setReports(response.data.map((item: any) => ({
           _id: item._id,
-          reportNumber: item.reportNumber,
-          title: item.title,
-          type: item.type,
-          period: item.period,
-          generatedDate: item.generatedDate,
-          status: item.status,
-          fileUrl: item.fileUrl
+          reportNumber: item.reportNumber || 'N/A',
+          title: item.title || 'Untitled Report',
+          type: item.type || 'Custom',
+          period: item.period || 'N/A',
+          generatedDate: item.generatedDate || item.createdAt || new Date().toISOString(),
+          status: item.status || 'pending',
+          fileUrl: item.fileUrl,
+          fileName: item.fileName,
+          fileType: item.fileType
         })));
+      } else if (response && !response.success) {
+        showNotification('error', response.message || 'Failed to fetch reports');
+        setReports([]);
+      } else {
+        setReports([]);
       }
     } catch (error: any) {
       console.error('Error fetching reports:', error);
-      showNotification('error', error?.response?.data?.message || 'Failed to fetch reports');
+      showNotification('error', error?.response?.data?.message || error?.message || 'Failed to fetch reports');
+      setReports([]);
     } finally {
       setLoading(false);
     }
@@ -369,31 +403,36 @@ const ReportsAnalytics = () => {
               Incident Trends
             </h3>
             <div className="h-64 flex items-center justify-center">
-              {incidentTrends.length > 0 ? (
+              {incidentTrends && incidentTrends.length > 0 ? (
                 <div className="w-full space-y-2">
                   <div className="text-sm text-gray-600 mb-4">
-                    Total incidents in period: {incidentTrends.reduce((sum, t) => sum + t.count, 0)}
+                    Total incidents in period: {incidentTrends.reduce((sum: number, t: any) => sum + (t.count || 0), 0)}
                   </div>
-                  <div className="space-y-1">
-                    {incidentTrends.slice(0, 7).map((trend, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500 w-20">{trend.date}</span>
-                        <div className="flex-1 bg-gray-200 rounded-full h-6 relative">
-                          <div
-                            className="bg-blue-500 h-6 rounded-full flex items-center justify-center text-white text-xs"
-                            style={{ width: `${Math.min((trend.count / Math.max(...incidentTrends.map(t => t.count), 1)) * 100, 100)}%` }}
-                          >
-                            {trend.count}
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {incidentTrends.slice(0, 7).map((trend: any, idx: number) => {
+                      const maxCount = Math.max(...incidentTrends.map((t: any) => t.count || 0), 1);
+                      const percentage = maxCount > 0 ? Math.min(((trend.count || 0) / maxCount) * 100, 100) : 0;
+                      return (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500 w-20 truncate">{trend.date || 'N/A'}</span>
+                          <div className="flex-1 bg-gray-200 rounded-full h-6 relative">
+                            <div
+                              className="bg-blue-500 h-6 rounded-full flex items-center justify-center text-white text-xs"
+                              style={{ width: `${percentage}%` }}
+                            >
+                              {trend.count || 0}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
                 <div className="text-center text-gray-400">
                   <FaChartLine className="text-4xl mb-2 mx-auto" />
                   <p>No incident data available</p>
+                  <p className="text-xs mt-1">Try selecting a different period</p>
                 </div>
               )}
             </div>
