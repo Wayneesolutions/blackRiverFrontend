@@ -19,7 +19,7 @@ interface Stats {
   totalVehicles: number;
   driversOnDuty: number;
   activeTrips: number;
-  activeLoads?: number; // Keep for backward compatibility
+  activeLoads?: number;
   pendingWorkOrders: number;
   pendingInvoices: number;
 }
@@ -85,10 +85,8 @@ export default function QuickStatsUI() {
     fetchDashboardData();
   }, []);
 
-  // Check for expiring documents and show popup
   useEffect(() => {
     if (alerts.expiringDocs && alerts.expiringDocs.length > 0) {
-      // Show popup after a short delay to let the page load
       const timer = setTimeout(() => {
         setShowExpiringPopup(true);
       }, 4000);
@@ -118,12 +116,11 @@ export default function QuickStatsUI() {
           totalVehicles: statsData.totalVehicles || 0,
           driversOnDuty: statsData.driversOnDuty || 0,
           activeTrips: statsData.activeTrips || statsData.activeLoads || 0,
-          activeLoads: statsData.activeTrips || statsData.activeLoads || 0, // Keep for backward compatibility
+          activeLoads: statsData.activeTrips || statsData.activeLoads || 0,
           pendingWorkOrders: statsData.pendingWorkOrders || 0,
           pendingInvoices: statsData.pendingInvoices || 0,
         });
         
-        // Show message if company setup is required
         if (results[0].value.requiresCompanySetup && results[0].value.message) {
           setError(results[0].value.message);
         }
@@ -139,9 +136,8 @@ export default function QuickStatsUI() {
       if (results[1].status === 'fulfilled' && results[1].value?.success) {
         const loadsArray = results[1].value.data;
         if (loadsArray && loadsArray.length > 0) {
-          // Backend returns { month: "January", total: 0 }
           const formattedLoads = loadsArray.map((item: { month: string; total: number }) => ({
-            name: item.month ? item.month.substring(0, 3) : 'N/A', // Use first 3 letters of month name (Jan, Feb, etc.)
+            name: item.month ? item.month.substring(0, 3) : 'N/A',
             value: item.total || 0,
           }));
           setLoadsData(formattedLoads);
@@ -157,9 +153,8 @@ export default function QuickStatsUI() {
       if (results[2].status === 'fulfilled' && results[2].value?.success) {
         const revenueArray = results[2].value.data;
         if (revenueArray && revenueArray.length > 0) {
-          // Backend returns { month: "January", totalRevenue: 0 }
           const formattedRevenue = revenueArray.map((item: { month: string; totalRevenue: number }) => ({
-            name: item.month ? item.month.substring(0, 3) : 'N/A', // Use first 3 letters of month name (Jan, Feb, etc.)
+            name: item.month ? item.month.substring(0, 3) : 'N/A',
             value: item.totalRevenue || 0,
           }));
           setRevenueData(formattedRevenue);
@@ -171,15 +166,14 @@ export default function QuickStatsUI() {
         setRevenueData([]);
       }
 
-      // Process Fuel Efficiency (data fetched but not displayed in UI currently)
+      // Process Fuel Efficiency
       if (results[3].status === 'fulfilled' && results[3].value?.success) {
         // Fuel efficiency data is fetched but not currently displayed
-        // Keeping the API call for potential future use
       } else {
         console.error("Failed to fetch fuel efficiency:", results[3]);
       }
 
-      // Process Alerts - handle separately as it might fail
+      // Process Alerts
       if (results[4].status === 'fulfilled') {
         if (results[4].value?.success && results[4].value.alerts) {
           setAlerts(results[4].value.alerts);
@@ -222,10 +216,10 @@ export default function QuickStatsUI() {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="p-6 flex items-center justify-center min-h-screen bg-[#EDF8FF]">
         <div className="text-center">
-          <RefreshCw className="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Loading dashboard...</p>
+          <RefreshCw className="animate-spin h-10 w-10 text-blue-600 mx-auto mb-3" />
+          <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -233,13 +227,13 @@ export default function QuickStatsUI() {
 
   if (error) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center bg-white p-8 rounded-xl shadow-lg">
-          <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <div className="text-red-600 text-xl font-semibold mb-2">{error}</div>
+      <div className="p-6 flex items-center justify-center min-h-screen bg-[#EDF8FF]">
+        <div className="text-center bg-white p-6 rounded-lg shadow-lg">
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-3" />
+          <div className="text-red-600 text-lg font-semibold mb-2">{error}</div>
           <button
             onClick={fetchDashboardData}
-            className="mt-4 px-6 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-flex items-center gap-2"
+            className="mt-3 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-flex items-center gap-2"
           >
             <RefreshCw className="h-4 w-4" />
             Retry
@@ -250,255 +244,291 @@ export default function QuickStatsUI() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      {/* Top Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="p-5 space-y-5 bg-[#EDF8FF] min-h-screen relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400/5 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-violet-400/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-emerald-400/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      
+      {/* Top Cards - Smaller & More Elegant */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 relative z-10">
         <StatCard 
           title="Total Vehicles" 
           value={stats.totalVehicles} 
-          icon={<Truck className="h-6 w-6 text-blue-600" />}
+          icon={<Truck className="h-5 w-5 text-blue-600" />}
           color="blue"
           onClick={() => navigate("/admin/fleetmaintenance/fleet-units")}
         />
         <StatCard 
           title="Drivers on Duty" 
           value={stats.driversOnDuty} 
-          icon={<Users className="h-6 w-6 text-green-600" />}
+          icon={<Users className="h-5 w-5 text-emerald-600" />}
           color="green"
           onClick={() => navigate("/admin/dispatch/drivers")}
         />
         <StatCard 
           title="Active Trips" 
           value={stats.activeTrips || stats.activeLoads || 0} 
-          icon={<Package className="h-6 w-6 text-purple-600" />}
+          icon={<Package className="h-5 w-5 text-violet-600" />}
           color="purple"
           onClick={() => navigate("/admin/dispatch/trips")}
         />
         <StatCard 
           title="Pending Work Orders" 
           value={stats.pendingWorkOrders} 
-          icon={<Wrench className="h-6 w-6 text-orange-600" />}
+          icon={<Wrench className="h-5 w-5 text-amber-600" />}
           color="orange"
           onClick={() => navigate("/admin/fleetmaintenance/general-repairs-log")}
         />
         <StatCard 
           title="Pending Invoices" 
           value={stats.pendingInvoices} 
-          icon={<FileText className="h-6 w-6 text-red-600" />}
+          icon={<FileText className="h-5 w-5 text-rose-600" />}
           color="red"
           onClick={() => navigate("/admin/accounts/invoice")}
         />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/admin/dispatch/trips")}>
-          <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-            <Package className="h-5 w-5 text-blue-600" />
-            Trips per Month
-          </h3>
+      {/* Charts - Compact & Elegant */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-10">
+        <Card className="lg:col-span-2 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" onClick={() => navigate("/admin/dispatch/trips")}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+              <div className="p-1.5 bg-blue-100 rounded-lg">
+                <Package className="h-4 w-4 text-blue-600" />
+              </div>
+              Trips per Month
+            </h3>
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              Live
+            </div>
+          </div>
           {loadsData.length > 0 ? (
-            <div style={{ width: "100%", height: 300 }}>
+            <div style={{ width: "100%", height: 240 }}>
               <ResponsiveContainer>
-                <BarChart data={loadsData} barCategoryGap="20%">
+                <BarChart data={loadsData} barCategoryGap="15%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis 
                     dataKey="name" 
-                    stroke="#6b7280" 
-                    style={{ fontSize: '13px', fontWeight: 500 }} 
+                    stroke="#9ca3af" 
+                    style={{ fontSize: '11px', fontWeight: 500 }} 
                   />
                   <YAxis 
-                    stroke="#6b7280" 
-                    style={{ fontSize: '12px' }}
+                    stroke="#9ca3af" 
+                    style={{ fontSize: '11px' }}
                     allowDecimals={false}
                   />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: '#fff', 
-                      border: '1px solid #e5e7eb', 
+                      border: 'none', 
                       borderRadius: '8px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      fontSize: '12px'
                     }}
-                    cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
+                    cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }}
                   />
                   <Bar 
                     dataKey="value" 
-                    fill="#3b82f6" 
+                    fill="url(#blueGradient)" 
                     name="Trips" 
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={80}
+                    radius={[8, 8, 0, 0]}
+                    maxBarSize={60}
                   />
+                  <defs>
+                    <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.7} />
+                    </linearGradient>
+                  </defs>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-gray-400">
-              <Package className="h-16 w-16 mb-3 opacity-30" />
-              <p>No trip data available</p>
+            <div className="h-60 flex flex-col items-center justify-center text-gray-400">
+              <Package className="h-12 w-12 mb-2 opacity-30" />
+              <p className="text-sm">No trip data available</p>
             </div>
           )}
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/admin/accounts/invoice")}>
-          <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-            <FileText className="h-5 w-5 text-green-600" />
-            Revenue Trend
-          </h3>
+        <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" onClick={() => navigate("/admin/accounts/invoice")}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+              <div className="p-1.5 bg-emerald-100 rounded-lg">
+                <FileText className="h-4 w-4 text-emerald-600" />
+              </div>
+              Revenue Trend
+            </h3>
+            <div className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
+              <span>↗</span>
+              +12%
+            </div>
+          </div>
           {revenueData.length > 0 ? (
-            <div style={{ width: "100%", height: 240 }}>
+            <div style={{ width: "100%", height: 200 }}>
               <ResponsiveContainer>
                 <LineChart data={revenueData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="name" stroke="#6b7280" style={{ fontSize: '12px' }} />
-                  <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
+                  <XAxis dataKey="name" stroke="#9ca3af" style={{ fontSize: '11px' }} />
+                  <YAxis stroke="#9ca3af" style={{ fontSize: '11px' }} />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: '#fff', 
-                      border: '1px solid #e5e7eb', 
+                      border: 'none', 
                       borderRadius: '8px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      fontSize: '12px'
                     }}
                     formatter={(value: number) => `$${value.toLocaleString()}`}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="value" 
-                    stroke="#10b981" 
+                    stroke="url(#emeraldGradient)" 
                     strokeWidth={3} 
-                    dot={{ r: 4, fill: '#10b981' }} 
+                    dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} 
+                    activeDot={{ r: 6, fill: '#10b981', strokeWidth: 2 }}
                   />
+                  <defs>
+                    <linearGradient id="emeraldGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#10b981" />
+                      <stop offset="100%" stopColor="#34d399" />
+                    </linearGradient>
+                  </defs>
                 </LineChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-56 flex flex-col items-center justify-center text-gray-400">
-              <FileText className="h-16 w-16 mb-3 opacity-30" />
-              <p>No revenue data available</p>
+            <div className="h-52 flex flex-col items-center justify-center text-gray-400">
+              <FileText className="h-12 w-12 mb-2 opacity-30" />
+              <p className="text-sm">No revenue data available</p>
             </div>
           )}
         </Card>
-
-       
       </div>
 
-      {/* Recent Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
+      {/* Recent Alerts - Compact */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-10">
+        <Card className="lg:col-span-2 relative overflow-hidden">
+          {/* Decorative gradient orb */}
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-rose-300/20 to-amber-300/20 rounded-full blur-2xl"></div>
+          
+          <h3 className="text-base font-semibold mb-3 text-gray-800 flex items-center gap-2 relative z-10">
+            <div className="p-1.5 bg-rose-100 rounded-lg">
+              <AlertTriangle className="h-4 w-4 text-rose-600" />
+            </div>
             Recent Alerts
           </h3>
 
           {alertError ? (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-yellow-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-yellow-800">Alert System Unavailable</p>
-                <p className="text-xs text-yellow-700 mt-1">{alertError}</p>
+                <p className="text-xs font-medium text-yellow-800">Alert System Unavailable</p>
+                <p className="text-xs text-yellow-700 mt-0.5">{alertError}</p>
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              {/* Maintenance Due */}
+            <div className="space-y-3">
               <AlertSection 
                 title="Maintenance Due" 
                 count={alerts.maintenanceDue?.length || 0}
-                icon={<Wrench className="h-4 w-4" />}
+                icon={<Wrench className="h-3.5 w-3.5" />}
                 onClick={() => navigate("/admin/fleetmaintenance/scheduled-services-log")}
               >
                 {alerts.maintenanceDue && alerts.maintenanceDue.length > 0 ? (
                   alerts.maintenanceDue.map((vehicle, idx) => (
                     <div 
                       key={idx} 
-                      className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
+                      className="flex justify-between items-center p-2.5 bg-gradient-to-r from-rose-50 to-red-50 rounded-lg border border-rose-200 hover:border-rose-300 transition-all cursor-pointer"
                       onClick={() => navigate("/admin/fleetmaintenance/scheduled-services-log")}
                     >
-                      <div className="flex items-center gap-3">
-                        <Truck className="h-5 w-5 text-red-600" />
+                      <div className="flex items-center gap-2">
+                        <Truck className="h-4 w-4 text-rose-600" />
                         <div>
-                          <div className="font-medium text-gray-800">{vehicle.plateNumber}</div>
-                          <div className="text-xs text-gray-600 flex items-center gap-1 mt-1">
+                          <div className="font-medium text-sm text-gray-800">{vehicle.plateNumber}</div>
+                          <div className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">
                             <Calendar className="h-3 w-3" />
-                            Next service: {formatDate(vehicle.nextServiceDate)}
+                            {formatDate(vehicle.nextServiceDate)}
                           </div>
                         </div>
                       </div>
-                      <span className="text-xs px-2 py-1 bg-red-600 text-white rounded-full font-medium">Overdue</span>
+                      <span className="text-xs px-2 py-0.5 bg-rose-600 text-white rounded-full font-medium">Overdue</span>
                     </div>
                   ))
                 ) : (
-                  <div className="text-sm text-gray-600 p-3 bg-green-50 rounded-lg border border-green-200 flex items-center gap-2">
-                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  <div className="text-xs text-gray-600 p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></div>
                     No maintenance overdue
                   </div>
                 )}
               </AlertSection>
 
-              {/* Document Expiry */}
               <AlertSection 
                 title="Document Expiry" 
                 count={alerts.expiringDocs?.length || 0}
-                icon={<FileText className="h-4 w-4" />}
+                icon={<FileText className="h-3.5 w-3.5" />}
                 onClick={() => navigate("/admin/Management/documents")}
               >
                 {alerts.expiringDocs && alerts.expiringDocs.length > 0 ? (
                   alerts.expiringDocs.map((doc, idx) => (
                     <div 
                       key={idx} 
-                      className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200 hover:bg-yellow-100 transition-colors cursor-pointer"
+                      className="flex justify-between items-center p-2.5 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200 hover:border-amber-300 transition-all cursor-pointer"
                       onClick={() => navigate("/admin/Management/documents")}
                     >
-                      <div className="flex items-center gap-3">
-                        <Users className="h-5 w-5 text-yellow-600" />
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-amber-600" />
                         <div>
-                          <div className="font-medium text-gray-800">Driver License - {doc.name}</div>
-                          <div className="text-xs text-gray-600 flex items-center gap-1 mt-1">
+                          <div className="font-medium text-sm text-gray-800">Driver License - {doc.name}</div>
+                          <div className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">
                             <Calendar className="h-3 w-3" />
-                            Expiry: {formatDate(doc.license?.expiryDate || '')}
+                            {formatDate(doc.license?.expiryDate || '')}
                           </div>
                         </div>
                       </div>
-                      <span className="text-xs px-2 py-1 bg-yellow-600 text-white rounded-full font-medium">Soon</span>
+                      <span className="text-xs px-2 py-0.5 bg-amber-600 text-white rounded-full font-medium">Soon</span>
                     </div>
                   ))
                 ) : (
-                  <div className="text-sm text-gray-600 p-3 bg-green-50 rounded-lg border border-green-200 flex items-center gap-2">
-                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  <div className="text-xs text-gray-600 p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></div>
                     All documents valid
                   </div>
                 )}
               </AlertSection>
 
-              {/* Delayed Trips */}
               <AlertSection 
                 title="Delayed Trips" 
                 count={alerts.delayedLoads?.length || 0}
-                icon={<Clock className="h-4 w-4" />}
+                icon={<Clock className="h-3.5 w-3.5" />}
                 onClick={() => navigate("/admin/dispatch/trips")}
               >
                 {alerts.delayedLoads && alerts.delayedLoads.length > 0 ? (
                   alerts.delayedLoads.map((trip, idx) => (
                     <div 
                       key={idx} 
-                      className="flex justify-between items-center p-3 bg-orange-50 rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors cursor-pointer"
+                      className="flex justify-between items-center p-2.5 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200 hover:border-orange-300 transition-all cursor-pointer"
                       onClick={() => navigate("/admin/dispatch/trips")}
                     >
-                      <div className="flex items-center gap-3">
-                        <Package className="h-5 w-5 text-orange-600" />
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-orange-600" />
                         <div>
-                          <div className="font-medium text-gray-800">Trip #{trip.loadId || trip._id}</div>
-                          <div className="text-xs text-gray-600 flex items-center gap-1 mt-1">
+                          <div className="font-medium text-sm text-gray-800">Trip #{trip.loadId || trip._id}</div>
+                          <div className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">
                             <Calendar className="h-3 w-3" />
-                            Delivery: {formatDate(trip.deliveryDate)} • Status: {trip.status}
+                            {formatDate(trip.deliveryDate)} • {trip.status}
                           </div>
                         </div>
                       </div>
-                      <span className="text-xs px-2 py-1 bg-orange-600 text-white rounded-full font-medium">Delayed</span>
+                      <span className="text-xs px-2 py-0.5 bg-orange-600 text-white rounded-full font-medium">Delayed</span>
                     </div>
                   ))
                 ) : (
-                  <div className="text-sm text-gray-600 p-3 bg-green-50 rounded-lg border border-green-200 flex items-center gap-2">
-                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  <div className="text-xs text-gray-600 p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></div>
                     All trips on track
                   </div>
                 )}
@@ -507,23 +537,28 @@ export default function QuickStatsUI() {
           )}
         </Card>
 
-        {/* Summary Card */}
-        <Card>
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Summary</h3>
-          <div className="space-y-3">
-            <SummaryItem label="Total Vehicles" value={stats.totalVehicles} icon={<Truck className="h-4 w-4 text-blue-600" />} />
-            <SummaryItem label="Active Trips" value={stats.activeTrips || stats.activeLoads || 0} icon={<Package className="h-4 w-4 text-purple-600" />} />
-            <SummaryItem label="Drivers on Duty" value={stats.driversOnDuty} icon={<Users className="h-4 w-4 text-green-600" />} />
-            <SummaryItem label="Pending Work Orders" value={stats.pendingWorkOrders} icon={<Wrench className="h-4 w-4 text-orange-600" />} />
-            <SummaryItem label="Pending Invoices" value={stats.pendingInvoices} icon={<FileText className="h-4 w-4 text-red-600" />} />
+        {/* Summary Card - Compact */}
+        <Card className="relative overflow-hidden">
+          {/* Decorative gradient orb */}
+          <div className="absolute -left-8 -bottom-8 w-32 h-32 bg-gradient-to-tr from-blue-300/20 to-violet-300/20 rounded-full blur-2xl"></div>
+          
+          <h3 className="text-base font-semibold mb-3 text-gray-800 relative z-10">Summary</h3>
+          <div className="space-y-2 relative z-10">
+            <SummaryItem label="Total Vehicles" value={stats.totalVehicles} icon={<Truck className="h-3.5 w-3.5 text-blue-600" />} />
+            <SummaryItem label="Active Trips" value={stats.activeTrips || stats.activeLoads || 0} icon={<Package className="h-3.5 w-3.5 text-violet-600" />} />
+            <SummaryItem label="Drivers on Duty" value={stats.driversOnDuty} icon={<Users className="h-3.5 w-3.5 text-emerald-600" />} />
+            <SummaryItem label="Pending Work Orders" value={stats.pendingWorkOrders} icon={<Wrench className="h-3.5 w-3.5 text-amber-600" />} />
+            <SummaryItem label="Pending Invoices" value={stats.pendingInvoices} icon={<FileText className="h-3.5 w-3.5 text-rose-600" />} />
           </div>
           
           <button
             onClick={fetchDashboardData}
-            className="mt-6 w-full px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+            className="mt-4 w-full px-3 py-2 bg-gradient-to-r from-blue-600 via-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:via-blue-700 hover:to-blue-800 transition-all text-sm font-medium flex items-center justify-center gap-2 shadow-md hover:shadow-lg relative z-10 group overflow-hidden"
           >
-            <RefreshCw className="h-4 w-4" />
-            Refresh Data
+            {/* Shimmer effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            <RefreshCw className="h-3.5 w-3.5 relative z-10" />
+            <span className="relative z-10">Refresh Data</span>
           </button>
         </Card>
       </div>
@@ -533,7 +568,6 @@ export default function QuickStatsUI() {
         isOpen={showExpiringPopup}
         onClose={() => setShowExpiringPopup(false)}
         onViewDocuments={() => {
-          // Navigate to employee documents page
           window.location.href = '/admin/employee/documents';
         }}
         daysThreshold={30}
@@ -543,27 +577,38 @@ export default function QuickStatsUI() {
   );
 }
 
-/* ----------------- Helper Components ----------------- */
-
 function StatCard({ title, value, icon, color, onClick }: { title: string; value: number; icon: React.ReactNode; color: string; onClick?: () => void }) {
   const colorClasses: Record<string, string> = {
-    blue: 'bg-blue-50 border-blue-100',
-    green: 'bg-green-50 border-green-100',
-    purple: 'bg-purple-50 border-purple-100',
-    orange: 'bg-orange-50 border-orange-100',
-    red: 'bg-red-50 border-red-100',
+    blue: 'bg-gradient-to-br from-blue-400/20 via-blue-300/10 to-blue-100/30 border-blue-300/40 hover:border-blue-400/60 hover:shadow-blue-200/50',
+    green: 'bg-gradient-to-br from-emerald-400/20 via-emerald-300/10 to-emerald-100/30 border-emerald-300/40 hover:border-emerald-400/60 hover:shadow-emerald-200/50',
+    purple: 'bg-gradient-to-br from-violet-400/20 via-violet-300/10 to-violet-100/30 border-violet-300/40 hover:border-violet-400/60 hover:shadow-violet-200/50',
+    orange: 'bg-gradient-to-br from-amber-400/20 via-amber-300/10 to-amber-100/30 border-amber-300/40 hover:border-amber-400/60 hover:shadow-amber-200/50',
+    red: 'bg-gradient-to-br from-rose-400/20 via-rose-300/10 to-rose-100/30 border-rose-300/40 hover:border-rose-400/60 hover:shadow-rose-200/50',
+  };
+
+  const iconBgClasses: Record<string, string> = {
+    blue: 'bg-blue-100/80 group-hover:bg-blue-200/80',
+    green: 'bg-emerald-100/80 group-hover:bg-emerald-200/80',
+    purple: 'bg-violet-100/80 group-hover:bg-violet-200/80',
+    orange: 'bg-amber-100/80 group-hover:bg-amber-200/80',
+    red: 'bg-rose-100/80 group-hover:bg-rose-200/80',
   };
 
   return (
     <div 
-      className={`${colorClasses[color]} rounded-xl p-5 shadow-sm border hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer' : ''}`}
+      className={`group ${colorClasses[color]} rounded-xl p-4 shadow-md border hover:shadow-lg transition-all duration-300 ${onClick ? 'cursor-pointer transform hover:-translate-y-1' : ''} backdrop-blur-sm relative overflow-hidden`}
       onClick={onClick}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-sm font-medium text-gray-700">{title}</div>
-        {icon}
+      {/* Animated shimmer effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+      
+      <div className="flex items-center justify-between mb-2 relative z-10">
+        <div className="text-xs font-semibold text-gray-700">{title}</div>
+        <div className={`p-2 rounded-lg ${iconBgClasses[color]} transition-all duration-300`}>
+          {icon}
+        </div>
       </div>
-      <div className="text-3xl font-bold text-gray-900">{value}</div>
+      <div className="text-2xl font-bold text-gray-900 relative z-10">{value}</div>
     </div>
   );
 }
@@ -571,7 +616,7 @@ function StatCard({ title, value, icon, color, onClick }: { title: string; value
 function Card({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   return (
     <div 
-      className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 ${className}`}
+      className={`bg-white/90 backdrop-blur-md rounded-xl p-4 shadow-md border border-gray-200/50 hover:border-gray-300/50 ${className}`}
       onClick={onClick}
     >
       {children}
@@ -583,32 +628,32 @@ function AlertSection({ title, children, count, icon, onClick }: { title: string
   return (
     <div>
       <div 
-        className={`flex items-center justify-between mb-3 ${onClick ? 'cursor-pointer hover:text-gray-900 transition-colors' : ''}`}
+        className={`flex items-center justify-between mb-2 ${onClick ? 'cursor-pointer hover:text-gray-900 transition-colors' : ''}`}
         onClick={onClick}
       >
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
           {icon}
           {title}
         </div>
         {count > 0 && (
-          <span className="text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded-full font-medium">
+          <span className="text-xs px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full font-medium">
             {count}
           </span>
         )}
       </div>
-      <div className="space-y-2">{children}</div>
+      <div className="space-y-1.5">{children}</div>
     </div>
   );
 }
 
 function SummaryItem({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
   return (
-    <div className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
-      <div className="flex items-center gap-2">
+    <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+      <div className="flex items-center gap-1.5">
         {icon}
-        <span className="text-sm text-gray-700">{label}</span>
+        <span className="text-xs text-gray-700">{label}</span>
       </div>
-      <span className="text-lg font-semibold text-gray-900">{value}</span>
+      <span className="text-base font-semibold text-gray-900">{value}</span>
     </div>
   );
 }

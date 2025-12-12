@@ -57,7 +57,7 @@ const Layout = () => {
                     </ErrorBoundary>
                     
                     {/* Main content with scroll */}
-                    <main className="flex-1 overflow-y-auto pb-20">
+                    <main className="flex-1 overflow-y-auto bg-[#EDF8FF] pb-20">
                         <ErrorBoundary
                             fallback={
                                 <div className="p-8 bg-white rounded-lg shadow">

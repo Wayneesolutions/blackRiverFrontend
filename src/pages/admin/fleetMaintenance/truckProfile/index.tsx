@@ -290,19 +290,27 @@ const TruckProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
+    <div className="min-h-screen bg-[#EDF8FF] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <header className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+
+          {/* TOP ROW → LEFT (title) | RIGHT (filters) */}
+          <div className="flex justify-between items-start">
+
+            {/* LEFT SIDE → Title + Description */}
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl shadow-lg" style={{ background: FLEET_COLORS.gradient }}>
+              <div
+                className="p-3 rounded-2xl shadow-lg"
+                style={{ background: FLEET_COLORS.gradient }}
+              >
                 {activeTab === "truck" ? (
                   <FaTruck className="w-8 h-8 text-white" />
                 ) : (
                   <FaTrailer className="w-8 h-8 text-white" />
                 )}
               </div>
+
               <div>
                 <h1
                   className="text-4xl font-bold bg-clip-text text-transparent"
@@ -315,35 +323,76 @@ const TruckProfile = () => {
                 </p>
               </div>
             </div>
+
+            {/* RIGHT SIDE → Filters in a vertical stack */}
+            <div className="flex flex-col gap-4 text-right pt-2">
+
+              {/* SELECT TRUCK / TRAILER */}
+              <div className="flex items-center gap-3 justify-end">
+                <label className="font-semibold text-gray-700 whitespace-nowrap">
+                  Select {activeTab === "truck" ? "Truck" : "Trailer"}:
+                </label>
+                <select
+                  value={selectedUnit}
+                  onChange={(e) => setSelectedUnit(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={{ borderColor: FLEET_COLORS.focusRing }}
+                >
+                  {units.map((unit) => (
+                    <option key={unit._id} value={unit.unitNo}>
+                      {unit.unitNo}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* TIME PERIOD */}
+              <div className="flex items-center gap-3 justify-end">
+                <label className="font-semibold text-gray-700 whitespace-nowrap">
+                  Time Period:
+                </label>
+                <select
+                  value={timeFilter}
+                  onChange={(e) =>
+                    setTimeFilter(e.target.value as "30d" | "60d" | "90d" | "all")
+                  }
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={{ borderColor: FLEET_COLORS.focusRing }}
+                >
+                  <option value="30d">Last 30 Days</option>
+                  <option value="60d">Last 60 Days</option>
+                  <option value="90d">Last 90 Days</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex gap-2 mb-4">
+          {/* TABS BELOW TITLE */}
+          <div className="flex gap-2 mt-6">
             <button
               onClick={() => {
                 setActiveTab("truck");
                 setSelectedUnit("");
               }}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                activeTab === "truck"
+              className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === "truck"
                   ? "!text-white shadow-lg"
                   : "bg-white text-gray-700 hover:bg-gray-50"
-              }`}
+                }`}
               style={activeTab === "truck" ? { background: FLEET_COLORS.gradient } : {}}
             >
               <FaTruck className="inline mr-2" />
               Truck Profile
             </button>
+
             <button
               onClick={() => {
                 setActiveTab("trailer");
                 setSelectedUnit("");
               }}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                activeTab === "trailer"
+              className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === "trailer"
                   ? "!text-white shadow-lg"
                   : "bg-white text-gray-700 hover:bg-gray-50"
-              }`}
+                }`}
               style={activeTab === "trailer" ? { background: FLEET_COLORS.gradient } : {}}
             >
               <FaTrailer className="inline mr-2" />
@@ -351,38 +400,9 @@ const TruckProfile = () => {
             </button>
           </div>
 
-          {/* Unit Selector and Time Filter */}
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold text-gray-700">Select {activeTab === "truck" ? "Truck" : "Trailer"}:</label>
-              <select
-                value={selectedUnit}
-                onChange={(e) => setSelectedUnit(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                style={{ borderColor: FLEET_COLORS.focusRing }}
-              >
-                {units.map((unit) => (
-                  <option key={unit._id} value={unit.unitNo}>
-                    {unit.unitNo}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold text-gray-700">Time Period:</label>
-              <select
-                value={timeFilter}
-                onChange={(e) => setTimeFilter(e.target.value as "30d" | "60d" | "90d" | "all")}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                style={{ borderColor: FLEET_COLORS.focusRing }}
-              >
-                <option value="30d">Last 30 Days</option>
-                <option value="60d">Last 60 Days</option>
-                <option value="90d">Last 90 Days</option>
-              </select>
-            </div>
-          </div>
         </header>
+
+
 
         {/* Vehicle Information Card */}
         <section
@@ -493,12 +513,11 @@ const TruckProfile = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="border rounded-lg p-4">
+            <div className="border border-gray-300 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <FaClipboardCheck className="w-5 h-5 text-blue-500" />
-                <span className={`px-2 py-1 text-xs font-semibold rounded ${
-                  selectedVehicle.compliance?.cvsa?.result === "Pass" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                }`}>
+                <span className={`px-2 py-1 text-xs font-semibold rounded ${selectedVehicle.compliance?.cvsa?.result === "Pass" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                  }`}>
                   {selectedVehicle.compliance?.cvsa?.result || "N/A"}
                 </span>
               </div>
@@ -531,9 +550,8 @@ const TruckProfile = () => {
                     <div key={ticket.id} className="text-xs">
                       <p className="font-medium text-gray-900">{ticket.category}</p>
                       <p className="text-gray-500">CA$ {ticket.amount} • {ticket.issued}</p>
-                      <p className={`inline-block px-2 py-0.5 rounded text-xs mt-1 ${
-                        ticket.status === "Paid" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                      }`}>
+                      <p className={`inline-block px-2 py-0.5 rounded text-xs mt-1 ${ticket.status === "Paid" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                        }`}>
                         {ticket.status}
                       </p>
                     </div>
@@ -564,15 +582,15 @@ const TruckProfile = () => {
               <div className="space-y-3">
                 {filteredData.serviceLogs.length > 0 ? (
                   filteredData.serviceLogs.map((log) => (
-                  <div key={log.id} className="border rounded-lg p-3">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{log.description}</p>
-                        <p className="text-xs text-gray-500">{log.vendor} • {log.date}</p>
+                    <div key={log.id} className="border rounded-lg p-3">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{log.description}</p>
+                          <p className="text-xs text-gray-500">{log.vendor} • {log.date}</p>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-900">CA$ {log.cost}</p>
                       </div>
-                      <p className="text-sm font-semibold text-gray-900">CA$ {log.cost}</p>
                     </div>
-                  </div>
                   ))
                 ) : (
                   <p className="text-xs text-gray-500 text-center py-4">No service logs in selected period</p>
@@ -654,9 +672,8 @@ const TruckProfile = () => {
                         Driver: {assignment.driver.name} • {assignment.driver.phone}
                       </p>
                     </div>
-                    <span className={`px-2 py-1 text-xs font-semibold rounded ${
-                      assignment.status === "Completed" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
-                    }`}>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded ${assignment.status === "Completed" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+                      }`}>
                       {assignment.status}
                     </span>
                   </div>
