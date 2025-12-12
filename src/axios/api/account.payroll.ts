@@ -165,3 +165,18 @@ export const bulkGenerateAIDriverPayrolls = async (data: {
         return err.response?.data;
     }
 };
+
+// Bulk AI-powered payroll generation for ALL employees
+export const bulkAIGenerateAllPayrolls = async (data: {
+    startDate: string;
+    endDate: string;
+    payDate?: string;
+}) => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`hr/bulk-ai-generate-all-payrolls`, data);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
