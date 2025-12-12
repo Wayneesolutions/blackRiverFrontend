@@ -49,7 +49,6 @@ interface Driver {
   };
 }
 
-// FleetUnit replaces both Vehicle and Trailer
 type FleetUnit = FleetUnitDto;
 
 interface Trip {
@@ -88,6 +87,18 @@ interface Trip {
   notes?: string;
 }
 
+interface FeatureCard {
+  id: string;
+  title: string;
+  value: string;
+  subtitle: string;
+  icon: React.ComponentType<any>;
+  bgColor: string;
+  iconColor: string;
+  accentColor: string;
+  percentage: number;
+}
+
 const Index = () => {
   const navigate = useNavigate();
   const userRole = getUserRole();
@@ -105,7 +116,7 @@ const Index = () => {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(100); // Increased default to show all vehicles and trailers
+  const [itemsPerPage, setItemsPerPage] = useState(100);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   
@@ -119,7 +130,6 @@ const Index = () => {
     fetchDashboardData();
   }, []);
 
-  // Initial fetch when component mounts and tab changes
   useEffect(() => {
     if (!loading) {
       setCurrentPage(1);
@@ -129,20 +139,17 @@ const Index = () => {
       setTypeFilter("");
       fetchCurrentData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, loading]);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       
-      // Fetch dashboard stats
       const dashboardRes = await getDispatcherDashboard();
       
       if (dashboardRes.success && dashboardRes.data) {
         const data = dashboardRes.data;
         
-        // Support both nested and flat structures
         const totalVehicles = data.totalVehicles ?? data.truckUtilization?.total ?? 0;
         const activeVehicles = data.activeVehicles ?? data.truckUtilization?.active ?? 0;
         const totalTrailers = data.totalTrailers ?? data.trailerUtilization?.total ?? 0;
@@ -179,7 +186,6 @@ const Index = () => {
       console.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
-      // Fetch initial data for current tab after stats are loaded
       setTimeout(() => {
         fetchCurrentData();
       }, 100);
@@ -233,7 +239,7 @@ const Index = () => {
         const total = vehicleData.length || 0;
         setVehicles(vehicleData);
         setTotalItems(total);
-        setTotalPages(1); // FleetUnits API doesn't return pagination, so set to 1 page
+        setTotalPages(1);
       } else {
         setVehicles([]);
         setTotalItems(0);
@@ -257,14 +263,12 @@ const Index = () => {
       if (res.success && res.data) {
         let trailerData = Array.isArray(res.data) ? res.data : [];
         
-        // Filter by operationStatus if provided (client-side filtering since FleetUnit API may not support it)
         if (operationStatus) {
           trailerData = trailerData.filter((t: FleetUnit) => 
             t.operationStatus?.toLowerCase() === operationStatus.toLowerCase()
           );
         }
         
-        // Filter by trailerType if provided
         if (type) {
           trailerData = trailerData.filter((t: FleetUnit) => 
             t.trailerType?.toLowerCase() === type.toLowerCase() ||
@@ -275,7 +279,7 @@ const Index = () => {
         const total = trailerData.length || 0;
         setTrailers(trailerData);
         setTotalItems(total);
-        setTotalPages(1); // FleetUnits API doesn't return pagination, so set to 1 page
+        setTotalPages(1);
       } else {
         setTrailers([]);
         setTotalItems(0);
@@ -289,7 +293,6 @@ const Index = () => {
     }
   };
 
-  // Handle tab change - reset pagination and filters
   const handleTabChange = (tab: "drivers" | "vehicles" | "trailers" | "trips") => {
     setActiveTab(tab);
     setSearchTerm("");
@@ -300,31 +303,25 @@ const Index = () => {
     setShowFilters(false);
   };
 
-  // Handle search with debounce
   useEffect(() => {
-    if (loading) return; // Don't fetch while initial loading
+    if (loading) return;
     const timer = setTimeout(() => {
-      setCurrentPage(1); // Reset to first page on search
+      setCurrentPage(1);
       fetchCurrentData();
     }, 500);
 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, loading]);
 
-  // Handle filter changes
   useEffect(() => {
-    if (loading) return; // Don't fetch while initial loading
-    setCurrentPage(1); // Reset to first page on filter change
+    if (loading) return;
+    setCurrentPage(1);
     fetchCurrentData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, operationStatusFilter, typeFilter, itemsPerPage, loading]);
 
-  // Handle page change
   useEffect(() => {
-    if (loading) return; // Don't fetch while initial loading
+    if (loading) return;
     fetchCurrentData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, loading]);
 
   const fetchTrips = async (page: number = currentPage, search: string = searchTerm, status: string = statusFilter) => {
@@ -372,366 +369,351 @@ const Index = () => {
     }
   };
 
-  // Use data directly from API (no client-side filtering needed)
   const filteredDrivers = drivers;
   const filteredVehicles = vehicles;
   const filteredTrailers = trailers;
   const filteredTrips = trips;
 
+  // Build feature cards
+  const features: FeatureCard[] = [
+    {
+      id: "vehicles",
+      title: "Total Vehicles",
+      value: stats?.vehicles.total.toString() || "0",
+      subtitle: `Active: ${stats?.vehicles.active || 0} | With Driver: ${stats?.vehicles.withDriver || 0}`,
+      icon: Truck,
+      bgColor: "bg-blue-50",
+      iconColor: "text-blue-600",
+      accentColor: "bg-blue-600",
+      percentage: stats?.vehicles.total ? Math.min(100, (stats.vehicles.active / stats.vehicles.total) * 100) : 0,
+    },
+    {
+      id: "drivers",
+      title: "Total Drivers",
+      value: stats?.drivers.total.toString() || "0",
+      subtitle: `Active: ${stats?.drivers.active || 0} | On Shift: ${stats?.drivers.onShift || 0}`,
+      icon: Users,
+      bgColor: "bg-green-50",
+      iconColor: "text-green-600",
+      accentColor: "bg-green-600",
+      percentage: stats?.drivers.total ? Math.min(100, (stats.drivers.active / stats.drivers.total) * 100) : 0,
+    },
+    {
+      id: "trailers",
+      title: "Total Trailers",
+      value: stats?.trailers.total.toString() || "0",
+      subtitle: `Active: ${stats?.trailers.active || 0} | In Use: ${stats?.trailers.inUse || 0}`,
+      icon: Package,
+      bgColor: "bg-purple-50",
+      iconColor: "text-purple-600",
+      accentColor: "bg-purple-600",
+      percentage: stats?.trailers.total ? Math.min(100, (stats.trailers.active / stats.trailers.total) * 100) : 0,
+    },
+    {
+      id: "trips",
+      title: "Total Trips",
+      value: stats?.trips.total.toString() || "0",
+      subtitle: `Planned: ${stats?.trips.planned || 0} | In Progress: ${stats?.trips.inProgress || 0} | Completed: ${stats?.trips.completed || 0}`,
+      icon: Route,
+      bgColor: "bg-orange-50",
+      iconColor: "text-orange-600",
+      accentColor: "bg-orange-600",
+      percentage: stats?.trips.total ? Math.min(100, ((stats.trips.inProgress + stats.trips.completed) / stats.trips.total) * 100) : 0,
+    },
+  ];
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#EDF8FF' }}>
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 animate-spin text-[#42aeec] mx-auto mb-4" />
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
-    return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Overview of drivers, trailers, vehicles</p>
-        </div>
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+      <div className="relative max-w-7xl mx-auto">
+        {/* Gradient band */}
+        <div
+          className="absolute inset-x-0 top-0"
+          style={{
+            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            height: '101px'
+          }}
+          aria-hidden="true"
+        />
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {/* Vehicles Card */}
-          <div 
-            onClick={() => navigate(`${basePath}/fleets`)}
-            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 cursor-pointer hover:shadow-xl transition-shadow"
-          >
-            <div className="mb-4">
-              <div className="p-3 bg-blue-100 rounded-lg w-fit">
-                <Truck className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Vehicles</h3>
-            <p className="text-3xl font-bold text-gray-800">{stats?.vehicles.total || 0}</p>
-            <div className="mt-4 flex gap-4 text-sm">
-              <div>
-                <span className="text-gray-500">Active:</span>
-                <span className="ml-1 font-semibold text-green-600">{stats?.vehicles.active || 0}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">With Driver:</span>
-                <span className="ml-1 font-semibold text-blue-600">{stats?.vehicles.withDriver || 0}</span>
+        {/* Main content */}
+        <div className="relative z-10 px-4 pt-3 pb-6">
+          {/* Header Section */}
+          <div className="mb-4 relative z-10">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-white">Overview</h1>
+              <div className="flex items-center gap-2 text-white/90">
+                <span className="text-xs">Dispatch Dashboard</span>
               </div>
             </div>
           </div>
 
-          {/* Drivers Card */}
-          <div 
-            onClick={() => navigate(`${basePath}/drivers`)}
-            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 cursor-pointer hover:shadow-xl transition-shadow"
-          >
-            <div className="mb-4">
-              <div className="p-3 bg-green-100 rounded-lg w-fit">
-                <Users className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Drivers</h3>
-            <p className="text-3xl font-bold text-gray-800">{stats?.drivers.total || 0}</p>
-            <div className="mt-4 flex gap-4 text-sm">
-              <div>
-                <span className="text-gray-500">Active:</span>
-                <span className="ml-1 font-semibold text-green-600">{stats?.drivers.active || 0}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">On Shift:</span>
-                <span className="ml-1 font-semibold text-blue-600">{stats?.drivers.onShift || 0}</span>
-              </div>
-            </div>
-          </div>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 -mt-2 mb-4">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.id}
+                  onClick={() => navigate(`${basePath}/${feature.id === 'vehicles' || feature.id === 'trailers' ? 'fleets' : feature.id}`)}
+                  className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    {/* Left side content */}
+                    <div className="flex-1">
+                
+                      <h3 className="text-sm font-bold text-gray-900 mb-1">
+                        {feature.title}
+                      </h3>
 
-          {/* Trailers Card */}
-          <div 
-            onClick={() => navigate(`${basePath}/fleets`)}
-            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 cursor-pointer hover:shadow-xl transition-shadow"
-          >
-            <div className="mb-4">
-              <div className="p-3 bg-purple-100 rounded-lg w-fit">
-                <Package className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Trailers</h3>
-            <p className="text-3xl font-bold text-gray-800">{stats?.trailers.total || 0}</p>
-            <div className="mt-4 flex gap-4 text-sm">
-              <div>
-                <span className="text-gray-500">Active:</span>
-                <span className="ml-1 font-semibold text-green-600">{stats?.trailers.active || 0}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">In Use:</span>
-                <span className="ml-1 font-semibold text-blue-600">{stats?.trailers.inUse || 0}</span>
-              </div>
-            </div>
-          </div>
+                      <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="text-xl font-bold text-gray-900">{feature.value}</span>
+                      </div>
 
-          {/* Trips Card */}
-          <div 
-            onClick={() => navigate(`${basePath}/trips`)}
-            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500 cursor-pointer hover:shadow-xl transition-shadow"
-          >
-            <div className="mb-4">
-              <div className="p-3 bg-orange-100 rounded-lg w-fit">
-                <Route className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Trips</h3>
-            <p className="text-3xl font-bold text-gray-800">{stats?.trips.total || 0}</p>
-            <div className="mt-4 flex flex-col gap-2 text-sm">
-              <div className="flex gap-4">
-                <div>
-                  <span className="text-gray-500">Planned:</span>
-                  <span className="ml-1 font-semibold text-orange-600">{stats?.trips.planned || 0}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500">In Progress:</span>
-                  <span className="ml-1 font-semibold text-blue-600">{stats?.trips.inProgress || 0}</span>
-                </div>
-              </div>
-              <div>
-                <span className="text-gray-500">Completed:</span>
-                <span className="ml-1 font-semibold text-green-600">{stats?.trips.completed || 0}</span>
-              </div>
-              <div className="flex gap-4 pt-1 border-t border-gray-200">
-                <div>
-                  <span className="text-gray-500">Today:</span>
-                  <span className="ml-1 font-semibold text-orange-600">{stats?.trips.today || 0}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500">Tomorrow:</span>
-                  <span className="ml-1 font-semibold text-purple-600">{stats?.trips.tomorrow || 0}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tables Section */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* Tabs */}
-          <div className="border-b border-gray-200">
-            <div className="flex">
-              <button
-                onClick={() => handleTabChange("drivers")}
-                className={`px-6 py-4 font-medium text-sm transition-colors ${
-                  activeTab === "drivers"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                Drivers
-              </button>
-              <button
-                onClick={() => handleTabChange("vehicles")}
-                className={`px-6 py-4 font-medium text-sm transition-colors ${
-                  activeTab === "vehicles"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                Vehicles
-              </button>
-              <button
-                onClick={() => handleTabChange("trailers")}
-                className={`px-6 py-4 font-medium text-sm transition-colors ${
-                  activeTab === "trailers"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                Trailers
-              </button>
-              <button
-                onClick={() => handleTabChange("trips")}
-                className={`px-6 py-4 font-medium text-sm transition-colors ${
-                  activeTab === "trips"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                Trips
-              </button>
-        </div>
-      </div>
-
-          {/* Search and Filter Bar */}
-          <div className="p-4 border-b border-gray-200 space-y-3">
-            <div className="flex gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder={`Search ${activeTab}...`}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${
-                  showFilters || statusFilter || operationStatusFilter || typeFilter
-                    ? "bg-blue-50 border-blue-500 text-blue-700"
-                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <Filter className="w-4 h-4" />
-                Filters
-                {(statusFilter || operationStatusFilter || typeFilter) && (
-                  <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
-                    {[statusFilter, operationStatusFilter, typeFilter].filter(Boolean).length}
-                  </span>
-                )}
-              </button>
-            </div>
-
-            {/* Filter Panel */}
-            {showFilters && (
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-gray-700">Filters</h4>
-                  <button
-                    onClick={() => {
-                      setStatusFilter("");
-                      setOperationStatusFilter("");
-                      setTypeFilter("");
-                    }}
-                    className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                  >
-                    <X className="w-4 h-4" />
-                    Clear All
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {activeTab === "drivers" && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                      </select>
+                      <p className="text-xs text-gray-400">{feature.subtitle}</p>
                     </div>
-                  )}
-                  
-                  {activeTab === "vehicles" && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">All Status</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                      </select>
+
+                    {/* Right side icon */}
+                    <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
+                      <Icon className={feature.iconColor} size={21} strokeWidth={2} />
                     </div>
+                  </div>
+
+             
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Tables Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+            {/* Tabs */}
+            <div className="border-b border-gray-200">
+              <div className="flex">
+                <button
+                  onClick={() => handleTabChange("drivers")}
+                  className={`px-6 py-3 font-medium text-sm transition-colors ${
+                    activeTab === "drivers"
+                      ? "text-[#42aeec] border-b-2 border-[#42aeec]"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                >
+                  Drivers
+                </button>
+                <button
+                  onClick={() => handleTabChange("vehicles")}
+                  className={`px-6 py-3 font-medium text-sm transition-colors ${
+                    activeTab === "vehicles"
+                      ? "text-[#42aeec] border-b-2 border-[#42aeec]"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                >
+                  Vehicles
+                </button>
+                <button
+                  onClick={() => handleTabChange("trailers")}
+                  className={`px-6 py-3 font-medium text-sm transition-colors ${
+                    activeTab === "trailers"
+                      ? "text-[#42aeec] border-b-2 border-[#42aeec]"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                >
+                  Trailers
+                </button>
+                <button
+                  onClick={() => handleTabChange("trips")}
+                  className={`px-6 py-3 font-medium text-sm transition-colors ${
+                    activeTab === "trips"
+                      ? "text-[#42aeec] border-b-2 border-[#42aeec]"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                >
+                  Trips
+                </button>
+              </div>
+            </div>
+
+            {/* Search and Filter Bar */}
+            <div className="p-4 border-b border-gray-200 space-y-3">
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder={`Search ${activeTab}...`}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                  />
+                </div>
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${
+                    showFilters || statusFilter || operationStatusFilter || typeFilter
+                      ? "bg-blue-50 border-[#42aeec] text-[#42aeec]"
+                      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <Filter className="w-4 h-4" />
+                  Filters
+                  {(statusFilter || operationStatusFilter || typeFilter) && (
+                    <span className="bg-[#42aeec] text-white text-xs px-2 py-0.5 rounded-full">
+                      {[statusFilter, operationStatusFilter, typeFilter].filter(Boolean).length}
+                    </span>
                   )}
-                  
-                  {activeTab === "trips" && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">All Status</option>
-                        <option value="planned">Planned</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
-                    </div>
-                  )}
-                  
-                  {activeTab === "trailers" && (
-                    <>
+                </button>
+              </div>
+
+              {/* Filter Panel */}
+              {showFilters && (
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-gray-700">Filters</h4>
+                    <button
+                      onClick={() => {
+                        setStatusFilter("");
+                        setOperationStatusFilter("");
+                        setTypeFilter("");
+                      }}
+                      className="text-sm text-[#42aeec] hover:text-[#1db5f5] flex items-center gap-1"
+                    >
+                      <X className="w-4 h-4" />
+                      Clear All
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {activeTab === "drivers" && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                         <select
                           value={statusFilter}
                           onChange={(e) => setStatusFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">All Status</option>
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                      </div>
+                    )}
+                    
+                    {activeTab === "vehicles" && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         >
                           <option value="">All Status</option>
                           <option value="Active">Active</option>
                           <option value="Inactive">Inactive</option>
                         </select>
                       </div>
+                    )}
+                    
+                    {activeTab === "trips" && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Operation Status</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                         <select
-                          value={operationStatusFilter}
-                          onChange={(e) => setOperationStatusFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         >
-                          <option value="">All Operation Status</option>
-                          <option value="in-transit">In Transit</option>
-                          <option value="available">Available</option>
-                          <option value="maintenance">Maintenance</option>
-                          <option value="idle">Idle</option>
+                          <option value="">All Status</option>
+                          <option value="planned">Planned</option>
+                          <option value="in-progress">In Progress</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
                         </select>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                        <select
-                          value={typeFilter}
-                          onChange={(e) => setTypeFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          <option value="">All Types</option>
-                          <option value="Dry Van">Dry Van</option>
-                          <option value="Reefer Trailer">Reefer Trailer</option>
-                          <option value="Flatbed">Flatbed</option>
-                          <option value="Tri-Axle Trailer">Tri-Axle Trailer</option>
-                          <option value="Tank Trailer">Tank Trailer</option>
-                          <option value="Dump Trailer">Dump Trailer</option>
-                        </select>
-                      </div>
-                    </>
-                  )}
+                    )}
+                    
+                    {activeTab === "trailers" && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                          <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          >
+                            <option value="">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Operation Status</label>
+                          <select
+                            value={operationStatusFilter}
+                            onChange={(e) => setOperationStatusFilter(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          >
+                            <option value="">All Operation Status</option>
+                            <option value="in-transit">In Transit</option>
+                            <option value="available">Available</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="idle">Idle</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                          <select
+                            value={typeFilter}
+                            onChange={(e) => setTypeFilter(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          >
+                            <option value="">All Types</option>
+                            <option value="Dry Van">Dry Van</option>
+                            <option value="Reefer Trailer">Reefer Trailer</option>
+                            <option value="Flatbed">Flatbed</option>
+                            <option value="Tri-Axle Trailer">Tri-Axle Trailer</option>
+                            <option value="Tank Trailer">Tank Trailer</option>
+                            <option value="Dump Trailer">Dump Trailer</option>
+                          </select>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            {activeTab === "drivers" && (
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Phone
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+            {/* Table */}
+            <div className="overflow-x-auto">
+              {activeTab === "drivers" && (
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Phone
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
                   {filteredDrivers.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
@@ -740,7 +722,7 @@ const Index = () => {
                     </tr>
                   ) : (
                     filteredDrivers.map((driver) => (
-                      <tr key={driver._id} className="hover:bg-gray-50">
+                      <tr key={driver._id} className="hover:bg-blue-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{driver.name || "N/A"}</div>
                         </td>
@@ -804,7 +786,7 @@ const Index = () => {
                     </tr>
                   ) : (
                     filteredVehicles.map((vehicle) => (
-                      <tr key={vehicle._id} className="hover:bg-gray-50">
+                      <tr key={vehicle._id} className="hover:bg-blue-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
                             {vehicle.unitNo || "N/A"}
@@ -882,7 +864,7 @@ const Index = () => {
                     </tr>
                   ) : (
                     filteredTrips.map((trip) => (
-                      <tr key={trip._id} className="hover:bg-gray-50">
+                      <tr key={trip._id} className="hover:bg-blue-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
                             {trip.tripNumber || trip._id.slice(-8).toUpperCase()}
@@ -972,7 +954,7 @@ const Index = () => {
                     </tr>
                   ) : (
                     filteredTrailers.map((trailer) => (
-                      <tr key={trailer._id} className="hover:bg-gray-50">
+                      <tr key={trailer._id} className="hover:bg-blue-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
                             {trailer.unitNo || "N/A"}
@@ -1075,7 +1057,7 @@ const Index = () => {
                         onClick={() => setCurrentPage(pageNum)}
                         className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                           currentPage === pageNum
-                            ? "bg-blue-600 text-white"
+                            ? "bg-blue-600 !text-white"
                             : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
                         }`}
                       >
@@ -1101,6 +1083,7 @@ const Index = () => {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 };

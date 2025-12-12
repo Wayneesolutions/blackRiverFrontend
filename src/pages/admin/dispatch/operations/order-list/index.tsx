@@ -426,7 +426,7 @@ const OrderList = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-[#EDF8FF] min-h-screen">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">Order List</h1>
         <button

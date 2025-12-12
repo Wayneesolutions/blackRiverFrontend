@@ -9,7 +9,6 @@ const ServiceRate = lazy(() => import("../../pages/admin/dispatch/operations/ser
 const Dispatch = lazy(() => import("../../pages/admin/dispatch/operations/dispatch/index"))
 const AllDispatch = lazy(() => import("../../pages/admin/dispatch/operations/all-dispatch/index"))
 const Delivery = lazy(() => import("../../pages/admin/dispatch/operations/delivery/index"))
-const Scheduler = lazy(() => import("../../pages/admin/dispatch/operations/schedular/index"))
 const Scheduling = lazy(() => import("../../pages/admin/driverManagement/schedulePage/index"))
 const OrderConfig = lazy(() => import("../../pages/admin/dispatch/operations/orderConfig/index"))
 const OrderList = lazy(() => import("../../pages/admin/dispatch/operations/order-list/index"))
@@ -40,7 +39,6 @@ function DispatchRoutes() {
           <Route path="/dispatch" element={<Dispatch />} />
           <Route path="/all-dispatch" element={<AllDispatch />} />
           <Route path="/delivery" element={<Delivery />} />
-          <Route path="/scheduler" element={<Scheduler />} />
           <Route path="/scheduling" element={<Scheduling />} />
           <Route path="/order-config" element={<OrderConfig />} />
 

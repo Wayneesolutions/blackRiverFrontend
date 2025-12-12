@@ -93,10 +93,10 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
 
     return (
         <>
-            <header 
+            <header
                 className="flex items-center justify-between px-6 py-4 shadow-sm relative z-20"
                 style={{
- background: 'linear-gradient(135deg, #42aeec 0%, #31a2d4 100%)'
+                    background: 'linear-gradient(135deg, #42aeec 0%, #31a2d4 100%)'
                 }}
             >
                 {/* Left side - Collapse button */}
