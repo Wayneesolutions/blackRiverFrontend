@@ -836,3 +836,33 @@ export const createBulkOrders = async (orders: any[]) => {
     return (error as Error).response?.data;
   }
 }
+
+export const autoExtractOrderData = async (document: File) => {
+  try {
+    const formData = new FormData();
+    formData.append('document', document);
+    
+    const res: AxiosResponse = await apiClient.post(`dispatcher/order/auto-extract`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error('autoExtractOrderData API error:', error);
+    return error?.response?.data || { success: false, message: error?.message || 'Failed to extract order data' };
+  }
+}
+
+export const getOrderSuggestions = async (field: string, value: string, customerId?: string) => {
+  try {
+    const params: any = { field, value };
+    if (customerId) params.customerId = customerId;
+    
+    const res: AxiosResponse = await apiClient.get(`dispatcher/order/suggestions`, { params });
+    return res.data;
+  } catch (error: any) {
+    console.error('getOrderSuggestions API error:', error);
+    return { success: false, data: [] };
+  }
+}

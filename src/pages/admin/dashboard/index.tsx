@@ -20,7 +20,7 @@ declare global {
     }
 }
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
 
 interface FeatureCard {
     id: string;
@@ -39,9 +39,10 @@ interface FeatureCard {
 
 const Index = () => {
     const navigate = useNavigate();
-    const { isLoaded } = useJsApiLoader({
+    const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-maps-script',
         googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+        libraries: ['places', 'marker'],
     });
 
     const [loading, setLoading] = useState(true);
@@ -62,7 +63,18 @@ const Index = () => {
         try {
             const response = await getAdminDashboard();
             if (response.success && response.data) {
-                setDashboardData(response.data);
+                // Filter to ensure only current company's data (backend should already filter, but double-check)
+                const filteredData = {
+                    ...response.data,
+                    trips: response.data.trips || [],
+                    trucks: response.data.trucks || []
+                };
+                console.log('📊 Dashboard data received:', {
+                    tripsCount: filteredData.trips.length,
+                    trucksCount: filteredData.trucks.length,
+                    trips: filteredData.trips.map(t => ({ id: t.id, tripNumber: t.tripNumber, status: t.status }))
+                });
+                setDashboardData(filteredData);
             } else {
                 setError(response.message || 'Failed to fetch dashboard data');
             }
@@ -80,8 +92,9 @@ const Index = () => {
             return { lat: 39.8283, lng: -98.5795 }; // Center of USA
         }
 
+        // Filter active trips - match backend filter (only 'planned' and 'in-progress')
         const activeTrips = dashboardData.trips.filter(t => 
-            t.status === 'in-progress' || t.status === 'started'
+            t.status === 'in-progress' || t.status === 'planned'
         );
         
         // Collect all valid coordinates
@@ -225,8 +238,9 @@ const Index = () => {
         navigate(route);
     };
 
+    // Filter active trips - match backend filter (only 'planned' and 'in-progress')
     const activeTrips = dashboardData?.trips.filter(t => 
-        t.status === 'in-progress' || t.status === 'started'
+        t.status === 'in-progress' || t.status === 'planned'
     ) || [];
 
     if (loading) {
@@ -365,7 +379,15 @@ const Index = () => {
 
                         {/* Real Google Map */}
                         <div className="relative h-52">
-                            {isLoaded ? (
+                            {loadError ? (
+                                <div className="w-full h-full bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 flex items-center justify-center border border-gray-300 rounded-lg">
+                                    <div className="text-center p-4">
+                                        <MapPin className="text-gray-400 mx-auto mb-2" size={32} />
+                                        <p className="text-gray-600 font-medium text-sm mb-1">Map unavailable</p>
+                                        <p className="text-gray-500 text-xs">Google Maps could not be loaded</p>
+                                    </div>
+                                </div>
+                            ) : isLoaded ? (
                                 <GoogleMap
                                     mapContainerStyle={{ width: '100%', height: '100%' }}
                                     center={mapCenter}
@@ -384,53 +406,11 @@ const Index = () => {
                                         ]
                                     }}
                                 >
-                                    {/* Trip Origin/Destination Markers */}
+                                    {/* Trip Markers - Only show current location (truck) for active trips */}
                                     {activeTrips.map((trip) => {
-                                        const tripMarkers = [];
-                                        
-                                        // Origin marker
-                                        if (trip.originLat && trip.originLng) {
-                                            tripMarkers.push(
-                                                <Marker
-                                                    key={`${trip.id}-origin`}
-                                                    position={{ lat: trip.originLat, lng: trip.originLng }}
-                                                    icon={{
-                                                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                                                            <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                                                <circle cx="10" cy="10" r="8" fill="#42aeec" stroke="#ffffff" stroke-width="2"/>
-                                                            </svg>
-                                                        `),
-                                                        scaledSize: new window.google.maps.Size(20, 20),
-                                                        anchor: new window.google.maps.Point(10, 10),
-                                                    }}
-                                                    title={`Origin: ${trip.origin} - ${trip.driver}`}
-                                                />
-                                            );
-                                        }
-
-                                        // Destination marker
-                                        if (trip.destLat && trip.destLng) {
-                                            tripMarkers.push(
-                                                <Marker
-                                                    key={`${trip.id}-dest`}
-                                                    position={{ lat: trip.destLat, lng: trip.destLng }}
-                                                    icon={{
-                                                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                                                            <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                                                <circle cx="10" cy="10" r="8" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
-                                                            </svg>
-                                                        `),
-                                                        scaledSize: new window.google.maps.Size(20, 20),
-                                                        anchor: new window.google.maps.Point(10, 10),
-                                                    }}
-                                                    title={`Destination: ${trip.destination} - ${trip.driver}`}
-                                                />
-                                            );
-                                        }
-
-                                        // Truck current location marker (if available)
+                                        // Only show truck current location marker, not origin/destination
                                         if (trip.currentLat && trip.currentLng && trip.truckInfo) {
-                                            tripMarkers.push(
+                                            return (
                                                 <Marker
                                                     key={`${trip.id}-truck`}
                                                     position={{ lat: trip.currentLat, lng: trip.currentLng }}
@@ -443,12 +423,11 @@ const Index = () => {
                                                         scaledSize: new window.google.maps.Size(24, 24),
                                                         anchor: new window.google.maps.Point(12, 12),
                                                     }}
-                                                    title={`Truck: ${trip.truck} - Driver: ${trip.driver}`}
+                                                    title={`Trip: ${trip.tripNumber || trip.id} - Truck: ${trip.truck} - Driver: ${trip.driver}`}
                                                 />
                                             );
                                         }
-
-                                        return <React.Fragment key={trip.id}>{tripMarkers}</React.Fragment>;
+                                        return null;
                                     })}
 
                                     {/* All trucks current locations */}

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { X, Plus, ChevronDown, ChevronUp, Search, Pencil, Upload, FileText, ArrowLeft, ArrowRight } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
-import { listCustomer, createOrder, updateOrder } from "../../../../../axios/api/distapcher";
+import { listCustomer, createOrder, updateOrder, autoExtractOrderData, getOrderSuggestions } from "../../../../../axios/api/distapcher";
 
 type NotificationType = 'success' | 'error' | 'warning';
 
@@ -185,6 +185,19 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [rateConfirmationFile, setRateConfirmationFile] = useState<File | null>(null);
     const [internalNotes, setInternalNotes] = useState("");
     const [customerNotes, setCustomerNotes] = useState("");
+
+    // Auto-entry states
+    const [showAutoEntryModal, setShowAutoEntryModal] = useState(false);
+    const [autoEntryFile, setAutoEntryFile] = useState<File | null>(null);
+    const [autoEntryLoading, setAutoEntryLoading] = useState(false);
+    
+    // Suggestions states
+    const [commoditySuggestions, setCommoditySuggestions] = useState<string[]>([]);
+    const [shipperNameSuggestions, setShipperNameSuggestions] = useState<string[]>([]);
+    const [receiverNameSuggestions, setReceiverNameSuggestions] = useState<string[]>([]);
+    const [showCommoditySuggestions, setShowCommoditySuggestions] = useState(false);
+    const [showShipperNameSuggestions, setShowShipperNameSuggestions] = useState(false);
+    const [showReceiverNameSuggestions, setShowReceiverNameSuggestions] = useState(false);
 
     const shipperAddressDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -556,6 +569,162 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         }
     };
 
+    // Auto-entry functions
+    const handleAutoExtract = async () => {
+        if (!autoEntryFile) {
+            addNotification('error', 'Please upload a document');
+            return;
+        }
+
+        setAutoEntryLoading(true);
+        try {
+            const response = await autoExtractOrderData(autoEntryFile);
+
+            if (response?.success && response?.data) {
+                populateFormFromExtractedData(response.data);
+                addNotification('success', 'Order data extracted and populated successfully!');
+                setShowAutoEntryModal(false);
+                setAutoEntryFile(null);
+            } else {
+                addNotification('error', response?.message || 'Failed to extract order data');
+            }
+        } catch (error: any) {
+            console.error('Auto-extract error:', error);
+            addNotification('error', error?.message || 'Failed to extract order data');
+        } finally {
+            setAutoEntryLoading(false);
+        }
+    };
+
+    // Get suggestions as user types
+    const fetchSuggestions = async (field: string, value: string) => {
+        if (!value || value.trim().length < 2) {
+            if (field === 'commodity') setCommoditySuggestions([]);
+            if (field === 'shipperName') setShipperNameSuggestions([]);
+            if (field === 'receiverName') setReceiverNameSuggestions([]);
+            return;
+        }
+
+        try {
+            const customerId = selectedCustomer?._id || selectedCustomer?.id;
+            const customerIdStr = customerId ? String(customerId) : undefined;
+            const response = await getOrderSuggestions(field, value, customerIdStr);
+            
+            if (response?.success && response?.data) {
+                if (field === 'commodity') {
+                    setCommoditySuggestions(response.data);
+                    setShowCommoditySuggestions(true);
+                } else if (field === 'shipperName') {
+                    setShipperNameSuggestions(response.data);
+                    setShowShipperNameSuggestions(true);
+                } else if (field === 'receiverName') {
+                    setReceiverNameSuggestions(response.data);
+                    setShowReceiverNameSuggestions(true);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching suggestions:', error);
+        }
+    };
+
+    // Debounce function for suggestions
+    const debounce = (func: Function, wait: number) => {
+        let timeout: NodeJS.Timeout;
+        return function executedFunction(...args: any[]) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    };
+
+    const debouncedFetchSuggestions = useCallback(
+        debounce((field: string, value: string) => fetchSuggestions(field, value), 300),
+        [selectedCustomer]
+    );
+
+    const populateFormFromExtractedData = (data: any) => {
+        // Basic order information
+        if (data.customerOrderNo) setCustomerOrderNo(data.customerOrderNo);
+        if (data.orderType) setLoadType(data.orderType);
+        if (data.freightOn) setFreightOn(data.freightOn);
+        if (data.salesman) setSelectedSalesman(data.salesman);
+        if (data.orderNotes) setOrderNotes(data.orderNotes);
+
+        // Pickup details (NO location auto-population)
+        if (data.pickupDate) setPickupDate(data.pickupDate);
+        if (data.pickupTime) setPickupTime(data.pickupTime);
+        if (data.pickupAppointment !== null && data.pickupAppointment !== undefined) {
+            setPickupAppointment(data.pickupAppointment ? "Yes" : "No");
+        }
+        if (data.pickupNote) setPickupNote(data.pickupNote);
+
+        // Delivery details (NO location auto-population)
+        if (data.deliveryDate) setDeliveryDate(data.deliveryDate);
+        if (data.deliveryTime) setDeliveryTime(data.deliveryTime);
+        if (data.deliveryAppointment !== null && data.deliveryAppointment !== undefined) {
+            setDeliveryAppointment(data.deliveryAppointment ? "Yes" : "No");
+        }
+        if (data.deliveryNote) setDeliveryNote(data.deliveryNote);
+
+        // Shipment details
+        if (data.commodity) setCommodity(data.commodity);
+        if (data.valueOfGoods) setValueOfGoods(data.valueOfGoods.toString());
+        if (data.valueOfGoodsCurrency) setValueOfGoodsCurrency(data.valueOfGoodsCurrency);
+        if (data.equipment && Array.isArray(data.equipment)) {
+            setSelectedEquipment(data.equipment);
+        }
+        if (data.noOfPackages) setNoOfPackages(data.noOfPackages.toString());
+        if (data.noOfPackagesType) setNoOfPackagesType(data.noOfPackagesType);
+        if (data.weight) setWeight(data.weight.toString());
+        if (data.weightUnit) setWeightUnit(data.weightUnit);
+        if (data.temperature !== null && data.temperature !== undefined) {
+            setTemperature(data.temperature.toString());
+        }
+        if (data.temperatureUnit) setTemperatureUnit(data.temperatureUnit);
+        if (data.dimensions) {
+            if (data.dimensions.length) setDimensionL(data.dimensions.length.toString());
+            if (data.dimensions.width) setDimensionB(data.dimensions.width.toString());
+            if (data.dimensions.height) setDimensionH(data.dimensions.height.toString());
+            if (data.dimensions.unit) setDimensionUnit(data.dimensions.unit);
+        }
+        if (data.distance) setDistance(data.distance.toString());
+
+        // Additional info
+        if (data.additionalInfo) {
+            setAdditionalInfo(prev => ({
+                ...prev,
+                CSA: data.additionalInfo.CSA ?? prev.CSA,
+                CTPAT: data.additionalInfo.CTPAT ?? prev.CTPAT,
+                PIP: data.additionalInfo.PIP ?? prev.PIP,
+                HAZMAT: data.additionalInfo.HAZMAT ?? prev.HAZMAT,
+                TARP: data.additionalInfo.TARP ?? prev.TARP,
+                OverDimension: data.additionalInfo.OverDimension ?? prev.OverDimension
+            }));
+        }
+
+        // Shipper information (NO address auto-population)
+        if (data.shipperName) setShipperName(data.shipperName);
+        if (data.shipperPhone) setShipperPhone(data.shipperPhone);
+        if (data.shipperEmail) setShipperEmail(data.shipperEmail);
+        if (data.pickupAppointmentType) setPickupAppointmentType(data.pickupAppointmentType);
+        if (data.pickupAppointmentDate) setPickupAppointmentDate(data.pickupAppointmentDate);
+        if (data.pickupAppointmentTime) setPickupAppointmentTime(data.pickupAppointmentTime);
+        if (data.pickupSpecialInstructions) setPickupSpecialInstructions(data.pickupSpecialInstructions);
+        if (data.pickupGatePass) setPickupGatePass(data.pickupGatePass);
+
+        // Receiver information
+        if (data.receiverName) setReceiverName(data.receiverName);
+        if (data.receiverPhone) setReceiverPhone(data.receiverPhone);
+        if (data.receiverAddress) setReceiverAddress(data.receiverAddress);
+        if (data.deliveryAppointmentType) setDeliveryAppointmentType(data.deliveryAppointmentType);
+        if (data.deliveryAppointmentDate) setDeliveryAppointmentDate(data.deliveryAppointmentDate);
+        if (data.deliveryAppointmentTime) setDeliveryAppointmentTime(data.deliveryAppointmentTime);
+        if (data.deliveryUnloadingInstructions) setDeliveryUnloadingInstructions(data.deliveryUnloadingInstructions);
+    };
+
     // Step navigation
     const nextStep = () => {
         if (currentStep < 5) {
@@ -847,7 +1016,18 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             {/* Fixed Header */}
             <div className="flex items-center justify-between p-5 border-b-2 border-gray-200 bg-gradient-to-r from-white to-gray-50 flex-shrink-0 shadow-sm">
                 <div className="flex-1">
-                    <h2 className="text-xl font-bold text-gray-800 mb-3">{order ? 'Edit Order' : 'Create New Order'}</h2>
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-xl font-bold text-gray-800">{order ? 'Edit Order' : 'Create New Order'}</h2>
+                        {!order && (
+                            <button
+                                onClick={() => setShowAutoEntryModal(true)}
+                                className="px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 flex items-center gap-2"
+                            >
+                                <Upload className="w-4 h-4" />
+                                AI Auto-Entry
+                            </button>
+                        )}
+                    </div>
                     {/* Step Indicator */}
                     <div className="flex items-center gap-1 flex-wrap">
                         {stepNames.map((name, index) => (
@@ -1080,17 +1260,46 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 {/* Top Fields */}
                                 <div className="space-y-4">
                                     {/* Commodity */}
-                                    <div className="flex items-center">
+                                    <div className="flex items-center relative">
                                         <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
                                             Commodity <span className="text-red-500">*</span>
                                         </label>
-                                        <input
-                                            type="text"
-                                            value={commodity}
-                                            onChange={(e) => setCommodity(e.target.value)}
-                                            className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                            placeholder="Enter commodity"
-                                        />
+                                        <div className="flex-1 relative">
+                                            <input
+                                                type="text"
+                                                value={commodity}
+                                                onChange={(e) => {
+                                                    setCommodity(e.target.value);
+                                                    debouncedFetchSuggestions('commodity', e.target.value);
+                                                }}
+                                                onFocus={() => {
+                                                    if (commodity && commodity.length >= 2) {
+                                                        fetchSuggestions('commodity', commodity);
+                                                    }
+                                                }}
+                                                onBlur={() => {
+                                                    setTimeout(() => setShowCommoditySuggestions(false), 200);
+                                                }}
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                                placeholder="Enter commodity"
+                                            />
+                                            {showCommoditySuggestions && commoditySuggestions.length > 0 && (
+                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                                    {commoditySuggestions.map((suggestion, index) => (
+                                                        <div
+                                                            key={index}
+                                                            onClick={() => {
+                                                                setCommodity(suggestion);
+                                                                setShowCommoditySuggestions(false);
+                                                            }}
+                                                            className="px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm"
+                                                        >
+                                                            {suggestion}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* Value of goods - Input on left, Dropdown on right (like Weight) */}
@@ -1740,15 +1949,42 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Contact Information</h4>
                                 <div className="space-y-4">
                                     {/* Shipper Name */}
-                                    <div>
+                                    <div className="relative">
                                         <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Name *</label>
                                         <input
                                             type="text"
                                             value={shipperName}
-                                            onChange={(e) => setShipperName(e.target.value)}
+                                            onChange={(e) => {
+                                                setShipperName(e.target.value);
+                                                debouncedFetchSuggestions('shipperName', e.target.value);
+                                            }}
+                                            onFocus={() => {
+                                                if (shipperName && shipperName.length >= 2) {
+                                                    fetchSuggestions('shipperName', shipperName);
+                                                }
+                                            }}
+                                            onBlur={() => {
+                                                setTimeout(() => setShowShipperNameSuggestions(false), 200);
+                                            }}
                                             className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                             placeholder="Enter shipper name"
                                         />
+                                        {showShipperNameSuggestions && shipperNameSuggestions.length > 0 && (
+                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                                {shipperNameSuggestions.map((suggestion, index) => (
+                                                    <div
+                                                        key={index}
+                                                        onClick={() => {
+                                                            setShipperName(suggestion);
+                                                            setShowShipperNameSuggestions(false);
+                                                        }}
+                                                        className="px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm"
+                                                    >
+                                                        {suggestion}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Shipper Phone */}
@@ -1992,15 +2228,42 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Contact Information</h4>
                                 <div className="space-y-4">
                                     {/* Receiver Name */}
-                                    <div>
+                                    <div className="relative">
                                         <label className="block text-xs font-medium text-gray-700 mb-1">Receiver Name *</label>
                                         <input
                                             type="text"
                                             value={receiverName}
-                                            onChange={(e) => setReceiverName(e.target.value)}
+                                            onChange={(e) => {
+                                                setReceiverName(e.target.value);
+                                                debouncedFetchSuggestions('receiverName', e.target.value);
+                                            }}
+                                            onFocus={() => {
+                                                if (receiverName && receiverName.length >= 2) {
+                                                    fetchSuggestions('receiverName', receiverName);
+                                                }
+                                            }}
+                                            onBlur={() => {
+                                                setTimeout(() => setShowReceiverNameSuggestions(false), 200);
+                                            }}
                                             className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
                                             placeholder="Enter receiver name"
                                         />
+                                        {showReceiverNameSuggestions && receiverNameSuggestions.length > 0 && (
+                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                                {receiverNameSuggestions.map((suggestion, index) => (
+                                                    <div
+                                                        key={index}
+                                                        onClick={() => {
+                                                            setReceiverName(suggestion);
+                                                            setShowReceiverNameSuggestions(false);
+                                                        }}
+                                                        className="px-3 py-2 cursor-pointer hover:bg-green-50 text-sm"
+                                                    >
+                                                        {suggestion}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Receiver Phone */}
@@ -2438,6 +2701,102 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     />
                 ))}
             </div>
+
+            {/* Auto-Entry Modal */}
+            {showAutoEntryModal && (
+                <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-[10001] p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-gray-800">AI Auto-Entry from Document</h3>
+                            <button
+                                onClick={() => {
+                                    setShowAutoEntryModal(false);
+                                    setAutoEntryFile(null);
+                                }}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Upload Rate Confirmation or Order Document (PDF or Text)
+                                </label>
+                                <p className="text-xs text-gray-500 mb-3">
+                                    Upload a document to automatically extract and populate order fields. Note: Pickup/Delivery locations, Customer, and Shipper Address will not be auto-populated.
+                                </p>
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                                    {autoEntryFile ? (
+                                        <div className="space-y-2">
+                                            <FileText className="w-12 h-12 text-green-500 mx-auto" />
+                                            <p className="text-sm font-medium text-gray-700">{autoEntryFile.name}</p>
+                                            <button
+                                                onClick={() => setAutoEntryFile(null)}
+                                                className="text-sm text-red-600 hover:text-red-700"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <label className="cursor-pointer">
+                                            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                                            <p className="text-sm text-gray-600 mb-1">
+                                                Click to upload or drag and drop
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                PDF, TXT files up to 20MB
+                                            </p>
+                                            <input
+                                                type="file"
+                                                accept=".pdf,.txt"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        setAutoEntryFile(file);
+                                                    }
+                                                }}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 pt-4 border-t border-gray-200">
+                                <button
+                                    onClick={() => {
+                                        setShowAutoEntryModal(false);
+                                        setAutoEntryFile(null);
+                                    }}
+                                    className="flex-1 px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAutoExtract}
+                                    disabled={autoEntryLoading || !autoEntryFile}
+                                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded text-sm font-medium hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {autoEntryLoading ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            Extracting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload className="w-4 h-4" />
+                                            Extract & Populate
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
