@@ -36,13 +36,21 @@ interface Policy {
   _id: string;
   policyNumber: string;
   title: string;
-  category: string;
-  version: string;
-  effectiveDate: string;
-  reviewDate: string;
-  status: 'active' | 'draft' | 'archived' | 'under-review';
-  documentType: 'policy' | 'procedure' | 'guideline' | 'form';
+  // Categories covering Req 12.1 A-E
+  category: 'Safety' | 'HR/Conduct' | 'Driver-Specific' | 'Wellness' | 'Shop/Yard' | string;
+  version: string; // Req 4: Version Control
+  effectiveDate: string; 
+  reviewDate: string; // Req 12.2: Renewal Date
+  renewalCycle?: number; // Req 12.2: Cycle (12, 24, 36 months)
+  status: 'active' | 'draft' | 'archived' | 'under-review' | 'expired';
+  documentType: 'Policy' | 'Procedure' | 'SOP' | 'Form' | 'policy' | 'procedure' | 'guideline' | 'form'; // Req 4: SOPs
+  fileType?: 'PDF' | 'DOCX' | 'TXT'; // Req 12: File format support
   fileUrl?: string;
+  owner?: string; // Req 12.3: Policy Owner
+  assignedRoles?: string; // Req 12: Assign policies to roles
+  acknowledged?: number; // Req 4, 12: Acknowledgment tracking
+  totalEmployees?: number; // Req 4, 12: Total employees assigned
+  linkedTrainingId?: string; // Req 12: Link policies to related training
 }
 
 interface ToastNotification {
@@ -628,26 +636,6 @@ const PoliciesDocuments = () => {
     </div>
   );
 };
-
-export default PoliciesDocuments;
-    _id: string;
-    policyNumber: string;
-    title: string;
-    // Categories covering Req 12.1 A-E
-    category: 'Safety' | 'HR/Conduct' | 'Driver-Specific' | 'Wellness' | 'Shop/Yard'; 
-    version: string; // Req 4: Version Control
-    effectiveDate: string; 
-    reviewDate: string; // Req 12.2: Renewal Date
-    renewalCycle: number; // Req 12.2: Cycle (12, 24, 36 months)
-    status: 'active' | 'draft' | 'archived' | 'under-review' | 'expired';
-    documentType: 'Policy' | 'Procedure' | 'SOP' | 'Form'; // Req 4: SOPs
-    fileType: 'PDF' | 'DOCX' | 'TXT'; // Req 12: File format support
-    owner: string; // Req 12.3: Policy Owner
-    assignedRoles: string; // Req 12: Assign policies to roles
-    acknowledged: number; // Req 4, 12: Acknowledgment tracking
-    totalEmployees: number; // Req 4, 12: Total employees assigned
-    linkedTrainingId?: string; // Req 12: Link policies to related training
-}
 
 const ALL_CATEGORIES = [
     'Safety', 'HR/Conduct', 'Driver-Specific', 'Wellness', 'Shop/Yard'
@@ -1575,4 +1563,3 @@ const PolicyManagementModule = () => {
 };
 
 export default PolicyManagementModule;
->>>>>>> de72c66fe733b792cc1f2c15ecf0acf21b2201ce

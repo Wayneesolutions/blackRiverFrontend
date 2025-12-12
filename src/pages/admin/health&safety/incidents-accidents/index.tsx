@@ -657,11 +657,23 @@ const IncidentManagement: React.FC = () => {
         });
         await fetchIncidents();
       } else {
-        showNotification('error', response?.message || 'Failed to create incident');
+        const errorMsg = response?.message || 'Failed to create incident';
+        const validationErrors = response?.errors;
+        let fullErrorMsg = errorMsg;
+        if (validationErrors && Array.isArray(validationErrors) && validationErrors.length > 0) {
+          fullErrorMsg += ': ' + validationErrors.map((e: any) => `${e.field}: ${e.message}`).join(', ');
+        }
+        showNotification('error', fullErrorMsg);
       }
     } catch (error: any) {
       console.error('Error creating incident:', error);
-      showNotification('error', error?.response?.data?.message || 'Failed to create incident');
+      const errorMsg = error?.response?.data?.message || error?.message || 'Failed to create incident';
+      const validationErrors = error?.response?.data?.errors;
+      let fullErrorMsg = errorMsg;
+      if (validationErrors && Array.isArray(validationErrors) && validationErrors.length > 0) {
+        fullErrorMsg += ': ' + validationErrors.map((e: any) => `${e.field}: ${e.message}`).join(', ');
+      }
+      showNotification('error', fullErrorMsg);
     } finally {
       setUploadingFiles(false);
     }
@@ -1813,208 +1825,6 @@ const IncidentManagement: React.FC = () => {
       </form>
     </div>
   );
-
-  const renderInjuryRTW = () => {
-    return (
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">Injury Management & Return-to-Work (RTW)</h2>
-        <p className="mb-6 text-gray-700 text-sm bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
-          <strong>CLC Requirement:</strong> Supports Canada Labour Code requirements for injury documentation and managing modified duty plans.
-        </p>
-        
-        <form className="space-y-6" onSubmit={handleSubmitInjuryRecord}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Related Incident *</label>
-              <select 
-                value={injuryRecordFormData.selectedIncidentId}
-                onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, selectedIncidentId: e.target.value })}
-                className="w-full border border-gray-300 p-2 rounded-lg focus:ring-purple-500"
-              >
-                <option value="">Select Incident with Injury...</option>
-                {incidents.map(i => (
-                  <option key={i._id} value={i._id}>{i.incidentNumber} - {i.type}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date of Injury *</label>
-              <input 
-                type="date" 
-                value={injuryRecordFormData.injuryDate}
-                onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, injuryDate: e.target.value })}
-                className="w-full border border-gray-300 p-2 rounded-lg" 
-              />
-            </div>
-          </div>
-
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold mb-4">Injury Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Injured Worker *</label>
-                <input 
-                  type="text" 
-                  value={injuryRecordFormData.injuredWorker}
-                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, injuredWorker: e.target.value })}
-                  placeholder="Worker Name" 
-                  className="w-full border border-gray-300 p-2 rounded-lg" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Injury Type *</label>
-                <select 
-                  value={injuryRecordFormData.injuryType}
-                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, injuryType: e.target.value })}
-                  className="w-full border border-gray-300 p-2 rounded-lg"
-                >
-                  <option value="">Select Injury Type</option>
-                  <option>Cut/Laceration</option>
-                  <option>Strain/Sprain</option>
-                  <option>Fracture</option>
-                  <option>Burn</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Body Part Affected *</label>
-                <input 
-                  type="text" 
-                  value={injuryRecordFormData.bodyPart}
-                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, bodyPart: e.target.value })}
-                  placeholder="e.g., Right Hand" 
-                  className="w-full border border-gray-300 p-2 rounded-lg" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Severity *</label>
-                <select 
-                  value={injuryRecordFormData.severity}
-                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, severity: e.target.value })}
-                  className="w-full border border-gray-300 p-2 rounded-lg"
-                >
-                  <option value="">Select Severity</option>
-                  <option>Minor</option>
-                  <option>Moderate</option>
-                  <option>Serious</option>
-                  <option>Critical</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold mb-4">Modified Duty & Restrictions</h3>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Doctor Restrictions / Limitations *</label>
-              <textarea 
-                rows={3} 
-                value={injuryRecordFormData.doctorRestrictions}
-                onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, doctorRestrictions: e.target.value })}
-                placeholder="Enter all physician-mandated restrictions (e.g., No lifting over 10kg, No driving, Limited standing time 2 hours/day)..." 
-                className="w-full border border-gray-300 p-2 rounded-lg mb-4"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Modified Duty Work Assignment *</label>
-              <textarea 
-                rows={3} 
-                value={injuryRecordFormData.modifiedDutyPlan}
-                onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, modifiedDutyPlan: e.target.value })}
-                placeholder="Describe the assigned modified work (e.g., Office filing, light dispatch duties, administrative tasks)..." 
-                className="w-full border border-gray-300 p-2 rounded-lg"
-              />
-            </div>
-          </div>
-
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold mb-4">WCB/WSIB Claim & Documentation</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">WCB/WSIB Claim Number</label>
-                <input 
-                  type="text" 
-                  value={injuryRecordFormData.wcbClaimNumber}
-                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, wcbClaimNumber: e.target.value })}
-                  placeholder="Claim Number" 
-                  className="w-full border border-gray-300 p-2 rounded-lg" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Expected Return-to-Work Date</label>
-                <input 
-                  type="date" 
-                  value={injuryRecordFormData.returnToWorkDate}
-                  onChange={(e) => setInjuryRecordFormData({ ...injuryRecordFormData, returnToWorkDate: e.target.value })}
-                  className="w-full border border-gray-300 p-2 rounded-lg" 
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold mb-4">Return-to-Work Progress Tracking</h3>
-            <div className="space-y-3">
-              {injuryRecordFormData.progressNotes.map((note, idx) => (
-                <div key={idx} className="border rounded-lg p-3">
-                  <div className="grid grid-cols-2 gap-3 mb-2">
-                    <input 
-                      type="date" 
-                      value={note.date}
-                      onChange={(e) => {
-                        const updated = [...injuryRecordFormData.progressNotes];
-                        updated[idx].date = e.target.value;
-                        setInjuryRecordFormData({ ...injuryRecordFormData, progressNotes: updated });
-                      }}
-                      className="border border-gray-300 p-2 rounded-lg text-sm" 
-                    />
-                    <input 
-                      type="text" 
-                      value={note.enteredBy}
-                      onChange={(e) => {
-                        const updated = [...injuryRecordFormData.progressNotes];
-                        updated[idx].enteredBy = e.target.value;
-                        setInjuryRecordFormData({ ...injuryRecordFormData, progressNotes: updated });
-                      }}
-                      placeholder="Entered By" 
-                      className="border border-gray-300 p-2 rounded-lg text-sm" 
-                    />
-                  </div>
-                  <textarea 
-                    rows={2} 
-                    value={note.note}
-                    onChange={(e) => {
-                      const updated = [...injuryRecordFormData.progressNotes];
-                      updated[idx].note = e.target.value;
-                      setInjuryRecordFormData({ ...injuryRecordFormData, progressNotes: updated });
-                    }}
-                    placeholder="Log weekly follow-ups and progress toward full duty..." 
-                    className="w-full border border-gray-300 p-2 rounded-lg text-sm"
-                  />
-                </div>
-              ))}
-              <button 
-                type="button" 
-                onClick={() => setInjuryRecordFormData({ 
-                  ...injuryRecordFormData, 
-                  progressNotes: [...injuryRecordFormData.progressNotes, { date: '', note: '', enteredBy: '' }] 
-                })}
-                className="text-sm text-purple-600 hover:text-purple-800"
-              >
-                + Add Progress Note
-              </button>
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <button type="submit" disabled={uploadingFiles} className="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition flex items-center gap-2 disabled:opacity-50">
-              {uploadingFiles ? 'Uploading...' : 'Save Injury Management Plan'}
-            </button>
-          </div>
-        </form>
-      </div>
-    );
-  };
 
   const renderInjuryRTW = () => (
     <div className="bg-white rounded-2xl p-8 shadow-lg">

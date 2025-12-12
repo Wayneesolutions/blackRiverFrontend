@@ -62,7 +62,9 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
     }, [isSearchOpen]);
 
     const handleLogout = () => {
-        logout();
+        if (window.confirm('Are you sure you want to logout?')) {
+            logout();
+        }
     };
 
     const handleProfileClick = () => {

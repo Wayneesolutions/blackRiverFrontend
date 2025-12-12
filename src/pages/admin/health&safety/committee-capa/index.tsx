@@ -233,6 +233,8 @@ const EnhancedCommitteeCAPA = () => {
   const [capas, setCapas] = useState<CAPA[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'committee' | 'meetings' | 'capa'>('committee');
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
@@ -357,15 +359,7 @@ const EnhancedCommitteeCAPA = () => {
     }
   }, [filterStatus, searchTerm, activeTab]);
 
-  const getStatusColor = (status: CAPA['status']) => {
-    const statusMap: Record<CAPA['status'], string> = {
-      'completed': 'bg-green-100 text-green-800',
-      'in-progress': 'bg-blue-100 text-blue-800',
-      'open': 'bg-yellow-100 text-yellow-800',
-      'overdue': 'bg-red-100 text-red-800',
-      'cancelled': 'bg-gray-100 text-gray-800'
-    };
-    return statusMap[status] || 'bg-gray-100 text-gray-800';
+  useEffect(() => {
     const mockMembers: CommitteeMember[] = [
       {
         _id: '1',
@@ -650,7 +644,7 @@ const EnhancedCommitteeCAPA = () => {
 
   // Helper Functions
   const getStatusColor = (status: CAPA['status']) => {
-    const statusMap: Record<CAPA['status'], string> = {
+    const statusMap: { [key in CAPA['status']]: string } = {
       'completed': 'bg-green-100 text-green-800',
       'in-progress': 'bg-blue-100 text-blue-800',
       'open': 'bg-yellow-100 text-yellow-800',
@@ -658,11 +652,10 @@ const EnhancedCommitteeCAPA = () => {
       'cancelled': 'bg-gray-100 text-gray-800'
     };
     return statusMap[status];
->>>>>>> de72c66fe733b792cc1f2c15ecf0acf21b2201ce
   };
 
   const getPriorityColor = (priority: CAPA['priority']) => {
-    const priorityMap: Record<CAPA['priority'], string> = {
+    const priorityMap: { [key in CAPA['priority']]: string } = {
       'critical': 'bg-red-600 text-white',
       'high': 'bg-orange-500 text-white',
       'medium': 'bg-yellow-500 text-white',
