@@ -1118,3 +1118,37 @@ export const getDangerousGoodsLogs = async (params?: {
   }
 };
 
+// ==================== DASHBOARD APIs ====================
+export const getDashboardStats = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('health-safety/dashboard/stats');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getRecentActivity = async (limit?: number) => {
+  try {
+    const url = limit 
+      ? `health-safety/dashboard/recent-activity?limit=${limit}`
+      : 'health-safety/dashboard/recent-activity';
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getUpcomingTasks = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('health-safety/dashboard/upcoming-tasks');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+

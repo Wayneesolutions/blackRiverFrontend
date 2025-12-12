@@ -2122,17 +2122,9 @@ const SparePartsInventory = () => {
 
                         <div className="p-6 space-y-6">
                             <div className="rounded-xl p-6 text-white" style={{ background: ACCENT_GRADIENT }}>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm opacity-80">Current Stock</label>
-                                        <p className="text-2xl font-bold">{selectedPart.stockQty} units</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm opacity-80">Total Usage</label>
-                                        <p className="text-2xl font-bold">
-                                            {selectedPart.usageHistory?.reduce((total, usage) => total + usage.qtyUsed, 0) || 0} units
-                                        </p>
-                                    </div>
+                                <div>
+                                    <label className="text-sm opacity-80">Current Stock</label>
+                                    <p className="text-2xl font-bold">{selectedPart.stockQty} units</p>
                                 </div>
                             </div>
 
@@ -2155,48 +2147,6 @@ const SparePartsInventory = () => {
                                 <div className="border border-gray-200 rounded-xl p-4">
                                     <div className="text-sm text-gray-600">Selling Price</div>
                                     <div className="text-lg font-bold text-gray-900">${selectedPart.sellingPrice.toFixed(2)}</div>
-                                </div>
-                            </div>
-
-                            <div className="border border-gray-200 rounded-xl p-5">
-                                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                    <FaHistory size={20} style={{ color: ACCENT_PRIMARY }} />
-                                    Usage History
-                                </h4>
-                                <div className="space-y-3 max-h-60 overflow-y-auto">
-                                    {selectedPart.usageHistory && selectedPart.usageHistory.length > 0 ? (
-                                        selectedPart.usageHistory
-                                            .sort((a, b) => new Date(b.usedOn).getTime() - new Date(a.usedOn).getTime())
-                                            .map((usage, index) => {
-                                                const details = getWorkOrderDetails(usage);
-                                                return (
-                                                    <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                                        <div className="flex justify-between items-start mb-2">
-                                                            <span className="text-sm font-semibold text-gray-700">Usage #{index + 1}</span>
-                                                            <span className="text-xs text-gray-500">
-                                                                {formatDate(usage.usedOn)}
-                                                            </span>
-                                                        </div>
-                                                        <div className="font-medium text-gray-900 mb-2">
-                                                            {usage.qtyUsed} units used
-                                                        </div>
-                                                        <div className="text-sm font-semibold text-blue-700 mb-1">
-                                                            Truck: {details.truck}
-                                                        </div>
-                                                        {details.issue && details.issue !== 'N/A' && (
-                                                            <div className="text-xs text-gray-500 mt-1">
-                                                                Work Order: {details.issue}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })
-                                    ) : (
-                                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                                            <FaHistory className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-                                            <p>No usage history available</p>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
 

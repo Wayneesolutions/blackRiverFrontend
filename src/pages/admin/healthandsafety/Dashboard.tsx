@@ -15,6 +15,7 @@ import {
   FaChevronRight,
 } from '../../../theme/icons';
 import { getUserRole } from '../../../utils/auth';
+import { getDashboardStats, getRecentActivity, getUpcomingTasks } from '../../../axios/api/healthSafety';
 
 interface StatCardProps {
   title: string;
@@ -100,58 +101,87 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const userRole = getUserRole();
   const basePath = userRole === 'safety officer' ? '/healthandsafety' : '/admin/healthandsafety';
-  const [stats, setStats] = useState({
-    overdueCAPA: 5,
-    policyGaps: 18,
-    expiredCertificates: 7,
-    openIncidents: 3,
-    totalIncidents: 12,
-    openHazards: 9,
-    overdueInspections: 3,
-    activeRTWCases: 2,
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<{
+    overdueCAPA: number;
+    policyGaps: number;
+    expiredCertificates: number;
+    openIncidents: number;
+    totalIncidents: number;
+    openHazards: number;
+    overdueInspections: number;
+    activeRTWCases: number;
+    trends?: {
+      capa?: { value: number; direction: 'up' | 'down'; label: string };
+      incidents?: { value: number; direction: 'up' | 'down'; label: string };
+    };
+  }>({
+    overdueCAPA: 0,
+    policyGaps: 0,
+    expiredCertificates: 0,
+    openIncidents: 0,
+    totalIncidents: 0,
+    openHazards: 0,
+    overdueInspections: 0,
+    activeRTWCases: 0,
   });
 
-  const [recentActivity, setRecentActivity] = useState([
-    {
-      id: '1',
-      type: 'incident',
-      title: 'Driver Injury Report Filed',
-      description: 'John Doe - Warehouse A',
-      time: '2 hours ago',
-      status: 'investigating',
-    },
-    {
-      id: '2',
-      type: 'capa',
-      title: 'CAPA Overdue',
-      description: 'Forklift Brake Repair',
-      time: '5 hours ago',
-      status: 'overdue',
-    },
-    {
-      id: '3',
-      type: 'training',
-      title: 'Training Expiring Soon',
-      description: '5 employees - WHMIS',
-      time: '1 day ago',
-      status: 'expiring',
-    },
-  ]);
-
-  const [upcomingTasks, setUpcomingTasks] = useState([
-    { id: '1', title: 'Monthly H&S Committee Meeting', date: '2025-12-15', type: 'meeting' },
-    { id: '2', title: 'Quarterly Shop Inspection', date: '2025-12-18', type: 'inspection' },
-    { id: '3', title: 'Policy Renewal: Fire Safety', date: '2025-12-20', type: 'policy' },
-  ]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [upcomingTasks, setUpcomingTasks] = useState<any[]>([]);
 
   useEffect(() => {
-    // Fetch dashboard data
-    // TODO: Replace with API call
+    fetchDashboardData();
   }, []);
 
-  const handleNavigation = (path: string) => {
-    navigate(`${basePath}/${path}`);
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      // Fetch all dashboard data in parallel
+      const [statsResponse, activityResponse, tasksResponse] = await Promise.all([
+        getDashboardStats(),
+        getRecentActivity(10),
+        getUpcomingTasks()
+      ]);
+
+      if (statsResponse && statsResponse.success) {
+        setStats({
+          overdueCAPA: statsResponse.data.overdueCAPA || 0,
+          policyGaps: statsResponse.data.policyGaps || 0,
+          expiredCertificates: statsResponse.data.expiredCertificates || 0,
+          openIncidents: statsResponse.data.openIncidents || 0,
+          totalIncidents: statsResponse.data.totalIncidents || 0,
+          openHazards: statsResponse.data.openHazards || 0,
+          overdueInspections: statsResponse.data.overdueInspections || 0,
+          activeRTWCases: statsResponse.data.activeRTWCases || 0,
+          trends: statsResponse.data.trends,
+        });
+      }
+
+      if (activityResponse && activityResponse.success) {
+        setRecentActivity(activityResponse.data || []);
+      }
+
+      if (tasksResponse && tasksResponse.success) {
+        setUpcomingTasks(tasksResponse.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+
+  if (loading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center" style={{ backgroundColor: COLORS.background.secondary }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: COLORS.primary.main }}></div>
+          <p className="text-gray-600">Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background.secondary }}>
@@ -190,7 +220,7 @@ const Dashboard: React.FC = () => {
               icon={<FaTools size={28} />}
               color={COLORS.status.danger}
               urgent={stats.overdueCAPA > 0}
-              trend={{ value: 25, direction: 'up', label: 'vs last month' }}
+              trend={stats.trends?.capa ? stats.trends.capa : undefined}
               onClick={() => navigate(`${basePath}/committee-capa?filter=overdue`)}
             />
             <StatCard
@@ -230,7 +260,7 @@ const Dashboard: React.FC = () => {
               value={stats.totalIncidents}
               icon={<FaChartLine size={28} />}
               color={COLORS.modules.reports}
-              trend={{ value: 15, direction: 'down', label: 'vs last year' }}
+              trend={stats.trends?.incidents ? stats.trends.incidents : undefined}
               onClick={() => navigate(`${basePath}/reports-analytics`)}
             />
             <StatCard
@@ -272,7 +302,12 @@ const Dashboard: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                {recentActivity.map((activity) => {
+                {loading ? (
+                  <div className="text-center py-8 text-gray-500">Loading recent activity...</div>
+                ) : recentActivity.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">No recent activity</div>
+                ) : (
+                  recentActivity.map((activity) => {
                   const statusColor = getStatusColor(activity.status);
                   const icon =
                     activity.type === 'incident' ? (
@@ -311,7 +346,7 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                   );
-                })}
+                }))}
               </div>
             </div>
           </div>
@@ -324,7 +359,12 @@ const Dashboard: React.FC = () => {
                 Upcoming Tasks
               </h2>
               <div className="space-y-3">
-                {upcomingTasks.map((task) => (
+                {loading ? (
+                  <div className="text-center py-4 text-gray-500 text-sm">Loading tasks...</div>
+                ) : upcomingTasks.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500 text-sm">No upcoming tasks</div>
+                ) : (
+                  upcomingTasks.map((task) => (
                   <div
                     key={task.id}
                     className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
@@ -336,7 +376,7 @@ const Dashboard: React.FC = () => {
                     </div>
                     <FaChevronRight className="text-gray-400" size={14} />
                   </div>
-                ))}
+                )))}
               </div>
             </div>
 
