@@ -257,7 +257,7 @@ const Company = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6">
+    <div className="min-h-screen bg-[#EDF8FF] px-6">
       <div className="py-8">
         {/* Success/Error Messages */}
         {success && (
@@ -313,7 +313,10 @@ const Company = () => {
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2"
+                  style={{
+                    background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                  }}
+                  className="px-4 py-2   !text-white rounded-lg transition-all font-medium flex items-center gap-2"
                 >
                   <Edit size={16} />
                   Edit Settings

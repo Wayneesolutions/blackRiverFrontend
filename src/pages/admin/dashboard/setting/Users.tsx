@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, EyeOff, X, Users as UsersIcon, Filter, Search,
-   Truck, Mail, CreditCard, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, X, Users as UsersIcon, Filter, Search, Mail, MapPin, FileText } from 'lucide-react';
 import { Select, Tag} from "antd";
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { 
@@ -92,66 +91,7 @@ interface User {
   };
 }
 
-type Role = "driver" | "dispatcher" | "hr" | "contact" | "customer" | "reporter" | "Maintenance Crew (Mechanics)" | "Fleet Maintenance Manager" | "Compliance Manager" | "safety officer";
-
-// Driver-specific form data interface
-interface DriverFormData {
-  incorporation: string;
-  employeeCode: string;
-  postalCode: string;
-  fleet: string;
-  citizenship: string;
-  paymentMethod: string;
-  account: string;
-  wsib: boolean;
-  wsibAccountNo: string;
-  expiryDate: string;
-  remark: string;
-  gstNo: string;
-  profileImage: string;
-  company: boolean;
-  cell1: string;
-  cell2: string;
-  extension: string;
-  fax: string;
-  gender: string;
-  dateOfBirth: string;
-  termDate: string;
-  csa: boolean;
-  fastCardNo: string;
-  fastCardExpiry: string;
-  medicalRequired: boolean;
-  defaultChargeName: string;
-  defaultCurrency: string;
-  chargesAppliedOn: string;
-  defaultMode: string;
-  defaultAmount: number;
-  defaultRemarks: string;
-  defaultPayrollType: string;
-  paymentCurrency: string;
-  mileRate: number;
-  mileRateTeam: number;
-  emptyMileRate: number;
-  emptyMileRateTeam: number;
-  hourlyRate: number;
-  weightRate: number;
-  percentageRate: number;
-  localTaxNo: string;
-  federalTaxNo: string;
-  sinNo: string;
-  craAccountNo: string;
-  fedTaxExempt: boolean;
-  provTaxExempt: boolean;
-  cppQppExempt: boolean;
-  eiExempt: boolean;
-  qpipExempt: boolean;
-  payPeriod: string;
-  vacationPay: string;
-  ltl: boolean;
-  onSettlements: boolean;
-  settlementCurrencyByOrder: boolean;
-  isDefault: boolean;
-}
+type Role = "dispatcher" | "hr" | "contact" | "customer" | "reporter" | "Maintenance Crew (Mechanics)" | "Fleet Maintenance Manager" | "Compliance Manager" | "safety officer";
 
 // Add Notification types and component
 type NotificationType = 'success' | 'error' | 'info' | 'warning';
@@ -211,17 +151,15 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showDriverPanel, setShowDriverPanel] = useState(false);
-  const [activeTab, setActiveTab] = useState('basic');
   const [showPassword, setShowPassword] = useState(false);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [_modalError, setModalError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; userId: string | null }>({ show: false, userId: null });
 
-  // Available roles including drive
-  const rolesWithLoginAccess: Role[] = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Compliance Manager', 'safety officer'];
+  // Available roles with login access
+  const rolesWithLoginAccess: Role[] = ['dispatcher', 'hr', 'Fleet Maintenance Manager', 'Compliance Manager', 'safety officer'];
 
-  const roleOptions: Role[] = ['driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter', "Maintenance Crew (Mechanics)", "Fleet Maintenance Manager", "Compliance Manager", "safety officer"];
+  const roleOptions: Role[] = ['dispatcher', 'hr', 'contact', 'customer', 'reporter', "Maintenance Crew (Mechanics)", "Fleet Maintenance Manager", "Compliance Manager", "safety officer"];
 
   const [formData, setFormData] = useState({
     name: '',
@@ -239,63 +177,6 @@ const Users = () => {
     status: 'active' as 'active' | 'inactive'
   });
 
-  const [driverFormData, setDriverFormData] = useState<DriverFormData>({
-    incorporation: '',
-    employeeCode: '',
-    postalCode: '',
-    fleet: '',
-    citizenship: '',
-    paymentMethod: '',
-    account: '',
-    wsib: false,
-    wsibAccountNo: '',
-    expiryDate: '',
-    remark: '',
-    gstNo: '',
-    profileImage: '',
-    company: false,
-    cell1: '',
-    cell2: '',
-    extension: '',
-    fax: '',
-    gender: '',
-    dateOfBirth: '',
-    termDate: '',
-    csa: false,
-    fastCardNo: '',
-    fastCardExpiry: '',
-    medicalRequired: false,
-    defaultChargeName: '',
-    defaultCurrency: '',
-    chargesAppliedOn: '',
-    defaultMode: '',
-    defaultAmount: 0,
-    defaultRemarks: '',
-    defaultPayrollType: '',
-    paymentCurrency: '',
-    mileRate: 0,
-    mileRateTeam: 0,
-    emptyMileRate: 0,
-    emptyMileRateTeam: 0,
-    hourlyRate: 0,
-    weightRate: 0,
-    percentageRate: 0,
-    localTaxNo: '',
-    federalTaxNo: '',
-    sinNo: '',
-    craAccountNo: '',
-    fedTaxExempt: false,
-    provTaxExempt: false,
-    cppQppExempt: false,
-    eiExempt: false,
-    qpipExempt: false,
-    payPeriod: '',
-    vacationPay: '',
-    ltl: false,
-    onSettlements: false,
-    settlementCurrencyByOrder: false,
-    isDefault: false
-  });
 
   const addNotification = (type: NotificationType, message: string) => {
     const id = Date.now();
@@ -342,54 +223,23 @@ const Users = () => {
   }, [searchQuery, selectedRole, selectedStatus]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
     
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
-      setDriverFormData(prev => ({
-        ...prev,
-        [name]: checked
-      }));
-    } else {
-      // Auto-uppercase internalId and filter out invalid characters
-      let processedValue = value;
-      if (name === 'internalId') {
-        processedValue = value.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
-      }
-      setFormData(prev => ({
-        ...prev,
-        [name]: processedValue
-      }));
+    // Auto-uppercase internalId and filter out invalid characters
+    let processedValue = value;
+    if (name === 'internalId') {
+      processedValue = value.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
     }
+    setFormData(prev => ({
+      ...prev,
+      [name]: processedValue
+    }));
   };
 
-  const handleDriverInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
-      setDriverFormData(prev => ({
-        ...prev,
-        [name]: checked
-      }));
-    } else if (type === 'number') {
-      setDriverFormData(prev => ({
-        ...prev,
-        [name]: parseFloat(value) || 0
-      }));
-    } else {
-      setDriverFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-  };
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const role = e.target.value as Role;
     setFormData(prev => ({ ...prev, role }));
-    setShowDriverPanel(role === 'driver');
-    setActiveTab('basic');
   };
 
   // Frontend validation function - matches backend validation
@@ -523,12 +373,6 @@ const Users = () => {
       errors.push('Status must be either active or inactive');
     }
 
-    // Driver-specific validations
-    if (formData.role === 'driver') {
-      // Employee code is optional but recommended
-      // No strict validation needed as backend handles it
-    }
-
     return {
       isValid: errors.length === 0,
       errors
@@ -557,29 +401,6 @@ const Users = () => {
       // Ensure internalId is uppercase and valid format
       if (submitData.internalId) {
         submitData.internalId = submitData.internalId.trim().toUpperCase();
-      }
-      
-      // If driver role is selected, include all driver-specific data
-      if (formData.role === 'driver') {
-        const companyFlagValue = driverFormData.company;
-        
-        // Add all driver form data
-        Object.assign(submitData, driverFormData);
-        
-        // Map company checkbox to companyFlag (avoid conflict with company ObjectId)
-        submitData.companyFlag = companyFlagValue;
-        delete submitData.company; // Remove boolean company field
-        
-        // Handle date conversions
-        if (driverFormData.expiryDate) submitData.expiryDate = driverFormData.expiryDate;
-        if (driverFormData.dateOfBirth) submitData.dateOfBirth = driverFormData.dateOfBirth;
-        if (driverFormData.termDate) submitData.termDate = driverFormData.termDate;
-        if (driverFormData.fastCardExpiry) submitData.fastCardExpiry = driverFormData.fastCardExpiry;
-        
-        // Use joinDate for hireDate
-        if (submitData.joinDate) {
-          submitData.hireDate = submitData.joinDate;
-        }
       }
       
       // Remove empty password for updates
@@ -762,67 +583,8 @@ const Users = () => {
       policies: '',
       status: 'active'
     });
-    setDriverFormData({
-      incorporation: '',
-      employeeCode: '',
-      postalCode: '',
-      fleet: '',
-      citizenship: '',
-      paymentMethod: '',
-      account: '',
-      wsib: false,
-      wsibAccountNo: '',
-      expiryDate: '',
-      remark: '',
-      gstNo: '',
-      profileImage: '',
-      company: false,
-      cell1: '',
-      cell2: '',
-      extension: '',
-      fax: '',
-      gender: '',
-      dateOfBirth: '',
-      termDate: '',
-      csa: false,
-      fastCardNo: '',
-      fastCardExpiry: '',
-      medicalRequired: false,
-      defaultChargeName: '',
-      defaultCurrency: '',
-      chargesAppliedOn: '',
-      defaultMode: '',
-      defaultAmount: 0,
-      defaultRemarks: '',
-      defaultPayrollType: '',
-      paymentCurrency: '',
-      mileRate: 0,
-      mileRateTeam: 0,
-      emptyMileRate: 0,
-      emptyMileRateTeam: 0,
-      hourlyRate: 0,
-      weightRate: 0,
-      percentageRate: 0,
-      localTaxNo: '',
-      federalTaxNo: '',
-      sinNo: '',
-      craAccountNo: '',
-      fedTaxExempt: false,
-      provTaxExempt: false,
-      cppQppExempt: false,
-      eiExempt: false,
-      qpipExempt: false,
-      payPeriod: '',
-      vacationPay: '',
-      ltl: false,
-      onSettlements: false,
-      settlementCurrencyByOrder: false,
-      isDefault: false
-    });
     setIsEditing(false);
     setSelectedUser(null);
-    setShowDriverPanel(false);
-    setActiveTab('basic');
     setShowPassword(false);
   };
 
@@ -842,73 +604,6 @@ const Users = () => {
       policies: user.policies || '',
       status: user.status
     });
-    
-    // Show driver panel and populate driver fields if role is driver
-    if (user.role === 'driver') {
-      setShowDriverPanel(true);
-      
-      // Populate driver form data from user details
-      const details = user.details || {};
-      setDriverFormData({
-        incorporation: details.incorporation || '',
-        employeeCode: details.employeeCode || user.internalId || '',
-        postalCode: details.postalCode || '',
-        fleet: details.fleet || '',
-        citizenship: details.citizenship || '',
-        paymentMethod: details.paymentMethod || '',
-        account: details.account || '',
-        wsib: details.wsib || false,
-        wsibAccountNo: details.wsibAccountNo || '',
-        expiryDate: details.expiryDate ? new Date(details.expiryDate).toISOString().split('T')[0] : '',
-        remark: details.remark || '',
-        gstNo: details.gstNo || '',
-        profileImage: details.profileImage || '',
-        company: details.companyFlag || false,
-        cell1: details.cell1 || '',
-        cell2: details.cell2 || '',
-        extension: details.extension || '',
-        fax: details.fax || '',
-        gender: details.gender || '',
-        dateOfBirth: details.dateOfBirth ? new Date(details.dateOfBirth).toISOString().split('T')[0] : '',
-        termDate: details.termDate ? new Date(details.termDate).toISOString().split('T')[0] : '',
-        csa: details.csa || false,
-        fastCardNo: details.fastCardNo || '',
-        fastCardExpiry: details.fastCardExpiry ? new Date(details.fastCardExpiry).toISOString().split('T')[0] : '',
-        medicalRequired: details.medicalRequired || false,
-        defaultChargeName: details.defaultChargeName || '',
-        defaultCurrency: details.defaultCurrency || '',
-        chargesAppliedOn: details.chargesAppliedOn || '',
-        defaultMode: details.defaultMode || '',
-        defaultAmount: details.defaultAmount || 0,
-        defaultRemarks: details.defaultRemarks || '',
-        defaultPayrollType: details.defaultPayrollType || '',
-        paymentCurrency: details.paymentCurrency || '',
-        mileRate: details.mileRate || 0,
-        mileRateTeam: details.mileRateTeam || 0,
-        emptyMileRate: details.emptyMileRate || 0,
-        emptyMileRateTeam: details.emptyMileRateTeam || 0,
-        hourlyRate: details.hourlyRate || 0,
-        weightRate: details.weightRate || 0,
-        percentageRate: details.percentageRate || 0,
-        localTaxNo: details.localTaxNo || '',
-        federalTaxNo: details.federalTaxNo || '',
-        sinNo: details.sinNo || '',
-        craAccountNo: details.craAccountNo || '',
-        fedTaxExempt: details.fedTaxExempt || false,
-        provTaxExempt: details.provTaxExempt || false,
-        cppQppExempt: details.cppQppExempt || false,
-        eiExempt: details.eiExempt || false,
-        qpipExempt: details.qpipExempt || false,
-        payPeriod: details.payPeriod || '',
-        vacationPay: details.vacationPay || '',
-        ltl: details.ltl || false,
-        onSettlements: details.onSettlements || false,
-        settlementCurrencyByOrder: details.settlementCurrencyByOrder || false,
-        isDefault: details.isDefault || false
-      });
-    } else {
-      setShowDriverPanel(false);
-    }
     
     setSelectedUser(user);
     setIsEditing(true);
@@ -972,7 +667,6 @@ const Users = () => {
 
   const getRoleColor = (role: Role) => {
     const colors: Partial<Record<Role, string>> = {
-      driver: "bg-green-50 text-green-700 border-green-200",
       dispatcher: "bg-orange-50 text-orange-700 border-orange-200",
       hr: "bg-pink-50 text-pink-700 border-pink-200",
       contact: "bg-teal-50 text-teal-700 border-teal-200",
@@ -995,8 +689,11 @@ const Users = () => {
     return users.filter(user => user.role === role).length;
   };
 
+  // Filter out drivers from users list (driver role may exist in data but not in Role type)
+  const filteredUsers = users.filter(user => (user.role as string) !== 'driver');
+
   return (
-    <div className="min-h-screen bg-gray-50 px-6">
+    <div className="min-h-screen bg-[#EDF8FF] px-6">
       {/* Toast Notifications Container - High z-index to be above modal */}
       <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
         {notifications.map(notification => (
@@ -1013,19 +710,24 @@ const Users = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Employees Management</h1>
               <p className="text-gray-600">Manage your team members and their roles</p>
             </div>
             <button
-              onClick={() => {
-                resetForm();
-                setShowCreateModal(true);
-              }}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg"
-            >
-              <Plus size={20} />
-              Add New User
-            </button>
+  onClick={() => {
+    resetForm();
+    setShowCreateModal(true);
+  }}
+  style={{
+    background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+  }}
+  className="!text-white px-6 py-3 rounded-lg flex items-center gap-2 
+             transition-all duration-200 shadow-md hover:shadow-lg"
+>
+  <Plus size={20} />
+  Add New User
+</button>
+
           </div>
         </div>
 
@@ -1080,13 +782,13 @@ const Users = () => {
                     <Tag color="green" className="mr-1">
                       Active
                     </Tag>
-                    ({users.filter((u) => u.status === "active").length})
+                    ({filteredUsers.filter((u) => u.status === "active").length})
                   </Select.Option>
                   <Select.Option value="inactive">
                     <Tag color="red" className="mr-1">
                       Inactive
                     </Tag>
-                    ({users.filter((u) => u.status === "inactive").length})
+                    ({filteredUsers.filter((u) => u.status === "inactive").length})
                   </Select.Option>
                 </Select>
               </div>
@@ -1094,8 +796,8 @@ const Users = () => {
 
             <div className="flex items-end">
               <div className="text-sm text-gray-600">
-                <div className="font-medium">Total Users: {users.length}</div>
-                <div className="text-gray-500">Showing: {users.length}</div>
+                <div className="font-medium">Total Users: {filteredUsers.length}</div>
+                <div className="text-gray-500">Showing: {filteredUsers.length}</div>
               </div>
             </div>
           </div>
@@ -1124,7 +826,7 @@ const Users = () => {
                       <p className="mt-2 text-gray-500">Loading users...</p>
                     </td>
                   </tr>
-                ) : users.length === 0 ? (
+                ) : filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center">
                       <UsersIcon size={48} className="mx-auto text-gray-400 mb-4" />
@@ -1137,7 +839,7 @@ const Users = () => {
                     </td>
                   </tr>
                 ) : (
-                  users.map((user) => (
+                  filteredUsers.map((user) => (
                     <tr key={user._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-4">
                         <div className="w-full overflow-hidden">
@@ -1210,7 +912,7 @@ const Users = () => {
       {/* Create/Edit Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
-          <div className={`bg-white rounded-xl ${showDriverPanel ? 'max-w-6xl' : 'max-w-2xl'} w-full max-h-[90vh] overflow-y-auto shadow-2xl`}>
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -1437,286 +1139,6 @@ const Users = () => {
                   </div>
                 </div>
 
-                {/* Driver-specific panel */}
-                {showDriverPanel && (
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 rounded-lg mb-6">
-                      <div className="flex items-center space-x-3">
-                        <Truck className="w-6 h-6 text-white" />
-                        <h3 className="text-lg font-semibold text-white">Driver Information</h3>
-                      </div>
-                    </div>
-
-                    {/* Driver Tabs */}
-                    <div className="mb-6">
-                      <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-                        {[
-                          { id: 'basic', label: 'Basic Information', icon: UsersIcon },
-                          { id: 'employment', label: 'Employment & Contact', icon: Mail },
-                          { id: 'payment', label: 'Payment Profile', icon: CreditCard }
-                        ].map((tab) => (
-                          <button
-                            key={tab.id}
-                            type="button"
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
-                              activeTab === tab.id
-                                ? 'bg-white text-gray-900 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
-                            }`}
-                          >
-                            <tab.icon className="w-4 h-4" />
-                            <span>{tab.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Tab Content - This will be simplified version, full implementation can be copied from employee list */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-6">
-                      {activeTab === 'basic' && (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Incorporation</label>
-                              <select
-                                name="incorporation"
-                                value={driverFormData.incorporation}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              >
-                                <option value="">Select Incorporation</option>
-                                <option value="Corporation">Corporation</option>
-                                <option value="Partnership">Partnership</option>
-                                <option value="Sole Proprietorship">Sole Proprietorship</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Employee Code</label>
-                              <input
-                                type="text"
-                                name="employeeCode"
-                                value={driverFormData.employeeCode}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
-                            <input
-                              type="text"
-                              name="postalCode"
-                              value={driverFormData.postalCode}
-                              onChange={handleDriverInputChange}
-                              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {activeTab === 'employment' && (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Fleet</label>
-                              <input
-                                type="text"
-                                name="fleet"
-                                value={driverFormData.fleet}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Citizenship</label>
-                              <select
-                                name="citizenship"
-                                value={driverFormData.citizenship}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              >
-                                <option value="">Select Citizenship</option>
-                                <option value="Canadian">Canadian</option>
-                                <option value="US Citizen">US Citizen</option>
-                                <option value="Permanent Resident">Permanent Resident</option>
-                                <option value="Work Permit">Work Permit</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-                              <select
-                                name="paymentMethod"
-                                value={driverFormData.paymentMethod}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              >
-                                <option value="">Select Payment Method</option>
-                                <option value="Direct Deposit">Direct Deposit</option>
-                                <option value="Check">Check</option>
-                                <option value="Wire Transfer">Wire Transfer</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Account</label>
-                              <input
-                                type="text"
-                                name="account"
-                                value={driverFormData.account}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="flex items-center space-x-3">
-                              <input
-                                type="checkbox"
-                                name="wsib"
-                                checked={driverFormData.wsib}
-                                onChange={handleDriverInputChange}
-                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                              />
-                              <label className="text-sm font-medium text-gray-700">WSIB</label>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">WSIB Account No</label>
-                              <input
-                                type="text"
-                                name="wsibAccountNo"
-                                value={driverFormData.wsibAccountNo}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Cell 1</label>
-                              <input
-                                type="tel"
-                                name="cell1"
-                                value={driverFormData.cell1}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Cell 2</label>
-                              <input
-                                type="tel"
-                                name="cell2"
-                                value={driverFormData.cell2}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {activeTab === 'payment' && (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Default Payroll Type</label>
-                              <select
-                                name="defaultPayrollType"
-                                value={driverFormData.defaultPayrollType}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              >
-                                <option value="">Select Payroll Type</option>
-                                <option value="Owner Operator">Owner Operator</option>
-                                <option value="Company Driver">Company Driver</option>
-                                <option value="Team Driver">Team Driver</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
-                              <select
-                                name="paymentCurrency"
-                                value={driverFormData.paymentCurrency}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              >
-                                <option value="">Select Currency</option>
-                                <option value="CAD">CAD - Canadian Dollar</option>
-                                <option value="USD">USD - United States Dollar</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Mile Rate (Solo)</label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                name="mileRate"
-                                value={driverFormData.mileRate}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Mile Rate (Team)</label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                name="mileRateTeam"
-                                value={driverFormData.mileRateTeam}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Empty Mile Rate</label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                name="emptyMileRate"
-                                value={driverFormData.emptyMileRate}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate</label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                name="hourlyRate"
-                                value={driverFormData.hourlyRate}
-                                onChange={handleDriverInputChange}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Note about documents */}
-                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-start space-x-3">
-                        <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-blue-900 mb-1">
-                            Document Management
-                          </p>
-                          <p className="text-sm text-blue-700">
-                            License documents and travel documents can be managed in the Employee Documents section.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 <div className="flex justify-end space-x-4 pt-6 mt-6 border-t border-gray-200">
                   <button
                     type="button"
@@ -1731,7 +1153,10 @@ const Users = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !text-white rounded-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                    }}
+                    className="px-4 !text-white rounded-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Saving...' : isEditing ? 'Update User' : 'Create User'}
                   </button>
@@ -1745,10 +1170,13 @@ const Users = () => {
       {/* View Modal */}
       {showViewModal && selectedUser && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full shadow-2xl">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">User Details</h2>
+              <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">User Details</h2>
+                  <p className="text-sm text-gray-500 mt-1">View complete user information</p>
+                </div>
                 <button
                   onClick={() => setShowViewModal(false)}
                   className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -1757,87 +1185,135 @@ const Users = () => {
                 </button>
               </div>
 
-              <div className="space-y-4">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-gray-900 text-lg mb-2">{selectedUser.name}</h3>
-                  <div className="flex gap-2">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border capitalize ${getRoleColor(selectedUser.role)}`}>
-                      {selectedUser.role}
-                    </span>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border capitalize ${getStatusColor(selectedUser.status)}`}>
-                      {selectedUser.status}
-                    </span>
+              <div className="space-y-6">
+                {/* User Header Card */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-200">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-900 text-xl mb-3">{selectedUser.name}</h3>
+                      <div className="flex flex-wrap gap-2">
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border capitalize ${getRoleColor(selectedUser.role)}`}>
+                          {selectedUser.role}
+                        </span>
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border capitalize ${getStatusColor(selectedUser.status)}`}>
+                          {selectedUser.status}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <span className="font-semibold text-gray-700">Email:</span>
-                    <span className="ml-2 text-gray-900">{selectedUser.email}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-700">Phone:</span>
-                    <span className="ml-2 text-gray-900">{selectedUser.phone}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-700">Location:</span>
-                    <span className="ml-2 text-gray-900">{selectedUser.city || 'N/A'}, {selectedUser.state || 'N/A'}, {selectedUser.country || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-700">Address:</span>
-                    <p className="mt-1 text-gray-900">{selectedUser.location?.address || selectedUser.address || 'N/A'}</p>
-                  </div>
-                  {selectedUser.internalId && (
-                    <div>
-                      <span className="font-semibold text-gray-700">Internal ID:</span>
-                      <span className="ml-2 text-gray-900">{selectedUser.internalId}</span>
+                {/* Contact Information */}
+                <div className="bg-white rounded-xl border border-gray-200 p-5">
+                  <h4 className="font-semibold text-gray-900 text-base mb-4 flex items-center gap-2">
+                    <Mail size={18} className="text-blue-600" />
+                    Contact Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 mb-1">Email Address</div>
+                      <div className="text-sm font-medium text-gray-900">{selectedUser.email}</div>
                     </div>
-                  )}
-                  {selectedUser.joinDate && (
-                    <div>
-                      <span className="font-semibold text-gray-700">Join Date:</span>
-                      <span className="ml-2 text-gray-900">{new Date(selectedUser.joinDate).toLocaleDateString()}</span>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 mb-1">Phone Number</div>
+                      <div className="text-sm font-medium text-gray-900">{selectedUser.phone}</div>
                     </div>
-                  )}
-                  {selectedUser.policies && (
-                    <div>
-                      <span className="font-semibold text-gray-700">Policies:</span>
-                      <p className="mt-1 text-gray-900">{selectedUser.policies}</p>
-                    </div>
-                  )}
-                  {selectedUser.role === 'driver' && selectedUser.details && (
-                    <>
-                      {(selectedUser.details as any).licenceNumber && (
-                        <div>
-                          <span className="font-semibold text-gray-700">License Number:</span>
-                          <span className="ml-2 text-gray-900">{(selectedUser.details as any).licenceNumber}</span>
-                        </div>
-                      )}
-                      {selectedUser.details.fleet && (
-                        <div>
-                          <span className="font-semibold text-gray-700">Fleet:</span>
-                          <span className="ml-2 text-gray-900">{selectedUser.details.fleet}</span>
-                        </div>
-                      )}
-                      {selectedUser.details.mileRate !== undefined && (
-                        <div>
-                          <span className="font-semibold text-gray-700">Mile Rate:</span>
-                          <span className="ml-2 text-gray-900">${selectedUser.details.mileRate}</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                  <div>
-                    <span className="font-semibold text-gray-700">Created:</span>
-                    <span className="ml-2 text-gray-900">{new Date(selectedUser.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
+
+                {/* Location Information */}
+                <div className="bg-white rounded-xl border border-gray-200 p-5">
+                  <h4 className="font-semibold text-gray-900 text-base mb-4 flex items-center gap-2">
+                    <MapPin size={18} className="text-green-600" />
+                    Location Information
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 mb-1">Location</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {selectedUser.city || 'N/A'}, {selectedUser.state || 'N/A'}, {selectedUser.country || 'N/A'}
+                      </div>
+                    </div>
+                    {selectedUser.location?.address || selectedUser.address ? (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="text-xs text-gray-500 mb-1">Full Address</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {selectedUser.location?.address || selectedUser.address}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                {/* Additional Information */}
+                <div className="bg-white rounded-xl border border-gray-200 p-5">
+                  <h4 className="font-semibold text-gray-900 text-base mb-4 flex items-center gap-2">
+                    <FileText size={18} className="text-purple-600" />
+                    Additional Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedUser.internalId && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="text-xs text-gray-500 mb-1">Internal ID</div>
+                        <div className="text-sm font-medium text-gray-900">{selectedUser.internalId}</div>
+                      </div>
+                    )}
+                    {selectedUser.joinDate && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="text-xs text-gray-500 mb-1">Join Date</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {new Date(selectedUser.joinDate).toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 mb-1">Account Created</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {new Date(selectedUser.createdAt).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Policies Section */}
+                {selectedUser.policies && (
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <h4 className="font-semibold text-gray-900 text-base mb-4 flex items-center gap-2">
+                      <FileText size={18} className="text-orange-600" />
+                      Policies
+                    </h4>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <p className="text-sm text-gray-700 leading-relaxed">{selectedUser.policies}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="flex justify-end pt-6 mt-6 border-t border-gray-200">
+              <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    handleEdit(selectedUser);
+                  }}
+                  style={{
+                    background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                  }}
+                  className="px-6 py-2.5  !text-white rounded-lg transition-all font-medium flex items-center gap-2 shadow-md hover:shadow-lg"
+                >
+                  <Edit size={16} />
+                  Edit User
+                </button>
                 <button
                   onClick={() => setShowViewModal(false)}
-                  className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium"
+                  className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium"
                 >
                   Close
                 </button>
@@ -1857,13 +1333,13 @@ const Users = () => {
               <div className="flex justify-end space-x-4">
                 <button
                   onClick={() => setDeleteConfirm({ show: false, userId: null })}
-                  className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                  className="px-6 py-3 !mr-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+                  className="px-6 py-3 bg-red-600 hover:bg-red-700 !text-white rounded-lg transition-colors font-medium"
                 >
                   Delete
                 </button>

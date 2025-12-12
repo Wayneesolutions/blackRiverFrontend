@@ -35,6 +35,7 @@ export const AdminSidebarLinks: AdminSidebarLink[] = [
         icon: <FaTruck />,
         label: "Fleet Profile",
     },
+
     // {
     //     key: "member",
     //     icon: <HiOutlineUsers />,
@@ -68,18 +69,23 @@ export const AdminSidebarLinks: AdminSidebarLink[] = [
             {
                 key: "users",
                 icon: <MdPeople />,
-                label: "User Management",
+                label: "Employees",
             },
+            {
+                key: "drivers",
+                icon: <FaTruck />,
+                label: "Drivers",
+              },
             {
                 key: "company",
                 icon: <MdBusiness />,
                 label: "Company Settings",
             },
-            {
-                key: "integrations",
-                icon: <MdApi />,
-                label: "API's",
-            }
+            // {
+            //     key: "integrations",
+            //     icon: <MdApi />,
+            //     label: "API's",
+            // }
 
 
         ],

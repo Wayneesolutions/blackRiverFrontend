@@ -284,7 +284,7 @@ const SubscriptionPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#EDF8FF]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Enhanced Header */}
         <div className="mb-8">
@@ -422,30 +422,29 @@ const SubscriptionPage = () => {
         {/* Enhanced Active Subscription Card */}
         {activeSubscription && (
           <div
-            className="mb-8 relative overflow-hidden rounded-2xl shadow-2xl"
-            style={{ background: FLEET_COLORS.gradient, boxShadow: `0 35px 55px ${FLEET_COLORS.focusRing}` }}
+            className="mb-8 relative overflow-hidden rounded-2xl shadow-2xl bg-white border-2 border-gray-200"
+            style={{ boxShadow: `0 35px 55px ${FLEET_COLORS.focusRing}` }}
           >
-            <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24 pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-50 rounded-full -ml-24 -mb-24 pointer-events-none"></div>
             
             <div className="relative p-8 z-10">
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                      <Crown className="w-6 h-6 text-yellow-300" />
+                    <div className="p-2 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg">
+                      <Crown className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                         Active Subscription
                         {getStatusIcon(activeSubscription.status)}
                       </h2>
                       <div className="flex items-center gap-2 mt-1">
-                        <Tag color={getStatusColor(activeSubscription.status)} className="bg-white/20 text-white border-white/30">
+                        <Tag color={getStatusColor(activeSubscription.status)}>
                           {activeSubscription.status.toUpperCase()}
                         </Tag>
-                        <Tag color={activeSubscription.paymentStatus === 'paid' ? 'success' : 'warning'} className="bg-white/20 text-white border-white/30">
+                        <Tag color={activeSubscription.paymentStatus === 'paid' ? 'success' : 'warning'}>
                           {activeSubscription.paymentStatus.toUpperCase()}
                         </Tag>
                       </div>
@@ -453,34 +452,34 @@ const SubscriptionPage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
-                        <Package className="w-5 h-5 text-yellow-300" />
-                        <span className="text-white/80 text-sm font-medium">Plan Name</span>
+                        <Package className="w-5 h-5 text-blue-600" />
+                        <span className="text-gray-700 text-sm font-medium">Plan Name</span>
                       </div>
-                      <p className="text-white text-xl font-bold">
+                      <p className="text-gray-900 text-xl font-bold">
                         {typeof activeSubscription.plan === 'object' 
                           ? activeSubscription.plan?.planName 
                           : activeSubscription.planSnapshot?.planName || 'Plan'}
                       </p>
                     </div>
 
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
                       <div className="flex items-center gap-2 mb-2">
-                        <Zap className="w-5 h-5 text-yellow-300" />
-                        <span className="text-white/80 text-sm font-medium">Subscription Type</span>
+                        <Zap className="w-5 h-5 text-purple-600" />
+                        <span className="text-gray-700 text-sm font-medium">Subscription Type</span>
                       </div>
-                      <p className="text-white text-xl font-bold capitalize">
+                      <p className="text-gray-900 text-xl font-bold capitalize">
                         {activeSubscription.planType} - {activeSubscription.subscriptionType.replace('-', ' ')}
                       </p>
                     </div>
 
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
                       <div className="flex items-center gap-2 mb-2">
-                        <DollarSign className="w-5 h-5 text-yellow-300" />
-                        <span className="text-white/80 text-sm font-medium">Amount</span>
+                        <DollarSign className="w-5 h-5 text-green-600" />
+                        <span className="text-gray-700 text-sm font-medium">Amount</span>
                       </div>
-                      <p className="text-white text-2xl font-bold">
+                      <p className="text-gray-900 text-2xl font-bold">
                         {formatPrice(activeSubscription.amount, activeSubscription.currency)}
                         {activeSubscription.planType === 'monthly' && (
                           <span className="text-base font-normal">/month</span>
@@ -489,12 +488,12 @@ const SubscriptionPage = () => {
                     </div>
 
                     {activeSubscription.nextBillingDate && (
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 border border-yellow-200">
                         <div className="flex items-center gap-2 mb-2">
-                          <Calendar className="w-5 h-5 text-yellow-300" />
-                          <span className="text-white/80 text-sm font-medium">Next Billing</span>
+                          <Calendar className="w-5 h-5 text-yellow-600" />
+                          <span className="text-gray-700 text-sm font-medium">Next Billing</span>
                         </div>
-                        <p className="text-white text-xl font-bold">
+                        <p className="text-gray-900 text-xl font-bold">
                           {new Date(activeSubscription.nextBillingDate).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
@@ -505,32 +504,32 @@ const SubscriptionPage = () => {
                     )}
 
                     {activeSubscription.installments && (
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 md:col-span-2">
+                      <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-4 border border-indigo-200 md:col-span-2">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-yellow-300" />
-                            <span className="text-white/80 text-sm font-medium">Installment Progress</span>
+                            <TrendingUp className="w-5 h-5 text-indigo-600" />
+                            <span className="text-gray-700 text-sm font-medium">Installment Progress</span>
                           </div>
-                          <span className="text-white font-bold">
+                          <span className="text-gray-900 font-bold">
                             {activeSubscription.installments.paid} / {activeSubscription.installments.total}
                           </span>
                         </div>
                         <Progress
                           percent={Math.round((activeSubscription.installments.paid / activeSubscription.installments.total) * 100)}
                           strokeColor={{
-                            '0%': '#fbbf24',
-                            '100%': '#f59e0b',
+                            '0%': '#6366f1',
+                            '100%': '#4f46e5',
                           }}
                           className="mb-2"
                         />
-                        <p className="text-white/70 text-xs">
+                        <p className="text-gray-600 text-xs">
                           {activeSubscription.installments.remaining} payments remaining
                         </p>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 text-white/80 text-sm">
+                  <div className="flex items-center gap-2 text-gray-600 text-sm">
                     <Clock className="w-4 h-4" />
                     <span>Started on {new Date(activeSubscription.startDate).toLocaleDateString('en-US', {
                       month: 'long',
@@ -597,194 +596,217 @@ const SubscriptionPage = () => {
           />
 
           {activeTab === 'plans' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
               {plans.map((plan) => {
                 const currentPlanId = typeof activeSubscription?.plan === 'object' ? activeSubscription.plan?._id : null;
                 const isCurrentPlan = currentPlanId === plan._id;
                 return (
                   <div
                     key={plan._id}
-                    className={`group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 ${
+                    className={`group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 flex flex-col ${
                       isCurrentPlan
-                        ? 'border-purple-500 ring-4 ring-purple-200'
-                        : 'border-gray-200 hover:border-purple-300'
+                        ? 'border-blue-300 ring-2 ring-blue-100'
+                        : 'border-gray-200 hover:border-blue-300'
                     }`}
-                    style={isCurrentPlan ? { borderColor: FLEET_COLORS.primary, boxShadow: `0 25px 45px ${FLEET_COLORS.focusRing}` } : cardAccentStyle}
+                    style={isCurrentPlan ? { borderColor: '#93c5fd', boxShadow: '0 10px 25px rgba(59, 130, 246, 0.15)' } : cardAccentStyle}
                   >
-                    {/* Plan Header with Gradient */}
+                    {/* Plan Header with Light Background */}
                     <div
-                      className="relative p-6"
-                      style={{
-                        background: isCurrentPlan ? FLEET_COLORS.gradient : FLEET_COLORS.gradientVertical,
-                      }}
+                      className={`relative p-6 ${
+                        isCurrentPlan
+                          ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-b-2 border-blue-200'
+                          : 'bg-gradient-to-br from-gray-50 to-blue-50 border-b-2 border-gray-200'
+                      }`}
                     >
                       {isCurrentPlan && (
                         <div className="absolute top-4 right-4">
                           <div className="bg-yellow-400 text-purple-900 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
                             <Crown className="w-3 h-3" />
-                            Current Plan
+                            Current Plan {plan.planType}
                           </div>
                         </div>
                       )}
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className={`text-2xl font-bold ${isCurrentPlan ? '!text-white' : 'text-white'}`}>
+                        <h3 className={`text-2xl font-bold ${isCurrentPlan ? 'text-gray-900' : 'text-gray-900'}`}>
                           {plan.planName}
                         </h3>
                         <Tag
                           color={plan.planType === 'lifetime' ? 'blue' : 'green'}
-                          className={`${
-                            isCurrentPlan
-                              ? 'bg-white/20 text-white border-white/30'
-                              : ''
-                          }`}
                         >
                           {plan.planType}
                         </Tag>
                       </div>
                       {plan.description && (
-                        <p className={`text-sm ${isCurrentPlan ? '!text-white/90' : '!text-white'}`}>
+                        <p className={`text-sm ${isCurrentPlan ? 'text-gray-700' : 'text-gray-600'}`}>
                           {plan.description}
                         </p>
                       )}
                     </div>
 
-                    <div className="p-6">
-                      {/* Pricing Options */}
-                      {plan.planType === 'lifetime' && plan.lifetime && (
-                        <div className="space-y-4">
-                          <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 hover:border-blue-300 transition-colors">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                <Zap className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm font-semibold text-gray-900">One-time Payment</span>
-                              </div>
-                              <Button
-                                type="primary"
-                                size="small"
-                                icon={<ArrowRight className="w-3 h-3" />}
-                                onClick={() => handleSubscribe(plan, 'one-time')}
-                                disabled={isCurrentPlan}
-                                style={primaryButtonStyle}
-                              >
-                                {isCurrentPlan ? 'Current' : 'Subscribe'}
-                              </Button>
-                            </div>
-                            <p className="text-2xl font-bold text-gray-900">
-                              {formatPrice(plan.lifetime.oneTime.price, plan.lifetime.oneTime.currency)}
-                            </p>
-                            <p className="text-xs text-gray-600 mt-1">One-time payment, lifetime access</p>
-                          </div>
-
-                          {plan.lifetime.installments.threeMonths.enabled && (
-                            <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 hover:border-purple-300 transition-colors">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <Calendar className="w-4 h-4 text-purple-600" />
-                                  <span className="text-sm font-semibold text-gray-900">3 Monthly Installments</span>
-                                </div>
-                                <Button
-                                  type="primary"
-                                  size="small"
-                                  icon={<ArrowRight className="w-3 h-3" />}
-                                  onClick={() => handleSubscribe(plan, '3-months')}
-                                  disabled={isCurrentPlan}
-                                  style={primaryButtonStyle}
-                                >
-                                  {isCurrentPlan ? 'Current' : 'Subscribe'}
-                                </Button>
-                              </div>
-                              <p className="text-2xl font-bold text-gray-900">
-                                {formatPrice(plan.lifetime.installments.threeMonths.price, plan.lifetime.installments.threeMonths.currency)}
-                                <span className="text-sm font-normal text-gray-600">/month</span>
-                              </p>
-                              <p className="text-xs text-gray-600 mt-1">3 payments of {formatPrice(plan.lifetime.installments.threeMonths.price, plan.lifetime.installments.threeMonths.currency)}</p>
-                            </div>
-                          )}
-
-                          {plan.lifetime.installments.sixMonths.enabled && (
-                            <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 hover:border-green-300 transition-colors">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <Calendar className="w-4 h-4 text-green-600" />
-                                  <span className="text-sm font-semibold text-gray-900">6 Monthly Installments</span>
-                                </div>
-                                <Button
-                                  type="primary"
-                                  size="small"
-                                  icon={<ArrowRight className="w-3 h-3" />}
-                                  onClick={() => handleSubscribe(plan, '6-months')}
-                                  disabled={isCurrentPlan}
-                                  style={primaryButtonStyle}
-                                >
-                                  {isCurrentPlan ? 'Current' : 'Subscribe'}
-                                </Button>
-                              </div>
-                              <p className="text-2xl font-bold text-gray-900">
-                                {formatPrice(plan.lifetime.installments.sixMonths.price, plan.lifetime.installments.sixMonths.currency)}
-                                <span className="text-sm font-normal text-gray-600">/month</span>
-                              </p>
-                              <p className="text-xs text-gray-600 mt-1">6 payments of {formatPrice(plan.lifetime.installments.sixMonths.price, plan.lifetime.installments.sixMonths.currency)}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {plan.planType === 'monthly' && plan.monthly && (
-                        <div className="space-y-4">
-                          {plan.monthly.fullApp.enabled && (
+                    {((plan.planType === 'lifetime' && plan.lifetime) || (plan.planType === 'monthly' && plan.monthly && (plan.monthly.fullApp?.enabled || plan.monthly.withoutHR?.enabled))) && (
+                      <div className="p-6">
+                        {/* Pricing Options */}
+                        {plan.planType === 'lifetime' && plan.lifetime && (
+                          <div className="space-y-4">
                             <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 hover:border-blue-300 transition-colors">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                  <Sparkles className="w-4 h-4 text-blue-600" />
-                                  <span className="text-sm font-semibold text-gray-900">Full App</span>
+                                  <Zap className="w-4 h-4 text-blue-600" />
+                                  <span className="text-sm font-semibold text-gray-900">One-time Payment</span>
                                 </div>
                                 <Button
                                   type="primary"
                                   size="small"
-                                  icon={<ArrowRight className="w-3 h-3" />}
-                                  onClick={() => handleSubscribe(plan, 'full-app')}
+                                  icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
+                                  onClick={() => handleSubscribe(plan, 'one-time')}
                                   disabled={isCurrentPlan}
-                                  style={primaryButtonStyle}
+                                  style={isCurrentPlan ? { 
+                                    background: '#3b82f6', 
+                                    color: '#fff', 
+                                    border: 'none',
+                                    cursor: 'default'
+                                  } : primaryButtonStyle}
                                 >
                                   {isCurrentPlan ? 'Current' : 'Subscribe'}
                                 </Button>
                               </div>
                               <p className="text-2xl font-bold text-gray-900">
-                                {formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency)}
-                                <span className="text-sm font-normal text-gray-600">/month</span>
+                                {formatPrice(plan.lifetime.oneTime.price, plan.lifetime.oneTime.currency)}
                               </p>
-                              <p className="text-xs text-gray-600 mt-1">Complete feature bundle</p>
+                              <p className="text-xs text-gray-600 mt-1">One-time payment, lifetime access</p>
                             </div>
-                          )}
 
-                          {plan.monthly.withoutHR.enabled && (
-                            <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 hover:border-purple-300 transition-colors">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <Users className="w-4 h-4 text-purple-600" />
-                                  <span className="text-sm font-semibold text-gray-900">Without HR</span>
+                            {plan.lifetime.installments.threeMonths.enabled && (
+                              <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 hover:border-purple-300 transition-colors">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="w-4 h-4 text-purple-600" />
+                                    <span className="text-sm font-semibold text-gray-900">3 Monthly Installments</span>
+                                  </div>
+                                  <Button
+                                    type="primary"
+                                    size="small"
+                                    icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
+                                    onClick={() => handleSubscribe(plan, '3-months')}
+                                    disabled={isCurrentPlan}
+                                    style={isCurrentPlan ? { 
+                                      background: '#3b82f6', 
+                                      color: '#fff', 
+                                      border: 'none',
+                                      cursor: 'default'
+                                    } : primaryButtonStyle}
+                                  >
+                                    {isCurrentPlan ? 'Current' : 'Subscribe'}
+                                  </Button>
                                 </div>
-                                <Button
-                                  type="primary"
-                                  size="small"
-                                  icon={<ArrowRight className="w-3 h-3" />}
-                                  onClick={() => handleSubscribe(plan, 'without-hr')}
-                                  disabled={isCurrentPlan}
-                                  style={primaryButtonStyle}
-                                >
-                                  {isCurrentPlan ? 'Current' : 'Subscribe'}
-                                </Button>
+                                <p className="text-2xl font-bold text-gray-900">
+                                  {formatPrice(plan.lifetime.installments.threeMonths.price, plan.lifetime.installments.threeMonths.currency)}
+                                  <span className="text-sm font-normal text-gray-600">/month</span>
+                                </p>
+                                <p className="text-xs text-gray-600 mt-1">3 payments of {formatPrice(plan.lifetime.installments.threeMonths.price, plan.lifetime.installments.threeMonths.currency)}</p>
                               </div>
-                              <p className="text-2xl font-bold text-gray-900">
-                                {formatPrice(plan.monthly.withoutHR.price, plan.monthly.withoutHR.currency)}
-                                <span className="text-sm font-normal text-gray-600">/month</span>
-                              </p>
-                              <p className="text-xs text-gray-600 mt-1">Access without HR features</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                            )}
+
+                            {plan.lifetime.installments.sixMonths.enabled && (
+                              <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 hover:border-green-300 transition-colors">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="w-4 h-4 text-green-600" />
+                                    <span className="text-sm font-semibold text-gray-900">6 Monthly Installments</span>
+                                  </div>
+                                  <Button
+                                    type="primary"
+                                    size="small"
+                                    icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
+                                    onClick={() => handleSubscribe(plan, '6-months')}
+                                    disabled={isCurrentPlan}
+                                    style={isCurrentPlan ? { 
+                                      background: '#3b82f6', 
+                                      color: '#fff', 
+                                      border: 'none',
+                                      cursor: 'default'
+                                    } : primaryButtonStyle}
+                                  >
+                                    {isCurrentPlan ? 'Current' : 'Subscribe'}
+                                  </Button>
+                                </div>
+                                <p className="text-2xl font-bold text-gray-900">
+                                  {formatPrice(plan.lifetime.installments.sixMonths.price, plan.lifetime.installments.sixMonths.currency)}
+                                  <span className="text-sm font-normal text-gray-600">/month</span>
+                                </p>
+                                <p className="text-xs text-gray-600 mt-1">6 payments of {formatPrice(plan.lifetime.installments.sixMonths.price, plan.lifetime.installments.sixMonths.currency)}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {plan.planType === 'monthly' && plan.monthly && (
+                          <>
+                            {plan.monthly.fullApp.enabled && (
+                              <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 hover:border-blue-300 transition-colors">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-blue-600" />
+                                    <span className="text-sm font-semibold text-gray-900">Full App</span>
+                                  </div>
+                                  <Button
+                                    type="primary"
+                                    size="small"
+                                    icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
+                                    onClick={() => handleSubscribe(plan, 'full-app')}
+                                    disabled={isCurrentPlan}
+                                    style={isCurrentPlan ? { 
+                                      background: '#3b82f6', 
+                                      color: '#fff', 
+                                      border: 'none',
+                                      cursor: 'default'
+                                    } : primaryButtonStyle}
+                                  >
+                                    {isCurrentPlan ? 'Current' : 'Subscribe'}
+                                  </Button>
+                                </div>
+                                <p className="text-2xl font-bold text-gray-900">
+                                  {formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency)}
+                                  <span className="text-sm font-normal text-gray-600">/month</span>
+                                </p>
+                                <p className="text-xs text-gray-600 mt-1">Complete feature bundle</p>
+                              </div>
+                            )}
+
+                            {plan.monthly.withoutHR.enabled && (
+                              <div className={`p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 hover:border-purple-300 transition-colors ${plan.monthly.fullApp.enabled ? 'mt-4' : ''}`}>
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <Users className="w-4 h-4 text-purple-600" />
+                                    <span className="text-sm font-semibold text-gray-900">Without HR</span>
+                                  </div>
+                                  <Button
+                                    type="primary"
+                                    size="small"
+                                    icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
+                                    onClick={() => handleSubscribe(plan, 'without-hr')}
+                                    disabled={isCurrentPlan}
+                                    style={isCurrentPlan ? { 
+                                      background: '#3b82f6', 
+                                      color: '#fff', 
+                                      border: 'none',
+                                      cursor: 'default'
+                                    } : primaryButtonStyle}
+                                  >
+                                    {isCurrentPlan ? 'Current' : 'Subscribe'}
+                                  </Button>
+                                </div>
+                                <p className="text-2xl font-bold text-gray-900">
+                                  {formatPrice(plan.monthly.withoutHR.price, plan.monthly.withoutHR.currency)}
+                                  <span className="text-sm font-normal text-gray-600">/month</span>
+                                </p>
+                                <p className="text-xs text-gray-600 mt-1">Access without HR features</p>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -513,7 +513,8 @@ const TruckProfile = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="border border-gray-300 rounded-lg p-4">
+          <div className="border border-gray-300 rounded-lg p-4">
+
               <div className="flex items-center justify-between mb-3">
                 <FaClipboardCheck className="w-5 h-5 text-blue-500" />
                 <span className={`px-2 py-1 text-xs font-semibold rounded ${selectedVehicle.compliance?.cvsa?.result === "Pass" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
@@ -536,7 +537,8 @@ const TruckProfile = () => {
               )}
             </div>
 
-            <div className="border rounded-lg p-4">
+            <div className="border border-gray-300 rounded-lg p-4">
+
               <div className="flex items-center gap-2 mb-3">
                 <FaTicketAlt className="w-5 h-5 text-yellow-500" />
                 <p className="text-sm font-semibold text-gray-700">Tickets</p>
@@ -564,14 +566,15 @@ const TruckProfile = () => {
           </div>
         </section>
 
-        {/* Fleet Maintenance Section */}
-        <section className="bg-white rounded-xl border p-6 mb-6" style={sectionCardStyle}>
+      
+      {/* Fleet Maintenance Section */}
+      <section className="bg-white rounded-xl border p-6 mb-6" style={sectionCardStyle}>
           <div className="flex items-center gap-3 mb-6">
             <FaWrench className="w-6 h-6" style={{ color: FLEET_COLORS.primary }} />
             <h3 className="text-xl font-bold text-gray-900">Fleet Maintenance</h3>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-semibold text-gray-700">Service Logs</h4>
@@ -579,16 +582,16 @@ const TruckProfile = () => {
                   <span className="text-xs text-gray-500">({filteredData.serviceLogs.length} in period)</span>
                 )}
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {filteredData.serviceLogs.length > 0 ? (
                   filteredData.serviceLogs.map((log) => (
-                    <div key={log.id} className="border rounded-lg p-3">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
+                    <div key={log.id} className="border-l-4 border-blue-500 bg-blue-50/30 rounded-lg p-3 hover:bg-blue-50/50 transition-colors">
+                      <div className="flex justify-between items-start mb-1.5">
+                        <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">{log.description}</p>
-                          <p className="text-xs text-gray-500">{log.vendor} • {log.date}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{log.vendor} • {log.date}</p>
                         </div>
-                        <p className="text-sm font-semibold text-gray-900">CA$ {log.cost}</p>
+                        <p className="text-sm font-semibold text-blue-700 ml-3">CA$ {log.cost}</p>
                       </div>
                     </div>
                   ))
@@ -605,18 +608,18 @@ const TruckProfile = () => {
                   <span className="text-xs text-gray-500">({filteredData.repairs.length} in period)</span>
                 )}
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {filteredData.repairs.length > 0 ? (
                   filteredData.repairs.map((repair) => (
-                    <div key={repair.id} className="border rounded-lg p-3">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
+                    <div key={repair.id} className="border-l-4 border-orange-500 bg-orange-50/30 rounded-lg p-3 hover:bg-orange-50/50 transition-colors">
+                      <div className="flex justify-between items-start mb-1.5">
+                        <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">{repair.issue}</p>
-                          <p className="text-xs text-gray-500">{repair.date}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{repair.date}</p>
                         </div>
-                        <p className="text-xs font-semibold text-orange-600">{repair.downtimeHours}h</p>
+                        <p className="text-xs font-semibold text-orange-700 ml-3">{repair.downtimeHours}h</p>
                       </div>
-                      <p className="text-xs text-gray-600">{repair.resolution}</p>
+                      <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">{repair.resolution}</p>
                     </div>
                   ))
                 ) : (
@@ -631,12 +634,12 @@ const TruckProfile = () => {
             {selectedVehicle.fleet?.spareParts && selectedVehicle.fleet.spareParts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {selectedVehicle.fleet.spareParts.map((part) => (
-                  <div key={part.partNumber} className="border rounded-lg p-3">
+                  <div key={part.partNumber} className="border-l-4 border-purple-500 bg-purple-50/30 rounded-lg p-3 hover:bg-purple-50/50 transition-colors">
                     <p className="text-sm font-medium text-gray-900">{part.partName}</p>
-                    <p className="text-xs text-gray-500">{part.partNumber}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{part.partNumber}</p>
                     <div className="flex justify-between items-center mt-2">
                       <p className="text-xs text-gray-600">Qty: {part.quantity}</p>
-                      <p className="text-xs font-semibold text-gray-900">CA$ {part.cost}</p>
+                      <p className="text-xs font-semibold text-purple-700">CA$ {part.cost}</p>
                     </div>
                   </div>
                 ))}
@@ -662,7 +665,7 @@ const TruckProfile = () => {
 
             <div className="space-y-3">
               {filteredData.assignmentHistory.map((assignment) => (
-                <div key={assignment.id} className="border rounded-lg p-4">
+                <div key={assignment.id} className="border border-gray-300 rounded-lg p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <p className="text-sm font-medium text-gray-900">

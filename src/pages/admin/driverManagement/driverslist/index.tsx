@@ -686,11 +686,11 @@ const DriverManagement = () => {
   );
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-[#EDF8FF] overflow-hidden">
       {/* Main Content */}
       <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidebar ? 'mr-96' : ''} overflow-hidden`}>
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <div className="px-6 py-4 flex-shrink-0">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Driver Management</h1>

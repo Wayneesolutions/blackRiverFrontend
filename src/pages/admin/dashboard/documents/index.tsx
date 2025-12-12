@@ -62,7 +62,12 @@ const DocumentManagement: React.FC = () => {
   const [uploadModalError, setUploadModalError] = useState<string | null>(null);
   const focusHandlers = getFocusStyles();
   const primaryButtonStyle: React.CSSProperties = {
-    background: FLEET_COLORS.gradient,
+    background: `linear-gradient(
+      90deg,
+      #42aeec 0%,
+      #1db5f5 40%,
+      #0ea3d8 100%
+    )`,
     color: "#fff",
     boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
   };
@@ -83,11 +88,11 @@ const DocumentManagement: React.FC = () => {
       const urlObj = new URL(url);
       // Check if it's a public URL (not localhost, 127.0.0.1, or private IP)
       const hostname = urlObj.hostname.toLowerCase();
-      return !hostname.includes('localhost') && 
-             !hostname.includes('127.0.0.1') && 
-             !hostname.startsWith('192.168.') &&
-             !hostname.startsWith('10.') &&
-             !hostname.startsWith('172.');
+      return !hostname.includes('localhost') &&
+        !hostname.includes('127.0.0.1') &&
+        !hostname.startsWith('192.168.') &&
+        !hostname.startsWith('10.') &&
+        !hostname.startsWith('172.');
     } catch {
       return false;
     }
@@ -97,19 +102,19 @@ const DocumentManagement: React.FC = () => {
     const ext = getExtension(doc);
     const encoded = encodeURIComponent(doc.url);
     const isPublic = isPubliclyAccessible(doc.url);
-    
+
     // Office formats via Microsoft viewer - try even for private URLs (might work)
     const officeExts = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
     if (officeExts.includes(ext)) {
       // Microsoft Office Online viewer - works best with public URLs but we'll try anyway
       return `https://view.officeapps.live.com/op/embed.aspx?src=${encoded}`;
     }
-    
+
     // For other file types, only use external viewers if URL is publicly accessible
     if (!isPublic) {
       return null; // Will trigger download/open instead
     }
-    
+
     // Fallback to Google viewer for other common docs (txt, csv, etc.)
     return `https://docs.google.com/gview?url=${encoded}&embedded=true`;
   };
@@ -169,7 +174,7 @@ const DocumentManagement: React.FC = () => {
 
   const handleView = async (doc: Document) => {
     const isS3Url = doc.url && (doc.url.includes('s3.amazonaws.com') || doc.url.includes('.s3.'));
-    
+
     // Show modal for all file types
     setViewDoc(doc);
     setForceDirectView(false); // Reset force direct view when opening new document
@@ -177,7 +182,7 @@ const DocumentManagement: React.FC = () => {
     setViewerError(false); // Reset viewer error
     setSignedUrl(null); // Reset signed URL
     setShowViewModal(true);
-    
+
     // Check if URL is S3 and fetch signed URL
     if (isS3Url) {
       setLoadingSignedUrl(true);
@@ -204,7 +209,7 @@ const DocumentManagement: React.FC = () => {
   const handleDownload = async (doc: Document) => {
     try {
       let downloadUrl = doc.url;
-      
+
       // Check if URL is S3 and fetch signed URL for download with 'attachment' disposition
       const isS3Url = doc.url && (doc.url.includes('s3.amazonaws.com') || doc.url.includes('.s3.'));
       if (isS3Url) {
@@ -222,7 +227,7 @@ const DocumentManagement: React.FC = () => {
           return;
         }
       }
-      
+
       // Create download link with signed URL
       if (downloadUrl) {
         const a = document.createElement('a');
@@ -241,7 +246,7 @@ const DocumentManagement: React.FC = () => {
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         doc.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      doc.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -277,7 +282,7 @@ const DocumentManagement: React.FC = () => {
     // Clear any previous errors
     setUploadModalError(null);
     setUploading(true);
-    
+
     try {
       const res = await uploadCompanyDocument({
         name: uploadForm.name || selectedFile.name,
@@ -285,7 +290,7 @@ const DocumentManagement: React.FC = () => {
         description: uploadForm.description,
         file: selectedFile,
       });
-      
+
       if (res?.success) {
         setUploadModalError(null); // Clear error on success
         message.success(res?.message || 'Document uploaded successfully');
@@ -363,19 +368,21 @@ const DocumentManagement: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen bg-gray-50 px-6 py-8"
-     
+      className="min-h-screen bg-[#EDF8FF] px-5 py-7"
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div
-          className="bg-white rounded-2xl shadow-xl border p-6 mb-8"
-          style={{ borderColor: FLEET_COLORS.focusRing, boxShadow: `0 25px 45px ${FLEET_COLORS.focusRing}` }}
+          className="bg-white rounded-2xl shadow-md border p-5 mb-6"
+          style={{
+            borderColor: FLEET_COLORS.focusRing,
+            boxShadow: `0 4px 20px ${FLEET_COLORS.focusRing}15`
+          }}
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2" style={{ color: FLEET_COLORS.dark }}>Company Documents</h1>
-              <p className="text-sm" style={{ color: FLEET_COLORS.light }}>Manage and organize your company documents in one place</p>
+              <h1 className="text-2xl font-bold mb-1.5" style={{ color: FLEET_COLORS.dark }}>Company Documents</h1>
+              <p className="text-xs text-gray-500" style={{ color: FLEET_COLORS.light }}>Manage and organize your company documents in one place</p>
             </div>
             <button
               onClick={() => {
@@ -383,10 +390,10 @@ const DocumentManagement: React.FC = () => {
                 setUploadModalError(null); // Clear modal error when opening
                 setUploadDialog(true);
               }}
-              className="px-4 py-2 rounded-lg transition-all font-medium flex items-center gap-2"
+              className="px-4 py-2 rounded-lg transition-all duration-200 font-medium flex items-center gap-2 hover:shadow-md hover:scale-105"
               style={primaryButtonStyle}
             >
-              <Plus size={20} />
+              <Plus size={17} />
               Upload Document
             </button>
           </div>
@@ -394,14 +401,14 @@ const DocumentManagement: React.FC = () => {
 
         {/* Error Message Display */}
         {errorMessage && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+          <div className="mb-5 p-3.5 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
             <div className="flex items-start">
               <div className="flex-shrink-0">
                 <AlertCircle className="h-5 w-5 text-red-400" />
               </div>
               <div className="ml-3 flex-1">
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <p className="mt-1 text-sm text-red-700">{errorMessage}</p>
+                <h3 className="text-xs font-medium text-red-800">Error</h3>
+                <p className="mt-1 text-xs text-red-700">{errorMessage}</p>
                 {requiresCompanySetup && (
                   <p className="mt-2 text-xs text-red-600">
                     Please go to <strong>Company Settings</strong> to complete your company setup.
@@ -412,7 +419,7 @@ const DocumentManagement: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setErrorMessage(null)}
-                  className="inline-flex text-red-400 hover:text-red-600 focus:outline-none"
+                  className="inline-flex text-red-400 hover:text-red-600 focus:outline-none transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -421,46 +428,46 @@ const DocumentManagement: React.FC = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
           {/* Sidebar - Categories */}
           <div className="lg:col-span-1">
             <div
-              className="bg-white rounded-2xl shadow-md border sticky top-6"
+              className="bg-white rounded-2xl shadow-sm border sticky top-6"
               style={{ borderColor: FLEET_COLORS.focusRing }}
             >
               <div className="p-4 border-b border-gray-200">
-                <h3 className="font-semibold" style={{ color: FLEET_COLORS.dark }}>Categories</h3>
+                <h3 className="font-semibold text-sm" style={{ color: FLEET_COLORS.dark }}>Categories</h3>
               </div>
-              <div className="p-3 space-y-2">
+              <div className="p-3 space-y-1.5">
                 {categories.map((category) => {
                   const Icon = category.icon;
                   const count = documents.filter(d => d.category === category.id || category.id === 'all').length;
-                  
+
                   return (
                     <button
                       key={category.id}
                       onClick={() => setSelectedCategory(category.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium`}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium ${selectedCategory === category.id
+                        ? 'bg-blue-50 border border-blue-200'
+                        : 'hover:bg-gray-50'
+                        }`}
                       style={
                         selectedCategory === category.id
                           ? {
-                              background: FLEET_COLORS.gradient,
-                              color: "#fff",
-                              boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
-                            }
+                            color: FLEET_COLORS.dark,
+                          }
                           : {
-                              color: FLEET_COLORS.dark,
-                              border: `1px solid transparent`,
-                            }
+                            color: FLEET_COLORS.dark,
+                          }
                       }
                     >
-                      <Icon size={18} />
+                      <Icon size={17} />
                       <span className="flex-1 text-left">{category.name}</span>
                       <span
                         className="px-2 py-0.5 rounded-full text-xs"
                         style={{
-                          background: selectedCategory === category.id ? FLEET_COLORS.focusRing : "rgba(6,63,111,0.1)",
-                          color: selectedCategory === category.id ? FLEET_COLORS.dark : FLEET_COLORS.primary,
+                          background: selectedCategory === category.id ? "rgba(59, 130, 246, 0.2)" : "rgba(6,63,111,0.1)",
+                          color: selectedCategory === category.id ? FLEET_COLORS.primary : FLEET_COLORS.primary,
                         }}
                       >
                         {count}
@@ -476,27 +483,27 @@ const DocumentManagement: React.FC = () => {
           <div className="lg:col-span-3">
             {/* Search and Filter */}
             <div
-              className="bg-white rounded-2xl shadow-md border p-4 mb-6"
+              className="bg-white rounded-2xl shadow-sm border p-4 mb-5"
               style={{ borderColor: FLEET_COLORS.focusRing }}
             >
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input
                     type="text"
                     placeholder="Search documents by name or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm transition-all"
                     style={{ border: `1px solid ${FLEET_COLORS.focusRing}` }}
                     {...focusHandlers}
                   />
                 </div>
                 <button
-                  className="px-4 py-2 border rounded-lg transition-colors font-medium flex items-center gap-2"
+                  className="px-4 py-2 border rounded-lg transition-all duration-200 font-medium flex items-center gap-2 text-sm hover:shadow-sm"
                   style={{ borderColor: FLEET_COLORS.focusRing, color: FLEET_COLORS.dark }}
                 >
-                  <Filter size={18} />
+                  <Filter size={17} />
                   Filter
                 </button>
               </div>
@@ -509,12 +516,12 @@ const DocumentManagement: React.FC = () => {
               </div>
             ) : errorMessage && requiresCompanySetup ? (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                <AlertCircle size={64} className="mx-auto text-red-300 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Company Settings Required</h3>
-                <p className="text-gray-600 mb-4">{errorMessage}</p>
+                <AlertCircle size={60} className="mx-auto text-red-300 mb-4" />
+                <h3 className="text-base font-semibold text-gray-900 mb-2">Company Settings Required</h3>
+                <p className="text-sm text-gray-600 mb-4">{errorMessage}</p>
                 <button
                   onClick={() => window.location.href = '/admin/company'}
-                  className="px-4 py-2 rounded-lg transition-colors font-medium"
+                  className="px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm hover:shadow-lg"
                   style={primaryButtonStyle}
                 >
                   Go to Company Settings
@@ -525,7 +532,7 @@ const DocumentManagement: React.FC = () => {
                 {filteredDocuments.map((doc) => (
                   <div
                     key={doc._id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all p-4 cursor-pointer"
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 p-4 cursor-pointer group"
                     onClick={(e) => {
                       // Only open modal if clicking on the card itself, not on buttons
                       if ((e.target as HTMLElement).closest('button')) {
@@ -535,21 +542,21 @@ const DocumentManagement: React.FC = () => {
                     }}
                   >
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
+                      <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0 group-hover:bg-blue-50 transition-colors">
                         {getFileIcon(doc.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-900 truncate hover:text-blue-600 transition-colors">{doc.name}</h4>
+                        <h4 className="font-semibold text-sm text-gray-900 truncate group-hover:text-blue-600 transition-colors">{doc.name}</h4>
                         <p className="text-xs text-gray-500 mt-1">
                           {formatFileSize(doc.size)} • {doc.type.toUpperCase()}
                         </p>
                       </div>
                     </div>
-                    
+
                     {doc.description && (
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{doc.description}</p>
+                      <p className="text-xs text-gray-600 mb-3 line-clamp-2">{doc.description}</p>
                     )}
-                    
+
                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
                       <User size={14} />
                       <span>{doc.uploadedBy}</span>
@@ -557,44 +564,81 @@ const DocumentManagement: React.FC = () => {
                       <Calendar size={14} />
                       <span>{new Date(doc.uploadDate).toLocaleDateString()}</span>
                     </div>
-                    
-                    <div className="flex items-center gap-2 pt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+
+                    <div
+                      className="flex items-center justify-between pt-3 border-t border-gray-100"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* LEFT — Open Button */}
                       <button
-                        onClick={() => handleView(doc)}
-                        className="flex-1 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1 text-sm font-medium"
-                        style={{ background: FLEET_COLORS.gradient, color: "#fff", boxShadow: `0 10px 18px ${FLEET_COLORS.focusRing}` }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleView(doc);
+                        }}
+                        className="px-6 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 
+               transition-all duration-200 hover:shadow-md"
+                        style={{
+                          background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                          color: "#fff",
+                          boxShadow: `0 4px 12px ${FLEET_COLORS.focusRing}30`,
+                        }}
                       >
-                        <Eye size={16} />
+                        <Eye size={15} />
                         Open
                       </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDownload(doc); }}
-                        className="px-3 py-1.5 rounded-lg transition-colors"
-                        style={{ border: `1px solid ${FLEET_COLORS.focusRing}`, color: FLEET_COLORS.dark }}
-                        title="Download"
-                      >
-                        <Download size={16} />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleAskDelete(doc); }}
-                        className="px-3 py-1.5 rounded-lg transition-colors"
-                        style={{ background: "rgba(239,68,68,0.1)", color: "#b91c1c" }}
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+
+                      {/* RIGHT — Download + Delete */}
+                      <div className="flex items-center gap-2">
+                        {/* Download Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(doc);
+                          }}
+                          className="px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center justify-center 
+                 hover:bg-gray-100"
+                          style={{
+                            border: `1px solid ${FLEET_COLORS.focusRing}`,
+                            color: FLEET_COLORS.dark,
+                            background: "#fff",
+                          }}
+                          title="Download"
+                        >
+                          <Download size={15} />
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAskDelete(doc);
+                          }}
+                          className="px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center justify-center 
+                 hover:bg-red-100"
+                          style={{
+                            background: "rgba(239,68,68,0.12)",
+                            color: "#b91c1c",
+                          }}
+                          title="Delete"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </div>
+
+
                   </div>
                 ))}
               </div>
             ) : (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                <FolderOpen size={64} className="mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No documents found</h3>
-                <p className="text-gray-600 mb-4">Try adjusting your search or filters</p>
+                <FolderOpen size={60} className="mx-auto text-gray-300 mb-4" />
+                <h3 className="text-base font-semibold text-gray-900 mb-2">No documents found</h3>
+                <p className="text-sm text-gray-600 mb-4">Try adjusting your search or filters</p>
                 <button
                   onClick={() => setUploadDialog(true)}
-                  className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  style={primaryButtonStyle}
+                  className="px-4 py-2  !text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm hover:shadow-lg"
                 >
                   Upload First Document
                 </button>
@@ -622,7 +666,7 @@ const DocumentManagement: React.FC = () => {
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6 space-y-6">
               {/* Error Message Display in Modal */}
               {uploadModalError && (
@@ -773,13 +817,13 @@ const DocumentManagement: React.FC = () => {
                 const ext = getExtension(viewDoc);
                 // Use signed URL if available, otherwise use original URL
                 const docUrl = signedUrl || viewDoc.url;
-                
+
                 // PDFs - use iframe to display in modal
                 if (ext === 'pdf') {
                   return (
                     <div className="relative w-full">
-                      <iframe 
-                        title="preview" 
+                      <iframe
+                        title="preview"
                         src={`${docUrl}#toolbar=0`}
                         className="w-full h-[70vh] border rounded-lg bg-white"
                         onError={(e) => {
@@ -841,14 +885,14 @@ const DocumentManagement: React.FC = () => {
                     </div>
                   );
                 }
-                
+
                 // Images - use img tag to display in UI
-                if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
+                if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
                   return (
                     <div className="flex flex-col items-center justify-center">
-                      <img 
-                        src={docUrl} 
-                        alt={viewDoc.name} 
+                      <img
+                        src={docUrl}
+                        alt={viewDoc.name}
                         className="max-h-[70vh] w-auto mx-auto rounded-lg border shadow-lg"
                         onError={(e) => {
                           console.error('Image load error:', e);
@@ -876,14 +920,14 @@ const DocumentManagement: React.FC = () => {
                     </div>
                   );
                 }
-                
+
                 // For Office documents and other file types
                 const viewerSrc = getViewerUrl(viewDoc);
                 const isPublic = isPubliclyAccessible(docUrl);
                 // Check if this is an S3 URL (signed URLs will have query params, but even base S3 URLs aren't publicly accessible for Office viewer)
                 const isS3Url = docUrl && (docUrl.includes('s3.amazonaws.com') || docUrl.includes('.s3.'));
-                
-                
+
+
                 // For Office documents (DOCX, XLSX, PPTX, etc.) - browsers can't display these natively
                 const officeExts = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
                 if (officeExts.includes(ext)) {
@@ -897,7 +941,7 @@ const DocumentManagement: React.FC = () => {
                           <FileText className="text-gray-400 mb-4 mx-auto" size={64} />
                           <h3 className="text-lg font-semibold text-gray-900 mb-2">Office Document Preview Unavailable</h3>
                           <p className="text-sm text-gray-600 mb-4 max-w-md">
-                            This Office document cannot be previewed in the browser because it requires authentication. 
+                            This Office document cannot be previewed in the browser because it requires authentication.
                             The Microsoft Office Online viewer can only access publicly available files without authentication.
                             Please download the file to view it in Microsoft Office or another compatible application.
                           </p>
@@ -940,7 +984,7 @@ const DocumentManagement: React.FC = () => {
                       </div>
                     );
                   }
-                  
+
                   // If viewer error occurred, show message with options
                   if (viewerError) {
                     return (
@@ -949,7 +993,7 @@ const DocumentManagement: React.FC = () => {
                           <AlertCircle className="text-yellow-500 mb-4 mx-auto" size={64} />
                           <h3 className="text-lg font-semibold text-gray-900 mb-2">Viewer Error</h3>
                           <p className="text-sm text-gray-600 mb-4 max-w-md">
-                            The Microsoft Office Online viewer could not load this document. 
+                            The Microsoft Office Online viewer could not load this document.
                             This may be due to CORS restrictions or authentication requirements.
                           </p>
                         </div>
@@ -981,7 +1025,7 @@ const DocumentManagement: React.FC = () => {
                       </div>
                     );
                   }
-                  
+
                   // Try viewer (Microsoft Office Online viewer)
                   // Use signed URL for viewer if available
                   const viewerUrl = viewerSrc || `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(docUrl)}`;
@@ -1035,7 +1079,7 @@ const DocumentManagement: React.FC = () => {
                     </div>
                   );
                 }
-                
+
                 // For other file types - try direct iframe if publicly accessible
                 if (isPublic) {
                   return (
@@ -1091,7 +1135,7 @@ const DocumentManagement: React.FC = () => {
                     </div>
                   );
                 }
-                
+
                 // If viewer URL is available, use it
                 if (viewerSrc) {
                   return (
@@ -1133,7 +1177,7 @@ const DocumentManagement: React.FC = () => {
                     </div>
                   );
                 }
-                
+
                 // If no preview is available, show download option or try direct view
                 if (forceDirectView) {
                   // If viewMode is set to 'newtab', show message that it opened
@@ -1175,7 +1219,7 @@ const DocumentManagement: React.FC = () => {
                       </div>
                     );
                   }
-                  
+
                   // Try to display in iframe
                   return (
                     <div className="relative w-full">
@@ -1219,7 +1263,7 @@ const DocumentManagement: React.FC = () => {
                     </div>
                   );
                 }
-                
+
                 // Show message with option to try viewing
                 return (
                   <div className="flex flex-col items-center justify-center h-[70vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
