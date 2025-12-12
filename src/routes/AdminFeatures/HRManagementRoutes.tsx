@@ -13,7 +13,6 @@ const Issues = lazy(() => import("../../pages/admin/dispatch/resources/issues/in
 const CompanyDocuments = lazy(() => import("../../pages/admin/dashboard/documents/index"))
 const VehicleDocuments = lazy(() => import("../../pages/admin/driverManagement/VehicleDocuments"))
 const UserProfilesPortfolio = lazy(() => import("../../pages/admin/driverManagement/userProfiles/index"))
-const DriverDocuments = lazy(() => import("../../pages/admin/driverManagement/driverdocument/index"))
 const DriverProfiles = lazy(() => import("../../pages/admin/driverManagement/driverportfolio/index"))
 
 function DriverManagementRoutes() {

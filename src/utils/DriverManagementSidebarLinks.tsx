@@ -1,6 +1,5 @@
 import {
-  MdDashboard,            // Home
-  MdDocumentScanner,      // Scanning / Document Review
+  MdDashboard,         
   MdAccessTime,           // Attendance
   MdErrorOutline,         // Issues
   MdPerson,               // Profile / Portfolio
