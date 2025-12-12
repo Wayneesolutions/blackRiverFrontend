@@ -3,8 +3,14 @@ import {
   FaClipboardCheck, FaCheckCircle, FaPlus, FaEye, 
   FaEdit, FaSearch, FaMapMarkerAlt, FaUser, 
   FaTools, FaDownload, FaCamera, FaTimes, FaClock,
-  FaHistory
+  FaHistory, FaTrash, FaExclamationTriangle, FaInfoCircle
 } from 'react-icons/fa';
+import { 
+  createInspection, 
+  getInspections, 
+  updateInspection, 
+  deleteInspection 
+} from '../../../../axios/api/healthSafety';
 
 interface ChecklistItem {
   id: string;
@@ -142,6 +148,50 @@ const CHECKLIST_TEMPLATES: Record<ChecklistTemplateKey, ChecklistTemplateItem[]>
   ],
 };
 
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'info' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationTriangle className="text-red-500" size={24} />,
+    info: <FaInfoCircle className="text-blue-500" size={24} />,
+    warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
+
 const SafetyInspections: React.FC = () => {
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -151,139 +201,146 @@ const SafetyInspections: React.FC = () => {
   const [showNewInspectionModal, setShowNewInspectionModal] = useState(false);
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [editingInspection, setEditingInspection] = useState<Inspection | null>(null);
 
+  // Toast notification helpers
+  const addNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  // Fetch all inspections on initial render (without filters)
   useEffect(() => {
-    // Mock data with enhanced features
-    setInspections([
-      {
-        _id: '1',
-        inspectionNumber: 'INS-2024-001',
-        type: 'Fire Extinguisher Check',
-        category: 'Scheduled',
-        status: 'completed',
-        priority: 'high',
-        scheduledDate: '2024-12-01',
-        completedDate: '2024-12-01',
-        dueDate: '2024-12-01',
-        location: 'Warehouse A - Bay 3',
-        locationType: 'warehouse',
-        inspector: 'John Smith',
-        inspectedBy: 'John Smith',
-        checklist: [
-          { id: '1', question: 'Extinguisher accessible?', status: 'pass', photoRequired: true, photos: ['photo1.jpg'], notes: 'Clear access' },
-          { id: '2', question: 'Pressure gauge in green?', status: 'pass', photoRequired: true, photos: ['photo2.jpg'] },
-          { id: '3', question: 'Inspection tag current?', status: 'pass', photoRequired: true, photos: ['photo3.jpg'] },
-        ],
-        findings: { total: 0, critical: 0, major: 0, minor: 0, resolved: 0 },
-        complianceStatus: 'compliant',
-        correctiveActions: [],
-        notes: 'All fire extinguishers in compliance. Next check due in 30 days.',
-        documentUrl: '/reports/ins-001.pdf',
-        photoEvidence: [
-          { fileUrl: '/photos/ext1.jpg', fileName: 'Extinguisher_Bay3.jpg', uploadedAt: '2024-12-01T10:30:00', uploadedBy: 'John Smith' },
-        ],
-        auditTrail: [
-          { action: 'Created', user: 'System', timestamp: '2024-11-15T08:00:00', details: 'Inspection scheduled' },
-          { action: 'Completed', user: 'John Smith', timestamp: '2024-12-01T10:45:00', details: 'Inspection completed - All items passed' },
-        ],
-      },
-      {
-        _id: '2',
-        inspectionNumber: 'INS-2024-002',
-        type: 'Reefer Food Safety',
-        category: 'Routine',
-        status: 'action-required',
-        priority: 'critical',
-        scheduledDate: '2024-12-08',
-        completedDate: '2024-12-08',
-        dueDate: '2024-12-08',
-        location: 'Trailer #4587',
-        locationType: 'vehicle',
-        inspector: 'Safety Manager',
-        inspectedBy: 'Jane Doe',
-        checklist: [
-          { id: '1', question: 'Interior walls clean?', status: 'fail', photoRequired: true, photos: ['fail1.jpg'], notes: 'Staining found on rear wall' },
-          { id: '2', question: 'Floor sanitized?', status: 'fail', photoRequired: true, photos: ['fail2.jpg'], notes: 'Deep cleaning required' },
-          { id: '3', question: 'Temperature logs current?', status: 'pass', photoRequired: true },
-        ],
-        findings: { total: 2, critical: 0, major: 2, minor: 0, resolved: 0 },
-        complianceStatus: 'non-compliant',
-        correctiveActions: [
-          {
-            id: 'CA1',
-            description: 'Deep clean and sanitize trailer interior',
-            assignedTo: 'Maintenance Team',
-            dueDate: '2024-12-10',
-            priority: 'critical',
-            status: 'in-progress',
-          },
-          {
-            id: 'CA2',
-            description: 'Schedule monthly deep cleaning protocol',
-            assignedTo: 'Fleet Manager',
-            dueDate: '2024-12-15',
-            priority: 'high',
-            status: 'open',
-          },
-        ],
-        notes: 'Trailer removed from service until cleaning completed.',
-        photoEvidence: [
-          { fileUrl: '/photos/reefer_fail1.jpg', fileName: 'Wall_Staining.jpg', uploadedAt: '2024-12-08T14:20:00', uploadedBy: 'Jane Doe' },
-          { fileUrl: '/photos/reefer_fail2.jpg', fileName: 'Floor_Condition.jpg', uploadedAt: '2024-12-08T14:22:00', uploadedBy: 'Jane Doe' },
-        ],
-        auditTrail: [
-          { action: 'Created', user: 'System', timestamp: '2024-12-01T08:00:00', details: 'Routine inspection scheduled' },
-          { action: 'Completed', user: 'Jane Doe', timestamp: '2024-12-08T14:30:00', details: '2 major findings identified' },
-          { action: 'CAPA Assigned', user: 'Safety Manager', timestamp: '2024-12-08T15:00:00', details: '2 corrective actions created' },
-        ],
-      },
-      {
-        _id: '3',
-        inspectionNumber: 'INS-2024-003',
-        type: 'PPE Inspection',
-        category: 'Scheduled',
-        status: 'scheduled',
-        priority: 'medium',
-        scheduledDate: '2024-12-15',
-        dueDate: '2024-12-15',
-        location: 'Shop Floor',
-        locationType: 'shop',
-        inspector: 'Safety Officer',
-        checklist: [],
-        findings: { total: 0, critical: 0, major: 0, minor: 0, resolved: 0 },
-        complianceStatus: 'pending',
-        correctiveActions: [],
-        photoEvidence: [],
-        auditTrail: [
-          { action: 'Created', user: 'System', timestamp: '2024-11-15T08:00:00', details: 'Monthly PPE inspection scheduled' },
-        ],
-      },
-      {
-        _id: '4',
-        inspectionNumber: 'INS-2024-004',
-        type: 'Yard Inspection',
-        category: 'Routine',
-        status: 'overdue',
-        priority: 'high',
-        scheduledDate: '2024-11-20',
-        dueDate: '2024-11-20',
-        location: 'Main Yard',
-        locationType: 'yard',
-        inspector: 'Yard Supervisor',
-        checklist: [],
-        findings: { total: 0, critical: 0, major: 0, minor: 0, resolved: 0 },
-        complianceStatus: 'pending',
-        correctiveActions: [],
-        notes: 'OVERDUE - Requires immediate completion',
-        photoEvidence: [],
-        auditTrail: [
-          { action: 'Created', user: 'System', timestamp: '2024-11-01T08:00:00', details: 'Scheduled for 2024-11-20' },
-          { action: 'Reminder Sent', user: 'System', timestamp: '2024-11-20T08:00:00', details: 'Email sent to Yard Supervisor' },
-          { action: 'Escalated', user: 'System', timestamp: '2024-11-27T08:00:00', details: 'Escalated to Safety Manager' },
-        ],
-      },
-    ]);
+    fetchInspections(false); // false = don't apply filters, fetch all
   }, []);
+
+  // Fetch inspections when filters change
+  useEffect(() => {
+    // Skip initial render (when filters are still 'all')
+    const isInitial = filterStatus === 'all' && filterType === 'all';
+    if (!isInitial) {
+      fetchInspections(true); // true = apply filters
+    }
+  }, [filterStatus, filterType]);
+
+  // Debounced search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchInspections();
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  const fetchInspections = async (applyFilters = true) => {
+    setLoading(true);
+    try {
+      const params: any = {};
+      
+      if (applyFilters) {
+        if (filterStatus !== 'all') {
+          params.status = filterStatus;
+        }
+        if (filterType !== 'all') {
+          params.type = filterType;
+        }
+        if (searchTerm) {
+          params.search = searchTerm;
+        }
+      }
+
+      // Always call API, even if no params (to get all inspections)
+      const apiParams = Object.keys(params).length > 0 ? params : undefined;
+      console.log('Fetching inspections with params:', apiParams);
+      const response = await getInspections(apiParams);
+      console.log('Inspections API response:', response);
+      
+      if (response?.success && Array.isArray(response.data)) {
+        console.log(`Fetched ${response.data.length} inspections`);
+        // Map API response to frontend format
+        const mappedInspections = response.data.map((inspection: any) => {
+          // Calculate findings summary from findings array
+          const findingsArray = Array.isArray(inspection.findings) ? inspection.findings : [];
+          const findingsSummary = {
+            total: findingsArray.length,
+            critical: findingsArray.filter((f: any) => f.severity === 'critical').length,
+            major: findingsArray.filter((f: any) => f.severity === 'high').length,
+            minor: findingsArray.filter((f: any) => f.severity === 'medium' || f.severity === 'low').length,
+            resolved: findingsArray.filter((f: any) => f.status === 'resolved' || f.status === 'closed').length
+          };
+
+          // Map findings to checklist format if needed
+          const checklist: ChecklistItem[] = findingsArray.map((finding: any, idx: number) => ({
+            id: finding._id || `finding-${idx}`,
+            question: finding.description || '',
+            status: finding.status === 'resolved' || finding.status === 'closed' ? 'pass' : 
+                    finding.severity === 'critical' || finding.severity === 'high' ? 'fail' : 'pending',
+            notes: finding.correctiveAction || '',
+            photoRequired: false,
+            photos: []
+          }));
+
+          return {
+            _id: inspection._id,
+            inspectionNumber: inspection.inspectionNumber,
+            type: inspection.type as Inspection['type'],
+            category: 'Scheduled' as Inspection['category'], // Default, backend doesn't have this
+            status: inspection.status as Inspection['status'],
+            priority: 'medium' as Inspection['priority'], // Default, backend doesn't have this
+            scheduledDate: inspection.scheduledDate ? new Date(inspection.scheduledDate).toISOString().split('T')[0] : 
+                          inspection.date ? new Date(inspection.date).toISOString().split('T')[0] : 
+                          new Date().toISOString().split('T')[0],
+            completedDate: inspection.completedDate ? new Date(inspection.completedDate).toISOString().split('T')[0] : undefined,
+            dueDate: inspection.scheduledDate ? new Date(inspection.scheduledDate).toISOString().split('T')[0] : 
+                     inspection.date ? new Date(inspection.date).toISOString().split('T')[0] : 
+                     new Date().toISOString().split('T')[0],
+            location: inspection.location,
+            locationType: 'other' as Inspection['locationType'], // Default
+            inspector: inspection.inspector,
+            inspectorId: inspection.createdBy?._id,
+            inspectedBy: inspection.inspector,
+            checklist: checklist.length > 0 ? checklist : [],
+            findings: findingsSummary,
+            complianceStatus: findingsSummary.total === 0 ? 'compliant' : 
+                             findingsSummary.critical > 0 ? 'non-compliant' : 
+                             findingsSummary.major > 0 ? 'partial' : 'compliant',
+            correctiveActions: [], // Backend doesn't have this structure
+            notes: inspection.notes || '',
+            documentUrl: undefined,
+            photoEvidence: [],
+            relatedIncidentId: undefined,
+            auditTrail: [
+              {
+                action: 'Created',
+                user: inspection.createdBy?.name || 'System',
+                timestamp: inspection.createdAt || new Date().toISOString(),
+                details: 'Inspection created'
+              }
+            ]
+          };
+        });
+        
+        setInspections(mappedInspections);
+      } else {
+        if (response?.success && !Array.isArray(response.data)) {
+          console.error('Invalid response format:', response);
+          addNotification('error', 'Invalid data format received from server');
+        } else {
+          addNotification('error', response?.message || 'Failed to fetch inspections');
+        }
+      }
+    } catch (error: any) {
+      addNotification('error', error?.message || 'Error fetching inspections');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const stats = {
     total: inspections.length,
@@ -316,16 +373,138 @@ const SafetyInspections: React.FC = () => {
     return matchesSearch && matchesType && matchesStatus && matchesTab;
   });
 
-  const NewInspectionModal = () => {
-    const [selectedType, setSelectedType] = useState('');
-    const [selectedLocation, setSelectedLocation] = useState('');
+  const handleCreateInspection = async (formData: any) => {
+    try {
+      if (!formData.type || !formData.location || !formData.inspector || !formData.scheduledDate) {
+        addNotification('error', 'Please fill in all required fields: Type, Location, Inspector, and Scheduled Date');
+        return;
+      }
+
+      const payload = {
+        date: formData.scheduledDate || formData.date, // Use scheduledDate as the main date
+        type: formData.type,
+        inspector: formData.inspector.trim(),
+        location: formData.location.trim(),
+        status: formData.status || 'scheduled',
+        notes: formData.notes || '',
+        scheduledDate: formData.scheduledDate,
+        completedDate: formData.completedDate || null,
+        findings: [],
+        hazards: []
+      };
+
+      const response = await createInspection(payload);
+      
+      if (response?.success) {
+        addNotification('success', 'Inspection created successfully');
+        setShowNewInspectionModal(false);
+        await fetchInspections(false); // Fetch all inspections without filters
+      } else {
+        const errorMsg = response?.message || 'Failed to create inspection';
+        addNotification('error', errorMsg);
+        console.error('Create inspection error:', response);
+      }
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.message || error?.message || 'Error creating inspection';
+      addNotification('error', errorMsg);
+      console.error('Create inspection exception:', error);
+    }
+  };
+
+  const handleUpdateInspection = async (inspectionId: string, updateData: any) => {
+    try {
+      const response = await updateInspection(inspectionId, updateData);
+      if (response?.success) {
+        addNotification('success', 'Inspection updated successfully');
+        setEditingInspection(null);
+        setShowNewInspectionModal(false);
+        await fetchInspections(false); // Fetch all inspections
+      } else {
+        const errorMsg = response?.message || 'Failed to update inspection';
+        addNotification('error', errorMsg);
+        console.error('Update inspection error:', response);
+      }
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.message || error?.message || 'Error updating inspection';
+      addNotification('error', errorMsg);
+      console.error('Update inspection exception:', error);
+    }
+  };
+
+  const handleDeleteInspection = async (inspectionId: string) => {
+    if (!window.confirm('Are you sure you want to delete this inspection?')) {
+      return;
+    }
+
+    try {
+      const response = await deleteInspection(inspectionId);
+      if (response?.success) {
+        addNotification('success', 'Inspection deleted successfully');
+        setShowDetailModal(false);
+        setSelectedInspection(null);
+        await fetchInspections(false); // Fetch all inspections
+      } else {
+        const errorMsg = response?.message || 'Failed to delete inspection';
+        addNotification('error', errorMsg);
+        console.error('Delete inspection error:', response);
+      }
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.message || error?.message || 'Error deleting inspection';
+      addNotification('error', errorMsg);
+      console.error('Delete inspection exception:', error);
+    }
+  };
+
+  const NewInspectionModal = ({ editing }: { editing?: Inspection | null }) => {
+    const [selectedType, setSelectedType] = useState(editing?.type || '');
+    const [selectedLocation, setSelectedLocation] = useState(editing?.location || '');
+    const [selectedInspector, setSelectedInspector] = useState(editing?.inspector || '');
+    const [scheduledDate, setScheduledDate] = useState(
+      editing?.scheduledDate || editing?.date || ''
+    );
+    const [dueDate, setDueDate] = useState(
+      editing?.dueDate || editing?.scheduledDate || ''
+    );
+    const [priority, setPriority] = useState(editing?.priority || 'medium');
+    const [notes, setNotes] = useState(editing?.notes || '');
+    const [saving, setSaving] = useState(false);
+
+    // Update form when editing changes
+    useEffect(() => {
+      if (editing) {
+        setSelectedType(editing.type || '');
+        setSelectedLocation(editing.location || '');
+        setSelectedInspector(editing.inspector || '');
+        setScheduledDate(editing.scheduledDate || editing.date || '');
+        setDueDate(editing.dueDate || editing.scheduledDate || '');
+        setPriority(editing.priority || 'medium');
+        setNotes(editing.notes || '');
+      } else {
+        // Reset form when not editing
+        setSelectedType('');
+        setSelectedLocation('');
+        setSelectedInspector('');
+        setScheduledDate('');
+        setDueDate('');
+        setPriority('medium');
+        setNotes('');
+      }
+    }, [editing]);
     
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
-            <h2 className="text-2xl font-bold text-gray-900">Schedule New Inspection</h2>
-            <button onClick={() => setShowNewInspectionModal(false)} className="text-gray-500 hover:text-gray-700">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {editing ? 'Edit Inspection' : 'Schedule New Inspection'}
+            </h2>
+            <button 
+              onClick={() => {
+                setShowNewInspectionModal(false);
+                setEditingInspection(null);
+              }} 
+              className="text-gray-500 hover:text-gray-700"
+            >
               <FaTimes size={24} />
             </button>
           </div>
@@ -363,6 +542,8 @@ const SafetyInspections: React.FC = () => {
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Scheduled Date *</label>
                 <input 
                   type="date"
+                  value={scheduledDate}
+                  onChange={(e) => setScheduledDate(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
@@ -371,27 +552,46 @@ const SafetyInspections: React.FC = () => {
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Due Date *</label>
                 <input 
                   type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Inspector *</label>
-                <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                  <option>John Smith - Safety Manager</option>
-                  <option>Jane Doe - Facility Supervisor</option>
-                  <option>Mike Johnson - Yard Supervisor</option>
-                </select>
+                <input
+                  type="text"
+                  value={selectedInspector}
+                  onChange={(e) => setSelectedInspector(e.target.value)}
+                  placeholder="Enter inspector name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
               </div>
               
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Priority</label>
-                <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                <select 
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
                   <option value="critical">Critical</option>
                 </select>
+              </div>
+              
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Notes</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Additional notes..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
               </div>
             </div>
             
@@ -415,12 +615,72 @@ const SafetyInspections: React.FC = () => {
             
             <div className="flex gap-4">
               <button 
-                className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2"
+                onClick={async () => {
+                  if (!selectedType || !selectedLocation || !selectedInspector || !scheduledDate) {
+                    addNotification('error', 'Please fill in all required fields');
+                    return;
+                  }
+                  
+                  setSaving(true);
+                  try {
+                    if (editing) {
+                      // Update existing inspection
+                      await handleUpdateInspection(editing._id, {
+                        type: selectedType,
+                        location: selectedLocation,
+                        inspector: selectedInspector,
+                        date: scheduledDate,
+                        scheduledDate: scheduledDate,
+                        notes: notes,
+                        status: editing.status
+                      });
+                    } else {
+                      // Create new inspection
+                      await handleCreateInspection({
+                        type: selectedType,
+                        location: selectedLocation,
+                        inspector: selectedInspector,
+                        date: scheduledDate,
+                        scheduledDate: scheduledDate,
+                        dueDate: dueDate || scheduledDate,
+                        priority: priority,
+                        notes: notes,
+                        status: 'scheduled'
+                      });
+                    }
+                  } catch (error) {
+                    console.error('Error in save inspection:', error);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving || !selectedType || !selectedLocation || !selectedInspector || !scheduledDate}
+                className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FaPlus /> Schedule Inspection
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    {editing ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : (
+                  <>
+                    <FaPlus /> {editing ? 'Update Inspection' : 'Schedule Inspection'}
+                  </>
+                )}
               </button>
               <button 
-                onClick={() => setShowNewInspectionModal(false)}
+                onClick={() => {
+                  setShowNewInspectionModal(false);
+                  setEditingInspection(null);
+                  // Reset form
+                  setSelectedType('');
+                  setSelectedLocation('');
+                  setSelectedInspector('');
+                  setScheduledDate('');
+                  setDueDate('');
+                  setPriority('medium');
+                  setNotes('');
+                }}
                 className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
               >
                 Cancel
@@ -436,7 +696,7 @@ const SafetyInspections: React.FC = () => {
     if (!selectedInspection) return null;
     
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
             <div>
@@ -459,7 +719,13 @@ const SafetyInspections: React.FC = () => {
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="text-sm text-gray-600 mb-1">Scheduled</div>
-                <div className="font-semibold">{new Date(selectedInspection.scheduledDate).toLocaleDateString()}</div>
+                <div className="font-semibold">
+                  {selectedInspection.scheduledDate 
+                    ? new Date(selectedInspection.scheduledDate).toLocaleDateString() 
+                    : selectedInspection.date 
+                    ? new Date(selectedInspection.date).toLocaleDateString() 
+                    : 'N/A'}
+                </div>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">
                 <div className="text-sm text-gray-600 mb-1">Inspector</div>
@@ -592,10 +858,29 @@ const SafetyInspections: React.FC = () => {
             <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2">
               <FaDownload /> Download Report
             </button>
-            <button className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center gap-2">
+            <button 
+              onClick={() => {
+                setEditingInspection(selectedInspection);
+                setShowDetailModal(false);
+                setShowNewInspectionModal(true);
+              }}
+              className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center gap-2"
+            >
               <FaEdit /> Edit Inspection
             </button>
-            <button className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
+            <button 
+              onClick={() => handleDeleteInspection(selectedInspection._id)}
+              className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition flex items-center gap-2"
+            >
+              <FaTrash /> Delete
+            </button>
+            <button 
+              onClick={() => {
+                setShowDetailModal(false);
+                setSelectedInspection(null);
+              }}
+              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+            >
               Close
             </button>
           </div>
@@ -686,7 +971,10 @@ const SafetyInspections: React.FC = () => {
           </select>
           
           <button 
-            onClick={() => setShowNewInspectionModal(true)}
+            onClick={() => {
+              setEditingInspection(null);
+              setShowNewInspectionModal(true);
+            }}
             className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center gap-2 whitespace-nowrap"
           >
             <FaPlus /> New Inspection
@@ -728,7 +1016,16 @@ const SafetyInspections: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredInspections.map(inspection => (
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                </tr>
+              ) : filteredInspections.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">No inspections found.</td>
+                </tr>
+              ) : (
+                filteredInspections.map(inspection => (
                 <tr key={inspection._id} className="hover:bg-gray-50 transition">
                   <td className="px-6 py-4">
                     <div className="font-semibold text-gray-900">{inspection.inspectionNumber}</div>
@@ -751,7 +1048,11 @@ const SafetyInspections: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-700">
-                      {new Date(inspection.scheduledDate).toLocaleDateString()}
+                      {inspection.scheduledDate 
+                        ? new Date(inspection.scheduledDate).toLocaleDateString() 
+                        : inspection.date 
+                        ? new Date(inspection.date).toLocaleDateString() 
+                        : 'N/A'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -788,15 +1089,27 @@ const SafetyInspections: React.FC = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
       {/* Modals */}
-      {showNewInspectionModal && <NewInspectionModal />}
+      {showNewInspectionModal && <NewInspectionModal editing={editingInspection} />}
       {showDetailModal && <InspectionDetailModal />}
+      
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10001] space-y-2">
+        {notifications.map(notification => (
+          <ToastNotificationComponent
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
     </div>
   );
 };

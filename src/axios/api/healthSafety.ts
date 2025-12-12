@@ -384,9 +384,13 @@ export const deleteHazard = async (id: string) => {
 };
 
 // ==================== TRAINING APIs ====================
-export const createTraining = async (data: any) => {
+export const createTraining = async (formData: FormData) => {
   try {
-    const res: AxiosResponse = await apiClient.post('health-safety/training', data);
+    const res: AxiosResponse = await apiClient.post('health-safety/training', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return res.data;
   } catch (error) {
     console.log(error);
@@ -447,10 +451,35 @@ export const deleteTraining = async (id: string) => {
   }
 };
 
-// ==================== CERTIFICATE APIs ====================
-export const createCertificate = async (data: any) => {
+export const getTrainingMaterialSignedUrl = async (id: string, materialIndex: number, disposition: 'inline' | 'attachment' = 'inline') => {
   try {
-    const res: AxiosResponse = await apiClient.post('health-safety/certificate', data);
+    const res: AxiosResponse = await apiClient.get(`health-safety/training/${id}/material/${materialIndex}/signed-url?disposition=${disposition}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+// ==================== COMPLIANCE RECORDS APIs ====================
+export const getComplianceRecords = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('health-safety/compliance-records');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+// ==================== CERTIFICATE APIs ====================
+export const createCertificate = async (formData: FormData) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('health-safety/certificate', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return res.data;
   } catch (error) {
     console.log(error);
@@ -504,6 +533,16 @@ export const updateCertificate = async (id: string, data: any) => {
 export const deleteCertificate = async (id: string) => {
   try {
     const res: AxiosResponse = await apiClient.delete(`health-safety/certificate/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getCertificateSignedUrl = async (id: string, disposition: 'inline' | 'attachment' = 'inline') => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`health-safety/certificate/${id}/signed-url?disposition=${disposition}`);
     return res.data;
   } catch (error) {
     console.log(error);
@@ -585,9 +624,9 @@ export const deletePolicyDocument = async (id: string) => {
   }
 };
 
-export const getPolicyDocumentSignedUrl = async (id: string) => {
+export const getPolicyDocumentSignedUrl = async (id: string, disposition: 'inline' | 'attachment' = 'inline') => {
   try {
-    const res: AxiosResponse = await apiClient.get(`health-safety/policy-document/${id}/signed-url`);
+    const res: AxiosResponse = await apiClient.get(`health-safety/policy-document/${id}/signed-url?disposition=${disposition}`);
     return res.data;
   } catch (error) {
     console.log(error);

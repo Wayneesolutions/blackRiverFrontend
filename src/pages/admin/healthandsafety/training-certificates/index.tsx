@@ -37,8 +37,11 @@ import {
   createCertificate,
   getCertificates,
   updateCertificate,
-  deleteCertificate
+  deleteCertificate,
+  getCertificateSignedUrl,
+  getTrainingMaterialSignedUrl
 } from '../../../../axios/api/healthSafety';
+import { getAllEmployees } from '../../../../axios/api/employee';
 
 const COLORS = {
   primary: '#6366f1',
@@ -65,6 +68,7 @@ interface TrainingVersion {
 
 interface TrainingRecord {
   _id: string;
+  certificateId?: string; // Store the actual certificate ID for API calls
   employeeId: string;
   employeeName: string;
   employeeRole: string;
@@ -189,6 +193,17 @@ const TrainingCertificates = () => {
   const [showModuleModal, setShowModuleModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<TrainingRecord | null>(null);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+
+  // Toast notification helpers
+  const addNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
 
   const getTrainingStatus = (expiryDate: string): TrainingRecord['status'] => {
     const today = new Date();
@@ -210,215 +225,47 @@ const TrainingCertificates = () => {
     }
   };
 
+  // Fetch certificates from API
   useEffect(() => {
-    // Mock training data for TrainingCompliance component
-    const mockData: Omit<TrainingRecord, 'status'>[] = [
-      { 
-        _id: 'TR001',
-        employeeId: 'E101', 
-        employeeName: 'Alice Johnson', 
-        employeeRole: 'Driver',
-        trainingName: 'WHMIS 2015', 
-        trainingType: 'Certificate',
-        issueDate: '2024-01-01', 
-        expiryDate: '2027-01-01', 
-        certificateUrl: '/certs/alice_whmis.pdf',
-        currentVersion: 'v2.1',
-        acknowledgment: {
-          acknowledgedDate: '2024-01-01T10:30:00',
-          signature: 'Alice Johnson',
-          ipAddress: '192.168.1.100',
-          acknowledgedBy: 'Alice Johnson'
-        },
-        completionDate: '2024-01-01',
-        score: 95,
-        remindersSent: 0
-      },
-      { 
-        _id: 'TR002',
-        employeeId: 'E101', 
-        employeeName: 'Alice Johnson', 
-        employeeRole: 'Driver',
-        trainingName: 'TDG (Dangerous Goods)', 
-        trainingType: 'Certificate',
-        issueDate: '2023-05-10', 
-        expiryDate: '2025-01-15', 
-        certificateUrl: '/certs/alice_tdg.pdf',
-        acknowledgment: {
-          acknowledgedDate: '2023-05-10T14:20:00',
-          signature: 'Alice Johnson',
-          ipAddress: '192.168.1.100',
-          acknowledgedBy: 'Alice Johnson'
-        },
-        completionDate: '2023-05-10',
-        remindersSent: 1,
-        lastReminderDate: '2024-11-15'
-      },
-      { 
-        _id: 'TR003',
-        employeeId: 'E102', 
-        employeeName: 'Bob Smith', 
-        employeeRole: 'Mechanic',
-        trainingName: 'First Aid', 
-        trainingType: 'Certificate',
-        issueDate: '2024-03-15', 
-        expiryDate: '2027-03-15', 
-        certificateUrl: '/certs/bob_firstaid.pdf',
-        acknowledgment: {
-          acknowledgedDate: '2024-03-15T09:00:00',
-          signature: 'Bob Smith',
-          ipAddress: '192.168.1.105',
-          acknowledgedBy: 'Bob Smith'
-        },
-        completionDate: '2024-03-15',
-        remindersSent: 0
-      },
-      { 
-        _id: 'TR004',
-        employeeId: 'E103', 
-        employeeName: 'Charlie Brown', 
-        employeeRole: 'Driver',
-        trainingName: 'Cargo Securement (FMCSA/CVSA)', 
-        trainingType: 'Certificate',
-        issueDate: '2023-11-01', 
-        expiryDate: '2025-01-05',
-        certificateUrl: '/certs/charlie_cargo.pdf',
-        acknowledgment: {
-          acknowledgedDate: '2023-11-01T11:30:00',
-          signature: 'Charlie Brown',
-          ipAddress: '192.168.1.110',
-          acknowledgedBy: 'Charlie Brown'
-        },
-        completionDate: '2023-11-01',
-        remindersSent: 2,
-        lastReminderDate: '2024-12-01'
-      },
-      { 
-        _id: 'TR005',
-        employeeId: 'E104', 
-        employeeName: 'Dana Scully', 
-        employeeRole: 'Driver',
-        trainingName: 'Defensive / Winter Driving', 
-        trainingType: 'Internal Module',
-        issueDate: '2023-01-01', 
-        expiryDate: '2024-01-01',
-        currentVersion: 'v1.3',
-        acknowledgment: {
-          acknowledgedDate: '2023-01-01T08:00:00',
-          signature: 'Dana Scully',
-          ipAddress: '192.168.1.115',
-          acknowledgedBy: 'Dana Scully'
-        },
-        completionDate: '2023-01-01',
-        score: 88,
-        remindersSent: 4,
-        lastReminderDate: '2024-11-01'
-      },
-      {
-        _id: 'TR006',
-        employeeId: 'E105',
-        employeeName: 'Eve Martinez',
-        employeeRole: 'Driver',
-        trainingName: 'Company Safety Orientation',
-        trainingType: 'Internal Module',
-        issueDate: '2024-12-01',
-        expiryDate: '2025-12-01',
-        currentVersion: 'v3.0',
-        completionDate: '2024-12-01',
-        score: 100,
-        remindersSent: 0
-      }
-    ];
-
-    const updatedData = mockData.map(record => ({
-      ...record,
-      status: getTrainingStatus(record.expiryDate)
-    }));
-
-    setTrainingData(updatedData);
-
-    // Mock Internal Modules
-    setInternalModules([
-      {
-        _id: 'MOD001',
-        moduleName: 'Company Safety Orientation',
-        moduleCode: 'CSO-2024',
-        description: 'Comprehensive overview of company safety policies, procedures, and culture',
-        duration: 45,
-        contentType: 'Interactive',
-        currentVersion: {
-          versionNumber: 'v3.0',
-          publishedDate: '2024-11-01',
-          publishedBy: 'Safety Manager',
-          changes: 'Updated harassment policy section, added new emergency procedures',
-          documentUrl: '/modules/cso_v3.pdf'
-        },
-        versionHistory: [
-          {
-            versionNumber: 'v2.1',
-            publishedDate: '2023-06-15',
-            publishedBy: 'Safety Manager',
-            changes: 'Minor updates to PPE requirements',
-            documentUrl: '/modules/cso_v2.1.pdf'
-          },
-          {
-            versionNumber: 'v2.0',
-            publishedDate: '2023-01-01',
-            publishedBy: 'Safety Manager',
-            changes: 'Major revision - new CLC 2021 compliance',
-            documentUrl: '/modules/cso_v2.pdf'
-          }
-        ],
-        assignedRoles: ['Driver', 'Mechanic', 'Warehouse Staff', 'Office Staff'],
-        completionRate: 92,
-        status: 'active',
-        createdBy: 'Safety Manager',
-        createdDate: '2022-01-15'
-      },
-      {
-        _id: 'MOD002',
-        moduleName: 'Pre-trip Inspection Training',
-        moduleCode: 'PTI-2024',
-        description: 'Step-by-step guide to conducting thorough pre-trip vehicle inspections',
-        duration: 30,
-        contentType: 'Video',
-        currentVersion: {
-          versionNumber: 'v1.5',
-          publishedDate: '2024-09-01',
-          publishedBy: 'Fleet Manager',
-          changes: 'Added winter inspection checklist segment',
-          documentUrl: '/modules/pti_v1.5.pdf'
-        },
-        versionHistory: [],
-        assignedRoles: ['Driver'],
-        completionRate: 100,
-        status: 'active',
-        createdBy: 'Fleet Manager',
-        createdDate: '2023-03-01'
-      },
-      {
-        _id: 'MOD003',
-        moduleName: 'Load Securement Best Practices',
-        moduleCode: 'LS-2024',
-        description: 'CVSA compliance training for proper load securement techniques',
-        duration: 60,
-        contentType: 'Interactive',
-        currentVersion: {
-          versionNumber: 'v2.0',
-          publishedDate: '2024-10-15',
-          publishedBy: 'Operations Manager',
-          changes: 'Complete overhaul with new CVSA 2024 standards',
-          documentUrl: '/modules/ls_v2.pdf'
-        },
-        versionHistory: [],
-        assignedRoles: ['Driver', 'Warehouse Staff'],
-        completionRate: 78,
-        status: 'active',
-        createdBy: 'Operations Manager',
-        createdDate: '2023-05-10'
-      }
-    ]);
+    fetchCertificates();
   }, []);
+
+  const fetchCertificates = async () => {
+    setLoading(true);
+    try {
+      const response = await getCertificates();
+      if (response?.success && Array.isArray(response.data)) {
+        // Map API certificates to TrainingRecord format
+        const mappedData: TrainingRecord[] = response.data.map((cert: any) => ({
+          _id: cert._id,
+          certificateId: cert._id, // Store certificate ID for API calls
+          employeeId: cert.employeeId?._id || cert.employeeId || '',
+          employeeName: cert.employeeId?.name || cert.employee || '',
+          employeeRole: cert.employeeId?.role || 'Employee',
+          trainingName: cert.type,
+          trainingType: 'Certificate' as TrainingRecord['trainingType'],
+          issueDate: cert.issueDate ? new Date(cert.issueDate).toISOString().split('T')[0] : '',
+          expiryDate: cert.expiryDate ? new Date(cert.expiryDate).toISOString().split('T')[0] : '',
+          status: cert.status === 'expired' ? 'expired' : 
+                  cert.status === 'expiring-soon' ? 'expiring' : 
+                  'valid',
+          certificateUrl: cert.certificateUrl,
+          remindersSent: 0
+        })).map(record => ({
+          ...record,
+          status: getTrainingStatus(record.expiryDate)
+        }));
+        
+        setTrainingData(mappedData);
+      } else {
+        addNotification('error', response?.message || 'Failed to fetch certificates');
+      }
+    } catch (error: any) {
+      addNotification('error', error?.message || 'Error fetching certificates');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const stats = {
     totalRecords: trainingData.length,
@@ -555,72 +402,291 @@ const TrainingCertificates = () => {
     );
   };
 
-  // Certificate Upload & Management
-  const renderCertificateManagement = () => (
-    <div className="space-y-6">
-      {/* Upload Certificate Card */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-900">
-          <FaUpload className="text-indigo-600" /> Upload New Certificate
-        </h2>
+  // Certificate Upload Modal
+  const CertificateUploadModal = () => {
+    const [employee, setEmployee] = useState('');
+    const [employeeId, setEmployeeId] = useState('');
+    const [type, setType] = useState('');
+    const [issueDate, setIssueDate] = useState('');
+    const [expiryDate, setExpiryDate] = useState('');
+    const [certificateFile, setCertificateFile] = useState<File | null>(null);
+    const [issuingAuthority, setIssuingAuthority] = useState('');
+    const [notes, setNotes] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [employees, setEmployees] = useState<any[]>([]);
+
+    useEffect(() => {
+      // Fetch employees for dropdown (excluding admin and superadmin)
+      const fetchEmployees = async () => {
+        try {
+          console.log('Fetching employees for certificate dropdown...');
+          const response = await getAllEmployees(1, 1000);
+          console.log('Employees API response:', response);
+          
+          if (response?.success) {
+            const employeesData = Array.isArray(response.data) ? response.data : [];
+            console.log(`Found ${employeesData.length} employees from API`);
+            
+            // Filter out admin and superadmin roles (case-insensitive)
+            const filteredEmployees = employeesData.filter((emp: any) => {
+              if (!emp || !emp.role) return false;
+              const roleLower = emp.role.toLowerCase();
+              return roleLower !== 'admin' && roleLower !== 'superadmin';
+            });
+            
+            console.log(`After filtering: ${filteredEmployees.length} employees`);
+            setEmployees(filteredEmployees);
+            
+            if (filteredEmployees.length === 0 && employeesData.length > 0) {
+              console.warn('All employees were filtered out. Available roles:', 
+                [...new Set(employeesData.map((e: any) => e.role))]);
+            }
+          } else {
+            console.error('API response not successful:', response);
+            addNotification('error', response?.message || 'Failed to fetch employees');
+          }
+        } catch (error: any) {
+          console.error('Error fetching employees:', error);
+          addNotification('error', error?.message || 'Failed to fetch employees');
+        }
+      };
+      fetchEmployees();
+    }, []);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+        setCertificateFile(e.target.files[0]);
+      }
+    };
+
+    const handleSubmit = async () => {
+      if (!employeeId || !employee || !type || !issueDate || !expiryDate) {
+        addNotification('error', 'Please fill in all required fields: Employee, Training Type, Issue Date, and Expiry Date');
+        return;
+      }
+
+      setSaving(true);
+      try {
+        const formData = new FormData();
+        formData.append('employee', employee.trim());
+        if (employeeId) formData.append('employeeId', employeeId);
+        formData.append('type', type.trim());
+        formData.append('issueDate', issueDate);
+        formData.append('expiryDate', expiryDate);
+        if (issuingAuthority) formData.append('issuingAuthority', issuingAuthority);
+        if (notes) formData.append('notes', notes);
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700">Employee *</label>
-            <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-              <option>Select Employee...</option>
-              {Array.from(new Set(trainingData.map(t => t.employeeName))).map(name => (
-                <option key={name}>{name}</option>
-              ))}
-            </select>
+        if (certificateFile) {
+          formData.append('certificateFile', certificateFile);
+        }
+
+        const response = await createCertificate(formData);
+        
+        if (response?.success) {
+          addNotification('success', 'Certificate created successfully');
+          setShowUploadModal(false);
+          // Reset form
+          setEmployee('');
+          setEmployeeId('');
+          setType('');
+          setIssueDate('');
+          setExpiryDate('');
+          setCertificateFile(null);
+          setIssuingAuthority('');
+          setNotes('');
+          await fetchCertificates();
+        } else {
+          addNotification('error', response?.message || 'Failed to create certificate');
+        }
+      } catch (error: any) {
+        addNotification('error', error?.message || 'Error creating certificate');
+      } finally {
+        setSaving(false);
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+            <h2 className="text-2xl font-bold text-gray-900">Upload New Certificate</h2>
+            <button 
+              onClick={() => {
+                setShowUploadModal(false);
+                setEmployee('');
+                setEmployeeId('');
+                setType('');
+                setIssueDate('');
+                setExpiryDate('');
+                setCertificateFile(null);
+                setIssuingAuthority('');
+                setNotes('');
+              }} 
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <FaTimes size={24} />
+            </button>
           </div>
           
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700">Training Type *</label>
-            <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-              <option>Select Training...</option>
-              {REQUIRED_TRAININGS.map(t => (
-                <option key={t.name}>{t.name} ({t.renewalMonths} months renewal)</option>
-              ))}
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700">Issue Date *</label>
-            <input 
-              type="date" 
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700">Expiry Date *</label>
-            <input 
-              type="date" 
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          
-          <div className="md:col-span-2">
-            <label className="block text-sm font-semibold mb-2 text-gray-700">Certificate File (PDF/JPG) *</label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer">
-              <FaUpload size={32} className="mx-auto mb-3 text-gray-400" />
-              <p className="text-sm text-gray-600 mb-2">Click to upload or drag and drop</p>
-              <p className="text-xs text-gray-500">PDF, JPG, PNG up to 10MB</p>
-              <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" />
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Employee *</label>
+                <select 
+                  value={employeeId}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    const selected = employees.find(emp => emp._id === selectedId);
+                    if (selected) {
+                      setEmployee(selected.name || '');
+                      setEmployeeId(selected._id || '');
+                    } else {
+                      setEmployee('');
+                      setEmployeeId('');
+                    }
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="">Select Employee...</option>
+                  {employees.length === 0 ? (
+                    <option disabled>No employees available</option>
+                  ) : (
+                    employees.map(emp => (
+                      <option key={emp._id} value={emp._id}>
+                        {emp.name || 'Unknown'} {emp.role ? `(${emp.role})` : ''}
+                      </option>
+                    ))
+                  )}
+                </select>
+                {employees.length === 0 && (
+                  <p className="text-xs text-red-600 mt-1">No employees found. Please check your company settings.</p>
+                )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Training Type *</label>
+                <select 
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="">Select Training...</option>
+                  {REQUIRED_TRAININGS.map(t => (
+                    <option key={t.name} value={t.name}>{t.name} ({t.renewalMonths} months renewal)</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Issue Date *</label>
+                <input 
+                  type="date" 
+                  value={issueDate}
+                  onChange={(e) => setIssueDate(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Expiry Date *</label>
+                <input 
+                  type="date" 
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Issuing Authority</label>
+                <input 
+                  type="text"
+                  value={issuingAuthority}
+                  onChange={(e) => setIssuingAuthority(e.target.value)}
+                  placeholder="e.g., Red Cross, OSHA"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Notes</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Additional notes..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Certificate File (PDF/JPG)</label>
+                <div 
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer"
+                  onClick={() => document.getElementById('certificate-file-input')?.click()}
+                >
+                  <FaUpload size={32} className="mx-auto mb-3 text-gray-400" />
+                  <p className="text-sm text-gray-600 mb-2">Click to upload or drag and drop</p>
+                  <p className="text-xs text-gray-500">PDF, JPG, PNG up to 10MB</p>
+                  {certificateFile && (
+                    <p className="text-sm text-indigo-600 mt-2 font-semibold">
+                      Selected: {certificateFile.name} ({(certificateFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </p>
+                  )}
+                  <input 
+                    id="certificate-file-input"
+                    type="file" 
+                    className="hidden" 
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleFileChange}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex gap-4">
+              <button 
+                onClick={handleSubmit}
+                disabled={saving || !employee || !type || !issueDate || !expiryDate}
+                className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <FaCheck /> Save Certificate
+                  </>
+                )}
+              </button>
+              <button 
+                onClick={() => {
+                  setShowUploadModal(false);
+                  setEmployee('');
+                  setEmployeeId('');
+                  setType('');
+                  setIssueDate('');
+                  setExpiryDate('');
+                  setCertificateFile(null);
+                  setIssuingAuthority('');
+                  setNotes('');
+                }}
+                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
-        
-        <div className="mt-6 flex gap-4">
-          <button className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2">
-            <FaCheck /> Save Certificate
-          </button>
-          <button className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
-            Cancel
-          </button>
-        </div>
       </div>
+    );
+  };
+
+  // Certificate Upload & Management
+  const renderCertificateManagement = () => (
+    <div className="space-y-6">
 
       {/* Renewal Reminders */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -812,7 +878,7 @@ const TrainingCertificates = () => {
     if (!selectedRecord) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
             <div>
@@ -955,15 +1021,58 @@ const TrainingCertificates = () => {
                   <div className="flex items-center gap-3">
                     <FaFileAlt className="text-blue-600" size={24} />
                     <div>
-                      <div className="font-semibold text-sm">Certificate_File.pdf</div>
+                      <div className="font-semibold text-sm">
+                        {selectedRecord.certificateUrl.split('/').pop() || 'Certificate_File.pdf'}
+                      </div>
                       <div className="text-xs text-gray-600">Uploaded: {new Date(selectedRecord.issueDate).toLocaleDateString()}</div>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold flex items-center gap-2">
+                    <button 
+                      onClick={async () => {
+                        try {
+                          if (selectedRecord.certificateId) {
+                            const response = await getCertificateSignedUrl(selectedRecord.certificateId, 'inline');
+                            if (response?.success && response.url) {
+                              window.open(response.url, '_blank');
+                            } else {
+                              addNotification('error', response?.message || 'Failed to get certificate URL');
+                            }
+                          } else {
+                            addNotification('error', 'Certificate ID not found');
+                          }
+                        } catch (error: any) {
+                          addNotification('error', error?.message || 'Error viewing certificate');
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold flex items-center gap-2"
+                    >
                       <FaEye /> View
                     </button>
-                    <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold flex items-center gap-2">
+                    <button 
+                      onClick={async () => {
+                        try {
+                          if (selectedRecord.certificateId) {
+                            const response = await getCertificateSignedUrl(selectedRecord.certificateId, 'attachment');
+                            if (response?.success && response.url) {
+                              const link = document.createElement('a');
+                              link.href = response.url;
+                              link.download = selectedRecord.certificateUrl?.split('/').pop() || 'certificate.pdf';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            } else {
+                              addNotification('error', response?.message || 'Failed to get certificate URL');
+                            }
+                          } else {
+                            addNotification('error', 'Certificate ID not found');
+                          }
+                        } catch (error: any) {
+                          addNotification('error', error?.message || 'Error downloading certificate');
+                        }
+                      }}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold flex items-center gap-2"
+                    >
                       <FaDownload /> Download
                     </button>
                   </div>
@@ -992,101 +1101,245 @@ const TrainingCertificates = () => {
   };
 
   // Create Module Modal
-  const CreateModuleModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
-          <h2 className="text-2xl font-bold text-gray-900">Create New Training Module</h2>
-          <button onClick={() => setShowModuleModal(false)} className="text-gray-500 hover:text-gray-700">
-            <FaTimes size={24} />
-          </button>
-        </div>
+  const CreateModuleModal = () => {
+    const [moduleName, setModuleName] = useState('');
+    const [moduleCode, setModuleCode] = useState('');
+    const [description, setDescription] = useState('');
+    const [duration, setDuration] = useState('');
+    const [contentType, setContentType] = useState('Video');
+    const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+    const [trainingFile, setTrainingFile] = useState<File | null>(null);
+    const [saving, setSaving] = useState(false);
 
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Module Name *</label>
-              <input 
-                type="text"
-                placeholder="e.g., Advanced Load Securement"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        // Check file size (100MB max)
+        if (file.size > 100 * 1024 * 1024) {
+          addNotification('error', 'File size exceeds 100MB limit');
+          return;
+        }
+        setTrainingFile(file);
+      }
+    };
 
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Module Code *</label>
-              <input 
-                type="text"
-                placeholder="e.g., ALS-2024"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+    const handleRoleToggle = (role: string) => {
+      setSelectedRoles(prev => 
+        prev.includes(role) 
+          ? prev.filter(r => r !== role)
+          : [...prev, role]
+      );
+    };
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Description *</label>
-              <textarea 
-                placeholder="Describe the training content and objectives..."
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+    const handleSubmit = async () => {
+      if (!moduleName || !moduleCode || !description || !duration || !contentType) {
+        addNotification('error', 'Please fill in all required fields');
+        return;
+      }
 
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Duration (minutes) *</label>
-              <input 
-                type="number"
-                placeholder="30"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+      setSaving(true);
+      try {
+        const formData = new FormData();
+        formData.append('title', moduleName);
+        formData.append('type', contentType);
+        formData.append('date', new Date().toISOString());
+        formData.append('instructor', 'System'); // Internal module
+        formData.append('description', description);
+        formData.append('duration', (parseInt(duration) / 60).toString()); // Convert minutes to hours
+        formData.append('location', 'Internal Module');
+        formData.append('status', 'scheduled');
+        
+        if (trainingFile) {
+          formData.append('materialFile', trainingFile);
+        }
 
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Content Type *</label>
-              <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                <option>Video</option>
-                <option>Document</option>
-                <option>Interactive</option>
-                <option>Quiz</option>
-              </select>
-            </div>
+        const response = await createTraining(formData);
+        
+        if (response?.success) {
+          addNotification('success', 'Training module created successfully');
+          setShowModuleModal(false);
+          // Reset form
+          setModuleName('');
+          setModuleCode('');
+          setDescription('');
+          setDuration('');
+          setContentType('Video');
+          setSelectedRoles([]);
+          setTrainingFile(null);
+          // Refresh trainings if needed
+        } else {
+          addNotification('error', response?.message || 'Failed to create training module');
+        }
+      } catch (error: any) {
+        addNotification('error', error?.message || 'Error creating training module');
+      } finally {
+        setSaving(false);
+      }
+    };
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Assign to Roles</label>
-              <div className="grid grid-cols-3 gap-3">
-                {EMPLOYEE_ROLES.map(role => (
-                  <label key={role} className="flex items-center gap-2">
-                    <input type="checkbox" className="rounded" />
-                    <span className="text-sm">{role}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Upload Training Content *</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer">
-                <FaUpload size={32} className="mx-auto mb-3 text-gray-400" />
-                <p className="text-sm text-gray-600 mb-2">Click to upload training materials</p>
-                <p className="text-xs text-gray-500">PDF, Video, SCORM packages up to 100MB</p>
-              </div>
-            </div>
+    return (
+      <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+            <h2 className="text-2xl font-bold text-gray-900">Create New Training Module</h2>
+            <button 
+              onClick={() => {
+                setShowModuleModal(false);
+                setModuleName('');
+                setModuleCode('');
+                setDescription('');
+                setDuration('');
+                setContentType('Video');
+                setSelectedRoles([]);
+                setTrainingFile(null);
+              }} 
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <FaTimes size={24} />
+            </button>
           </div>
 
-          <div className="mt-6 flex gap-4">
-            <button className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2">
-              <FaCheck /> Create Module
-            </button>
-            <button 
-              onClick={() => setShowModuleModal(false)}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
-            >
-              Cancel
-            </button>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Module Name *</label>
+                <input 
+                  type="text"
+                  value={moduleName}
+                  onChange={(e) => setModuleName(e.target.value)}
+                  placeholder="e.g., Advanced Load Securement"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Module Code *</label>
+                <input 
+                  type="text"
+                  value={moduleCode}
+                  onChange={(e) => setModuleCode(e.target.value)}
+                  placeholder="e.g., ALS-2024"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Description *</label>
+                <textarea 
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe the training content and objectives..."
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Duration (minutes) *</label>
+                <input 
+                  type="number"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  placeholder="30"
+                  min="1"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Content Type *</label>
+                <select 
+                  value={contentType}
+                  onChange={(e) => setContentType(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="Video">Video</option>
+                  <option value="Document">Document</option>
+                  <option value="Interactive">Interactive</option>
+                  <option value="Quiz">Quiz</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Assign to Roles</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {EMPLOYEE_ROLES.map(role => (
+                    <label key={role} className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedRoles.includes(role)}
+                        onChange={() => handleRoleToggle(role)}
+                        className="rounded" 
+                      />
+                      <span className="text-sm">{role}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Upload Training Content *</label>
+                <div 
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer"
+                  onClick={() => document.getElementById('training-file-input')?.click()}
+                >
+                  <FaUpload size={32} className="mx-auto mb-3 text-gray-400" />
+                  <p className="text-sm text-gray-600 mb-2">Click to upload training materials</p>
+                  <p className="text-xs text-gray-500">PDF, Video, SCORM packages up to 100MB</p>
+                  {trainingFile && (
+                    <p className="text-sm text-indigo-600 mt-2 font-semibold">
+                      Selected: {trainingFile.name} ({(trainingFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </p>
+                  )}
+                  <input 
+                    id="training-file-input"
+                    type="file" 
+                    className="hidden" 
+                    accept=".pdf,.mp4,.avi,.mov,.zip,.scorm"
+                    onChange={handleFileChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-4">
+              <button 
+                onClick={handleSubmit}
+                disabled={saving || !moduleName || !moduleCode || !description || !duration || !contentType}
+                className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <FaCheck /> Create Module
+                  </>
+                )}
+              </button>
+              <button 
+                onClick={() => {
+                  setShowModuleModal(false);
+                  setModuleName('');
+                  setModuleCode('');
+                  setDescription('');
+                  setDuration('');
+                  setContentType('Video');
+                  setSelectedRoles([]);
+                  setTrainingFile(null);
+                }}
+                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -1161,8 +1414,20 @@ const TrainingCertificates = () => {
       {activeTab === 'modules' && renderInternalModules()}
 
       {/* Modals */}
+      {showUploadModal && <CertificateUploadModal />}
       {showDetailModal && <TrainingDetailModal />}
       {showModuleModal && <CreateModuleModal />}
+      
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10001] space-y-2">
+        {notifications.map(notification => (
+          <ToastNotificationComponent
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
+      </div>
     </div>
   );
 };

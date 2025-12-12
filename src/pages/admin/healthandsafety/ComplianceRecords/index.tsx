@@ -6,8 +6,9 @@ import {
   FaClock, FaFileAlt, FaSearch, FaFilter, FaEye, FaDownload, 
   FaEdit, FaUserCheck, FaBookOpen, FaClipboardCheck,
   FaBell, FaExclamationCircle, FaChartLine, FaShieldAlt,
-  FaArrowRight
+  FaArrowRight, FaTimes
 } from 'react-icons/fa';
+import { getComplianceRecords } from '../../../../axios/api/healthSafety';
 
 
 // ============================================================================
@@ -151,6 +152,50 @@ type ComplianceRecord = PolicyRecord | TrainingRecord | IncidentRecord | HazardR
 // MAIN COMPONENT
 // ============================================================================
 
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'info' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationTriangle className="text-red-500" size={24} />,
+    info: <FaExclamationCircle className="text-blue-500" size={24} />,
+    warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
+
 const EnhancedComplianceRecords: React.FC = () => {
   const navigate = useNavigate();
   const [records, setRecords] = useState<ComplianceRecord[]>([]);
@@ -159,6 +204,8 @@ const EnhancedComplianceRecords: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterCompliance, setFilterCompliance] = useState<string>('all');
   const [activeView, setActiveView] = useState<'all' | 'policies' | 'training' | 'incidents' | 'hazards' | 'inspections'>('all');
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [notificationId, setNotificationId] = useState(0);
   
   // Dashboard-style statistics aggregated from all modules
   const [stats, setStats] = useState({
@@ -174,220 +221,54 @@ const EnhancedComplianceRecords: React.FC = () => {
     inspections: 0,
   });
 
+  const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    const id = notificationId + 1;
+    setNotificationId(id);
+    setNotifications([...notifications, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications(notifications.filter(n => n.id !== id));
+  };
+
   useEffect(() => {
     // Fetch compliance records data - aggregated from all Health & Safety modules
-    // This mirrors the Dashboard's data aggregation approach
     const fetchComplianceRecords = async () => {
       setLoading(true);
       try {
-        // In production, this would fetch from APIs:
-        // - Policies API: /api/health-safety/policies
-        // - Training API: /api/health-safety/training
-        // - Incidents API: /api/health-safety/incidents
-        // - Hazards API: /api/health-safety/hazards
-        // - Inspections API: /api/health-safety/inspections
+        const response = await getComplianceRecords();
         
-        // For now, using mock data that simulates aggregated data from all modules
-        // This data structure matches what would come from the Health & Safety Dashboard
-    const mockPolicies: PolicyRecord[] = [
-      {
-        _id: 'P1',
-        recordId: 'POL-2024-001',
-        title: 'Occupational Health & Safety Policy',
-        policyType: 'safety',
-        specificPolicyName: 'Occupational Health & Safety Policy',
-        category: 'Federal Compliance',
-        status: 'active',
-        issueDate: '2024-01-15',
-        expiryDate: '2025-01-15',
-        renewalCycle: 12,
-        lastReviewed: '2024-11-01',
-        nextReviewDate: '2025-01-01',
-        responsiblePerson: 'Safety Manager',
-        department: 'Safety',
-        complianceLevel: 'compliant',
-        assignedRoles: ['all'],
-        acknowledgments: [
-          { employeeId: 'E001', employeeName: 'John Driver', role: 'Driver', signedDate: '2024-01-20', version: '2.0' },
-          { employeeId: 'E002', employeeName: 'Jane Mechanic', role: 'Mechanic', signedDate: '2024-01-18', version: '2.0' }
-        ],
-        versionHistory: [
-          { version: '2.0', publishedDate: '2024-01-15', changes: 'Updated CLC 2021 requirements', documentUrl: '/docs/ohs-v2.pdf', publishedBy: 'Safety Manager' },
-          { version: '1.0', publishedDate: '2023-01-15', changes: 'Initial version', documentUrl: '/docs/ohs-v1.pdf', publishedBy: 'Safety Manager' }
-        ],
-        currentVersion: '2.0',
-        documentUrl: '/docs/ohs-v2.pdf',
-        autoAssignOnHire: true,
-        remindersSent: [{ date: '2024-10-15', type: '90day' }],
-        linkedTraining: ['TRN-2024-001']
-      },
-      {
-        _id: 'P2',
-        recordId: 'POL-2024-015',
-        title: 'Workplace Harassment & Violence Prevention Policy',
-        policyType: 'hr',
-        specificPolicyName: 'Workplace Harassment & Violence Prevention Policy',
-        category: 'Federal Compliance',
-        status: 'expiring',
-        issueDate: '2022-03-01',
-        expiryDate: '2025-03-01',
-        renewalCycle: 36,
-        lastReviewed: '2024-02-15',
-        nextReviewDate: '2025-02-01',
-        responsiblePerson: 'HR Manager',
-        department: 'Human Resources',
-        complianceLevel: 'at-risk',
-        assignedRoles: ['all'],
-        acknowledgments: [],
-        versionHistory: [
-          { version: '1.0', publishedDate: '2022-03-01', changes: 'CLC 2021 compliance', documentUrl: '/docs/harassment-v1.pdf', publishedBy: 'HR Manager' }
-        ],
-        currentVersion: '1.0',
-        documentUrl: '/docs/harassment-v1.pdf',
-        autoAssignOnHire: true,
-        remindersSent: [{ date: '2024-12-01', type: '90day' }, { date: '2024-12-31', type: '60day' }]
-      }
-    ];
-
-    const mockTraining: TrainingRecord[] = [
-      {
-        _id: 'T1',
-        recordId: 'TRN-2024-128',
-        title: 'WHMIS 2015 Certification',
-        trainingType: 'WHMIS 2015',
-        category: 'Federal Compliance',
-        status: 'active',
-        issueDate: '2024-03-15',
-        expiryDate: '2026-03-15',
-        certificateNumber: 'WHMIS-2024-128',
-        certificateUrl: '/certs/whmis-128.pdf',
-        instructor: 'Safety Training Inc.',
-        employeeName: 'John Driver',
-        employeeId: 'E001',
-        department: 'Operations',
-        validityPeriod: 24,
-        automaticRenewalReminder: true,
-        reminderDaysBefore: 60,
-        complianceLevel: 'compliant'
-      },
-      {
-        _id: 'T2',
-        recordId: 'TRN-2023-045',
-        title: 'TDG Transportation Certificate',
-        trainingType: 'TDG (Transportation of Dangerous Goods)',
-        category: 'Federal Compliance',
-        status: 'expired',
-        issueDate: '2022-12-01',
-        expiryDate: '2024-12-01',
-        certificateNumber: 'TDG-2022-045',
-        certificateUrl: '/certs/tdg-045.pdf',
-        instructor: 'TDG Training Corp',
-        employeeName: 'Jane Driver',
-        employeeId: 'E002',
-        department: 'Operations',
-        validityPeriod: 24,
-        automaticRenewalReminder: true,
-        reminderDaysBefore: 90,
-        complianceLevel: 'non-compliant'
-      }
-    ];
-
-    const mockIncidents: IncidentRecord[] = [
-      {
-        _id: 'I1',
-        recordId: 'INC-2024-089',
-        title: 'Slip and Fall - Warehouse',
-        incidentType: 'workplace-incident',
-        category: 'Internal Policy',
-        status: 'investigating',
-        incidentDate: '2024-12-05',
-        reportedDate: '2024-12-05',
-        location: 'Warehouse Bay 3',
-        reportedBy: 'Supervisor Adams',
-        involvedPersons: ['Employee John Doe'],
-        witnesses: [
-          { name: 'Jane Smith', statement: 'Saw employee slip on wet floor near loading dock.' }
-        ],
-        description: 'Employee slipped on wet floor, minor ankle sprain.',
-        photosVideos: ['/evidence/inc-089-photo1.jpg', '/evidence/inc-089-photo2.jpg'],
-        investigationMethod: '5-why',
-        investigationNotes: 'Root cause: No wet floor signage after cleaning.',
-        correctiveActions: ['Install permanent wet floor signs', 'Retrain cleaning staff'],
-        wcbClaimNumber: 'WCB-2024-1234',
-        wcbDocuments: ['/wcb/claim-1234.pdf'],
-        severity: 'moderate',
-        complianceLevel: 'at-risk'
-      }
-    ];
-
-    const mockHazards: HazardRecord[] = [
-      {
-        _id: 'H1',
-        recordId: 'HAZ-2024-034',
-        title: 'Unsecured Load - Trailer 456',
-        hazardType: 'Load Securement',
-        category: 'Federal Compliance',
-        status: 'mitigated',
-        reportedDate: '2024-11-28',
-        reportedBy: 'Driver Mike',
-        location: 'Yard - Loading Dock 2',
-        description: 'Load straps loose, risk of shifting cargo.',
-        riskRating: { likelihood: 4, severity: 4, total: 16 },
-        correctiveActions: ['Re-secured load', 'Driver retrained on securement'],
-        assignedTo: 'Safety Manager',
-        deadline: '2024-11-29',
-        resolutionVerified: true,
-        verificationDate: '2024-11-29',
-        photos: ['/hazards/haz-034-before.jpg', '/hazards/haz-034-after.jpg'],
-        complianceLevel: 'compliant'
-      }
-    ];
-
-    const mockInspections: InspectionRecord[] = [
-      {
-        _id: 'INS1',
-        recordId: 'INS-2024-089',
-        title: 'Monthly Yard Safety Inspection',
-        inspectionType: 'Yard Inspection',
-        category: 'Internal Policy',
-        status: 'completed',
-        inspectionDate: '2024-12-01',
-        inspector: 'Safety Inspector',
-        location: 'Main Yard',
-        checklist: [
-          { item: 'Fire extinguishers accessible', status: 'pass' },
-          { item: 'Emergency exits clear', status: 'pass' },
-          { item: 'PPE available', status: 'fail', notes: 'Glove stock low', photo: '/inspect/gloves.jpg' }
-        ],
-        findingsCount: 1,
-        correctiveActions: ['Restock PPE - gloves ordered'],
-        photos: ['/inspections/yard-dec-2024.jpg'],
-        nextInspectionDate: '2025-01-01',
-        complianceLevel: 'at-risk'
-      }
-    ];
-
-        const allRecords = [...mockPolicies, ...mockTraining, ...mockIncidents, ...mockHazards, ...mockInspections] as ComplianceRecord[];
-        setRecords(allRecords);
-        
-        // Calculate statistics (similar to Dashboard stats calculation)
-        const calculatedStats = {
-          totalRecords: allRecords.length,
-          policies: allRecords.filter(r => 'policyType' in r).length,
-          training: allRecords.filter(r => 'trainingType' in r).length,
-          incidents: allRecords.filter(r => 'incidentType' in r).length,
-          hazards: allRecords.filter(r => 'hazardType' in r).length,
-          inspections: allRecords.filter(r => 'inspectionType' in r).length,
-          expiringRecords: allRecords.filter(r => r.status === 'expiring').length,
-          expiredRecords: allRecords.filter(r => r.status === 'expired').length,
-          compliantRecords: allRecords.filter(r => r.complianceLevel === 'compliant').length,
-          atRiskRecords: allRecords.filter(r => r.complianceLevel === 'at-risk').length,
-        };
-        setStats(calculatedStats);
-        
-        setLoading(false);
-      } catch (error) {
+        if (response?.success && Array.isArray(response.data)) {
+          setRecords(response.data as ComplianceRecord[]);
+          
+          // Update stats from API response
+          if (response.stats) {
+            setStats(response.stats);
+          } else {
+            // Calculate stats from data if not provided
+            const calculatedStats = {
+              totalRecords: response.data.length,
+              policies: response.data.filter((r: any) => 'policyType' in r).length,
+              training: response.data.filter((r: any) => 'trainingType' in r).length,
+              incidents: response.data.filter((r: any) => 'incidentType' in r).length,
+              hazards: response.data.filter((r: any) => 'hazardType' in r).length,
+              inspections: response.data.filter((r: any) => 'inspectionType' in r).length,
+              expiringRecords: response.data.filter((r: any) => r.status === 'expiring').length,
+              expiredRecords: response.data.filter((r: any) => r.status === 'expired').length,
+              compliantRecords: response.data.filter((r: any) => r.complianceLevel === 'compliant').length,
+              atRiskRecords: response.data.filter((r: any) => r.complianceLevel === 'at-risk').length,
+            };
+            setStats(calculatedStats);
+          }
+          
+          showNotification('success', `Loaded ${response.data.length} compliance records`);
+        } else {
+          showNotification('error', response?.message || 'Failed to fetch compliance records');
+        }
+      } catch (error: any) {
         console.error('Error fetching compliance records:', error);
+        showNotification('error', error?.response?.data?.message || 'Error fetching compliance records');
+      } finally {
         setLoading(false);
       }
     };
@@ -452,6 +333,17 @@ const EnhancedComplianceRecords: React.FC = () => {
   return (
     <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background.secondary }}>
       <div className="max-w-7xl mx-auto">
+        {/* Toast Notifications */}
+        <div className="fixed top-4 right-4 z-[10001] space-y-2">
+          {notifications.map(notification => (
+            <ToastNotificationComponent
+              key={notification.id}
+              notification={notification}
+              onClose={removeNotification}
+            />
+          ))}
+        </div>
+
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-2">
@@ -899,7 +791,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                               title="View Details"
                               onClick={() => {
                                 // In production, this would navigate to compliance dashboard detail view
-                                alert(`Viewing ${record.recordId} details. In production, this would open the Compliance Dashboard detail view.`);
+                                showNotification('info', `Viewing ${record.recordId} details`);
                               }}
                             >
                               <FaEye />
@@ -909,7 +801,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                               title="Download"
                               onClick={() => {
                                 // In production, this would download from compliance dashboard
-                                alert(`Downloading ${record.recordId}. In production, this would download from Compliance Dashboard.`);
+                                showNotification('info', `Downloading ${record.recordId}`);
                               }}
                             >
                               <FaDownload />
@@ -965,7 +857,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                                 title="Set Reminder"
                                 onClick={() => {
                                   // In production, this would trigger a reminder
-                                  alert(`Reminder set for ${record.recordId}`);
+                                  showNotification('success', `Reminder set for ${record.recordId}`);
                                 }}
                               >
                                 <FaBell />

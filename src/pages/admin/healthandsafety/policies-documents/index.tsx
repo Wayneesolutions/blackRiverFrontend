@@ -233,29 +233,34 @@ const PoliciesDocuments = () => {
     }
   };
 
-  const handleDownloadPolicy = async (policy: Policy) => {
+  const handleDownloadPolicy = async (policy: Policy, disposition: 'inline' | 'attachment' = 'inline') => {
     try {
       if (!policy.fileUrl) {
         showNotification('error', 'No file attached to this policy document');
         return;
       }
 
-      // If fileUrl is already a public URL, open it directly
-      if (policy.fileUrl.startsWith('http://') || policy.fileUrl.startsWith('https://')) {
-        window.open(policy.fileUrl, '_blank');
-        return;
-      }
-
-      // Otherwise, get signed URL
-      const response = await getPolicyDocumentSignedUrl(policy._id);
+      // Always use signed URL for S3 files
+      const response = await getPolicyDocumentSignedUrl(policy._id, disposition);
       if (response?.success && response.signedUrl) {
-        window.open(response.signedUrl, '_blank');
+        if (disposition === 'attachment') {
+          // Download file
+          const link = document.createElement('a');
+          link.href = response.signedUrl;
+          link.download = policy.fileUrl.split('/').pop() || 'policy-document.pdf';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } else {
+          // View file in new tab
+          window.open(response.signedUrl, '_blank');
+        }
       } else {
-        showNotification('error', 'Failed to get download URL');
+        showNotification('error', response?.message || 'Failed to get document URL');
       }
     } catch (error: any) {
-      console.error('Error downloading policy document:', error);
-      showNotification('error', error?.response?.data?.message || 'Failed to download policy document');
+      console.error('Error accessing policy document:', error);
+      showNotification('error', error?.response?.data?.message || 'Failed to access policy document');
     }
   };
 
@@ -398,6 +403,8 @@ const PoliciesDocuments = () => {
                   <th className="px-6 py-4 text-left text-white font-semibold">Category</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">Type</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">Version</th>
+                  <th className="px-6 py-4 text-left text-white font-semibold">Assigned Roles</th>
+                  <th className="px-6 py-4 text-left text-white font-semibold">Document</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">Effective Date</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">Review Date</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">Status</th>
@@ -407,54 +414,98 @@ const PoliciesDocuments = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={11} className="px-6 py-8 text-center text-gray-500">
                       Loading...
                     </td>
                   </tr>
                 ) : filteredPolicies.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={11} className="px-6 py-8 text-center text-gray-500">
                       No policies found
                     </td>
                   </tr>
                 ) : (
                   filteredPolicies.map((policy) => (
                     <tr key={policy._id} className="border-b border-gray-200 hover:bg-gray-50">
-                      <td className="px-6 py-4 font-medium">{policy.policyNumber}</td>
+                      <td className="px-6 py-4 font-medium">{policy.policyNumber || 'N/A'}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           {getFileIcon(policy.documentType)}
-                          {policy.title}
+                          <span className="font-medium">{policy.title}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">{policy.category}</td>
+                      <td className="px-6 py-4">{policy.category || 'N/A'}</td>
                       <td className="px-6 py-4">
                         <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">
-                          {policy.documentType}
+                          {policy.documentType || 'N/A'}
                         </span>
                       </td>
-                      <td className="px-6 py-4">{policy.version}</td>
+                      <td className="px-6 py-4">{policy.version || 'N/A'}</td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-700 max-w-xs">
+                          {policy.assignedRoles ? (
+                            <span className="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">
+                              {policy.assignedRoles}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">Not assigned</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {policy.fileUrl ? (
+                          <div className="flex items-center gap-2">
+                            {policy.fileType && (
+                              <span className="text-xs text-gray-500">
+                                {policy.fileType}
+                              </span>
+                            )}
+                            {policy.fileName && (
+                              <span className="text-xs text-gray-600 truncate max-w-xs" title={policy.fileName}>
+                                {policy.fileName}
+                              </span>
+                            )}
+                            {!policy.fileName && (
+                              <span className="text-xs text-green-600">✓ Document attached</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">No document</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <FaCalendarAlt className="text-gray-400" />
-                          {new Date(policy.effectiveDate).toLocaleDateString()}
+                          <span className="text-sm">
+                            {policy.effectiveDate ? new Date(policy.effectiveDate).toLocaleDateString() : 'N/A'}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <FaCalendarAlt className="text-gray-400" />
-                          {new Date(policy.reviewDate).toLocaleDateString()}
+                          <span className="text-sm">
+                            {policy.reviewDate ? new Date(policy.reviewDate).toLocaleDateString() : 'N/A'}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(policy.status)}`}>
-                          {policy.status.replace('-', ' ').toUpperCase()}
+                          {policy.status ? policy.status.replace('-', ' ').toUpperCase() : 'N/A'}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleDownloadPolicy(policy)}
+                            onClick={() => handleDownloadPolicy(policy, 'inline')}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            title="View"
+                            disabled={!policy.fileUrl}
+                          >
+                            <FaEye />
+                          </button>
+                          <button
+                            onClick={() => handleDownloadPolicy(policy, 'attachment')}
                             className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
                             title="Download"
                             disabled={!policy.fileUrl}
@@ -487,7 +538,7 @@ const PoliciesDocuments = () => {
 
         {/* Policy Modal */}
         {showPolicyModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
@@ -648,6 +699,8 @@ const PolicyManagementModule = () => {
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [filterCategory, setFilterCategory] = useState<string>('all');
     const [activeTab, setActiveTab] = useState<'dashboard' | 'library'>('dashboard');
+    const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+    const [notificationId, setNotificationId] = useState(0);
     
     // Modal states
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -655,100 +708,74 @@ const PolicyManagementModule = () => {
     const [showVersionHistoryModal, setShowVersionHistoryModal] = useState(false);
     const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
 
+    const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+        const id = notificationId + 1;
+        setNotificationId(id);
+        setNotifications([...notifications, { id, type, message }]);
+    };
+
+    const removeNotification = (id: number) => {
+        setNotifications(notifications.filter(n => n.id !== id));
+    };
+
+    const fetchPolicies = async () => {
+        try {
+            setLoading(true);
+            const response = await getPolicyDocuments({
+                status: filterStatus !== 'all' ? filterStatus : undefined,
+                category: filterCategory !== 'all' ? filterCategory : undefined,
+                search: searchTerm || undefined
+            });
+            if (response?.success && Array.isArray(response.data)) {
+                setPolicies(response.data.map((item: any) => {
+                    // Determine file type from fileUrl or fileName if fileType is not available
+                    let fileType = item.fileType;
+                    if (!fileType && item.fileName) {
+                        const ext = item.fileName.split('.').pop()?.toUpperCase();
+                        if (ext === 'PDF' || ext === 'DOCX' || ext === 'DOC' || ext === 'TXT' || ext === 'XLS' || ext === 'XLSX') {
+                            fileType = ext;
+                        }
+                    } else if (!fileType && item.fileUrl) {
+                        const ext = item.fileUrl.split('.').pop()?.split('?')[0]?.toUpperCase();
+                        if (ext === 'PDF' || ext === 'DOCX' || ext === 'DOC' || ext === 'TXT' || ext === 'XLS' || ext === 'XLSX') {
+                            fileType = ext;
+                        }
+                    }
+                    
+                    return {
+                        _id: item._id,
+                        policyNumber: item.policyNumber || '',
+                        title: item.title || '',
+                        category: item.category || '',
+                        version: item.version || '',
+                        effectiveDate: item.effectiveDate || new Date().toISOString(),
+                        reviewDate: item.reviewDate || new Date().toISOString(),
+                        status: item.status || 'draft',
+                        documentType: item.documentType || 'policy',
+                        fileUrl: item.fileUrl || '',
+                        fileName: item.fileName || '',
+                        fileType: fileType || 'PDF',
+                        owner: item.owner || item.createdBy?.name || '',
+                        assignedRoles: item.assignedRoles || 'All Staff',
+                        acknowledged: item.acknowledged || 0,
+                        totalEmployees: item.totalEmployees || 0,
+                        renewalCycle: item.renewalCycle || 12
+                    };
+                }));
+            } else {
+                showNotification('error', response?.message || 'Failed to fetch policies');
+            }
+        } catch (error: any) {
+            console.error('Error fetching policies:', error);
+            showNotification('error', error?.response?.data?.message || 'Failed to fetch policies');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        // Mock Data reflecting all required policy types from Req 12.1
-        const mockPolicies: Policy[] = [
-            // Core Health & Safety (Req 12.1 A)
-            { _id: '1', policyNumber: 'POL-S-001', title: 'Occupational Health & Safety Policy', category: 'Safety', version: '2.1', effectiveDate: '2024-01-01', reviewDate: '2025-01-01', renewalCycle: 12, status: 'active', documentType: 'Policy', fileType: 'PDF', owner: 'Safety', assignedRoles: 'All Staff', acknowledged: 95, totalEmployees: 100, linkedTrainingId: 'T-OHS' },
-            // Workplace Harassment & Violence (Req 12.1 A, 36-month cycle)
-            { _id: '2', policyNumber: 'POL-H-001', title: 'Workplace Harassment & Violence Prevention Policy', category: 'HR/Conduct', version: '1.0', effectiveDate: '2024-06-01', reviewDate: '2027-06-01', renewalCycle: 36, status: 'active', documentType: 'Policy', fileType: 'DOCX', owner: 'HR', assignedRoles: 'All Staff', acknowledged: 98, totalEmployees: 100 },
-            // Driver-Specific SOP (Req 4: SOPs)
-            { _id: '3', policyNumber: 'POL-D-005', title: 'Load Securement & Cargo Safety Policy (SOP)', category: 'Driver-Specific', version: '3.0', effectiveDate: '2023-11-01', reviewDate: '2024-11-01', renewalCycle: 12, status: 'active', documentType: 'SOP', fileType: 'PDF', owner: 'Operations', assignedRoles: 'Drivers', acknowledged: 45, totalEmployees: 50, linkedTrainingId: 'T-LSC' },
-            // Shop Policy (Req 12.1 E) - Low Acknowledgment Risk
-            { _id: '4', policyNumber: 'POL-Y-001', title: 'Lockout / Tagout (LOTO) Policy', category: 'Shop/Yard', version: '1.0', effectiveDate: '2024-02-15', reviewDate: '2025-02-15', renewalCycle: 12, status: 'active', documentType: 'Policy', fileType: 'PDF', owner: 'Safety', assignedRoles: 'Mechanics, Yard', acknowledged: 10, totalEmployees: 15 },
-            // Wellness Policy (Req 12.1 D, 24-month cycle)
-            { _id: '5', policyNumber: 'POL-W-001', title: 'Mental Health & Support Policy', category: 'Wellness', version: '1.0', effectiveDate: '2024-01-01', reviewDate: '2026-01-01', renewalCycle: 24, status: 'active', documentType: 'Procedure', fileType: 'TXT', owner: 'HR', assignedRoles: 'All Staff', acknowledged: 30, totalEmployees: 50 },
-            { 
-              _id: '6', 
-              policyNumber: 'POL-S-999', 
-              title: 'Company Safety Manual (Master Document)', 
-              category: 'Safety', 
-              version: '5.0', 
-              effectiveDate: '2024-01-01', 
-              reviewDate: '2025-01-01', 
-              renewalCycle: 12, 
-              status: 'active', 
-              documentType: 'Policy', 
-              fileType: 'PDF', 
-              owner: 'Safety Manager', 
-              assignedRoles: 'All Staff', 
-              acknowledged: 100, 
-              totalEmployees: 100,
-              linkedTrainingId: 'T-CSM'
-            },
-            
-            // MISSING SOP: Fueling Operations (Req 4)
-            { 
-              _id: '7', 
-              policyNumber: 'SOP-D-001', 
-              title: 'Fueling Operations & Spill Prevention SOP', 
-              category: 'Driver-Specific', 
-              version: '2.0', 
-              effectiveDate: '2024-03-01', 
-              reviewDate: '2025-03-01', 
-              renewalCycle: 12, 
-              status: 'active', 
-              documentType: 'SOP', 
-              fileType: 'PDF', 
-              owner: 'Operations Manager', 
-              assignedRoles: 'Drivers', 
-              acknowledged: 48, 
-              totalEmployees: 50,
-              linkedTrainingId: 'T-FUEL'
-            },
-            
-            // MISSING SOP: Chaining (Req 4)
-            { 
-              _id: '8', 
-              policyNumber: 'SOP-D-002', 
-              title: 'Tire Chaining SOP (Winter Operations)', 
-              category: 'Driver-Specific', 
-              version: '1.5', 
-              effectiveDate: '2023-10-01', 
-              reviewDate: '2024-10-01', 
-              renewalCycle: 12, 
-              status: 'active', 
-              documentType: 'SOP', 
-              fileType: 'PDF', 
-              owner: 'Fleet Manager', 
-              assignedRoles: 'Drivers', 
-              acknowledged: 45, 
-              totalEmployees: 50,
-              linkedTrainingId: 'T-CHAIN'
-            },
-            
-            // MISSING SOP: Yard Operations (Req 4)
-            { 
-              _id: '9', 
-              policyNumber: 'SOP-Y-001', 
-              title: 'Yard Operations & Traffic Control SOP', 
-              category: 'Shop/Yard', 
-              version: '1.0', 
-              effectiveDate: '2024-05-01', 
-              reviewDate: '2025-05-01', 
-              renewalCycle: 12, 
-              status: 'active', 
-              documentType: 'SOP', 
-              fileType: 'PDF', 
-              owner: 'Yard Supervisor', 
-              assignedRoles: 'Drivers, Yard Staff, Mechanics', 
-              acknowledged: 18, 
-              totalEmployees: 25
-            },
-        ];
-        setPolicies(mockPolicies);
-        setLoading(false);
-    }, []);
+        fetchPolicies();
+    }, [filterStatus, filterCategory, searchTerm]);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -795,7 +822,10 @@ const PolicyManagementModule = () => {
 
         // Req 12.3: Employees who have NOT acknowledged policies
         // We define non-compliant as having less than 95% acknowledgment for audit focus
-        const nonCompliantAcknowledgment = activePolicies.filter(p => (p.acknowledged / p.totalEmployees) < 0.95);
+        const nonCompliantAcknowledgment = activePolicies.filter(p => {
+            if (!p.totalEmployees || p.totalEmployees === 0) return false;
+            return (p.acknowledged / p.totalEmployees) < 0.95;
+        });
 
         return (
             <div className="space-y-6">
@@ -855,7 +885,9 @@ const PolicyManagementModule = () => {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.assignedRoles}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600">{p.totalEmployees - p.acknowledged} employees</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                            {((p.acknowledged / p.totalEmployees) * 100).toFixed(1)}%
+                                            {p.totalEmployees && p.totalEmployees > 0 
+                                                ? ((p.acknowledged / p.totalEmployees) * 100).toFixed(1) 
+                                                : '0'}%
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                                             <button 
@@ -915,7 +947,7 @@ const PolicyManagementModule = () => {
       });
     
       return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
               <h2 className="text-2xl font-bold">Upload New Policy/SOP</h2>
@@ -1139,7 +1171,7 @@ const PolicyManagementModule = () => {
       };
     
       return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b sticky top-0 bg-white">
               <h2 className="text-2xl font-bold text-red-700">Policy Acknowledgment Required</h2>
@@ -1228,7 +1260,7 @@ const PolicyManagementModule = () => {
       ];
     
       return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b sticky top-0 bg-white flex justify-between items-center">
               <div>
@@ -1350,8 +1382,11 @@ const PolicyManagementModule = () => {
                     <table className="w-full">
                         <thead style={{ background: FLEET_COLORS.gradient }}>
                             <tr>
+                                <th className="px-6 py-4 text-left text-white font-semibold">Policy #</th>
                                 <th className="px-6 py-4 text-left text-white font-semibold">Title / Document Type</th>
+                                <th className="px-6 py-4 text-left text-white font-semibold">Category</th>
                                 <th className="px-6 py-4 text-left text-white font-semibold">Assigned Roles</th>
+                                <th className="px-6 py-4 text-left text-white font-semibold">Document</th>
                                 <th className="px-6 py-4 text-left text-white font-semibold">Version / Effective Date</th>
                                 <th className="px-6 py-4 text-left text-white font-semibold">Next Review (Renewal Cycle)</th>
                                 <th className="px-6 py-4 text-left text-white font-semibold">Acknowledgment</th>
@@ -1362,22 +1397,63 @@ const PolicyManagementModule = () => {
                         <tbody>
                             {loading || filteredPolicies.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
                                         {loading ? 'Loading policy data...' : 'No policies match your filters.'}
                                     </td>
                                 </tr>
                             ) : (
                                 filteredPolicies.map((policy) => (
                                     <tr key={policy._id} className="border-b border-gray-200 hover:bg-gray-50">
+                                        <td className="px-6 py-4 font-medium">{policy.policyNumber || 'N/A'}</td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 font-medium">
-                                                {getFileIcon(policy.fileType)} {policy.title}
+                                                {getFileIcon(policy.fileType || 'PDF')} {policy.title || 'N/A'}
                                             </div>
                                             {/* Req 4: SOPs, Req 12: File types (PDF, Word, Text) */}
-                                            <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">{policy.documentType} ({policy.fileType})</span>
+                                            <div className="mt-1">
+                                                <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">
+                                                    {policy.documentType || 'N/A'}
+                                                </span>
+                                                {policy.fileType && (
+                                                    <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                                                        {policy.fileType}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
+                                        <td className="px-6 py-4 text-sm">{policy.category || 'N/A'}</td>
                                         {/* Req 12: Assign policies to specific roles */}
-                                        <td className="px-6 py-4 text-sm text-gray-600">{policy.assignedRoles}</td> 
+                                        <td className="px-6 py-4 text-sm">
+                                            {policy.assignedRoles ? (
+                                                <div className="max-w-xs">
+                                                    <span className="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs break-words">
+                                                        {policy.assignedRoles}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-gray-400 text-xs">Not assigned</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm">
+                                            {policy.fileUrl ? (
+                                                <div className="flex flex-col gap-1">
+                                                    {policy.fileType && (
+                                                        <span className="text-xs text-gray-600">
+                                                            {policy.fileType}
+                                                        </span>
+                                                    )}
+                                                    {policy.fileName ? (
+                                                        <span className="text-xs text-gray-700 truncate max-w-xs" title={policy.fileName}>
+                                                            {policy.fileName}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs text-green-600">✓ Document attached</span>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-gray-400">No document</span>
+                                            )}
+                                        </td> 
                                         <td className="px-6 py-4 text-sm">
                                             {/* Req 4, 12.3: Version History/Control */}
                                             <FaSyncAlt className='inline mr-1 text-gray-400 text-xs'/> v.**{policy.version}**
@@ -1426,8 +1502,22 @@ const PolicyManagementModule = () => {
                                                 >
                                                     <FaClipboardCheck />
                                                 </button>
-                                                <button className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition" title="Edit Policy / Upload New Version"><FaEdit /></button>
-                                                <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="Download Policy"><FaDownload /></button>
+                                                <button 
+                                                    onClick={() => handleDownloadPolicy(policy, 'inline')}
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" 
+                                                    title="View Policy"
+                                                    disabled={!policy.fileUrl}
+                                                >
+                                                    <FaEye />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDownloadPolicy(policy, 'attachment')}
+                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" 
+                                                    title="Download Policy"
+                                                    disabled={!policy.fileUrl}
+                                                >
+                                                    <FaDownload />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -1501,29 +1591,33 @@ const PolicyManagementModule = () => {
             {showUploadModal && (
                 <PolicyUploadModal 
                     onClose={() => setShowUploadModal(false)}
-                    onUpload={(data) => {
-                        console.log('Policy uploaded:', data);
-                        // Add new policy to state
-                        const newPolicy: Policy = {
-                            _id: String(policies.length + 1),
-                            policyNumber: data.policyNumber,
-                            title: data.title,
-                            category: data.category as Policy['category'],
-                            version: data.version,
-                            effectiveDate: data.effectiveDate,
-                            reviewDate: data.reviewDate,
-                            renewalCycle: data.renewalCycle,
-                            status: 'draft',
-                            documentType: data.documentType as Policy['documentType'],
-                            fileType: data.file?.name?.split('.').pop()?.toUpperCase() as 'PDF' | 'DOCX' | 'TXT' || 'PDF',
-                            owner: data.owner,
-                            assignedRoles: data.assignedRoles.join(', '),
-                            acknowledged: 0,
-                            totalEmployees: 0,
-                            linkedTrainingId: data.linkedTraining || undefined,
-                        };
-                        setPolicies([...policies, newPolicy]);
-                        setShowUploadModal(false);
+                    onUpload={async (data) => {
+                        try {
+                            const formData = new FormData();
+                            formData.append('title', data.title);
+                            formData.append('category', data.category);
+                            formData.append('version', data.version);
+                            formData.append('effectiveDate', data.effectiveDate);
+                            formData.append('reviewDate', data.reviewDate);
+                            formData.append('status', 'draft');
+                            formData.append('documentType', data.documentType.toLowerCase());
+                            
+                            if (data.file) {
+                                formData.append('file', data.file);
+                            }
+
+                            const response = await createPolicyDocument(formData);
+                            if (response?.success) {
+                                showNotification('success', 'Policy document created successfully');
+                                setShowUploadModal(false);
+                                fetchPolicies();
+                            } else {
+                                showNotification('error', response?.message || 'Failed to create policy document');
+                            }
+                        } catch (error: any) {
+                            console.error('Error creating policy document:', error);
+                            showNotification('error', error?.response?.data?.message || 'Failed to create policy document');
+                        }
                     }}
                 />
             )}
