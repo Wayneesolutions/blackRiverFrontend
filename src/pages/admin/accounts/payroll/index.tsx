@@ -36,6 +36,21 @@ interface Payroll {
     startDate: string;
     endDate: string;
     createdAt: string;
+    // Tax fields
+    country?: string;
+    // Canada taxes
+    federalIncomeTaxCA?: number;
+    provincialIncomeTaxCA?: number;
+    cpp?: number;
+    ei?: number;
+    provincialHealthTaxCA?: number;
+    // USA taxes
+    federalIncomeTaxUS?: number;
+    stateIncomeTaxUS?: number;
+    socialSecurityTax?: number;
+    medicareTax?: number;
+    stateDisabilityInsurance?: number;
+    localTax?: number;
     // Driver-specific fields
     trips?: Array<{
         _id: string;
@@ -107,6 +122,21 @@ interface PayrollFormData {
     ratePerMile?: string;
     totalMiles?: string;
     tripEarnings?: string;
+    // Tax fields - Canada
+    country: string;
+    // Canada taxes
+    federalIncomeTaxCA?: string;
+    provincialIncomeTaxCA?: string;
+    cpp?: string; // Canada Pension Plan
+    ei?: string; // Employment Insurance
+    provincialHealthTaxCA?: string;
+    // USA taxes
+    federalIncomeTaxUS?: string;
+    stateIncomeTaxUS?: string;
+    socialSecurityTax?: string; // FICA
+    medicareTax?: string;
+    stateDisabilityInsurance?: string; // SDI
+    localTax?: string;
 }
 
 interface Notification {
@@ -151,7 +181,21 @@ const PayrollManagement = () => {
         endDate: '',
         ratePerMile: '0.50',
         totalMiles: '0',
-        tripEarnings: '0'
+        tripEarnings: '0',
+        country: 'USA', // Default to USA
+        // Canada taxes
+        federalIncomeTaxCA: '0',
+        provincialIncomeTaxCA: '0',
+        cpp: '0',
+        ei: '0',
+        provincialHealthTaxCA: '0',
+        // USA taxes
+        federalIncomeTaxUS: '0',
+        stateIncomeTaxUS: '0',
+        socialSecurityTax: '0',
+        medicareTax: '0',
+        stateDisabilityInsurance: '0',
+        localTax: '0'
     });
 
     // Attendance state
@@ -441,7 +485,21 @@ const PayrollManagement = () => {
                 deductions: parseFloat(formData.deductions) || 0,
                 payDate: formData.payDate,
                 startDate: formData.startDate,
-                endDate: formData.endDate
+                endDate: formData.endDate,
+                country: formData.country || 'USA',
+                // Canada taxes
+                federalIncomeTaxCA: parseFloat(formData.federalIncomeTaxCA || '0'),
+                provincialIncomeTaxCA: parseFloat(formData.provincialIncomeTaxCA || '0'),
+                cpp: parseFloat(formData.cpp || '0'),
+                ei: parseFloat(formData.ei || '0'),
+                provincialHealthTaxCA: parseFloat(formData.provincialHealthTaxCA || '0'),
+                // USA taxes
+                federalIncomeTaxUS: parseFloat(formData.federalIncomeTaxUS || '0'),
+                stateIncomeTaxUS: parseFloat(formData.stateIncomeTaxUS || '0'),
+                socialSecurityTax: parseFloat(formData.socialSecurityTax || '0'),
+                medicareTax: parseFloat(formData.medicareTax || '0'),
+                stateDisabilityInsurance: parseFloat(formData.stateDisabilityInsurance || '0'),
+                localTax: parseFloat(formData.localTax || '0')
             };
 
             console.log('📤 Sending payroll payload:', payload);
@@ -480,14 +538,28 @@ const PayrollManagement = () => {
         setLoading(true);
         
         try {
-            const payload = {
+            const payload: any = {
                 userId: formData.userId,
                 baseSalary: parseFloat(formData.baseSalary),
                 bonus: parseFloat(formData.bonus) || 0,
                 deductions: parseFloat(formData.deductions) || 0,
                 payDate: formData.payDate,
                 startDate: formData.startDate,
-                endDate: formData.endDate
+                endDate: formData.endDate,
+                country: formData.country || 'USA',
+                // Canada taxes
+                federalIncomeTaxCA: parseFloat(formData.federalIncomeTaxCA || '0'),
+                provincialIncomeTaxCA: parseFloat(formData.provincialIncomeTaxCA || '0'),
+                cpp: parseFloat(formData.cpp || '0'),
+                ei: parseFloat(formData.ei || '0'),
+                provincialHealthTaxCA: parseFloat(formData.provincialHealthTaxCA || '0'),
+                // USA taxes
+                federalIncomeTaxUS: parseFloat(formData.federalIncomeTaxUS || '0'),
+                stateIncomeTaxUS: parseFloat(formData.stateIncomeTaxUS || '0'),
+                socialSecurityTax: parseFloat(formData.socialSecurityTax || '0'),
+                medicareTax: parseFloat(formData.medicareTax || '0'),
+                stateDisabilityInsurance: parseFloat(formData.stateDisabilityInsurance || '0'),
+                localTax: parseFloat(formData.localTax || '0')
             };
 
             const response = await updatePayroll(selectedPayroll._id, payload);
@@ -555,7 +627,21 @@ const PayrollManagement = () => {
             deductions: payroll.deductions.toString(),
             payDate: payDateFormatted,
             startDate: startDateFormatted,
-            endDate: endDateFormatted
+            endDate: endDateFormatted,
+            country: payroll.country || 'USA',
+            // Canada taxes
+            federalIncomeTaxCA: (payroll.federalIncomeTaxCA || 0).toString(),
+            provincialIncomeTaxCA: (payroll.provincialIncomeTaxCA || 0).toString(),
+            cpp: (payroll.cpp || 0).toString(),
+            ei: (payroll.ei || 0).toString(),
+            provincialHealthTaxCA: (payroll.provincialHealthTaxCA || 0).toString(),
+            // USA taxes
+            federalIncomeTaxUS: (payroll.federalIncomeTaxUS || 0).toString(),
+            stateIncomeTaxUS: (payroll.stateIncomeTaxUS || 0).toString(),
+            socialSecurityTax: (payroll.socialSecurityTax || 0).toString(),
+            medicareTax: (payroll.medicareTax || 0).toString(),
+            stateDisabilityInsurance: (payroll.stateDisabilityInsurance || 0).toString(),
+            localTax: (payroll.localTax || 0).toString()
         });
         setShowEditModal(true);
     };
@@ -576,7 +662,21 @@ const PayrollManagement = () => {
             endDate: '',
             ratePerMile: '0.50',
             totalMiles: '0',
-            tripEarnings: '0'
+            tripEarnings: '0',
+            country: 'USA',
+            // Canada taxes
+            federalIncomeTaxCA: '0',
+            provincialIncomeTaxCA: '0',
+            cpp: '0',
+            ei: '0',
+            provincialHealthTaxCA: '0',
+            // USA taxes
+            federalIncomeTaxUS: '0',
+            stateIncomeTaxUS: '0',
+            socialSecurityTax: '0',
+            medicareTax: '0',
+            stateDisabilityInsurance: '0',
+            localTax: '0'
         });
         // Clear attendance data when form is reset
         setAttendanceSummary(null);
@@ -1325,6 +1425,272 @@ const PayrollManagement = () => {
                                     </div>
                                 </div>
 
+                                {/* Tax Section */}
+                                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
+                                    <h5 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                        <DollarSign size={20} className="text-purple-600" />
+                                        Tax Information
+                                    </h5>
+                                    
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Country <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            name="country"
+                                            value={formData.country}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                        >
+                                            <option value="USA">United States</option>
+                                            <option value="Canada">Canada</option>
+                                        </select>
+                                    </div>
+
+                                    {formData.country === 'Canada' && (
+                                        <div className="space-y-4">
+                                            <h6 className="text-sm font-semibold text-gray-700 mb-3">Canada Taxes</h6>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Federal Income Tax ($)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <input
+                                                            type="number"
+                                                            name="federalIncomeTaxCA"
+                                                            value={formData.federalIncomeTaxCA}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Provincial Income Tax ($)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <input
+                                                            type="number"
+                                                            name="provincialIncomeTaxCA"
+                                                            value={formData.provincialIncomeTaxCA}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Canada Pension Plan (CPP) ($)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <input
+                                                            type="number"
+                                                            name="cpp"
+                                                            value={formData.cpp}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Employment Insurance (EI) ($)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <input
+                                                            type="number"
+                                                            name="ei"
+                                                            value={formData.ei}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Provincial Health Tax ($)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <input
+                                                            type="number"
+                                                            name="provincialHealthTaxCA"
+                                                            value={formData.provincialHealthTaxCA}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {formData.country === 'USA' && (
+                                        <div className="space-y-4">
+                                            <h6 className="text-sm font-semibold text-gray-700 mb-3">United States Taxes</h6>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Federal Income Tax ($)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <input
+                                                            type="number"
+                                                            name="federalIncomeTaxUS"
+                                                            value={formData.federalIncomeTaxUS}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        State Income Tax ($)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <input
+                                                            type="number"
+                                                            name="stateIncomeTaxUS"
+                                                            value={formData.stateIncomeTaxUS}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Social Security Tax (FICA) ($)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <input
+                                                            type="number"
+                                                            name="socialSecurityTax"
+                                                            value={formData.socialSecurityTax}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Medicare Tax ($)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <input
+                                                            type="number"
+                                                            name="medicareTax"
+                                                            value={formData.medicareTax}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        State Disability Insurance (SDI) ($)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <input
+                                                            type="number"
+                                                            name="stateDisabilityInsurance"
+                                                            value={formData.stateDisabilityInsurance}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Local Tax ($)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <input
+                                                            type="number"
+                                                            name="localTax"
+                                                            value={formData.localTax}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Tax Summary */}
+                                    {formData.baseSalary && (
+                                        <div className="mt-4 p-4 bg-white rounded-lg border border-purple-300">
+                                            <h6 className="text-sm font-semibold text-gray-700 mb-2">Total Taxes</h6>
+                                            <div className="text-2xl font-bold text-purple-600">
+                                                ${(() => {
+                                                    let totalTax = 0;
+                                                    if (formData.country === 'Canada') {
+                                                        totalTax = 
+                                                            parseFloat(formData.federalIncomeTaxCA || '0') +
+                                                            parseFloat(formData.provincialIncomeTaxCA || '0') +
+                                                            parseFloat(formData.cpp || '0') +
+                                                            parseFloat(formData.ei || '0') +
+                                                            parseFloat(formData.provincialHealthTaxCA || '0');
+                                                    } else {
+                                                        totalTax = 
+                                                            parseFloat(formData.federalIncomeTaxUS || '0') +
+                                                            parseFloat(formData.stateIncomeTaxUS || '0') +
+                                                            parseFloat(formData.socialSecurityTax || '0') +
+                                                            parseFloat(formData.medicareTax || '0') +
+                                                            parseFloat(formData.stateDisabilityInsurance || '0') +
+                                                            parseFloat(formData.localTax || '0');
+                                                    }
+                                                    return totalTax.toFixed(2);
+                                                })()}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                                     <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                                         <Calendar size={16} />
@@ -1373,17 +1739,82 @@ const PayrollManagement = () => {
 
                                 {formData.baseSalary && (
                                     <div className="p-4 rounded-lg border bg-blue-50 border-blue-200">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-sm font-medium text-gray-700">
-                                                Total Salary:
-                                            </span>
-                                            <span className="text-xl font-bold text-blue-600">
-                                                ${(
-                                                    parseFloat(formData.baseSalary || '0') + 
-                                                    parseFloat(formData.bonus || '0') - 
-                                                    parseFloat(formData.deductions || '0')
-                                                ).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </span>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm font-medium text-gray-700">
+                                                    Gross Salary:
+                                                </span>
+                                                <span className="text-lg font-semibold text-gray-900">
+                                                    ${(
+                                                        parseFloat(formData.baseSalary || '0') + 
+                                                        parseFloat(formData.bonus || '0')
+                                                    ).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-gray-600">
+                                                    Deductions:
+                                                </span>
+                                                <span className="text-red-600">
+                                                    -${parseFloat(formData.deductions || '0').toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-gray-600">
+                                                    Taxes:
+                                                </span>
+                                                <span className="text-red-600">
+                                                    -${(() => {
+                                                        let totalTax = 0;
+                                                        if (formData.country === 'Canada') {
+                                                            totalTax = 
+                                                                parseFloat(formData.federalIncomeTaxCA || '0') +
+                                                                parseFloat(formData.provincialIncomeTaxCA || '0') +
+                                                                parseFloat(formData.cpp || '0') +
+                                                                parseFloat(formData.ei || '0') +
+                                                                parseFloat(formData.provincialHealthTaxCA || '0');
+                                                        } else {
+                                                            totalTax = 
+                                                                parseFloat(formData.federalIncomeTaxUS || '0') +
+                                                                parseFloat(formData.stateIncomeTaxUS || '0') +
+                                                                parseFloat(formData.socialSecurityTax || '0') +
+                                                                parseFloat(formData.medicareTax || '0') +
+                                                                parseFloat(formData.stateDisabilityInsurance || '0') +
+                                                                parseFloat(formData.localTax || '0');
+                                                        }
+                                                        return totalTax.toFixed(2);
+                                                    })()}
+                                                </span>
+                                            </div>
+                                            <div className="pt-2 border-t border-blue-300 flex justify-between items-center">
+                                                <span className="text-sm font-bold text-gray-800">
+                                                    Net Pay:
+                                                </span>
+                                                <span className="text-xl font-bold text-blue-600">
+                                                    ${(() => {
+                                                        const gross = parseFloat(formData.baseSalary || '0') + parseFloat(formData.bonus || '0');
+                                                        const deductions = parseFloat(formData.deductions || '0');
+                                                        let totalTax = 0;
+                                                        if (formData.country === 'Canada') {
+                                                            totalTax = 
+                                                                parseFloat(formData.federalIncomeTaxCA || '0') +
+                                                                parseFloat(formData.provincialIncomeTaxCA || '0') +
+                                                                parseFloat(formData.cpp || '0') +
+                                                                parseFloat(formData.ei || '0') +
+                                                                parseFloat(formData.provincialHealthTaxCA || '0');
+                                                        } else {
+                                                            totalTax = 
+                                                                parseFloat(formData.federalIncomeTaxUS || '0') +
+                                                                parseFloat(formData.stateIncomeTaxUS || '0') +
+                                                                parseFloat(formData.socialSecurityTax || '0') +
+                                                                parseFloat(formData.medicareTax || '0') +
+                                                                parseFloat(formData.stateDisabilityInsurance || '0') +
+                                                                parseFloat(formData.localTax || '0');
+                                                        }
+                                                        return (gross - deductions - totalTax).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                                    })()}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
