@@ -352,7 +352,7 @@ const Index = () => {
   }, [visibleFleetUnits, fleetTab, unitAssignments]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-[#EDF8FF] p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -372,9 +372,8 @@ const Index = () => {
                   setSearchTerm("");
                   setStatusFilter("all");
                 }}
-                className={`px-4 py-2 text-sm font-semibold rounded-2xl transition-colors ${
-                  fleetTab === tab ? "bg-white text-blue-600 shadow" : "text-gray-500"
-                }`}
+                className={`px-4 py-2 text-sm font-semibold rounded-2xl transition-colors ${fleetTab === tab ? "bg-white text-blue-600 shadow" : "text-gray-500"
+                  }`}
               >
                 {tab === "trucks" ? "Trucks" : "Trailers"}
               </button>
@@ -382,27 +381,47 @@ const Index = () => {
           </div>
         </header>
 
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-2xl p-5 text-white shadow-lg" style={{ background: FLEET_COLORS.gradient }}>
-            <p className="text-xs font-semibold uppercase text-white/80">Total Units</p>
-            <p className="text-3xl font-bold mt-1">{summary.total}</p>
-            <p className="text-xs text-white/80">
+        <section className="grid grid-cols-1 gap-2 md:grid-cols-3">
+          {/* Total Units – Pastel Orange */}
+          <div className="rounded-lg p-3 shadow-sm bg-orange-50">
+            <p className="text-[10px] font-semibold uppercase text-orange-600">
+              Total Units
+            </p>
+            <p className="text-xl font-semibold mt-0.5 text-orange-700">
+              {summary.total}
+            </p>
+            <p className="text-[11px] text-orange-500">
               {fleetTab === "trucks" ? "Primary power units" : "All trailers in pool"}
             </p>
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase text-gray-500">Active</p>
-            <p className="text-3xl font-bold text-emerald-600 mt-1">{summary.active}</p>
-            <p className="text-xs text-gray-500">Passing checks / ready for assignment</p>
+
+          {/* Active – Pastel Green */}
+          <div className="rounded-lg p-3 shadow-sm bg-green-50">
+            <p className="text-[10px] font-semibold uppercase text-green-600">
+              Active
+            </p>
+            <p className="text-xl font-semibold mt-0.5 text-green-700">
+              {summary.active}
+            </p>
+            <p className="text-[11px] text-green-500">
+              Passing checks / ready for assignment
+            </p>
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase text-gray-500">Currently Dispatched</p>
-            <p className="text-3xl font-bold text-blue-600 mt-1">{assignmentSnapshot.unitsWithActiveTrips}</p>
-            <p className="text-xs text-gray-500">
+
+          {/* Currently Dispatched – Pastel Purple */}
+          <div className="rounded-lg p-3 shadow-sm bg-purple-50">
+            <p className="text-[10px] font-semibold uppercase text-purple-600">
+              Currently Dispatched
+            </p>
+            <p className="text-xl font-semibold mt-0.5 text-purple-700">
+              {assignmentSnapshot.unitsWithActiveTrips}
+            </p>
+            <p className="text-[11px] text-purple-500">
               {assignmentSnapshot.availableUnits} available in pool
             </p>
           </div>
         </section>
+
 
         <section className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -427,27 +446,30 @@ const Index = () => {
             </select>
           </div>
 
-          <div className="border rounded-2xl overflow-hidden">
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <table className="min-w-full text-sm">
+                {/* Header */}
                 <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-600">Unit No.</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-600">Type</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-600">Make / Model</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-600">VIN</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-600">License Plate</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-600">Year</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-600">Odometer</th>
+                  <tr className="border-b border-gray-100">
+                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Unit No.</th>
+                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Type</th>
+                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Make / Model</th>
+                    <th className="px-6 py-3 text-left font-semibold text-gray-500">VIN</th>
+                    <th className="px-6 py-3 text-left font-semibold text-gray-500">License Plate</th>
+                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Year</th>
+                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Odometer</th>
                     {fleetTab === "trailers" && (
-                      <th className="px-6 py-4 text-left font-semibold text-gray-600">Capacity</th>
+                      <th className="px-6 py-3 text-left font-semibold text-gray-500">Capacity</th>
                     )}
-                    <th className="px-6 py-4 text-left font-semibold text-gray-600">Dispatch Snapshot</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-600">Status</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-600">Comment</th>
+                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Dispatch Snapshot</th>
+                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Status</th>
+                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Comment</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
+
+                {/* Body */}
+                <tbody className="divide-y divide-gray-50">
                   {fleetUnitsLoading ? (
                     <tr>
                       <td
@@ -482,7 +504,7 @@ const Index = () => {
                         unit.makeModel ||
                         `unit-${index}`;
                       return (
-                        <tr key={previewKey}>
+                        <tr key={previewKey} className="hover:bg-blue-50 transition-colors">
                           <td className="px-6 py-4 font-semibold text-gray-900">
                             {unit.unitNo || "—"}
                           </td>
@@ -507,9 +529,8 @@ const Index = () => {
                                 >
                                   <button
                                     type="button"
-                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${
-                                      activeTrip ? "text-blue-600 border-blue-200" : "text-gray-400 border-gray-200"
-                                    }`}
+                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeTrip ? "text-blue-600 border-blue-200" : "text-gray-400 border-gray-200"
+                                      }`}
                                     title={activeTrip ? "View assignment details" : "No active assignment"}
                                     onMouseEnter={() => setPreviewUnitId(previewKey)}
                                     onFocus={() => setPreviewUnitId(previewKey)}

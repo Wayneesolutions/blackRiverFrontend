@@ -4,6 +4,7 @@ import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck, FaUser, FaTrailer
 import NewTripSidebar from "./NewTripSidebar";
 import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
+import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
 
 interface Trip {
   _id: string;
@@ -127,6 +128,18 @@ const Trips = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [startConfirm, setStartConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [completeConfirm, setCompleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
+  
+  const focusHandlers = getFocusStyles();
+  const primaryButtonStyle: React.CSSProperties = {
+    background: `linear-gradient(
+      90deg,
+      #42aeec 0%,
+      #1db5f5 40%,
+      #0ea3d8 100%
+    )`,
+    color: "#fff",
+    boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
+  };
   
   // Search and filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -347,7 +360,7 @@ const Trips = () => {
   };
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
+    <div className="p-4 bg-[#EDF8FF] min-h-screen">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div>
@@ -356,7 +369,8 @@ const Trips = () => {
         </div>
         <button
           onClick={handleAddTrip}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors"
+          style={primaryButtonStyle}
+          className="flex items-center gap-2 px-4 py-2 !text-white rounded-lg transition-all hover:opacity-90 hover:shadow-lg"
         >
           <Plus className="w-4 h-4" />
           New Trip
@@ -373,7 +387,10 @@ const Trips = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by trip number..."
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
+              style={{ ...focusHandlers }}
+              onFocus={focusHandlers.onFocus}
+              onBlur={focusHandlers.onBlur}
             />
           </div>
           
@@ -383,7 +400,10 @@ const Trips = () => {
               setStatusFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
+            style={{ ...focusHandlers }}
+            onFocus={focusHandlers.onFocus}
+            onBlur={focusHandlers.onBlur}
           >
             <option value="">All Status</option>
             <option value="planned">Planned</option>
@@ -398,7 +418,10 @@ const Trips = () => {
               setDriverFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
+            style={{ ...focusHandlers }}
+            onFocus={focusHandlers.onFocus}
+            onBlur={focusHandlers.onBlur}
           >
             <option value="">All Drivers</option>
             {drivers.map((driver) => (
@@ -414,7 +437,10 @@ const Trips = () => {
               setTruckFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
+            style={{ ...focusHandlers }}
+            onFocus={focusHandlers.onFocus}
+            onBlur={focusHandlers.onBlur}
           >
             <option value="">All Trucks</option>
             {trucks.map((truck) => (
@@ -445,7 +471,7 @@ const Trips = () => {
       {/* Trips Table */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4" style={{ borderColor: FLEET_COLORS.primary }}></div>
         </div>
       ) : trips.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
@@ -473,7 +499,7 @@ const Trips = () => {
                   {trips.map((trip) => (
                     <tr key={trip._id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="font-medium text-blue-600">{trip.tripNumber}</span>
+                        <span className="font-medium" style={{ color: FLEET_COLORS.primary }}>{trip.tripNumber}</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
@@ -498,7 +524,7 @@ const Trips = () => {
                         )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                        <span className="px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: `${FLEET_COLORS.primary}15`, color: FLEET_COLORS.dark }}>
                           {trip.orders?.length || 0} Order(s)
                         </span>
                       </td>
@@ -515,7 +541,8 @@ const Trips = () => {
                           {trip.status === 'planned' && (
                             <button
                               onClick={() => handleStartTrip(trip)}
-                              className="px-3 py-1.5 text-xs font-medium !text-white bg-green-600 hover:bg-green-700 rounded transition-colors"
+                              className="px-3 py-1.5 text-xs font-medium !text-white rounded transition-all hover:opacity-90 hover:shadow-md"
+                              style={{ background: FLEET_COLORS.gradient }}
                               title="Start Trip"
                             >
                               Start
@@ -524,7 +551,8 @@ const Trips = () => {
                           {trip.status === 'in-progress' && (
                             <button
                               onClick={() => handleCompleteTrip(trip)}
-                              className="px-3 py-1.5 text-xs font-medium !text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                              style={primaryButtonStyle}
+                              className="px-3 py-1.5 text-xs font-medium !text-white rounded transition-all hover:opacity-90 hover:shadow-md"
                               title="Complete Trip"
                             >
                               Complete
@@ -532,7 +560,10 @@ const Trips = () => {
                           )}
                           <button
                             onClick={() => handleViewTrip(trip)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                            className="p-1.5 rounded transition-colors"
+                            style={{ color: FLEET_COLORS.primary }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             title="View"
                           >
                             <Eye className="w-4 h-4" />
@@ -541,14 +572,17 @@ const Trips = () => {
                             <>
                               <button
                                 onClick={() => handleEditTrip(trip)}
-                                className="p-1.5 text-green-600 hover:bg-green-50 rounded"
+                                className="p-1.5 rounded transition-colors"
+                                style={{ color: FLEET_COLORS.primary }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                 title="Edit"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteTrip(trip)}
-                                className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                                className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                                 title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -578,7 +612,7 @@ const Trips = () => {
                 >
                   Previous
                 </button>
-                <span className="px-3 py-1 bg-blue-600 !text-white rounded text-sm">{currentPage}</span>
+                <span className="px-3 py-1 !text-white rounded text-sm" style={primaryButtonStyle}>{currentPage}</span>
                 <span className="text-sm text-gray-600">of</span>
                 <span className="px-3 py-1 bg-gray-100 rounded text-sm text-gray-700">{totalPages}</span>
                 <button
@@ -689,16 +723,19 @@ const Trips = () => {
                       const deliveryLocation = extractLocationString(order.deliveryLocation);
                       return (
                         <div key={order._id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="font-semibold text-blue-700">{order.orderNumber}</div>
+                            <div className="flex items-start justify-between mb-2">
+                            <div className="font-semibold" style={{ color: FLEET_COLORS.primary }}>{order.orderNumber}</div>
                             {order.status && (
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                order.status === 'planned' ? 'bg-yellow-100 text-yellow-800' :
-                                order.status === 'dispatched' ? 'bg-blue-100 text-blue-800' :
-                                order.status === 'in-delivery' ? 'bg-orange-100 text-orange-800' :
-                                order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
+                              <span 
+                                className="px-2 py-1 rounded text-xs font-medium"
+                                style={
+                                  order.status === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
+                                  order.status === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
+                                  order.status === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
+                                  order.status === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
+                                  { backgroundColor: '#f3f4f6', color: '#1f2937' }
+                                }
+                              >
                                 {order.status}
                               </span>
                             )}
@@ -745,7 +782,7 @@ const Trips = () => {
                           className="flex items-start justify-between gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
                         >
                           <div className="flex items-start gap-3 flex-1 min-w-0">
-                            <File className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: FLEET_COLORS.primary }} />
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm text-gray-900 truncate">
                                 {doc.fileName}
@@ -784,7 +821,10 @@ const Trips = () => {
                                   window.open(doc.fileUrl, '_blank');
                                 }
                               }}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-2 rounded-lg transition-colors"
+                              style={{ color: FLEET_COLORS.primary }}
+                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`}
+                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                               title="View/Download Document"
                             >
                               <Download className="w-4 h-4" />
@@ -800,7 +840,8 @@ const Trips = () => {
             <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end border-t rounded-b-xl">
               <button
                 onClick={() => setViewingTrip(null)}
-                className="px-6 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
+                className="px-6 py-2 !text-white rounded-lg font-medium transition-all hover:opacity-90 hover:shadow-md"
+                style={{ background: FLEET_COLORS.gradient }}
               >
                 Close
               </button>

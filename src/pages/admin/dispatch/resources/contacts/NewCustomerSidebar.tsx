@@ -238,7 +238,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 mr-3"
+                        className="px-4 py-2 !mr-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 mr-3"
                         disabled={isLoading}
                     >
                         Cancel
@@ -246,7 +246,10 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+                        style={{
+                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                          }}
+                        className="px-4 py-2 bg-blue-600 !text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
                         disabled={isLoading || !formData.name.trim()}
                     >
                         {isLoading ? 'Creating...' : 'Create Customer'}

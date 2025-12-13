@@ -228,7 +228,7 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#EDF8FF]">
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map((notification) => (
@@ -243,7 +243,7 @@ const Index = () => {
       {/* Main Content */}
       <div className="flex-1">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-semibold text-gray-900">Places</h1>
@@ -259,12 +259,13 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <button className="p-2 text-gray-400 hover:text-gray-600">
-                <Filter className="w-5 h-5" />
-              </button>
+            
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                style={{
+                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                }}
+                className="!text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
               >
                 <Plus className="w-4 h-4" />
                 <span>Create Place</span>
@@ -519,7 +520,10 @@ const Index = () => {
               <button
                 onClick={handleEditSave}
                 disabled={editLoading}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{
+                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                }}
+                className="rounded-md  px-4 py-2 text-sm font-medium !text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {editLoading ? "Saving..." : "Save Changes"}
               </button>
@@ -556,7 +560,7 @@ const Index = () => {
               <button
                 onClick={handleConfirmDelete}
                 disabled={deleteLoading}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium !text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {deleteLoading ? "Deleting..." : "Delete"}
               </button>

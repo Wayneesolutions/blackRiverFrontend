@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent } from "react";
-import { Plus, Search, Filter, Edit, Trash2, X } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, X, UserPlus, Users } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import NewContactSidebar from "./NewContactSidebar";
 import NewCustomerSidebar from "./NewCustomerSidebar";
@@ -367,8 +367,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Toast Notifications */}
+    <div className="min-h-screen bg-[#EDF8FF]">
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map((notification) => (
           <ToastNotification
@@ -379,40 +378,37 @@ const Index = () => {
         ))}
       </div>
 
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <div className="px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-6">
-          {/* Tabs */}
           <div className="flex space-x-4">
             <button
               onClick={() => setActiveTab("contacts")}
-              className={`pb-2 px-2 text-sm font-medium ${
-                activeTab === "contacts"
+              className={`pb-2 px-2 text-sm font-medium flex items-center gap-2 ${activeTab === "contacts"
                   ? "text-blue-600 border-b-2 border-blue-600"
                   : "text-gray-500 hover:text-gray-700"
-              }`}
+                }`}
             >
+              <Users className="w-4 h-4" />
               Contacts
             </button>
             <button
               onClick={() => setActiveTab("customers")}
-              className={`pb-2 px-2 text-sm font-medium ${
-                activeTab === "customers"
+              className={`pb-2 px-2 text-sm font-medium flex items-center gap-2 ${activeTab === "customers"
                   ? "text-blue-600 border-b-2 border-blue-600"
                   : "text-gray-500 hover:text-gray-700"
-              }`}
+                }`}
             >
+              <Users className="w-4 h-4" />
               Customers
             </button>
           </div>
 
-          {/* Search */}
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder={`Search ${activeTab}`}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               value={searchQuery}
               onChange={handleSearch}
             />
@@ -420,15 +416,15 @@ const Index = () => {
         </div>
 
         <div className="flex items-center space-x-3">
-          <button className="p-2 text-gray-400 hover:text-gray-600">
-            <Filter className="w-5 h-5" />
-          </button>
           {canCreate && (
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="bg-blue-600 !text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2"
+              style={{
+                background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+              }}
+              className="!text-white px-4 py-2 rounded-md hover:opacity-90 transition-opacity flex items-center space-x-2 text-sm font-medium"
             >
-              <Plus className="w-4 h-4" />
+              <UserPlus className="w-4 h-4" />
               <span>{activeTab === "contacts" ? "Create Contact" : "Create Customer"}</span>
             </button>
           )}
@@ -436,13 +432,12 @@ const Index = () => {
       </div>
 
       {emptyStateMessage && tableData.length === 0 && (
-        <div className="mx-6 mt-4 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3">
-          👥
-          <span className="text-sm">{emptyStateMessage}</span>
+        <div className="mx-6 mt-4 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3 text-sm">
+          <Users className="w-5 h-5" />
+          <span>{emptyStateMessage}</span>
         </div>
       )}
 
-      {/* Table */}
       <div className="p-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
@@ -479,20 +474,23 @@ const Index = () => {
                 {tableData.length > 0 ? (
                   tableData.map((item) => (
                     <tr key={item._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">{item.internalId}</td>
-                      <td className="px-6 py-4">{item.name}</td>
-                      <td className="px-6 py-4">{item.email}</td>
-                      <td className="px-6 py-4">{item.phone}</td>
-                      <td className="px-6 py-4">{item.country}</td>
-                      <td className="px-6 py-4">{item.role}</td>
-                      <td className="px-6 py-4">{new Date(item.createdAt).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 text-sm">{item.internalId}</td>
+                      <td className="px-6 py-4 text-sm">{item.name}</td>
+                      <td className="px-6 py-4 text-sm">{item.email}</td>
+                      <td className="px-6 py-4 text-sm">{item.phone}</td>
+                      <td className="px-6 py-4 text-sm">{item.country}</td>
+                      <td className="px-6 py-4 text-sm">{item.role}</td>
+                      <td className="px-6 py-4 text-sm">{new Date(item.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
                           <button
                             onClick={() => handleEdit(item)}
-                            className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                            style={{
+                              background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                            }}
+                            className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium !text-white hover:opacity-90 transition-opacity"
                           >
-                            <Edit className="h-3.5 w-3.5" />
+                            <Edit2 className="h-3 w-3" />
                             Edit
                           </button>
                           <button
@@ -501,7 +499,7 @@ const Index = () => {
                             }
                             className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-3 w-3" />
                             Delete
                           </button>
                         </div>
@@ -512,8 +510,8 @@ const Index = () => {
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                       <div className="flex flex-col items-center space-y-2">
-                        <div className="text-4xl text-gray-300">👥</div>
-                        <p>No {activeTab} found.</p>
+                        <Users className="w-12 h-12 text-gray-300" />
+                        <p className="text-sm">No {activeTab} found.</p>
                         {emptyStateMessage && (
                           <p className="text-xs text-gray-400">{emptyStateMessage}</p>
                         )}
@@ -534,7 +532,6 @@ const Index = () => {
         <NewCustomerSidebar isOpen={isSidebarOpen && canCreate} onClose={handleSidebarClose} />
       )}
 
-      {/* Edit Modal */}
       {isEditModalOpen && editItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative animate-fadeIn">
@@ -545,7 +542,7 @@ const Index = () => {
               <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Edit {activeTab === "contacts" ? "Contact" : "Customer"}
             </h2>
 
@@ -557,7 +554,7 @@ const Index = () => {
                   name="internalId"
                   value={editForm.internalId}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
 
@@ -568,7 +565,7 @@ const Index = () => {
                   name="name"
                   value={editForm.name}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
 
@@ -579,7 +576,7 @@ const Index = () => {
                   name="email"
                   value={editForm.email}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
 
@@ -590,7 +587,7 @@ const Index = () => {
                   name="phone"
                   value={editForm.phone}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
 
@@ -601,21 +598,24 @@ const Index = () => {
                   name="country"
                   value={editForm.country}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
             </div>
 
             <div className="mt-6 flex justify-end space-x-3">
               <button
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-gray-200 !mr-3 text-gray-700 rounded-lg hover:bg-gray-300 transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
                 onClick={() => setIsEditModalOpen(false)}
                 disabled={editLoading}
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{
+                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                }}
+                className="px-4 py-2 !text-white rounded-lg hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
                 onClick={handleUpdate}
                 disabled={editLoading}
               >
@@ -638,7 +638,7 @@ const Index = () => {
                 disabled={deleteLoading}
                 className="text-gray-400 transition-colors hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
             <p className="text-sm text-gray-600">
@@ -656,7 +656,7 @@ const Index = () => {
               <button
                 onClick={handleConfirmDelete}
                 disabled={deleteLoading}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium !text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {deleteLoading ? "Deleting..." : "Delete"}
               </button>

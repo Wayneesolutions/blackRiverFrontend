@@ -5,6 +5,13 @@ import NewOrderSidebar from "./NewOrderSidebar";
 import { listOrder, deleteOrder, getOrderById } from "../../../../../axios/api/distapcher";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
+import { createPortal } from "react-dom";
+
+// Color constants
+const PRIMARY_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
+const PRIMARY_COLOR = '#016ab2';
+const PRIMARY_LIGHT_BG = 'rgba(66, 174, 236, 0.1)';
+const FOCUS_RING = 'rgba(1, 106, 178, 0.2)';
 
 interface Place {
   _id: string;
@@ -163,14 +170,14 @@ const OrderList = () => {
     if (!location) return '';
     if (typeof location === 'string') return location;
     if (typeof location !== 'object') return '';
-    
+
     try {
       // Try different paths to get the location string
       // First check if place field exists
       if (location.place && typeof location.place === 'string') {
         return location.place;
       }
-      
+
       // Check if placeId is populated (object) with currentLocation
       if (location.placeId) {
         if (typeof location.placeId === 'object' && location.placeId !== null) {
@@ -183,7 +190,7 @@ const OrderList = () => {
           }
         }
       }
-      
+
       // Fallback to other fields
       if (location.address && typeof location.address === 'string') {
         return location.address;
@@ -194,7 +201,7 @@ const OrderList = () => {
     } catch (error) {
       console.error('Error extracting location string:', error);
     }
-    
+
     return '';
   };
 
@@ -207,7 +214,7 @@ const OrderList = () => {
         status: orderStatus || undefined,
         orderType: orderType || undefined
       });
-      
+
       if (response?.success && response?.data) {
         const formattedOrders = response.data.map((order: any) => ({
           id: order._id,
@@ -250,7 +257,7 @@ const OrderList = () => {
       setLoading(false);
     }
   };
-  
+
   // Filter states
   const [orderType, setOrderType] = useState("");
   const [createdDate, setCreatedDate] = useState("");
@@ -258,7 +265,7 @@ const OrderList = () => {
   const [orderStatus, setOrderStatus] = useState("");
   const [accounting, setAccounting] = useState("");
   const [sortBy, setSortBy] = useState("");
-  
+
   // Search states
   const [orderNo, setOrderNo] = useState("");
   const [custOrderNo, setCustOrderNo] = useState("");
@@ -277,7 +284,7 @@ const OrderList = () => {
       const matchesOrderNo = !orderNo || order.orderNo.toLowerCase().includes(orderNo.toLowerCase());
       const matchesCustOrderNo = !custOrderNo || order.custOrderNo.toLowerCase().includes(custOrderNo.toLowerCase());
       const matchesTripNo = !tripNo || order.tripNo.toLowerCase().includes(tripNo.toLowerCase());
-      const matchesPickupDeliveryRef = !pickupDeliveryRef || 
+      const matchesPickupDeliveryRef = !pickupDeliveryRef ||
         (order.pickupRefNo && order.pickupRefNo.toLowerCase().includes(pickupDeliveryRef.toLowerCase())) ||
         (order.deliveryRefNo && order.deliveryRefNo.toLowerCase().includes(pickupDeliveryRef.toLowerCase()));
       const matchesCustName = !custName || (order.customerName && order.customerName.toLowerCase().includes(custName.toLowerCase()));
@@ -346,8 +353,8 @@ const OrderList = () => {
       const response = await getOrderById(order.id);
       if (response?.success && response?.data) {
         setEditingOrder(response.data);
-    setSidebarOpen(true);
-    setActionMenuOpen(null);
+        setSidebarOpen(true);
+        setActionMenuOpen(null);
       } else {
         addNotification('error', response?.message || "Failed to load order details");
       }
@@ -363,7 +370,7 @@ const OrderList = () => {
 
   const confirmDeleteOrder = async () => {
     if (!deleteConfirm.orderId) return;
-    
+
     try {
       const response = await deleteOrder(deleteConfirm.orderId);
       if (response?.success) {
@@ -417,12 +424,19 @@ const OrderList = () => {
       case "CONFIRMED":
         return "bg-green-100 text-green-800";
       case "IN_PROGRESS":
-        return "bg-blue-100 text-blue-800";
+        return "text-white";
       case "COMPLETED":
         return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const getStatusStyle = (status: string) => {
+    if (status === "IN_PROGRESS") {
+      return { background: PRIMARY_GRADIENT };
+    }
+    return {};
   };
 
   return (
@@ -431,7 +445,8 @@ const OrderList = () => {
         <h1 className="text-2xl font-bold text-gray-800">Order List</h1>
         <button
           onClick={handleCreateOrder}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors"
+          style={{ background: PRIMARY_GRADIENT }}
+          className="flex items-center gap-2 px-4 py-2 !text-white rounded-lg hover:opacity-90 transition-opacity shadow-md"
         >
           <Plus className="w-5 h-5" />
           Create Order
@@ -439,7 +454,7 @@ const OrderList = () => {
       </div>
 
       {/* Top Filter Bar */}
-      <div className="bg-blue-50 p-3 rounded-lg mb-4 flex flex-wrap gap-3">
+      <div style={{ backgroundColor: PRIMARY_LIGHT_BG }} className="p-3 rounded-lg mb-4 flex flex-wrap gap-3">
         <select
           value={orderType}
           onChange={(e) => setOrderType(e.target.value)}
@@ -570,9 +585,17 @@ const OrderList = () => {
                   setPickupLocation(e.target.value);
                   setPickupLocationDropdownOpen(true);
                 }}
-                onFocus={() => setPickupLocationDropdownOpen(true)}
+                onFocus={(e) => {
+                  setPickupLocationDropdownOpen(true);
+                  e.target.style.boxShadow = `0 0 0 2px ${FOCUS_RING}`;
+                  e.target.style.borderColor = PRIMARY_COLOR;
+                }}
+                onBlur={(e) => {
+                  e.target.style.boxShadow = '';
+                  e.target.style.borderColor = '';
+                }}
                 placeholder="Search pickup location..."
-                className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:outline-none"
               />
               <button
                 type="button"
@@ -626,9 +649,17 @@ const OrderList = () => {
                   setDeliveryLocation(e.target.value);
                   setDeliveryLocationDropdownOpen(true);
                 }}
-                onFocus={() => setDeliveryLocationDropdownOpen(true)}
+                onFocus={(e) => {
+                  setDeliveryLocationDropdownOpen(true);
+                  e.target.style.boxShadow = `0 0 0 2px ${FOCUS_RING}`;
+                  e.target.style.borderColor = PRIMARY_COLOR;
+                }}
+                onBlur={(e) => {
+                  e.target.style.boxShadow = '';
+                  e.target.style.borderColor = '';
+                }}
                 placeholder="Search delivery location..."
-                className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:outline-none"
               />
               <button
                 type="button"
@@ -681,7 +712,8 @@ const OrderList = () => {
           </button>
           <button
             onClick={() => fetchOrders()}
-            className="px-4 py-2 bg-blue-600 !text-white rounded hover:bg-blue-700 transition-colors"
+            style={{ background: PRIMARY_GRADIENT }}
+            className="px-4 py-2 !text-white rounded hover:opacity-90 transition-opacity shadow-md"
           >
             Search
           </button>
@@ -733,7 +765,7 @@ const OrderList = () => {
               {loading ? (
                 <tr>
                   <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: PRIMARY_COLOR }}></div>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
@@ -746,105 +778,105 @@ const OrderList = () => {
                 </tr>
               ) : (
                 paginatedOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="relative">
-                      <button
-                        onClick={() => setActionMenuOpen(actionMenuOpen === order.id ? null : order.id)}
-                        className="p-2 bg-green-100 rounded-full hover:bg-green-200 transition-colors"
-                      >
-                        <MoreVertical className="w-4 h-4 text-green-700" />
-                      </button>
-                      {actionMenuOpen === order.id && (
-                        <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                          <button
-                            onClick={() => handleEditOrder(order)}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Edit className="w-4 h-4" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteOrder(order.id)}
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Delete
-                          </button>
-                        </div>
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="relative">
+                        <button
+                          onClick={() => setActionMenuOpen(actionMenuOpen === order.id ? null : order.id)}
+                          className="p-2 bg-green-100 rounded-full hover:bg-green-200 transition-colors"
+                        >
+                          <MoreVertical className="w-4 h-4 text-green-700" />
+                        </button>
+                        {actionMenuOpen === order.id && (
+                          <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                            <button
+                              onClick={() => handleEditOrder(order)}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                            >
+                              <Edit className="w-4 h-4" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteOrder(order.id)}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{order.orderNo}</div>
+                      <div className="text-xs text-gray-500">{order.orderType}</div>
+                      {order.custOrderNo && (
+                        <div className="text-xs text-gray-500">{order.custOrderNo}</div>
                       )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{order.orderNo}</div>
-                    <div className="text-xs text-gray-500">{order.orderType}</div>
-                    {order.custOrderNo && (
-                      <div className="text-xs text-gray-500">{order.custOrderNo}</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {order.tripNo || "-"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{order.orderDate}</div>
-                    <div className="text-xs text-gray-500">Total Item: {order.totalItems}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {order.companyName}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {order.customerName}
-                  </td>
-                  <td className="px-6 py-4">
-                    {(() => {
-                      const pickupLoc = extractLocationString(order.pickupLocation);
-                      return pickupLoc ? (
-                      <div className="text-sm">
-                          <div className="text-gray-900">{pickupLoc}</div>
-                          {order.pickupRefNo && <div className="text-gray-600">Ref: {order.pickupRefNo}</div>}
-                          {order.pickupDate && <div className="text-red-600">{order.pickupDate}</div>}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {order.tripNo || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{order.orderDate}</div>
+                      <div className="text-xs text-gray-500">Total Item: {order.totalItems}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {order.companyName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {order.customerName}
+                    </td>
+                    <td className="px-6 py-4">
+                      {(() => {
+                        const pickupLoc = extractLocationString(order.pickupLocation);
+                        return pickupLoc ? (
+                          <div className="text-sm">
+                            <div className="text-gray-900">{pickupLoc}</div>
+                            {order.pickupRefNo && <div className="text-gray-600">Ref: {order.pickupRefNo}</div>}
+                            {order.pickupDate && <div className="text-red-600">{order.pickupDate}</div>}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
+                        );
+                      })()}
+                    </td>
+                    <td className="px-6 py-4">
+                      {(() => {
+                        const deliveryLoc = extractLocationString(order.deliveryLocation);
+                        return deliveryLoc ? (
+                          <div className="text-sm">
+                            <div className="text-gray-900">{deliveryLoc}</div>
+                            {order.deliveryRefNo && <div className="text-gray-600">Ref: {order.deliveryRefNo}</div>}
+                            {order.deliveryDate && <div className="text-red-600">{order.deliveryDate}</div>}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
+                        );
+                      })()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {order.currency} {order.totalAmount}
                       </div>
-                    ) : (
-                      <span className="text-sm text-gray-400">-</span>
-                      );
-                    })()}
-                  </td>
-                  <td className="px-6 py-4">
-                    {(() => {
-                      const deliveryLoc = extractLocationString(order.deliveryLocation);
-                      return deliveryLoc ? (
-                      <div className="text-sm">
-                          <div className="text-gray-900">{deliveryLoc}</div>
-                          {order.deliveryRefNo && <div className="text-gray-600">Ref: {order.deliveryRefNo}</div>}
-                          {order.deliveryDate && <div className="text-red-600">{order.deliveryDate}</div>}
-                      </div>
-                    ) : (
-                      <span className="text-sm text-gray-400">-</span>
-                      );
-                    })()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {order.currency} {order.totalAmount}
-                    </div>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {order.driver || "-"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {order.truckNo || order.trailerNo ? (
-                      <div>
-                        {order.truckNo && <div>Truck: {order.truckNo}</div>}
-                        {order.trailerNo && <div>Trailer: {order.trailerNo}</div>}
-                      </div>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                </tr>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`} style={getStatusStyle(order.status)}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {order.driver || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {order.truckNo || order.trailerNo ? (
+                        <div>
+                          {order.truckNo && <div>Truck: {order.truckNo}</div>}
+                          {order.trailerNo && <div>Trailer: {order.trailerNo}</div>}
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                  </tr>
                 ))
               )}
             </tbody>
@@ -864,7 +896,7 @@ const OrderList = () => {
             >
               Previous
             </button>
-            <span className="px-3 py-1 bg-blue-600 !text-white rounded text-sm">{currentPage}</span>
+            <span className="px-3 py-1 !text-white rounded text-sm shadow-md" style={{ background: PRIMARY_GRADIENT }}>{currentPage}</span>
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
@@ -889,27 +921,8 @@ const OrderList = () => {
         </div>
       </div>
 
-      {/* Order Sidebar */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-      )}
-      <div
-        className={`fixed top-0 right-0 h-full max-w-5xl w-full bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${
-          sidebarOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <NewOrderSidebar
-          order={editingOrder}
-          onClose={() => {
-            setSidebarOpen(false);
-            setEditingOrder(null);
-          }}
-          onSave={handleSaveOrder}
-        />
-      </div>
-
       {/* Toast Notifications */}
-      <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-2">
+      <div className="fixed top-4 right-4 z-[10003] flex flex-col gap-2">
         {notifications.map((notification) => (
           <ToastNotification
             key={notification.id}
@@ -930,6 +943,33 @@ const OrderList = () => {
         cancelText="Cancel"
         type="danger"
       />
+      {sidebarOpen &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 bg-black/50"
+              style={{ zIndex: 99999 }}
+              onClick={() => setSidebarOpen(false)}
+            />
+            <div
+              className="fixed top-0 right-0 h-screen w-full max-w-4xl bg-white"
+              style={{ zIndex: 100000 }}
+            >
+              <NewOrderSidebar
+                order={editingOrder}
+                onClose={() => {
+                  setSidebarOpen(false);
+                  setEditingOrder(null);
+                }}
+                onSave={handleSaveOrder}
+              />
+            </div>
+          </>,
+          document.body
+        )
+      }
+
+
     </div>
   );
 };

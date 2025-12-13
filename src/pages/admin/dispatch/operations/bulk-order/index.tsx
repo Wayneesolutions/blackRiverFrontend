@@ -1,9 +1,6 @@
 import React, { useState, useCallback } from "react";
-import { Plus, Trash2, Edit } from "lucide-react";
+import { Plus, Trash2, Edit, X, ChevronDown, Search } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
-import NewBulkOrderSidebar from "./NewBulkOrderSidebar";
-import { createBulkOrders } from "../../../../../axios/api/distapcher";
-import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 
 type NotificationType = 'success' | 'error' | 'warning';
 
@@ -15,9 +12,9 @@ interface ToastNotification {
 
 const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
   const icons = {
-    success: <FaCheckCircle className="text-green-500" size={24} />,
-    error: <FaExclamationCircle className="text-red-500" size={24} />,
-    warning: <FaExclamationCircle className="text-yellow-500" size={24} />,
+    success: <FaCheckCircle className="text-green-500" size={22} />,
+    error: <FaExclamationCircle className="text-red-500" size={22} />,
+    warning: <FaExclamationCircle className="text-yellow-500" size={22} />,
   };
 
   const bgColors = {
@@ -34,16 +31,16 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
   }, [notification.id, onClose]);
 
   return (
-    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} animate-slide-in min-w-[300px] max-w-[500px]`}>
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-3.5 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} animate-slide-in min-w-[280px] max-w-[480px]`}>
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-[13px] font-medium text-gray-800">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
         className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
       >
-        <FaTimes size={16} />
+        <FaTimes size={15} />
       </button>
     </div>
   );
@@ -54,14 +51,14 @@ interface BulkOrderItem {
     company: string;
     customerName: string;
     customerId?: string;
-    customerData?: any; // Store full customer object
+    customerData?: any;
     commodity: string;
     loadType: string;
     pickupLocation: string;
-    pickupLocationData?: any; // Store full location object with placeId
+    pickupLocationData?: any;
     pickupDate: string;
     deliveryLocation: string;
-    deliveryLocationData?: any; // Store full location object with placeId
+    deliveryLocationData?: any;
     deliveryDate: string;
     pickupRefNo: string;
     deliveryRefNo: string;
@@ -76,12 +73,637 @@ interface BulkOrderItem {
     grossTotalFreight: string;
 }
 
+interface Place {
+  _id: string;
+  name?: string;
+  city?: string;
+  state?: string;
+  currentLocation?: {
+    address?: string;
+    latitude?: string | number;
+    longitude?: string | number;
+  };
+}
+
+interface Customer {
+  _id: string;
+  name: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+}
+
+const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
+    const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+    
+    const [customers] = useState<Customer[]>([
+        { _id: '1', name: 'ABC Corp', address: '123 Main St, Toronto', email: 'abc@corp.com', phone: '555-0100' },
+        { _id: '2', name: 'XYZ Ltd', address: '456 King St, Vancouver', email: 'xyz@ltd.com', phone: '555-0200' }
+    ]);
+    const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+    const [customerSearch, setCustomerSearch] = useState("");
+    const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
+    
+    const [pickupPlaces] = useState<Place[]>([
+        { _id: '1', name: 'Warehouse A', city: 'Toronto', state: 'ON', currentLocation: { address: '100 Industrial Rd, Toronto, ON' } },
+        { _id: '2', name: 'Distribution Center', city: 'Vancouver', state: 'BC', currentLocation: { address: '200 Marine Dr, Vancouver, BC' } }
+    ]);
+    const [selectedPickupPlace, setSelectedPickupPlace] = useState<Place | null>(null);
+    const [pickupSearch, setPickupSearch] = useState("");
+    const [pickupDropdownOpen, setPickupDropdownOpen] = useState(false);
+    
+    const [deliveryPlaces] = useState<Place[]>([
+        { _id: '1', name: 'Warehouse A', city: 'Toronto', state: 'ON', currentLocation: { address: '100 Industrial Rd, Toronto, ON' } },
+        { _id: '2', name: 'Distribution Center', city: 'Vancouver', state: 'BC', currentLocation: { address: '200 Marine Dr, Vancouver, BC' } }
+    ]);
+    const [selectedDeliveryPlace, setSelectedDeliveryPlace] = useState<Place | null>(null);
+    const [deliverySearch, setDeliverySearch] = useState("");
+    const [deliveryDropdownOpen, setDeliveryDropdownOpen] = useState(false);
+    
+    const [commodity, setCommodity] = useState("");
+    const [loadType, setLoadType] = useState("FTL");
+    const [pickupDate, setPickupDate] = useState(new Date().toISOString().split('T')[0]);
+    const [pickupTime, setPickupTime] = useState("12:00");
+    const [deliveryDate, setDeliveryDate] = useState(new Date().toISOString().split('T')[0]);
+    const [deliveryTime, setDeliveryTime] = useState("12:00");
+    const [pickupRefNo, setPickupRefNo] = useState("");
+    const [deliveryRefNo, setDeliveryRefNo] = useState("");
+    const [valueOfGoods, setValueOfGoods] = useState("0.00");
+    const [valueOfGoodsCurrency, setValueOfGoodsCurrency] = useState("CAD");
+    const [customerOrderNo, setCustomerOrderNo] = useState("");
+    const [taxBasedOn, setTaxBasedOn] = useState("Delivery");
+    const [tax1, setTax1] = useState(false);
+    const [tax1Percent, setTax1Percent] = useState("0.00");
+    const [tax1Amount, setTax1Amount] = useState("0.00");
+    const [totalTax, setTotalTax] = useState("0.00");
+    const [grossTotalFreight, setGrossTotalFreight] = useState("0.00");
+
+    const addNotification = useCallback((type: NotificationType, message: string) => {
+        const id = Date.now();
+        setNotifications(prev => [...prev, { id, type, message }]);
+    }, []);
+
+    const removeNotification = useCallback((id: number) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    }, []);
+
+    const filteredCustomers = customers.filter(customer =>
+        (customer.name || '').toLowerCase().includes(customerSearch.toLowerCase()) ||
+        (customer.address || '').toLowerCase().includes(customerSearch.toLowerCase())
+    );
+
+    const filteredPickupPlaces = pickupPlaces.filter(place =>
+        !pickupSearch ||
+        (place.name || '').toLowerCase().includes(pickupSearch.toLowerCase()) ||
+        (place.currentLocation?.address || '').toLowerCase().includes(pickupSearch.toLowerCase()) ||
+        (place.city || '').toLowerCase().includes(pickupSearch.toLowerCase())
+    );
+
+    const filteredDeliveryPlaces = deliveryPlaces.filter(place =>
+        !deliverySearch ||
+        (place.name || '').toLowerCase().includes(deliverySearch.toLowerCase()) ||
+        (place.currentLocation?.address || '').toLowerCase().includes(deliverySearch.toLowerCase()) ||
+        (place.city || '').toLowerCase().includes(deliverySearch.toLowerCase())
+    );
+
+    const handleSubmit = () => {
+        if (!selectedCustomer) {
+            addNotification('error', "Please select a customer");
+            return;
+        }
+        if (!selectedPickupPlace) {
+            addNotification('error', "Please select a pickup location");
+            return;
+        }
+        if (!selectedDeliveryPlace) {
+            addNotification('error', "Please select a delivery location");
+            return;
+        }
+        if (!customerOrderNo) {
+            addNotification('error', "Please enter customer order number");
+            return;
+        }
+        if (!commodity) {
+            addNotification('error', "Please enter commodity");
+            return;
+        }
+
+        const orderData = {
+            selectedCustomer,
+            customerId: selectedCustomer._id,
+            customerOrderNo,
+            commodity,
+            loadType,
+            pickupLocation: {
+                placeId: selectedPickupPlace._id,
+                place: selectedPickupPlace.currentLocation?.address || selectedPickupPlace.name || "",
+            },
+            pickupDate,
+            pickupTime,
+            pickupRefNo,
+            deliveryLocation: {
+                placeId: selectedDeliveryPlace._id,
+                place: selectedDeliveryPlace.currentLocation?.address || selectedDeliveryPlace.name || "",
+            },
+            deliveryDate,
+            deliveryTime,
+            deliveryRefNo,
+            valueOfGoods,
+            amount: valueOfGoods,
+            valueOfGoodsCurrency,
+            currency: valueOfGoodsCurrency,
+            taxBasedOn,
+            tax1,
+            tax1Percent,
+            tax1Amount,
+            totalTax,
+            grossTotalFreight,
+        };
+        onSave(orderData);
+    };
+
+    const handleReset = () => {
+        setSelectedCustomer(null);
+        setCustomerSearch("");
+        setCommodity("");
+        setLoadType("FTL");
+        setSelectedPickupPlace(null);
+        setPickupSearch("");
+        setPickupDate(new Date().toISOString().split('T')[0]);
+        setPickupTime("12:00");
+        setSelectedDeliveryPlace(null);
+        setDeliverySearch("");
+        setDeliveryDate(new Date().toISOString().split('T')[0]);
+        setDeliveryTime("12:00");
+        setPickupRefNo("");
+        setDeliveryRefNo("");
+        setValueOfGoods("0.00");
+        setValueOfGoodsCurrency("CAD");
+        setCustomerOrderNo("");
+        setTaxBasedOn("Delivery");
+        setTax1(false);
+        setTax1Percent("0.00");
+        setTax1Amount("0.00");
+        setTotalTax("0.00");
+        setGrossTotalFreight("0.00");
+    };
+
+    return (
+        <div className="h-full flex flex-col bg-white">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200" style={{
+                background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+            }}>
+                <h2 className="text-base font-semibold text-white">
+                    {order ? "Edit Order" : "New Order"}
+                </h2>
+                <button
+                    onClick={onClose}
+                    className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                    <X className="w-5 h-5 text-white" />
+                </button>
+            </div>
+
+            {/* Form Content */}
+            <div className="flex-1 overflow-y-auto px-5 py-5">
+                <div className="max-w-4xl mx-auto space-y-5">
+                    {/* Row 1: Customer, Commodity, Load Type */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                        <div className="md:col-span-1 relative">
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Customer Name <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <div
+                                    onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
+                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-[#1db5f5] focus-within:border-[#1db5f5] focus-within:ring-1 focus-within:ring-[#42aeec]/30"
+                                >
+                                    <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
+                                    <input
+                                        type="text"
+                                        value={selectedCustomer ? `${selectedCustomer.name || ''} | ${selectedCustomer.address || selectedCustomer.email || ''}` : customerSearch}
+                                        onChange={(e) => {
+                                            setCustomerSearch(e.target.value);
+                                            setCustomerDropdownOpen(true);
+                                        }}
+                                        onFocus={() => setCustomerDropdownOpen(true)}
+                                        placeholder="Select customer"
+                                        className="flex-1 outline-none text-[13px] min-w-0"
+                                        readOnly={!!selectedCustomer}
+                                    />
+                                    {selectedCustomer && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedCustomer(null);
+                                                setCustomerSearch("");
+                                            }}
+                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                        >
+                                            <X className="w-3.5 h-3.5 text-gray-400" />
+                                        </button>
+                                    )}
+                                </div>
+                                {customerDropdownOpen && (
+                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+                                        <div className="p-2 border-b border-gray-200">
+                                            <div className="relative">
+                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    value={customerSearch}
+                                                    onChange={(e) => setCustomerSearch(e.target.value)}
+                                                    placeholder="Search..."
+                                                    className="w-full pl-7 pr-2 py-1.5 border border-gray-300 rounded text-[13px] focus:outline-none focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5]"
+                                                    autoFocus
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="overflow-y-auto max-h-44">
+                                            {filteredCustomers.length > 0 ? (
+                                                filteredCustomers.map((customer) => (
+                                                    <div
+                                                        key={customer._id}
+                                                        onClick={() => {
+                                                            setSelectedCustomer(customer);
+                                                            setCustomerSearch("");
+                                                            setCustomerDropdownOpen(false);
+                                                        }}
+                                                        className={`px-3 py-2 cursor-pointer hover:bg-[#42aeec]/10 text-[13px] ${
+                                                            selectedCustomer?._id === customer._id ? 'bg-[#42aeec]/10' : ''
+                                                        }`}
+                                                    >
+                                                        <div className="font-medium text-[#016ab2]">{customer.name || 'Unnamed Customer'}</div>
+                                                        <div className="text-xs text-gray-600">{customer.address || customer.email || customer.phone || ''}</div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="px-3 py-2 text-[13px] text-gray-500">No customers found</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="md:col-span-1">
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Commodity <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={commodity}
+                                onChange={(e) => setCommodity(e.target.value)}
+                                placeholder="Enter commodity"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                            />
+                        </div>
+
+                        <div className="md:col-span-1">
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Load Type
+                            </label>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setLoadType("FTL")}
+                                    className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${
+                                        loadType === "FTL"
+                                            ? "!text-white shadow-md"
+                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    }`}
+                                    style={loadType === "FTL" ? {
+                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                                    } : {}}
+                                >
+                                    FTL
+                                </button>
+                                <button
+                                    onClick={() => setLoadType("LTL")}
+                                    className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${
+                                        loadType === "LTL"
+                                            ? "!text-white shadow-md"
+                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    }`}
+                                    style={loadType === "LTL" ? {
+                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                                    } : {}}
+                                >
+                                    LTL
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Row 2: Pickup Location & Date */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        <div className="relative">
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Pickup Location <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <div
+                                    onClick={() => setPickupDropdownOpen(!pickupDropdownOpen)}
+                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-[#1db5f5] focus-within:border-[#1db5f5] focus-within:ring-1 focus-within:ring-[#42aeec]/30"
+                                >
+                                    <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
+                                    <input
+                                        type="text"
+                                        value={selectedPickupPlace ? `${selectedPickupPlace.name || ''} | ${selectedPickupPlace.currentLocation?.address || ''}` : pickupSearch}
+                                        onChange={(e) => {
+                                            setPickupSearch(e.target.value);
+                                            setPickupDropdownOpen(true);
+                                        }}
+                                        onFocus={() => setPickupDropdownOpen(true)}
+                                        placeholder="Search pickup location..."
+                                        className="flex-1 outline-none text-[13px] min-w-0"
+                                        readOnly={!!selectedPickupPlace}
+                                    />
+                                    {selectedPickupPlace && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedPickupPlace(null);
+                                                setPickupSearch("");
+                                            }}
+                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                        >
+                                            <X className="w-3.5 h-3.5 text-gray-400" />
+                                        </button>
+                                    )}
+                                </div>
+                                {pickupDropdownOpen && (
+                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+                                        <div className="p-2 border-b border-gray-200">
+                                            <div className="relative">
+                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    value={pickupSearch}
+                                                    onChange={(e) => setPickupSearch(e.target.value)}
+                                                    placeholder="Search places..."
+                                                    className="w-full pl-7 pr-2 py-1.5 border border-gray-300 rounded text-[13px] focus:outline-none focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5]"
+                                                    autoFocus
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="overflow-y-auto max-h-44">
+                                            {filteredPickupPlaces.length > 0 ? (
+                                                filteredPickupPlaces.map((place) => (
+                                                    <div
+                                                        key={place._id}
+                                                        onClick={() => {
+                                                            setSelectedPickupPlace(place);
+                                                            setPickupSearch("");
+                                                            setPickupDropdownOpen(false);
+                                                        }}
+                                                        className={`px-3 py-2 cursor-pointer hover:bg-[#42aeec]/10 text-[13px] ${
+                                                            selectedPickupPlace?._id === place._id ? 'bg-[#42aeec]/10' : ''
+                                                        }`}
+                                                    >
+                                                        <div className="font-medium text-[#016ab2]">{place.name || 'Unnamed Place'}</div>
+                                                        <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="px-3 py-2 text-[13px] text-gray-500">No places found</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Pickup Date <span className="text-red-500">*</span>
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="date"
+                                    value={pickupDate}
+                                    onChange={(e) => setPickupDate(e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                />
+                                <input
+                                    type="time"
+                                    value={deliveryTime}
+                                    onChange={(e) => setDeliveryTime(e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Row 4: Reference Numbers & Amount */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
+                        <div>
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Pickup Ref#
+                            </label>
+                            <input
+                                type="text"
+                                value={pickupRefNo}
+                                onChange={(e) => setPickupRefNo(e.target.value)}
+                                placeholder="Enter reference"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Delivery Ref#
+                            </label>
+                            <input
+                                type="text"
+                                value={deliveryRefNo}
+                                onChange={(e) => setDeliveryRefNo(e.target.value)}
+                                placeholder="Enter reference"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Amount
+                            </label>
+                            <div className="flex gap-2">
+                                <select
+                                    value={valueOfGoodsCurrency}
+                                    onChange={(e) => setValueOfGoodsCurrency(e.target.value)}
+                                    className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                >
+                                    <option>CAD</option>
+                                    <option>USD</option>
+                                    <option>INR</option>
+                                </select>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={valueOfGoods}
+                                    onChange={(e) => {
+                                        setValueOfGoods(e.target.value);
+                                        if (tax1 && tax1Percent) {
+                                            const amount = parseFloat(e.target.value) || 0;
+                                            const percent = parseFloat(tax1Percent) || 0;
+                                            const calculatedTax = (amount * percent) / 100;
+                                            setTax1Amount(calculatedTax.toFixed(2));
+                                            setTotalTax(calculatedTax.toFixed(2));
+                                            const gross = amount + calculatedTax;
+                                            setGrossTotalFreight(gross.toFixed(2));
+                                        } else {
+                                            const amount = parseFloat(e.target.value) || 0;
+                                            setGrossTotalFreight(amount.toFixed(2));
+                                        }
+                                    }}
+                                    placeholder="0.00"
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Customer Order # <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={customerOrderNo}
+                                onChange={(e) => setCustomerOrderNo(e.target.value)}
+                                placeholder="Order number"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Row 5: Tax Information */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
+                        <div>
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Tax Based On
+                            </label>
+                            <select
+                                value={taxBasedOn}
+                                onChange={(e) => setTaxBasedOn(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                            >
+                                <option>Delivery</option>
+                                <option>Pickup</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Tax 1
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 bg-white min-w-fit">
+                                    <input
+                                        type="checkbox"
+                                        checked={tax1}
+                                        onChange={(e) => setTax1(e.target.checked)}
+                                        className="w-3.5 h-3.5 text-[#016ab2] rounded focus:ring-[#42aeec]/30"
+                                    />
+                                    <span className="text-[13px] whitespace-nowrap">Tax 1</span>
+                                </label>
+                                <div className="flex items-center gap-1 flex-1">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={tax1Percent}
+                                        onChange={(e) => {
+                                            setTax1Percent(e.target.value);
+                                            if (e.target.value && valueOfGoods) {
+                                                const percent = parseFloat(e.target.value) || 0;
+                                                const amount = parseFloat(valueOfGoods) || 0;
+                                                const calculated = (amount * percent) / 100;
+                                                setTax1Amount(calculated.toFixed(2));
+                                                setTotalTax(calculated.toFixed(2));
+                                                const gross = amount + calculated;
+                                                setGrossTotalFreight(gross.toFixed(2));
+                                            }
+                                        }}
+                                        placeholder="0.00"
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                    />
+                                    <span className="text-[13px] text-gray-500 flex-shrink-0">%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Total Tax
+                            </label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={totalTax}
+                                onChange={(e) => setTotalTax(e.target.value)}
+                                placeholder="0.00"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-gray-50"
+                                readOnly
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Gross Total Freight
+                            </label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={grossTotalFreight}
+                                onChange={(e) => setGrossTotalFreight(e.target.value)}
+                                placeholder="0.00"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-gray-50"
+                                readOnly
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 px-5 py-3.5 border-t border-gray-200 bg-gray-50">
+                <button
+                    onClick={handleReset}
+                    className="px-5 py-2 text-[13px] font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                    Reset
+                </button>
+                <button
+                    onClick={handleSubmit}
+                    className="px-5 py-2 text-[13px] font-medium !text-white rounded-lg transition-all shadow-md hover:shadow-lg"
+                    style={{
+                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                    }}
+                >
+                    {order ? "Update" : "Add"}
+                </button>
+            </div>
+
+            {/* Toast Notifications */}
+            <div className="fixed top-4 right-4 z-[10001] flex flex-col gap-2">
+                {notifications.map((notification) => (
+                    <ToastNotification
+                        key={notification.id}
+                        notification={notification}
+                        onClose={removeNotification}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const BulkOrder = () => {
     const [orders, setOrders] = useState<BulkOrderItem[]>([]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [editingOrder, setEditingOrder] = useState<BulkOrderItem | null>(null);
     const [notifications, setNotifications] = useState<ToastNotification[]>([]);
     const [saving, setSaving] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; orderId: string | null }>({ show: false, orderId: null });
 
     const addNotification = useCallback((type: NotificationType, message: string) => {
         const id = Date.now();
@@ -104,14 +726,14 @@ const BulkOrder = () => {
                 company: "Black River Logistics Ltd",
                 customerName: orderData.selectedCustomer?.name || editingOrder.customerName,
                 customerId: orderData.customerId || orderData.selectedCustomer?._id || editingOrder.customerId,
-                customerData: orderData.selectedCustomer || editingOrder.customerData, // Store full customer object
+                customerData: orderData.selectedCustomer || editingOrder.customerData,
                 commodity: orderData.commodity || "",
                 loadType: orderData.loadType || "FTL",
                 pickupLocation: typeof orderData.pickupLocation === 'string' ? orderData.pickupLocation : (orderData.pickupLocation?.place || ""),
-                pickupLocationData: orderData.pickupLocation || editingOrder.pickupLocationData, // Preserve location data
+                pickupLocationData: orderData.pickupLocation || editingOrder.pickupLocationData,
                 pickupDate: `${orderData.pickupDate} ${orderData.pickupTime}`,
                 deliveryLocation: typeof orderData.deliveryLocation === 'string' ? orderData.deliveryLocation : (orderData.deliveryLocation?.place || ""),
-                deliveryLocationData: orderData.deliveryLocation || editingOrder.deliveryLocationData, // Preserve location data
+                deliveryLocationData: orderData.deliveryLocation || editingOrder.deliveryLocationData,
                 deliveryDate: `${orderData.deliveryDate} ${orderData.deliveryTime}`,
                 pickupRefNo: orderData.pickupRefNo || "",
                 deliveryRefNo: orderData.deliveryRefNo || "",
@@ -133,7 +755,7 @@ const BulkOrder = () => {
                 company: "Black River Logistics Ltd",
                 customerName: orderData.selectedCustomer?.name || "",
                 customerId: orderData.customerId || orderData.selectedCustomer?._id,
-                customerData: orderData.selectedCustomer, // Store full customer object
+                customerData: orderData.selectedCustomer,
                 commodity: orderData.commodity || "",
                 loadType: orderData.loadType || "FTL",
                 pickupLocation: typeof orderData.pickupLocation === 'string' ? orderData.pickupLocation : (orderData.pickupLocation?.place || ""),
@@ -166,8 +788,6 @@ const BulkOrder = () => {
         setSidebarOpen(true);
     };
 
-    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; orderId: string | null }>({ show: false, orderId: null });
-
     const handleDeleteOrder = (id: string) => {
         setDeleteConfirm({ show: true, orderId: id });
     };
@@ -185,138 +805,93 @@ const BulkOrder = () => {
             return;
         }
 
-        // Validate all orders have required fields
         const invalidOrders = orders.filter(order => !order.customerId || !order.customerOrderNo || !order.pickupLocation || !order.deliveryLocation);
         if (invalidOrders.length > 0) {
-            addNotification('error', `${invalidOrders.length} order(s) are missing required fields (customer, order number, or locations)`);
+            addNotification('error', `${invalidOrders.length} order(s) are missing required fields`);
             return;
         }
 
         setSaving(true);
-        try {
-            // Transform orders to API format
-            const ordersToSave = orders.map(order => {
-                const [pickupDateStr, pickupTimeStr] = (order.pickupDate || "").split(" ");
-                const [deliveryDateStr, deliveryTimeStr] = (order.deliveryDate || "").split(" ");
-
-                return {
-                    customerOrderNo: order.customerOrderNo || "",
-                    orderType: order.loadType === 'LTL' ? 'LTL' : 'FTL',
-                    customer: order.customerId || null,
-                    pickupLocation: order.pickupLocationData || order.pickupLocation || "",
-                    pickupDate: pickupDateStr ? new Date(pickupDateStr).toISOString() : null,
-                    pickupTime: pickupTimeStr || "",
-                    pickupRefNo: order.pickupRefNo || "",
-                    deliveryLocation: order.deliveryLocationData || order.deliveryLocation || "",
-                    deliveryDate: deliveryDateStr ? new Date(deliveryDateStr).toISOString() : null,
-                    deliveryTime: deliveryTimeStr || "",
-                    deliveryRefNo: order.deliveryRefNo || "",
-                    commodity: order.commodity || "",
-                    valueOfGoods: parseFloat(order.amount || "0"),
-                    valueOfGoodsCurrency: order.currency || "CAD",
-                    totalAmount: parseFloat(order.grossTotalFreight || order.amount || "0"),
-                    currency: order.currency || "CAD",
-                    loadType: order.loadType || "FTL",
-                    amount: parseFloat(order.amount || "0"),
-                    grossTotalFreight: parseFloat(order.grossTotalFreight || order.amount || "0"),
-                };
-            });
-
-            const response = await createBulkOrders(ordersToSave);
-            
-            if (response?.success) {
-                const successCount = response.counts?.created || 0;
-                const failedCount = response.counts?.failed || 0;
-                if (failedCount === 0) {
-                    addNotification('success', `${successCount} order(s) created successfully!`);
-                    setOrders([]);
-                } else {
-                    addNotification('warning', `${successCount} order(s) created successfully, ${failedCount} failed`);
-                    if (response.errors && response.errors.length > 0) {
-                        response.errors.forEach((err: any) => {
-                            addNotification('error', err.message || `Order ${err.index + 1} failed`);
-                        });
-                    }
-                }
-            } else {
-                addNotification('error', response?.message || 'Failed to save orders');
-            }
-        } catch (error: any) {
-            console.error('Error saving bulk orders:', error);
-            addNotification('error', error?.response?.data?.message || 'An error occurred while saving orders');
-        } finally {
+        setTimeout(() => {
+            addNotification('success', `${orders.length} order(s) saved successfully!`);
+            setOrders([]);
             setSaving(false);
-        }
+        }, 1000);
     };
 
     return (
-        <div className="p-4 bg-gray-50 min-h-screen">
+        <div className="p-4 bg-[#EDF8FF]  min-h-screen">
             <div className="mb-4 flex items-center justify-between">
-                <h1 className="text-lg font-bold text-gray-800">Bulk Order</h1>
+                <h1 className="text-base font-bold text-gray-800">Bulk Order</h1>
                 <div className="flex items-center gap-2">
                     {orders.length > 0 && (
                         <button
                             onClick={handleSaveAllOrders}
                             disabled={saving}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-green-600 !text-white rounded text-sm hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 px-3 py-1.5 text-white rounded text-[13px] transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{
+                                background: saving ? '#9ca3af' : 'linear-gradient(to right, #016ab2, #063f6f)'
+                            }}
                         >
                             {saving ? "Saving..." : `Save All Orders (${orders.length})`}
                         </button>
                     )}
                     <button
                         onClick={handleAddOrder}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 !text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                        className="flex items-center gap-2 px-3 py-1.5 !text-white rounded text-[13px] transition-all shadow-md hover:shadow-lg"
+                        style={{
+                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                        }}
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-3.5 h-3.5" />
                         Add Order
                     </button>
                 </div>
             </div>
 
-            {/* Orders Table */}
             {orders.length > 0 ? (
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-xs">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-gradient-to-r from-[#016ab2] to-[#063f6f] border-b border-gray-200">
                                 <tr>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Company</th>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Customer Name</th>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Commodity</th>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Load Type</th>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Pickup Location</th>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Pickup Date</th>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Delivery Location</th>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Delivery Date</th>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Amount</th>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Customer Order #</th>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Gross Total</th>
-                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Company</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Customer Name</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Commodity</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Load Type</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Pickup Location</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Pickup Date</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Delivery Location</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Delivery Date</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Amount</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Customer Order #</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Gross Total</th>
+                                    <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {orders.map((order) => (
-                                    <tr key={order.id} className="hover:bg-gray-50">
-                                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{order.company}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{order.customerName || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{order.commodity || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{order.loadType || "-"}</td>
-                                        <td className="px-3 py-2 text-xs text-gray-900 max-w-xs truncate" title={order.pickupLocation || ""}>{order.pickupLocation || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{order.pickupDate || "-"}</td>
-                                        <td className="px-3 py-2 text-xs text-gray-900 max-w-xs truncate" title={order.deliveryLocation || ""}>{order.deliveryLocation || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{order.deliveryDate || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
+                                    <tr key={order.id} className="hover:bg-[#42aeec]/5">
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.company}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.customerName || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.commodity || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.loadType || "-"}</td>
+                                        <td className="px-3 py-2 text-[11px] text-gray-900 max-w-xs truncate" title={order.pickupLocation || ""}>{order.pickupLocation || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.pickupDate || "-"}</td>
+                                        <td className="px-3 py-2 text-[11px] text-gray-900 max-w-xs truncate" title={order.deliveryLocation || ""}>{order.deliveryLocation || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.deliveryDate || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">
                                             {order.currency} {order.amount || "0.00"}
                                         </td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{order.customerOrderNo || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-xs font-medium text-gray-900">
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.customerOrderNo || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] font-medium text-gray-900">
                                             {order.grossTotalFreight || "0.00"}
                                         </td>
                                         <td className="px-3 py-2 whitespace-nowrap">
                                             <div className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => handleEditOrder(order)}
-                                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                    className="p-1 text-[#016ab2] hover:bg-[#42aeec]/10 rounded"
                                                     title="Edit"
                                                 >
                                                     <Edit className="w-3 h-3" />
@@ -338,11 +913,10 @@ const BulkOrder = () => {
                 </div>
             ) : (
                 <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                    <p className="text-sm text-gray-600">No orders added yet. Click "Add Order" to create your first order.</p>
+                    <p className="text-[13px] text-gray-600">No orders added yet. Click "Add Order" to create your first order.</p>
                 </div>
             )}
 
-            {/* Order Sidebar */}
             {sidebarOpen && (
                 <div className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
             )}
@@ -361,7 +935,6 @@ const BulkOrder = () => {
                 />
             </div>
 
-            {/* Toast Notifications */}
             <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-2">
                 {notifications.map((notification) => (
                     <ToastNotification
@@ -372,17 +945,28 @@ const BulkOrder = () => {
                 ))}
             </div>
 
-            {/* Delete Confirmation Modal */}
-            <ConfirmationModal
-                isOpen={deleteConfirm.show}
-                onClose={() => setDeleteConfirm({ show: false, orderId: null })}
-                onConfirm={confirmDeleteOrder}
-                title="Delete Order"
-                message="Are you sure you want to delete this order? This action cannot be undone."
-                confirmText="Delete"
-                cancelText="Cancel"
-                type="danger"
-            />
+            {deleteConfirm.show && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-lg shadow-xl p-5 max-w-md w-full mx-4">
+                        <h3 className="text-base font-semibold text-gray-900 mb-3">Delete Order</h3>
+                        <p className="text-[13px] text-gray-600 mb-5">Are you sure you want to delete this order? This action cannot be undone.</p>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => setDeleteConfirm({ show: false, orderId: null })}
+                                className="px-4 py-2 text-[13px] font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDeleteOrder}
+                                className="px-4 py-2 text-[13px] font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

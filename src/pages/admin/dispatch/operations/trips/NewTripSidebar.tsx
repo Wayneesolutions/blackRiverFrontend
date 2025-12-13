@@ -5,6 +5,7 @@ import { listDriver, createTrip, updateTrip, uploadTripDocument, deleteTripDocum
 import { listOrder } from "../../../../../axios/api/distapcher";
 import { Upload, File, Trash2, Download } from "lucide-react";
 import { listFleetUnits } from "../../../../../axios/api/fleet.units";
+import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
 
 type NotificationType = 'success' | 'error' | 'warning';
 
@@ -77,6 +78,18 @@ interface Trip {
 const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose: () => void; onSave: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  
+  const focusHandlers = getFocusStyles();
+  const primaryButtonStyle: React.CSSProperties = {
+    background: `linear-gradient(
+      90deg,
+      #42aeec 0%,
+      #1db5f5 40%,
+      #0ea3d8 100%
+    )`,
+    color: "#fff",
+    boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
+  };
   
   // Dropdown states
   const [drivers, setDrivers] = useState<any[]>([]);
@@ -695,8 +708,8 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       </div>
 
       {/* Form Content */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex-1 overflow-auto px-6 py-6">
+        <div className="max-w-4xl mx-auto space-y-6 min-w-0">
           {/* Driver Selection */}
           <div className="relative" ref={driverDropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -705,7 +718,11 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             <div className="relative">
               <div
                 onClick={() => setDriverDropdownOpen(!driverDropdownOpen)}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                style={{ 
+                  borderColor: driverDropdownOpen ? FLEET_COLORS.primary : undefined,
+                  boxShadow: driverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
+                }}
               >
                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${driverDropdownOpen ? 'rotate-180' : ''}`} />
                 <input
@@ -743,7 +760,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         value={driverSearch}
                         onChange={(e) => setDriverSearch(e.target.value)}
                         placeholder="Search drivers..."
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+                        style={{ ...focusHandlers }}
+                        onFocus={focusHandlers.onFocus}
+                        onBlur={focusHandlers.onBlur}
                         autoFocus
                       />
                     </div>
@@ -758,11 +778,24 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             setDriverSearch("");
                             setDriverDropdownOpen(false);
                           }}
-                          className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${
-                            selectedDriver?._id === driver._id ? 'bg-blue-50' : ''
+                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
+                            selectedDriver?._id === driver._id ? '' : ''
                           }`}
+                          style={{ 
+                            backgroundColor: selectedDriver?._id === driver._id ? `${FLEET_COLORS.primary}15` : undefined
+                          }}
+                          onMouseEnter={(e) => {
+                            if (selectedDriver?._id !== driver._id) {
+                              e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (selectedDriver?._id !== driver._id) {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }
+                          }}
                         >
-                          <div className="font-medium text-blue-600">
+                          <div className="font-medium" style={{ color: FLEET_COLORS.primary }}>
                             {driver.name || `${driver.firstName || ''} ${driver.lastName || ''}`.trim() || 'Unnamed Driver'}
                           </div>
                           {(driver.email || driver.phone) && (
@@ -789,7 +822,11 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             <div className="relative">
               <div
                 onClick={() => setTruckDropdownOpen(!truckDropdownOpen)}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                style={{ 
+                  borderColor: truckDropdownOpen ? FLEET_COLORS.primary : undefined,
+                  boxShadow: truckDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
+                }}
               >
                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${truckDropdownOpen ? 'rotate-180' : ''}`} />
                 <input
@@ -831,7 +868,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         value={truckSearch}
                         onChange={(e) => setTruckSearch(e.target.value)}
                         placeholder="Search trucks..."
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+                        style={{ ...focusHandlers }}
+                        onFocus={focusHandlers.onFocus}
+                        onBlur={focusHandlers.onBlur}
                         autoFocus
                       />
                     </div>
@@ -846,11 +886,24 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             setTruckSearch("");
                             setTruckDropdownOpen(false);
                           }}
-                          className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${
-                            selectedTruck?._id === truck._id ? 'bg-blue-50' : ''
+                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
+                            selectedTruck?._id === truck._id ? '' : ''
                           }`}
+                          style={{ 
+                            backgroundColor: selectedTruck?._id === truck._id ? `${FLEET_COLORS.primary}15` : undefined
+                          }}
+                          onMouseEnter={(e) => {
+                            if (selectedTruck?._id !== truck._id) {
+                              e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (selectedTruck?._id !== truck._id) {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }
+                          }}
                         >
-                          <div className="font-medium text-blue-600">
+                          <div className="font-medium" style={{ color: FLEET_COLORS.primary }}>
                             {truck.unitNo || truck.licensePlate || truck.plateNumber || truck.internalId || 'Unknown'}
                           </div>
                           {(truck.makeModel || truck.make || truck.model) && (
@@ -877,7 +930,11 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             <div className="relative">
               <div
                 onClick={() => setTrailerDropdownOpen(!trailerDropdownOpen)}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                style={{ 
+                  borderColor: driverDropdownOpen ? FLEET_COLORS.primary : undefined,
+                  boxShadow: driverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
+                }}
               >
                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${trailerDropdownOpen ? 'rotate-180' : ''}`} />
                 <input
@@ -923,7 +980,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         value={trailerSearch}
                         onChange={(e) => setTrailerSearch(e.target.value)}
                         placeholder="Search trailers..."
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+                        style={{ ...focusHandlers }}
+                        onFocus={focusHandlers.onFocus}
+                        onBlur={focusHandlers.onBlur}
                         autoFocus
                       />
                     </div>
@@ -950,11 +1010,24 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             setTrailerSearch("");
                             setTrailerDropdownOpen(false);
                           }}
-                          className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${
-                            selectedTrailer?._id === trailer._id ? 'bg-blue-50' : ''
+                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
+                            selectedTrailer?._id === trailer._id ? '' : ''
                           }`}
+                          style={{ 
+                            backgroundColor: selectedTrailer?._id === trailer._id ? `${FLEET_COLORS.primary}15` : undefined
+                          }}
+                          onMouseEnter={(e) => {
+                            if (selectedTrailer?._id !== trailer._id) {
+                              e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (selectedTrailer?._id !== trailer._id) {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }
+                          }}
                         >
-                          <div className="font-medium text-blue-600">
+                          <div className="font-medium" style={{ color: FLEET_COLORS.primary }}>
                             {trailer.unitNo || trailer.licensePlate || trailer.plateNumber || trailer.trailerNumber || 'Unknown'}
                           </div>
                           {(trailer.makeModel || trailer.trailerType) && (
@@ -983,7 +1056,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 type="date"
                 value={plannedStartDate}
                 onChange={(e) => setPlannedStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                style={{ ...focusHandlers }}
+                onFocus={focusHandlers.onFocus}
+                onBlur={focusHandlers.onBlur}
               />
             </div>
             <div>
@@ -995,7 +1071,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 value={plannedEndDate}
                 onChange={(e) => setPlannedEndDate(e.target.value)}
                 min={plannedStartDate}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                style={{ ...focusHandlers }}
+                onFocus={focusHandlers.onFocus}
+                onBlur={focusHandlers.onBlur}
               />
             </div>
           </div>
@@ -1008,7 +1087,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+              style={{ ...focusHandlers }}
+              onFocus={focusHandlers.onFocus}
+              onBlur={focusHandlers.onBlur}
             >
               <option value="planned">Planned</option>
               <option value="in-progress">In Progress</option>
@@ -1032,7 +1114,11 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     setOrderSearch("");
                   }
                 }}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                style={{ 
+                  borderColor: orderDropdownOpen ? FLEET_COLORS.primary : undefined,
+                  boxShadow: orderDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
+                }}
               >
                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${orderDropdownOpen ? 'rotate-180' : ''}`} />
                 <input
@@ -1077,7 +1163,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         value={orderSearch}
                         onChange={(e) => setOrderSearch(e.target.value)}
                         placeholder="Search orders..."
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+                        style={{ ...focusHandlers }}
+                        onFocus={focusHandlers.onFocus}
+                        onBlur={focusHandlers.onBlur}
                         autoFocus
                       />
                     </div>
@@ -1095,7 +1184,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                 e.stopPropagation();
                                 setOrderSearch("");
                               }}
-                              className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                              className="ml-2 underline transition-colors"
+                              style={{ color: FLEET_COLORS.primary }}
+                              onMouseEnter={(e) => e.currentTarget.style.color = FLEET_COLORS.dark}
+                              onMouseLeave={(e) => e.currentTarget.style.color = FLEET_COLORS.primary}
                             >
                               Clear search
                             </button>
@@ -1121,17 +1213,33 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                 toggleOrderSelection(order._id);
                               }
                             }}
-                            className={`px-3 py-3 cursor-pointer hover:bg-blue-50 text-sm border-b border-gray-100 ${
-                              isSelected ? 'bg-blue-50' : ''
+                            className={`px-3 py-3 cursor-pointer text-sm border-b border-gray-100 transition-colors ${
+                              isSelected ? '' : ''
                             } ${!isAssignable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            style={{ 
+                              backgroundColor: isSelected ? `${FLEET_COLORS.primary}15` : undefined
+                            }}
+                            onMouseEnter={(e) => {
+                              if (isAssignable && !isSelected) {
+                                e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                              }
+                            }}
                             style={{ display: 'block' }}
                           >
                             <div className="flex items-start gap-2">
-                              <div className={`w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300'}`}>
+                              <div 
+                                className="w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 mt-0.5"
+                                style={isSelected ? { backgroundColor: FLEET_COLORS.primary, borderColor: FLEET_COLORS.primary } : { borderColor: '#d1d5db' }}
+                              >
                                 {isSelected && <Check className="w-3 h-3 text-white" />}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-blue-600 mb-1">{order.orderNumber || order._id}</div>
+                                <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.primary }}>{order.orderNumber || order._id}</div>
                                 {order.customerOrderNo && (
                                   <div className="text-xs text-gray-600 mb-1">Customer Order: {order.customerOrderNo}</div>
                                 )}
@@ -1149,15 +1257,18 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                     <div><span className="font-medium">Type:</span> {order.orderType}</div>
                                   )}
                                   {order.status && (
-                                    <div><span className="font-medium">Status:</span> <span className={`px-1.5 py-0.5 rounded text-xs ${
-                                      order.status?.toLowerCase() === 'planned' ? 'bg-yellow-100 text-yellow-800' :
-                                      order.status?.toLowerCase() === 'dispatched' ? 'bg-blue-100 text-blue-800' :
-                                      order.status?.toLowerCase() === 'in-delivery' ? 'bg-orange-100 text-orange-800' :
-                                      order.status?.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' :
-                                      order.status?.toLowerCase() === 'quoted' ? 'bg-purple-100 text-purple-800' :
-                                      order.status?.toLowerCase() === 'confirmed' ? 'bg-indigo-100 text-indigo-800' :
-                                      'bg-gray-100 text-gray-800'
-                                    }`}>{order.status}</span></div>
+                                    <div><span className="font-medium">Status:</span> <span 
+                                      className="px-1.5 py-0.5 rounded text-xs"
+                                      style={
+                                        order.status?.toLowerCase() === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
+                                        order.status?.toLowerCase() === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
+                                        order.status?.toLowerCase() === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
+                                        order.status?.toLowerCase() === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
+                                        order.status?.toLowerCase() === 'quoted' ? { backgroundColor: '#e9d5ff', color: '#6b21a8' } :
+                                        order.status?.toLowerCase() === 'confirmed' ? { backgroundColor: '#ddd6fe', color: '#4c1d95' } :
+                                        { backgroundColor: '#f3f4f6', color: '#1f2937' }
+                                      }
+                                    >{order.status}</span></div>
                                   )}
                                   {!isAssignable && order.status && (
                                     <div className="text-xs text-red-600 font-medium mt-1">
@@ -1206,7 +1317,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         <div key={orderId} className="p-2 bg-blue-50 border border-blue-200 rounded text-xs">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <div className="font-semibold text-blue-700 mb-1">Order ID: {orderId}</div>
+                              <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.dark }}>Order ID: {orderId}</div>
                               <div className="text-gray-500 text-xs">Loading order details...</div>
                             </div>
                             <button
@@ -1226,10 +1337,14 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     const pickupLocation = extractLocationString(order.pickupLocation);
                     const deliveryLocation = extractLocationString(order.deliveryLocation);
                     return (
-                      <div key={orderId} className="p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                      <div 
+                        key={orderId} 
+                        className="p-2 border rounded text-xs"
+                        style={{ backgroundColor: `${FLEET_COLORS.primary}15`, borderColor: FLEET_COLORS.light }}
+                      >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-blue-700 mb-1">{order.orderNumber || order._id}</div>
+                            <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.dark }}>{order.orderNumber || order._id}</div>
                             <div className="text-gray-700 space-y-0.5">
                               {order.customerOrderNo && <div>Customer Order: {order.customerOrderNo}</div>}
                               <div><span className="font-medium">Customer:</span> {customerName}</div>
@@ -1245,13 +1360,16 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                 <div><span className="font-medium">Type:</span> {order.orderType}</div>
                               )}
                               {order.status && (
-                                <div><span className="font-medium">Status:</span> <span className={`px-1.5 py-0.5 rounded text-xs ${
-                                  order.status?.toLowerCase() === 'planned' ? 'bg-yellow-100 text-yellow-800' :
-                                  order.status?.toLowerCase() === 'dispatched' ? 'bg-blue-100 text-blue-800' :
-                                  order.status?.toLowerCase() === 'in-delivery' ? 'bg-orange-100 text-orange-800' :
-                                  order.status?.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>{order.status}</span></div>
+                                <div><span className="font-medium">Status:</span> <span 
+                                  className="px-1.5 py-0.5 rounded text-xs"
+                                  style={
+                                    order.status?.toLowerCase() === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
+                                    order.status?.toLowerCase() === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
+                                    order.status?.toLowerCase() === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
+                                    order.status?.toLowerCase() === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
+                                    { backgroundColor: '#f3f4f6', color: '#1f2937' }
+                                  }
+                                >{order.status}</span></div>
                               )}
                             </div>
                           </div>
@@ -1283,15 +1401,18 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
               placeholder="Add any notes about this trip..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                              style={{ ...focusHandlers }}
+                              onFocus={focusHandlers.onFocus}
+                              onBlur={focusHandlers.onBlur}
             />
           </div>
 
           {/* Documents */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Documents {pendingFiles.length > 0 && !trip?._id && (
-                <span className="text-blue-600">({pendingFiles.length} pending)</span>
+              Documents               {pendingFiles.length > 0 && !trip?._id && (
+                <span style={{ color: FLEET_COLORS.primary }}>({pendingFiles.length} pending)</span>
               )}
             </label>
             <div className="space-y-3">
@@ -1310,7 +1431,22 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingDocument || loading}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ 
+                    color: FLEET_COLORS.primary,
+                    backgroundColor: `${FLEET_COLORS.primary}15`,
+                    border: `1px solid ${FLEET_COLORS.light}`
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!uploadingDocument && !loading) {
+                      e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}25`;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!uploadingDocument && !loading) {
+                      e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
+                    }
+                  }}
                 >
                   <Upload className="w-4 h-4" />
                   {uploadingDocument ? 'Uploading...' : 'Upload Document(s)'}
@@ -1323,7 +1459,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               {/* Pending Files (before trip creation) */}
               {pendingFiles.length > 0 && !trip?._id && (
                 <div className="space-y-2 border border-blue-200 rounded-lg p-3 bg-blue-50 max-h-48 overflow-y-auto">
-                  <div className="text-xs font-medium text-blue-700 mb-2">
+                  <div className="text-xs font-medium mb-2" style={{ color: FLEET_COLORS.dark }}>
                     Files will be uploaded after trip creation:
                   </div>
                   {pendingFiles.map((file, index) => (
@@ -1332,7 +1468,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                       className="flex items-start justify-between gap-3 p-3 bg-white border border-blue-200 rounded-lg"
                     >
                       <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <File className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: FLEET_COLORS.primary }} />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm text-gray-900 truncate">
                             {file.name}
@@ -1363,7 +1499,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         className="flex items-start justify-between gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
                       >
                         <div className="flex items-start gap-3 flex-1 min-w-0">
-                          <File className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: FLEET_COLORS.primary }} />
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm text-gray-900 truncate">
                               {doc.fileName}
@@ -1402,7 +1538,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                 window.open(doc.fileUrl, '_blank');
                               }
                             }}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 rounded-lg transition-colors"
+                            style={{ color: FLEET_COLORS.primary }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             title="View Document"
                           >
                             <Download className="w-4 h-4" />
@@ -1447,7 +1586,8 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         <button
           onClick={handleSave}
           disabled={loading}
-          className="px-6 py-2 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          style={primaryButtonStyle}
+          className="px-6 py-2 text-sm font-medium !text-white rounded-lg transition-all hover:opacity-90 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Saving..." : trip ? "Update Trip" : "Create Trip"}
         </button>

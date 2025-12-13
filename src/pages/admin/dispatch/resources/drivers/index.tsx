@@ -221,7 +221,7 @@ const DriversTable = () => {
 
   const getStatusBadge = (status?: string) => {
     if (!status) return null;
-    
+
     const statusConfig: Record<string, { bg: string; text: string }> = {
       active: { bg: 'bg-green-100', text: 'text-green-800' },
       inactive: { bg: 'bg-gray-100', text: 'text-gray-800' },
@@ -245,45 +245,75 @@ const DriversTable = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#EDF8FF]">
       <div className="flex-1">
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-semibold text-gray-900">Drivers</h1>
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search drivers..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                />
-              </div>
+            {/* Left side: Title */}
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Drivers
+            </h1>
+
+            {/* Right side: Search */}
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search drivers..."
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
           </div>
         </div>
 
-        <section className="px-6 pt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-2xl p-5 text-white shadow-lg" style={{ background: FLEET_COLORS.gradient }}>
-            <p className="text-xs uppercase tracking-wide text-white/80">Total Drivers</p>
-            <p className="text-3xl font-bold mt-2">{driverSummary.total}</p>
-            <p className="text-sm text-white/80 mt-2">Across dispatch + maintenance</p>
+
+        <section className="px-4 pt-3 grid grid-cols-1 gap-2 md:grid-cols-3">
+          {/* Total Drivers – Pastel Orange */}
+          <div className="rounded-lg p-3 shadow-sm bg-orange-50">
+            <p className="text-[10px] uppercase tracking-wide text-orange-600">
+              Total Drivers
+            </p>
+            <p className="text-xl font-semibold mt-0.5 text-orange-700">
+              {driverSummary.total}
+            </p>
+            <p className="text-[11px] mt-0.5 text-orange-500">
+              Across dispatch + maintenance
+            </p>
           </div>
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Assigned</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{driverSummary.assigned}</p>
-            <p className="text-sm text-gray-500 mt-1">Currently tied to an active load</p>
+
+          {/* Assigned – Pastel Green */}
+          <div className="rounded-lg p-3 shadow-sm bg-green-50">
+            <p className="text-[10px] uppercase tracking-wide text-green-600">
+              Assigned
+            </p>
+            <p className="text-xl font-semibold mt-0.5 text-green-700">
+              {driverSummary.assigned}
+            </p>
+            <p className="text-[11px] mt-0.5 text-green-500">
+              Currently tied to an active load
+            </p>
           </div>
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Open Miles</p>
-            <p className="text-3xl font-bold text-emerald-600 mt-2">{formatMiles(driverSummary.openMiles)}</p>
-            <p className="text-sm text-gray-500 mt-1">
-              Awaiting dispatch across {driverSummary.unassigned} unassigned driver{driverSummary.unassigned === 1 ? '' : 's'}
+
+          {/* Open Miles – Pastel Purple */}
+          <div className="rounded-lg p-3 shadow-sm bg-purple-50">
+            <p className="text-[10px] uppercase tracking-wide text-purple-600">
+              Open Miles
+            </p>
+            <p className="text-xl font-semibold mt-0.5 text-purple-700">
+              {formatMiles(driverSummary.openMiles)}
+            </p>
+            <p className="text-[11px] mt-0.5 text-purple-500">
+              Awaiting dispatch across {driverSummary.unassigned} unassigned driver
+              {driverSummary.unassigned === 1 ? '' : 's'}
             </p>
           </div>
         </section>
+
+
+
+
         {insightsLoading && (
           <p className="px-6 text-xs text-gray-500">Refreshing assignment insights…</p>
         )}
@@ -374,9 +404,8 @@ const DriversTable = () => {
                               >
                                 <button
                                   type="button"
-                                  className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${
-                                    activeTrip ? 'text-blue-600 border-blue-200' : 'text-gray-400 border-gray-200'
-                                  }`}
+                                  className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeTrip ? 'text-blue-600 border-blue-200' : 'text-gray-400 border-gray-200'
+                                    }`}
                                   title={activeTrip ? 'View assignment details' : 'No active assignment'}
                                   onMouseEnter={() => setPreviewDriverId(driver._id)}
                                   onFocus={() => setPreviewDriverId(driver._id)}
@@ -495,18 +524,18 @@ const DriversTable = () => {
                           {getStatusBadge(driver.status)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {driver.joinDate 
+                          {driver.joinDate
                             ? new Date(driver.joinDate).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                            : driver.createdAt
+                              ? new Date(driver.createdAt).toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'short',
                                 day: 'numeric'
                               })
-                            : driver.createdAt 
-                              ? new Date(driver.createdAt).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric'
-                                })
                               : 'N/A'
                           }
                         </td>

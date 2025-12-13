@@ -235,7 +235,10 @@ const NewPlacesSidebar: React.FC<NewPlaceSidebarProps> = ({ isOpen, onClose }) =
           </button>
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 bg-blue-600 !text-white rounded-md hover:bg-blue-700"
+            style={{
+              background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+            }}
+            className="px-4 py-2  !text-white rounded-md hover:bg-blue-700"
           >
             Create Place
           </button>
