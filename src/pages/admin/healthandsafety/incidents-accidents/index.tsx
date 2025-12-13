@@ -31,6 +31,7 @@ import {
   FaBriefcaseMedical,
   FaChevronDown,
   FaChevronRight,
+  FaUser
 } from 'react-icons/fa';
 import { FaCheckCircle as FaCheckCircleIcon, FaExclamationCircle, FaInfoCircle } from 'react-icons/fa';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
@@ -50,13 +51,12 @@ import {
   getEmergencyProcedures,
   updateEmergencyProcedure,
   deleteEmergencyProcedure,
-  createFirstAidLog,
-  getFirstAidLogs,
-  getFirstAidLogById,
   updateFirstAidLog,
-  deleteFirstAidLog
+  deleteFirstAidLog,
+  createFirstAidLog,
+  getFirstAidLogs
 } from '../../../../axios/api/healthSafety';
-import { getUserInfo } from '../../../../utils/auth';
+
 
 // Color utilities
 const COLORS = {
@@ -214,6 +214,7 @@ interface FirstAidLog {
   treatedBy: string;
   followUpRequired: boolean;
   relatedIncident?: string;
+  followUpNotes?: string;
 }
 
 const TABS = {
@@ -282,7 +283,7 @@ const IncidentManagement: React.FC = () => {
   const [emergencyProcedures, setEmergencyProcedures] = useState<EmergencyProcedure[]>([]);
   const [firstAidLogs, setFirstAidLogs] = useState<FirstAidLog[]>([]);
   const [expandedProcedure, setExpandedProcedure] = useState<string | null>(null);
-  
+
   // Emergency Contact form states
   const [showContactForm, setShowContactForm] = useState(false);
   const [editingContact, setEditingContact] = useState<EmergencyContact | null>(null);
@@ -584,26 +585,7 @@ const IncidentManagement: React.FC = () => {
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical': return 'bg-red-600 text-white';
-      case 'high': return 'bg-orange-500 text-white';
-      case 'medium': return 'bg-yellow-500 text-white';
-      case 'low': return 'bg-green-500 text-white';
-      default: return 'bg-gray-500 text-white';
-    }
-  };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open': return 'bg-blue-100 text-blue-800';
-      case 'investigating': return 'bg-yellow-100 text-yellow-800';
-      case 'action-required': return 'bg-red-100 text-red-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   // Handle incident creation
   const handleCreateIncident = async (e: React.FormEvent) => {
@@ -682,7 +664,7 @@ const IncidentManagement: React.FC = () => {
   // Handle incident deletion
   const handleDeleteIncident = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this incident?')) return;
-    
+
     try {
       const response = await deleteIncident(id);
       if (response?.success) {
@@ -714,7 +696,7 @@ const IncidentManagement: React.FC = () => {
 
   const handleSubmitNewIncident = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const userInfo = getLocalUserInfo();
     const userName = userInfo?.userData?.name || userInfo?.name || 'Unknown User';
     const userRole = userInfo?.userData?.role || userInfo?.role || 'Unknown Role';
@@ -856,7 +838,7 @@ const IncidentManagement: React.FC = () => {
 
   const handleSubmitFirstAidLog = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const response = await createFirstAidLog(newFirstAidLog);
       if (response?.success) {
@@ -885,7 +867,7 @@ const IncidentManagement: React.FC = () => {
 
   const handleSubmitContact = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (editingContact) {
         const response = await updateEmergencyContact(editingContact._id, newContact);
@@ -907,7 +889,7 @@ const IncidentManagement: React.FC = () => {
           showNotification('error', response?.message || 'Failed to create emergency contact');
         }
       }
-      
+
       // Reset form
       setNewContact({
         name: '',
@@ -1157,9 +1139,9 @@ const IncidentManagement: React.FC = () => {
                         >
                           <FaEye size={18} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteIncident(incident._id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" 
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                           title="Delete"
                         >
                           <FaTrash />
@@ -1386,7 +1368,7 @@ const IncidentManagement: React.FC = () => {
   const renderNewReportForm = () => (
     <div className="bg-white rounded-2xl p-8 shadow-lg">
       <h2 className="text-3xl font-bold mb-6 text-gray-900">Report New Incident</h2>
-      
+
       <form onSubmit={handleSubmitNewIncident} className="space-y-6">
         {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2021,7 +2003,7 @@ const IncidentManagement: React.FC = () => {
       <div className="bg-white rounded-xl p-6 shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Emergency Contacts</h2>
-          <button 
+          <button
             onClick={() => {
               setEditingEmergencyContact(null);
               setEmergencyContactFormData({
@@ -2074,7 +2056,7 @@ const IncidentManagement: React.FC = () => {
                   <td className="px-4 py-2">{contact.department}</td>
                   <td className="px-4 py-2">
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={() => {
                           setEditingEmergencyContact(contact);
                           setEmergencyContactFormData({
@@ -2091,7 +2073,7 @@ const IncidentManagement: React.FC = () => {
                       >
                         <FaEdit />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteEmergencyContact(contact._id!)}
                         className="p-1 text-red-600 hover:bg-red-50 rounded"
                       >
@@ -2113,7 +2095,7 @@ const IncidentManagement: React.FC = () => {
       <div className="bg-white rounded-xl p-6 shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Emergency Response Procedures</h2>
-          <button 
+          <button
             onClick={() => {
               setEditingEmergencyProcedure(null);
               setEmergencyProcedureFormData({
@@ -2130,15 +2112,15 @@ const IncidentManagement: React.FC = () => {
           </button>
         </div>
         <p className="mb-4 text-gray-700 text-sm">Centralized, accessible documents required for audits and immediate worker reference.</p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3 p-4 border rounded-lg bg-red-50">
             <h3 className="font-bold text-lg text-red-700">Immediate Response</h3>
             {emergencyProcedures.filter(p => p.type === 'medical' || p.type === 'fire' || p.type === 'collision').map((proc) => (
               <button key={proc._id} className="flex items-center w-full p-3 rounded-lg hover:bg-red-100 transition text-red-700 font-medium border border-red-200">
-                {proc.type === 'medical' && <FaHeartbeat className="mr-3"/>}
-                {proc.type === 'fire' && <FaExclamationTriangle className="mr-3"/>}
-                {proc.type === 'collision' && <FaExclamationTriangle className="mr-3"/>}
+                {proc.type === 'medical' && <FaHeartbeat className="mr-3" />}
+                {proc.type === 'fire' && <FaExclamationTriangle className="mr-3" />}
+                {proc.type === 'collision' && <FaExclamationTriangle className="mr-3" />}
                 {proc.title}
               </button>
             ))}
@@ -2148,9 +2130,9 @@ const IncidentManagement: React.FC = () => {
             <h3 className="font-bold text-lg text-blue-700">Trucking & Site Specific</h3>
             {emergencyProcedures.filter(p => p.type === 'spill' || p.type === 'breakdown' || p.type === 'violence').map((proc) => (
               <button key={proc._id} className="flex items-center w-full p-3 rounded-lg hover:bg-blue-100 transition text-blue-700 font-medium border border-blue-200">
-                {proc.type === 'spill' && <FaExclamationTriangle className="mr-3"/>}
-                {proc.type === 'breakdown' && <FaMapMarkerAlt className="mr-3"/>}
-                {proc.type === 'violence' && <FaUser className="mr-3"/>}
+                {proc.type === 'spill' && <FaExclamationTriangle className="mr-3" />}
+                {proc.type === 'breakdown' && <FaMapMarkerAlt className="mr-3" />}
+                {proc.type === 'violence' && <FaUser className="mr-3" />}
                 {proc.title}
               </button>
             ))}
@@ -2161,10 +2143,10 @@ const IncidentManagement: React.FC = () => {
   );
 
   const renderFirstAidLogs = () => (
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+    <div className="bg-white rounded-xl p-6 shadow-lg">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">First Aid Logs</h2>
-        <button 
+        <button
           onClick={() => {
             setEditingFirstAidLog(null);
             setFirstAidLogFormData({
@@ -2220,7 +2202,7 @@ const IncidentManagement: React.FC = () => {
                 </td>
                 <td className="px-4 py-2">
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       onClick={() => {
                         setEditingFirstAidLog(log);
                         setFirstAidLogFormData({
@@ -2240,7 +2222,7 @@ const IncidentManagement: React.FC = () => {
                     >
                       <FaEdit />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteFirstAidLog(log._id!)}
                       className="p-1 text-red-600 hover:bg-red-50 rounded"
                     >
@@ -2283,7 +2265,7 @@ const IncidentManagement: React.FC = () => {
             </h1>
             <p className="text-gray-600">Comprehensive tool for reporting, investigation, injury management, and compliance tracking.</p>
           </div>
-          
+
           <div className="relative">
             <button
               onClick={() => setShowNewReportMenu(!showNewReportMenu)}
@@ -2299,40 +2281,40 @@ const IncidentManagement: React.FC = () => {
             {showNewReportMenu && (
               <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl z-10 border border-gray-100">
                 <p className="px-4 py-2 text-sm font-semibold text-gray-500 border-b">Select Report Type:</p>
-                <button 
-                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition" 
-                  onClick={() => { 
-                    setShowNewReportMenu(false); 
+                <button
+                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
+                  onClick={() => {
+                    setShowNewReportMenu(false);
                     setIncidentFormType('Driver Injury');
                     setShowIncidentForm(true);
                   }}
                 >
                   Driver Injury Report
                 </button>
-                <button 
-                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition" 
-                  onClick={() => { 
-                    setShowNewReportMenu(false); 
+                <button
+                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
+                  onClick={() => {
+                    setShowNewReportMenu(false);
                     setIncidentFormType('Vehicle Accident');
                     setShowIncidentForm(true);
                   }}
                 >
                   Vehicle Accident Report
                 </button>
-                <button 
-                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition" 
-                  onClick={() => { 
-                    setShowNewReportMenu(false); 
+                <button
+                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
+                  onClick={() => {
+                    setShowNewReportMenu(false);
                     setIncidentFormType('Workplace Incident');
                     setShowIncidentForm(true);
                   }}
                 >
                   Workplace Incident (Shop/Yard/Warehouse)
                 </button>
-                <button 
-                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition" 
-                  onClick={() => { 
-                    setShowNewReportMenu(false); 
+                <button
+                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
+                  onClick={() => {
+                    setShowNewReportMenu(false);
                     setIncidentFormType('Near Miss');
                     setShowIncidentForm(true);
                   }}
@@ -2348,66 +2330,60 @@ const IncidentManagement: React.FC = () => {
         <div className="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl shadow-md p-2 overflow-x-auto">
           <button
             onClick={() => setCurrentTab(TABS.INCIDENT_LIST)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              currentTab === TABS.INCIDENT_LIST
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INCIDENT_LIST
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
                 : 'text-gray-600 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <FaClipboardList className="inline mr-2" />
             Incident List
           </button>
           <button
             onClick={() => setCurrentTab(TABS.NEW_REPORT)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              currentTab === TABS.NEW_REPORT
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.NEW_REPORT
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
                 : 'text-gray-600 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <FaPlus className="inline mr-2" />
             New Report
           </button>
           <button
             onClick={() => setCurrentTab(TABS.INVESTIGATIONS)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              currentTab === TABS.INVESTIGATIONS
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INVESTIGATIONS
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
                 : 'text-gray-600 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <FaSearch className="inline mr-2" />
             Investigations
           </button>
           <button
             onClick={() => setCurrentTab(TABS.INJURY_RTW)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              currentTab === TABS.INJURY_RTW
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INJURY_RTW
                 ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg'
                 : 'text-gray-600 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <FaHeartbeat className="inline mr-2" />
             Injury & RTW
           </button>
           <button
             onClick={() => setCurrentTab(TABS.EMERGENCY_PROCS)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              currentTab === TABS.EMERGENCY_PROCS
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.EMERGENCY_PROCS
                 ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg'
                 : 'text-gray-600 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <FaPhone className="inline mr-2" />
             Emergency Procedures
           </button>
           <button
             onClick={() => setCurrentTab(TABS.FIRST_AID_LOGS)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              currentTab === TABS.FIRST_AID_LOGS
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.FIRST_AID_LOGS
                 ? 'bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-lg'
                 : 'text-gray-600 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <FaBriefcaseMedical className="inline mr-2" />
             First Aid Logs
@@ -2445,8 +2421,8 @@ const IncidentManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       value={incidentFormData.date}
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, date: e.target.value })}
                       required
@@ -2455,8 +2431,8 @@ const IncidentManagement: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
-                    <input 
-                      type="time" 
+                    <input
+                      type="time"
                       value={incidentFormData.time}
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, time: e.target.value })}
                       required
@@ -2467,8 +2443,8 @@ const IncidentManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={incidentFormData.location}
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, location: e.target.value })}
                       required
@@ -2478,7 +2454,7 @@ const IncidentManagement: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Location Type *</label>
-                    <select 
+                    <select
                       value={incidentFormData.locationType}
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, locationType: e.target.value as any })}
                       required
@@ -2495,7 +2471,7 @@ const IncidentManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Severity *</label>
-                    <select 
+                    <select
                       value={incidentFormData.severity}
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, severity: e.target.value as any })}
                       required
@@ -2509,8 +2485,8 @@ const IncidentManagement: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Reported By *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={incidentFormData.reportedBy}
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, reportedBy: e.target.value })}
                       required
@@ -2521,8 +2497,8 @@ const IncidentManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Reported By Role</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={incidentFormData.reportedByRole}
                     onChange={(e) => setIncidentFormData({ ...incidentFormData, reportedByRole: e.target.value })}
                     placeholder="Role"
@@ -2531,7 +2507,7 @@ const IncidentManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-                  <textarea 
+                  <textarea
                     rows={4}
                     value={incidentFormData.description}
                     onChange={(e) => setIncidentFormData({ ...incidentFormData, description: e.target.value })}
@@ -2542,8 +2518,8 @@ const IncidentManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="flex items-center">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={incidentFormData.hasInjury}
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, hasInjury: e.target.checked })}
                       className="mr-2"
@@ -2554,8 +2530,8 @@ const IncidentManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Photo Evidence</label>
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       accept="image/*"
                       multiple
                       onChange={(e) => {
@@ -2569,8 +2545,8 @@ const IncidentManagement: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Video Evidence</label>
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       accept="video/*"
                       multiple
                       onChange={(e) => {
@@ -2584,7 +2560,7 @@ const IncidentManagement: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex justify-end gap-3 mt-6">
-                  <button 
+                  <button
                     type="button"
                     onClick={() => {
                       setShowIncidentForm(false);
@@ -2596,8 +2572,8 @@ const IncidentManagement: React.FC = () => {
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={uploadingFiles}
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
                   >
@@ -2628,8 +2604,8 @@ const IncidentManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={emergencyContactFormData.name}
                       onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, name: e.target.value })}
                       required
@@ -2638,8 +2614,8 @@ const IncidentManagement: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={emergencyContactFormData.role}
                       onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, role: e.target.value })}
                       required
@@ -2650,8 +2626,8 @@ const IncidentManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
-                    <input 
-                      type="tel" 
+                    <input
+                      type="tel"
                       value={emergencyContactFormData.phone}
                       onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, phone: e.target.value })}
                       required
@@ -2660,8 +2636,8 @@ const IncidentManagement: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       value={emergencyContactFormData.email}
                       onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, email: e.target.value })}
                       className="w-full border border-gray-300 p-2 rounded-lg"
@@ -2670,8 +2646,8 @@ const IncidentManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Department *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={emergencyContactFormData.department}
                     onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, department: e.target.value })}
                     required
@@ -2680,8 +2656,8 @@ const IncidentManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="flex items-center">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={emergencyContactFormData.isPrimary}
                       onChange={(e) => setEmergencyContactFormData({ ...emergencyContactFormData, isPrimary: e.target.checked })}
                       className="mr-2"
@@ -2690,7 +2666,7 @@ const IncidentManagement: React.FC = () => {
                   </label>
                 </div>
                 <div className="flex justify-end gap-3 mt-6">
-                  <button 
+                  <button
                     type="button"
                     onClick={() => {
                       setShowEmergencyContactModal(false);
@@ -2700,8 +2676,8 @@ const IncidentManagement: React.FC = () => {
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                   >
                     {editingEmergencyContact ? 'Update' : 'Create'}
@@ -2731,8 +2707,8 @@ const IncidentManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={emergencyProcedureFormData.title}
                       onChange={(e) => setEmergencyProcedureFormData({ ...emergencyProcedureFormData, title: e.target.value })}
                       required
@@ -2741,7 +2717,7 @@ const IncidentManagement: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
-                    <select 
+                    <select
                       value={emergencyProcedureFormData.type}
                       onChange={(e) => setEmergencyProcedureFormData({ ...emergencyProcedureFormData, type: e.target.value as any })}
                       required
@@ -2759,7 +2735,7 @@ const IncidentManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Procedure *</label>
-                  <textarea 
+                  <textarea
                     rows={8}
                     value={emergencyProcedureFormData.procedure}
                     onChange={(e) => setEmergencyProcedureFormData({ ...emergencyProcedureFormData, procedure: e.target.value })}
@@ -2770,8 +2746,8 @@ const IncidentManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Document Upload (Optional)</label>
-                  <input 
-                    type="file" 
+                  <input
+                    type="file"
                     accept=".pdf,.doc,.docx"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -2783,7 +2759,7 @@ const IncidentManagement: React.FC = () => {
                   />
                 </div>
                 <div className="flex justify-end gap-3 mt-6">
-                  <button 
+                  <button
                     type="button"
                     onClick={() => {
                       setShowEmergencyProcedureModal(false);
@@ -2793,8 +2769,8 @@ const IncidentManagement: React.FC = () => {
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={uploadingFiles}
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
                   >
@@ -2825,8 +2801,8 @@ const IncidentManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       value={firstAidLogFormData.date}
                       onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, date: e.target.value })}
                       required
@@ -2835,8 +2811,8 @@ const IncidentManagement: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
-                    <input 
-                      type="time" 
+                    <input
+                      type="time"
                       value={firstAidLogFormData.time}
                       onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, time: e.target.value })}
                       required
@@ -2846,8 +2822,8 @@ const IncidentManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={firstAidLogFormData.location}
                     onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, location: e.target.value })}
                     required
@@ -2857,8 +2833,8 @@ const IncidentManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Injured Person *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={firstAidLogFormData.injuredPerson}
                       onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, injuredPerson: e.target.value })}
                       required
@@ -2867,8 +2843,8 @@ const IncidentManagement: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Treated By *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={firstAidLogFormData.treatedBy}
                       onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, treatedBy: e.target.value })}
                       required
@@ -2878,7 +2854,7 @@ const IncidentManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Injury Description *</label>
-                  <textarea 
+                  <textarea
                     rows={3}
                     value={firstAidLogFormData.injuryDescription}
                     onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, injuryDescription: e.target.value })}
@@ -2888,7 +2864,7 @@ const IncidentManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">First Aid Provided *</label>
-                  <textarea 
+                  <textarea
                     rows={3}
                     value={firstAidLogFormData.firstAidProvided}
                     onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, firstAidProvided: e.target.value })}
@@ -2898,8 +2874,8 @@ const IncidentManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="flex items-center">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={firstAidLogFormData.followUpRequired}
                       onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, followUpRequired: e.target.checked })}
                       className="mr-2"
@@ -2910,7 +2886,7 @@ const IncidentManagement: React.FC = () => {
                 {firstAidLogFormData.followUpRequired && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Follow-up Notes</label>
-                    <textarea 
+                    <textarea
                       rows={2}
                       value={firstAidLogFormData.followUpNotes}
                       onChange={(e) => setFirstAidLogFormData({ ...firstAidLogFormData, followUpNotes: e.target.value })}
@@ -2919,7 +2895,7 @@ const IncidentManagement: React.FC = () => {
                   </div>
                 )}
                 <div className="flex justify-end gap-3 mt-6">
-                  <button 
+                  <button
                     type="button"
                     onClick={() => {
                       setShowFirstAidLogModal(false);
@@ -2929,8 +2905,8 @@ const IncidentManagement: React.FC = () => {
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                   >
                     {editingFirstAidLog ? 'Update' : 'Create'}
@@ -2948,7 +2924,7 @@ const IncidentManagement: React.FC = () => {
               <div className="flex justify-between items-center border-b pb-3 mb-4">
                 <h3 className="text-xl font-bold">Incident Detail: {selectedIncidentForDetail.incidentNumber}</h3>
                 <button onClick={() => setSelectedIncidentForDetail(null)} className="text-gray-500 hover:text-gray-800">
-                  <FaTimes/>
+                  <FaTimes />
                 </button>
               </div>
               <div className="space-y-4">
@@ -2963,14 +2939,26 @@ const IncidentManagement: React.FC = () => {
                     <strong>Location:</strong> {selectedIncidentForDetail.location}
                   </div>
                   <div>
-                    <strong>Severity:</strong> 
-                    <span className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold ${getSeverityColor(selectedIncidentForDetail.severity)}`}>
+                    <strong>Severity:</strong>
+                    <span
+                      className="ml-2 px-2 py-1 rounded-full text-xs font-semibold"
+                      style={{
+                        backgroundColor: getPriorityColor(selectedIncidentForDetail.severity).bg,
+                        color: getPriorityColor(selectedIncidentForDetail.severity).text
+                      }}
+                    >
                       {selectedIncidentForDetail.severity.toUpperCase()}
                     </span>
                   </div>
                   <div>
-                    <strong>Status:</strong> 
-                    <span className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedIncidentForDetail.status)}`}>
+                    <strong>Status:</strong>
+                    <span
+                      className="ml-2 px-2 py-1 rounded-full text-xs font-semibold"
+                      style={{
+                        backgroundColor: getStatusColor(selectedIncidentForDetail.status).bg,
+                        color: getStatusColor(selectedIncidentForDetail.status).text
+                      }}
+                    >
                       {selectedIncidentForDetail.status.replace('-', ' ').toUpperCase()}
                     </span>
                   </div>
@@ -3120,11 +3108,10 @@ const IncidentManagement: React.FC = () => {
           {emergencyContacts.map((contact) => (
             <div
               key={contact._id}
-              className={`p-5 rounded-xl border-2 ${
-                contact.isPrimary
+              className={`p-5 rounded-xl border-2 ${contact.isPrimary
                   ? 'border-red-500 bg-red-50'
                   : 'border-gray-200 bg-gray-50'
-              }`}
+                }`}
             >
               <div className="flex justify-between items-start mb-2">
                 <div>
@@ -3190,7 +3177,7 @@ const IncidentManagement: React.FC = () => {
         </div>
       </div>
 
-  
+
     </div>
   );
 
@@ -3343,7 +3330,7 @@ const IncidentManagement: React.FC = () => {
                     <p className="font-semibold text-gray-900">{incident.investigation.rootCause}</p>
                   </div>
                 </div>
-                
+
                 {incident.investigation.rootCauseType === '5-why' && incident.investigation.fiveWhys && (
                   <div className="mb-4 p-4 bg-white rounded-lg">
                     <label className="text-xs font-semibold text-gray-600 mb-2 block">5-Why Analysis</label>
@@ -3604,49 +3591,45 @@ const IncidentManagement: React.FC = () => {
         <div className="bg-white rounded-xl shadow-lg p-2 mb-6 flex flex-wrap gap-2">
           <button
             onClick={() => setCurrentTab(TABS.INCIDENT_LIST)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              currentTab === TABS.INCIDENT_LIST
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INCIDENT_LIST
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
                 : 'text-gray-600 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <FaClipboardList className="inline mr-2" />
             Incident List
           </button>
           <button
             onClick={() => setCurrentTab(TABS.NEW_REPORT)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              currentTab === TABS.NEW_REPORT
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.NEW_REPORT
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
                 : 'text-gray-600 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <FaPlus className="inline mr-2" />
             New Report
           </button>
           <button
             onClick={() => setCurrentTab(TABS.INVESTIGATIONS)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              currentTab === TABS.INVESTIGATIONS
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INVESTIGATIONS
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
                 : 'text-gray-600 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <FaSearch className="inline mr-2" />
             Investigations
           </button>
           <button
             onClick={() => setCurrentTab(TABS.INJURY_RTW)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              currentTab === TABS.INJURY_RTW
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INJURY_RTW
                 ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg'
                 : 'text-gray-600 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <FaHeartbeat className="inline mr-2" />
             Injury & RTW
           </button>
-     
+
         </div>
 
         {/* Content Area */}

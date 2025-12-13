@@ -1,163 +1,140 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaShieldAlt, 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
-  FaEye, 
-  FaSearch,
-  FaFilter,
-  FaCalendarAlt,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaExclamationTriangle,
-  FaClipboardCheck,
-  FaTimes,
-  FaInfoCircle,
-  FaChartLine,
-  FaCogs,
-  FaDownload,
-  FaSave,
-  FaArrowRight
+import {
+    FaShieldAlt,
+    FaPlus,
+    FaEdit,
+    FaTrash,
+    FaEye,
+    FaSearch,
+    FaFilter,
+    FaCheckCircle,
+    FaTimesCircle,
+    FaExclamationTriangle,
+    FaTimes,
+    FaInfoCircle,
+    FaChartLine,
+    FaCogs
 } from 'react-icons/fa';
-import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
-import { 
-  createInspection, 
-  getInspections, 
-  updateInspection, 
-  deleteInspection,
-  createHazard,
-  getHazards,
-  updateHazard,
-  deleteHazard
+import {
+    createHazard,
+    getHazards,
+    updateHazard,
+    deleteHazard
 } from '../../../../axios/api/healthSafety';
 
-interface Inspection {
-  _id: string;
-  inspectionNumber: string;
-  date: string;
-  type: string;
-  inspector: string;
-  status: 'scheduled' | 'in-progress' | 'completed' | 'overdue';
-  findings: number;
-  hazards: number;
-  location: string;
-  notes?: string;
-}
-
 interface Hazard {
-  _id: string;
-  hazardNumber?: string;
-  hazardId?: string;
-  description: string;
-  severity: 'low' | 'medium' | 'high' | 'critical' | 'Low' | 'Medium' | 'High' | 'Critical';
-  category?: string;
-  location: string;
-  identifiedDate?: string;
-  dateReported?: string;
-  reporter?: string;
-  type?: 'Unsafe Equipment' | 'Weather Hazards' | 'Fatigue Indicators' | 'Load Securement Issues' | 'Yard Hazards' | 'Ergonomic Risks';
-  likelihood?: 1 | 2 | 3 | 4 | 5;
-  riskScore?: number;
-  riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
-  controlMeasures?: string;
-  riskRating?: string;
-  status: 'identified' | 'assessed' | 'controlled' | 'monitored' | 'resolved' | 'reported' | 'in-assessment' | 'action-assigned' | 'action-in-progress' | 'verified';
-  assignedTo?: any;
-  dueDate?: string;
-  resolvedDate?: string;
-  inspectionId?: string;
-  notes?: string;
-  correctiveAction?: {
-    assignedTo: string;
+    _id: string;
+    hazardNumber?: string;
+    hazardId?: string;
     description: string;
-    dueDate: string;
-    completionDate?: string;
-  };
-  photoEvidence?: string[];
-  rootCauseAnalysis?: string;
+    severity: 'low' | 'medium' | 'high' | 'critical' | 'Low' | 'Medium' | 'High' | 'Critical';
+    category?: string;
+    location: string;
+    identifiedDate?: string;
+    dateReported?: string;
+    reporter?: string;
+    type?: 'Unsafe Equipment' | 'Weather Hazards' | 'Fatigue Indicators' | 'Load Securement Issues' | 'Yard Hazards' | 'Ergonomic Risks';
+    likelihood?: 1 | 2 | 3 | 4 | 5;
+    riskScore?: number;
+    riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
+    controlMeasures?: string;
+    riskRating?: string;
+    status: 'identified' | 'assessed' | 'controlled' | 'monitored' | 'resolved' | 'reported' | 'in-assessment' | 'action-assigned' | 'action-in-progress' | 'verified';
+    assignedTo?: any;
+    dueDate?: string;
+    resolvedDate?: string;
+    inspectionId?: string;
+    notes?: string;
+    correctiveAction?: {
+        assignedTo: string;
+        description: string;
+        dueDate: string;
+        completionDate?: string;
+    };
+    photoEvidence?: string[];
+    rootCauseAnalysis?: string;
 }
 
 interface DriverObservation {
-  _id: string;
-  observationId: string;
-  date: string;
-  driver: string;
-  observer: string;
-  observationType: 'on-road' | 'yard-driving';
-  checklist: {
-    seatbeltUse: boolean;
-    distraction: boolean;
-    speedCompliance: boolean;
-    ppeUse: boolean;
-    signalUse: boolean;
-    blindSpotCheck: boolean;
-  };
-  score: number;
-  coachingNotes: string;
-  status: 'pending' | 'coached' | 'follow-up-required' | 'completed';
-  followUpDate?: string;
+    _id: string;
+    observationId: string;
+    date: string;
+    driver: string;
+    observer: string;
+    observationType: 'on-road' | 'yard-driving';
+    checklist: {
+        seatbeltUse: boolean;
+        distraction: boolean;
+        speedCompliance: boolean;
+        ppeUse: boolean;
+        signalUse: boolean;
+        blindSpotCheck: boolean;
+    };
+    score: number;
+    coachingNotes: string;
+    status: 'pending' | 'coached' | 'follow-up-required' | 'completed';
+    followUpDate?: string;
 }
 
 interface TruckingHazard {
-  _id: string;
-  hazardId: string;
-  dateReported: string;
-  reporter: string;
-  truckingType: 'Load Securement' | 'Reefer Food Safety' | 'Snow/Ice Removal' | 'Tire Chain Safety' | 'Fueling/DEF Spill' | 'DG Spill' | 'Winter Hazard' | 'Ergonomics (Tarping/Dolly)';
-  description: string;
-  location: string;
-  severity: 'Low' | 'Medium' | 'High' | 'Critical';
-  status: 'reported' | 'action-assigned' | 'in-progress' | 'resolved' | 'verified';
-  assignedTo?: string;
-  dueDate?: string;
-  completionDate?: string;
-  correctiveActions?: string;
+    _id: string;
+    hazardId: string;
+    dateReported: string;
+    reporter: string;
+    truckingType: 'Load Securement' | 'Reefer Food Safety' | 'Snow/Ice Removal' | 'Tire Chain Safety' | 'Fueling/DEF Spill' | 'DG Spill' | 'Winter Hazard' | 'Ergonomics (Tarping/Dolly)';
+    description: string;
+    location: string;
+    severity: 'Low' | 'Medium' | 'High' | 'Critical';
+    status: 'reported' | 'action-assigned' | 'in-progress' | 'resolved' | 'verified';
+    assignedTo?: string;
+    dueDate?: string;
+    completionDate?: string;
+    correctiveActions?: string;
 }
 
 interface ToastNotification {
-  id: number;
-  type: 'success' | 'error' | 'info' | 'warning';
-  message: string;
+    id: number;
+    type: 'success' | 'error' | 'info' | 'warning';
+    message: string;
 }
 
 const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
-  const icons = {
-    success: <FaCheckCircle className="text-green-500" size={24} />,
-    error: <FaExclamationTriangle className="text-red-500" size={24} />,
-    info: <FaInfoCircle className="text-blue-500" size={24} />,
-    warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
-  };
+    const icons = {
+        success: <FaCheckCircle className="text-green-500" size={24} />,
+        error: <FaExclamationTriangle className="text-red-500" size={24} />,
+        info: <FaInfoCircle className="text-blue-500" size={24} />,
+        warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
+    };
 
-  const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
-  };
+    const bgColors = {
+        success: 'bg-green-50 border-green-200',
+        error: 'bg-red-50 border-red-200',
+        info: 'bg-blue-50 border-blue-200',
+        warning: 'bg-yellow-50 border-yellow-200'
+    };
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose(notification.id);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [notification.id, onClose]);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            onClose(notification.id);
+        }, 5000);
+        return () => clearTimeout(timer);
+    }, [notification.id, onClose]);
 
-  return (
-    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
-      <div className="flex-shrink-0 mt-0.5">
-        {icons[notification.type]}
-      </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
-      <button
-        onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <FaTimes size={16} />
-      </button>
-    </div>
-  );
+    return (
+        <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
+            <div className="flex-shrink-0 mt-0.5">
+                {icons[notification.type]}
+            </div>
+            <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+            <button
+                onClick={() => onClose(notification.id)}
+                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+                <FaTimes size={16} />
+            </button>
+        </div>
+    );
 };
 
 // InspectionsHazards component removed - replaced by HazardControl component below
@@ -178,7 +155,7 @@ const HazardControl = () => {
     const [selectedHazard, setSelectedHazard] = useState<Hazard | null>(null);
     const [showSidebar, setShowSidebar] = useState(false);
     const [sidebarType, setSidebarType] = useState<'hazard' | 'observation' | 'trucking-hazard' | null>(null);
-    
+
     // Form states
     const [newHazard, setNewHazard] = useState({
         type: '',
@@ -188,7 +165,7 @@ const HazardControl = () => {
         likelihood: 3,
         severity: 3,
     });
-    
+
     const [newObservation, setNewObservation] = useState({
         driver: '',
         observer: '',
@@ -204,7 +181,7 @@ const HazardControl = () => {
         },
         coachingNotes: '',
     });
-    
+
     const [newTruckingHazard, setNewTruckingHazard] = useState({
         truckingType: '',
         description: '',
@@ -227,7 +204,7 @@ const HazardControl = () => {
     useEffect(() => {
         const savedObservations = localStorage.getItem('driverObservations');
         const savedTruckingHazards = localStorage.getItem('truckingHazards');
-        
+
         if (savedObservations) {
             try {
                 setObservations(JSON.parse(savedObservations));
@@ -235,7 +212,7 @@ const HazardControl = () => {
                 console.error('Error loading observations:', e);
             }
         }
-        
+
         if (savedTruckingHazards) {
             try {
                 setTruckingHazards(JSON.parse(savedTruckingHazards));
@@ -285,7 +262,7 @@ const HazardControl = () => {
         setLoading(true);
         try {
             const params: any = {};
-            
+
             // Only apply filters if explicitly requested (for initial load, fetch all)
             if (applyFilters) {
                 if (filterStatus !== 'all') {
@@ -304,7 +281,7 @@ const HazardControl = () => {
             console.log('Fetching hazards with params:', apiParams);
             const response = await getHazards(apiParams);
             console.log('Hazards API response:', response);
-            
+
             if (response?.success && Array.isArray(response.data)) {
                 console.log(`Fetched ${response.data.length} hazards`);
                 // Map API response to frontend format
@@ -327,15 +304,15 @@ const HazardControl = () => {
                     inspectionId: h.inspectionId,
                     notes: h.notes,
                     // Calculate risk level from severity if not provided
-                    riskLevel: h.severity === 'critical' ? 'Critical' : 
-                               h.severity === 'high' ? 'High' : 
-                               h.severity === 'medium' ? 'Medium' : 'Low',
-                    riskScore: h.severity === 'critical' ? 20 : 
-                               h.severity === 'high' ? 15 : 
-                               h.severity === 'medium' ? 10 : 5,
-                    likelihood: h.severity === 'critical' ? 5 : 
-                                 h.severity === 'high' ? 4 : 
-                                 h.severity === 'medium' ? 3 : 2,
+                    riskLevel: h.severity === 'critical' ? 'Critical' :
+                        h.severity === 'high' ? 'High' :
+                            h.severity === 'medium' ? 'Medium' : 'Low',
+                    riskScore: h.severity === 'critical' ? 20 :
+                        h.severity === 'high' ? 15 :
+                            h.severity === 'medium' ? 10 : 5,
+                    likelihood: h.severity === 'critical' ? 5 :
+                        h.severity === 'high' ? 4 :
+                            h.severity === 'medium' ? 3 : 2,
                     reporter: h.createdBy?.name || 'Unknown',
                     type: h.category || 'General Hazard'
                 }));
@@ -378,14 +355,14 @@ const HazardControl = () => {
     };
 
     const filteredHazards = hazards.filter(hazard => {
-        const matchesSearch = 
+        const matchesSearch =
             (hazard.hazardId || hazard.hazardNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (hazard.type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             hazard.description.toLowerCase().includes(searchTerm.toLowerCase());
-        
+
         const matchesStatus = filterStatus === 'all' || hazard.status === filterStatus;
         const matchesRisk = filterRiskLevel === 'all' || hazard.riskLevel === filterRiskLevel;
-        
+
         return matchesSearch && matchesStatus && matchesRisk;
     });
 
@@ -402,7 +379,7 @@ const HazardControl = () => {
             </div>
 
             <div className="bg-white rounded-xl p-4 shadow-lg">
-                        <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1 relative">
                         <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <input
@@ -457,8 +434,8 @@ const HazardControl = () => {
                                 {hazards.filter(h => {
                                     const severity = (h.severity || '').toLowerCase();
                                     const riskLevel = (h.riskLevel || '').toLowerCase();
-                                    return severity === 'critical' || severity === 'high' || 
-                                           riskLevel === 'critical' || riskLevel === 'high';
+                                    return severity === 'critical' || severity === 'high' ||
+                                        riskLevel === 'critical' || riskLevel === 'high';
                                 }).length}
                             </p>
                         </div>
@@ -516,7 +493,7 @@ const HazardControl = () => {
                 <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                     <h3 className="text-lg font-bold text-gray-800">Hazard Registry & Risk Assessments</h3>
                     <div className="flex items-center gap-2">
-                        <button 
+                        <button
                             onClick={() => {
                                 setEditingHazard(null);
                                 setNewHazard({ type: '', description: '', location: '', reporter: '', likelihood: 3, severity: 3 });
@@ -581,8 +558,8 @@ const HazardControl = () => {
                                                         <div>Severity: <span className="font-semibold">{hazard.severity}/5</span></div>
                                                     </div>
                                                 </div>
-                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${getRiskLevelColor(hazard.riskLevel)}`}>
-                                                    {hazard.riskLevel.toUpperCase()}
+                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${getRiskLevelColor(hazard.riskLevel || '')}`}>
+                                                    {(hazard.riskLevel || '').toUpperCase()}
                                                 </span>
                                             </div>
                                         </td>
@@ -613,15 +590,15 @@ const HazardControl = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex items-center gap-2">
-                                                <button 
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" 
+                                                <button
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                                                     title="View Details"
                                                     onClick={() => setSelectedHazard(hazard)}
                                                 >
                                                     <FaEye />
                                                 </button>
-                                                <button 
-                                                    className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition" 
+                                                <button
+                                                    className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
                                                     title="Edit"
                                                     onClick={() => {
                                                         setEditingHazard(hazard);
@@ -631,8 +608,8 @@ const HazardControl = () => {
                                                 >
                                                     <FaEdit />
                                                 </button>
-                                                <button 
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" 
+                                                <button
+                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                                     title="Delete"
                                                     onClick={() => handleDeleteHazard(hazard._id)}
                                                 >
@@ -655,7 +632,7 @@ const HazardControl = () => {
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                     <h3 className="text-lg font-bold text-gray-800">Driver Observations</h3>
-                    <button 
+                    <button
                         onClick={() => {
                             setSidebarType('observation');
                             setShowSidebar(true);
@@ -698,11 +675,10 @@ const HazardControl = () => {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{observation.observer}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 capitalize">{observation.observationType.replace('-', ' ')}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${
-                                                observation.score >= 90 ? 'bg-green-100 text-green-800' :
+                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${observation.score >= 90 ? 'bg-green-100 text-green-800' :
                                                 observation.score >= 70 ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-red-100 text-red-800'
-                                            }`}>
+                                                    'bg-red-100 text-red-800'
+                                                }`}>
                                                 {observation.score}%
                                             </span>
                                         </td>
@@ -713,15 +689,15 @@ const HazardControl = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex items-center gap-2">
-                                                <button 
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" 
+                                                <button
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                                                     title="View Details"
                                                     onClick={() => setSelectedHazard(observation as any)}
                                                 >
                                                     <FaEye />
                                                 </button>
-                                                <button 
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" 
+                                                <button
+                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                                     title="Delete"
                                                     onClick={() => {
                                                         if (window.confirm('Are you sure you want to delete this observation?')) {
@@ -748,13 +724,13 @@ const HazardControl = () => {
 
     const renderTruckingHazards = () => {
         const filteredTruckingHazards = truckingHazards.filter(hazard => {
-            const matchesSearch = 
+            const matchesSearch =
                 hazard.hazardId.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 hazard.truckingType.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 hazard.description.toLowerCase().includes(searchTerm.toLowerCase());
-            
+
             const matchesStatus = filterStatus === 'all' || hazard.status === filterStatus;
-            
+
             return matchesSearch && matchesStatus;
         });
 
@@ -763,7 +739,7 @@ const HazardControl = () => {
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                         <h3 className="text-lg font-bold text-gray-800">Trucking-Specific Hazards</h3>
-                        <button 
+                        <button
                             onClick={() => {
                                 setEditingHazard(null);
                                 setNewTruckingHazard({ truckingType: '', description: '', location: '', reporter: '', severity: 'Medium' });
@@ -800,70 +776,70 @@ const HazardControl = () => {
                                     </tr>
                                 ) : (
                                     filteredTruckingHazards.map((hazard) => (
-                                    <tr key={hazard._id} className="hover:bg-gray-50 transition">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-bold text-gray-900">{hazard.hazardId}</div>
-                                            <div className="text-xs text-gray-500">{new Date(hazard.dateReported).toLocaleDateString()}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{hazard.truckingType}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-700">{hazard.description}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{hazard.location}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${getRiskLevelColor(hazard.severity)}`}>
-                                                {hazard.severity.toUpperCase()}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{hazard.assignedTo || 'Unassigned'}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(hazard.status)}`}>
-                                                {hazard.status.replace('-', ' ').toUpperCase()}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex items-center gap-2">
-                                                <button 
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" 
-                                                    title="View Details"
-                                                    onClick={() => setSelectedHazard(hazard as any)}
-                                                >
-                                                    <FaEye />
-                                                </button>
-                                                <button 
-                                                    className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition" 
-                                                    title="Edit"
-                                                    onClick={() => {
-                                                        setNewTruckingHazard({
-                                                            truckingType: hazard.truckingType,
-                                                            description: hazard.description,
-                                                            location: hazard.location,
-                                                            reporter: hazard.reporter,
-                                                            severity: hazard.severity
-                                                        });
-                                                        setEditingHazard(hazard as any);
-                                                        setSidebarType('trucking-hazard');
-                                                        setShowSidebar(true);
-                                                    }}
-                                                >
-                                                    <FaEdit />
-                                                </button>
-                                                <button 
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" 
-                                                    title="Delete"
-                                                    onClick={() => {
-                                                        if (window.confirm('Are you sure you want to delete this trucking hazard?')) {
-                                                            const updated = truckingHazards.filter(h => h._id !== hazard._id);
-                                                            setTruckingHazards(updated);
-                                                            localStorage.setItem('truckingHazards', JSON.stringify(updated));
-                                                            addNotification('success', 'Trucking hazard deleted successfully');
-                                                        }
-                                                    }}
-                                                >
-                                                    <FaTrash />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                        <tr key={hazard._id} className="hover:bg-gray-50 transition">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-bold text-gray-900">{hazard.hazardId}</div>
+                                                <div className="text-xs text-gray-500">{new Date(hazard.dateReported).toLocaleDateString()}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{hazard.truckingType}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-700">{hazard.description}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{hazard.location}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${getRiskLevelColor(hazard.severity)}`}>
+                                                    {hazard.severity.toUpperCase()}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{hazard.assignedTo || 'Unassigned'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(hazard.status)}`}>
+                                                    {hazard.status.replace('-', ' ').toUpperCase()}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                        title="View Details"
+                                                        onClick={() => setSelectedHazard(hazard as any)}
+                                                    >
+                                                        <FaEye />
+                                                    </button>
+                                                    <button
+                                                        className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                                                        title="Edit"
+                                                        onClick={() => {
+                                                            setNewTruckingHazard({
+                                                                truckingType: hazard.truckingType,
+                                                                description: hazard.description,
+                                                                location: hazard.location,
+                                                                reporter: hazard.reporter,
+                                                                severity: hazard.severity
+                                                            });
+                                                            setEditingHazard(hazard as any);
+                                                            setSidebarType('trucking-hazard');
+                                                            setShowSidebar(true);
+                                                        }}
+                                                    >
+                                                        <FaEdit />
+                                                    </button>
+                                                    <button
+                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                        title="Delete"
+                                                        onClick={() => {
+                                                            if (window.confirm('Are you sure you want to delete this trucking hazard?')) {
+                                                                const updated = truckingHazards.filter(h => h._id !== hazard._id);
+                                                                setTruckingHazards(updated);
+                                                                localStorage.setItem('truckingHazards', JSON.stringify(updated));
+                                                                addNotification('success', 'Trucking hazard deleted successfully');
+                                                            }
+                                                        }}
+                                                    >
+                                                        <FaTrash />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
                                 )}
                             </tbody>
                         </table>
@@ -902,7 +878,7 @@ const HazardControl = () => {
             };
 
             const response = await createHazard(payload);
-            
+
             if (response?.success) {
                 addNotification('success', 'Hazard created successfully');
                 setNewHazard({ type: '', description: '', location: '', reporter: '', likelihood: 3, severity: 3 });
@@ -964,7 +940,7 @@ const HazardControl = () => {
         const passedChecks = Object.values(newObservation.checklist).filter(Boolean).length;
         const score = Math.round((passedChecks / 6) * 100);
         const year = new Date().getFullYear();
-        
+
         const observation: DriverObservation = {
             _id: `OBS-${Date.now()}`,
             observationId: `OBS-${year}-${String(observations.length + 1).padStart(3, '0')}`,
@@ -977,13 +953,13 @@ const HazardControl = () => {
             coachingNotes: newObservation.coachingNotes,
             status: score === 100 ? 'completed' : 'coached',
         };
-        
+
         const updatedObservations = [...observations, observation];
         setObservations(updatedObservations);
         localStorage.setItem('driverObservations', JSON.stringify(updatedObservations));
-        
+
         addNotification('success', 'Driver observation saved successfully');
-        
+
         setNewObservation({
             driver: '',
             observer: '',
@@ -1021,13 +997,13 @@ const HazardControl = () => {
             severity: newTruckingHazard.severity,
             status: 'reported',
         };
-        
+
         const updatedTruckingHazards = [...truckingHazards, hazard];
         setTruckingHazards(updatedTruckingHazards);
         localStorage.setItem('truckingHazards', JSON.stringify(updatedTruckingHazards));
-        
+
         addNotification('success', 'Trucking hazard saved successfully');
-        
+
         setNewTruckingHazard({ truckingType: '', description: '', location: '', reporter: '', severity: 'Medium' });
         setShowSidebar(false);
         setSidebarType(null);
@@ -1046,7 +1022,7 @@ const HazardControl = () => {
 
         return (
             <>
-                <div 
+                <div
                     className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-40"
                     onClick={() => {
                         setShowSidebar(false);
@@ -1062,7 +1038,7 @@ const HazardControl = () => {
                             {sidebarType === 'observation' && 'New Driver Observation'}
                             {sidebarType === 'trucking-hazard' && 'Report Trucking Hazard'}
                         </h2>
-                        <button 
+                        <button
                             onClick={() => {
                                 setShowSidebar(false);
                                 setSidebarType(null);
@@ -1074,7 +1050,7 @@ const HazardControl = () => {
                             <FaTimes className="text-xl" />
                         </button>
                     </div>
-                    
+
                     <div className="p-6 space-y-6">
                         {sidebarType === 'hazard' && (
                             <div className="space-y-4">
@@ -1177,7 +1153,7 @@ const HazardControl = () => {
                                         </div>
                                         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
                                             <p className="text-sm text-blue-800">
-                                                <strong>Risk Score:</strong> {newHazard.likelihood * newHazard.severity} 
+                                                <strong>Risk Score:</strong> {newHazard.likelihood * newHazard.severity}
                                                 <span className="ml-2">({calculateRiskLevel(newHazard.likelihood, newHazard.severity)} Risk)</span>
                                             </p>
                                         </div>
@@ -1213,7 +1189,7 @@ const HazardControl = () => {
                                                 'Critical': 'critical',
                                                 'critical': 'critical'
                                             };
-                                            
+
                                             handleUpdateHazard(editingHazard._id, {
                                                 description: editingHazard.description,
                                                 location: editingHazard.location,
@@ -1430,8 +1406,8 @@ const HazardControl = () => {
                                 <div className="flex gap-2">
                                     <button
                                         onClick={editingHazard ? () => {
-                                            const updated = truckingHazards.map(h => 
-                                                h._id === (editingHazard as any)._id 
+                                            const updated = truckingHazards.map(h =>
+                                                h._id === (editingHazard as any)._id
                                                     ? { ...h, ...editingHazard } as TruckingHazard
                                                     : h
                                             );
@@ -1478,7 +1454,7 @@ const HazardControl = () => {
                 <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                     <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                         <h2 className="text-2xl font-bold text-gray-800">Hazard Details: {selectedHazard.hazardId}</h2>
-                        <button 
+                        <button
                             onClick={() => setSelectedHazard(null)}
                             className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition"
                         >
@@ -1530,8 +1506,8 @@ const HazardControl = () => {
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <label className="text-sm font-medium text-gray-500">Risk Score</label>
                                 <p className="text-2xl font-bold text-gray-900">{selectedHazard.riskScore}</p>
-                                <span className={`mt-2 px-2 py-1 inline-flex text-xs font-bold rounded-full ${getRiskLevelColor(selectedHazard.riskLevel)}`}>
-                                    {selectedHazard.riskLevel.toUpperCase()}
+                                <span className={`mt-2 px-2 py-1 inline-flex text-xs font-bold rounded-full ${getRiskLevelColor(selectedHazard.riskLevel || '')}`}>
+                                    {(selectedHazard.riskLevel || '').toUpperCase()}
                                 </span>
                             </div>
                         </div>
@@ -1567,7 +1543,7 @@ const HazardControl = () => {
                 <p className="text-gray-600">Manage safety inspections, hazard reporting, and driver observations</p>
             </div>
 
-        
+
 
             {(
                 <div>
@@ -1576,31 +1552,28 @@ const HazardControl = () => {
                             <div className="flex">
                                 <button
                                     onClick={() => setHazardSubTab('reporting')}
-                                    className={`px-6 py-3 font-semibold transition ${
-                                        hazardSubTab === 'reporting'
-                                            ? 'text-orange-600 border-b-2 border-orange-600'
-                                            : 'text-gray-600 hover:text-gray-900'
-                                    }`}
+                                    className={`px-6 py-3 font-semibold transition ${hazardSubTab === 'reporting'
+                                        ? 'text-orange-600 border-b-2 border-orange-600'
+                                        : 'text-gray-600 hover:text-gray-900'
+                                        }`}
                                 >
                                     Hazard Reporting
                                 </button>
                                 <button
                                     onClick={() => setHazardSubTab('observations')}
-                                    className={`px-6 py-3 font-semibold transition ${
-                                        hazardSubTab === 'observations'
-                                            ? 'text-orange-600 border-b-2 border-orange-600'
-                                            : 'text-gray-600 hover:text-gray-900'
-                                    }`}
+                                    className={`px-6 py-3 font-semibold transition ${hazardSubTab === 'observations'
+                                        ? 'text-orange-600 border-b-2 border-orange-600'
+                                        : 'text-gray-600 hover:text-gray-900'
+                                        }`}
                                 >
                                     Driver Observations
                                 </button>
                                 <button
                                     onClick={() => setHazardSubTab('trucking-specific')}
-                                    className={`px-6 py-3 font-semibold transition ${
-                                        hazardSubTab === 'trucking-specific'
-                                            ? 'text-orange-600 border-b-2 border-orange-600'
-                                            : 'text-gray-600 hover:text-gray-900'
-                                    }`}
+                                    className={`px-6 py-3 font-semibold transition ${hazardSubTab === 'trucking-specific'
+                                        ? 'text-orange-600 border-b-2 border-orange-600'
+                                        : 'text-gray-600 hover:text-gray-900'
+                                        }`}
                                 >
                                     Trucking-Specific Hazards
                                 </button>
@@ -1616,7 +1589,7 @@ const HazardControl = () => {
 
             {renderHazardDetailModal()}
             {renderSidebar()}
-            
+
             {/* Toast Notifications */}
             <div className="fixed top-4 right-4 z-[10001] space-y-2">
                 {notifications.map(notification => (

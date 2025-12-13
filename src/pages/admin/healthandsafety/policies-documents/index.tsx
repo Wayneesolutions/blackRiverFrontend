@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import {
   FaFileAlt,
   FaPlus,
-  FaEdit,
-  FaTrash,
   FaEye,
   FaSearch,
   FaFilter,
@@ -11,7 +9,6 @@ import {
   FaDownload,
   FaFilePdf,
   FaFileWord,
-  FaFileExcel,
   FaFile,
   FaTimes,
   FaExclamationTriangle,
@@ -27,8 +24,6 @@ import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import {
   createPolicyDocument,
   getPolicyDocuments,
-  updatePolicyDocument,
-  deletePolicyDocument,
   getPolicyDocumentSignedUrl
 } from '../../../../axios/api/healthSafety';
 
@@ -41,7 +36,6 @@ interface Policy {
   version: string; // Req 4: Version Control
   effectiveDate: string;
   reviewDate: string; // Req 12.2: Renewal Date
-  renewalCycle?: number; // Req 12.2: Cycle (12, 24, 36 months)
   status: 'active' | 'draft' | 'archived' | 'under-review' | 'expired';
   documentType: 'Policy' | 'Procedure' | 'SOP' | 'Form' | 'policy' | 'procedure' | 'guideline' | 'form';
   fileType?: string;
