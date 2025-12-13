@@ -14,6 +14,7 @@ const CompanyDocuments = lazy(() => import("../../pages/admin/dashboard/document
 const VehicleDocuments = lazy(() => import("../../pages/admin/driverManagement/VehicleDocuments"))
 const UserProfilesPortfolio = lazy(() => import("../../pages/admin/driverManagement/userProfiles/index"))
 const DriverProfiles = lazy(() => import("../../pages/admin/driverManagement/driverportfolio/index"))
+const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"));
 
 function DriverManagementRoutes() {
     return (
@@ -23,6 +24,8 @@ function DriverManagementRoutes() {
                     <Route index element={<Dashboard />} />
                     <Route path="/drivers" element={<Driver />} />
                     {/* <Route path="/scheduling" element={<Scheduling />} /> */}
+
+                    <Route path="/profile" element={<Profile />} />
                     <Route path="/employeelist" element={<EmployeeList />} />
                     <Route path="/documents" element={<Documents />} />
                     <Route path="/company-documents" element={<CompanyDocuments />} />
@@ -30,7 +33,7 @@ function DriverManagementRoutes() {
                     <Route path="/attendence" element={<Attendence />} />
                     <Route path="/issues" element={<Issues />} />
                     <Route path="/employee-profiles" element={<UserProfilesPortfolio />} />
-                   
+
                     <Route path="/driver-profiles" element={<DriverProfiles />} />
                 </Route>
             </Routes>

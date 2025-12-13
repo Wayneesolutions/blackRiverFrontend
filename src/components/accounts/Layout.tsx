@@ -27,7 +27,7 @@ function Layout() {
             <div className="flex flex-col flex-1 h-full overflow-hidden">
                 {/* Header - fixed at top */}
                 <div className="flex-shrink-0 pl-5">
-                    <Header />
+                    <Header onToggleSidebar={toggleSidebar} />
                 </div>
 
                 {/* Main content with scroll */}
