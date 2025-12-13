@@ -4,13 +4,15 @@ import Layout from "../../components/compilance/Layout"
 import Loading from "../../components/common/Loading";
 import ErrorBoundary from "../../components/common/ErrorBoundary";
 
-const CompilanceDashboard = lazy(()=>import('../../pages/admin/compilance/Dashboard'))
-const HosAndEld = lazy(()=>import('../../pages/admin/compilance/host/HosAndEld'))
-const CvsaInspection = lazy(()=>import('../../pages/admin/compilance/cvsa/CvsaInspection'))
-const MonthlyReport = lazy(()=>import('../../pages/admin/compilance/reports/MonthlyReport'))
-const Tickets = lazy(()=>import('../../pages/admin/compilance/tickets/Tickets'))
-const Incidents = lazy(()=>import('../../pages/admin/compilance/incidents/Incidents'))
-const FuelReports = lazy(()=>import('../../pages/admin/dispatch/resources/fuel-reports/index'))
+const CompilanceDashboard = lazy(() => import('../../pages/admin/compilance/Dashboard'))
+const HosAndEld = lazy(() => import('../../pages/admin/compilance/host/HosAndEld'))
+const CvsaInspection = lazy(() => import('../../pages/admin/compilance/cvsa/CvsaInspection'))
+const MonthlyReport = lazy(() => import('../../pages/admin/compilance/reports/MonthlyReport'))
+const Tickets = lazy(() => import('../../pages/admin/compilance/tickets/Tickets'))
+const Incidents = lazy(() => import('../../pages/admin/compilance/incidents/Incidents'))
+const FuelReports = lazy(() => import('../../pages/admin/dispatch/resources/fuel-reports/index'))
+const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"))
+
 function CompilanceRoute() {
   return (
     <Suspense fallback={<Loading />}>
@@ -25,7 +27,8 @@ function CompilanceRoute() {
           <Route path="tickets" element={<ErrorBoundary><Tickets /></ErrorBoundary>} />
           <Route path="incidents" element={<ErrorBoundary><Incidents /></ErrorBoundary>} />
           <Route path="fuel-reports" element={<ErrorBoundary><FuelReports /></ErrorBoundary>} />
-          
+          <Route path="/profile" element={<Profile />} />
+
         </Route>
       </Routes>
     </Suspense>
