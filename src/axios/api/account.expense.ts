@@ -76,3 +76,22 @@ export const getExpenseReceiptSignedUrl = async (expenseId: string, disposition:
         return err.response?.data;
     }
 };
+
+// Extract Expense Data from Receipt using OpenAI
+export const extractReceiptData = async (file: File) => {
+    try {
+        const formData = new FormData();
+        formData.append('receipt', file);
+        
+        const res: AxiosResponse = await apiClient.post(`hr/extract-receipt`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+        console.log("==extractReceiptData res", res);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};

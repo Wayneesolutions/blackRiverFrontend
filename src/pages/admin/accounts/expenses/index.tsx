@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Trash2, Eye, Building2 } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
-import { createExpense, listExpenses, updateExpense, deleteExpense, getExpenseReceiptSignedUrl } from "../../../../axios/api/account.expense";
+import { createExpense, listExpenses, updateExpense, deleteExpense, getExpenseReceiptSignedUrl, extractReceiptData } from "../../../../axios/api/account.expense";
 import { getEmployees } from "../../../../axios/api/account.payroll";
 import ConfirmationModal from "../../../../components/common/ConfirmationModal";
 
@@ -82,6 +82,7 @@ const ExpensesPage = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
+  const [extractingReceipt, setExtractingReceipt] = useState(false);
 
   const [formData, setFormData] = useState<{
     userId: string;
@@ -210,6 +211,35 @@ const ExpensesPage = () => {
     }
   };
 
+  const handleExtractReceipt = async (file: File) => {
+    setExtractingReceipt(true);
+    try {
+      const response = await extractReceiptData(file);
+      if (response && response.success && response.data) {
+        const extracted = response.data;
+        
+        // Populate form fields with extracted data
+        setFormData(prev => ({
+          ...prev,
+          amount: extracted.amount ? extracted.amount.toString() : prev.amount,
+          description: extracted.description || extracted.notes || prev.description,
+          type: extracted.type || prev.type,
+          date: extracted.date || prev.date,
+          receiptFile: file // Keep the file
+        }));
+        
+        addNotification('success', 'Receipt data extracted successfully! Please review and adjust the fields as needed.');
+      } else {
+        addNotification('error', response?.message || 'Failed to extract data from receipt. Please enter the information manually.');
+      }
+    } catch (error: any) {
+      console.error('Error extracting receipt:', error);
+      addNotification('error', error?.message || 'Failed to extract receipt data. Please try again or enter information manually.');
+    } finally {
+      setExtractingReceipt(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -223,7 +253,7 @@ const ExpensesPage = () => {
       formDataToSend.append('date', formData.date);
       
       if (formData.receiptFile) {
-        formDataToSend.append('file', formData.receiptFile);
+        formDataToSend.append('receipt', formData.receiptFile);
       }
 
       if (editingExpense) {
@@ -774,9 +804,29 @@ const ExpensesPage = () => {
                       </label>
                       <p className="text-xs text-gray-500 mt-1">PNG, JPG, PDF up to 10MB</p>
                       {formData.receiptFile && (
-                        <p className="text-sm text-green-600 mt-2">
-                          Selected: {formData.receiptFile.name}
-                        </p>
+                        <div className="mt-3 space-y-2">
+                          <p className="text-sm text-green-600">
+                            Selected: {formData.receiptFile.name}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => handleExtractReceipt(formData.receiptFile!)}
+                            disabled={extractingReceipt || !formData.receiptFile}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                          >
+                            {extractingReceipt ? (
+                              <>
+                                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                Extracting...
+                              </>
+                            ) : (
+                              <>
+                                <FileText size={16} />
+                                Extract Data with AI
+                              </>
+                            )}
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>

@@ -98,7 +98,7 @@ interface DeleteConfirmation {
 
 const normalizeAsset = (entity: any, explicitType?: AssetType): Vehicle => {
   const resolvedType: AssetType =
-    explicitType || entity?.assetType || (entity?.trailer || entity?.type ? "trailer" : "vehicle");
+    explicitType || entity?.assetType || (entity?.trailer || entity?.type || entity?.unitType !== "Truck" ? "trailer" : "vehicle");
   const id = entity?._id ? String(entity._id) : "";
   const yearValue =
     typeof entity?.year === "number"
@@ -107,21 +107,33 @@ const normalizeAsset = (entity: any, explicitType?: AssetType): Vehicle => {
       ? Number(entity.year)
       : null;
 
+  // Extract plate number from multiple possible fields
+  const plateNumber = entity?.plateNumber || entity?.licensePlate || entity?.vehicleNumber || "";
+  
+  // Extract internal ID from multiple possible fields
+  const internalId = entity?.internalId || entity?.unitNo || "";
+  
+  // For trailers, extract type from multiple possible fields
+  const trailerType = entity?.type || entity?.trailerType || entity?.unitType || "";
+  const trailerMake = entity?.trailer || entity?.unitType || entity?.trailerType || entity?.make || "Trailer";
+
   return {
     _id: id,
     make:
       resolvedType === "trailer"
-        ? entity?.trailer || entity?.make || "Trailer"
-        : entity?.make || entity?.vehicle || "",
-    model: entity?.model ?? entity?.type ?? "",
+        ? trailerMake
+        : entity?.make || entity?.vehicle || entity?.makeModel?.split(' ')[0] || "",
+    model: resolvedType === "trailer" 
+      ? (entity?.model || entity?.trailerType || entity?.type || "")
+      : (entity?.model || entity?.makeModel || ""),
     year: yearValue,
-    plateNumber: entity?.plateNumber || entity?.vehicleNumber || "",
+    plateNumber: plateNumber,
     status: entity?.status || entity?.operationStatus || "available",
-    internalId: entity?.internalId || "",
+    internalId: internalId,
     assetType: resolvedType,
-    trailerName: entity?.trailer,
-    type: entity?.type,
-    capacity: entity?.capacity,
+    trailerName: entity?.trailer || entity?.unitType || entity?.trailerType,
+    type: resolvedType === "trailer" ? trailerType : (entity?.type || ""),
+    capacity: entity?.capacity ? String(entity.capacity) : "",
   };
 };
 
@@ -217,6 +229,7 @@ function VehicleDocument() {
   }, []);
 
   // Convert FleetUnits to normalized vehicles/trailers format
+  // Deduplicate by _id to prevent counting the same asset twice
   const normalizedVehicles = useMemo<Vehicle[]>(() => {
     const trucks = fleetUnits.filter((unit: any) => unit.unitType === 'Truck');
     const fleetUnitVehicles = trucks.map((unit: any) => ({
@@ -236,7 +249,22 @@ function VehicleDocument() {
       ? vehicles.map((vehicle: any) => normalizeAsset(vehicle, "vehicle"))
       : [];
     
-    return [...fleetUnitVehicles, ...oldVehicles];
+    // Deduplicate by _id - prefer fleetUnit over old vehicle if both exist
+    const vehicleMap = new Map<string, Vehicle>();
+    // First add old vehicles
+    oldVehicles.forEach((vehicle) => {
+      if (vehicle._id) {
+        vehicleMap.set(String(vehicle._id), vehicle);
+      }
+    });
+    // Then add fleetUnit vehicles (will overwrite if same _id exists)
+    fleetUnitVehicles.forEach((vehicle) => {
+      if (vehicle._id) {
+        vehicleMap.set(String(vehicle._id), vehicle);
+      }
+    });
+    
+    return Array.from(vehicleMap.values());
   }, [fleetUnits, vehicles]);
 
   const normalizedTrailers = useMemo<Vehicle[]>(() => {
@@ -261,7 +289,22 @@ function VehicleDocument() {
       ? trailers.map((trailer: any) => normalizeAsset(trailer, "trailer"))
       : [];
     
-    return [...fleetUnitTrailers, ...oldTrailers];
+    // Deduplicate by _id - prefer fleetUnit over old trailer if both exist
+    const trailerMap = new Map<string, Vehicle>();
+    // First add old trailers
+    oldTrailers.forEach((trailer) => {
+      if (trailer._id) {
+        trailerMap.set(String(trailer._id), trailer);
+      }
+    });
+    // Then add fleetUnit trailers (will overwrite if same _id exists)
+    fleetUnitTrailers.forEach((trailer) => {
+      if (trailer._id) {
+        trailerMap.set(String(trailer._id), trailer);
+      }
+    });
+    
+    return Array.from(trailerMap.values());
   }, [fleetUnits, trailers]);
 
   const addNotification = useCallback((type: NotificationType, message: string) => {
@@ -291,6 +334,84 @@ function VehicleDocument() {
     return [...vehicleEntries, ...trailerEntries];
   }, [normalizedVehicles, normalizedTrailers]);
 
+  // Helper function to create a unique key for deduplication
+  // Uses plate number as primary identifier, falls back to internal ID, then _id
+  const getUniqueKey = useCallback((item: VehicleDocument): string => {
+    const vehicle = item.vehicle;
+    // Try multiple possible fields for plate number
+    const plateNumber = (
+      vehicle?.plateNumber || 
+      vehicle?.licensePlate || 
+      vehicle?.vehicleNumber ||
+      ''
+    ).trim();
+    
+    // Try multiple possible fields for internal ID (UNIT-098, etc.)
+    const internalId = (
+      vehicle?.internalId || 
+      vehicle?.unitNo ||
+      ''
+    ).trim();
+    
+    const make = (vehicle?.make || '').trim();
+    const model = (vehicle?.model || '').trim();
+    const type = (vehicle?.type || '').trim();
+    const year = vehicle?.year ? String(vehicle.year).trim() : '';
+    const capacity = vehicle?.capacity ? String(vehicle.capacity).trim() : '';
+    
+    // For trailers, use a combination of identifiers for better matching
+    if (item.assetType === 'trailer') {
+      // Priority 1: Plate number + capacity (most unique combination)
+      if (plateNumber && capacity) {
+        return `${item.assetType}:plate-cap:${plateNumber.toLowerCase()}:${capacity}`;
+      }
+      
+      // Priority 2: Internal ID (UNIT-098)
+      if (internalId) {
+        return `${item.assetType}:internal:${internalId.toLowerCase()}`;
+      }
+      
+      // Priority 3: Capacity + year (for matching when type differs or is N/A)
+      if (capacity && year) {
+        return `${item.assetType}:cap-year:${capacity}:${year}`;
+      }
+      
+      // Priority 4: Type + capacity + year (Tank Trailer + 53 + 2021) - only if type is valid
+      if (type && type.toLowerCase() !== 'n/a' && type.toLowerCase() !== 'trailer' && capacity && year) {
+        return `${item.assetType}:type-cap-year:${type.toLowerCase()}:${capacity}:${year}`;
+      }
+      
+      // Priority 5: Make/model + capacity + year
+      if (make && make.toLowerCase() !== 'trailer' && capacity && year) {
+        return `${item.assetType}:make-cap-year:${make.toLowerCase()}:${capacity}:${year}`;
+      }
+      
+      // Priority 6: Just capacity (if year not available)
+      if (capacity) {
+        return `${item.assetType}:cap:${capacity}`;
+      }
+    }
+    
+    // For vehicles, prioritize make/model/year over plate number
+    // This ensures same vehicle is matched even if plate numbers differ (N/A vs LIC-12332)
+    if (make && model && year) {
+      return `${item.assetType}:combo:${make.toLowerCase()}:${model.toLowerCase()}:${year}`;
+    }
+    
+    // Fallback to plate number if make/model/year not available
+    if (plateNumber) {
+      return `${item.assetType}:plate:${plateNumber.toLowerCase()}`;
+    }
+    
+    // Fallback to internal ID for both
+    if (internalId) {
+      return `${item.assetType}:internal:${internalId.toLowerCase()}`;
+    }
+    
+    // Last resort: use _id
+    return `${item.assetType}:id:${item._id}`;
+  }, []);
+
   const fetchAllDocuments = useCallback(async () => {
     setLoading(true);
     try {
@@ -309,8 +430,33 @@ function VehicleDocument() {
               ? "trailer"
               : "vehicle";
 
-          const normalized = normalizeAsset(item.vehicle ?? item.trailer ?? {}, assetType);
-          const key = `${assetType}:${normalized._id}`;
+          // Extract vehicle data - handle FleetUnit structure
+          const rawVehicle = item.vehicle ?? item.trailer ?? {};
+          
+          // Always enhance vehicle data with missing fields from FleetUnit structure
+          // The backend might not have normalized all fields properly
+          let vehicleData = {
+            ...rawVehicle,
+            // Extract plate number from multiple possible fields
+            plateNumber: rawVehicle.plateNumber || rawVehicle.licensePlate || rawVehicle.vehicleNumber || '',
+            licensePlate: rawVehicle.licensePlate || rawVehicle.plateNumber || rawVehicle.vehicleNumber || '',
+            // Extract internal ID from multiple possible fields
+            internalId: rawVehicle.internalId || rawVehicle.unitNo || '',
+            unitNo: rawVehicle.unitNo || rawVehicle.internalId || '',
+            // For trailers, extract type from multiple possible fields
+            type: rawVehicle.type || rawVehicle.trailerType || rawVehicle.unitType || '',
+            trailerType: rawVehicle.trailerType || rawVehicle.unitType || rawVehicle.type || '',
+            unitType: rawVehicle.unitType || '',
+            // For trailers, extract make from unitType if missing
+            trailer: rawVehicle.trailer || rawVehicle.unitType || rawVehicle.trailerType || '',
+            // Ensure capacity is string
+            capacity: rawVehicle.capacity ? String(rawVehicle.capacity) : '',
+            // For vehicles, extract make/model from makeModel if needed
+            make: rawVehicle.make || rawVehicle.makeModel?.split(' ')[0] || '',
+            model: rawVehicle.model || rawVehicle.makeModel || '',
+          };
+          
+          const normalized = normalizeAsset(vehicleData, assetType);
 
           const documents = Array.isArray(item?.documents)
             ? item.documents.map((doc: any) => ({
@@ -325,19 +471,217 @@ function VehicleDocument() {
               }))
             : [];
 
-          mapped.set(key, {
+          const vehicleDocument: VehicleDocument = {
             _id: normalized._id,
             assetType,
             vehicle: normalized,
             documents,
             sourceType: item?.sourceType || (assetType === "trailer" ? "trailer" : "vehicle"),
-          });
+          };
+
+          // Use getUniqueKey for deduplication (by plate number, not just _id)
+          const key = getUniqueKey(vehicleDocument);
+          
+          // Check if this is a duplicate by trying multiple key strategies
+          let foundDuplicate = false;
+          let existingKey = key;
+          
+          // Extract identifiers for matching
+          const plateNumber = (normalized.plateNumber || normalized.licensePlate || '').trim();
+          const internalId = (normalized.internalId || '').trim();
+          const make = (normalized.make || '').trim();
+          const model = (normalized.model || '').trim();
+          const year = normalized.year ? String(normalized.year).trim() : '';
+          const type = (normalized.type || '').trim();
+          const capacity = (normalized.capacity || '').trim();
+          
+          // If primary key doesn't exist, try alternative keys for matching
+          if (!mapped.has(key)) {
+            // For vehicles, try matching by make/model/year (even if plate numbers differ)
+            if (vehicleDocument.assetType === 'vehicle') {
+              // Try matching by internal ID first
+              if (internalId) {
+                const altKey = `vehicle:internal:${internalId.toLowerCase()}`;
+                if (mapped.has(altKey)) {
+                  foundDuplicate = true;
+                  existingKey = altKey;
+                }
+              }
+              
+              // Try matching by make/model/year combination (Kenworth T680 2021)
+              if (!foundDuplicate && make && model && year) {
+                const altKey = `vehicle:combo:${make.toLowerCase()}:${model.toLowerCase()}:${year}`;
+                if (mapped.has(altKey)) {
+                  foundDuplicate = true;
+                  existingKey = altKey;
+                }
+              }
+              
+              // Try matching by checking all existing vehicles for same make/model/year
+              if (!foundDuplicate && make && model && year) {
+                for (const [mapKey, existingDoc] of mapped.entries()) {
+                  if (existingDoc.assetType === 'vehicle') {
+                    const existingMake = (existingDoc.vehicle?.make || '').trim().toLowerCase();
+                    const existingModel = (existingDoc.vehicle?.model || '').trim().toLowerCase();
+                    const existingYear = existingDoc.vehicle?.year ? String(existingDoc.vehicle.year).trim() : '';
+                    if (existingMake === make.toLowerCase() && 
+                        existingModel === model.toLowerCase() && 
+                        existingYear === year) {
+                      foundDuplicate = true;
+                      existingKey = mapKey;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+            
+            // For trailers, try matching by internal ID, capacity+year, or just capacity
+            if (vehicleDocument.assetType === 'trailer') {
+              // Try matching by internal ID
+              if (internalId) {
+                const altKey = `trailer:internal:${internalId.toLowerCase()}`;
+                if (mapped.has(altKey)) {
+                  foundDuplicate = true;
+                  existingKey = altKey;
+                }
+              }
+              
+              // Try matching by capacity + year (most reliable for trailers)
+              if (!foundDuplicate && capacity && year) {
+                const altKey = `trailer:cap-year:${capacity}:${year}`;
+                if (mapped.has(altKey)) {
+                  foundDuplicate = true;
+                  existingKey = altKey;
+                }
+              }
+              
+              // Try matching by just capacity (if year not available but capacity matches)
+              if (!foundDuplicate && capacity) {
+                const altKey = `trailer:cap:${capacity}`;
+                if (mapped.has(altKey)) {
+                  foundDuplicate = true;
+                  existingKey = altKey;
+                }
+              }
+              
+              // Try matching by checking all existing trailers for same capacity
+              // This catches cases where one has type "N/A" and other has "Tank Trailer"
+              if (!foundDuplicate && capacity) {
+                for (const [mapKey, existingDoc] of mapped.entries()) {
+                  if (existingDoc.assetType === 'trailer') {
+                    const existingCapacity = (existingDoc.vehicle?.capacity || '').trim();
+                    // Match by capacity (53) - same capacity = likely same trailer
+                    if (existingCapacity === capacity && existingCapacity) {
+                      // Also check if year matches if both have year
+                      const existingYear = existingDoc.vehicle?.year ? String(existingDoc.vehicle.year).trim() : '';
+                      if (!year || !existingYear || existingYear === year) {
+                        foundDuplicate = true;
+                        existingKey = mapKey;
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } else {
+            foundDuplicate = true;
+          }
+          
+          // If duplicate found, merge documents
+          if (foundDuplicate) {
+            const existing = mapped.get(existingKey)!;
+            // Merge documents - combine unique documents
+            const existingDocIds = new Set(existing.documents.map((d: any) => d._id));
+            const newDocuments = documents.filter((d: any) => !existingDocIds.has(d._id));
+            const mergedDocuments = [...existing.documents, ...newDocuments];
+            
+            // Determine which entry to keep - prefer the one with more complete data
+            const existingHasPlate = !!(existing.vehicle?.plateNumber || existing.vehicle?.licensePlate);
+            const newHasPlate = !!(normalized.plateNumber || normalized.licensePlate);
+            const existingPlate = (existing.vehicle?.plateNumber || existing.vehicle?.licensePlate || '').trim();
+            const newPlate = (normalized.plateNumber || normalized.licensePlate || '').trim();
+            const existingHasInternalId = !!(existing.vehicle?.internalId);
+            const newHasInternalId = !!(normalized.internalId);
+            
+            // For trailers, also check type validity
+            const existingType = (existing.vehicle?.type || existing.vehicle?.make || '').trim().toLowerCase();
+            const newType = (normalized.type || normalized.make || '').trim().toLowerCase();
+            const existingTypeValid = existingType && existingType !== 'n/a' && existingType !== 'trailer';
+            const newTypeValid = newType && newType !== 'n/a' && newType !== 'trailer';
+            
+            // Prefer entry with plate number (not "N/A" or empty)
+            const existingPlateValid = existingHasPlate && existingPlate.toLowerCase() !== 'n/a' && existingPlate !== '';
+            const newPlateValid = newHasPlate && newPlate.toLowerCase() !== 'n/a' && newPlate !== '';
+            
+            let finalEntry: VehicleDocument;
+            
+            // For trailers, prefer entry with valid type (Tank Trailer over N/A)
+            if (vehicleDocument.assetType === 'trailer') {
+              if (newTypeValid && !existingTypeValid) {
+                // New has valid type, existing doesn't - use new
+                finalEntry = { ...vehicleDocument, documents: mergedDocuments };
+              } else if (existingTypeValid && !newTypeValid) {
+                // Existing has valid type, new doesn't - use existing but merge documents
+                finalEntry = { ...existing, documents: mergedDocuments };
+              } else if (newPlateValid && !existingPlateValid) {
+                // New has valid plate, existing doesn't - use new
+                finalEntry = { ...vehicleDocument, documents: mergedDocuments };
+              } else if (existingPlateValid && !newPlateValid) {
+                // Existing has valid plate, new doesn't - use existing but merge documents
+                finalEntry = { ...existing, documents: mergedDocuments };
+              } else if (newHasInternalId && !existingHasInternalId) {
+                // New has internal ID, existing doesn't - use new
+                finalEntry = { ...vehicleDocument, documents: mergedDocuments };
+              } else if (mergedDocuments.length > existing.documents.length) {
+                // New has more documents - use new
+                finalEntry = { ...vehicleDocument, documents: mergedDocuments };
+              } else {
+                // Keep existing but merge documents
+                finalEntry = { ...existing, documents: mergedDocuments };
+              }
+            } else {
+              // For vehicles, use existing logic
+              if (newPlateValid && !existingPlateValid) {
+                // New entry has valid plate, existing doesn't - use new
+                finalEntry = { ...vehicleDocument, documents: mergedDocuments };
+              } else if (existingPlateValid && !newPlateValid) {
+                // Existing has valid plate, new doesn't - use existing but merge documents
+                finalEntry = { ...existing, documents: mergedDocuments };
+              } else if (newHasInternalId && !existingHasInternalId) {
+                // New has internal ID, existing doesn't - use new
+                finalEntry = { ...vehicleDocument, documents: mergedDocuments };
+              } else if (mergedDocuments.length > existing.documents.length) {
+                // New has more documents - use new
+                finalEntry = { ...vehicleDocument, documents: mergedDocuments };
+              } else {
+                // Keep existing but merge documents
+                finalEntry = { ...existing, documents: mergedDocuments };
+              }
+            }
+            
+            mapped.set(existingKey, finalEntry);
+          } else {
+            mapped.set(key, vehicleDocument);
+          }
         });
 
         fallbackEntries.forEach((entry) => {
-          const key = `${entry.assetType}:${entry._id}`;
+          // Use getUniqueKey for deduplication
+          const key = getUniqueKey(entry);
           if (!mapped.has(key)) {
             mapped.set(key, entry);
+          } else {
+            // If duplicate found, merge documents if needed
+            const existing = mapped.get(key)!;
+            if (entry.documents && entry.documents.length > 0) {
+              const existingDocIds = new Set(existing.documents.map((d: any) => d._id));
+              const newDocuments = entry.documents.filter((d: any) => !existingDocIds.has(d._id));
+              if (newDocuments.length > 0) {
+                existing.documents = [...existing.documents, ...newDocuments];
+              }
+            }
           }
         });
 
@@ -353,7 +697,7 @@ function VehicleDocument() {
       setVehicleDocuments(fallbackEntries);
     }
     setLoading(false);
-  }, [fallbackEntries, addNotification]);
+  }, [fallbackEntries, addNotification, getUniqueKey]);
 
   useEffect(() => {
     fetchAllDocuments();
@@ -550,7 +894,7 @@ function VehicleDocument() {
     data.append("issuedAt", formData.issuedAt);
 
     if (selectedFile) {
-      data.append("document", selectedFile);
+      data.append("file", selectedFile);
     }
 
     try {
@@ -647,23 +991,94 @@ function VehicleDocument() {
   };
 
   const documentsWithFallback = useMemo<VehicleDocument[]>(() => {
-    return vehicleDocuments.length ? vehicleDocuments : fallbackEntries;
+    const source = vehicleDocuments.length ? vehicleDocuments : fallbackEntries;
+    
+    // Deduplicate using unique key (plate number, internal ID, or combination)
+    const uniqueMap = new Map<string, VehicleDocument>();
+    source.forEach((item) => {
+      const key = getUniqueKey(item);
+      
+      // If key already exists, prefer the one with documents or more complete data
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, item);
+      } else {
+        const existing = uniqueMap.get(key);
+        const existingHasDocs = existing?.documents && existing.documents.length > 0;
+        const itemHasDocs = item.documents && item.documents.length > 0;
+        
+        // Prefer entry with documents
+        if (itemHasDocs && !existingHasDocs) {
+          uniqueMap.set(key, item);
+        }
+        // If both have or don't have docs, prefer the one with more complete vehicle data
+        else if (itemHasDocs === existingHasDocs) {
+          const existingVehicle = existing?.vehicle;
+          const itemVehicle = item?.vehicle;
+          const existingComplete = existingVehicle?.plateNumber || existingVehicle?.internalId;
+          const itemComplete = itemVehicle?.plateNumber || itemVehicle?.internalId;
+          
+          // Prefer entry with more complete data (has plate or internal ID)
+          if (itemComplete && !existingComplete) {
+            uniqueMap.set(key, item);
+          }
+        }
+      }
+    });
+    
+    return Array.from(uniqueMap.values());
   }, [vehicleDocuments, fallbackEntries]);
 
   const getFilteredVehicles = () => {
+    // Filter by tab first
+    let filtered: VehicleDocument[];
     if (activeTab === "vehicles") {
-      return documentsWithFallback.filter((item) => item.assetType === "vehicle");
+      filtered = documentsWithFallback.filter((item) => item.assetType === "vehicle");
+    } else if (activeTab === "trailers") {
+      filtered = documentsWithFallback.filter((item) => item.assetType === "trailer");
+    } else {
+      filtered = documentsWithFallback;
     }
-    if (activeTab === "trailers") {
-      return documentsWithFallback.filter((item) => item.assetType === "trailer");
-    }
-    return documentsWithFallback;
+    
+    // Additional deduplication using the same unique key logic
+    // This ensures no duplicates even if documentsWithFallback somehow has duplicates
+    const uniqueMap = new Map<string, VehicleDocument>();
+    filtered.forEach((item) => {
+      const key = getUniqueKey(item);
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, item);
+      } else {
+        // If duplicate found, prefer the one with documents
+        const existing = uniqueMap.get(key);
+        const existingHasDocs = existing?.documents && existing.documents.length > 0;
+        const itemHasDocs = item.documents && item.documents.length > 0;
+        
+        if (itemHasDocs && !existingHasDocs) {
+          uniqueMap.set(key, item);
+        }
+      }
+    });
+    
+    return Array.from(uniqueMap.values());
   };
 
   const tabStats = useMemo(() => {
-    const vehicles = documentsWithFallback.filter((item) => item.assetType === "vehicle").length;
-    const trailers = documentsWithFallback.filter((item) => item.assetType === "trailer").length;
-    const total = documentsWithFallback.length;
+    // Use Set to ensure we count unique vehicles/trailers by _id
+    const uniqueVehicleIds = new Set<string>();
+    const uniqueTrailerIds = new Set<string>();
+    
+    documentsWithFallback.forEach((item) => {
+      const id = String(item._id);
+      if (item.assetType === "vehicle") {
+        uniqueVehicleIds.add(id);
+      } else if (item.assetType === "trailer") {
+        uniqueTrailerIds.add(id);
+      }
+    });
+    
+    const vehicles = uniqueVehicleIds.size;
+    const trailers = uniqueTrailerIds.size;
+    const total = vehicles + trailers;
+    
     return { total, vehicles, trailers };
   }, [documentsWithFallback]);
 
