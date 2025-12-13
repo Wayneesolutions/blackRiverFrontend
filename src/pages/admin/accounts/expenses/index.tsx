@@ -121,7 +121,7 @@ const ExpensesPage = () => {
     setLoading(true);
     try {
       const userInfo: any = getLocalUserInfo();
-      
+
       // Handle different userInfo structures (userData.company or direct company)
       const userRole = userInfo?.role || userInfo?.userData?.role;
       const userCompany = userInfo?.company || userInfo?.userData?.company;
@@ -165,7 +165,7 @@ const ExpensesPage = () => {
   const fetchEmployees = async () => {
     try {
       const userInfo: any = getLocalUserInfo();
-      
+
       // Handle different userInfo structures (userData.company or direct company)
       const userRole = userInfo?.role || userInfo?.userData?.role;
       const userCompany = userInfo?.company || userInfo?.userData?.company;
@@ -217,7 +217,7 @@ const ExpensesPage = () => {
       const response = await extractReceiptData(file);
       if (response && response.success && response.data) {
         const extracted = response.data;
-        
+
         // Populate form fields with extracted data
         setFormData(prev => ({
           ...prev,
@@ -227,7 +227,7 @@ const ExpensesPage = () => {
           date: extracted.date || prev.date,
           receiptFile: file // Keep the file
         }));
-        
+
         addNotification('success', 'Receipt data extracted successfully! Please review and adjust the fields as needed.');
       } else {
         addNotification('error', response?.message || 'Failed to extract data from receipt. Please enter the information manually.');
@@ -251,7 +251,7 @@ const ExpensesPage = () => {
       formDataToSend.append('amount', formData.amount);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('date', formData.date);
-      
+
       if (formData.receiptFile) {
         formDataToSend.append('receipt', formData.receiptFile);
       }
@@ -304,8 +304,8 @@ const ExpensesPage = () => {
 
   const handleEdit = (expense: Expense) => {
     setEditingExpense(expense);
-    const userIdValue = typeof expense.userId === 'object' && expense.userId !== null 
-      ? expense.userId._id 
+    const userIdValue = typeof expense.userId === 'object' && expense.userId !== null
+      ? expense.userId._id
       : expense.userId || '';
     setFormData({
       userId: userIdValue,
@@ -348,7 +348,7 @@ const ExpensesPage = () => {
     setViewingExpense(expense);
     setShowViewModal(true);
     setReceiptSignedUrl(null);
-    
+
     // Fetch signed URL for receipt if available
     if (expense.receiptUrl) {
       setLoadingReceiptUrl(true);
@@ -653,21 +653,21 @@ const ExpensesPage = () => {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <button 
+                            <button
                               onClick={() => handleView(expense)}
                               className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                               title="View Details"
                             >
                               <Eye size={16} />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleEdit(expense)}
                               className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                               title="Edit Expense"
                             >
                               <Edit size={16} />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleDelete(expense._id)}
                               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete Expense"
@@ -786,7 +786,7 @@ const ExpensesPage = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Receipt Upload
+                      Receipt Upload 
                     </label>
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
                       <Receipt className="mx-auto mb-2 text-gray-400" size={32} />
@@ -794,7 +794,7 @@ const ExpensesPage = () => {
                         type="file"
                         name="receiptFile"
                         onChange={handleInputChange}
-                        accept="image/*,.pdf"
+                        accept="image/*"
                         className="hidden"
                         id="receipt-upload"
                       />
@@ -802,7 +802,7 @@ const ExpensesPage = () => {
                         <span className="text-blue-600 hover:text-blue-700">Click to upload</span>
                         <span className="text-gray-500"> or drag and drop</span>
                       </label>
-                      <p className="text-xs text-gray-500 mt-1">PNG, JPG, PDF up to 10MB</p>
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 10MB</p>
                       {formData.receiptFile && (
                         <div className="mt-3 space-y-2">
                           <p className="text-sm text-green-600">
@@ -914,12 +914,12 @@ const ExpensesPage = () => {
                     <p className="text-sm font-medium text-gray-600">Date</p>
                   </div>
                   <p className="text-lg font-semibold text-gray-900">
-                    {viewingExpense.date 
-                      ? new Date(viewingExpense.date).toLocaleDateString('en-US', { 
-                          year: 'numeric', 
-                          month: 'long', 
-                          day: 'numeric' 
-                        })
+                    {viewingExpense.date
+                      ? new Date(viewingExpense.date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
                       : 'No date'}
                   </p>
                 </div>
