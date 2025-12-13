@@ -451,15 +451,15 @@ const ExpensesPage = () => {
 
   if (loading && !emptyStateMessage) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p className="text-gray-600">Loading expenses...</p>
+      <div className="min-h-screen bg-[#EDF8FF] flex flex-col items-center justify-center text-center space-y-4">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#42aeec]"></div>
+        <p className="text-[#063f6f]">Loading expenses...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-6 bg-[#EDF8FF]">
       <div className="max-w-7xl mx-auto">
         {emptyStateMessage && (
           <div className="mb-6">
@@ -483,8 +483,8 @@ const ExpensesPage = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Expense Management</h1>
-              <p className="text-gray-600 mt-2">Track and manage all expenses</p>
+              <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Expense Management</h1>
+              <p className="text-[#063f6f] mt-2">Track and manage all expenses</p>
             </div>
             <button
               onClick={() => {
@@ -499,7 +499,8 @@ const ExpensesPage = () => {
                 });
                 setActiveTab('create');
               }}
-              className="bg-blue-600 !text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+              className="!text-white px-4 py-2 rounded-lg hover:shadow-lg flex items-center gap-2 transition-all transform hover:scale-105"
+              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
             >
               <Plus size={20} />
               Add Expense
@@ -509,55 +510,55 @@ const ExpensesPage = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
+          <div className="bg-[#E3F2FD] p-6 rounded-xl border-blue-100 shadow-sm border hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Total Expenses</p>
-                <p className="text-2xl font-bold text-gray-900">${totalAmount.toLocaleString()}</p>
+                <p className="text-[#063f6f] text-sm">Total Expenses</p>
+                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>${totalAmount.toLocaleString()}</p>
               </div>
-              <div className="bg-blue-100 p-3 rounded-full">
-                <DollarSign className="text-blue-600" size={24} />
+              <div className="bg-white p-3 rounded-full shadow-sm">
+                <DollarSign className="text-[#42aeec]" size={24} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
+          <div className="bg-[#E1F5FE] p-6 rounded-xl border-cyan-100 shadow-sm border hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Fuel Expenses</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-[#063f6f] text-sm">Fuel Expenses</p>
+                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
                   ${expenses.filter(e => e.type && e.type.includes('Fuel')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
-              <div className="bg-blue-100 p-3 rounded-full">
+              <div className="bg-white p-3 rounded-full shadow-sm">
                 <span className="text-2xl">⛽</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
+          <div className="bg-[#E8F5E9] p-6 rounded-xl border-green-100 shadow-sm border hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Maintenance</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-[#063f6f] text-sm">Maintenance</p>
+                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
                   ${expenses.filter(e => e.type && (e.type.includes('Repair') || e.type.includes('Maintenance'))).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
-              <div className="bg-green-100 p-3 rounded-full">
+              <div className="bg-white p-3 rounded-full shadow-sm">
                 <span className="text-2xl">🔧</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
+          <div className="bg-[#F3E5F5] p-6 rounded-xl border-purple-100 shadow-sm border hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Cash Expenses</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-[#063f6f] text-sm">Cash Expenses</p>
+                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
                   ${expenses.filter(e => e.type && e.type.includes('Cash')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
-              <div className="bg-purple-100 p-3 rounded-full">
+              <div className="bg-white p-3 rounded-full shadow-sm">
                 <span className="text-2xl">💰</span>
               </div>
             </div>
@@ -692,7 +693,7 @@ const ExpensesPage = () => {
 
             {activeTab === 'create' && (
               <div className="max-w-2xl">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                <h2 className="text-xl font-semibold mb-6" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   {editingExpense ? 'Edit Expense' : 'Add New Expense'}
                 </h2>
 
@@ -786,7 +787,7 @@ const ExpensesPage = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Receipt Upload 
+                      Receipt Upload
                     </label>
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
                       <Receipt className="mx-auto mb-2 text-gray-400" size={32} />
@@ -835,7 +836,8 @@ const ExpensesPage = () => {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="bg-blue-600 !text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      className="!text-white px-6 py-2 rounded-lg hover:shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
                     >
                       <Plus size={16} />
                       {loading ? 'Saving...' : editingExpense ? 'Update Expense' : 'Add Expense'}
@@ -966,7 +968,10 @@ const ExpensesPage = () => {
                           </div>
                           <button
                             onClick={() => window.open(receiptSignedUrl, '_blank')}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+                            style={{
+                              background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                            }}
+                            className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
                           >
                             <Eye size={16} />
                             Open Receipt
@@ -1036,7 +1041,10 @@ const ExpensesPage = () => {
                   setViewingExpense(null);
                   setReceiptSignedUrl(null);
                 }}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 transition-colors"
+                style={{
+                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                }}
+                className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
               >
                 <Edit size={16} />
                 Edit Expense

@@ -110,11 +110,11 @@ const DriverList = () => {
                     }));
                     setDrivers(formattedDrivers);
                 } else {
-                    setDrivers(formattedDrivers);
+                    setDrivers([]);
                 }
             } catch (error) {
                 console.error('Error fetching drivers:', error);
-                setDrivers(formattedDrivers);
+                setDrivers([]);
             } finally {
                 setLoading(false);
             }

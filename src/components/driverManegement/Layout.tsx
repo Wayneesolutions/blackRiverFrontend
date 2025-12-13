@@ -24,7 +24,6 @@ function Layout() {
             <div className="flex-shrink-0 h-screen overflow-hidden">
                 <Sidebar
                     isCollapsed={isSidebarCollapsed}
-                    onToggle={toggleSidebar}
                 />
             </div>
 

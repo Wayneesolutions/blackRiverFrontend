@@ -94,7 +94,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
             alert('Please select a vehicle/unit');
             return;
         }
-        
+
         if (!formData.driver) {
             alert('Please select a driver');
             return;
@@ -337,23 +337,25 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                         )}
                     </div>
 
-                    <div className="flex justify-between items-center gap-3">
-                        <button
-                            onClick={handleClose}
-                            disabled={loadingSubmit}
-                            className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-60"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSubmit}
-                            disabled={loadingSubmit}
-                            className="flex-1 px-4 py-2 rounded-lg text-white font-semibold transition-colors disabled:opacity-60"
-                            style={{ background: FLEET_COLORS.gradient }}
-                        >
-                            {loadingSubmit ? 'Saving...' : 'Submit Fuel Report'}
-                        </button>
-                    </div>
+                </div>
+
+                {/* Footer - Fixed to bottom */}
+                <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-200">
+                    <button
+                        onClick={handleClose}
+                        disabled={loadingSubmit}
+                        className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={loadingSubmit}
+                        className="px-6 py-2 rounded-lg !text-white font-semibold transition-colors disabled:opacity-60"
+                        style={{ background: FLEET_COLORS.gradient }}
+                    >
+                        {loadingSubmit ? 'Saving...' : 'Submit Fuel Report'}
+                    </button>
                 </div>
             </div>
         </>

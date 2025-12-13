@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { COLORS } from '../../../../theme/colors';
+const CUSTOM_COLORS = {
+  background: '#EDF8FF',
+  primary: '#016ab2',
+  dark: '#063f6f',
+  light: '#398bc3',
+  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
+};
 import {
   FaFolder,
   FaFileAlt,
@@ -26,7 +33,6 @@ import {
 import {
   createDocument,
   getDocuments,
-  getDocumentById,
   updateDocument,
   deleteDocument,
   getDocumentSignedUrl,
@@ -45,7 +51,7 @@ interface Document {
   uploadedBy: string;
   uploadedDate: string;
   tags: string[];
-  
+
   // Retention Management
   retentionPeriod: number; // months
   retentionStartDate: string; // date when retention period starts
@@ -53,14 +59,14 @@ interface Document {
   retentionStatus: 'active' | 'expiring-soon' | 'expired' | 'archived';
   autoDelete: boolean; // if true, auto-delete after retention period
   retentionNotes?: string;
-  
+
   // Compliance
   requiredForAudit: boolean;
   auditCategory?: string;
   relatedIncident?: string;
   relatedHazard?: string;
   relatedInspection?: string;
-  
+
   // Access Control
   accessLevel: 'public' | 'restricted' | 'confidential';
   allowedRoles?: string[];
@@ -141,6 +147,10 @@ const DocumentLibrary: React.FC = () => {
     file: null as File | null,
   });
 
+  // Delete Confirmation State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
+
   const addNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
     const id = Date.now();
     setNotifications(prev => [...prev, { id, type, message }]);
@@ -171,19 +181,34 @@ const DocumentLibrary: React.FC = () => {
     }
   };
 
+  const handleDeleteDocument = (doc: Document) => {
+    setDocumentToDelete(doc);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteDocument = async () => {
+    if (!documentToDelete) return;
+
+    try {
+      const result = await deleteDocument(documentToDelete._id);
+      if (result.success) {
+        addNotification('success', result.message || 'Document deleted successfully');
+        setShowDeleteModal(false);
+        setDocumentToDelete(null);
+        await fetchData();
+      } else {
+        addNotification('error', result.message || 'Failed to delete document');
+      }
+    } catch (error: any) {
+      addNotification('error', error.message || 'An error occurred');
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [searchTerm, filterCategory, filterRetention]);
 
-  const calculateRetentionStatus = (endDate: string): Document['retentionStatus'] => {
-    const end = new Date(endDate);
-    const now = new Date();
-    const daysUntilExpiry = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (daysUntilExpiry < 0) return 'expired';
-    if (daysUntilExpiry <= 30) return 'expiring-soon';
-    return 'active';
-  };
+
 
   const getFileIcon = (type: Document['documentType']) => {
     switch (type) {
@@ -224,12 +249,12 @@ const DocumentLibrary: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background.secondary }}>
+    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
-            <FaFolder className="inline mr-3" style={{ color: COLORS.modules.compliance }} />
+          <h1 className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
+            <FaFolder className="inline mr-3" style={{ color: CUSTOM_COLORS.primary }} />
             Document Library
           </h1>
           <p className="text-lg text-gray-600">
@@ -239,7 +264,7 @@ const DocumentLibrary: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: COLORS.modules.compliance }}>
+          <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
             <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
             <div className="text-sm text-gray-600 mt-1">Total Documents</div>
           </div>
@@ -306,7 +331,8 @@ const DocumentLibrary: React.FC = () => {
             </div>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-semibold"
+              className="px-6 py-2 !text-white rounded-lg transition flex items-center gap-2 font-semibold"
+              style={{ background: CUSTOM_COLORS.gradient }}
             >
               <FaPlus /> Upload Document
             </button>
@@ -437,21 +463,7 @@ const DocumentLibrary: React.FC = () => {
                             <FaDownload />
                           </button>
                           <button
-                            onClick={async () => {
-                              if (window.confirm('Are you sure you want to delete this document?')) {
-                                try {
-                                  const result = await deleteDocument(doc._id);
-                                  if (result.success) {
-                                    addNotification('success', result.message || 'Document deleted successfully');
-                                    await fetchData();
-                                  } else {
-                                    addNotification('error', result.message || 'Failed to delete document');
-                                  }
-                                } catch (error: any) {
-                                  addNotification('error', error.message || 'An error occurred');
-                                }
-                              }
-                            }}
+                            onClick={() => handleDeleteDocument(doc)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete"
                           >
                             <FaTrash />
@@ -484,7 +496,7 @@ const DocumentLibrary: React.FC = () => {
 
       {/* Upload Document Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black bg-opacity-50" onClick={() => setShowUploadModal(false)}>
+        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black/40 bg-opacity-50" onClick={() => setShowUploadModal(false)}>
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">
@@ -525,7 +537,7 @@ const DocumentLibrary: React.FC = () => {
                 try {
                   setSubmitting(true);
                   const formData = new FormData();
-                  
+
                   if (!editingDocument && !newDocument.file) {
                     addNotification('error', 'Please select a file to upload');
                     return;
@@ -534,7 +546,7 @@ const DocumentLibrary: React.FC = () => {
                   if (newDocument.file) {
                     formData.append('file', newDocument.file);
                   }
-                  
+
                   formData.append('title', newDocument.title);
                   formData.append('description', newDocument.description || '');
                   formData.append('category', newDocument.category);
@@ -763,7 +775,8 @@ const DocumentLibrary: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 !text-white rounded-xl font-semibold hover:opacity-90 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: CUSTOM_COLORS.gradient }}
                 >
                   {submitting ? 'Saving...' : (editingDocument ? 'Update Document' : 'Upload Document')}
                 </button>
@@ -775,7 +788,7 @@ const DocumentLibrary: React.FC = () => {
 
       {/* Document Detail Modal */}
       {showDetailModal && selectedDocument && (
-        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black bg-opacity-50" onClick={() => setShowDetailModal(false)}>
+        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black/40 bg-opacity-50" onClick={() => setShowDetailModal(false)}>
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">Document Details</h2>
@@ -830,12 +843,11 @@ const DocumentLibrary: React.FC = () => {
                     <span className="text-gray-500">End Date:</span> <span className="text-gray-700">{new Date(selectedDocument.retentionEndDate).toLocaleDateString()}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">Status:</span> 
-                    <span className={`ml-2 ${
-                      selectedDocument.retentionStatus === 'active' ? 'text-green-700' :
+                    <span className="text-gray-500">Status:</span>
+                    <span className={`ml-2 ${selectedDocument.retentionStatus === 'active' ? 'text-green-700' :
                       selectedDocument.retentionStatus === 'expiring-soon' ? 'text-yellow-700' :
-                      selectedDocument.retentionStatus === 'expired' ? 'text-red-700' : 'text-gray-700'
-                    }`}>
+                        selectedDocument.retentionStatus === 'expired' ? 'text-red-700' : 'text-gray-700'
+                      }`}>
                       {selectedDocument.retentionStatus}
                     </span>
                   </div>
@@ -870,7 +882,8 @@ const DocumentLibrary: React.FC = () => {
                       addNotification('error', error.message || 'Failed to download document');
                     }
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                  className="px-4 py-2 !text-white rounded-lg hover:opacity-90 flex items-center gap-2"
+                  style={{ backgroundColor: CUSTOM_COLORS.light }}
                 >
                   <FaDownload /> Download
                 </button>
@@ -898,7 +911,7 @@ const DocumentLibrary: React.FC = () => {
                     setShowDetailModal(false);
                     setShowUploadModal(true);
                   }}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"
+                  className="px-4 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"
                 >
                   <FaEdit /> Edit
                 </button>
@@ -918,6 +931,37 @@ const DocumentLibrary: React.FC = () => {
           />
         ))}
       </div>
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && documentToDelete && (
+        <div className="fixed inset-0 flex justify-center items-center z-[11000] p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaExclamationTriangle className="text-red-500 text-3xl" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Delete Document?</h2>
+              <p className="text-gray-600">
+                Are you sure you want to delete <span className="font-semibold text-gray-800">"{documentToDelete.title}"</span>?
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteDocument}
+                className="flex-1 px-4 py-3 bg-red-600 !text-white rounded-xl font-semibold hover:bg-red-700 transition shadow-lg shadow-red-200"
+              >
+                Delete Document
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

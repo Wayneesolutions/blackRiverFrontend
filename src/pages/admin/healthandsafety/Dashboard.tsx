@@ -9,8 +9,6 @@ import {
   FaChartLine,
   FaUserInjured,
   FaTools,
-  FaCalendarAlt,
-  FaBell,
   FaChevronRight,
 } from '../../../theme/icons';
 import { getUserRole } from '../../../utils/auth';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { CSSProperties } from "react";
+
 import {
   FaShieldAlt,
   FaExclamationTriangle,
@@ -8,12 +8,10 @@ import {
   FaFileInvoiceDollar,
   FaClipboardCheck,
   FaCarCrash,
-  FaSync,
   FaChartLine,
 } from "react-icons/fa";
 import { getCvsaInspectionStats, getTicketStats, getIncidentStats } from "../../../axios/api/admin";
 import { useNavigate } from "react-router-dom";
-import { FLEET_COLORS } from "../fleetMaintenance/colorUtils";
 import { ChevronRight } from "lucide-react";
 
 interface CvsaStats {
@@ -42,14 +40,7 @@ interface IncidentStats {
   closed: number;
 }
 
-const hexToRgba = (hex: string, alpha = 1) => {
-  const parsed = hex.replace("#", "");
-  const bigint = parseInt(parsed, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
+
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -77,7 +68,7 @@ function Dashboard() {
     closed: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
 
   const fetchComplianceData = async () => {
     setLoading(true);
@@ -100,7 +91,7 @@ function Dashboard() {
         setIncidentStats(incidentRes.data || { total: 0, open: 0, underReview: 0, closed: 0 });
       }
 
-      setLastUpdated(new Date().toISOString());
+
     } catch (error: any) {
       console.error("Error fetching compliance data:", error);
     } finally {
@@ -119,7 +110,8 @@ function Dashboard() {
     icon: Icon,
     onClick,
     bgColor,
-    iconColor
+    iconColor,
+    cardBg
   }: {
     title: string;
     value: number | string;
@@ -128,11 +120,12 @@ function Dashboard() {
     onClick?: () => void;
     bgColor: string;
     iconColor: string;
+    cardBg?: string;
   }) => {
     return (
       <div
         onClick={onClick}
-        className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+        className={`${cardBg || 'bg-white'} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-gray-200 hover:border-[#42aeec]/40 hover:scale-[1.02] active:scale-[0.98]`}
       >
         <div className="flex items-start justify-between mb-2">
           {/* Left side content */}
@@ -223,7 +216,7 @@ function Dashboard() {
               <h1 className="text-xl font-bold text-white">Compliance Overview</h1>
               <div className="flex items-center gap-2 text-white/90">
                 <span className="text-xs">Compliance Dashboard</span>
-                {lastUpdated && <span className="text-[10px] opacity-75">Updated: {new Date(lastUpdated).toLocaleTimeString()}</span>}
+
               </div>
             </div>
           </div>
@@ -235,8 +228,9 @@ function Dashboard() {
               value={cvsaStats.total}
               subtitle={`Pass: ${cvsaStats.pass} | Fail: ${cvsaStats.fail}`}
               icon={FaClipboardCheck}
-              bgColor="bg-blue-50"
+              bgColor="bg-blue-100"
               iconColor="text-blue-600"
+              cardBg="bg-gradient-to-br from-blue-50 to-blue-100"
               onClick={() => navigate("/admin/compliance/cvsa-inspection")}
             />
             <StatCard
@@ -244,8 +238,9 @@ function Dashboard() {
               value={ticketStats.total}
               subtitle={`Paid: ${ticketStats.paid} | Unpaid: ${ticketStats.unpaid}`}
               icon={FaFileInvoiceDollar}
-              bgColor="bg-purple-50"
+              bgColor="bg-purple-100"
               iconColor="text-purple-600"
+              cardBg="bg-gradient-to-br from-purple-50 to-purple-100"
               onClick={() => navigate("/admin/compliance/tickets")}
             />
             <StatCard
@@ -253,8 +248,9 @@ function Dashboard() {
               value={incidentStats.total}
               subtitle={`Open: ${incidentStats.open} | Closed: ${incidentStats.closed}`}
               icon={FaCarCrash}
-              bgColor="bg-orange-50"
+              bgColor="bg-orange-100"
               iconColor="text-orange-600"
+              cardBg="bg-gradient-to-br from-orange-50 to-orange-100"
               onClick={() => navigate("/admin/compliance/incidents")}
             />
           </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Edit, Trash2, Plus, X, Save, RefreshCw, AlertCircle, User, Phone, Upload, Search, Briefcase, MapPin, FileText, Heart, CreditCard, Globe, Building2, ChevronRight, ChevronLeft, CheckCircle, Eye, DollarSign, Snowflake, Thermometer } from 'lucide-react';
+import { Edit, Trash2, Plus, X, RefreshCw, AlertCircle, User, Search, Eye, CheckCircle, FileText, Briefcase, Phone, Globe, MapPin, CreditCard, Heart, Building2, DollarSign, Snowflake, Thermometer, Upload, ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import * as driverApi from '../../../../axios/api/driver';
 import { getDocumentsByEmployee, createEmployeeDocument, getSignedEmployeeDocumentUrl } from '../../../../axios/api/employeeDocument';
@@ -83,7 +83,7 @@ const DriverManagement = () => {
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [driverDocuments, setDriverDocuments] = useState<DriverDocumentForm[]>([]);
-  const [existingDocuments, setExistingDocuments] = useState<EmployeeDocument[]>([]);
+
   const [showDocumentsModal, setShowDocumentsModal] = useState<{ show: boolean; driver: Driver | null }>({ show: false, driver: null });
 
   const [formData, setFormData] = useState<DriverFormData>({
@@ -216,7 +216,7 @@ const DriverManagement = () => {
       highTempThreshold: '35'
     });
     setDriverDocuments([]);
-    setExistingDocuments([]);
+
     setCurrentStep(1);
   };
 
@@ -406,7 +406,7 @@ const DriverManagement = () => {
         try {
           const docsResponse = await getDocumentsByEmployee(driver._id);
           if (docsResponse.success && Array.isArray(docsResponse.data)) {
-            setExistingDocuments(docsResponse.data);
+
             // Convert existing documents to form format for editing
             const formDocs = docsResponse.data.map((doc: EmployeeDocument) => ({
               documentType: doc.documentType,
@@ -422,7 +422,7 @@ const DriverManagement = () => {
           }
         } catch (docError) {
           console.error('Error fetching documents:', docError);
-          setExistingDocuments([]);
+
           setDriverDocuments([]);
         }
 
@@ -457,7 +457,7 @@ const DriverManagement = () => {
 
         // Use documents from driver object if available
         if (driver.documents && Array.isArray(driver.documents)) {
-          setExistingDocuments(driver.documents);
+
           const formDocs = driver.documents.map((doc: EmployeeDocument) => ({
             documentType: doc.documentType,
             documentNumber: doc.documentNumber || '',
@@ -503,7 +503,7 @@ const DriverManagement = () => {
       });
 
       if (driver.documents && Array.isArray(driver.documents)) {
-        setExistingDocuments(driver.documents);
+
         const formDocs = driver.documents.map((doc: EmployeeDocument) => ({
           documentType: doc.documentType,
           documentNumber: doc.documentNumber || '',

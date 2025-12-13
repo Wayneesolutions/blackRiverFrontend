@@ -3,16 +3,16 @@ import { FileText, Search, Upload, Eye, Download, Trash2, CheckCircle, XCircle, 
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 
 // Import your actual API functions here
-import { 
-  createDriverDocument, 
+import {
+  createDriverDocument,
   updateDriverDocument,
   deleteDriverDocument
 } from '../../../../axios/api/compilance.driverdoc';
 import { getAllDrivers } from '../../../../axios/api/driver';
-import { 
+import {
   getAllEmployeeDocuments,
   getDocumentsByEmployee,
-  getEmployeeDocumentStats 
+  getEmployeeDocumentStats
 } from '../../../../axios/api/employeeDocument';
 
 type NotificationType = 'success' | 'error' | 'info';
@@ -133,13 +133,13 @@ const DriverDocumentsPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch drivers
       const driversResponse = await getAllDrivers(1, 100);
       if (driversResponse.success && Array.isArray(driversResponse.data)) {
         setDrivers(driversResponse.data);
       }
-      
+
       // Fetch documents and stats
       if (selectedDriver?._id) {
         // Fetch documents for selected driver
@@ -182,7 +182,7 @@ const DriverDocumentsPage = () => {
           setDriverDocuments(transformedDocs);
         }
       }
-      
+
       // Fetch document stats
       const statsResponse = await getEmployeeDocumentStats();
       if (statsResponse.success && statsResponse.data) {
@@ -216,24 +216,24 @@ const DriverDocumentsPage = () => {
     if (typeof doc.driver === 'object' && doc.driver !== null && 'name' in doc.driver) {
       return doc.driver.name;
     }
-    
+
     // If driver is a string ID, look it up in driverDocuments or drivers array
-    const driverId = typeof doc.driver === 'string' ? doc.driver : doc.driver?._id;
-    
+    const driverId = typeof doc.driver === 'string' ? doc.driver : (doc.driver as any)._id;
+
     if (driverId) {
       // First, try to find in driverDocuments (which has the driver info)
       const driverDoc = driverDocuments.find(drvDoc => drvDoc.driver._id === driverId);
       if (driverDoc) {
         return driverDoc.driver.name;
       }
-      
+
       // If not found, look in drivers array
       const driver = drivers.find(d => d._id === driverId);
       if (driver) {
         return driver.name;
       }
     }
-    
+
     return 'Unknown Driver';
   };
 
@@ -254,7 +254,7 @@ const DriverDocumentsPage = () => {
 
   const handleDeleteDocument = async () => {
     if (!documentToDelete) return;
-    
+
     try {
       const response = await deleteDriverDocument(documentToDelete);
       if (response && response.success) {
@@ -321,7 +321,7 @@ const DriverDocumentsPage = () => {
           <Notification key={notification.id} notification={notification} onClose={removeNotification} />
         ))}
       </div>
-      
+
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
         <div className="flex items-center justify-between mb-4">
@@ -332,7 +332,7 @@ const DriverDocumentsPage = () => {
               <p className="text-gray-600 mt-1">Viewing documents for: <span className="font-semibold text-blue-600">{selectedDriver.name}</span></p>
             )}
           </div>
-          <button 
+          <button
             onClick={() => setShowUploadModal(true)}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
           >
@@ -416,12 +416,12 @@ const DriverDocumentsPage = () => {
             <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
             <p className="text-gray-500 mb-4">
-              {selectedDriver 
+              {selectedDriver
                 ? `${selectedDriver.name} has no documents uploaded yet.`
                 : 'No driver documents found. Upload driver compliance documents to get started.'
               }
             </p>
-            <button 
+            <button
               onClick={() => setShowUploadModal(true)}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
             >
@@ -445,12 +445,12 @@ const DriverDocumentsPage = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-600">{drvDoc.documents.length} documents</span>
-                    <button 
+                    <button
                       onClick={() => {
                         setSelectedDriver(drvDoc.driver);
                         setShowUploadModal(true);
                       }}
-                      className="p-2 hover:bg-blue-200 rounded-lg" 
+                      className="p-2 hover:bg-blue-200 rounded-lg"
                       title="Upload Document"
                     >
                       <Plus className="w-4 h-4 text-gray-600" />
@@ -506,31 +506,31 @@ const DriverDocumentsPage = () => {
                           <td className="px-6 py-4">
                             <div className="flex items-center space-x-2">
                               {doc.fileUrl && (
-                                <button 
+                                <button
                                   onClick={() => window.open(doc.fileUrl, '_blank')}
-                                  className="p-1.5 hover:bg-green-50 rounded text-green-600" 
+                                  className="p-1.5 hover:bg-green-50 rounded text-green-600"
                                   title="Download"
                                 >
                                   <Download className="w-4 h-4" />
                                 </button>
                               )}
-                              <button 
+                              <button
                                 onClick={() => handleViewDocument(doc)}
-                                className="p-1.5 hover:bg-blue-50 rounded text-blue-600" 
+                                className="p-1.5 hover:bg-blue-50 rounded text-blue-600"
                                 title="View"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
-                              <button 
+                              <button
                                 onClick={() => handleEditDocument(doc)}
-                                className="p-1.5 hover:bg-yellow-50 rounded text-yellow-600" 
+                                className="p-1.5 hover:bg-yellow-50 rounded text-yellow-600"
                                 title="Edit"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
-                              <button 
+                              <button
                                 onClick={() => handleDeleteClick(doc._id)}
-                                className="p-1.5 hover:bg-red-50 rounded text-red-600" 
+                                className="p-1.5 hover:bg-red-50 rounded text-red-600"
                                 title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -624,12 +624,12 @@ const DriverDocumentsPage = () => {
 };
 
 // Upload Document Modal Component
-const UploadDocumentModal = ({ 
-  driver, 
-  drivers, 
+const UploadDocumentModal = ({
+  driver,
+  drivers,
   documentTypes,
-  onClose, 
-  onSuccess, 
+  onClose,
+  onSuccess,
   editingDocument,
   onError
 }: {
@@ -696,14 +696,14 @@ const UploadDocumentModal = ({
       submitData.append('employee', formData.driver);
       submitData.append('documentType', formData.documentType);
       submitData.append('status', formData.status);
-      
+
       if (formData.documentNumber) submitData.append('documentNumber', formData.documentNumber);
       if (formData.issueDate) submitData.append('issueDate', formData.issueDate);
       if (formData.expiryDate) submitData.append('expiryDate', formData.expiryDate);
       if (formData.description) submitData.append('description', formData.description);
       if (selectedFile) submitData.append('documentFile', selectedFile);
 
-      const response = editingDocument 
+      const response = editingDocument
         ? await updateDriverDocument(editingDocument._id, submitData)
         : await createDriverDocument(submitData);
 
@@ -937,7 +937,7 @@ const ViewDocumentModal = ({
                 <p className="text-lg font-semibold text-gray-900">{document.documentNumber}</p>
               </div>
             )}
-            
+
             {document.issueDate && (
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm font-medium text-gray-600 mb-1">Issue Date</p>

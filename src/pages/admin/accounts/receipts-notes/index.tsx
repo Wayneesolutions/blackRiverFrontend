@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2, Download, Upload, Filter, Receipt, FileText, Eye, Calendar, DollarSign, User, Tag, Paperclip, Image as ImageIcon, X } from 'lucide-react';
-import { 
-  listReceipts, 
-  createReceipt, 
-  updateReceipt, 
-  deleteReceipt, 
+import {
+  listReceipts,
+  createReceipt,
+  updateReceipt,
+  deleteReceipt,
   getReceiptStats,
   getReceiptSignedUrl,
   listFinancialNotes,
@@ -55,7 +55,7 @@ export default function ReceiptsFinancialNotes() {
 
   // Receipts Archive Data
   const [receipts, setReceipts] = useState<ReceiptData[]>([]);
-  
+
   // Financial Notes Data
   const [financialNotes, setFinancialNotes] = useState<FinancialNoteData[]>([]);
 
@@ -81,6 +81,8 @@ export default function ReceiptsFinancialNotes() {
   const [viewingNote, setViewingNote] = useState<FinancialNoteData | null>(null);
   const [receiptViewUrl, setReceiptViewUrl] = useState<string | null>(null);
   const [loadingReceiptUrl, setLoadingReceiptUrl] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'receipt' | 'note' } | null>(null);
 
   // Form data
   const [receiptFormData, setReceiptFormData] = useState({
@@ -112,7 +114,7 @@ export default function ReceiptsFinancialNotes() {
     // Fetch stats first (these should show ALL data, not filtered)
     fetchReceiptStats();
     fetchFinancialNoteStats();
-    
+
     // Then fetch the actual lists
     fetchAllReceipts();
     fetchAllFinancialNotes();
@@ -144,7 +146,7 @@ export default function ReceiptsFinancialNotes() {
           fileUrl: r.fileUrl,
           uploadedBy: r.uploadedBy
         }));
-        
+
         // Calculate stats from all receipts
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -154,7 +156,7 @@ export default function ReceiptsFinancialNotes() {
           receiptDate.setHours(0, 0, 0, 0);
           return receiptDate >= oneWeekAgo;
         }).length;
-        
+
         const lastWeekAmount = formattedReceipts
           .filter((r: ReceiptData) => {
             const receiptDate = new Date(r.date);
@@ -162,7 +164,7 @@ export default function ReceiptsFinancialNotes() {
             return receiptDate >= oneWeekAgo;
           })
           .reduce((sum: number, r: ReceiptData) => sum + (r.amount || 0), 0);
-        
+
         setReceiptStats({
           totalReceipts: formattedReceipts.length,
           totalAmount: lastWeekAmount, // Last 7 days amount
@@ -198,7 +200,7 @@ export default function ReceiptsFinancialNotes() {
           createdBy: n.createdBy,
           createdAt: n.createdAt || n.date
         }));
-        
+
         // Calculate stats from all notes
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -208,7 +210,7 @@ export default function ReceiptsFinancialNotes() {
           noteDate.setHours(0, 0, 0, 0);
           return noteDate >= oneWeekAgo;
         }).length;
-        
+
         setNoteStats({
           totalNotes: formattedNotes.length,
           recentCount: recentCount
@@ -314,38 +316,54 @@ export default function ReceiptsFinancialNotes() {
 
   // Summary Cards Data - using real stats
   const summaryCards = [
-    { 
-      title: 'Total Receipts', 
-      value: receiptStats.totalReceipts.toString(), 
-      change: `+${receiptStats.thisWeekCount} this week`, 
-      icon: Receipt, 
-      color: 'blue' 
+    {
+      title: 'Total Receipts',
+      value: receiptStats.totalReceipts.toString(),
+      change: `+${receiptStats.thisWeekCount} this week`,
+      icon: Receipt,
+      color: 'blue',
+      // bgColor: '#E3F2FD',
+      // borderColor: '#BBDEFB',
+      // textColor: '#016ab2',
+      // labelColor: '#063f6f'
     },
-    { 
-      title: 'Total Amount', 
-      value: `$${receiptStats.totalAmount.toFixed(2)}`, 
-      change: 'Last 7 days', 
-      icon: DollarSign, 
-      color: 'green' 
+    {
+      title: 'Total Amount',
+      value: `$${receiptStats.totalAmount.toFixed(2)}`,
+      change: 'Last 7 days',
+      icon: DollarSign,
+      color: 'green',
+      // bgColor: '#E8F5E9',
+      // borderColor: '#C8E6C9',
+      // textColor: '#016ab2',
+      // labelColor: '#063f6f'
     },
-    { 
-      title: 'Financial Notes', 
-      value: noteStats.totalNotes.toString(), 
-      change: `${noteStats.recentCount} recent`, 
-      icon: FileText, 
-      color: 'purple' 
+    {
+      title: 'Financial Notes',
+      value: noteStats.totalNotes.toString(),
+      change: `${noteStats.recentCount} recent`,
+      icon: FileText,
+      color: 'purple',
+      // bgColor: '#F3E5F5',
+      // borderColor: '#E1BEE7',
+      // textColor: '#016ab2',
+      //   labelColor: '#063f6f'
     },
-    { 
-      title: 'Pending Reviews', 
-      value: receiptStats.pendingReviews.toString(), 
-      change: 'Needs attention', 
-      icon: Eye, 
-      color: 'orange' 
+    {
+      title: 'Pending Reviews',
+      value: receiptStats.pendingReviews.toString(),
+      change: 'Needs attention',
+      icon: Eye,
+      color: 'orange',
+      // bgColor: '#FFF3E0',
+      // borderColor: '#FFE0B2',
+      // textColor: '#016ab2',
+      // labelColor: '#063f6f'
     }
   ];
 
-  const filteredReceipts = selectedExpenseType === 'All' 
-    ? receipts 
+  const filteredReceipts = selectedExpenseType === 'All'
+    ? receipts
     : receipts.filter(r => r.expenseType === selectedExpenseType);
 
   const filteredNotes = financialNotes.filter(note => {
@@ -386,18 +404,9 @@ export default function ReceiptsFinancialNotes() {
     setShowReceiptModal(true);
   };
 
-  const handleDeleteReceipt = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this receipt?')) return;
-    try {
-      const response = await deleteReceipt(id);
-      if (response?.success) {
-        fetchReceipts();
-        fetchReceiptStats();
-      }
-    } catch (error: any) {
-      console.error('Error deleting receipt:', error);
-      alert('Failed to delete receipt');
-    }
+  const handleDeleteReceipt = (id: string) => {
+    setItemToDelete({ id, type: 'receipt' });
+    setShowDeleteModal(true);
   };
 
   const handleSubmitReceipt = async (e: React.FormEvent) => {
@@ -440,7 +449,7 @@ export default function ReceiptsFinancialNotes() {
     setViewingReceipt(receipt);
     setReceiptViewUrl(null);
     setShowViewModal(true);
-    
+
     // Fetch signed URL for viewing
     if (receipt._id) {
       setLoadingReceiptUrl(true);
@@ -499,18 +508,9 @@ export default function ReceiptsFinancialNotes() {
     setShowNoteModal(true);
   };
 
-  const handleDeleteNote = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this note?')) return;
-    try {
-      const response = await deleteFinancialNote(id);
-      if (response?.success) {
-        fetchFinancialNotes();
-        fetchFinancialNoteStats();
-      }
-    } catch (error: any) {
-      console.error('Error deleting note:', error);
-      alert('Failed to delete note');
-    }
+  const handleDeleteNote = (id: string) => {
+    setItemToDelete({ id, type: 'note' });
+    setShowDeleteModal(true);
   };
 
   const handleSubmitNote = async (e: React.FormEvent) => {
@@ -546,82 +546,122 @@ export default function ReceiptsFinancialNotes() {
   const handleViewNote = (note: FinancialNoteData) => {
     setViewingNote(note);
     setShowViewModal(true);
+    setShowViewModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    try {
+      let response;
+      if (itemToDelete.type === 'receipt') {
+        response = await deleteReceipt(itemToDelete.id);
+        if (response?.success) {
+          fetchReceipts();
+          fetchReceiptStats();
+        }
+      } else {
+        response = await deleteFinancialNote(itemToDelete.id);
+        if (response?.success) {
+          fetchFinancialNotes();
+          fetchFinancialNoteStats();
+        }
+      }
+
+      if (!response?.success) {
+        alert('Failed to delete item');
+      }
+    } catch (error: any) {
+      console.error('Error deleting item:', error);
+      alert('Failed to delete item');
+    } finally {
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#EDF8FF]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">📋 Receipts & Financial Notes</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Store and manage digital receipts, and log internal finance comments
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {activeTab === 'receipts-archive' && (
-                <button 
-                  onClick={handleCreateReceipt}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload Receipt
-                </button>
-              )}
-              {activeTab === 'financial-notes' && (
-                <button 
-                  onClick={handleCreateNote}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  New Note
-                </button>
-              )}
+      <div className='p-5'>
+        <div className="bg-white border-b border-gray-200">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📋 Receipts & Financial Notes</h1>
+                <p className="text-sm text-gray-600 mt-1">
+                  Store and manage digital receipts, and log internal finance comments
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {activeTab === 'receipts-archive' && (
+                  <button
+                    onClick={handleCreateReceipt}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload Receipt
+                  </button>
+                )}
+                {activeTab === 'financial-notes' && (
+                  <button
+                    onClick={handleCreateNote}
+                    className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
+                    style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                  >
+                    <Plus className="w-4 h-4" />
+                    New Note
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Tabs */}
-        <div className="px-6">
-          <div className="flex gap-1 border-b border-gray-200">
-            {tabs.map(tab => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-                    activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600'
+          {/* Tabs */}
+          <div className="px-6">
+            <div className="flex gap-1 border-b border-gray-200">
+              {tabs.map(tab => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === tab.id
+                      ? 'border-[#42aeec] text-[#016ab2]'
                       : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              );
-            })}
+                      }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
-
       {/* Summary Cards */}
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {summaryCards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <div key={index} className="bg-white rounded-lg shadow p-6">
+              <div key={index} className={`rounded-lg shadow-sm p-6 border ${card.color === 'blue' ? 'bg-[#E3F2FD] border-blue-100' :
+                card.color === 'green' ? 'bg-[#E8F5E9] border-green-100' :
+                  card.color === 'purple' ? 'bg-[#F3E5F5] border-purple-100' :
+                    'bg-[#FFF3E0] border-orange-100'
+                }`}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-${card.color}-100`}>
-                    <Icon className={`w-6 h-6 text-${card.color}-600`} />
+                  <div className={`p-3 rounded-lg bg-white`}>
+                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[#42aeec]' :
+                      card.color === 'green' ? 'text-[#0ea3d8]' :
+                        card.color === 'purple' ? 'text-[#1db5f5]' :
+                          'text-orange-500' // Keeping orange logic or similar
+                      }`} />
                   </div>
-                  <span className="text-sm text-gray-600 font-medium">{card.change}</span>
+                  <span className="text-sm text-[#063f6f] font-medium">{card.change}</span>
                 </div>
-                <h3 className="text-gray-600 text-sm font-medium mb-1">{card.title}</h3>
-                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                <h3 className="text-[#063f6f] text-sm font-medium mb-1">{card.title}</h3>
+                <p className="text-2xl font-bold text-[#016ab2]">{card.value}</p>
               </div>
             );
           })}
@@ -644,7 +684,7 @@ export default function ReceiptsFinancialNotes() {
                   />
                 </div>
                 {activeTab === 'receipts-archive' && (
-                  <select 
+                  <select
                     value={selectedExpenseType}
                     onChange={(e) => setSelectedExpenseType(e.target.value)}
                     className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -714,12 +754,11 @@ export default function ReceiptsFinancialNotes() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            receipt.expenseType === 'Fuel' ? 'bg-blue-100 text-blue-800' :
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${receipt.expenseType === 'Fuel' ? 'bg-blue-100 text-blue-800' :
                             receipt.expenseType === 'Repair' ? 'bg-orange-100 text-orange-800' :
-                            receipt.expenseType === 'Permit Fees' ? 'bg-purple-100 text-purple-800' :
-                            'bg-green-100 text-green-800'
-                          }`}>
+                              receipt.expenseType === 'Permit Fees' ? 'bg-purple-100 text-purple-800' :
+                                'bg-green-100 text-green-800'
+                            }`}>
                             {receipt.expenseType}
                           </span>
                         </td>
@@ -736,30 +775,30 @@ export default function ReceiptsFinancialNotes() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <div className="flex items-center gap-2">
-                            <button 
+                            <button
                               onClick={() => handleViewReceipt(receipt)}
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded" 
+                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
                               title="View Receipt"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleDownloadReceipt(receipt)}
-                              className="p-1 text-green-600 hover:bg-green-50 rounded" 
+                              className="p-1 text-green-600 hover:bg-green-50 rounded"
                               title="Download"
                             >
                               <Download className="w-4 h-4" />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleEditReceipt(receipt)}
-                              className="p-1 text-gray-600 hover:bg-gray-50 rounded" 
+                              className="p-1 text-gray-600 hover:bg-gray-50 rounded"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleDeleteReceipt(receipt._id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded" 
+                              className="p-1 text-red-600 hover:bg-red-50 rounded"
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -828,23 +867,23 @@ export default function ReceiptsFinancialNotes() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <div className="flex items-center gap-2">
-                            <button 
+                            <button
                               onClick={() => handleViewNote(note)}
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded" 
+                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
                               title="View Note"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleEditNote(note)}
-                              className="p-1 text-gray-600 hover:bg-gray-50 rounded" 
+                              className="p-1 text-gray-600 hover:bg-gray-50 rounded"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleDeleteNote(note._id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded" 
+                              className="p-1 text-red-600 hover:bg-red-50 rounded"
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -869,7 +908,7 @@ export default function ReceiptsFinancialNotes() {
                 {activeTab === 'receipts-archive' ? 'Receipt Management' : 'Financial Notes'}
               </h4>
               <p className="text-sm text-blue-800">
-                {activeTab === 'receipts-archive' 
+                {activeTab === 'receipts-archive'
                   ? 'Store digital receipts for fuel, repair, permit fees, and scales. All files are securely stored and can be previewed with thumbnail images. Supported formats: PNG, JPG, PDF.'
                   : 'Log internal finance comments and link them to specific transactions like invoices or settlements. Use notes to track adjustments, reviews, and important financial decisions.'
                 }
@@ -958,7 +997,11 @@ export default function ReceiptsFinancialNotes() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  style={{
+                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+
+                  }}
+                  className="px-4 py-2  !text-white rounded-lg"
                 >
                   {editingReceipt ? 'Update' : 'Upload'}
                 </button>
@@ -1029,7 +1072,8 @@ export default function ReceiptsFinancialNotes() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                  className="px-4 py-2  !text-white rounded-lg"
                 >
                   {editingNote ? 'Update' : 'Create'}
                 </button>
@@ -1054,13 +1098,13 @@ export default function ReceiptsFinancialNotes() {
               <h2 className="text-xl font-bold">
                 {viewingReceipt ? 'Receipt Details' : 'Note Details'}
               </h2>
-              <button 
+              <button
                 onClick={() => {
                   setShowViewModal(false);
                   setViewingReceipt(null);
                   setViewingNote(null);
                   setReceiptViewUrl(null);
-                }} 
+                }}
                 className="text-gray-500 hover:text-gray-700"
               >
                 <X className="w-5 h-5" />
@@ -1094,15 +1138,15 @@ export default function ReceiptsFinancialNotes() {
                     ) : receiptViewUrl ? (
                       <div className="w-full border border-gray-300 rounded-lg overflow-hidden">
                         {receiptViewUrl.toLowerCase().endsWith('.pdf') || viewingReceipt.fileType === 'PDF' ? (
-                          <iframe 
-                            src={receiptViewUrl} 
+                          <iframe
+                            src={receiptViewUrl}
                             className="w-full h-96"
                             title="Receipt Preview"
                           />
                         ) : (
-                          <img 
-                            src={receiptViewUrl} 
-                            alt="Receipt" 
+                          <img
+                            src={receiptViewUrl}
+                            alt="Receipt"
                             className="w-full h-auto max-h-96 object-contain"
                             onError={(e) => {
                               // If image fails to load, try as iframe
@@ -1152,6 +1196,35 @@ export default function ReceiptsFinancialNotes() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4 text-red-600">
+              <Trash2 className="w-6 h-6" />
+              <h3 className="text-lg font-bold">Confirm Deletion</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this item? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

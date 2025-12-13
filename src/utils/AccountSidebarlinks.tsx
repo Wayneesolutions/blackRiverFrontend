@@ -1,14 +1,17 @@
-import { MdDashboard } from "react-icons/md"; 
-import { 
-    FaFileInvoiceDollar, 
-    FaMoneyBillWave, 
-    FaUserTie, 
-    FaChartLine, 
-    FaHandshake, 
-    FaTools, 
-    FaReceipt 
+import { MdDashboard } from "react-icons/md";
+import {
+    FaFileInvoiceDollar,
+    FaMoneyBillWave,
+    FaUsers,
+    FaIdBadge,
+    FaHandshake,
+    FaTools,
+    FaReceipt,
+    FaPercentage
 } from "react-icons/fa";
-import { Sparkles } from "lucide-react"; 
+import { BarChart3 } from "lucide-react";
+import { Sparkles } from "lucide-react";
+
 
 type AccountSidebarlinks = {
     key: string;
@@ -24,10 +27,6 @@ export const AccountSidebarlinks: AccountSidebarlinks[] = [
         label: "Dashboard",
     },
 
-    // NEW — Accounting Config / Accounts Setup
- 
-
-    // NEW — Settlements
     {
         key: "/admin/accounts/settlements",
         icon: <FaHandshake />,
@@ -48,44 +47,45 @@ export const AccountSidebarlinks: AccountSidebarlinks[] = [
 
     {
         key: "/admin/accounts/payroll",
-        icon: <FaUserTie />,
+        icon: <FaUsers />,
         label: "Employees Payroll",
     },
 
     {
         key: "/admin/accounts/driverpayroll",
-        icon: <FaUserTie />,
+        icon: <FaIdBadge />,
         label: "Driver Payroll",
     },
 
-    // NEW — Fleet & Maintenance Finance
     {
         key: "/admin/accounts/fleet-maintenance",
         icon: <FaTools />,
         label: "Fleet & Maint. Finance",
     },
 
-    // NEW — Receipts & Financial Notes
     {
         key: "/admin/accounts/receipts-notes",
         icon: <FaReceipt />,
         label: "Receipts & Notes",
     },
-   
-    {
-        key: "/admin/accounts/tax-setup",
-        icon: <FaReceipt />,
-        label: " Tax Setup & Rate Management",
-    },
+
     {
         key: "/admin/accounts/config",
-        icon: <FaChartLine />,
+        icon: <BarChart3 className="w-5 h-5" />,
         label: "Accounting Config",
     },
+
     {
         key: "/admin/accounts/cash-flow-insights",
         icon: <Sparkles className="w-5 h-5" />,
         label: "Cash Flow Insights",
     },
+
+    {
+        key: "/admin/accounts/tax-setup",
+        icon: <FaPercentage />,
+        label: "Tax Setup & Rate Management",
+    },
 ];
+
 

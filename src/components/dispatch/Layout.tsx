@@ -30,7 +30,7 @@ const Layout = () => {
             <div className="flex flex-col flex-1 h-full overflow-hidden">
                 {/* Header - fixed at top */}
                 <div className="flex-shrink-0">
-                    <DispatchHeader isSidebarCollapsed={isSidebarCollapsed}
+                    <DispatchHeader
                         onToggleSidebar={toggleSidebar} />
                 </div>
 

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, Calendar, AlertTriangle, CheckCircle, Lightbulb, Target, ArrowLeft, RefreshCw, Sparkles } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Calendar, AlertTriangle, CheckCircle, Lightbulb, Target, RefreshCw, Sparkles } from 'lucide-react';
 import { getCashFlowInsights, type CashFlowInsightsResponse } from '../../../../axios/api/account.cashflow';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
-interface CashFlowInsightsPageProps {}
+interface CashFlowInsightsPageProps { }
 
 const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
     const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
             if (customDateRange.end) params.endDate = customDateRange.end;
 
             const response = await getCashFlowInsights(params);
-            
+
             if (response.success && response.data) {
                 setInsightsData(response.data);
             } else {
@@ -95,21 +95,16 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
     };
 
     return (
-        <div className="min-h-screen p-6 bg-gray-50">
+        <div className="min-h-screen p-6 bg-[#EDF8FF]">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
-                            <button
-                                onClick={() => window.history.back()}
-                                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                            >
-                                <ArrowLeft className="h-5 w-5 text-gray-600" />
-                            </button>
+
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                                    <Sparkles className="h-8 w-8 text-purple-600" />
+                                <h1 className="text-3xl font-bold flex items-center gap-2" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+
                                     Cash Flow Insights
                                 </h1>
                                 <p className="text-gray-600 mt-1">AI-powered financial analysis and predictions</p>
@@ -217,13 +212,13 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
 
                                 {/* Cash Flow Status */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                    <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
+                                    <div className="bg-[#E3F2FD] rounded-lg p-4 border-2 border-blue-100">
                                         <div className="text-sm text-gray-600 mb-1">Current Cash Position</div>
                                         <div className={`text-2xl font-bold ${insightsData.aiInsights.summary.currentCashPosition >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                             {formatCurrency(insightsData.aiInsights.summary.currentCashPosition)}
                                         </div>
                                     </div>
-                                    <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
+                                    <div className="bg-[#E0F7FA] rounded-lg p-4 border-2 border-cyan-100">
                                         <div className="text-sm text-gray-600 mb-1">Cash Flow Status</div>
                                         <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(insightsData.aiInsights.summary.cashFlowStatus)}`}>
                                             {insightsData.aiInsights.summary.cashFlowStatus.charAt(0).toUpperCase() + insightsData.aiInsights.summary.cashFlowStatus.slice(1)}
@@ -232,7 +227,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                             {insightsData.aiInsights.summary.daysCashOnHand} days cash on hand
                                         </div>
                                     </div>
-                                    <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
+                                    <div className="bg-[#FFEBEE] rounded-lg p-4 border-2 border-red-100">
                                         <div className="text-sm text-gray-600 mb-1">Total Obligations</div>
                                         <div className="text-2xl font-bold text-red-600">
                                             {formatCurrency(insightsData.aiInsights.summary.totalObligations)}
@@ -270,7 +265,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
 
                         {/* Financial Overview */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <div className="bg-[#E8F5E9] rounded-lg p-6 border border-green-100 shadow-sm">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-sm font-medium text-gray-600">Total Revenue</span>
                                     <TrendingUp className="h-5 w-5 text-green-500" />
@@ -279,7 +274,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                 <div className="text-xs text-gray-500 mt-1">{insightsData.paidInvoices.count} paid invoices</div>
                             </div>
 
-                            <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <div className="bg-[#FFF8E1] rounded-lg p-6 border border-yellow-100 shadow-sm">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-sm font-medium text-gray-600">Pending Invoices</span>
                                     <DollarSign className="h-5 w-5 text-yellow-500" />
@@ -288,7 +283,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                 <div className="text-xs text-gray-500 mt-1">{insightsData.pendingInvoices.count} outstanding</div>
                             </div>
 
-                            <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <div className="bg-[#FFEBEE] rounded-lg p-6 border border-red-100 shadow-sm">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-sm font-medium text-gray-600">Total Expenses</span>
                                     <TrendingDown className="h-5 w-5 text-red-500" />
@@ -297,7 +292,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                 <div className="text-xs text-gray-500 mt-1">Expense management</div>
                             </div>
 
-                            <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <div className="bg-[#E3F2FD] rounded-lg p-6 border border-blue-100 shadow-sm">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-sm font-medium text-gray-600">Total Payroll</span>
                                     <DollarSign className="h-5 w-5 text-blue-500" />
@@ -429,7 +424,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                                         <div className="text-xs text-gray-600 mb-1">Collection Rate</div>
                                         <div className="text-lg font-bold text-gray-900">
-                                            {typeof insightsData.aiInsights.keyMetrics.collectionRate === 'number' 
+                                            {typeof insightsData.aiInsights.keyMetrics.collectionRate === 'number'
                                                 ? `${insightsData.aiInsights.keyMetrics.collectionRate.toFixed(1)}%`
                                                 : `${insightsData.aiInsights.keyMetrics.collectionRate}%`}
                                         </div>

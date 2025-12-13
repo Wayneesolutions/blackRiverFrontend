@@ -80,6 +80,8 @@ export default function AccountsSetup() {
   const [modalType, setModalType] = useState<TabType>('chart-of-accounts');
   const [loading, setLoading] = useState(false);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: TabType } | null>(null);
 
   // Data states
   const [accounts, setAccounts] = useState<ChartOfAccount[]>([]);
@@ -111,11 +113,7 @@ export default function AccountsSetup() {
     setNotifications((prev: ToastNotification[]) => prev.filter((n: ToastNotification) => n.id !== id));
   };
 
-  const confirmAction = (message: string, onConfirm: () => void) => {
-    if (window.confirm(message)) {
-      onConfirm();
-    }
-  };
+
 
   // Fetch data functions
   const fetchChartOfAccounts = async () => {
@@ -240,45 +238,53 @@ export default function AccountsSetup() {
   };
 
   const handleDelete = (id: string) => {
-    confirmAction('Are you sure you want to delete this item?', async () => {
-      try {
-        let response;
-        if (activeTab === 'chart-of-accounts') {
-          response = await deleteChartOfAccount(id);
-          if (response?.success) {
-            await fetchChartOfAccounts();
-            showNotification('success', 'Chart of account deleted successfully');
-          }
-        } else if (activeTab === 'tax-codes') {
-          response = await deleteTaxCode(id);
-          if (response?.success) {
-            await fetchTaxCodes();
-            showNotification('success', 'Tax code deleted successfully');
-          }
-        } else if (activeTab === 'payment-methods') {
-          response = await deletePaymentMethod(id);
-          if (response?.success) {
-            await fetchPaymentMethods();
-            showNotification('success', 'Payment method deleted successfully');
-          }
-        }
+    setItemToDelete({ id, type: activeTab });
+    setShowDeleteModal(true);
+  };
 
-        if (!response?.success) {
-          showNotification('error', response?.message || 'Failed to delete item');
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      let response;
+      if (itemToDelete.type === 'chart-of-accounts') {
+        response = await deleteChartOfAccount(itemToDelete.id);
+        if (response?.success) {
+          await fetchChartOfAccounts();
+          showNotification('success', 'Chart of account deleted successfully');
         }
-      } catch (error: any) {
-        console.error('Error deleting item:', error);
-        showNotification('error', error?.response?.data?.message || 'An error occurred while deleting item');
+      } else if (itemToDelete.type === 'tax-codes') {
+        response = await deleteTaxCode(itemToDelete.id);
+        if (response?.success) {
+          await fetchTaxCodes();
+          showNotification('success', 'Tax code deleted successfully');
+        }
+      } else if (itemToDelete.type === 'payment-methods') {
+        response = await deletePaymentMethod(itemToDelete.id);
+        if (response?.success) {
+          await fetchPaymentMethods();
+          showNotification('success', 'Payment method deleted successfully');
+        }
       }
-    });
+
+      if (!response?.success) {
+        showNotification('error', response?.message || 'Failed to delete item');
+      }
+    } catch (error: any) {
+      console.error('Error deleting item:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while deleting item');
+    } finally {
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       let response;
-      
+
       if (activeTab === 'chart-of-accounts') {
         const data = {
           number: formData.number || '',
@@ -286,11 +292,11 @@ export default function AccountsSetup() {
           type: formData.type as 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'Expense',
           balance: formData.balance || 0
         };
-        
+
         response = editingItem?._id
           ? await updateChartOfAccount(editingItem._id, data)
           : await createChartOfAccount(data);
-        
+
         if (response?.success) {
           setShowModal(false);
           await fetchChartOfAccounts();
@@ -305,11 +311,11 @@ export default function AccountsSetup() {
           rate: formData.rate || 0,
           category: formData.category as 'Sales Tax' | 'IFTA' | 'Payroll'
         };
-        
+
         response = editingItem?._id
           ? await updateTaxCode(editingItem._id, data)
           : await createTaxCode(data);
-        
+
         if (response?.success) {
           setShowModal(false);
           await fetchTaxCodes();
@@ -323,11 +329,11 @@ export default function AccountsSetup() {
           description: formData.description || '',
           preferred: formData.preferred as 'Driver' | 'Vendor' | 'Carrier'
         };
-        
+
         response = editingItem?._id
           ? await updatePaymentMethod(editingItem._id, data)
           : await createPaymentMethod(data);
-        
+
         if (response?.success) {
           setShowModal(false);
           await fetchPaymentMethods();
@@ -351,12 +357,12 @@ export default function AccountsSetup() {
       case 'sms-billing': data = smsBilling; break;
       default: data = [];
     }
-    
+
     if (data.length === 0) {
       showNotification('error', 'No data to export');
       return;
     }
-    
+
     const csv = [
       Object.keys(data[0]).filter(key => key !== '_id' && key !== '__v').join(','),
       ...data.map(row => {
@@ -370,7 +376,7 @@ export default function AccountsSetup() {
           .join(',');
       })
     ].join('\n');
-    
+
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -384,24 +390,24 @@ export default function AccountsSetup() {
     const term = searchTerm.toLowerCase();
     switch (activeTab) {
       case 'chart-of-accounts':
-        return accounts.filter(a => 
-          a.name.toLowerCase().includes(term) || 
+        return accounts.filter(a =>
+          a.name.toLowerCase().includes(term) ||
           a.number.includes(term) ||
           a.type.toLowerCase().includes(term)
         );
       case 'tax-codes':
-        return taxCodes.filter(t => 
-          t.code.toLowerCase().includes(term) || 
+        return taxCodes.filter(t =>
+          t.code.toLowerCase().includes(term) ||
           t.description.toLowerCase().includes(term)
         );
       case 'payment-methods':
-        return paymentMethods.filter(p => 
-          p.method.toLowerCase().includes(term) || 
+        return paymentMethods.filter(p =>
+          p.method.toLowerCase().includes(term) ||
           p.description.toLowerCase().includes(term)
         );
       case 'sms-billing':
-        return smsBilling.filter(s => 
-          s.recipient.includes(term) || 
+        return smsBilling.filter(s =>
+          s.recipient.includes(term) ||
           s.content.toLowerCase().includes(term) ||
           s.account.toLowerCase().includes(term)
         );
@@ -434,7 +440,7 @@ export default function AccountsSetup() {
                     <input
                       type="text"
                       value={formData.number || ''}
-                      onChange={(e) => setFormData({...formData, number: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, number: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
@@ -444,7 +450,7 @@ export default function AccountsSetup() {
                     <input
                       type="text"
                       value={formData.name || ''}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
@@ -453,7 +459,7 @@ export default function AccountsSetup() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
                     <select
                       value={formData.type || ''}
-                      onChange={(e) => setFormData({...formData, type: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value as 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'Expense' })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
@@ -470,7 +476,7 @@ export default function AccountsSetup() {
                     <input
                       type="number"
                       value={formData.balance || ''}
-                      onChange={(e) => setFormData({...formData, balance: parseFloat(e.target.value)})}
+                      onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
@@ -485,7 +491,7 @@ export default function AccountsSetup() {
                     <input
                       type="text"
                       value={formData.code || ''}
-                      onChange={(e) => setFormData({...formData, code: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
@@ -495,7 +501,7 @@ export default function AccountsSetup() {
                     <input
                       type="text"
                       value={formData.description || ''}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
@@ -506,7 +512,7 @@ export default function AccountsSetup() {
                       type="number"
                       step="0.001"
                       value={formData.rate || ''}
-                      onChange={(e) => setFormData({...formData, rate: parseFloat(e.target.value)})}
+                      onChange={(e) => setFormData({ ...formData, rate: parseFloat(e.target.value) })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
@@ -515,7 +521,7 @@ export default function AccountsSetup() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                     <select
                       value={formData.category || ''}
-                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value as 'Sales Tax' | 'IFTA' | 'Payroll' })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
@@ -535,7 +541,7 @@ export default function AccountsSetup() {
                     <input
                       type="text"
                       value={formData.method || ''}
-                      onChange={(e) => setFormData({...formData, method: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, method: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
@@ -544,7 +550,7 @@ export default function AccountsSetup() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea
                       value={formData.description || ''}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={3}
                       required
@@ -554,7 +560,7 @@ export default function AccountsSetup() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Preferred For</label>
                     <select
                       value={formData.preferred || ''}
-                      onChange={(e) => setFormData({...formData, preferred: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, preferred: e.target.value as 'Driver' | 'Vendor' | 'Carrier' })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
@@ -577,7 +583,8 @@ export default function AccountsSetup() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 !text-white px-4 py-2 rounded-lg transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
+                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
                 >
                   <Save className="w-4 h-4" />
                   Save
@@ -590,8 +597,40 @@ export default function AccountsSetup() {
     );
   };
 
+  const renderDeleteModal = () => {
+    if (!showDeleteModal) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+          <div className="flex items-center gap-3 mb-4 text-red-600">
+            <Trash2 className="w-6 h-6" />
+            <h3 className="text-lg font-bold">Confirm Deletion</h3>
+          </div>
+          <p className="text-gray-600 mb-6">
+            Are you sure you want to delete this item? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setShowDeleteModal(false)}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDelete}
+              className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#EDF8FF]">
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map(notification => (
@@ -604,32 +643,32 @@ export default function AccountsSetup() {
       </div>
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">Accounts & Setup</h1>
-          <p className="text-sm text-gray-600 mt-1">Backend control panel for the entire accounting system</p>
-        </div>
+      <div className='p-5'>
+        <div className="bg-white border-b border-gray-200">
+          <div className="px-6 py-4">
+            <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Accounts & Setup</h1>
+            <p className="text-sm text-gray-600 mt-1">Backend control panel for the entire accounting system</p>
+          </div>
 
-        {/* Tabs */}
-        <div className="px-6">
-          <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
+          {/* Tabs */}
+          <div className="px-6">
+            <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
+                    ? 'border-[#42aeec] text-[#016ab2]'
                     : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+                    }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-
       {/* Content */}
       <div className="p-6">
         <div className="bg-white rounded-lg shadow">
@@ -656,7 +695,7 @@ export default function AccountsSetup() {
                 Export
               </button>
               {activeTab !== 'sms-billing' && (
-                <button onClick={handleAdd} className="flex-1 sm:flex-none px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                <button onClick={handleAdd} className="flex-1 sm:flex-none px-4 py-2 text-sm !text-white rounded-lg transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
                   <Plus className="w-4 h-4" />
                   Add New
                 </button>
@@ -692,13 +731,12 @@ export default function AccountsSetup() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{account.number}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.name}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            account.type === 'Asset' ? 'bg-green-100 text-green-800' :
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${account.type === 'Asset' ? 'bg-green-100 text-green-800' :
                             account.type === 'Liability' ? 'bg-red-100 text-red-800' :
-                            account.type === 'Equity' ? 'bg-blue-100 text-blue-800' :
-                            account.type === 'Revenue' ? 'bg-purple-100 text-purple-800' :
-                            'bg-orange-100 text-orange-800'
-                          }`}>
+                              account.type === 'Equity' ? 'bg-blue-100 text-blue-800' :
+                                account.type === 'Revenue' ? 'bg-purple-100 text-purple-800' :
+                                  'bg-orange-100 text-orange-800'
+                            }`}>
                             {account.type}
                           </span>
                         </td>
@@ -750,9 +788,8 @@ export default function AccountsSetup() {
                         <td className="px-6 py-4 text-sm text-gray-900">{tax.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tax.rate}%</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            tax.category === 'IFTA' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                          }`}>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${tax.category === 'IFTA' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                            }`}>
                             {tax.category}
                           </span>
                         </td>
@@ -826,15 +863,15 @@ export default function AccountsSetup() {
           {/* SMS Billing Tracking */}
           {activeTab === 'sms-billing' && (
             <div>
-              <div className="p-4 bg-blue-50 border-b border-blue-100">
+              <div className="p-4 bg-[#E3F2FD] border-b border-blue-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-blue-900">Total SMS Cost (Last 30 Days)</p>
-                    <p className="text-2xl font-bold text-blue-600">${smsStats.totalCost.toFixed(2)}</p>
+                    <p className="text-sm font-medium text-[#063f6f]">Total SMS Cost (Last 30 Days)</p>
+                    <p className="text-2xl font-bold text-[#016ab2]">${smsStats.totalCost.toFixed(2)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-blue-700">Total Messages: {smsStats.totalMessages}</p>
-                    <p className="text-xs text-blue-600">Avg Cost per SMS: ${smsStats.avgCostPerSms.toFixed(2)}</p>
+                    <p className="text-sm text-[#063f6f]">Total Messages: {smsStats.totalMessages}</p>
+                    <p className="text-xs text-[#016ab2]">Avg Cost per SMS: ${smsStats.avgCostPerSms.toFixed(2)}</p>
                   </div>
                 </div>
               </div>
@@ -878,6 +915,7 @@ export default function AccountsSetup() {
       </div>
 
       {renderModal()}
+      {renderDeleteModal()}
     </div>
   );
 }

@@ -1,40 +1,36 @@
-// components/Header.jsx
 import { useState, useRef, useEffect } from "react";
 import { FaUser, FaSignOutAlt, FaBars, FaChevronDown } from "react-icons/fa";
-import { Search, Clock, X, LogOut, AlertCircle } from "lucide-react";
+import { Search, X, LogOut, AlertCircle, ArrowRight } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
-import QuickAction from "../common/QuickAction";
-import { FLEET_COLORS } from "../../pages/admin/fleetMaintenance/colorUtils";
+import { useQuickActions } from "../common/QuickAction";
 
-const Header = ({ onToggleSidebar, isSidebarCollapsed }) => {
+const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [recentSearches, setRecentSearches] = useState([
-        "Fleet Dispatch",
-        "Driver Assign",
-        "Load Management",
-        "Report Logs"
-    ]);
+    const [selectedIndex, setSelectedIndex] = useState(0);
+    const { filterActions } = useQuickActions();
 
-    const searchRef = useRef(null);
-    const dropdownRef = useRef(null);
-    const inputRef = useRef(null);
+    const filteredActions = filterActions(searchQuery);
+
+    const searchRef = useRef<HTMLDivElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
     const { logout } = useLogout();
     const { userInfo } = useSelector((state: RootState) => state.userAuth);
     const navigate = useNavigate();
 
     // close search overlay on click outside
     useEffect(() => {
-        const handleClick = (e) => {
-            if (searchRef.current && !searchRef.current.contains(e.target)) {
+        const handleClick = (e: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
                 setIsSearchOpen(false);
             }
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
                 setIsDropdownOpen(false);
             }
         };
@@ -44,11 +40,12 @@ const Header = ({ onToggleSidebar, isSidebarCollapsed }) => {
 
     // escape key closes search
     useEffect(() => {
-        const keyHandler = (e) => {
+        const keyHandler = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 setIsSearchOpen(false);
                 setIsDropdownOpen(false);
                 setSearchQuery("");
+                setSelectedIndex(0);
             }
         };
         document.addEventListener("keydown", keyHandler);
@@ -74,11 +71,63 @@ const Header = ({ onToggleSidebar, isSidebarCollapsed }) => {
         navigate("/dispatch/profile");
     };
 
+    const handleActionSelect = (action: any) => {
+        if (action.path) {
+            navigate(action.path);
+            setSearchQuery('');
+            setIsSearchOpen(false);
+            setSelectedIndex(0);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (filteredActions.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setSelectedIndex(prev =>
+                    prev < filteredActions.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setSelectedIndex(prev =>
+                    prev > 0 ? prev - 1 : filteredActions.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (filteredActions.length > 0) {
+                    handleActionSelect(filteredActions[selectedIndex]);
+                }
+                break;
+        }
+    };
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (filteredActions.length > 0) {
+            handleActionSelect(filteredActions[selectedIndex]);
+        }
+    };
+
+    // Reset selected index when search query changes
+    useEffect(() => {
+        setSelectedIndex(0);
+    }, [searchQuery]);
+
+    useEffect(() => {
+        if (isSearchOpen) {
+            setTimeout(() => inputRef.current?.focus(), 100);
+        }
+    }, [isSearchOpen]);
+
 
     return (
         <>
             <header
-                className="flex items-center justify-between px-6 py-4 shadow-sm relative z-20"
+                className="flex items-center justify-between px-6 py-3 shadow-sm relative z-20"
                 style={{
                     background: "linear-gradient(135deg, #42aeec 0%, #31a2d4 100%)"
                 }}
@@ -169,54 +218,104 @@ const Header = ({ onToggleSidebar, isSidebarCollapsed }) => {
                         ref={searchRef}
                         className="bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-4"
                     >
-                        {/* Input */}
-                        <form className="p-4 border-b border-gray-200">
+                        <form onSubmit={handleSearchSubmit} className="p-4 border-b border-gray-200">
                             <div className="relative">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-
+                                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                                    <Search className="text-gray-400" size={20} />
+                                </div>
                                 <input
                                     ref={inputRef}
                                     type="text"
-                                    className="w-full pl-12 pr-12 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec]"
-                                    placeholder="Search anything…"
+                                    placeholder="Quick Action - Type to search..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    className="w-full pl-12 pr-12 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                                 />
-
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setIsSearchOpen(false);
                                         setSearchQuery("");
+                                        setSelectedIndex(0);
                                     }}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
+                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
                                 >
-                                    <X size={20} className="text-gray-400" />
+                                    <X className="text-gray-400" size={20} />
                                 </button>
                             </div>
                         </form>
 
-                        {/* Recent Searches */}
-                        {searchQuery === "" && (
-                            <div className="p-4">
-                                <h3 className="text-sm font-semibold text-gray-700 mb-3">Recent Searches</h3>
-                                <div className="space-y-2">
-                                    {recentSearches.map((item, i) => (
+                        {searchQuery.trim() !== "" && filteredActions.length > 0 && (
+                            <div className="max-h-[400px] overflow-y-auto">
+                                <div className="py-2">
+                                    {filteredActions.map((action, index) => (
                                         <button
-                                            key={i}
-                                            onClick={() => setSearchQuery(item)}
-                                            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg"
+                                            key={action.id}
+                                            onClick={() => handleActionSelect(action)}
+                                            className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex
+                                                ? 'bg-blue-50 border-blue-500'
+                                                : 'border-transparent hover:border-blue-300'
+                                                }`}
                                         >
-                                            <Clock size={16} className="text-gray-400" />
-                                            <span className="text-sm text-gray-700">{item}</span>
+                                            <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
+                                                <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' :
+                                                    action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
+                                                        'bg-gray-100 text-gray-700'
+                                                    }`}>
+                                                    {action.icon}
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 text-left min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-semibold text-gray-900 truncate">{action.title}</span>
+                                                    {action.type === 'create' && (
+                                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                                                            New
+                                                        </span>
+                                                    )}
+                                                    {action.type === 'navigation' && (
+                                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                                                            Navigate
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-gray-500 mt-0.5 truncate">
+                                                    {action.description}
+                                                </p>
+                                            </div>
+                                            <ArrowRight
+                                                className={`flex-shrink-0 transition-all ${index === selectedIndex
+                                                    ? 'text-blue-600 opacity-100 translate-x-0'
+                                                    : 'text-gray-400 opacity-0 -translate-x-1'
+                                                    }`}
+                                                size={18}
+                                            />
                                         </button>
                                     ))}
+                                </div>
+                                <div className="border-t border-gray-200 px-4 py-2 bg-gray-50">
+                                    <p className="text-xs text-gray-500 text-center">
+                                        {filteredActions.length} result{filteredActions.length !== 1 ? 's' : ''} • Use ↑↓ to navigate, Enter to select
+                                    </p>
                                 </div>
                             </div>
                         )}
 
-                        {searchQuery !== "" && (
-                            <p className="text-center py-8 text-gray-500">Search results for "{searchQuery}"</p>
+                        {searchQuery.trim() !== "" && filteredActions.length === 0 && (
+                            <div className="p-8">
+                                <p className="text-sm text-gray-500 text-center">
+                                    No actions found for "{searchQuery}"
+                                </p>
+                            </div>
+                        )}
+
+                        {searchQuery.trim() === "" && (
+                            <div className="p-8">
+                                <p className="text-sm text-gray-500 text-center">
+                                    Type to search for actions, pages, or create new items
+                                </p>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -265,7 +364,7 @@ const Header = ({ onToggleSidebar, isSidebarCollapsed }) => {
                             </button>
                             <button
                                 onClick={confirmLogout}
-                                className="px-6 py-2.5 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-red-500/30"
+                                className="px-6 py-2.5 !text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-red-500/30"
                             >
                                 <LogOut size={18} />
                                 Logout

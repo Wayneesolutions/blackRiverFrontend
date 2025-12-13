@@ -3,12 +3,13 @@ export const FLEET_COLORS = {
   primary: '#016ab2',
   dark: '#063f6f',
   light: '#398bc3',
-  gradient: 'linear-gradient(to right, #016ab2, #063f6f)',
+  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
-  focusRing: 'rgba(1, 106, 178, 0.2)',
+  focusRing: 'rgba(66, 174, 236, 0.2)',
   success: '#10b981',
   warning: '#f59e0b',
   danger: '#ef4444',
+  background: '#EDF8FF',
 };
 
 export const getFocusStyles = () => ({

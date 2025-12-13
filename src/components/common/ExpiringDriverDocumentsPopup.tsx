@@ -69,7 +69,7 @@ const ExpiringDriverDocumentsPopup: React.FC<ExpiringDriverDocumentsPopupProps> 
       setLoading(true);
       console.log('🔍 Fetching expiring driver documents...');
       const response = await getExpiringDriverDocuments(daysThreshold);
-      
+
       if (response.success) {
         console.log('✅ Expiring driver documents fetched:', response.data.length);
         setExpiringDocuments(response.data as unknown as ExpiringDriverDocumentWithDriver[]);
@@ -158,9 +158,9 @@ const ExpiringDriverDocumentsPopup: React.FC<ExpiringDriverDocumentsPopupProps> 
             <div className="space-y-3">
               {expiringDocuments.slice(0, 3).map((doc) => {
                 const daysUntilExpiry = getDaysUntilExpiry(doc.expiryDate!);
-                const urgencyColor = daysUntilExpiry <= 7 ? 'border-red-300 bg-red-50' : 
-                                   daysUntilExpiry <= 14 ? 'border-orange-300 bg-orange-50' : 
-                                   'border-yellow-300 bg-yellow-50';
+                const urgencyColor = daysUntilExpiry <= 7 ? 'border-red-300 bg-red-50' :
+                  daysUntilExpiry <= 14 ? 'border-orange-300 bg-orange-50' :
+                    'border-yellow-300 bg-yellow-50';
 
                 return (
                   <div
@@ -172,15 +172,14 @@ const ExpiringDriverDocumentsPopup: React.FC<ExpiringDriverDocumentsPopupProps> 
                         <div className="flex items-center gap-2 mb-1">
                           {getUrgencyIcon(daysUntilExpiry)}
                           <h3 className="font-semibold text-gray-800 text-sm">{doc.documentType}</h3>
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                            daysUntilExpiry <= 7 ? 'bg-red-100 text-red-700' :
-                            daysUntilExpiry <= 14 ? 'bg-orange-100 text-orange-700' :
-                            'bg-yellow-100 text-yellow-700'
-                          }`}>
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${daysUntilExpiry <= 7 ? 'bg-red-100 text-red-700' :
+                              daysUntilExpiry <= 14 ? 'bg-orange-100 text-orange-700' :
+                                'bg-yellow-100 text-yellow-700'
+                            }`}>
                             {daysUntilExpiry} day{daysUntilExpiry !== 1 ? 's' : ''} left
                           </span>
                         </div>
-                        
+
                         {doc.driver && (
                           <div className="flex items-center gap-1 mb-1">
                             <User className="w-3 h-3 text-gray-500" />
@@ -189,7 +188,7 @@ const ExpiringDriverDocumentsPopup: React.FC<ExpiringDriverDocumentsPopupProps> 
                             </span>
                           </div>
                         )}
-                        
+
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3 text-gray-500" />
                           <span className="text-xs text-gray-600">
@@ -201,7 +200,7 @@ const ExpiringDriverDocumentsPopup: React.FC<ExpiringDriverDocumentsPopupProps> 
                   </div>
                 );
               })}
-              
+
               {expiringDocuments.length > 3 && (
                 <div className="text-center pt-2">
                   <span className="text-xs text-gray-500">
@@ -220,14 +219,15 @@ const ExpiringDriverDocumentsPopup: React.FC<ExpiringDriverDocumentsPopupProps> 
               <CheckCircle className="w-4 h-4 text-green-600" />
               <span className="text-xs text-gray-600">Review driver documents urgently</span>
             </div>
-            
+
             {onViewDocuments && (
               <button
                 onClick={() => {
                   onViewDocuments();
                   handleClose();
                 }}
-                className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs font-medium"
+                style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                className="flex items-center gap-1 px-3 py-1  text-white rounded-lg  transition-colors text-xs font-medium"
               >
                 <ExternalLink className="w-3 h-3" />
                 View All

@@ -20,7 +20,7 @@ import {
   FaUserTimes,
   FaUpload
 } from 'react-icons/fa';
-import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+
 import {
   createPolicyDocument,
   getPolicyDocuments,
@@ -31,11 +31,11 @@ interface Policy {
   _id: string;
   policyNumber: string;
   title: string;
-  // Categories covering Req 12.1 A-E
+
   category: 'Safety' | 'HR/Conduct' | 'Driver-Specific' | 'Wellness' | 'Shop/Yard' | string;
-  version: string; // Req 4: Version Control
+  version: string;
   effectiveDate: string;
-  reviewDate: string; // Req 12.2: Renewal Date
+  reviewDate: string;
   status: 'active' | 'draft' | 'archived' | 'under-review' | 'expired';
   documentType: 'Policy' | 'Procedure' | 'SOP' | 'Form' | 'policy' | 'procedure' | 'guideline' | 'form';
   fileType?: string;
@@ -114,6 +114,15 @@ const PolicyManagementModule = () => {
   const [showAcknowledgmentModal, setShowAcknowledgmentModal] = useState(false);
   const [showVersionHistoryModal, setShowVersionHistoryModal] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
+
+  const CUSTOM_COLORS = {
+    background: '#EDF8FF',
+    primary: '#016ab2',
+    dark: '#063f6f',
+    light: '#398bc3',
+    gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', // Highlight/Header gradient per user request
+    gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
+  };
 
   const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
     const id = notificationId + 1;
@@ -247,18 +256,18 @@ const PolicyManagementModule = () => {
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
-  // --- VIEW 1: COMPLIANCE DASHBOARD (REQ 12.3) ---
+
   const renderPolicyDashboard = () => {
     const activePolicies = policies.filter(p => p.status === 'active');
     const upcomingReviewPolicies = policies.filter(p => {
       const reviewDate = new Date(p.reviewDate).getTime();
       const today = new Date().getTime();
       const daysUntilReview = (reviewDate - today) / (1000 * 3600 * 24);
-      // Req 12.2: Automatic reminders 30/60/90 days before renewal
+
       return daysUntilReview > 0 && daysUntilReview <= 90;
     });
 
-    // Req 12.3: Employees who have NOT acknowledged policies
+
     // We define non-compliant as having less than 95% acknowledgment for audit focus
     const nonCompliantAcknowledgment = activePolicies.filter(p => {
       if (!p.totalEmployees || p.totalEmployees === 0) return false;
@@ -268,21 +277,21 @@ const PolicyManagementModule = () => {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Card 1: Active Policies (Req 12.3) */}
+
           <div className="bg-white p-5 rounded-xl shadow-md border-l-4 border-purple-500">
             <p className="text-sm font-medium text-gray-500">Total Active Policies</p>
             <p className="text-3xl font-bold text-purple-700">{activePolicies.length}</p>
             <span className='text-xs text-gray-500'>Ensures all mandatory policies are covered.</span>
           </div>
 
-          {/* Card 2: Upcoming Renewals (Req 12.2, 12.3) */}
+
           <div className="bg-white p-5 rounded-xl shadow-md border-l-4 border-yellow-500">
             <p className="text-sm font-medium text-gray-500">Upcoming Reviews (90 days)</p>
             <p className="text-3xl font-bold text-yellow-700">{upcomingReviewPolicies.length}</p>
             <span className='text-xs text-gray-500'>Notifications sent to H&S Manager.</span>
           </div>
 
-          {/* Card 3: Acknowledgment Risk (Req 4, 12.3) */}
+
           <div className="bg-white p-5 rounded-xl shadow-md border-l-4 border-red-500">
             <p className="text-sm font-medium text-gray-500">Acknowledgment Risk</p>
             <p className="text-3xl font-bold text-red-700">
@@ -291,7 +300,7 @@ const PolicyManagementModule = () => {
             <span className='text-xs text-gray-500'>Policies &lt; 95% **Read Receipts** tracked.</span>
           </div>
 
-          {/* Card 4: Policy Owner Breakdown (Req 12.3) */}
+
           <div className="bg-white p-5 rounded-xl shadow-md border-l-4 border-blue-500">
             <p className="text-sm font-medium text-gray-500">Policy Categories Tracked</p>
             <p className="text-3xl font-bold text-blue-700">
@@ -301,7 +310,7 @@ const PolicyManagementModule = () => {
           </div>
         </div>
 
-        {/* Compliance Report Snippet: Unacknowledged Policies (Req 12: Generate compliance reports) */}
+
         <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
           <h3 className="text-xl font-bold mb-4 text-red-700 flex items-center gap-2"><FaUserTimes /> Acknowledgment Audit Report</h3>
           <p className='text-sm text-gray-600 mb-4'>Audit-ready list showing policies where mandatory acknowledgment (Read Receipts) is missing for the **current version**.</p>
@@ -401,7 +410,7 @@ const PolicyManagementModule = () => {
                 <input
                   type="text"
                   placeholder="e.g., Fueling Operations SOP"
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 />
@@ -412,7 +421,7 @@ const PolicyManagementModule = () => {
                 <input
                   type="text"
                   placeholder="e.g., SOP-D-001"
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.policyNumber}
                   onChange={(e) => setFormData({ ...formData, policyNumber: e.target.value })}
                 />
@@ -421,7 +430,7 @@ const PolicyManagementModule = () => {
               <div>
                 <label className="block text-sm font-semibold mb-2">Category *</label>
                 <select
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 >
@@ -432,7 +441,7 @@ const PolicyManagementModule = () => {
               <div>
                 <label className="block text-sm font-semibold mb-2">Document Type *</label>
                 <select
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.documentType}
                   onChange={(e) => setFormData({ ...formData, documentType: e.target.value })}
                 >
@@ -447,7 +456,7 @@ const PolicyManagementModule = () => {
                 <label className="block text-sm font-semibold mb-2">Effective Date *</label>
                 <input
                   type="date"
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.effectiveDate}
                   onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
                 />
@@ -457,7 +466,7 @@ const PolicyManagementModule = () => {
                 <label className="block text-sm font-semibold mb-2">Review Date *</label>
                 <input
                   type="date"
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.reviewDate}
                   onChange={(e) => setFormData({ ...formData, reviewDate: e.target.value })}
                 />
@@ -466,7 +475,7 @@ const PolicyManagementModule = () => {
               <div>
                 <label className="block text-sm font-semibold mb-2">Renewal Cycle (months) *</label>
                 <select
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.renewalCycle}
                   onChange={(e) => setFormData({ ...formData, renewalCycle: Number(e.target.value) })}
                 >
@@ -479,7 +488,7 @@ const PolicyManagementModule = () => {
               <div>
                 <label className="block text-sm font-semibold mb-2">Policy Owner *</label>
                 <select
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.owner}
                   onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
                 >
@@ -497,7 +506,7 @@ const PolicyManagementModule = () => {
                 <input
                   type="text"
                   placeholder="1.0"
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.version}
                   onChange={(e) => setFormData({ ...formData, version: e.target.value })}
                 />
@@ -508,7 +517,7 @@ const PolicyManagementModule = () => {
                 <input
                   type="text"
                   placeholder="Training ID"
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.linkedTraining}
                   onChange={(e) => setFormData({ ...formData, linkedTraining: e.target.value })}
                 />
@@ -540,7 +549,7 @@ const PolicyManagementModule = () => {
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold mb-2">Upload Policy Document *</label>
                 <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-purple-500 transition cursor-pointer"
+                  className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center hover:border-purple-500 transition cursor-pointer"
                   onClick={() => document.getElementById('file-upload')?.click()}
                 >
                   <FaUpload size={32} className="mx-auto mb-3 text-gray-400" />
@@ -574,7 +583,8 @@ const PolicyManagementModule = () => {
                     alert('Please fill in all required fields');
                   }
                 }}
-                className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition"
+                style={{ background: CUSTOM_COLORS.gradient }}
+                className="flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition"
               >
                 Upload Policy & Assign to Employees
               </button>
@@ -624,7 +634,7 @@ const PolicyManagementModule = () => {
                 <div className="text-center text-gray-500">
                   <FaFilePdf size={64} className="mx-auto mb-4" />
                   <p>Policy PDF would display here</p>
-                  <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                  <button className="mt-4 px-4 py-2 !text-white rounded hover:opacity-90" style={{ background: CUSTOM_COLORS.primary }}>
                     View Full Document
                   </button>
                 </div>
@@ -654,7 +664,7 @@ const PolicyManagementModule = () => {
               <input
                 type="text"
                 placeholder="Type your full name to sign"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
               />
@@ -675,7 +685,7 @@ const PolicyManagementModule = () => {
               <button
                 onClick={handleAcknowledge}
                 disabled={!agreed || !signature}
-                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-green-600 !text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 <FaCheckCircle className="inline mr-2" /> Submit Acknowledgment
               </button>
@@ -727,10 +737,10 @@ const PolicyManagementModule = () => {
                   </div>
                   <p className="text-sm mb-3">{v.changes}</p>
                   <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                    <button className="px-4 py-2 !text-white rounded hover:opacity-90 text-sm" style={{ background: CUSTOM_COLORS.primary }}>
                       <FaEye className="inline mr-1" /> View
                     </button>
-                    <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+                    <button className="px-4 py-2 bg-green-600 !text-white rounded hover:bg-green-700 text-sm">
                       <FaDownload className="inline mr-1" /> Download
                     </button>
                   </div>
@@ -743,34 +753,8 @@ const PolicyManagementModule = () => {
     );
   };
 
-  // 5. AUDIT TRAIL EXPORT COMPONENT
-  const AuditTrailReport = ({ policies }: { policies: Policy[] }) => {
-    const generateAuditReport = () => {
-      // Generate detailed audit trail showing all acknowledgments
-      const reportData = policies.map((policy: Policy) => ({
-        policyNumber: policy.policyNumber,
-        title: policy.title,
-        version: policy.version,
-        acknowledgedCount: policy.acknowledged,
-        totalEmployees: policy.totalEmployees,
-        complianceRate: ((policy.acknowledged / policy.totalEmployees) * 100).toFixed(1),
-        status: policy.status
-      }));
 
-      console.log('Generating audit report:', reportData);
-      alert('Audit report would be exported to PDF with full acknowledgment details');
-    };
 
-    return (
-      <button
-        onClick={generateAuditReport}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
-      >
-        <FaDownload /> Export Full Audit Trail (PDF)
-      </button>
-    );
-  };
-  // --- VIEW 2: POLICY LIBRARY (REQ 4 & 12 Management) ---
   const renderPolicyLibrary = () => (
     <>
       {/* Filters and Search */}
@@ -817,7 +801,7 @@ const PolicyManagementModule = () => {
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead style={{ background: FLEET_COLORS.gradient }}>
+            <thead style={{ background: CUSTOM_COLORS.gradient }}>
               <tr>
                 <th className="px-6 py-4 text-left text-white font-semibold">Policy #</th>
                 <th className="px-6 py-4 text-left text-white font-semibold">Title / Document Type</th>
@@ -846,7 +830,7 @@ const PolicyManagementModule = () => {
                       <div className="flex items-center gap-2 font-medium">
                         {getFileIcon(policy.fileType || 'PDF')} {policy.title || 'N/A'}
                       </div>
-                      {/* Req 4: SOPs, Req 12: File types (PDF, Word, Text) */}
+
                       <div className="mt-1">
                         <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">
                           {policy.documentType || 'N/A'}
@@ -859,7 +843,7 @@ const PolicyManagementModule = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm">{policy.category || 'N/A'}</td>
-                    {/* Req 12: Assign policies to specific roles */}
+
                     <td className="px-6 py-4 text-sm">
                       {policy.assignedRoles ? (
                         <div className="max-w-xs">
@@ -892,18 +876,18 @@ const PolicyManagementModule = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      {/* Req 4, 12.3: Version History/Control */}
+
                       <FaSyncAlt className='inline mr-1 text-gray-400 text-xs' /> v.**{policy.version}**
                       <p className='text-xs text-gray-500'>Effective: {new Date(policy.effectiveDate).toLocaleDateString()}</p>
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold">
-                      {/* Req 12.2: Renewal & Expiration Management */}
+
                       <FaCalendarAlt className="inline mr-1 text-yellow-500" />
                       {new Date(policy.reviewDate).toLocaleDateString()}
                       <p className='text-xs text-gray-500'>Cycle: **{policy.renewalCycle} months**</p>
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      {/* Req 4, 12: Acknowledgment signature/date (Read Receipts) */}
+
                       <div className='flex items-center'>
                         <FaClipboardCheck className='text-green-500 mr-2' />
                         <span className='font-bold text-gray-800'>
@@ -968,7 +952,7 @@ const PolicyManagementModule = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#eeeeee] p-6">
+    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10001] space-y-2">
         {notifications.map(notification => (
@@ -982,25 +966,24 @@ const PolicyManagementModule = () => {
       <div className="max-w-7xl mx-auto">
         <div className="mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold mb-2" style={{ color: FLEET_COLORS.dark }}>
+            <h1 className="text-3xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
               Company Policy Management & Renewal Tracking 📑
             </h1>
-            <p className="text-gray-600">Centralized policy library, version control, and **mandatory acknowledgment tracking** for CLC compliance (Req 4 & 12).</p>
+            <p className="text-gray-600">Centralized policy library, version control, and **mandatory acknowledgment tracking** for CLC compliance.</p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Req 4, 12: Upload policy */}
+
             <button
               onClick={() => setShowUploadModal(true)}
-              className="px-4 py-2 rounded-lg text-white shadow-md hover:opacity-90 transition flex items-center gap-2 font-semibold"
+              className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2 font-semibold"
               style={{
-                background: FLEET_COLORS.gradient,
-                boxShadow: `0 4px 6px ${FLEET_COLORS.focusRing}`
+                background: CUSTOM_COLORS.gradient,
+                boxShadow: `0 4px 6px ${CUSTOM_COLORS.light}40`
               }}
             >
               <FaPlus /> Upload New Policy
             </button>
-            {/* Audit Trail Export */}
-            <AuditTrailReport policies={policies} />
+
           </div>
         </div>
 
@@ -1012,7 +995,7 @@ const PolicyManagementModule = () => {
               onClick={() => setActiveTab('dashboard')}
               className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'dashboard' ? 'border-b-2 text-purple-600' : 'text-gray-600 hover:text-gray-900'
                 }`}
-              style={activeTab === 'dashboard' ? { borderColor: FLEET_COLORS.primary } : {}}
+              style={activeTab === 'dashboard' ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
               <FaChartPie className="inline mr-2" /> Compliance Dashboard (Audit View)
             </button>
@@ -1021,7 +1004,7 @@ const PolicyManagementModule = () => {
               onClick={() => setActiveTab('library')}
               className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'library' ? 'border-b-2 text-purple-600' : 'text-gray-600 hover:text-gray-900'
                 }`}
-              style={activeTab === 'library' ? { borderColor: FLEET_COLORS.primary } : {}}
+              style={activeTab === 'library' ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
               <FaFileAlt className="inline mr-2" /> Policy Library (Version & Renewal Control)
             </button>

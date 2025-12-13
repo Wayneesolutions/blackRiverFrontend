@@ -1,11 +1,12 @@
-// components/Header.tsx
+
 import { useState, useRef, useEffect } from "react";
 import { FaSignOutAlt, FaUser, FaCog, FaBars } from "react-icons/fa";
-import { Search, Clock, X, LogOut, AlertCircle } from "lucide-react";
+import { Search, X, LogOut, AlertCircle, ArrowRight } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
+import { useQuickActions } from "../common/QuickAction";
 
 interface HeaderProps {
     isSidebarCollapsed?: boolean;
@@ -16,17 +17,15 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [recentSearches, setRecentSearches] = useState<string[]>([
-        "Nowa Admin Dashboard - Themeforest",
-        "Bootstrap 5 Latest - Bootstrap",
-        "Sash - Bootstrap Responsive Flat Admin Dashboard HTML5 Template",
-        "Sparci Admin Template - Themeforest"
-    ]);
+    const [selectedIndex, setSelectedIndex] = useState(0);
     const searchRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const { logout } = useLogout();
     const { userInfo } = useSelector((state: RootState) => state.userAuth);
     const navigate = useNavigate();
+    const { filterActions } = useQuickActions();
+
+    const filteredActions = filterActions(searchQuery);
 
     // Close search overlay when clicking outside
     useEffect(() => {
@@ -38,7 +37,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
 
         if (isSearchOpen) {
             document.addEventListener('mousedown', handleClickOutside);
-            // Focus input when search opens
             setTimeout(() => inputRef.current?.focus(), 100);
         }
 
@@ -53,6 +51,7 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
             if (event.key === 'Escape' && isSearchOpen) {
                 setIsSearchOpen(false);
                 setSearchQuery("");
+                setSelectedIndex(0);
             }
         };
 
@@ -61,6 +60,11 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
             document.removeEventListener('keydown', handleEscape);
         };
     }, [isSearchOpen]);
+
+    // Reset selected index when search query changes
+    useEffect(() => {
+        setSelectedIndex(0);
+    }, [searchQuery]);
 
     const handleLogout = () => {
         setShowLogoutModal(true);
@@ -87,15 +91,44 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
         setIsSearchOpen(true);
     };
 
+    const handleActionSelect = (action: typeof filteredActions[0]) => {
+        if (action.path) {
+            navigate(action.path);
+            setSearchQuery('');
+            setIsSearchOpen(false);
+            setSelectedIndex(0);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (filteredActions.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setSelectedIndex(prev =>
+                    prev < filteredActions.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setSelectedIndex(prev =>
+                    prev > 0 ? prev - 1 : filteredActions.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (filteredActions.length > 0) {
+                    handleActionSelect(filteredActions[selectedIndex]);
+                }
+                break;
+        }
+    };
+
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (searchQuery.trim()) {
-            // Add to recent searches if not already present
-            if (!recentSearches.includes(searchQuery)) {
-                setRecentSearches([searchQuery, ...recentSearches.slice(0, 3)]);
-            }
-            // Handle search logic here
-            console.log('Searching for:', searchQuery);
+        if (filteredActions.length > 0) {
+            handleActionSelect(filteredActions[selectedIndex]);
         }
     };
 
@@ -107,7 +140,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                     background: 'linear-gradient(135deg, #42aeec 0%, #31a2d4 100%)'
                 }}
             >
-                {/* Left side - Collapse button */}
                 <div className="flex items-center gap-4">
                     <button
                         onClick={onToggleSidebar}
@@ -118,9 +150,7 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                     </button>
                 </div>
 
-                {/* Right side - Search icon and user actions */}
                 <div className="flex items-center gap-4">
-                    {/* Search Icon */}
                     <button
                         onClick={handleSearchClick}
                         className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
@@ -129,7 +159,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                         <Search size={20} />
                     </button>
 
-                    {/* Profile Button */}
                     <button
                         onClick={handleProfileClick}
                         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
@@ -141,7 +170,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                         </span>
                     </button>
 
-                    {/* Settings Button */}
                     <button
                         onClick={handleSettingsClick}
                         className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
@@ -150,7 +178,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                         <FaCog size={18} />
                     </button>
 
-                    {/* Logout Button */}
                     <button
                         onClick={handleLogout}
                         className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
@@ -168,7 +195,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                         ref={searchRef}
                         className="bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-4"
                     >
-                        {/* Search Input */}
                         <form onSubmit={handleSearchSubmit} className="p-4 border-b border-gray-200">
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -177,9 +203,10 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                                 <input
                                     ref={inputRef}
                                     type="text"
-                                    placeholder="Search anything..."
+                                    placeholder="Quick Action - Type to search..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={handleKeyDown}
                                     className="w-full pl-12 pr-12 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                                 />
                                 <button
@@ -187,6 +214,7 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                                     onClick={() => {
                                         setIsSearchOpen(false);
                                         setSearchQuery("");
+                                        setSelectedIndex(0);
                                     }}
                                     className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
                                 >
@@ -195,35 +223,74 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                             </div>
                         </form>
 
-                        {/* Recent Searches */}
-                        {searchQuery.trim() === "" && recentSearches.length > 0 && (
-                            <div className="p-4">
-                                <h3 className="text-sm font-semibold text-gray-700 mb-3">Recent Searches</h3>
-                                <div className="space-y-2">
-                                    {recentSearches.map((search, index) => (
+                        {searchQuery.trim() !== "" && filteredActions.length > 0 && (
+                            <div className="max-h-[400px] overflow-y-auto">
+                                <div className="py-2">
+                                    {filteredActions.map((action, index) => (
                                         <button
-                                            key={index}
-                                            onClick={() => {
-                                                setSearchQuery(search);
-                                                inputRef.current?.focus();
-                                            }}
-                                            className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-50 rounded-lg transition-colors group"
+                                            key={action.id}
+                                            onClick={() => handleActionSelect(action)}
+                                            className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex
+                                                ? 'bg-blue-50 border-blue-500'
+                                                : 'border-transparent hover:border-blue-300'
+                                                }`}
                                         >
-                                            <Clock className="text-gray-400 group-hover:text-[#42aeec]" size={16} />
-                                            <span className="text-sm text-gray-700 group-hover:text-[#42aeec]">
-                                                {search}
-                                            </span>
+                                            <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
+                                                <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' :
+                                                    action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
+                                                        'bg-gray-100 text-gray-700'
+                                                    }`}>
+                                                    {action.icon}
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 text-left min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-semibold text-gray-900 truncate">{action.title}</span>
+                                                    {action.type === 'create' && (
+                                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                                                            New
+                                                        </span>
+                                                    )}
+                                                    {action.type === 'navigation' && (
+                                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                                                            Navigate
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-gray-500 mt-0.5 truncate">
+                                                    {action.description}
+                                                </p>
+                                            </div>
+                                            <ArrowRight
+                                                className={`flex-shrink-0 transition-all ${index === selectedIndex
+                                                    ? 'text-blue-600 opacity-100 translate-x-0'
+                                                    : 'text-gray-400 opacity-0 -translate-x-1'
+                                                    }`}
+                                                size={18}
+                                            />
                                         </button>
                                     ))}
+                                </div>
+                                <div className="border-t border-gray-200 px-4 py-2 bg-gray-50">
+                                    <p className="text-xs text-gray-500 text-center">
+                                        {filteredActions.length} result{filteredActions.length !== 1 ? 's' : ''} • Use ↑↓ to navigate, Enter to select
+                                    </p>
                                 </div>
                             </div>
                         )}
 
-                        {/* Search Results (when query exists) */}
-                        {searchQuery.trim() !== "" && (
-                            <div className="p-4">
-                                <p className="text-sm text-gray-500 text-center py-8">
-                                    Search results for "{searchQuery}" will appear here
+                        {searchQuery.trim() !== "" && filteredActions.length === 0 && (
+                            <div className="p-8">
+                                <p className="text-sm text-gray-500 text-center">
+                                    No actions found for "{searchQuery}"
+                                </p>
+                            </div>
+                        )}
+
+                        {searchQuery.trim() === "" && (
+                            <div className="p-8">
+                                <p className="text-sm text-gray-500 text-center">
+                                    Type to search for actions, pages, or create new items
                                 </p>
                             </div>
                         )}
@@ -233,15 +300,14 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
 
             {/* Logout Confirmation Modal */}
             {showLogoutModal && (
-                <div 
+                <div
                     className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm"
                     onClick={cancelLogout}
                 >
-                    <div 
+                    <div
                         className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Modal Header */}
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex items-center gap-4">
                                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -254,7 +320,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                             </div>
                         </div>
 
-                        {/* Modal Body */}
                         <div className="p-6">
                             <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                                 <AlertCircle className="text-amber-600 flex-shrink-0 mt-0.5" size={20} />
@@ -264,7 +329,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                             </div>
                         </div>
 
-                        {/* Modal Footer */}
                         <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
                             <button
                                 onClick={cancelLogout}
@@ -274,7 +338,7 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                             </button>
                             <button
                                 onClick={confirmLogout}
-                                className="px-6 py-2.5 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-red-500/30"
+                                className="px-6 py-2.5 !text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-red-500/30"
                             >
                                 <LogOut size={18} />
                                 Logout

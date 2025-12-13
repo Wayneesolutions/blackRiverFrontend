@@ -408,15 +408,7 @@ const MonthlyReport: React.FC = () => {
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="relative max-w-7xl mx-auto">
-        {/* Gradient band - Matching Dispatch */}
-        <div
-          className="absolute inset-x-0 top-0"
-          style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
-            height: '101px'
-          }}
-          aria-hidden="true"
-        />
+
 
         {/* Main content */}
         <div className="relative z-10 px-4 pt-3 pb-6">
@@ -424,8 +416,8 @@ const MonthlyReport: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-bold text-white">Monthly Compliance Report</h1>
-                <div className="flex items-center gap-2 text-white/90">
+                <h1 className="text-2xl font-bold text-black">Monthly Compliance Report</h1>
+                <div className="flex items-center gap-2 text-black/90">
                   <span className="text-xs">Analytics and insights for CVSA inspections</span>
                 </div>
               </div>

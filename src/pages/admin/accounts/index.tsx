@@ -1,24 +1,19 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  TrendingUp,
-  AlertCircle,
-  Calendar,
-  FileText,
   DollarSign,
-  Calculator,
+  TrendingUp,
+  Users,
   Receipt,
-  ChartLine,
+  FileText,
+  Calculator,
+  BarChart3,
   Handshake,
-  CreditCard,
   TrendingDown,
-  ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  CreditCard,
+  AlertCircle
 } from 'lucide-react';
-import { listInvoices } from '../../../axios/api/account.invoices';
-import { listExpenses } from '../../../axios/api/account.expense';
-import { listPayrolls } from '../../../axios/api/account.payroll';
-import { FLEET_COLORS } from '../fleetMaintenance/colorUtils';
 
 interface Invoice {
   _id: string;
@@ -40,25 +35,10 @@ interface Expense {
 interface Payroll {
   _id: string;
   totalSalary?: number | string;
-}
-
-interface TrendInfo {
-  value: string;
-  positive: boolean;
-}
-
-interface RecentExpense {
-  type: string;
-  amount: number;
-  employee: string;
-  date: string;
-}
-
-interface StatCardProps {
-  title: string;
-  value: string;
-  subtitle?: string;
-  trend?: TrendInfo | null;
+  userId?: {
+    name?: string;
+    role?: string;
+  };
 }
 
 const Dashboard = () => {
@@ -75,6 +55,11 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
+      // Import your API functions
+      const { listInvoices } = await import('../../../axios/api/account.invoices');
+      const { listExpenses } = await import('../../../axios/api/account.expense');
+      const { listPayrolls } = await import('../../../axios/api/account.payroll');
+
       const [invoicesRes, expensesRes, payrollsRes] = await Promise.all([
         listInvoices(),
         listExpenses(),
@@ -90,6 +75,9 @@ const Dashboard = () => {
       setPayrolls(payrollsData);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setInvoices([]);
+      setExpenses([]);
+      setPayrolls([]);
     } finally {
       setLoading(false);
     }
@@ -100,528 +88,318 @@ const Dashboard = () => {
     return Number.isFinite(numeric) ? Number(numeric) : 0;
   };
 
-  const formatDate = (value?: string) => (value ? new Date(value).toLocaleDateString() : 'N/A');
-
-
-  const sectionCardStyle = {
-    borderColor: FLEET_COLORS.focusRing,
-    boxShadow: `0 18px 35px ${FLEET_COLORS.focusRing}`,
-  };
-
-
-  const primaryButtonStyle: React.CSSProperties = {
-    background: FLEET_COLORS.gradient,
-    color: '#fff',
-    border: 'none',
-    boxShadow: `0 12px 25px ${FLEET_COLORS.focusRing}`,
-  };
-
-  // Calculate stats from real data
   const totalRevenue = invoices.reduce((sum, inv) => sum + normalizeAmount(inv.amount), 0);
   const pendingRevenue = invoices
     .filter((inv) => inv.status === 'pending')
     .reduce((sum, inv) => sum + normalizeAmount(inv.amount), 0);
-
   const totalExpenses = expenses.reduce((sum, exp) => sum + normalizeAmount(exp.amount), 0);
-
   const totalPayroll = payrolls.reduce((sum, payroll) => sum + normalizeAmount(payroll.totalSalary), 0);
-  const totalEmployees = payrolls.length;
+  const netProfit = totalRevenue - totalExpenses - totalPayroll;
 
-  const recentExpenses: RecentExpense[] = expenses.slice(0, 4).map((exp) => ({
-    type: exp.type || 'Unknown',
-    amount: normalizeAmount(exp.amount),
-    employee: exp.userId?.name || 'Unknown',
-    date: formatDate(exp.date),
-  }));
+  const features = [
+    {
+      id: 'revenue',
+      title: 'Total Revenue',
+      value: `$${totalRevenue.toLocaleString()}`,
+      subtitle: `${invoices.length} invoices`,
+      icon: DollarSign,
+      bgColor: 'bg-green-100',
+      iconColor: 'text-green-700',
+      cardBg: 'bg-gradient-to-br from-green-50 to-green-100'
+    },
+    {
+      id: 'expenses',
+      title: 'Total Expenses',
+      value: `$${totalExpenses.toLocaleString()}`,
+      subtitle: `${expenses.length} transactions`,
+      icon: TrendingDown,
+      bgColor: 'bg-red-100',
+      iconColor: 'text-red-700',
+      cardBg: 'bg-gradient-to-br from-red-50 to-red-100'
+    },
+    {
+      id: 'payroll',
+      title: 'Total Payroll',
+      value: `$${totalPayroll.toLocaleString()}`,
+      subtitle: `${payrolls.length} employees`,
+      icon: Users,
+      bgColor: 'bg-blue-100',
+      iconColor: 'text-blue-700',
+      cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100'
+    },
+    {
+      id: 'profit',
+      title: 'Net Profit',
+      value: `$${netProfit.toLocaleString()}`,
+      subtitle: 'Revenue - Expenses - Payroll',
+      icon: TrendingUp,
+      bgColor: 'bg-purple-100',
+      iconColor: 'text-purple-700',
+      cardBg: 'bg-gradient-to-br from-purple-50 to-purple-100'
+    }
+  ];
 
-const StatCard = ({
-  title,
-  value,
-  subtitle = '',
-  trend = null,
-  onClick,
-}: StatCardProps & { onClick?: () => void }) => {
-
-    return (
-      <div 
-        onClick={onClick}
-        className={`bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow ${
-          onClick ? 'cursor-pointer hover:scale-105' : ''
-        }`}
-      >
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-600">{title}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-            {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
-            {trend ? (
-              <div
-                className={`flex items-center mt-2 text-sm ${
-                  trend.positive ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                <TrendingUp size={14} className="mr-1" />
-                <span>{trend.value}</span>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-    );
-  };
+  const quickActions = [
+    {
+      id: 'settlements',
+      title: 'Settlements',
+      subtitle: 'Driver & operator pay',
+      value: payrolls.filter(p => p.userId?.role === 'driver').length,
+      icon: Handshake,
+      bgColor: 'bg-green-100',
+      iconColor: 'text-green-700',
+      path: '/admin/accounts/settlements'
+    },
+    {
+      id: 'expenses',
+      title: 'Expenses',
+      subtitle: `${expenses.length} transactions`,
+      value: `$${totalExpenses.toLocaleString()}`,
+      icon: Receipt,
+      bgColor: 'bg-red-100',
+      iconColor: 'text-red-700',
+      path: '/admin/accounts/expenses'
+    },
+    {
+      id: 'invoices',
+      title: 'Invoices',
+      subtitle: `${invoices.filter(inv => inv.status === 'pending').length} pending`,
+      value: invoices.length,
+      icon: FileText,
+      bgColor: 'bg-orange-100',
+      iconColor: 'text-orange-700',
+      path: '/admin/accounts/invoice'
+    },
+    {
+      id: 'payroll',
+      title: 'Payroll',
+      subtitle: 'Employees',
+      value: payrolls.length,
+      icon: Users,
+      bgColor: 'bg-indigo-100',
+      iconColor: 'text-indigo-700',
+      path: '/admin/accounts/payroll'
+    },
+    {
+      id: 'driver-payroll',
+      title: 'Driver Payroll',
+      subtitle: 'Active drivers',
+      value: payrolls.filter(p => p.userId?.role === 'driver').length,
+      icon: Users,
+      bgColor: 'bg-sky-100',
+      iconColor: 'text-sky-700',
+      path: '/admin/accounts/driverpayroll'
+    },
+    {
+      id: 'config',
+      title: 'Accounting Config',
+      subtitle: 'Chart of accounts',
+      value: '—',
+      icon: BarChart3,
+      bgColor: 'bg-purple-100',
+      iconColor: 'text-purple-700',
+      path: '/admin/accounts/config'
+    }
+  ];
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-center space-y-4">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p className="text-gray-600">Loading accounts data...</p>
+      <div className="min-h-screen p-4 bg-[#EDF8FF] px-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Overview of your trucking operations and financial metrics</p>
-        </div>
+    <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+      <div className="relative max-w-7xl mx-auto">
+        {/* Gradient band */}
+        <div
+          className="absolute inset-x-0 top-0"
+          style={{
+            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            height: '101px'
+          }}
+          aria-hidden="true"
+        />
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard 
-            title="Total Revenue" 
-            value={`$${totalRevenue.toLocaleString()}`} 
-            subtitle={`${invoices.length} invoices`}
-            onClick={() => navigate('/admin/accounts/invoice')}
-          />
-          <StatCard 
-            title="Total Expenses" 
-            value={`$${totalExpenses.toLocaleString()}`} 
-            subtitle={`${expenses.length} transactions`}
-            onClick={() => navigate('/admin/accounts/expenses')}
-          />
-          <StatCard 
-            title="Total Payroll" 
-            value={`$${totalPayroll.toLocaleString()}`} 
-            subtitle={`${totalEmployees} employees`}
-            onClick={() => navigate('/admin/accounts/payroll')}
-          />
-          <StatCard 
-            title="Net Profit" 
-            value={`$${(totalRevenue - totalExpenses - totalPayroll).toLocaleString()}`} 
-            subtitle="Revenue - Expenses - Payroll"
-            onClick={() => navigate('/admin/accounts/invoice')}
-          />
-        </div>
-
-        {/* Module Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Accounts Management Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style={sectionCardStyle}>
-            <div 
-              className="p-6 border-b border-gray-100"
-              style={{ background: FLEET_COLORS.gradient }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-                    <ChartLine className="text-white" size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Accounts Management</h3>
-                    <p className="text-sm text-white text-opacity-90">Chart of Accounts & Financial Categories</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => navigate('/admin/accounts/accounts-management/chart-of-accounts')}
-                  className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-sm font-medium transition-all"
-                >
-                  View →
-                </button>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="text-blue-600" size={18} />
-                      <span className="text-sm font-semibold text-gray-700">Revenue</span>
-                    </div>
-                    <p className="text-xs text-gray-600">Trip settlements, load payments</p>
-                  </div>
-                  <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingDown className="text-red-600" size={18} />
-                      <span className="text-sm font-semibold text-gray-700">Expenses</span>
-                    </div>
-                    <p className="text-xs text-gray-600">Fuel, repairs, maintenance</p>
-                  </div>
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-100">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Handshake className="text-green-600" size={18} />
-                      <span className="text-sm font-semibold text-gray-700">Settlements</span>
-                    </div>
-                    <p className="text-xs text-gray-600">Driver & owner-operator pay</p>
-                  </div>
-                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Receipt className="text-purple-600" size={18} />
-                      <span className="text-sm font-semibold text-gray-700">Deductions</span>
-                    </div>
-                    <p className="text-xs text-gray-600">Advances, repairs, insurance</p>
-                  </div>
-                </div>
-                <div className="pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-600 mb-3">
-                    <strong className="text-gray-900">Auto-Posting:</strong> Every financial entry automatically posts to the correct account
-                  </p>
-                  <button
-                    onClick={() => navigate('/admin/accounts/accounts-management/chart-of-accounts')}
-                    className="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors text-white"
-                    style={{ background: FLEET_COLORS.gradient }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity = '0.9';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity = '1';
-                    }}
-                  >
-                    Manage Chart of Accounts
-                  </button>
-                </div>
+        {/* Main content */}
+        <div className="relative z-10 px-4 pt-3 pb-6">
+          {/* Header Section */}
+          <div className="mb-4 relative z-10">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-white">Accounts Management</h1>
+              <div className="flex items-center gap-2 text-white/90">
+                <span className="text-xs">Financial Overview</span>
               </div>
             </div>
           </div>
 
-          {/* Settlement Module Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style={sectionCardStyle}>
-            <div 
-              className="p-6 border-b border-gray-100"
-              style={{ background: FLEET_COLORS.gradient }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-                    <Calculator className="text-white" size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Settlement Module</h3>
-                    <p className="text-sm text-white text-opacity-90">Driver & Owner-Operator Settlements</p>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 -mt-2 mb-4">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.id}
+                  onClick={() => {
+                    if (feature.id === 'revenue' || feature.id === 'profit') {
+                      navigate('/admin/accounts/invoice');
+                    } else if (feature.id === 'expenses') {
+                      navigate('/admin/accounts/expenses');
+                    } else if (feature.id === 'payroll') {
+                      navigate('/admin/accounts/payroll');
+                    }
+                  }}
+                  className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    {/* Left side content */}
+                    <div className="flex-1">
+                      <h3 className="text-sm font-bold text-gray-900 mb-1">
+                        {feature.title}
+                      </h3>
+
+                      <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="text-xl font-bold text-gray-900">{feature.value}</span>
+                      </div>
+
+                      <p className="text-xs text-gray-400">{feature.subtitle}</p>
+                    </div>
+
+                    {/* Right side icon */}
+                    <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
+                      <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                    </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => navigate('/admin/accounts/settlement')}
-                  className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-sm font-medium transition-all"
-                >
-                  View →
-                </button>
-              </div>
+              );
+            })}
+          </div>
+
+          {/* Quick Actions Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6 mb-4">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions & Modules</h2>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+              {quickActions.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <div
+                    key={action.id}
+                    onClick={() => navigate(action.path)}
+                    className="group p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className={`${action.bgColor} group-hover:bg-white p-2 rounded-lg transition-colors`}>
+                        <Icon className={`h-5 w-5 ${action.iconColor}`} />
+                      </div>
+                      <span className="text-lg font-bold text-gray-900 group-hover:text-blue-700">
+                        {action.value}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-700 group-hover:text-blue-800">{action.title}</p>
+                    <p className="text-xs text-gray-500 mt-1 group-hover:text-blue-600">{action.subtitle}</p>
+                  </div>
+                );
+              })}
             </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <CheckCircle2 className="text-green-600 mt-0.5" size={18} />
+          </div>
+
+          {/* Module Highlights */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            {/* Settlement Module */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-4 border-b border-gray-100" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white bg-opacity-20 rounded-lg">
+                      <Calculator className="text-blue-600" size={20} />
+                    </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">Trip-wise Calculations</p>
+                      <h3 className="text-base font-semibold text-white">Settlement Module</h3>
+                      <p className="text-xs text-white text-opacity-90">Driver & Owner-Operator Pay</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/admin/accounts/settlements')}
+                    className="px-3 py-1.5 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-xs font-medium transition-all"
+                  >
+                    View →
+                  </button>
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg">
+                    <CheckCircle2 className="text-green-600 mt-0.5" size={16} />
+                    <div>
+                      <p className="text-xs font-semibold text-gray-900">Trip-wise Calculations</p>
                       <p className="text-xs text-gray-600">Miles, Rate, FSC, Accessorials</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <CheckCircle2 className="text-green-600 mt-0.5" size={18} />
+                  <div className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg">
+                    <CheckCircle2 className="text-green-600 mt-0.5" size={16} />
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">Pay Methods</p>
-                      <p className="text-xs text-gray-600">Per mile / Per load basis</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <CheckCircle2 className="text-green-600 mt-0.5" size={18} />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Deductions & Additions</p>
-                      <p className="text-xs text-gray-600">Fuel, advances, bonuses, reimbursements</p>
+                      <p className="text-xs font-semibold text-gray-900">Auto-Generated</p>
+                      <p className="text-xs text-gray-600">Ready-to-approve settlement sheets</p>
                     </div>
                   </div>
                 </div>
-                <div className="pt-4 border-t border-gray-200 bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-gray-700">Auto-Generated Settlement</span>
-                    <ArrowRight className="text-gray-400" size={16} />
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    When a trip is completed, Logistiq automatically calculates and generates a ready-to-approve settlement sheet
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate('/admin/accounts/settlement')}
-                  className="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors text-white"
-                  style={{ background: FLEET_COLORS.gradient }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '0.9';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = '1';
-                  }}
-                >
-                  View Settlements
-                </button>
               </div>
             </div>
-          </div>
 
-          {/* Expense Management Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style={sectionCardStyle}>
-            <div 
-              className="p-6 border-b border-gray-100"
-              style={{ background: FLEET_COLORS.gradient }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-                    <Receipt className="text-white" size={24} />
+            {/* Expense Management */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-4 border-b border-gray-100" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white bg-opacity-20 rounded-lg">
+                      <Receipt className="text-blue-600" size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-white">Expense Management</h3>
+                      <p className="text-xs text-white text-opacity-90">Track All Company Expenses</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Expense Management</h3>
-                    <p className="text-sm text-white text-opacity-90">Track & Record All Company Expenses</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => navigate('/admin/accounts/expenses')}
-                  className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-sm font-medium transition-all"
-                >
-                  View →
-                </button>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-orange-50 rounded-lg border border-orange-100">
-                    <CreditCard className="text-orange-600 mb-2" size={20} />
-                    <p className="text-xs font-semibold text-gray-700">Fuel Receipts</p>
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <FileText className="text-blue-600 mb-2" size={20} />
-                    <p className="text-xs font-semibold text-gray-700">Repairs & Shop</p>
-                  </div>
-                  <div className="p-3 bg-green-50 rounded-lg border border-green-100">
-                    <CheckCircle2 className="text-green-600 mb-2" size={20} />
-                    <p className="text-xs font-semibold text-gray-700">Compliance Fees</p>
-                  </div>
-                  <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
-                    <DollarSign className="text-purple-600 mb-2" size={20} />
-                    <p className="text-xs font-semibold text-gray-700">Insurance & Tolls</p>
-                  </div>
-                </div>
-                <div className="space-y-2 pt-2 border-t border-gray-200">
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <CheckCircle2 className="text-green-600" size={16} />
-                    <span>Upload receipts with images</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <CheckCircle2 className="text-green-600" size={16} />
-                    <span>Map to truck/driver & accounts</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <CheckCircle2 className="text-green-600" size={16} />
-                    <span>Auto-reflect in P&L & settlements</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => navigate('/admin/accounts/expenses')}
-                  className="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors text-white"
-                  style={{ background: FLEET_COLORS.gradient }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '0.9';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = '1';
-                  }}
-                >
-                  Manage Expenses
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Invoicing Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style={sectionCardStyle}>
-            <div 
-              className="p-6 border-b border-gray-100"
-              style={{ background: FLEET_COLORS.gradient }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-                    <FileText className="text-white" size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Invoicing</h3>
-                    <p className="text-sm text-white text-opacity-90">Billing & Payment Management</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => navigate('/admin/accounts/invoice')}
-                  className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-sm font-medium transition-all"
-                >
-                  View →
-                </button>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                  <div className="p-3 bg-green-100 rounded-lg text-center">
-                    <p className="text-lg font-bold text-green-800">
-                      {invoices.filter(inv => inv.status === 'paid').length}
-                    </p>
-                    <p className="text-xs text-green-700">Paid</p>
-                  </div>
-                  <div className="p-3 bg-yellow-100 rounded-lg text-center">
-                    <p className="text-lg font-bold text-yellow-800">
-                      {invoices.filter(inv => inv.status === 'pending').length}
-                    </p>
-                    <p className="text-xs text-yellow-700">Pending</p>
-                  </div>
-                  <div className="p-3 bg-red-100 rounded-lg text-center">
-                    <p className="text-lg font-bold text-red-800">
-                      {invoices.filter(inv => inv.status === 'overdue').length}
-                    </p>
-                    <p className="text-xs text-red-700">Overdue</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <CheckCircle2 className="text-green-600" size={16} />
-                    <span>Auto-generate from completed loads</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <CheckCircle2 className="text-green-600" size={16} />
-                    <span>View paid / unpaid / overdue status</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <CheckCircle2 className="text-green-600" size={16} />
-                    <span>Apply payments & export PDF</span>
-                  </div>
-                </div>
-                <div className="pt-2 border-t border-gray-200">
-                  <p className="text-xs text-gray-600 mb-3">
-                    Invoices use load details, rate confirmations, and accessorial charges automatically
-                  </p>
                   <button
-                    onClick={() => navigate('/admin/accounts/invoice')}
-                    className="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors text-white"
-                    style={{ background: FLEET_COLORS.gradient }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity = '0.9';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity = '1';
-                    }}
+                    onClick={() => navigate('/admin/accounts/expenses')}
+                    className="px-3 py-1.5 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-xs font-medium transition-all"
                   >
-                    Manage Invoices
+                    View →
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Financial Overview & Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Recent Invoices */}
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100">
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Recent Invoices</h3>
-                <button
-                  onClick={() => navigate('/admin/accounts/invoice')}
-                  className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-                  style={primaryButtonStyle}
-                >
-                  View All
-                </button>
+              <div className="p-4">
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <div className="p-2 bg-orange-50 rounded-lg border border-orange-100">
+                    <CreditCard className="text-orange-600 mb-1" size={16} />
+                    <p className="text-xs font-semibold text-gray-700">Fuel Receipts</p>
+                  </div>
+                  <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
+                    <FileText className="text-blue-600 mb-1" size={16} />
+                    <p className="text-xs font-semibold text-gray-700">Repairs</p>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-xs text-gray-700">
+                    <CheckCircle2 className="text-green-600" size={14} />
+                    <span>Upload receipts with images</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-700">
+                    <CheckCircle2 className="text-green-600" size={14} />
+                    <span>Auto-reflect in P&L & settlements</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="p-6">
-              {loading ? (
-                <div className="text-center py-4 text-gray-500">Loading invoices...</div>
-              ) : invoices.length > 0 ? (
-                <div className="space-y-4">
-                  {invoices.slice(0, 4).map((invoice) => (
-                    <div key={invoice._id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-gray-900">{invoice.clientName}</h4>
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          invoice.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {invoice.status}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-1">{invoice.clientCompany || 'No company'}</p>
-                      <p className="text-sm text-gray-600 mb-1">Amount: ${normalizeAmount(invoice.amount).toLocaleString()}</p>
-                      <p className="text-xs text-gray-500">Due: {formatDate(invoice.dueDate)}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-                  <p>No invoices found</p>
-                </div>
-              )}
-            </div>
           </div>
 
-          {/* Recent Expenses */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100" style={sectionCardStyle}>
-            <div 
-              onClick={() => navigate('/admin/accounts/expenses')}
-              className="p-6 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Recent Expenses</h3>
-                <span className="text-sm text-gray-500">View All →</span>
-              </div>
-            </div>
-            <div className="p-6">
-              {loading ? (
-                <div className="text-center py-4 text-gray-500">Loading expenses...</div>
-              ) : recentExpenses.length > 0 ? (
-                <div className="space-y-4">
-                  {recentExpenses.map((expense, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{expense.type}</p>
-                        <p className="text-xs text-gray-500">{expense.employee} • {expense.date}</p>
-                      </div>
-                      <span className="text-sm font-semibold text-red-600">-${expense.amount.toLocaleString()}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-4 text-gray-500">No expenses found</div>
-              )}
-                <button 
-                onClick={() => navigate('/admin/accounts/expenses')}
-                className="w-full mt-4 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                style={primaryButtonStyle}
-              >
-                View All Expenses
-              </button>
-            </div>
-          </div>
-        </div>
-
-
-        {/* Alerts & Notifications */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Alerts & Notifications</h3>
-          <div className="space-y-3">
-            {pendingRevenue > 0 && (
-              <div 
+          {/* Alerts */}
+          {pendingRevenue > 0 && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+              <h3 className="text-base font-semibold text-gray-900 mb-3">Alerts & Notifications</h3>
+              <div
                 onClick={() => navigate('/admin/accounts/invoice')}
                 className="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg cursor-pointer hover:bg-yellow-100 transition-colors"
               >
@@ -631,37 +409,8 @@ const StatCard = ({
                   <p className="text-xs text-yellow-600">${pendingRevenue.toLocaleString()} in pending payments</p>
                 </div>
               </div>
-            )}
-            {totalPayroll > 0 && (
-              <div 
-                onClick={() => navigate('/admin/accounts/payroll')}
-                className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
-              >
-                <Calendar className="text-blue-600 mr-3" size={20} />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-blue-800">Payroll Summary</p>
-                  <p className="text-xs text-blue-600">${totalPayroll.toLocaleString()} total payroll for {totalEmployees} employees</p>
-                </div>
-              </div>
-            )}
-            {totalExpenses > 0 && (
-              <div 
-                onClick={() => navigate('/admin/accounts/expenses')}
-                className="flex items-center p-3 bg-red-50 border border-red-200 rounded-lg cursor-pointer hover:bg-red-100 transition-colors"
-              >
-                <FileText className="text-red-600 mr-3" size={20} />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-red-800">Total Expenses</p>
-                  <p className="text-xs text-red-600">${totalExpenses.toLocaleString()} in {expenses.length} transactions</p>
-                </div>
-              </div>
-            )}
-            {invoices.length === 0 && expenses.length === 0 && payrolls.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <p>No financial data available yet. Start by creating invoices, expenses, or payroll records.</p>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

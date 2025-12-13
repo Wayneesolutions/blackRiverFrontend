@@ -14,7 +14,7 @@ import {
   FaInfoCircle,
   FaTrash
 } from 'react-icons/fa';
-import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+
 import {
   getAnalyticsStats,
   getIncidentTrends,
@@ -90,6 +90,10 @@ const ReportsAnalytics = () => {
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [generateLoading, setGenerateLoading] = useState(false);
 
+  // Delete Modal State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<string | null>(null);
+
   const [stats, setStats] = useState({
     totalIncidents: 0,
     openIncidents: 0,
@@ -110,6 +114,15 @@ const ReportsAnalytics = () => {
     periodType: 'monthly',
     fileType: 'pdf'
   });
+
+  const CUSTOM_COLORS = {
+    background: '#EDF8FF',
+    primary: '#016ab2',
+    dark: '#063f6f',
+    light: '#398bc3',
+    gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+    gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
+  };
 
   const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
     const id = notificationId + 1;
@@ -248,11 +261,16 @@ const ReportsAnalytics = () => {
     }
   };
 
-  const handleDeleteReport = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this report?')) return;
+  const handleDeleteReport = (id: string) => {
+    setReportToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteReport = async () => {
+    if (!reportToDelete) return;
 
     try {
-      const response = await deleteReport(id);
+      const response = await deleteReport(reportToDelete);
       if (response?.success) {
         showNotification('success', 'Report deleted successfully');
         fetchReports();
@@ -262,6 +280,9 @@ const ReportsAnalytics = () => {
     } catch (error: any) {
       console.error('Error deleting report:', error);
       showNotification('error', error?.response?.data?.message || 'Failed to delete report');
+    } finally {
+      setShowDeleteModal(false);
+      setReportToDelete(null);
     }
   };
 
@@ -288,7 +309,7 @@ const ReportsAnalytics = () => {
   } : { scheduled: 0, inProgress: 0, completed: 0, overdue: 0 };
 
   return (
-    <div className="min-h-screen bg-[#eeeeee] p-6">
+    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
       <div className="max-w-7xl mx-auto">
         {/* Toast Notifications */}
         <div className="fixed top-4 right-4 z-[10001] space-y-2">
@@ -304,17 +325,17 @@ const ReportsAnalytics = () => {
         {/* Header */}
         <div className="mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold mb-2" style={{ color: FLEET_COLORS.dark }}>
+            <h1 className="text-3xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
               Reports & Analytics
             </h1>
             <p className="text-gray-600">View and generate health & safety reports and analytics</p>
           </div>
           <button
             onClick={() => setShowGenerateModal(true)}
-            className="px-4 py-2 rounded-lg text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
+            className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
             style={{
-              background: FLEET_COLORS.gradient,
-              boxShadow: `0 4px 6px ${FLEET_COLORS.focusRing}`
+              background: CUSTOM_COLORS.gradient,
+              boxShadow: `0 4px 6px ${CUSTOM_COLORS.light}40`
             }}
           >
             <FaChartBar /> Generate Report
@@ -326,7 +347,7 @@ const ReportsAnalytics = () => {
           <div className="bg-white rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <FaExclamationTriangle className="text-red-500 text-2xl" />
-              <span className="text-2xl font-bold" style={{ color: FLEET_COLORS.dark }}>
+              <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.totalIncidents}
               </span>
             </div>
@@ -337,7 +358,7 @@ const ReportsAnalytics = () => {
           <div className="bg-white rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <FaClipboardList className="text-blue-500 text-2xl" />
-              <span className="text-2xl font-bold" style={{ color: FLEET_COLORS.dark }}>
+              <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.totalInspections}
               </span>
             </div>
@@ -348,7 +369,7 @@ const ReportsAnalytics = () => {
           <div className="bg-white rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <FaCheckCircle className="text-green-500 text-2xl" />
-              <span className="text-2xl font-bold" style={{ color: FLEET_COLORS.dark }}>
+              <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.totalTraining}
               </span>
             </div>
@@ -359,7 +380,7 @@ const ReportsAnalytics = () => {
           <div className="bg-white rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <FaFilePdf className="text-purple-500 text-2xl" />
-              <span className="text-2xl font-bold" style={{ color: FLEET_COLORS.dark }}>
+              <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.activePolicies}
               </span>
             </div>
@@ -390,7 +411,7 @@ const ReportsAnalytics = () => {
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4" style={{ color: FLEET_COLORS.dark }}>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: CUSTOM_COLORS.dark }}>
               Incident Trends
             </h3>
             <div className="h-64 flex items-center justify-center">
@@ -408,8 +429,8 @@ const ReportsAnalytics = () => {
                           <span className="text-xs text-gray-500 w-20 truncate">{trend.date || 'N/A'}</span>
                           <div className="flex-1 bg-gray-200 rounded-full h-6 relative">
                             <div
-                              className="bg-blue-500 h-6 rounded-full flex items-center justify-center text-white text-xs"
-                              style={{ width: `${percentage}%` }}
+                              className="h-6 rounded-full flex items-center justify-center text-white text-xs"
+                              style={{ width: `${percentage}%`, backgroundColor: CUSTOM_COLORS.primary }}
                             >
                               {trend.count || 0}
                             </div>
@@ -430,7 +451,7 @@ const ReportsAnalytics = () => {
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4" style={{ color: FLEET_COLORS.dark }}>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: CUSTOM_COLORS.dark }}>
               Inspection Status
             </h3>
             <div className="h-64 flex items-center justify-center">
@@ -438,25 +459,25 @@ const ReportsAnalytics = () => {
                 <div className="w-full space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold" style={{ color: FLEET_COLORS.primary }}>
+                      <div className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.primary }}>
                         {inspectionStatus.scheduled || 0}
                       </div>
                       <div className="text-xs text-gray-600">Scheduled ({inspectionPercentages.scheduled}%)</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold" style={{ color: FLEET_COLORS.warning }}>
+                      <div className="text-2xl font-bold text-yellow-600">
                         {inspectionStatus['in-progress'] || 0}
                       </div>
                       <div className="text-xs text-gray-600">In Progress ({inspectionPercentages.inProgress}%)</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold" style={{ color: FLEET_COLORS.success }}>
+                      <div className="text-2xl font-bold text-green-600">
                         {inspectionStatus.completed || 0}
                       </div>
                       <div className="text-xs text-gray-600">Completed ({inspectionPercentages.completed}%)</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold" style={{ color: FLEET_COLORS.danger }}>
+                      <div className="text-2xl font-bold text-red-600">
                         {inspectionStatus.overdue || 0}
                       </div>
                       <div className="text-xs text-gray-600">Overdue ({inspectionPercentages.overdue}%)</div>
@@ -464,8 +485,7 @@ const ReportsAnalytics = () => {
                   </div>
                   <div className="flex gap-1 h-4 rounded-full overflow-hidden">
                     <div
-                      className="bg-blue-500"
-                      style={{ width: `${inspectionPercentages.scheduled}%` }}
+                      style={{ width: `${inspectionPercentages.scheduled}%`, backgroundColor: CUSTOM_COLORS.primary }}
                       title={`Scheduled: ${inspectionPercentages.scheduled}%`}
                     />
                     <div
@@ -498,13 +518,13 @@ const ReportsAnalytics = () => {
         {/* Reports Table */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold" style={{ color: FLEET_COLORS.dark }}>
+            <h3 className="text-lg font-semibold" style={{ color: CUSTOM_COLORS.dark }}>
               Generated Reports
             </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead style={{ background: FLEET_COLORS.gradient }}>
+              <thead style={{ background: CUSTOM_COLORS.gradient }}>
                 <tr>
                   <th className="px-6 py-4 text-left text-white font-semibold">Report #</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">Title</th>
@@ -566,7 +586,8 @@ const ReportsAnalytics = () => {
                             <FaFilePdf />
                           </button>
                           <button
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            className="p-2 hover:bg-blue-50 rounded-lg transition"
+                            style={{ color: CUSTOM_COLORS.primary }}
                             title="Download Excel"
                             onClick={() => {
                               if (report.fileUrl) {
@@ -597,7 +618,7 @@ const ReportsAnalytics = () => {
 
         {/* Generate Report Modal */}
         {showGenerateModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
@@ -676,7 +697,7 @@ const ReportsAnalytics = () => {
                     type="submit"
                     disabled={generateLoading}
                     className="px-4 py-2 rounded-lg text-white disabled:opacity-50"
-                    style={{ background: FLEET_COLORS.gradient }}
+                    style={{ background: CUSTOM_COLORS.gradient }}
                   >
                     {generateLoading ? 'Generating...' : 'Generate'}
                   </button>
@@ -686,7 +707,40 @@ const ReportsAnalytics = () => {
           </div>
         )}
       </div>
+
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md transform transition-all scale-100 opacity-100">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <FaTrash className="text-red-600 text-xl" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Confirmation</h3>
+              <p className="text-gray-500 text-sm mb-6">
+                Are you sure you want to delete this report? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteReport}
+                  className="flex-1 px-4 py-2 bg-red-600 !text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+
   );
 };
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import NewPlacesSidebar from "./NewPlacesSidebar";
 import {
@@ -259,7 +259,7 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-            
+
               <button
                 onClick={() => setIsSidebarOpen(true)}
                 style={{
@@ -274,7 +274,7 @@ const Index = () => {
           </div>
         </div>
 
-       
+
 
         {/* Table */}
         <div className="p-6">
@@ -307,64 +307,63 @@ const Index = () => {
                           place.city,
                           place.state,
                         ].filter(Boolean);
-                        
+
                         const hasManualAddress = addressParts.length > 0;
                         const fullAddress = hasManualAddress
                           ? addressParts.join(", ")
                           : place.currentLocation?.address || "N/A";
-                        
+
                         const postalCode = place.postalCode || place.securityAccessCodepostalCode || "N/A";
-                        
+
                         return (
-                        <tr key={place._id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm text-gray-900 font-medium">{place.name || "N/A"}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
-                            <div className="max-w-xs">
-                              <div className="font-medium text-gray-700 mb-1">{fullAddress}</div>
-                              {postalCode !== "N/A" && (
-                                <div className="text-xs text-gray-400">Postal: {postalCode}</div>
-                              )}
-                              {!hasManualAddress && place.currentLocation?.address && (
-                                <div className="text-xs text-gray-400 mt-1">
-                                  Coordinates: {place.currentLocation.address}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{place.phone || "N/A"}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{place.country || "N/A"}</td>
-                          <td className="px-6 py-4 text-sm">
-                            <span
-                              onClick={() => handleStatusUpdate(place._id)}
-                              className={`cursor-pointer px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                place.status === "active"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {place.status || "N/A"}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
-                            {place.createdAt ? new Date(place.createdAt).toLocaleDateString() : "N/A"}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
-                            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
-                              <button
-                                className="inline-flex items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
-                                onClick={() => openEditModal(place)}
+                          <tr key={place._id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-sm text-gray-900 font-medium">{place.name || "N/A"}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500">
+                              <div className="max-w-xs">
+                                <div className="font-medium text-gray-700 mb-1">{fullAddress}</div>
+                                {postalCode !== "N/A" && (
+                                  <div className="text-xs text-gray-400">Postal: {postalCode}</div>
+                                )}
+                                {!hasManualAddress && place.currentLocation?.address && (
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    Coordinates: {place.currentLocation.address}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500">{place.phone || "N/A"}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500">{place.country || "N/A"}</td>
+                            <td className="px-6 py-4 text-sm">
+                              <span
+                                onClick={() => handleStatusUpdate(place._id)}
+                                className={`cursor-pointer px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${place.status === "active"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                                  }`}
                               >
-                                Edit
-                              </button>
-                              <button
-                                className="inline-flex items-center justify-center rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
-                                onClick={() => openDeleteModal(place)}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
+                                {place.status || "N/A"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500">
+                              {place.createdAt ? new Date(place.createdAt).toLocaleDateString() : "N/A"}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500">
+                              <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+                                <button
+                                  className="inline-flex items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                                  onClick={() => openEditModal(place)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  className="inline-flex items-center justify-center rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                                  onClick={() => openDeleteModal(place)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
                         );
                       })
                     ) : (
@@ -480,10 +479,10 @@ const Index = () => {
                   <input
                     type="text"
                     value={editData.postalCode || editData.securityAccessCodepostalCode || ""}
-                    onChange={(e) => setEditData({ 
-                      ...editData, 
+                    onChange={(e) => setEditData({
+                      ...editData,
                       postalCode: e.target.value,
-                      securityAccessCodepostalCode: e.target.value 
+                      securityAccessCodepostalCode: e.target.value
                     })}
                     className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />

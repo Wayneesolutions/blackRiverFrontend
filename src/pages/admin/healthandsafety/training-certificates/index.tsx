@@ -20,7 +20,7 @@ import {
   FaGraduationCap,
   FaClipboardList,
 } from 'react-icons/fa';
-import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+
 import {
   createTraining,
   createCertificate,
@@ -141,6 +141,15 @@ const REQUIRED_TRAININGS = [
 
 const EMPLOYEE_ROLES = ['Driver', 'Mechanic', 'Warehouse Staff', 'Office Staff', 'Manager', 'Safety Officer'];
 
+const CUSTOM_COLORS = {
+  background: '#EDF8FF',
+  primary: '#016ab2',
+  dark: '#063f6f',
+  light: '#398bc3',
+  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
+};
+
 const TrainingCertificates = () => {
   const [trainingData, setTrainingData] = useState<TrainingRecord[]>([]);
   const [internalModules, setInternalModules] = useState<InternalModule[]>([]);
@@ -257,15 +266,15 @@ const TrainingCertificates = () => {
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="px-4 py-2 rounded-lg text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
+            className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
             style={{
-              background: FLEET_COLORS.gradient,
-              boxShadow: `0 4px 6px ${FLEET_COLORS.focusRing}`
+              background: CUSTOM_COLORS.gradient,
+              boxShadow: `0 4px 6px ${CUSTOM_COLORS.light}40`
             }}
           >
             <FaPlus /> Upload Certificate
           </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+          <button className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
             <FaDownload /> Export Report
           </button>
         </div>
@@ -611,7 +620,8 @@ const TrainingCertificates = () => {
               <button
                 onClick={handleSubmit}
                 disabled={saving || !employee || !type || !issueDate || !expiryDate}
-                className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: CUSTOM_COLORS.primary }}
               >
                 {saving ? (
                   <>
@@ -667,7 +677,7 @@ const TrainingCertificates = () => {
               </div>
             ))}
           </div>
-          <button className="mt-4 w-full py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition text-sm font-semibold">
+          <button className="mt-4 w-full !mt-5 py-2 bg-yellow-600 !text-white rounded-lg hover:bg-yellow-700 transition text-sm font-semibold">
             Send Reminders to All
           </button>
         </div>
@@ -687,7 +697,7 @@ const TrainingCertificates = () => {
               </div>
             ))}
           </div>
-          <button className="mt-4 w-full py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-semibold">
+          <button className="mt-4 w-full !mt-5 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition text-sm font-semibold">
             View All Expired
           </button>
         </div>
@@ -733,7 +743,8 @@ const TrainingCertificates = () => {
         </div>
         <button
           onClick={() => setShowModuleModal(true)}
-          className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center gap-2 font-semibold"
+          className="px-6 py-3 !text-white rounded-lg hover:opacity-90 transition flex items-center gap-2 font-semibold"
+          style={{ background: CUSTOM_COLORS.primary }}
         >
           <FaPlus /> Create New Module
         </button>
@@ -770,7 +781,7 @@ const TrainingCertificates = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Current Version:</span>
-                  <span className="font-semibold text-indigo-600">{module.currentVersion.versionNumber}</span>
+                  <span className="font-semibold" style={{ color: CUSTOM_COLORS.primary }}>{module.currentVersion.versionNumber}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Completion Rate:</span>
@@ -796,8 +807,8 @@ const TrainingCertificates = () => {
                     <FaHistory /> Version History ({module.versionHistory.length + 1} versions)
                   </div>
                   <div className="space-y-1 max-h-24 overflow-y-auto">
-                    <div className="text-xs bg-indigo-50 p-2 rounded">
-                      <div className="font-semibold text-indigo-900">
+                    <div className="text-xs p-2 rounded" style={{ backgroundColor: `${CUSTOM_COLORS.background}80` }}>
+                      <div className="font-semibold" style={{ color: CUSTOM_COLORS.dark }}>
                         {module.currentVersion.versionNumber} (Current)
                       </div>
                       <div className="text-gray-600">
@@ -818,7 +829,7 @@ const TrainingCertificates = () => {
               )}
 
               <div className="flex gap-2">
-                <button className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm font-semibold">
+                <button className="flex-1 px-4 py-2 text-white rounded-lg hover:opacity-90 transition text-sm font-semibold" style={{ background: CUSTOM_COLORS.primary }}>
                   Assign to Employees
                 </button>
                 <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm">
@@ -914,7 +925,7 @@ const TrainingCertificates = () => {
                     <p className="text-sm text-gray-700">Employee has not digitally acknowledged this training</p>
                   </div>
                 </div>
-                <button className="mt-3 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm font-semibold">
+                <button className="mt-3 px-4 py-2 bg-yellow-600 !text-white rounded-lg hover:bg-yellow-700 text-sm font-semibold">
                   Request Acknowledgment
                 </button>
               </div>
@@ -1007,7 +1018,7 @@ const TrainingCertificates = () => {
                           addNotification('error', error?.message || 'Error viewing certificate');
                         }
                       }}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold flex items-center gap-2"
+                      className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 text-sm font-semibold flex items-center gap-2"
                     >
                       <FaEye /> View
                     </button>
@@ -1033,7 +1044,7 @@ const TrainingCertificates = () => {
                           addNotification('error', error?.message || 'Error downloading certificate');
                         }
                       }}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold flex items-center gap-2"
+                      className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 text-sm font-semibold flex items-center gap-2"
                     >
                       <FaDownload /> Download
                     </button>
@@ -1044,7 +1055,7 @@ const TrainingCertificates = () => {
           </div>
 
           <div className="p-6 border-t bg-gray-50 flex gap-3">
-            <button className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">
+            <button className="flex-1 px-6 py-3 bg-indigo-600 !text-white rounded-lg font-semibold hover:bg-indigo-700 transition">
               Send Reminder
             </button>
             <button className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
@@ -1268,7 +1279,8 @@ const TrainingCertificates = () => {
               <button
                 onClick={handleSubmit}
                 disabled={saving || !moduleName || !moduleCode || !description || !duration || !contentType}
-                className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: CUSTOM_COLORS.primary }}
               >
                 {saving ? (
                   <>
@@ -1304,11 +1316,12 @@ const TrainingCertificates = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+
+    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-          <FaGraduationCap className="text-indigo-600" />
+        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3" style={{ color: CUSTOM_COLORS.dark }}>
+          <FaGraduationCap style={{ color: CUSTOM_COLORS.primary }} />
           Safety Training & Compliance
         </h1>
         <p className="text-gray-600">Manage employee certifications, training modules, and compliance tracking</p>
@@ -1346,22 +1359,25 @@ const TrainingCertificates = () => {
       <div className="flex gap-2 mb-6 overflow-x-auto">
         <button
           onClick={() => setActiveTab('matrix')}
-          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'matrix' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'matrix' ? '!text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
+          style={activeTab === 'matrix' ? { background: CUSTOM_COLORS.primary } : {}}
         >
           <FaClipboardList className="inline mr-2" /> Compliance Matrix
         </button>
         <button
           onClick={() => setActiveTab('management')}
-          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'management' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'management' ? '!text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
+          style={activeTab === 'management' ? { background: CUSTOM_COLORS.primary } : {}}
         >
           <FaUpload className="inline mr-2" /> Certificate Management
         </button>
         <button
           onClick={() => setActiveTab('modules')}
-          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'modules' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'modules' ? '!text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
+          style={activeTab === 'modules' ? { background: CUSTOM_COLORS.primary } : {}}
         >
           <FaFileAlt className="inline mr-2" /> Internal Modules
         </button>

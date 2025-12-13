@@ -308,15 +308,7 @@ const TruckProfile = () => {
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="relative max-w-7xl mx-auto">
-        {/* Gradient Banner */}
-        <div
-          className="absolute inset-x-0 top-0"
-          style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
-            height: '140px'
-          }}
-          aria-hidden="true"
-        />
+
 
         <div className="relative z-10 px-4 pt-6 pb-6">
           {/* Header & Filters Container */}
@@ -324,10 +316,10 @@ const TruckProfile = () => {
             {/* Title Section */}
             <div>
               <div className="flex items-center gap-3 text-white mb-2">
-                {activeTab === "truck" ? <FaTruck className="w-6 h-6 text-white/90" /> : <FaTrailer className="w-6 h-6 text-white/90" />}
-                <h1 className="text-3xl font-bold text-white tracking-tight">{activeTab === "truck" ? "Truck Profile" : "Trailer Profile"}</h1>
+                {activeTab === "truck" ? <FaTruck className="w-6 h-6 text-black" /> : <FaTrailer className="w-6 h-6 text-black" />}
+                <h1 className="text-3xl font-bold text-black tracking-tight">{activeTab === "truck" ? "Truck Profile" : "Trailer Profile"}</h1>
               </div>
-              <p className="text-blue-50 text-sm font-medium opacity-90 ml-9">
+              <p className="text-black text-sm font-medium opacity-90 ml-9">
                 Comprehensive analytics and maintenance history for {selectedVehicle.makeModel}
               </p>
 
@@ -354,7 +346,7 @@ const TruckProfile = () => {
             {/* Filters Section */}
             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 flex flex-col sm:flex-row gap-4">
               <div>
-                <label className="block text-xs font-bold text-white uppercase tracking-wider mb-1">Select Unit</label>
+                <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1">Select Unit</label>
                 <select
                   value={selectedUnit}
                   onChange={(e) => setSelectedUnit(e.target.value)}
@@ -366,7 +358,7 @@ const TruckProfile = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-white uppercase tracking-wider mb-1">Time Period</label>
+                <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1">Time Period</label>
                 <select
                   value={timeFilter}
                   onChange={(e) => setTimeFilter(e.target.value as any)}

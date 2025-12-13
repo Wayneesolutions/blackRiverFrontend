@@ -734,7 +734,7 @@ const CvsaInspection: React.FC = () => {
           {/* Right side icon */}
           <div className={`${bgColor} rounded-lg p-2 shadow-sm`}>
             {/* Render the icon directly if it's an element, or as component if passed as ref */}
-            {React.isValidElement(Icon) ? React.cloneElement(Icon as React.ReactElement, { className: iconColor, size: 21 }) : null}
+            {React.isValidElement(Icon) ? React.cloneElement(Icon as React.ReactElement, { classname: iconColor, size: 21 }) : null}
           </div>
         </div>
       </div>
@@ -755,15 +755,7 @@ const CvsaInspection: React.FC = () => {
       </div>
 
       <div className="relative max-w-7xl mx-auto">
-        {/* Gradient band - Matching Dispatch */}
-        <div
-          className="absolute inset-x-0 top-0"
-          style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
-            height: '101px'
-          }}
-          aria-hidden="true"
-        />
+
 
         {/* Main content */}
         <div className="relative z-10 px-4 pt-3 pb-6">
@@ -771,33 +763,85 @@ const CvsaInspection: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-bold text-white">CVSA Inspection Management</h1>
-                <div className="flex items-center gap-2 text-white/90">
+                <h1 className="text-2xl font-bold text-black">CVSA Inspection Management</h1>
+                <div className="flex items-center gap-2 text-black/90">
                   <span className="text-xs">Compliance / CVSA Inspections</span>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 {/* Country Toggle */}
-                <div className="bg-white/10 backdrop-blur-md rounded-lg p-1 flex border border-white/20">
+                <div className="bg-gray-50 rounded-lg p-1 flex border border-white/20">
                   <button
                     onClick={() => setActiveTab('canada')}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${activeTab === 'canada' ? 'bg-white text-[#42aeec] shadow-sm' : 'text-white hover:bg-white/10'}`}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all
+      ${activeTab === 'canada'
+                        ? 'bg-white shadow-sm'
+                        : 'hover:bg-black/5'
+                      }`}
                   >
-                    <FaFlag size={12} className={activeTab === 'canada' ? 'text-red-500' : 'text-white/70'} />
-                    Canada
+                    <FaFlag
+                      size={12}
+                      className={activeTab === 'canada' ? 'text-red-500' : 'text-black/60'}
+                    />
+
+                    <span
+                      className={
+                        activeTab === 'canada'
+                          ? 'bg-clip-text text-transparent'
+                          : 'text-black'
+                      }
+                      style={
+                        activeTab === 'canada'
+                          ? {
+                            backgroundImage:
+                              'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                          }
+                          : {}
+                      }
+                    >
+                      Canada
+                    </span>
                   </button>
+
                   <button
                     onClick={() => setActiveTab('usa')}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${activeTab === 'usa' ? 'bg-white text-[#42aeec] shadow-sm' : 'text-white hover:bg-white/10'}`}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all
+      ${activeTab === 'usa'
+                        ? 'bg-white shadow-sm'
+                        : 'hover:bg-black/5'
+                      }`}
                   >
-                    <FaFlagUsa size={12} className={activeTab === 'usa' ? 'text-blue-500' : 'text-white/70'} />
-                    USA
+                    <FaFlagUsa
+                      size={12}
+                      className={activeTab === 'usa' ? 'text-blue-500' : 'text-black/60'}
+                    />
+
+                    <span
+                      className={
+                        activeTab === 'usa'
+                          ? 'bg-clip-text text-transparent'
+                          : 'text-black'
+                      }
+                      style={
+                        activeTab === 'usa'
+                          ? {
+                            backgroundImage:
+                              'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                          }
+                          : {}
+                      }
+                    >
+                      USA
+                    </span>
                   </button>
                 </div>
 
+
+
                 <button
                   onClick={handleAddInspection}
-                  className="flex items-center gap-2 px-4 py-2 bg-white text-[#42aeec] rounded-lg shadow-sm hover:bg-gray-50 transition-colors font-medium text-sm"
+                  style={{ background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`, }}
+                  className="flex items-center gap-2 px-4 py-2  !text-white rounded-lg shadow-sm  transition-colors font-medium text-sm"
                 >
                   + Add Inspection
                 </button>
@@ -1463,7 +1507,7 @@ const CvsaInspection: React.FC = () => {
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-500" onClick={() => setShowAddModal(false)} />
             <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
               <div className="h-full flex flex-col">
-                <div className="flex-shrink-0 bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 flex items-center justify-between">
+                <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between" style={{ background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`, }}>
                   <h3 className="text-xl font-bold text-white">Add Inspection</h3>
                   <button onClick={() => setShowAddModal(false)} className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
                     <FaTimes size={20} />
@@ -1743,7 +1787,7 @@ const CvsaInspection: React.FC = () => {
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-500" onClick={() => setShowEditModal(false)} />
             <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
               <div className="h-full flex flex-col">
-                <div className="flex-shrink-0 bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 flex items-center justify-between">
+                <div className="flex-shrink-0  px-6 py-4 flex items-center justify-between" style={{ background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`, }}>
                   <h3 className="text-xl font-bold text-white">Edit Inspection: {selectedInspection.inspectionId}</h3>
                   <button onClick={() => setShowEditModal(false)} className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
                     <FaTimes size={20} />

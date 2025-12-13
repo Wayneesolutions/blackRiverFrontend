@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Eye, Edit, Filter, Calendar, DollarSign, Users, TrendingUp,
-     Trash2, X, CheckCircle, AlertCircle, Building2, Download } from 'lucide-react';
-import { createInvoice, listInvoices,  updateInvoice, deleteInvoice, listTrips } from "../../../../axios/api/account.invoices";
+import {
+    FileText, Plus, Eye, Edit, Filter, Calendar, DollarSign, Users, TrendingUp,
+    Trash2, X, CheckCircle, AlertCircle, Building2, Download
+} from 'lucide-react';
+import { createInvoice, listInvoices, updateInvoice, deleteInvoice, listTrips } from "../../../../axios/api/account.invoices";
 import jsPDF from 'jspdf';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
@@ -157,7 +159,7 @@ const InvoiceManagement: React.FC = () => {
         background: `linear-gradient(180deg, ${FLEET_COLORS.focusRing} 0%, rgba(255,255,255,0.98) 40%, #f8fafc 100%)`,
     };
 
-   
+
 
     const primaryButtonStyle: React.CSSProperties = {
         background: FLEET_COLORS.gradient,
@@ -172,14 +174,14 @@ const InvoiceManagement: React.FC = () => {
         const token = localStorage.getItem('token');
         console.log('🔐 User Info from localStorage:', userInfo);
         console.log('🔑 Token from localStorage:', token);
-        
+
         if (!token || !userInfo) {
             console.log('❌ User not authenticated - redirecting to login');
             showNotification('error', 'Please log in to access this page');
             // You might want to redirect to login page here
             return;
         }
-        
+
         fetchInvoices();
         fetchTrips();
     }, []);
@@ -212,31 +214,31 @@ const InvoiceManagement: React.FC = () => {
             const pageHeight = doc.internal.pageSize.height;
             const margin = 20;
             const contentWidth = pageWidth - (margin * 2);
-            
+
             // Color scheme - using RGB values directly
             const primaryR = 67, primaryG = 56, primaryB = 202; // Indigo
             const secondaryR = 99, secondaryG = 102, secondaryB = 241; // Lighter indigo
             const textR = 31, textG = 41, textB = 55; // Gray-800
             const lightGrayR = 243, lightGrayG = 244, lightGrayB = 246; // Gray-100
-            
+
             // Get company info
             const company = typeof invoice.company === 'object' && invoice.company ? invoice.company : null;
-            
+
             // Header with colored background
             doc.setFillColor(primaryR, primaryG, primaryB);
             doc.rect(0, 0, pageWidth, 50, 'F');
-            
+
             // Company/Invoice Title
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(28);
             doc.setFont('helvetica', 'bold');
             doc.text('INVOICE', pageWidth / 2, 25, { align: 'center' });
-            
-        
-            
+
+
+
             // Reset text color
             doc.setTextColor(textR, textG, textB);
-            
+
             // Company Details Section (Top Left)
             let yPos = 60;
             if (company) {
@@ -244,7 +246,7 @@ const InvoiceManagement: React.FC = () => {
                 doc.setFont('helvetica', 'bold');
                 doc.text(company.companyName || 'Company Name', margin, yPos);
                 yPos += 7;
-                
+
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
                 if (company.address) {
@@ -266,23 +268,23 @@ const InvoiceManagement: React.FC = () => {
                 }
                 yPos += 5;
             }
-            
+
             // Invoice Details Box (Top Right) - Properly positioned
             const boxX = pageWidth - margin - 90;
             const boxY = 60;
             const boxWidth = 90;
             const boxHeight = 55;
-            
+
             doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
             doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 3, 3, 'F');
-            
+
             doc.setFontSize(9);
             doc.setTextColor(107, 114, 128); // Gray-500
             doc.text('Invoice Number', boxX + 5, boxY + 8);
             doc.text('Invoice Date', boxX + 5, boxY + 18);
             doc.text('Due Date', boxX + 5, boxY + 28);
             doc.text('Status', boxX + 5, boxY + 38);
-            
+
             doc.setFontSize(10);
             doc.setTextColor(textR, textG, textB);
             doc.setFont('helvetica', 'bold');
@@ -290,7 +292,7 @@ const InvoiceManagement: React.FC = () => {
             doc.setFont('helvetica', 'normal');
             doc.text(formatDate(invoice.invoiceDate), boxX + 5, boxY + 25);
             doc.text(formatDate(invoice.dueDate), boxX + 5, boxY + 35);
-            
+
             // Status badge
             const statusR = invoice.status === 'paid' ? 34 : 251;
             const statusG = invoice.status === 'paid' ? 197 : 191;
@@ -302,7 +304,7 @@ const InvoiceManagement: React.FC = () => {
             doc.setFont('helvetica', 'bold');
             doc.text(invoice.status.toUpperCase(), boxX + 22.5, boxY + 44, { align: 'center' });
             doc.setTextColor(textR, textG, textB);
-            
+
             // Company Details Section (Top Left) - Below header
             yPos = 60;
             if (company) {
@@ -310,7 +312,7 @@ const InvoiceManagement: React.FC = () => {
                 doc.setFont('helvetica', 'bold');
                 doc.text(company.companyName || 'Company Name', margin, yPos);
                 yPos += 7;
-                
+
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
                 if (company.address) {
@@ -332,18 +334,18 @@ const InvoiceManagement: React.FC = () => {
                 }
                 yPos += 5;
             }
-            
+
             // Bill To Section (Customer Details) - Below company, left side
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
             doc.text('Bill To:', margin, yPos);
             yPos += 8;
-            
+
             doc.setFontSize(11);
             doc.setFont('helvetica', 'normal');
             doc.text(invoice.clientName, margin, yPos);
             yPos += 7;
-            
+
             if (invoice.clientCompany) {
                 doc.setFontSize(10);
                 doc.setTextColor(107, 114, 128);
@@ -351,7 +353,7 @@ const InvoiceManagement: React.FC = () => {
                 doc.setTextColor(textR, textG, textB);
                 yPos += 7;
             }
-            
+
             if (invoice.clientAddress) {
                 doc.setFontSize(10);
                 doc.setTextColor(107, 114, 128);
@@ -360,7 +362,7 @@ const InvoiceManagement: React.FC = () => {
                 yPos += addressLines.length * 5;
                 doc.setTextColor(textR, textG, textB);
             }
-            
+
             if (invoice.clientEmail) {
                 doc.setFontSize(10);
                 doc.setTextColor(107, 114, 128);
@@ -368,7 +370,7 @@ const InvoiceManagement: React.FC = () => {
                 doc.setTextColor(textR, textG, textB);
                 yPos += 6;
             }
-            
+
             if (invoice.clientPhone) {
                 doc.setFontSize(10);
                 doc.setTextColor(107, 114, 128);
@@ -376,9 +378,9 @@ const InvoiceManagement: React.FC = () => {
                 doc.setTextColor(textR, textG, textB);
                 yPos += 6;
             }
-            
+
             yPos += 10;
-            
+
             // Trip Information Section (if trip exists)
             const trip = typeof invoice.tripId === 'object' && invoice.tripId ? invoice.tripId : null;
             if (trip) {
@@ -387,15 +389,15 @@ const InvoiceManagement: React.FC = () => {
                 doc.setLineWidth(0.5);
                 doc.line(margin, yPos, pageWidth - margin, yPos);
                 yPos += 12;
-                
+
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
                 doc.text('Trip Information:', margin, yPos);
                 yPos += 10;
-                
+
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
-                
+
                 // Trip Number
                 if (trip.tripNumber) {
                     doc.setTextColor(107, 114, 128); // Gray-500
@@ -404,7 +406,7 @@ const InvoiceManagement: React.FC = () => {
                     doc.text(trip.tripNumber, margin + 50, yPos);
                     yPos += 7;
                 }
-                
+
                 // Vehicle Information (without internal IDs)
                 if (trip.truck) {
                     doc.setTextColor(107, 114, 128);
@@ -418,7 +420,7 @@ const InvoiceManagement: React.FC = () => {
                     doc.text(vehicleInfo || 'N/A', margin + 50, yPos);
                     yPos += 7;
                 }
-                
+
                 // Trailer Type
                 if (trip.trailer) {
                     doc.setTextColor(107, 114, 128);
@@ -440,7 +442,7 @@ const InvoiceManagement: React.FC = () => {
                     doc.text(trailerInfo || 'N/A', margin + 50, yPos);
                     yPos += 7;
                 }
-                
+
                 // Origin and Destination
                 if (trip.startLocation && trip.startLocation.place) {
                     doc.setTextColor(107, 114, 128);
@@ -449,7 +451,7 @@ const InvoiceManagement: React.FC = () => {
                     doc.text(trip.startLocation.place, margin + 50, yPos);
                     yPos += 7;
                 }
-                
+
                 if (trip.endLocation && trip.endLocation.place) {
                     doc.setTextColor(107, 114, 128);
                     doc.text('Destination:', margin, yPos);
@@ -457,7 +459,7 @@ const InvoiceManagement: React.FC = () => {
                     doc.text(trip.endLocation.place, margin + 50, yPos);
                     yPos += 7;
                 }
-                
+
                 // Distance (Miles covered)
                 if (trip.route && trip.route.totalDistance) {
                     doc.setTextColor(107, 114, 128);
@@ -468,7 +470,7 @@ const InvoiceManagement: React.FC = () => {
                     doc.text(`${distanceMiles} miles (${distanceKm} km)`, margin + 50, yPos);
                     yPos += 7;
                 }
-                
+
                 // Load Details Section
                 if (trip.orders && trip.orders.length > 0) {
                     yPos += 3;
@@ -479,7 +481,7 @@ const InvoiceManagement: React.FC = () => {
                     yPos += 8;
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'normal');
-                    
+
                     // Calculate total weight
                     let totalWeight = 0;
                     const weightUnits: string[] = [];
@@ -489,7 +491,7 @@ const InvoiceManagement: React.FC = () => {
                     let hasTemperature = false;
                     let temperatureValue: number | null = null;
                     const specialFlags: string[] = [];
-                    
+
                     trip.orders.forEach((order: any) => {
                         if (order.weight) {
                             totalWeight += order.weight;
@@ -521,7 +523,7 @@ const InvoiceManagement: React.FC = () => {
                             if (order.additionalInfo.CSA) specialFlags.push('CSA');
                         }
                     });
-                    
+
                     // Product/Load Type
                     if (commodities.length > 0) {
                         doc.setTextColor(107, 114, 128);
@@ -530,7 +532,7 @@ const InvoiceManagement: React.FC = () => {
                         doc.text(commodities.join(', '), margin + 50, yPos);
                         yPos += 7;
                     }
-                    
+
                     // Order Type
                     if (orderTypes.length > 0) {
                         doc.setTextColor(107, 114, 128);
@@ -539,7 +541,7 @@ const InvoiceManagement: React.FC = () => {
                         doc.text(orderTypes.join(', '), margin + 50, yPos);
                         yPos += 7;
                     }
-                    
+
                     // Total Load Weight
                     if (totalWeight > 0) {
                         doc.setTextColor(107, 114, 128);
@@ -549,7 +551,7 @@ const InvoiceManagement: React.FC = () => {
                         doc.text(`${totalWeight.toFixed(2)} ${weightUnit}`, margin + 50, yPos);
                         yPos += 7;
                     }
-                    
+
                     // Equipment
                     if (equipmentList.length > 0) {
                         doc.setTextColor(107, 114, 128);
@@ -558,7 +560,7 @@ const InvoiceManagement: React.FC = () => {
                         doc.text(equipmentList.join(', '), margin + 50, yPos);
                         yPos += 7;
                     }
-                    
+
                     // Temperature (for refrigerated loads)
                     if (hasTemperature && temperatureValue !== null) {
                         doc.setTextColor(107, 114, 128);
@@ -567,7 +569,7 @@ const InvoiceManagement: React.FC = () => {
                         doc.text(`${temperatureValue}°C`, margin + 50, yPos);
                         yPos += 7;
                     }
-                    
+
                     // Special Flags
                     if (specialFlags.length > 0) {
                         doc.setTextColor(107, 114, 128);
@@ -576,10 +578,10 @@ const InvoiceManagement: React.FC = () => {
                         doc.text(specialFlags.join(', '), margin + 50, yPos);
                         yPos += 7;
                     }
-                    
+
                     yPos += 3;
                 }
-                
+
                 // Trip Dates
                 if (trip.actualStartDate) {
                     doc.setTextColor(107, 114, 128);
@@ -588,7 +590,7 @@ const InvoiceManagement: React.FC = () => {
                     doc.text(formatDate(trip.actualStartDate), margin + 50, yPos);
                     yPos += 7;
                 }
-                
+
                 if (trip.actualEndDate) {
                     doc.setTextColor(107, 114, 128);
                     doc.text('End Date:', margin, yPos);
@@ -596,7 +598,7 @@ const InvoiceManagement: React.FC = () => {
                     doc.text(formatDate(trip.actualEndDate), margin + 50, yPos);
                     yPos += 7;
                 }
-                
+
                 // Orders Information (without internal IDs) - Show after load details
                 if (trip.orders && trip.orders.length > 0) {
                     yPos += 3;
@@ -622,21 +624,21 @@ const InvoiceManagement: React.FC = () => {
                         yPos += 6;
                     });
                 }
-                
+
                 yPos += 5;
             }
-            
+
             // Line separator
             yPos += 5;
             doc.setDrawColor(229, 231, 235); // Gray-200
             doc.setLineWidth(0.5);
             doc.line(margin, yPos, pageWidth - margin, yPos);
             yPos += 15;
-            
+
             // Service Breakdown Section
             doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
             doc.roundedRect(margin, yPos, contentWidth, 8, 2, 2, 'F');
-            
+
             // Column positions - properly spaced to avoid overlap
             // Page width is typically 210mm, margin is 20mm
             // Column layout with generous spacing:
@@ -646,7 +648,7 @@ const InvoiceManagement: React.FC = () => {
             const colUnitPrice = pageWidth - margin - 50; // Unit Price column end (140mm) - right-aligned, ensures gap after Qty
             const colAmount = pageWidth - margin - 20; // Amount column end (170mm) - right-aligned, ensures gap after Unit Price
             const colTax = pageWidth - margin - 5; // Tax column end (185mm) - right-aligned
-            
+
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
             doc.text('Description', colDesc, yPos + 6);
@@ -654,15 +656,15 @@ const InvoiceManagement: React.FC = () => {
             doc.text('Unit Price', colUnitPrice, yPos + 6, { align: 'right' });
             doc.text('Amount', colAmount, yPos + 6, { align: 'right' });
             doc.text('Tax', colTax, yPos + 6, { align: 'right' });
-            
+
             yPos += 15;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(10);
-            
+
             // Calculate totals
             let subtotal = 0;
             let totalTax = 0;
-            
+
             if (invoice.serviceBreakdown && invoice.serviceBreakdown.length > 0) {
                 // Use service breakdown
                 invoice.serviceBreakdown.forEach((item) => {
@@ -674,7 +676,7 @@ const InvoiceManagement: React.FC = () => {
                     const itemTax = item.taxAmount || (itemAmount * ((item.taxRate || 0) / 100));
                     subtotal += itemAmount;
                     totalTax += itemTax;
-                    
+
                     // Limit description width to prevent overflow into Qty column
                     const maxDescWidth = colQty - colDesc - 5; // Leave 5mm gap before Qty column
                     doc.text(item.description || 'Service', colDesc, yPos, { maxWidth: maxDescWidth });
@@ -689,7 +691,7 @@ const InvoiceManagement: React.FC = () => {
                 const amount = parseFloat(invoice.amount.toString());
                 subtotal = invoice.subtotal || amount;
                 totalTax = invoice.taxAmount || 0;
-                
+
                 // Limit description width to prevent overflow into Qty column
                 const maxDescWidth = colQty - colDesc - 5; // Leave 5mm gap before Qty column
                 doc.text('Freight Services', colDesc, yPos, { maxWidth: maxDescWidth });
@@ -699,43 +701,43 @@ const InvoiceManagement: React.FC = () => {
                 doc.text(`${invoice.currency} ${totalTax.toFixed(2)}`, colTax, yPos, { align: 'right' });
                 yPos += 7;
             }
-            
+
             // Subtotal and Tax Section
             yPos += 5;
             doc.setDrawColor(209, 213, 219); // Gray-300
             doc.setLineWidth(0.5);
             doc.line(margin, yPos, pageWidth - margin, yPos);
             yPos += 8;
-            
+
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
             doc.text('Subtotal:', colAmount, yPos, { align: 'right' });
             doc.setFont('helvetica', 'normal');
             doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colTax, yPos, { align: 'right' });
             yPos += 7;
-            
+
             if (totalTax > 0) {
                 doc.setFont('helvetica', 'bold');
-                const taxLabel = invoice.taxNumber 
-                    ? `Tax (${invoice.taxNumber}):` 
+                const taxLabel = invoice.taxNumber
+                    ? `Tax (${invoice.taxNumber}):`
                     : (company && company.taxNumber ? `Tax (${company.taxNumber}):` : 'Tax (GST/HST):');
                 doc.text(taxLabel, colAmount, yPos, { align: 'right' });
                 doc.setFont('helvetica', 'normal');
                 doc.text(`${invoice.currency} ${totalTax.toFixed(2)}`, colTax, yPos, { align: 'right' });
                 yPos += 7;
             }
-            
+
             // Total Section
             yPos += 5;
             doc.setDrawColor(209, 213, 219); // Gray-300
             doc.setLineWidth(0.5);
             doc.line(margin, yPos, pageWidth - margin, yPos);
             yPos += 10;
-            
+
             const totalAmount = subtotal + totalTax;
             doc.setFillColor(secondaryR, secondaryG, secondaryB);
             doc.roundedRect(margin, yPos, contentWidth, 20, 3, 3, 'F');
-            
+
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
@@ -743,7 +745,7 @@ const InvoiceManagement: React.FC = () => {
             doc.setFontSize(18);
             doc.text(`${invoice.currency} ${totalAmount.toFixed(2)}`, pageWidth - margin - 10, yPos + 15, { align: 'right' });
             doc.setTextColor(textR, textG, textB);
-            
+
             // Notes Section
             if (invoice.notes) {
                 yPos += 30;
@@ -751,7 +753,7 @@ const InvoiceManagement: React.FC = () => {
                 doc.setFont('helvetica', 'bold');
                 doc.text('Additional Notes:', margin, yPos);
                 yPos += 8;
-                
+
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(75, 85, 99); // Gray-600
@@ -759,25 +761,25 @@ const InvoiceManagement: React.FC = () => {
                 doc.text(splitNotes, margin + 5, yPos);
                 doc.setTextColor(textR, textG, textB);
             }
-            
+
             // Footer
             const footerY = pageHeight - 30;
             doc.setDrawColor(229, 231, 235);
             doc.setLineWidth(0.5);
             doc.line(margin, footerY, pageWidth - margin, footerY);
-            
+
             doc.setFontSize(9);
             doc.setTextColor(107, 114, 128);
             doc.text('Thank you for your business!', pageWidth / 2, footerY + 10, { align: 'center' });
             doc.text('If you have any questions about this invoice, please contact us.', pageWidth / 2, footerY + 16, { align: 'center' });
-            
+
             // Page number
             doc.text(`Page 1 of 1`, pageWidth - margin, pageHeight - 10, { align: 'right' });
-            
+
             // Save PDF
             const fileName = `Invoice_${invoice._id.slice(-8)}_${new Date().toISOString().split('T')[0]}.pdf`;
             doc.save(fileName);
-            
+
             showNotification('success', 'Invoice PDF downloaded successfully');
         } catch (error) {
             console.error('Error generating PDF:', error);
@@ -789,7 +791,7 @@ const InvoiceManagement: React.FC = () => {
         setLoading(true);
         try {
             const userInfo: any = getLocalUserInfo();
-            
+
             // Handle different userInfo structures (userData.company or direct company)
             const userRole = userInfo?.role || userInfo?.userData?.role;
             const userCompany = userInfo?.company || userInfo?.userData?.company;
@@ -831,7 +833,7 @@ const InvoiceManagement: React.FC = () => {
     const fetchTrips = async () => {
         try {
             const userInfo: any = getLocalUserInfo();
-            
+
             // Handle different userInfo structures (userData.company or direct company)
             const userRole = userInfo?.role || userInfo?.userData?.role;
             const userCompany = userInfo?.company || userInfo?.userData?.company;
@@ -851,7 +853,7 @@ const InvoiceManagement: React.FC = () => {
             console.log('📡 Trip API Response:', response);
             console.log('📡 Response type:', typeof response);
             console.log('📡 Response keys:', response ? Object.keys(response) : 'null');
-            
+
             // Handle different response structures
             let tripData = null;
             if (response && response.data) {
@@ -866,7 +868,7 @@ const InvoiceManagement: React.FC = () => {
             } else {
                 console.log('❌ No data found in response structure');
             }
-            
+
             if (tripData && Array.isArray(tripData)) {
                 console.log('✅ Setting trips with data:', tripData);
                 console.log('✅ Number of trips:', tripData.length);
@@ -922,9 +924,8 @@ const InvoiceManagement: React.FC = () => {
             {notifications.map((notification) => (
                 <div
                     key={notification.id}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${
-                        notification.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                        }`}
                 >
                     {notification.type === 'success' ? (
                         <CheckCircle className="h-5 w-5 text-green-600" />
@@ -963,7 +964,7 @@ const InvoiceManagement: React.FC = () => {
         };
 
         return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40  ">
                 <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
                     <div className="p-6">
                         <div className="flex items-center gap-3 mb-4">
@@ -984,7 +985,7 @@ const InvoiceManagement: React.FC = () => {
                             </button>
                             <button
                                 onClick={handleConfirmDelete}
-                                className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+                                className="px-4 py-2 !text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
                             >
                                 Delete
                             </button>
@@ -997,62 +998,62 @@ const InvoiceManagement: React.FC = () => {
 
     const DashboardOverview: React.FC = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg p-6" >
+            <div className="bg-[#E3F2FD] rounded-lg p-6 border border-blue-100 shadow-sm">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                        <p className="text-2xl font-bold text-gray-900">
+                        <p className="text-sm font-medium text-[#063f6f]">Total Revenue</p>
+                        <p className="text-2xl font-bold text-[#016ab2]">
                             {formatCurrency(stats.totalAmount)}
                         </p>
-                        <p className="text-xs text-gray-400">{invoices.length} invoices</p>
+                        <p className="text-xs text-[#063f6f]">{invoices.length} invoices</p>
                     </div>
-                    <div className="bg-blue-100 p-3 rounded-full">
-                        <DollarSign className="h-6 w-6 text-blue-600" />
+                    <div className="bg-white p-3 rounded-full">
+                        <DollarSign className="h-6 w-6 text-[#42aeec]" />
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg p-6">
+            <div className="bg-[#E8F5E9] rounded-lg p-6 border border-green-100 shadow-sm">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-sm font-medium text-gray-500">Paid</p>
-                        <p className="text-2xl font-bold text-green-600">
+                        <p className="text-sm font-medium text-[#063f6f]">Paid</p>
+                        <p className="text-2xl font-bold text-[#016ab2]">
                             {formatCurrency(stats.paidAmount)}
                         </p>
-                        <p className="text-xs text-gray-400">{stats.paidCount} invoices</p>
+                        <p className="text-xs text-[#063f6f]">{stats.paidCount} invoices</p>
                     </div>
-                    <div className="bg-green-100 p-3 rounded-full">
-                        <TrendingUp className="h-6 w-6 text-green-600" />
+                    <div className="bg-white p-3 rounded-full">
+                        <TrendingUp className="h-6 w-6 text-[#0ea3d8]" />
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg p-6" >
+            <div className="bg-[#FFF8E1] rounded-lg p-6 border border-yellow-100 shadow-sm">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-sm font-medium text-gray-500">Pending</p>
-                        <p className="text-2xl font-bold text-yellow-600">
+                        <p className="text-sm font-medium text-[#063f6f]">Pending</p>
+                        <p className="text-2xl font-bold text-[#016ab2]">
                             {formatCurrency(stats.pendingAmount)}
                         </p>
-                        <p className="text-xs text-gray-400">{stats.pendingCount} invoices</p>
+                        <p className="text-xs text-[#063f6f]">{stats.pendingCount} invoices</p>
                     </div>
-                    <div className="bg-yellow-100 p-3 rounded-full">
-                        <Calendar className="h-6 w-6 text-yellow-600" />
+                    <div className="bg-white p-3 rounded-full">
+                        <Calendar className="h-6 w-6 text-[#f59e0b]" />
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg p-6">
+            <div className="bg-[#F3E5F5] rounded-lg p-6 border border-purple-100 shadow-sm">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-sm font-medium text-gray-500">Collection Rate</p>
-                        <p className="text-2xl font-bold text-gray-900">
+                        <p className="text-sm font-medium text-[#063f6f]">Collection Rate</p>
+                        <p className="text-2xl font-bold text-[#016ab2]">
                             {stats.totalAmount > 0 ? ((stats.paidAmount / stats.totalAmount) * 100).toFixed(1) : 0}%
                         </p>
-                        <p className="text-xs text-gray-400">Payment efficiency</p>
+                        <p className="text-xs text-[#063f6f]">Payment efficiency</p>
                     </div>
-                    <div className="bg-purple-100 p-3 rounded-full">
-                        <Users className="h-6 w-6 text-purple-600" />
+                    <div className="bg-white p-3 rounded-full">
+                        <Users className="h-6 w-6 text-[#1db5f5]" />
                     </div>
                 </div>
             </div>
@@ -1106,7 +1107,7 @@ const InvoiceManagement: React.FC = () => {
                                 const startLocation = trip?.startLocation?.place || trip?.orders?.[0]?.pickupLocation?.place || 'N/A';
                                 const endLocation = trip?.endLocation?.place || trip?.orders?.[trip?.orders?.length - 1]?.deliveryLocation?.place || 'N/A';
                                 const ordersCount = trip?.orders?.length || 0;
-                                
+
                                 return (
                                     <tr key={invoice._id} className="hover:bg-gray-50">
                                         <td className="py-4 px-6">
@@ -1298,11 +1299,10 @@ const InvoiceManagement: React.FC = () => {
                                         {selectedInvoice.tripId.status && (
                                             <div>
                                                 <label className="text-sm font-medium text-gray-500">Trip Status</label>
-                                                <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                                                    selectedInvoice.tripId.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${selectedInvoice.tripId.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                     selectedInvoice.tripId.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-blue-100 text-blue-800'
-                                                }`}>
+                                                        'bg-blue-100 text-blue-800'
+                                                    }`}>
                                                     {selectedInvoice.tripId.status.charAt(0).toUpperCase() + selectedInvoice.tripId.status.slice(1)}
                                                 </span>
                                             </div>
@@ -1350,7 +1350,7 @@ const InvoiceManagement: React.FC = () => {
                                         <div>
                                             <label className="text-sm font-medium text-gray-500">Distance</label>
                                             <p className="text-sm">
-                                                {selectedInvoice.tripId.route.totalDistance.toFixed(2)} km 
+                                                {selectedInvoice.tripId.route.totalDistance.toFixed(2)} km
                                                 ({(selectedInvoice.tripId.route.totalDistance * 0.621371).toFixed(2)} miles)
                                             </p>
                                         </div>
@@ -1606,21 +1606,21 @@ const InvoiceManagement: React.FC = () => {
             console.log('Selected trip ID:', tripId);
             const selectedTrip = trips.find(trip => trip._id === tripId);
             console.log('Selected trip data:', selectedTrip);
-            
+
             if (selectedTrip && selectedTrip.orders && selectedTrip.orders.length > 0) {
                 // Get customer from first order (trips can have multiple orders with same customer)
                 const firstOrder = selectedTrip.orders[0];
                 const customer = firstOrder.customer;
-                
+
                 const customerName = customer?.name || '';
                 const customerEmail = customer?.email || '';
-                
+
                 console.log('Auto-filling customer details from trip:', {
                     customerName,
                     customerEmail,
                     tripNumber: selectedTrip.tripNumber
                 });
-                
+
                 setNewInvoice(prev => ({
                     ...prev,
                     tripId: tripId,
@@ -1718,7 +1718,7 @@ const InvoiceManagement: React.FC = () => {
                                         const customer = trip.orders?.[0]?.customer;
                                         const customerName = customer?.name || '';
                                         const customerEmail = customer?.email || '';
-                                        
+
                                         return (
                                             <option key={tripId} value={tripId}>
                                                 {tripNumber} - {startLocation} → {endLocation}
@@ -1774,11 +1774,10 @@ const InvoiceManagement: React.FC = () => {
                                     type="text"
                                     value={newInvoice.clientName}
                                     onChange={(e) => handleInputChange('clientName', e.target.value)}
-                                    className={`w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                        newInvoice.tripId && newInvoice.clientName 
-                                            ? 'border-green-300 bg-green-50' 
-                                            : 'border-gray-300'
-                                    }`}
+                                    className={`w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${newInvoice.tripId && newInvoice.clientName
+                                        ? 'border-green-300 bg-green-50'
+                                        : 'border-gray-300'
+                                        }`}
                                     placeholder="Enter client name"
                                     required
                                 />
@@ -1795,11 +1794,10 @@ const InvoiceManagement: React.FC = () => {
                                     type="email"
                                     value={newInvoice.clientEmail}
                                     onChange={(e) => handleInputChange('clientEmail', e.target.value)}
-                                    className={`w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                        newInvoice.tripId && newInvoice.clientEmail 
-                                            ? 'border-green-300 bg-green-50' 
-                                            : 'border-gray-300'
-                                    }`}
+                                    className={`w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${newInvoice.tripId && newInvoice.clientEmail
+                                        ? 'border-green-300 bg-green-50'
+                                        : 'border-gray-300'
+                                        }`}
                                     placeholder="client@example.com"
                                 />
                             </div>
@@ -1905,22 +1903,22 @@ const InvoiceManagement: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen p-6 bg-gray-50" >
+        <div className="min-h-screen p-6 bg-[#EDF8FF]" >
             <NotificationContainer />
             <DeleteConfirmationModal />
             <div className="max-w-7xl mx-auto">
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Invoice Management</h1>
+                            <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Invoice Management</h1>
                             <p className="mt-2 text-gray-600">Manage invoices, track payments, and monitor revenue</p>
                         </div>
                         {activeTab === 'list' && (
                             <div className="mt-4 sm:mt-0">
                                 <button
                                     onClick={() => setActiveTab('create')}
-                                    className="px-4 py-2 rounded-md transition-colors flex items-center gap-2"
-                                    style={primaryButtonStyle}
+                                    className="px-4 py-2 rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white"
+                                    style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
                                 >
                                     <Plus className="h-4 w-4" />
                                     New Invoice

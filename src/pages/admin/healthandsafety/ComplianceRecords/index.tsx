@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { COLORS, hexToRgba, getStatusColor } from '../../../../theme/colors';
-import { 
-  FaFileContract, FaCheckCircle, FaExclamationTriangle, 
-  FaClock, FaFileAlt, FaSearch, FaFilter, FaEye, FaDownload, 
-  FaEdit, FaUserCheck, FaBookOpen, FaClipboardCheck,
-  FaBell, FaExclamationCircle, FaChartLine, FaShieldAlt,
+import {
+  FaFileContract, FaCheckCircle, FaExclamationTriangle,
+  FaClock, FaFileAlt, FaSearch, FaFilter, FaEye, FaDownload,
+  FaUserCheck, FaBookOpen, FaClipboardCheck,
+  FaExclamationCircle, FaChartLine,
   FaArrowRight, FaTimes
 } from 'react-icons/fa';
 import { getComplianceRecords } from '../../../../axios/api/healthSafety';
+
+const CUSTOM_COLORS = {
+  background: '#EDF8FF',
+  primary: '#016ab2',
+  dark: '#063f6f',
+  light: '#398bc3',
+  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
+};
 
 
 // ============================================================================
@@ -204,9 +213,11 @@ const EnhancedComplianceRecords: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterCompliance, setFilterCompliance] = useState<string>('all');
   const [activeView, setActiveView] = useState<'all' | 'policies' | 'training' | 'incidents' | 'hazards' | 'inspections'>('all');
+  const [selectedRecord, setSelectedRecord] = useState<ComplianceRecord | null>(null);
+  const [showSidebar, setShowSidebar] = useState(false);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [notificationId, setNotificationId] = useState(0);
-  
+
   // Dashboard-style statistics aggregated from all modules
   const [stats, setStats] = useState({
     totalRecords: 0,
@@ -237,10 +248,10 @@ const EnhancedComplianceRecords: React.FC = () => {
       setLoading(true);
       try {
         const response = await getComplianceRecords();
-        
+
         if (response?.success && Array.isArray(response.data)) {
           setRecords(response.data as ComplianceRecord[]);
-          
+
           // Update stats from API response
           if (response.stats) {
             setStats(response.stats);
@@ -260,7 +271,7 @@ const EnhancedComplianceRecords: React.FC = () => {
             };
             setStats(calculatedStats);
           }
-          
+
           showNotification('success', `Loaded ${response.data.length} compliance records`);
         } else {
           showNotification('error', response?.message || 'Failed to fetch compliance records');
@@ -313,25 +324,25 @@ const EnhancedComplianceRecords: React.FC = () => {
   const filteredRecords = records.filter(record => {
     const recordTitle = record.title.toLowerCase();
     const recordId = record.recordId.toLowerCase();
-    
-    const matchesSearch = 
+
+    const matchesSearch =
       recordId.includes(searchTerm.toLowerCase()) ||
       recordTitle.includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = filterStatus === 'all' || record.status === filterStatus;
     const matchesCompliance = filterCompliance === 'all' || record.complianceLevel === filterCompliance;
-    const matchesView = activeView === 'all' || 
+    const matchesView = activeView === 'all' ||
       (activeView === 'policies' && 'policyType' in record) ||
       (activeView === 'training' && 'trainingType' in record) ||
       (activeView === 'incidents' && 'incidentType' in record) ||
       (activeView === 'hazards' && 'hazardType' in record) ||
       (activeView === 'inspections' && 'inspectionType' in record);
-    
+
     return matchesSearch && matchesStatus && matchesCompliance && matchesView;
   });
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background.secondary }}>
+    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
       <div className="max-w-7xl mx-auto">
         {/* Toast Notifications */}
         <div className="fixed top-4 right-4 z-[10001] space-y-2">
@@ -348,7 +359,7 @@ const EnhancedComplianceRecords: React.FC = () => {
         <div className="mb-10">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <h1 className="text-4xl font-bold" style={{ color: COLORS.text.primary }}>
+              <h1 className="text-4xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
                 Compliance Records Management
               </h1>
               <p className="text-lg text-gray-600 mt-2">
@@ -357,8 +368,8 @@ const EnhancedComplianceRecords: React.FC = () => {
             </div>
             <button
               onClick={() => handleNavigation('../Dashboard')}
-              className="px-6 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center space-x-2"
-              style={{ background: COLORS.gradients.primary }}
+              className="px-6 py-3 rounded-xl !text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center space-x-2"
+              style={{ background: CUSTOM_COLORS.gradient }}
             >
               <FaChartLine size={18} />
               <span>View Dashboard</span>
@@ -380,18 +391,16 @@ const EnhancedComplianceRecords: React.FC = () => {
               <button
                 key={view.id}
                 onClick={() => setActiveView(view.id as any)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${
-                  activeView === view.id
-                    ? 'text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                style={activeView === view.id ? { background: COLORS.gradients.primary } : {}}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${activeView === view.id
+                  ? '!text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                style={activeView === view.id ? { background: CUSTOM_COLORS.gradient } : {}}
               >
                 {view.icon}
                 <span>{view.label}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                  activeView === view.id ? 'bg-white text-purple-600' : 'bg-purple-100 text-purple-600'
-                }`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeView === view.id ? 'bg-white text-purple-600' : 'bg-purple-100 text-purple-600'
+                  }`}>
                   {view.count}
                 </span>
               </button>
@@ -401,7 +410,7 @@ const EnhancedComplianceRecords: React.FC = () => {
 
         {/* Statistics Cards - Dashboard Style */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4" style={{ color: COLORS.text.primary }}>
+          <h2 className="text-2xl font-bold mb-4" style={{ color: CUSTOM_COLORS.dark }}>
             📊 Compliance Overview
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -419,7 +428,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               >
                 <FaCheckCircle size={28} style={{ color: COLORS.status.success }} />
               </div>
-              <div className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
+              <div className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.compliantRecords}
               </div>
               <div className="text-sm font-medium text-gray-600 mb-3">Compliant Records</div>
@@ -442,7 +451,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               >
                 <FaClock size={28} style={{ color: COLORS.status.warning }} />
               </div>
-              <div className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
+              <div className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.expiringRecords}
               </div>
               <div className="text-sm font-medium text-gray-600 mb-3">Expiring Soon</div>
@@ -465,7 +474,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               >
                 <FaExclamationTriangle size={28} style={{ color: '#f97316' }} />
               </div>
-              <div className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
+              <div className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.atRiskRecords}
               </div>
               <div className="text-sm font-medium text-gray-600 mb-3">At Risk Records</div>
@@ -488,7 +497,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               >
                 <FaExclamationCircle size={28} style={{ color: COLORS.status.danger }} />
               </div>
-              <div className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
+              <div className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.expiredRecords}
               </div>
               <div className="text-sm font-medium text-gray-600 mb-3">Expired / Non-Compliant</div>
@@ -499,128 +508,7 @@ const EnhancedComplianceRecords: React.FC = () => {
           </div>
         </div>
 
-        {/* Module Breakdown - Dashboard Style */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4" style={{ color: COLORS.text.primary }}>
-            📋 Records by Module
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <div
-              onClick={() => { setActiveView('policies'); handleNavigation('policies-documents'); }}
-              className="relative overflow-hidden rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
-              style={{
-                background: `linear-gradient(135deg, ${hexToRgba(COLORS.modules.policy, 0.1)} 0%, ${hexToRgba(COLORS.modules.policy, 0.05)} 100%)`,
-                border: `2px solid ${hexToRgba(COLORS.modules.policy, 0.2)}`,
-              }}
-            >
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-md"
-                style={{ backgroundColor: hexToRgba(COLORS.modules.policy, 0.15) }}
-              >
-                <FaBookOpen size={28} style={{ color: COLORS.modules.policy }} />
-              </div>
-              <div className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
-                {stats.policies}
-              </div>
-              <div className="text-sm font-medium text-gray-600">Policies</div>
-              <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <FaArrowRight style={{ color: COLORS.modules.policy }} />
-              </div>
-            </div>
 
-            <div
-              onClick={() => { setActiveView('training'); handleNavigation('training-certificates'); }}
-              className="relative overflow-hidden rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
-              style={{
-                background: `linear-gradient(135deg, ${hexToRgba(COLORS.modules.training, 0.1)} 0%, ${hexToRgba(COLORS.modules.training, 0.05)} 100%)`,
-                border: `2px solid ${hexToRgba(COLORS.modules.training, 0.2)}`,
-              }}
-            >
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-md"
-                style={{ backgroundColor: hexToRgba(COLORS.modules.training, 0.15) }}
-              >
-                <FaUserCheck size={28} style={{ color: COLORS.modules.training }} />
-              </div>
-              <div className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
-                {stats.training}
-              </div>
-              <div className="text-sm font-medium text-gray-600">Training</div>
-              <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <FaArrowRight style={{ color: COLORS.modules.training }} />
-              </div>
-            </div>
-
-            <div
-              onClick={() => { setActiveView('incidents'); handleNavigation('incidents-accidents'); }}
-              className="relative overflow-hidden rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
-              style={{
-                background: `linear-gradient(135deg, ${hexToRgba(COLORS.modules.incident, 0.1)} 0%, ${hexToRgba(COLORS.modules.incident, 0.05)} 100%)`,
-                border: `2px solid ${hexToRgba(COLORS.modules.incident, 0.2)}`,
-              }}
-            >
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-md"
-                style={{ backgroundColor: hexToRgba(COLORS.modules.incident, 0.15) }}
-              >
-                <FaExclamationTriangle size={28} style={{ color: COLORS.modules.incident }} />
-              </div>
-              <div className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
-                {stats.incidents}
-              </div>
-              <div className="text-sm font-medium text-gray-600">Incidents</div>
-              <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <FaArrowRight style={{ color: COLORS.modules.incident }} />
-              </div>
-            </div>
-
-            <div
-              onClick={() => { setActiveView('hazards'); handleNavigation('inspections-hazards'); }}
-              className="relative overflow-hidden rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
-              style={{
-                background: `linear-gradient(135deg, ${hexToRgba(COLORS.modules.hazard, 0.1)} 0%, ${hexToRgba(COLORS.modules.hazard, 0.05)} 100%)`,
-                border: `2px solid ${hexToRgba(COLORS.modules.hazard, 0.2)}`,
-              }}
-            >
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-md"
-                style={{ backgroundColor: hexToRgba(COLORS.modules.hazard, 0.15) }}
-              >
-                <FaShieldAlt size={28} style={{ color: COLORS.modules.hazard }} />
-              </div>
-              <div className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
-                {stats.hazards}
-              </div>
-              <div className="text-sm font-medium text-gray-600">Hazards</div>
-              <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <FaArrowRight style={{ color: COLORS.modules.hazard }} />
-              </div>
-            </div>
-
-            <div
-              onClick={() => { setActiveView('inspections'); handleNavigation('SafetyInspections'); }}
-              className="relative overflow-hidden rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
-              style={{
-                background: `linear-gradient(135deg, ${hexToRgba(COLORS.modules.inspection, 0.1)} 0%, ${hexToRgba(COLORS.modules.inspection, 0.05)} 100%)`,
-                border: `2px solid ${hexToRgba(COLORS.modules.inspection, 0.2)}`,
-              }}
-            >
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-md"
-                style={{ backgroundColor: hexToRgba(COLORS.modules.inspection, 0.15) }}
-              >
-                <FaClipboardCheck size={28} style={{ color: COLORS.modules.inspection }} />
-              </div>
-              <div className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
-                {stats.inspections}
-              </div>
-              <div className="text-sm font-medium text-gray-600">Inspections</div>
-              <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <FaArrowRight style={{ color: COLORS.modules.inspection }} />
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Filters and Search */}
         <div className="bg-white rounded-xl p-4 shadow-lg mb-6">
@@ -668,13 +556,13 @@ const EnhancedComplianceRecords: React.FC = () => {
           <div className="p-6 border-b">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-bold" style={{ color: COLORS.text.primary }}>
-                  {activeView === 'all' ? 'All Compliance Records' : 
-                   activeView === 'policies' ? '📋 Policy Records (Req 12)' :
-                   activeView === 'training' ? '🎓 Training Records (Req 3)' :
-                   activeView === 'incidents' ? '🚨 Incident Reports (Req 1)' :
-                   activeView === 'hazards' ? '⚠️ Hazard Reports (Req 2)' :
-                   '🔍 Inspection Records (Req 6)'}
+                <h3 className="text-xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
+                  {activeView === 'all' ? 'All Compliance Records' :
+                    activeView === 'policies' ? '📋 Policy Records' :
+                      activeView === 'training' ? '🎓 Training Records' :
+                        activeView === 'incidents' ? '🚨 Incident Reports' :
+                          activeView === 'hazards' ? '⚠️ Hazard Reports' :
+                            '🔍 Inspection Records'}
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
                   {activeView === 'policies' && 'Track 20+ mandatory policies, acknowledgments, version control, renewal cycles'}
@@ -693,7 +581,7 @@ const EnhancedComplianceRecords: React.FC = () => {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead style={{ background: COLORS.gradients.primary, color: '#ffffff' }}>
+              <thead style={{ background: CUSTOM_COLORS.gradient, color: '#ffffff' }}>
                 <tr>
                   <th className="px-6 py-4 text-left text-white font-semibold">Record ID</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">Title</th>
@@ -721,7 +609,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                   filteredRecords.map((record) => {
                     const type = getRecordType(record);
                     const complianceColor = getComplianceColor(record.complianceLevel);
-                    
+
                     return (
                       <tr key={record._id} className="border-b border-gray-200 hover:bg-gray-50">
                         <td className="px-6 py-4 font-medium">{record.recordId}</td>
@@ -739,7 +627,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                         <td className="px-6 py-4">
                           <span
                             className="px-2 py-1 rounded-full text-xs font-semibold"
-                            style={{ 
+                            style={{
                               backgroundColor: getStatusColor(record.status).bg,
                               color: getStatusColor(record.status).text
                             }}
@@ -785,84 +673,17 @@ const EnhancedComplianceRecords: React.FC = () => {
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <button 
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" 
+                          <div className="flex items-center justify-center">
+                            <button
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                               title="View Details"
                               onClick={() => {
-                                // In production, this would navigate to compliance dashboard detail view
-                                showNotification('info', `Viewing ${record.recordId} details`);
+                                setSelectedRecord(record);
+                                setShowSidebar(true);
                               }}
                             >
-                              <FaEye />
+                              <FaEye size={18} />
                             </button>
-                            <button 
-                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" 
-                              title="Download"
-                              onClick={() => {
-                                // In production, this would download from compliance dashboard
-                                showNotification('info', `Downloading ${record.recordId}`);
-                              }}
-                            >
-                              <FaDownload />
-                            </button>
-                            {('policyType' in record) && (
-                              <button 
-                                onClick={() => handleNavigation('policies-documents')}
-                                className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition" 
-                                title="Edit Policy"
-                              >
-                                <FaEdit />
-                              </button>
-                            )}
-                            {('trainingType' in record) && (
-                              <button 
-                                onClick={() => handleNavigation('training-certificates')}
-                                className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition" 
-                                title="Edit Training"
-                              >
-                                <FaEdit />
-                              </button>
-                            )}
-                            {('incidentType' in record) && (
-                              <button 
-                                onClick={() => handleNavigation('incidents-accidents')}
-                                className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition" 
-                                title="Edit Incident"
-                              >
-                                <FaEdit />
-                              </button>
-                            )}
-                            {('hazardType' in record) && (
-                              <button 
-                                onClick={() => handleNavigation('inspections-hazards')}
-                                className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition" 
-                                title="Edit Hazard"
-                              >
-                                <FaEdit />
-                              </button>
-                            )}
-                            {('inspectionType' in record) && (
-                              <button 
-                                onClick={() => handleNavigation('SafetyInspections')}
-                                className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition" 
-                                title="Edit Inspection"
-                              >
-                                <FaEdit />
-                              </button>
-                            )}
-                            {record.status === 'expiring' && (
-                              <button 
-                                className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition" 
-                                title="Set Reminder"
-                                onClick={() => {
-                                  // In production, this would trigger a reminder
-                                  showNotification('success', `Reminder set for ${record.recordId}`);
-                                }}
-                              >
-                                <FaBell />
-                              </button>
-                            )}
                           </div>
                         </td>
                       </tr>
@@ -874,11 +695,216 @@ const EnhancedComplianceRecords: React.FC = () => {
           </div>
         </div>
 
+        {/* Details Sidebar */}
+        {showSidebar && selectedRecord && (
+          <div className="fixed inset-0 z-[10002] flex justify-end">
+            <div
+              className="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity"
+              onClick={() => setShowSidebar(false)}
+            />
+            <div className="relative w-full max-w-xl bg-white h-full shadow-2xl overflow-y-auto transform transition-transform duration-300 ease-in-out">
+              <div className="p-6 border-b sticky top-0 bg-white z-10 flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
+                    {selectedRecord.recordId}
+                  </h2>
+                  <p className="text-gray-600">{selectedRecord.title}</p>
+                </div>
+                <button
+                  onClick={() => setShowSidebar(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition"
+                >
+                  <FaTimes size={24} className="text-gray-500" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Status Banner */}
+                <div className={`p-4 rounded-xl flex items-center justify-between ${selectedRecord.complianceLevel === 'compliant' ? 'bg-green-50 border border-green-200' :
+                  selectedRecord.complianceLevel === 'at-risk' ? 'bg-orange-50 border border-orange-200' :
+                    'bg-red-50 border border-red-200'
+                  }`}>
+                  <div className="flex items-center gap-3">
+                    {selectedRecord.complianceLevel === 'compliant' ? <FaCheckCircle className="text-green-600" size={24} /> :
+                      selectedRecord.complianceLevel === 'at-risk' ? <FaExclamationTriangle className="text-orange-600" size={24} /> :
+                        <FaExclamationCircle className="text-red-600" size={24} />}
+                    <div>
+                      <div className="font-bold text-gray-900 capitalize">{selectedRecord.complianceLevel.replace('-', ' ')}</div>
+                      <div className="text-sm text-gray-600 capitalize">Status: {selectedRecord.status.replace('-', ' ')}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Common Fields */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <span className="text-xs text-gray-500 uppercase font-semibold">Category</span>
+                    <div className="font-medium text-gray-900 mt-1">{selectedRecord.category}</div>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <span className="text-xs text-gray-500 uppercase font-semibold">Type</span>
+                    <div className="font-medium text-gray-900 mt-1">
+                      {'policyType' in selectedRecord ? selectedRecord.policyType :
+                        'trainingType' in selectedRecord ? selectedRecord.trainingType :
+                          'incidentType' in selectedRecord ? selectedRecord.incidentType.replace('-', ' ') :
+                            'hazardType' in selectedRecord ? selectedRecord.hazardType :
+                              'inspectionType' in selectedRecord ? selectedRecord.inspectionType : 'N/A'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Type Specific Details */}
+                {'policyType' in selectedRecord && (
+                  <div className="space-y-4">
+                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-gray-700">
+                      <FaBookOpen className="text-purple-600" /> Policy Details
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-gray-500">Department:</span> <div className="font-medium">{selectedRecord.department}</div></div>
+                      <div><span className="text-gray-500">Responsible:</span> <div className="font-medium">{selectedRecord.responsiblePerson}</div></div>
+                      <div><span className="text-gray-500">Issue Date:</span> <div className="font-medium">{selectedRecord.issueDate}</div></div>
+                      <div><span className="text-gray-500">Next Review:</span> <div className="font-medium">{selectedRecord.nextReviewDate}</div></div>
+                      <div><span className="text-gray-500">Renewal Cycle:</span> <div className="font-medium">{selectedRecord.renewalCycle} Months</div></div>
+                      <div><span className="text-gray-500">Version:</span> <div className="font-medium">{selectedRecord.currentVersion}</div></div>
+                    </div>
+                    {selectedRecord.documentUrl && (
+                      <div className="mt-4 pt-4 border-t">
+                        <a href={selectedRecord.documentUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-blue-600 hover:underline">
+                          <FaDownload /> Download Policy Document
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {'trainingType' in selectedRecord && (
+                  <div className="space-y-4">
+                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-gray-700">
+                      <FaUserCheck className="text-green-600" /> Training Details
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-gray-500">Employee:</span> <div className="font-medium">{selectedRecord.employeeName}</div></div>
+                      <div><span className="text-gray-500">Instructor:</span> <div className="font-medium">{selectedRecord.instructor}</div></div>
+                      <div><span className="text-gray-500">Issue Date:</span> <div className="font-medium">{selectedRecord.issueDate}</div></div>
+                      <div><span className="text-gray-500">Expiry Date:</span> <div className="font-medium text-orange-600">{selectedRecord.expiryDate || 'N/A'}</div></div>
+                      <div><span className="text-gray-500">Certificate No:</span> <div className="font-medium">{selectedRecord.certificateNumber}</div></div>
+                    </div>
+                    {selectedRecord.certificateUrl && (
+                      <div className="mt-4 pt-4 border-t">
+                        <a href={selectedRecord.certificateUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-blue-600 hover:underline">
+                          <FaCheckCircle /> View Certificate
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {'incidentType' in selectedRecord && (
+                  <div className="space-y-4">
+                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-gray-700">
+                      <FaExclamationTriangle className="text-red-600" /> Incident Report
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-gray-500">Date:</span> <div className="font-medium">{selectedRecord.incidentDate}</div></div>
+                      <div><span className="text-gray-500">Reported By:</span> <div className="font-medium">{selectedRecord.reportedBy}</div></div>
+                      <div><span className="text-gray-500">Location:</span> <div className="font-medium">{selectedRecord.location}</div></div>
+                      <div><span className="text-gray-500">Severity:</span> <div className="font-medium capitalize text-red-600">{selectedRecord.severity}</div></div>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-lg text-sm">
+                      <span className="text-gray-500 block mb-1">Description:</span>
+                      <p>{selectedRecord.description}</p>
+                    </div>
+                    {selectedRecord.photosVideos && selectedRecord.photosVideos.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="font-semibold text-sm mb-2">Media Evidence</h4>
+                        <div className="flex gap-2 overflow-x-auto">
+                          {selectedRecord.photosVideos.map((url, idx) => (
+                            <a key={idx} href={url} target="_blank" rel="noreferrer" className="shrink-0 w-20 h-20 bg-gray-200 rounded-lg overflow-hidden border border-gray-300">
+                              {url.endsWith('.mp4') ? (
+                                <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs">Video</div>
+                              ) : (
+                                <img src={url} alt="evidence" className="w-full h-full object-cover" />
+                              )}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {'hazardType' in selectedRecord && (
+                  <div className="space-y-4">
+                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-gray-700">
+                      <FaExclamationCircle className="text-orange-600" /> Hazard Details
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-gray-500">Reported Date:</span> <div className="font-medium">{selectedRecord.reportedDate}</div></div>
+                      <div><span className="text-gray-500">Reported By:</span> <div className="font-medium">{selectedRecord.reportedBy}</div></div>
+                      <div><span className="text-gray-500">Location:</span> <div className="font-medium">{selectedRecord.location}</div></div>
+                    </div>
+                    <div className="bg-orange-50 p-3 rounded-lg flex items-center gap-4">
+                      <div>
+                        <div className="text-xs text-orange-800 uppercase font-bold">Risk Rating</div>
+                        <div className="text-2xl font-bold text-orange-700">{selectedRecord.riskRating.total}</div>
+                      </div>
+                      <div className="text-sm text-orange-900">
+                        Likelihood ({selectedRecord.riskRating.likelihood}) × Severity ({selectedRecord.riskRating.severity})
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-lg text-sm">
+                      <span className="text-gray-500 block mb-1">Description:</span>
+                      <p>{selectedRecord.description}</p>
+                    </div>
+                  </div>
+                )}
+
+                {'inspectionType' in selectedRecord && (
+                  <div className="space-y-4">
+                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-gray-700">
+                      <FaClipboardCheck className="text-blue-600" /> Inspection Results
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-gray-500">Date:</span> <div className="font-medium">{selectedRecord.inspectionDate}</div></div>
+                      <div><span className="text-gray-500">Inspector:</span> <div className="font-medium">{selectedRecord.inspector}</div></div>
+                      <div><span className="text-gray-500">Location:</span> <div className="font-medium">{selectedRecord.location}</div></div>
+                      <div>
+                        <span className="text-gray-500">Next Due:</span>
+                        <div className="font-medium">{selectedRecord.nextInspectionDate}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-4 border-t pt-4">
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-red-600">{selectedRecord.findingsCount}</div>
+                        <div className="text-xs text-gray-500">Findings</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-green-600">{selectedRecord.checklist ? selectedRecord.checklist.length : 0}</div>
+                        <div className="text-xs text-gray-500">Checks</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+
+              <div className="p-6 border-t bg-gray-50">
+                <button
+                  onClick={() => setShowSidebar(false)}
+                  className="w-full py-3 bg-white border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-100 transition"
+                >
+                  Close Details
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Enhanced Info Panel for Active View */}
         {activeView === 'policies' && (
           <div className="mt-6 bg-purple-50 border-2 border-purple-200 rounded-xl p-6">
             <h3 className="text-lg font-bold text-purple-900 mb-3 flex items-center gap-2">
-              <FaBookOpen /> Policy Management Features (Requirement 12)
+              <FaBookOpen /> Policy Management Features
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div className="flex items-start gap-2">

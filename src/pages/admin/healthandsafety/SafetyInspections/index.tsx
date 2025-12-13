@@ -4,7 +4,7 @@ import {
   FaSearch, FaMapMarkerAlt, FaUser,
   FaTools, FaCamera, FaTimes, FaClock,
   FaExclamationTriangle, FaInfoCircle,
-  FaHistory, FaDownload, FaEdit, FaTrash
+  FaHistory, FaEdit, FaTrash
 } from 'react-icons/fa';
 import {
   createInspection,
@@ -12,6 +12,15 @@ import {
   updateInspection,
   deleteInspection
 } from '../../../../axios/api/healthSafety';
+
+const CUSTOM_COLORS = {
+  background: '#EDF8FF',
+  primary: '#016ab2',
+  dark: '#063f6f',
+  light: '#398bc3',
+  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
+};
 
 interface ChecklistItem {
   id: string;
@@ -205,6 +214,9 @@ const SafetyInspections: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [editingInspection, setEditingInspection] = useState<Inspection | null>(null);
+  // Delete Confirmation State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [inspectionToDelete, setInspectionToDelete] = useState<Inspection | null>(null);
 
   // Toast notification helpers
   const addNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
@@ -432,17 +444,22 @@ const SafetyInspections: React.FC = () => {
     }
   };
 
-  const handleDeleteInspection = async (inspectionId: string) => {
-    if (!window.confirm('Are you sure you want to delete this inspection?')) {
-      return;
-    }
+  const handleDeleteInspection = (inspection: Inspection) => {
+    setInspectionToDelete(inspection);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteInspection = async () => {
+    if (!inspectionToDelete) return;
 
     try {
-      const response = await deleteInspection(inspectionId);
+      const response = await deleteInspection(inspectionToDelete._id);
       if (response?.success) {
         addNotification('success', 'Inspection deleted successfully');
         setShowDetailModal(false);
         setSelectedInspection(null);
+        setShowDeleteModal(false);
+        setInspectionToDelete(null);
         await fetchInspections(false); // Fetch all inspections
       } else {
         const errorMsg = response?.message || 'Failed to delete inspection';
@@ -656,7 +673,8 @@ const SafetyInspections: React.FC = () => {
                   }
                 }}
                 disabled={saving || !selectedType || !selectedLocation || !selectedInspector || !scheduledDate}
-                className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: CUSTOM_COLORS.gradient }}
               >
                 {saving ? (
                   <>
@@ -853,22 +871,20 @@ const SafetyInspections: React.FC = () => {
           </div>
 
           <div className="p-6 border-t bg-gray-50 flex gap-3">
-            <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2">
-              <FaDownload /> Download Report
-            </button>
+
             <button
               onClick={() => {
                 setEditingInspection(selectedInspection);
                 setShowDetailModal(false);
                 setShowNewInspectionModal(true);
               }}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center gap-2"
+              className="px-6 py-3 bg-green-600 !text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center gap-2"
             >
               <FaEdit /> Edit Inspection
             </button>
             <button
-              onClick={() => handleDeleteInspection(selectedInspection._id)}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition flex items-center gap-2"
+              onClick={() => handleDeleteInspection(selectedInspection)}
+              className="px-6 py-3 bg-red-600 !text-white rounded-lg font-semibold hover:bg-red-700 transition flex items-center gap-2"
             >
               <FaTrash /> Delete
             </button>
@@ -888,10 +904,10 @@ const SafetyInspections: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3" style={{ color: CUSTOM_COLORS.dark }}>
           <FaClipboardCheck className="text-indigo-600" />
           Safety Inspections & Audits
         </h1>
@@ -973,7 +989,8 @@ const SafetyInspections: React.FC = () => {
               setEditingInspection(null);
               setShowNewInspectionModal(true);
             }}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center gap-2 whitespace-nowrap"
+            className="px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center gap-2 whitespace-nowrap"
+            style={{ background: CUSTOM_COLORS.gradient }}
           >
             <FaPlus /> New Inspection
           </button>
@@ -987,9 +1004,10 @@ const SafetyInspections: React.FC = () => {
             key={tab}
             onClick={() => setCurrentTab(tab)}
             className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition ${currentTab === tab
-              ? 'bg-indigo-600 text-white'
+              ? 'text-white'
               : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
+              }
+            style={currentTab === tab ? { background: CUSTOM_COLORS.primary } : {}}`}
           >
             {tab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
           </button>
@@ -1094,6 +1112,38 @@ const SafetyInspections: React.FC = () => {
       {/* Modals */}
       {showNewInspectionModal && <NewInspectionModal editing={editingInspection} />}
       {showDetailModal && <InspectionDetailModal />}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && inspectionToDelete && (
+        <div className="fixed inset-0 flex justify-center items-center z-[11000] p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaExclamationTriangle className="text-red-500 text-3xl" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Delete Inspection?</h2>
+              <p className="text-gray-600">
+                Are you sure you want to delete inspection <span className="font-semibold text-gray-800">"{inspectionToDelete.inspectionNumber}"</span>?
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteInspection}
+                className="flex-1 px-4 py-3 bg-red-600 !text-white rounded-xl font-semibold hover:bg-red-700 transition shadow-lg shadow-red-200"
+              >
+                Delete Inspection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10001] space-y-2">

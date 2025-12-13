@@ -75,6 +75,8 @@ export default function TaxConfigurationPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: TabType } | null>(null);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -120,11 +122,7 @@ export default function TaxConfigurationPage() {
     setNotifications((prev: ToastNotification[]) => prev.filter((n: ToastNotification) => n.id !== id));
   };
 
-  const confirmAction = (message: string, onConfirm: () => void) => {
-    if (window.confirm(message)) {
-      onConfirm();
-    }
-  };
+
 
   // Fetch data functions
   const fetchIftaRates = async () => {
@@ -384,43 +382,51 @@ export default function TaxConfigurationPage() {
   };
 
   const handleDelete = (id: string) => {
-    confirmAction('Are you sure you want to delete this item?', async () => {
-      try {
-        let response;
-        if (activeTab === 'ifta') {
-          response = await deleteIftaRate(id);
-          if (response?.success) {
-            await fetchIftaRates();
-            showNotification('success', 'IFTA rate deleted successfully');
-          }
-        } else if (activeTab === 'sales') {
-          response = await deleteSalesTaxRule(id);
-          if (response?.success) {
-            await fetchSalesTaxRules();
-            showNotification('success', 'Sales tax rule deleted successfully');
-          }
-        } else if (activeTab === 'payroll') {
-          response = await deletePayrollTaxFormula(id);
-          if (response?.success) {
-            await fetchPayrollFormulas();
-            showNotification('success', 'Payroll tax formula deleted successfully');
-          }
-        } else if (activeTab === 'vendor') {
-          response = await deleteVendorTax(id);
-          if (response?.success) {
-            await fetchVendorTaxes();
-            showNotification('success', 'Vendor tax deleted successfully');
-          }
-        }
+    setItemToDelete({ id, type: activeTab });
+    setShowDeleteModal(true);
+  };
 
-        if (!response?.success) {
-          showNotification('error', response?.message || 'Failed to delete item');
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      let response;
+      if (itemToDelete.type === 'ifta') {
+        response = await deleteIftaRate(itemToDelete.id);
+        if (response?.success) {
+          await fetchIftaRates();
+          showNotification('success', 'IFTA rate deleted successfully');
         }
-      } catch (error: any) {
-        console.error('Error deleting item:', error);
-        showNotification('error', error?.response?.data?.message || 'An error occurred while deleting item');
+      } else if (itemToDelete.type === 'sales') {
+        response = await deleteSalesTaxRule(itemToDelete.id);
+        if (response?.success) {
+          await fetchSalesTaxRules();
+          showNotification('success', 'Sales tax rule deleted successfully');
+        }
+      } else if (itemToDelete.type === 'payroll') {
+        response = await deletePayrollTaxFormula(itemToDelete.id);
+        if (response?.success) {
+          await fetchPayrollFormulas();
+          showNotification('success', 'Payroll tax formula deleted successfully');
+        }
+      } else if (itemToDelete.type === 'vendor') {
+        response = await deleteVendorTax(itemToDelete.id);
+        if (response?.success) {
+          await fetchVendorTaxes();
+          showNotification('success', 'Vendor tax deleted successfully');
+        }
       }
-    });
+
+      if (!response?.success) {
+        showNotification('error', response?.message || 'Failed to delete item');
+      }
+    } catch (error: any) {
+      console.error('Error deleting item:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while deleting item');
+    } finally {
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+    }
   };
 
   const handleAutoUpdate = () => {
@@ -458,7 +464,7 @@ export default function TaxConfigurationPage() {
                       <td className="px-4 py-3 text-sm text-slate-700">${item.rate}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">{item.effectiveDate}</td>
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
+                        <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
@@ -505,7 +511,7 @@ export default function TaxConfigurationPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
+                        <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
@@ -552,7 +558,7 @@ export default function TaxConfigurationPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
+                        <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
@@ -597,7 +603,7 @@ export default function TaxConfigurationPage() {
                       <td className="px-4 py-3 text-sm text-slate-700">{item.payableAccount}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">{item.expenseAccount}</td>
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800 mr-3">
+                        <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
@@ -643,7 +649,7 @@ export default function TaxConfigurationPage() {
   const tabInfo = getTabInfo();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+    <div className="min-h-screen bg-[#EDF8FF] p-6">
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map(notification => (
@@ -660,16 +666,16 @@ export default function TaxConfigurationPage() {
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-600 p-3 rounded-lg">
+              <div className="p-3 rounded-lg" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
                 <Settings className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-800">Tax Configuration Management</h1>
+                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tax Configuration Management</h1>
                 <p className="text-slate-600 text-sm mt-1">Add, edit, and manage tax settings across all components</p>
               </div>
             </div>
             {activeTab === 'ifta' && (
-              <button onClick={handleAutoUpdate} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+              <button onClick={handleAutoUpdate} className="flex items-center gap-2 bg-green-600 !text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
                 <RefreshCw className="w-4 h-4" />
                 Auto-Update from Source
               </button>
@@ -680,19 +686,19 @@ export default function TaxConfigurationPage() {
         {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow-sm mb-6 overflow-hidden">
           <div className="flex border-b border-slate-200">
-            <button onClick={() => setActiveTab('ifta')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'ifta' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('ifta')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'ifta' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
               <FileText className="w-5 h-5" />
               <span className="hidden sm:inline">IFTA Rates</span>
             </button>
-            <button onClick={() => setActiveTab('sales')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'sales' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('sales')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'sales' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
               <MapPin className="w-5 h-5" />
               <span className="hidden sm:inline">Sales Tax</span>
             </button>
-            <button onClick={() => setActiveTab('payroll')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'payroll' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('payroll')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'payroll' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
               <Calculator className="w-5 h-5" />
               <span className="hidden sm:inline">Payroll</span>
             </button>
-            <button onClick={() => setActiveTab('vendor')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'vendor' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('vendor')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'vendor' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
               <DollarSign className="w-5 h-5" />
               <span className="hidden sm:inline">Vendor Tax</span>
             </button>
@@ -717,7 +723,7 @@ export default function TaxConfigurationPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <button onClick={handleAddNew} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              <button onClick={handleAddNew} className="flex items-center gap-2 !text-white px-4 py-2 rounded-lg hover:shadow-lg hover:scale-105 transform duration-200 transition-all" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
                 <Plus className="w-4 h-4" />
                 Add New
               </button>
@@ -908,7 +914,11 @@ export default function TaxConfigurationPage() {
                   <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50">
                     Cancel
                   </button>
-                  <button type="submit" className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                  <button type="submit"
+                    style={{
+                      background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                    }}
+                    className="flex-1  !text-white px-4 py-2 rounded-lg ">
                     <Save className="w-4 h-4 inline mr-2" />
                     Save
                   </button>
@@ -917,7 +927,40 @@ export default function TaxConfigurationPage() {
             </div>
           </div>
         )}
+
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4 text-red-600">
+              <Trash2 className="w-6 h-6" />
+              <h3 className="text-lg font-bold">Confirm Deletion</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this item? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                style={{
+                  boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.3)'
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

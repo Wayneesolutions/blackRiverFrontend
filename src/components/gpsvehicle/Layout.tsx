@@ -23,7 +23,6 @@ const Layout = () => {
       <div className="flex-shrink-0 h-screen overflow-hidden">
         <GpsSidebar
           isCollapsed={isSidebarCollapsed}
-          onToggle={toggleSidebar}
         />
       </div>
 
@@ -32,7 +31,6 @@ const Layout = () => {
         {/* Header - fixed at top */}
         <div className="flex-shrink-0">
           <GpsHeader
-            isSidebarCollapsed={isSidebarCollapsed}
             onToggleSidebar={toggleSidebar}
           />
         </div>

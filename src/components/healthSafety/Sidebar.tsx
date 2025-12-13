@@ -8,10 +8,9 @@ import { getUserRole, getDashboardRoute } from "../../utils/auth";
 
 interface SidebarProps {
   isCollapsed?: boolean;
-  onToggle: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const navigate = useNavigate();
 
@@ -110,8 +109,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
                     <button
                       onClick={() => toggleMenu(link.key)}
                       className={`w-full transition group ${isCollapsed
-                          ? "flex flex-col items-center justify-center px-2 py-2"
-                          : "flex items-center px-4 py-2 gap-3"
+                        ? "flex flex-col items-center justify-center px-2 py-2"
+                        : "flex items-center px-4 py-2 gap-3"
                         } ${openMenus.includes(link.key)
                           ? "bg-[#42aeec]/10"
                           : "hover:bg-gray-50"
@@ -120,8 +119,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
                     >
                       <span
                         className={`${isCollapsed ? "text-2xl" : "text-xl"} ${openMenus.includes(link.key)
-                            ? "text-[#42aeec]"
-                            : "text-gray-600 group-hover:text-[#42aeec]"
+                          ? "text-[#42aeec]"
+                          : "text-gray-600 group-hover:text-[#42aeec]"
                           }`}
                       >
                         {link.icon}
@@ -131,8 +130,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
                         <>
                           <span
                             className={`flex-1 text-sm ${openMenus.includes(link.key)
-                                ? "text-[#42aeec]"
-                                : "text-gray-700 group-hover:text-[#42aeec]"
+                              ? "text-[#42aeec]"
+                              : "text-gray-700 group-hover:text-[#42aeec]"
                               }`}
                           >
                             {link.label}
@@ -163,8 +162,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
                               <NavLink
                                 to={child.key}
                                 className={`flex items-center px-4 py-2 pl-12 text-sm transition ${activeState
-                                    ? "text-[#42aeec] bg-[#42aeec]/10"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-[#42aeec]"
+                                  ? "text-[#42aeec] bg-[#42aeec]/10"
+                                  : "text-gray-600 hover:bg-gray-100 hover:text-[#42aeec]"
                                   }`}
                               >
                                 <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>
@@ -190,8 +189,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
                       );
 
                       return `transition group ${isCollapsed
-                          ? "flex flex-col items-center justify-center px-2 py-2"
-                          : "flex items-center px-4 py-2 gap-3"
+                        ? "flex flex-col items-center justify-center px-2 py-2"
+                        : "flex items-center px-4 py-2 gap-3"
                         } ${activeState
                           ? "text-[#42aeec] bg-[#42aeec]/10"
                           : "text-gray-600 hover:bg-gray-50 hover:text-[#42aeec]"

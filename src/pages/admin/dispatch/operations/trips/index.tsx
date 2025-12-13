@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash2, Eye, Search, X, File, Download } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, X, File } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck, FaUser, FaTrailer } from "react-icons/fa";
 import NewTripSidebar from "./NewTripSidebar";
 import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
@@ -128,7 +128,7 @@ const Trips = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [startConfirm, setStartConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [completeConfirm, setCompleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
-  
+
   const focusHandlers = getFocusStyles();
   const primaryButtonStyle: React.CSSProperties = {
     background: `linear-gradient(
@@ -140,13 +140,13 @@ const Trips = () => {
     color: "#fff",
     boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
   };
-  
+
   // Search and filters
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [driverFilter, setDriverFilter] = useState<string>("");
   const [truckFilter, setTruckFilter] = useState<string>("");
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -188,11 +188,11 @@ const Trips = () => {
         listDriver(),
         listVehicle()
       ]);
-      
+
       if (driversRes?.success && driversRes?.data) {
         setDrivers(Array.isArray(driversRes.data) ? driversRes.data : []);
       }
-      
+
       if (vehiclesRes?.success && vehiclesRes?.data) {
         const vehicleData = vehiclesRes.data?.vehicles || vehiclesRes.data || [];
         setTrucks(Array.isArray(vehicleData) ? vehicleData : []);
@@ -216,7 +216,7 @@ const Trips = () => {
       if (searchTerm) params.search = searchTerm;
 
       const response = await listTrip(params);
-      
+
       if (response?.success) {
         setTrips(response.data || []);
         setTotalPages(response.pagination?.totalPages || 1);
@@ -257,7 +257,7 @@ const Trips = () => {
 
   const confirmDeleteTrip = async () => {
     if (!deleteConfirm.trip) return;
-    
+
     try {
       const response = await deleteTrip(deleteConfirm.trip._id);
       if (response?.success) {
@@ -298,7 +298,7 @@ const Trips = () => {
 
   const confirmStartTrip = async () => {
     if (!startConfirm.trip) return;
-    
+
     try {
       const response = await startTripAPI(startConfirm.trip._id);
       if (response?.success) {
@@ -320,7 +320,7 @@ const Trips = () => {
 
   const confirmCompleteTrip = async () => {
     if (!completeConfirm.trip) return;
-    
+
     try {
       const response = await completeTripAPI(completeConfirm.trip._id);
       if (response?.success) {
@@ -393,7 +393,7 @@ const Trips = () => {
               onBlur={focusHandlers.onBlur}
             />
           </div>
-          
+
           <select
             value={statusFilter}
             onChange={(e) => {
@@ -646,9 +646,8 @@ const Trips = () => {
         <div className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
       )}
       <div
-        className={`fixed top-0 right-0 h-full max-w-4xl w-full bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${
-          sidebarOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full max-w-4xl w-full bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <NewTripSidebar
           trip={editingTrip}
@@ -723,17 +722,17 @@ const Trips = () => {
                       const deliveryLocation = extractLocationString(order.deliveryLocation);
                       return (
                         <div key={order._id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-start justify-between mb-2">
                             <div className="font-semibold" style={{ color: FLEET_COLORS.primary }}>{order.orderNumber}</div>
                             {order.status && (
-                              <span 
+                              <span
                                 className="px-2 py-1 rounded text-xs font-medium"
                                 style={
                                   order.status === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
-                                  order.status === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
-                                  order.status === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
-                                  order.status === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
-                                  { backgroundColor: '#f3f4f6', color: '#1f2937' }
+                                    order.status === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
+                                      order.status === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
+                                        order.status === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
+                                          { backgroundColor: '#f3f4f6', color: '#1f2937' }
                                 }
                               >
                                 {order.status}

@@ -53,7 +53,7 @@ const ExpiringVehicleDocumentsToast: React.FC<ExpiringVehicleDocumentsToastProps
               <X className="w-4 h-4 text-gray-500" />
             </button>
           </div>
-          
+
           {onViewDocuments && (
             <div className="mt-3 flex justify-end">
               <button
@@ -61,8 +61,10 @@ const ExpiringVehicleDocumentsToast: React.FC<ExpiringVehicleDocumentsToastProps
                   onViewDocuments();
                   onClose();
                 }}
-                className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
-                style={{ color: 'white' }}
+                className="flex items-center gap-1 px-3 py-1.5  text-white text-xs font-medium rounded  transition-colors"
+                style={{
+                  color: 'white', background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                }}
               >
                 <ExternalLink className="w-3 h-3 text-white" style={{ color: 'white', stroke: 'white' }} />
                 <span className="text-white" style={{ color: 'white' }}>View Vehicle Documents</span>
@@ -71,7 +73,7 @@ const ExpiringVehicleDocumentsToast: React.FC<ExpiringVehicleDocumentsToastProps
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

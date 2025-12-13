@@ -748,40 +748,7 @@ const SparePartsInventory = () => {
         return { status: 'Good Stock', color: 'text-green-600 bg-green-50' };
     };
 
-    const getWorkOrderDetails = (usage: UsageHistory) => {
-        if (typeof usage.workOrderId === 'object' && usage.workOrderId !== null) {
-            // Prioritize FleetUnit data if available
-            if (usage.workOrderId.fleetUnit) {
-                return {
-                    issue: usage.workOrderId.issue || 'N/A',
-                    truck: `${usage.workOrderId.fleetUnit.unitNo} - ${usage.workOrderId.fleetUnit.makeModel} (${usage.workOrderId.fleetUnit.licensePlate})`,
-                    vehicle: `${usage.workOrderId.fleetUnit.unitNo} - ${usage.workOrderId.fleetUnit.makeModel} (${usage.workOrderId.fleetUnit.licensePlate})`
-                };
-            }
-            // Fallback to unitNumber if available
-            if (usage.workOrderId.unitNumber) {
-                return {
-                    issue: usage.workOrderId.issue || 'N/A',
-                    truck: usage.workOrderId.unitNumber,
-                    vehicle: usage.workOrderId.unitNumber
-                };
-            }
-            // Fallback to vehicleId if available
-            if (usage.workOrderId.vehicleId) {
-                return {
-                    issue: usage.workOrderId.issue || 'N/A',
-                    truck: `${usage.workOrderId.vehicleId.licensePlate || usage.workOrderId.vehicleId.plateNumber || 'N/A'} - ${usage.workOrderId.vehicleId.make || ''} ${usage.workOrderId.vehicleId.model || ''}`.trim(),
-                    vehicle: `${usage.workOrderId.vehicleId.licensePlate || usage.workOrderId.vehicleId.plateNumber || 'N/A'} - ${usage.workOrderId.vehicleId.make || ''} ${usage.workOrderId.vehicleId.model || ''}`.trim()
-                };
-            }
-            return {
-                issue: usage.workOrderId.issue || 'N/A',
-                truck: 'N/A',
-                vehicle: 'N/A'
-            };
-        }
-        return { issue: 'N/A', truck: 'N/A', vehicle: 'N/A' };
-    };
+
 
     // addItemToInvoice removed; invoices handled in dedicated page
 
@@ -1177,14 +1144,7 @@ const SparePartsInventory = () => {
     return (
         <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
             <div className="relative max-w-7xl mx-auto">
-                <div
-                    className="absolute inset-x-0 top-0"
-                    style={{
-                        background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
-                        height: '101px'
-                    }}
-                    aria-hidden="true"
-                />
+
 
                 <div className="relative z-10 px-4 pt-3 pb-6">
                     <div className="fixed top-4 right-4 z-[999] flex flex-col gap-3 max-w-md">
@@ -1196,8 +1156,8 @@ const SparePartsInventory = () => {
                     <div className="mb-4 relative z-10">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-xl font-bold text-white">Fleet Spare Parts</h1>
-                                <div className="flex items-center gap-2 text-white/90">
+                                <h1 className="text-2xl font-bold text-black">Fleet Spare Parts</h1>
+                                <div className="flex items-center gap-2 text-black/90">
                                     <span className="text-xs">Manage inventory and suppliers</span>
                                 </div>
                             </div>
@@ -1212,7 +1172,7 @@ const SparePartsInventory = () => {
                                 </button>
                                 <button
                                     onClick={() => setShowSupplierModal(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white border border-white/20 rounded-lg hover:bg-white/20 backdrop-blur-sm transition-colors text-sm font-semibold"
+                                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-white border border-white/20 rounded-lg  backdrop-blur-sm transition-colors text-sm font-semibold"
                                 >
                                     <FaBuilding />
                                     Add Supplier

@@ -9,7 +9,6 @@ import { getUserRole, getDashboardRoute } from "../../utils/auth";
 
 interface SidebarProps {
   isCollapsed?: boolean;
-  onToggle: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
@@ -68,9 +67,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
       `}</style>
 
       <aside
-        className={`h-screen flex flex-col bg-white shadow-sm transition-all duration-300 ${
-          isCollapsed ? "w-20" : "w-56"
-        }`}
+        className={`h-screen flex flex-col bg-white shadow-sm transition-all duration-300 ${isCollapsed ? "w-20" : "w-56"
+          }`}
       >
         {/* Logo */}
         <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-gray-200">
@@ -96,16 +94,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                     {/* Parent Item */}
                     <button
                       onClick={() => toggleMenu(link.key)}
-                      className={`w-full transition flex items-center justify-start px-4 py-2 gap-3 ${
-                        openMenus.includes(link.key) ? "bg-[#42aeec]/10" : "hover:bg-gray-50"
-                      }`}
+                      className={`w-full transition flex items-center justify-start px-4 py-2 gap-3 ${openMenus.includes(link.key) ? "bg-[#42aeec]/10" : "hover:bg-gray-50"
+                        }`}
                     >
                       <span
-                        className={`text-xl ${
-                          openMenus.includes(link.key)
+                        className={`text-xl ${openMenus.includes(link.key)
                             ? "text-[#42aeec]"
                             : "text-gray-600 group-hover:text-[#42aeec]"
-                        }`}
+                          }`}
                       >
                         {link.icon}
                       </span>
@@ -140,11 +136,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                             <li key={child.key}>
                               <NavLink
                                 to={child.key}
-                                className={`flex items-center px-4 py-1 pl-4 text-sm transition ${
-                                  activeState
+                                className={`flex items-center px-4 py-1 pl-4 text-sm transition ${activeState
                                     ? "text-[#42aeec] bg-[#42aeec]/10"
                                     : "text-gray-600 hover:bg-gray-100 hover:text-[#42aeec]"
-                                }`}
+                                  }`}
                               >
                                 {/* Bullet for sub-menu */}
                                 <span className="w-2 h-2 rounded-full bg-gray-400 mr-2 mt-1"></span>
@@ -163,11 +158,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                     className={({ isActive }) => {
                       const pathname = window.location.pathname;
                       const activeState = isActiveLink(link.key, isActive, pathname);
-                      return `flex items-center justify-start px-4 py-2 gap-3 text-sm transition ${
-                        activeState
+                      return `flex items-center justify-start px-4 py-2 gap-3 text-sm transition ${activeState
                           ? "text-[#42aeec] bg-[#42aeec]/10"
                           : "text-gray-600 hover:bg-gray-50 hover:text-[#42aeec]"
-                      }`;
+                        }`;
                     }}
                   >
                     <span className="text-xl">{link.icon}</span>

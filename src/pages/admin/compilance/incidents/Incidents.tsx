@@ -761,25 +761,17 @@ const Incidents: React.FC = () => {
       ))}
 
       <div className="relative max-w-7xl mx-auto">
-        {/* Gradient band */}
-        <div
-          className="absolute inset-x-0 top-0"
-          style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
-            height: '101px'
-          }}
-          aria-hidden="true"
-        />
+
 
         <div className="relative z-10 px-4 pt-3 pb-6">
           {/* Header */}
           <div className="mb-4 relative z-10">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-black flex items-center gap-2">
                   Incidents & Accidents
                 </h1>
-                <div className="flex items-center gap-2 text-white/90">
+                <div className="flex items-center gap-2 text-black/90">
                   <span className="text-xs">Manage and track all incidents and accidents</span>
                 </div>
               </div>
@@ -1624,7 +1616,7 @@ const Incidents: React.FC = () => {
                   </button>
                   <button
                     onClick={confirmDelete}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-60"
+                    className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-60"
                     disabled={loading}
                   >
                     {loading ? 'Deleting...' : 'Delete'}

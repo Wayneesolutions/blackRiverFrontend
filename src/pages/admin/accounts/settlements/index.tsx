@@ -100,6 +100,8 @@ export default function SettlementSystem() {
   const [showSettlementModal, setShowSettlementModal] = useState(false);
   const [showDeductionModal, setShowDeductionModal] = useState(false);
   const [showMilesModal, setShowMilesModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'deduction' } | null>(null);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -155,7 +157,7 @@ export default function SettlementSystem() {
     try {
       const response = await getEmployees();
       if (response?.success) {
-        const driverList = (response.data || []).filter((emp: any) => 
+        const driverList = (response.data || []).filter((emp: any) =>
           emp.role?.toLowerCase() === 'driver'
         );
         setDrivers(driverList);
@@ -167,13 +169,13 @@ export default function SettlementSystem() {
 
   const fetchVehicles = async () => {
     try {
-      const response = await listFleetUnits({ 
+      const response = await listFleetUnits({
         category: 'trucks',
         status: 'active'
       });
       if (response?.success && Array.isArray(response.data)) {
         // Filter only trucks
-        const trucks = response.data.filter((unit: any) => 
+        const trucks = response.data.filter((unit: any) =>
           unit.unitType === 'Truck' || unit.unitType?.toLowerCase().includes('truck')
         );
         console.log('Fetched fleet units (trucks):', trucks.length, trucks);
@@ -252,6 +254,32 @@ export default function SettlementSystem() {
     }
   };
 
+  const handleDelete = (id: string, type: 'deduction') => {
+    setItemToDelete({ id, type });
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      if (itemToDelete.type === 'deduction') {
+        const response = await deleteDeductionAddition(itemToDelete.id);
+        if (response?.success) {
+          showNotification('success', 'Deleted successfully');
+          fetchDeductions();
+        } else {
+          showNotification('error', response?.message || 'Failed to delete');
+        }
+      }
+    } catch (error) {
+      showNotification('error', 'Error deleting item');
+    } finally {
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+    }
+  };
+
   // Fetch stats
   const fetchStats = async () => {
     try {
@@ -269,7 +297,7 @@ export default function SettlementSystem() {
         startDate: startOfWeek.toISOString().split('T')[0],
         endDate: endOfWeek.toISOString().split('T')[0]
       });
-      
+
       const statsData: any = {
         totalSettlements: 0,
         pendingCount: 0,
@@ -324,7 +352,7 @@ export default function SettlementSystem() {
         activeDrivers: new Set(settlements.map(s => s.driver?._id).filter(Boolean)).size,
         totalMiles: 0
       };
-      
+
       // Calculate week miles
       const today = new Date();
       const startOfWeek = new Date(today);
@@ -333,13 +361,13 @@ export default function SettlementSystem() {
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
       endOfWeek.setHours(23, 59, 59, 999);
-      
+
       const weekMiles = milesTracking.filter(m => {
         const recordDate = new Date(m.date);
         return recordDate >= startOfWeek && recordDate <= endOfWeek;
       });
       statsData.totalMiles = weekMiles.reduce((sum, m) => sum + (m.totalMiles || 0), 0);
-      
+
       setStats(statsData);
     }
   };
@@ -396,12 +424,12 @@ export default function SettlementSystem() {
   const calculateSummaryValues = () => {
     // Total Settlements: Sum of all net pay from settlements
     const totalSettlements = settlements.reduce((sum, s) => sum + (s.netPay || 0), 0);
-    
+
     // Pending Payments: Count and amount of pending settlements
     const pendingSettlements = settlements.filter(s => s.status === 'Pending');
     const pendingCount = pendingSettlements.length;
     const pendingAmount = pendingSettlements.reduce((sum, s) => sum + (s.netPay || 0), 0);
-    
+
     // Total Miles (Week): Sum of total miles for current week
     const { startOfWeek, endOfWeek } = getCurrentWeekRange();
     const weekMiles = milesTracking.filter(m => {
@@ -409,7 +437,7 @@ export default function SettlementSystem() {
       return recordDate >= startOfWeek && recordDate <= endOfWeek;
     });
     const totalMiles = weekMiles.reduce((sum, m) => sum + (m.totalMiles || 0), 0);
-    
+
     // Active Drivers: Unique drivers from settlements
     const uniqueDrivers = new Set(settlements.map(s => s.driver?._id).filter(Boolean));
     const activeDrivers = uniqueDrivers.size;
@@ -426,38 +454,38 @@ export default function SettlementSystem() {
   // Summary Cards Data - calculated from actual data
   const summaryValues = calculateSummaryValues();
   const summaryCards = [
-    { 
-      title: 'Total Settlements', 
-      value: `$${summaryValues.totalSettlements.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
-      change: '+12.5%', 
-      icon: DollarSign, 
-      color: 'blue' 
+    {
+      title: 'Total Settlements',
+      value: `$${summaryValues.totalSettlements.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      change: '+12.5%',
+      icon: DollarSign,
+      color: 'blue'
     },
-    { 
-      title: 'Pending Payments', 
-      value: `$${summaryValues.pendingAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
-      change: `${summaryValues.pendingCount} pending`, 
-      icon: FileText, 
-      color: 'orange' 
+    {
+      title: 'Pending Payments',
+      value: `$${summaryValues.pendingAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      change: `${summaryValues.pendingCount} pending`,
+      icon: FileText,
+      color: 'orange'
     },
-    { 
-      title: 'Total Miles (Week)', 
-      value: summaryValues.totalMiles.toLocaleString(), 
-      change: '+8.3%', 
-      icon: MapPin, 
-      color: 'green' 
+    {
+      title: 'Total Miles (Week)',
+      value: summaryValues.totalMiles.toLocaleString(),
+      change: '+8.3%',
+      icon: MapPin,
+      color: 'green'
     },
-    { 
-      title: 'Active Drivers', 
-      value: summaryValues.activeDrivers.toString(), 
-      change: summaryValues.activeDrivers > 0 ? '100% active' : '0% active', 
-      icon: Users, 
-      color: 'purple' 
+    {
+      title: 'Active Drivers',
+      value: summaryValues.activeDrivers.toString(),
+      change: summaryValues.activeDrivers > 0 ? '100% active' : '0% active',
+      icon: Users,
+      color: 'purple'
     }
   ];
 
   // Filter data based on search
-  const filteredSettlements = settlements.filter(s => 
+  const filteredSettlements = settlements.filter(s =>
     s.settlementId.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.driver?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -474,11 +502,10 @@ export default function SettlementSystem() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#EDF8FF]">
       {notification && (
-        <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${
-          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } text-white`}>
+        <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          } text-white`}>
           {notification.type === 'success' ? (
             <CheckCircle size={20} />
           ) : (
@@ -492,80 +519,90 @@ export default function SettlementSystem() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Settlement Management</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Manage driver settlements, deductions/additions, and miles tracking for IFTA reporting
-              </p>
-            </div>
-            {activeTab === 'driver-settlements' && (
-              <button 
-                onClick={() => {
-                  setEditingItem(null);
-                  setSettlementForm({
-                    driver: '',
-                    payPeriod: { startDate: '', endDate: '' },
-                    grossPay: '',
-                    deductions: '0',
-                    additions: '0',
-                    status: 'Pending',
-                    paymentMethod: '',
-                    paymentReference: '',
-                    notes: ''
-                  });
-                  setShowSettlementModal(true);
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                New Settlement Generation
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="px-6">
-          <div className="flex gap-1 border-b border-gray-200">
-            {tabs.map(tab => {
-              const Icon = tab.icon;
-              return (
+      <div className="p-5">
+        <div className="bg-white border-b border-gray-200">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Settlement Management</h1>
+                <p className="text-sm text-gray-600 mt-1">
+                  Manage driver settlements, deductions/additions, and miles tracking for IFTA reporting
+                </p>
+              </div>
+              {activeTab === 'driver-settlements' && (
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-                    activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
-                  }`}
+                  onClick={() => {
+                    setEditingItem(null);
+                    setSettlementForm({
+                      driver: '',
+                      payPeriod: { startDate: '', endDate: '' },
+                      grossPay: '',
+                      deductions: '0',
+                      additions: '0',
+                      status: 'Pending',
+                      paymentMethod: '',
+                      paymentReference: '',
+                      notes: ''
+                    });
+                    setShowSettlementModal(true);
+                  }}
+
+                  className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
+                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
                 >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
+                  <Plus className="w-4 h-4" />
+                  New Settlement Generation
                 </button>
-              );
-            })}
+              )}
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="px-6">
+            <div className="flex gap-1 border-b border-gray-200">
+              {tabs.map(tab => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === tab.id
+                      ? 'border-[#42aeec] text-[#016ab2]'
+                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                      }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
-
       {/* Summary Cards */}
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {summaryCards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <div key={index} className="bg-white rounded-lg shadow p-6">
+              <div key={index} className={`rounded-lg shadow-sm p-6 border ${card.color === 'blue' ? 'bg-[#E3F2FD] border-blue-100' :
+                card.color === 'green' ? 'bg-[#E8F5E9] border-green-100' :
+                  card.color === 'purple' ? 'bg-[#F3E5F5] border-purple-100' :
+                    'bg-[#FFF3E0] border-orange-100'
+                }`}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-${card.color}-100`}>
-                    <Icon className={`w-6 h-6 text-${card.color}-600`} />
+                  <div className={`p-3 rounded-lg bg-white`}>
+                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[#42aeec]' :
+                      card.color === 'green' ? 'text-[#0ea3d8]' :
+                        card.color === 'purple' ? 'text-[#1db5f5]' :
+                          'text-orange-500'
+                      }`} />
                   </div>
-                  <span className="text-sm text-green-600 font-medium">{card.change}</span>
+                  <span className="text-sm text-[#063f6f] font-medium">{card.change}</span>
                 </div>
-                <h3 className="text-gray-600 text-sm font-medium mb-1">{card.title}</h3>
-                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                <h3 className="text-[#063f6f] text-sm font-medium mb-1">{card.title}</h3>
+                <p className="text-2xl font-bold text-[#016ab2]">{card.value}</p>
               </div>
             );
           })}
@@ -596,7 +633,7 @@ export default function SettlementSystem() {
                 Export
               </button>
               {activeTab === 'deductions-additions' && (
-                <button 
+                <button
                   onClick={() => {
                     setEditingItem(null);
                     setDeductionForm({
@@ -611,14 +648,15 @@ export default function SettlementSystem() {
                     });
                     setShowDeductionModal(true);
                   }}
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 text-sm hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
+                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
                 >
                   <Plus className="w-4 h-4" />
                   Add New
                 </button>
               )}
               {activeTab === 'miles-tracking' && (
-                <button 
+                <button
                   onClick={() => {
                     setEditingItem(null);
                     setMilesForm({
@@ -634,7 +672,8 @@ export default function SettlementSystem() {
                     });
                     setShowMilesModal(true);
                   }}
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 text-sm hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
+                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
                 >
                   <Plus className="w-4 h-4" />
                   Add New
@@ -677,12 +716,11 @@ export default function SettlementSystem() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{settlement.driver?.name || 'Unknown'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            settlement.status === 'Paid' ? 'bg-green-100 text-green-800' :
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${settlement.status === 'Paid' ? 'bg-green-100 text-green-800' :
                             settlement.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                            settlement.status === 'Processing' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
+                              settlement.status === 'Processing' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                            }`}>
                             {settlement.status}
                           </span>
                         </td>
@@ -691,10 +729,8 @@ export default function SettlementSystem() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${settlement.netPay.toLocaleString()}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <div className="flex items-center gap-2">
-                            <button className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="View Details">
-                              <FileText className="w-4 h-4" />
-                            </button>
-                            <button 
+
+                            <button
                               onClick={() => {
                                 setEditingItem(settlement);
                                 setSettlementForm({
@@ -713,14 +749,12 @@ export default function SettlementSystem() {
                                 });
                                 setShowSettlementModal(true);
                               }}
-                              className="p-1 text-gray-600 hover:bg-gray-50 rounded" 
+                              className="p-1 text-gray-600 hover:bg-gray-50 rounded"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
-                            <button className="p-1 text-green-600 hover:bg-green-50 rounded" title="Download">
-                              <Download className="w-4 h-4" />
-                            </button>
+
                           </div>
                         </td>
                       </tr>
@@ -759,9 +793,8 @@ export default function SettlementSystem() {
                       <tr key={item._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.name}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${
-                            item.type === 'Addition' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${item.type === 'Addition' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
                             {item.type === 'Addition' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                             {item.type}
                           </span>
@@ -771,7 +804,7 @@ export default function SettlementSystem() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.assignedTo?.name || 'Unknown'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <div className="flex items-center gap-2">
-                            <button 
+                            <button
                               onClick={() => {
                                 setEditingItem(item);
                                 setDeductionForm({
@@ -790,22 +823,8 @@ export default function SettlementSystem() {
                             >
                               <Edit className="w-4 h-4" />
                             </button>
-                            <button 
-                              onClick={async () => {
-                                if (window.confirm('Are you sure you want to delete this item?')) {
-                                  try {
-                                    const response = await deleteDeductionAddition(item._id);
-                                    if (response?.success) {
-                                      showNotification('success', 'Deleted successfully');
-                                      fetchDeductions();
-                                    } else {
-                                      showNotification('error', response?.message || 'Failed to delete');
-                                    }
-                                  } catch (error) {
-                                    showNotification('error', 'Error deleting item');
-                                  }
-                                }
-                              }}
+                            <button
+                              onClick={() => handleDelete(item._id, 'deduction')}
                               className="p-1 text-red-600 hover:bg-red-50 rounded"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -875,347 +894,24 @@ export default function SettlementSystem() {
       </div>
 
       {/* Settlement Modal */}
-      {showSettlementModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-900">
-                {editingItem ? 'Edit Settlement' : 'Create New Settlement'}
-              </h3>
-              <button onClick={() => setShowSettlementModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Driver *</label>
-                <select
-                  value={settlementForm.driver}
-                  onChange={(e) => setSettlementForm({ ...settlementForm, driver: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="">Select Driver</option>
-                  {drivers.map(driver => (
-                    <option key={driver._id} value={driver._id}>{driver.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
-                  <input
-                    type="date"
-                    value={settlementForm.payPeriod.startDate}
-                    onChange={(e) => setSettlementForm({ ...settlementForm, payPeriod: { ...settlementForm.payPeriod, startDate: e.target.value } })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">End Date *</label>
-                  <input
-                    type="date"
-                    value={settlementForm.payPeriod.endDate}
-                    onChange={(e) => setSettlementForm({ ...settlementForm, payPeriod: { ...settlementForm.payPeriod, endDate: e.target.value } })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Gross Pay *</label>
-                  <input
-                    type="number"
-                    value={settlementForm.grossPay}
-                    onChange={(e) => setSettlementForm({ ...settlementForm, grossPay: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Deductions</label>
-                  <input
-                    type="number"
-                    value={settlementForm.deductions}
-                    onChange={(e) => setSettlementForm({ ...settlementForm, deductions: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Additions</label>
-                  <input
-                    type="number"
-                    value={settlementForm.additions}
-                    onChange={(e) => setSettlementForm({ ...settlementForm, additions: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <select
-                  value={settlementForm.status}
-                  onChange={(e) => setSettlementForm({ ...settlementForm, status: e.target.value as any })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="Processing">Processing</option>
-                  <option value="Paid">Paid</option>
-                  <option value="Cancelled">Cancelled</option>
-                </select>
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => setShowSettlementModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    if (!settlementForm.driver || !settlementForm.payPeriod.startDate || !settlementForm.payPeriod.endDate || !settlementForm.grossPay) {
-                      showNotification('error', 'Please fill in all required fields');
-                      return;
-                    }
-                    setSubmitting(true);
-                    try {
-                      const payload = {
-                        driver: settlementForm.driver,
-                        payPeriod: {
-                          startDate: settlementForm.payPeriod.startDate,
-                          endDate: settlementForm.payPeriod.endDate
-                        },
-                        grossPay: parseFloat(settlementForm.grossPay),
-                        deductions: parseFloat(settlementForm.deductions) || 0,
-                        additions: parseFloat(settlementForm.additions) || 0,
-                        status: settlementForm.status,
-                        paymentMethod: settlementForm.paymentMethod || undefined,
-                        paymentReference: settlementForm.paymentReference || undefined,
-                        notes: settlementForm.notes || undefined
-                      };
-                      const response = editingItem 
-                        ? await updateSettlement(editingItem._id, payload)
-                        : await createSettlement(payload);
-                      if (response?.success) {
-                        showNotification('success', editingItem ? 'Settlement updated successfully' : 'Settlement created successfully');
-                        setShowSettlementModal(false);
-                        fetchSettlements();
-                        fetchStats();
-                      } else {
-                        showNotification('error', response?.message || 'Failed to save settlement');
-                      }
-                    } catch (error) {
-                      showNotification('error', 'Error saving settlement');
-                    } finally {
-                      setSubmitting(false);
-                    }
-                  }}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                  disabled={submitting}
-                >
-                  {submitting ? 'Saving...' : editingItem ? 'Update' : 'Create'}
+      {
+        showSettlementModal && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editingItem ? 'Edit Settlement' : 'Create New Settlement'}
+                </h3>
+                <button onClick={() => setShowSettlementModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={24} />
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Deduction/Addition Modal */}
-      {showDeductionModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-900">
-                {editingItem ? 'Edit Deduction/Addition' : 'Create New Deduction/Addition'}
-              </h3>
-              <button onClick={() => setShowDeductionModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
-                <input
-                  type="text"
-                  value={deductionForm.name}
-                  onChange={(e) => setDeductionForm({ ...deductionForm, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
-                  <select
-                    value={deductionForm.type}
-                    onChange={(e) => setDeductionForm({ ...deductionForm, type: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="Deduction">Deduction</option>
-                    <option value="Addition">Addition</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Recurrence *</label>
-                  <select
-                    value={deductionForm.recurrence}
-                    onChange={(e) => setDeductionForm({ ...deductionForm, recurrence: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="One-time">One-time</option>
-                    <option value="Weekly">Weekly</option>
-                    <option value="Bi-weekly">Bi-weekly</option>
-                    <option value="Monthly">Monthly</option>
-                    <option value="Quarterly">Quarterly</option>
-                    <option value="Yearly">Yearly</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Amount *</label>
-                  <input
-                    type="number"
-                    value={deductionForm.amount}
-                    onChange={(e) => setDeductionForm({ ...deductionForm, amount: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To (Driver) *</label>
-                  <select
-                    value={deductionForm.assignedTo}
-                    onChange={(e) => setDeductionForm({ ...deductionForm, assignedTo: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="">Select Driver</option>
-                    {drivers.map(driver => (
-                      <option key={driver._id} value={driver._id}>{driver.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea
-                  value={deductionForm.description}
-                  onChange={(e) => setDeductionForm({ ...deductionForm, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => setShowDeductionModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    if (!deductionForm.name || !deductionForm.amount || !deductionForm.assignedTo) {
-                      showNotification('error', 'Please fill in all required fields');
-                      return;
-                    }
-                    setSubmitting(true);
-                    try {
-                      const payload = {
-                        name: deductionForm.name,
-                        type: deductionForm.type,
-                        recurrence: deductionForm.recurrence,
-                        amount: parseFloat(deductionForm.amount),
-                        assignedTo: deductionForm.assignedTo,
-                        startDate: deductionForm.startDate || undefined,
-                        endDate: deductionForm.endDate || undefined,
-                        description: deductionForm.description || undefined
-                      };
-                      const response = editingItem
-                        ? await updateDeductionAddition(editingItem._id, payload)
-                        : await createDeductionAddition(payload);
-                      if (response?.success) {
-                        showNotification('success', editingItem ? 'Updated successfully' : 'Created successfully');
-                        setShowDeductionModal(false);
-                        fetchDeductions();
-                      } else {
-                        showNotification('error', response?.message || 'Failed to save');
-                      }
-                    } catch (error) {
-                      showNotification('error', 'Error saving');
-                    } finally {
-                      setSubmitting(false);
-                    }
-                  }}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                  disabled={submitting}
-                >
-                  {submitting ? 'Saving...' : editingItem ? 'Update' : 'Create'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Miles Tracking Modal */}
-      {showMilesModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-900">
-                {editingItem ? 'Edit Miles Tracking' : 'Create New Miles Tracking'}
-              </h3>
-              <button onClick={() => setShowMilesModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
-                  <input
-                    type="date"
-                    value={milesForm.date}
-                    onChange={(e) => setMilesForm({ ...milesForm, date: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">State/Province *</label>
-                  <input
-                    type="text"
-                    value={milesForm.state}
-                    onChange={(e) => setMilesForm({ ...milesForm, state: e.target.value.toUpperCase() })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., CA, TX, NY"
-                    maxLength={2}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Driver *</label>
                   <select
-                    value={milesForm.driver}
-                    onChange={(e) => setMilesForm({ ...milesForm, driver: e.target.value })}
+                    value={settlementForm.driver}
+                    onChange={(e) => setSettlementForm({ ...settlementForm, driver: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     required
                   >
@@ -1225,143 +921,508 @@ export default function SettlementSystem() {
                     ))}
                   </select>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
+                    <input
+                      type="date"
+                      value={settlementForm.payPeriod.startDate}
+                      onChange={(e) => setSettlementForm({ ...settlementForm, payPeriod: { ...settlementForm.payPeriod, startDate: e.target.value } })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">End Date *</label>
+                    <input
+                      type="date"
+                      value={settlementForm.payPeriod.endDate}
+                      onChange={(e) => setSettlementForm({ ...settlementForm, payPeriod: { ...settlementForm.payPeriod, endDate: e.target.value } })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Gross Pay *</label>
+                    <input
+                      type="number"
+                      value={settlementForm.grossPay}
+                      onChange={(e) => setSettlementForm({ ...settlementForm, grossPay: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Deductions</label>
+                    <input
+                      type="number"
+                      value={settlementForm.deductions}
+                      onChange={(e) => setSettlementForm({ ...settlementForm, deductions: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Additions</label>
+                    <input
+                      type="number"
+                      value={settlementForm.additions}
+                      onChange={(e) => setSettlementForm({ ...settlementForm, additions: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                   <select
-                    value={milesForm.vehicle}
-                    onChange={(e) => setMilesForm({ ...milesForm, vehicle: e.target.value })}
+                    value={settlementForm.status}
+                    onChange={(e) => setSettlementForm({ ...settlementForm, status: e.target.value as any })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
                   >
-                    <option value="">Select Vehicle</option>
-                    {Array.isArray(vehicles) && vehicles.map(vehicle => {
-                      // Use referenceId if it exists and points to Vehicle, otherwise use fleet unit _id (which may be prefixed)
-                      const vehicleId = vehicle.referenceId && vehicle.referenceType === 'vehicle' 
-                        ? vehicle.referenceId 
-                        : vehicle._id; // Send _id as-is, backend will handle prefix extraction
-                      const displayName = vehicle.licensePlate || vehicle.internalId || vehicle.unitNo || vehicle._id;
-                      return (
-                        <option key={vehicle._id} value={vehicleId}>
-                          {displayName}
-                        </option>
-                      );
-                    })}
+                    <option value="Pending">Pending</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Cancelled">Cancelled</option>
                   </select>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Total Miles *</label>
-                  <input
-                    type="number"
-                    value={milesForm.totalMiles}
-                    onChange={(e) => setMilesForm({ ...milesForm, totalMiles: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">IFTA Miles *</label>
-                  <input
-                    type="number"
-                    value={milesForm.iftaMiles}
-                    onChange={(e) => setMilesForm({ ...milesForm, iftaMiles: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Loaded Miles</label>
-                  <input
-                    type="number"
-                    value={milesForm.loadedMiles}
-                    onChange={(e) => setMilesForm({ ...milesForm, loadedMiles: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Empty Miles</label>
-                  <input
-                    type="number"
-                    value={milesForm.emptyMiles}
-                    onChange={(e) => setMilesForm({ ...milesForm, emptyMiles: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                <textarea
-                  value={milesForm.notes}
-                  onChange={(e) => setMilesForm({ ...milesForm, notes: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => setShowMilesModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    if (!milesForm.date || !milesForm.driver || !milesForm.vehicle || !milesForm.state || !milesForm.totalMiles || !milesForm.iftaMiles) {
-                      showNotification('error', 'Please fill in all required fields');
-                      return;
-                    }
-                    setSubmitting(true);
-                    try {
-                      const payload = {
-                        date: milesForm.date,
-                        driver: milesForm.driver,
-                        vehicle: milesForm.vehicle,
-                        state: milesForm.state,
-                        totalMiles: parseFloat(milesForm.totalMiles),
-                        loadedMiles: parseFloat(milesForm.loadedMiles) || 0,
-                        emptyMiles: parseFloat(milesForm.emptyMiles) || 0,
-                        iftaMiles: parseFloat(milesForm.iftaMiles),
-                        notes: milesForm.notes || undefined
-                      };
-                      const response = editingItem
-                        ? await updateMilesTracking(editingItem._id, payload)
-                        : await createMilesTracking(payload);
-                      if (response?.success) {
-                        showNotification('success', editingItem ? 'Updated successfully' : 'Created successfully');
-                        setShowMilesModal(false);
-                        fetchMilesTracking();
-                        fetchStats();
-                      } else {
-                        showNotification('error', response?.message || 'Failed to save');
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowSettlementModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!settlementForm.driver || !settlementForm.payPeriod.startDate || !settlementForm.payPeriod.endDate || !settlementForm.grossPay) {
+                        showNotification('error', 'Please fill in all required fields');
+                        return;
                       }
-                    } catch (error) {
-                      showNotification('error', 'Error saving');
-                    } finally {
-                      setSubmitting(false);
-                    }
-                  }}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                  disabled={submitting}
-                >
-                  {submitting ? 'Saving...' : editingItem ? 'Update' : 'Create'}
+                      setSubmitting(true);
+                      try {
+                        const payload = {
+                          driver: settlementForm.driver,
+                          payPeriod: {
+                            startDate: settlementForm.payPeriod.startDate,
+                            endDate: settlementForm.payPeriod.endDate
+                          },
+                          grossPay: parseFloat(settlementForm.grossPay),
+                          deductions: parseFloat(settlementForm.deductions) || 0,
+                          additions: parseFloat(settlementForm.additions) || 0,
+                          status: settlementForm.status,
+                          paymentMethod: settlementForm.paymentMethod || undefined,
+                          paymentReference: settlementForm.paymentReference || undefined,
+                          notes: settlementForm.notes || undefined
+                        };
+                        const response = editingItem
+                          ? await updateSettlement(editingItem._id, payload)
+                          : await createSettlement(payload);
+                        if (response?.success) {
+                          showNotification('success', editingItem ? 'Settlement updated successfully' : 'Settlement created successfully');
+                          setShowSettlementModal(false);
+                          fetchSettlements();
+                          fetchStats();
+                        } else {
+                          showNotification('error', response?.message || 'Failed to save settlement');
+                        }
+                      } catch (error) {
+                        showNotification('error', 'Error saving settlement');
+                      } finally {
+                        setSubmitting(false);
+                      }
+                    }}
+                    style={{
+                      background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                    }}
+                    className="flex-1 px-4 py-2 !text-white rounded-lg  disabled:opacity-50"
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Saving...' : editingItem ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Deduction/Addition Modal */}
+      {
+        showDeductionModal && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editingItem ? 'Edit Deduction/Addition' : 'Create New Deduction/Addition'}
+                </h3>
+                <button onClick={() => setShowDeductionModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={24} />
                 </button>
               </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                  <input
+                    type="text"
+                    value={deductionForm.name}
+                    onChange={(e) => setDeductionForm({ ...deductionForm, name: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
+                    <select
+                      value={deductionForm.type}
+                      onChange={(e) => setDeductionForm({ ...deductionForm, type: e.target.value as any })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="Deduction">Deduction</option>
+                      <option value="Addition">Addition</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Recurrence *</label>
+                    <select
+                      value={deductionForm.recurrence}
+                      onChange={(e) => setDeductionForm({ ...deductionForm, recurrence: e.target.value as any })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="One-time">One-time</option>
+                      <option value="Weekly">Weekly</option>
+                      <option value="Bi-weekly">Bi-weekly</option>
+                      <option value="Monthly">Monthly</option>
+                      <option value="Quarterly">Quarterly</option>
+                      <option value="Yearly">Yearly</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Amount *</label>
+                    <input
+                      type="number"
+                      value={deductionForm.amount}
+                      onChange={(e) => setDeductionForm({ ...deductionForm, amount: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To (Driver) *</label>
+                    <select
+                      value={deductionForm.assignedTo}
+                      onChange={(e) => setDeductionForm({ ...deductionForm, assignedTo: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="">Select Driver</option>
+                      {drivers.map(driver => (
+                        <option key={driver._id} value={driver._id}>{driver.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={deductionForm.description}
+                    onChange={(e) => setDeductionForm({ ...deductionForm, description: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowDeductionModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!deductionForm.name || !deductionForm.amount || !deductionForm.assignedTo) {
+                        showNotification('error', 'Please fill in all required fields');
+                        return;
+                      }
+                      setSubmitting(true);
+                      try {
+                        const payload = {
+                          name: deductionForm.name,
+                          type: deductionForm.type,
+                          recurrence: deductionForm.recurrence,
+                          amount: parseFloat(deductionForm.amount),
+                          assignedTo: deductionForm.assignedTo,
+                          startDate: deductionForm.startDate || undefined,
+                          endDate: deductionForm.endDate || undefined,
+                          description: deductionForm.description || undefined
+                        };
+                        const response = editingItem
+                          ? await updateDeductionAddition(editingItem._id, payload)
+                          : await createDeductionAddition(payload);
+                        if (response?.success) {
+                          showNotification('success', editingItem ? 'Updated successfully' : 'Created successfully');
+                          setShowDeductionModal(false);
+                          fetchDeductions();
+                        } else {
+                          showNotification('error', response?.message || 'Failed to save');
+                        }
+                      } catch (error) {
+                        showNotification('error', 'Error saving');
+                      } finally {
+                        setSubmitting(false);
+                      }
+                    }}
+                    style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                    className="flex-1 px-4 py-2  !text-white rounded-lg  disabled:opacity-50"
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Saving...' : editingItem ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Miles Tracking Modal */}
+      {
+        showMilesModal && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editingItem ? 'Edit Miles Tracking' : 'Create New Miles Tracking'}
+                </h3>
+                <button onClick={() => setShowMilesModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                    <input
+                      type="date"
+                      value={milesForm.date}
+                      onChange={(e) => setMilesForm({ ...milesForm, date: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">State/Province *</label>
+                    <input
+                      type="text"
+                      value={milesForm.state}
+                      onChange={(e) => setMilesForm({ ...milesForm, state: e.target.value.toUpperCase() })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g., CA, TX, NY"
+                      maxLength={2}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Driver *</label>
+                    <select
+                      value={milesForm.driver}
+                      onChange={(e) => setMilesForm({ ...milesForm, driver: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="">Select Driver</option>
+                      {drivers.map(driver => (
+                        <option key={driver._id} value={driver._id}>{driver.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle *</label>
+                    <select
+                      value={milesForm.vehicle}
+                      onChange={(e) => setMilesForm({ ...milesForm, vehicle: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="">Select Vehicle</option>
+                      {Array.isArray(vehicles) && vehicles.map(vehicle => {
+                        // Use referenceId if it exists and points to Vehicle, otherwise use fleet unit _id (which may be prefixed)
+                        const vehicleId = vehicle.referenceId && vehicle.referenceType === 'vehicle'
+                          ? vehicle.referenceId
+                          : vehicle._id; // Send _id as-is, backend will handle prefix extraction
+                        const displayName = vehicle.licensePlate || vehicle.internalId || vehicle.unitNo || vehicle._id;
+                        return (
+                          <option key={vehicle._id} value={vehicleId}>
+                            {displayName}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Miles *</label>
+                    <input
+                      type="number"
+                      value={milesForm.totalMiles}
+                      onChange={(e) => setMilesForm({ ...milesForm, totalMiles: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">IFTA Miles *</label>
+                    <input
+                      type="number"
+                      value={milesForm.iftaMiles}
+                      onChange={(e) => setMilesForm({ ...milesForm, iftaMiles: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Loaded Miles</label>
+                    <input
+                      type="number"
+                      value={milesForm.loadedMiles}
+                      onChange={(e) => setMilesForm({ ...milesForm, loadedMiles: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Empty Miles</label>
+                    <input
+                      type="number"
+                      value={milesForm.emptyMiles}
+                      onChange={(e) => setMilesForm({ ...milesForm, emptyMiles: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                  <textarea
+                    value={milesForm.notes}
+                    onChange={(e) => setMilesForm({ ...milesForm, notes: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowMilesModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!milesForm.date || !milesForm.driver || !milesForm.vehicle || !milesForm.state || !milesForm.totalMiles || !milesForm.iftaMiles) {
+                        showNotification('error', 'Please fill in all required fields');
+                        return;
+                      }
+                      setSubmitting(true);
+                      try {
+                        const payload = {
+                          date: milesForm.date,
+                          driver: milesForm.driver,
+                          vehicle: milesForm.vehicle,
+                          state: milesForm.state,
+                          totalMiles: parseFloat(milesForm.totalMiles),
+                          loadedMiles: parseFloat(milesForm.loadedMiles) || 0,
+                          emptyMiles: parseFloat(milesForm.emptyMiles) || 0,
+                          iftaMiles: parseFloat(milesForm.iftaMiles),
+                          notes: milesForm.notes || undefined
+                        };
+                        const response = editingItem
+                          ? await updateMilesTracking(editingItem._id, payload)
+                          : await createMilesTracking(payload);
+                        if (response?.success) {
+                          showNotification('success', editingItem ? 'Updated successfully' : 'Created successfully');
+                          setShowMilesModal(false);
+                          fetchMilesTracking();
+                          fetchStats();
+                        } else {
+                          showNotification('error', response?.message || 'Failed to save');
+                        }
+                      } catch (error) {
+                        showNotification('error', 'Error saving');
+                      } finally {
+                        setSubmitting(false);
+                      }
+                    }}
+                    style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                    className="flex-1 px-4 py-2  !text-white rounded-lg  disabled:opacity-50"
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Saving...' : editingItem ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4 text-red-600">
+              <Trash2 className="w-6 h-6" />
+              <h3 className="text-lg font-bold">Confirm Deletion</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this item? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                style={{
+                  boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.3)'
+                }}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </div >
   );
 }

@@ -1,32 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaUsersCog, FaEdit, FaTrash, FaEye, FaSearch, FaFilter,
-  FaCalendarAlt, FaUser, FaCheckCircle, FaTimesCircle, FaClipboardList,
-  FaExclamationTriangle, FaComments, FaClock, FaArrowUp, FaBell,
-  FaDownload, FaHistory, FaLink, FaCamera, FaFileAlt, FaChartLine,
-  FaExclamationCircle, FaShieldAlt, FaTools, FaCheckDouble, FaPlus,
-  FaTimes, FaInfoCircle
+import {
+  FaUsersCog, FaPlus, FaTimes, FaCheckCircle, FaInfoCircle,
+  FaExclamationTriangle, FaTrash
 } from 'react-icons/fa';
 import {
   AlertCircle,
-  CheckCircle,
   ClipboardList,
   Search,
   Filter,
   Clock,
   Link,
   CheckCheck,
-  AlertTriangle,
+  CheckCircle,
   XCircle,
   Bell,
-  Eye,
   Edit,
-  Camera,
-  Shield,
   Users,
-  MessageSquare,
 } from "lucide-react";
-import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+
+
 import {
   createCommitteeMember,
   getCommitteeMembers,
@@ -34,11 +26,19 @@ import {
   deleteCommitteeMember,
   createCAPA,
   getCAPAs,
-  getCAPAById,
   updateCAPA,
   deleteCAPA
 } from '../../../../axios/api/healthSafety';
 import { getEmployees } from '../../../../axios/api/account.payroll';
+
+const CUSTOM_COLORS = {
+  background: '#EDF8FF',
+  primary: '#016ab2',
+  dark: '#063f6f',
+  light: '#398bc3',
+  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
+};
 
 // ============================================================================
 // ENHANCED INTERFACES - FULLY COMPLIANT WITH REQUIREMENTS
@@ -73,41 +73,11 @@ interface CommitteeMember {
   status: 'active' | 'inactive';
 }
 
-interface AgendaItem {
-  item: string;
-  presenter: string;
-  duration: number; // minutes
-  outcome: string;
-  status: 'pending' | 'discussed' | 'resolved';
-}
 
-interface MeetingTemplate {
-  agendaItems: AgendaItem[];
-  safetyTopics: string[];
-  incidentReviewRequired: boolean;
-  hazardReviewRequired: boolean;
-}
 
-interface MeetingMinute {
-  _id: string;
-  meetingNumber: string;
-  date: string;
-  title: string;
-  attendees: string[];
-  absentMembers: string[];
-  meetingTemplate: MeetingTemplate;
-  notesSummary: string;
-  hazardsDiscussed: string[]; // Hazard IDs
-  inspectionReportsReviewed: string[]; // Inspection IDs
-  incidentsReviewed: string[]; // Incident IDs
-  actionItemsGenerated: string[]; // CAPA IDs
-  attachments: string[];
-  approvalStatus: 'draft' | 'pending-approval' | 'approved';
-  approvedBy?: string;
-  approvedDate?: string;
-  nextMeetingDate: string;
-  nextMeetingAgenda: string;
-}
+
+
+
 
 interface ReminderSchedule {
   reminderDays: number[]; // e.g., [30, 14, 7, 1]
@@ -230,14 +200,13 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
 const EnhancedCommitteeCAPA = () => {
   const [members, setMembers] = useState<CommitteeMember[]>([]);
-  const [minutes, setMinutes] = useState<MeetingMinute[]>([]);
   const [capas, setCapas] = useState<CAPA[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
-  const [activeTab, setActiveTab] = useState<'committee' | 'meetings' | 'capa'>('committee');
+  const [activeTab, setActiveTab] = useState<'committee' | 'capa'>('committee');
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [notificationId, setNotificationId] = useState(0);
 
@@ -246,6 +215,10 @@ const EnhancedCommitteeCAPA = () => {
   const [editingMember, setEditingMember] = useState<CommitteeMember | null>(null);
   const [showCAPAModal, setShowCAPAModal] = useState(false);
   const [editingCAPA, setEditingCAPA] = useState<CAPA | null>(null);
+
+  // Delete Modal State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteParams, setDeleteParams] = useState<{ id: string; type: 'member' | 'capa' } | null>(null);
 
   // Form states
   const [memberFormData, setMemberFormData] = useState({
@@ -262,7 +235,7 @@ const EnhancedCommitteeCAPA = () => {
     source: '',
     issueDate: new Date().toISOString().split('T')[0],
     dueDate: new Date().toISOString().split('T')[0],
-    status: 'open' as 'open' | 'in-progress' | 'completed' | 'overdue',
+    status: 'open' as 'open' | 'in-progress' | 'completed' | 'overdue' | 'cancelled',
     assignedTo: '',
     priority: 'medium' as 'low' | 'medium' | 'high' | 'critical',
     description: '',
@@ -439,33 +412,40 @@ const EnhancedCommitteeCAPA = () => {
     setShowMemberModal(true);
   };
 
-  const handleEditMember = (member: CommitteeMember) => {
-    setEditingMember(member);
-    setMemberFormData({
-      name: member.name || '',
-      role: member.role || '',
-      department: member.department || '',
-      email: member.email || '',
-      phone: member.phone || ''
-    });
-    setShowMemberModal(true);
-  };
 
-  const handleDeleteMember = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this committee member?')) return;
-    
-    try {
-      const response = await deleteCommitteeMember(id);
-      if (response?.success) {
-        showNotification('success', 'Committee member deleted successfully');
-        fetchMembers();
-      } else {
-        showNotification('error', response?.message || 'Failed to delete committee member');
+
+  const confirmDelete = async () => {
+    if (!deleteParams) return;
+
+    if (deleteParams.type === 'member') {
+      try {
+        const response = await deleteCommitteeMember(deleteParams.id);
+        if (response?.success) {
+          showNotification('success', 'Committee member deleted successfully');
+          fetchMembers();
+        } else {
+          showNotification('error', response?.message || 'Failed to delete committee member');
+        }
+      } catch (error: any) {
+        console.error('Error deleting committee member:', error);
+        showNotification('error', error?.response?.data?.message || 'Failed to delete committee member');
       }
-    } catch (error: any) {
-      console.error('Error deleting committee member:', error);
-      showNotification('error', error?.response?.data?.message || 'Failed to delete committee member');
+    } else if (deleteParams.type === 'capa') {
+      try {
+        const response = await deleteCAPA(deleteParams.id);
+        if (response?.success) {
+          showNotification('success', 'CAPA deleted successfully');
+          fetchCAPAs();
+        } else {
+          showNotification('error', response?.message || 'Failed to delete CAPA');
+        }
+      } catch (error: any) {
+        console.error('Error deleting CAPA:', error);
+        showNotification('error', error?.response?.data?.message || 'Failed to delete CAPA');
+      }
     }
+    setShowDeleteModal(false);
+    setDeleteParams(null);
   };
 
   const handleSubmitMember = async (e: React.FormEvent) => {
@@ -518,10 +498,10 @@ const EnhancedCommitteeCAPA = () => {
   const handleEditCAPA = (capa: CAPA) => {
     setEditingCAPA(capa);
     // Find the employee ID if assignedTo is a name
-    const assignedToId = typeof capa.assignedTo === 'string' 
+    const assignedToId = typeof capa.assignedTo === 'string'
       ? employees.find(emp => emp.name === capa.assignedTo)?._id || ''
       : (capa.assignedTo?._id || '');
-    
+
     setCapaFormData({
       title: capa.title || '',
       type: capa.type || 'corrective',
@@ -539,26 +519,14 @@ const EnhancedCommitteeCAPA = () => {
     setShowCAPAModal(true);
   };
 
-  const handleDeleteCAPA = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this CAPA? This action cannot be undone.')) return;
-    
-    try {
-      const response = await deleteCAPA(id);
-      if (response?.success) {
-        showNotification('success', 'CAPA deleted successfully');
-        fetchCAPAs();
-      } else {
-        showNotification('error', response?.message || 'Failed to delete CAPA');
-      }
-    } catch (error: any) {
-      console.error('Error deleting CAPA:', error);
-      showNotification('error', error?.response?.data?.message || 'Failed to delete CAPA');
-    }
+  const handleDeleteCAPA = (id: string) => {
+    setDeleteParams({ id, type: 'capa' });
+    setShowDeleteModal(true);
   };
 
   const handleSubmitCAPA = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!capaFormData.title || !capaFormData.type || !capaFormData.source || !capaFormData.issueDate || !capaFormData.dueDate || !capaFormData.assignedTo) {
       showNotification('error', 'Please fill in all required fields');
@@ -609,14 +577,14 @@ const EnhancedCommitteeCAPA = () => {
   };
 
   const filteredCapas = capas.filter(capa => {
-    const matchesSearch = 
+    const matchesSearch =
       (capa.capaNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (capa.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (typeof capa.assignedTo === 'string' && capa.assignedTo.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     const matchesStatus = filterStatus === 'all' || (capa.status || 'open') === filterStatus;
     const matchesPriority = filterPriority === 'all' || (capa.priority || 'medium') === filterPriority;
-    
+
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
@@ -640,15 +608,15 @@ const EnhancedCommitteeCAPA = () => {
   const renderCommitteeManagement = () => (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-purple-700 flex items-center gap-2">
-          <FaUsersCog /> H&S Committee Members (CLC Requirement 5)
+        <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: CUSTOM_COLORS.dark }}>
+          <FaUsersCog /> H&S Committee Members
         </h2>
         <button
           onClick={handleCreateMember}
-          className="px-4 py-2 rounded-lg text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
+          className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
           style={{
-            background: FLEET_COLORS.gradient,
-            boxShadow: `0 4px 6px ${FLEET_COLORS.focusRing}`
+            background: CUSTOM_COLORS.gradient,
+            boxShadow: `0 4px 6px rgba(0,0,0,0.1)`
           }}
         >
           <FaPlus /> Add Member
@@ -657,22 +625,21 @@ const EnhancedCommitteeCAPA = () => {
       <p className="mb-6 text-gray-700">
         Federally mandated committee structure: <strong>Supervisor (Chair)</strong>, <strong>Employee Representative</strong>, and <strong>H&S Rep</strong>. Track training, attendance, term dates.
       </p>
-      
+
       <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {members.map((member) => (
-            <div key={member._id} className="border-2 border-purple-200 rounded-lg p-5 hover:shadow-xl transition bg-gradient-to-br from-purple-50 to-white">
+            <div key={member._id} className="border-2 border-blue-200 rounded-lg p-5 hover:shadow-xl transition bg-gradient-to-br from-blue-50 to-white">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-lg text-gray-900">{member.name}</h3>
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                  member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                }`}>
+                <span className={`px-2 py-1 rounded-full text-xs font-bold ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
                   {(member.status || 'unknown').toUpperCase()}
                 </span>
               </div>
-              
-              <div className="mb-3 bg-purple-100 p-2 rounded-lg">
-                <p className="text-sm font-bold text-purple-900">{member.role}</p>
+
+              <div className="mb-3 bg-blue-100 p-2 rounded-lg">
+                <p className="text-sm font-bold text-blue-900">{member.role}</p>
               </div>
 
               <div className="space-y-2 text-sm text-gray-700 mb-4">
@@ -699,20 +666,12 @@ const EnhancedCommitteeCAPA = () => {
               <div className="mb-4">
                 <p className="text-xs font-bold text-gray-600 mb-1">MEETING ATTENDANCE:</p>
                 <p className="text-sm">
-                  {member.meetingAttendance && member.meetingAttendance.length > 0 
+                  {member.meetingAttendance && member.meetingAttendance.length > 0
                     ? `${member.meetingAttendance.filter(a => a.attended).length} / ${member.meetingAttendance.length} meetings attended`
                     : 'No attendance records'}
                 </p>
               </div>
 
-              <div className="flex gap-2 pt-3 border-t">
-                <button className="flex-1 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition text-sm font-semibold" title="View Details">
-                  <FaEye className="inline mr-1" /> View
-                </button>
-                <button className="flex-1 p-2 text-green-600 hover:bg-green-50 rounded-lg transition text-sm font-semibold" title="Edit Member">
-                  <FaEdit className="inline mr-1" /> Edit
-                </button>
-              </div>
             </div>
           ))}
         </div>
@@ -732,185 +691,20 @@ const EnhancedCommitteeCAPA = () => {
     </>
   );
 
-  const renderMeetingMinutes = () => (
-    <>
-      <h2 className="text-2xl font-bold mb-4 text-purple-700 flex items-center gap-2">
-        <FaComments /> H&S Meeting Minutes & Agendas (CLC Requirement 5)
-      </h2>
-      <p className="mb-6 text-gray-700">
-        Monthly meeting minutes with agendas, notes, attendees, linked hazards/incidents/inspections, and generated CAPA tasks.
-      </p>
 
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        {minutes.map((minute) => (
-          <div key={minute._id} className="border-b last:border-b-0 p-6 hover:bg-gray-50">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-bold text-gray-900">{minute.title}</h3>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    minute.approvalStatus === 'approved' ? 'bg-green-100 text-green-800' :
-                    minute.approvalStatus === 'pending-approval' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {minute.approvalStatus.replace('-', ' ').toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <FaCalendarAlt />
-                    <span>{new Date(minute.date).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <FaUser />
-                    <span>{(minute.attendees || []).length} attended</span>
-                  </div>
-                  <div className="text-red-600 font-semibold">{minute.meetingNumber}</div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="View Full Minutes">
-                  <FaEye />
-                </button>
-                <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="Download PDF">
-                  <FaDownload />
-                </button>
-                <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition" title="Edit">
-                  <FaEdit />
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {/* LEFT COLUMN - Attendees & Links */}
-              <div>
-                <div className="mb-3">
-                  <p className="text-xs font-bold text-gray-600 mb-2">ATTENDEES:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {minute.attendees.map((attendee, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold">
-                        {attendee}
-                      </span>
-                    ))}
-                  </div>
-                  {minute.absentMembers.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-xs font-bold text-red-600">ABSENT:</p>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {minute.absentMembers.map((absent, idx) => (
-                          <span key={idx} className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">
-                            {absent}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <p className="text-xs font-bold text-gray-600 mb-2">LINKED RECORDS:</p>
-                  <div className="space-y-1 text-xs">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-3 h-3 text-orange-600" />
-                      <span>{(minute.hazardsDiscussed || []).length} Hazards</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-3 h-3 text-red-600" />
-                      <span>{(minute.incidentsReviewed || []).length} Incidents</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-3 h-3 text-blue-600" />
-                      <span>{(minute.inspectionReportsReviewed || []).length} Inspections</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <ClipboardList className="w-3 h-3 text-purple-600" />
-                      <span>{(minute.actionItemsGenerated || []).length} CAPAs Generated</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* RIGHT COLUMN - Agenda Items */}
-              <div>
-                <p className="text-xs font-bold text-gray-600 mb-2">AGENDA ITEMS:</p>
-                <div className="space-y-2">
-                  {(minute.meetingTemplate?.agendaItems || []).map((agenda, idx) => (
-                    <div key={idx} className="bg-gray-50 p-2 rounded">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-900">{agenda.item || 'N/A'}</p>
-                          <p className="text-xs text-gray-600">Presenter: {agenda.presenter || 'N/A'} • {agenda.duration || 0} min</p>
-                          <p className="text-xs text-gray-700 mt-1">{agenda.outcome || 'N/A'}</p>
-                        </div>
-                        <span className={`px-2 py-1 rounded text-xs font-bold ${
-                          agenda.status === 'resolved' ? 'bg-green-100 text-green-800' :
-                          agenda.status === 'discussed' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {agenda.status || 'pending'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                  {(!minute.meetingTemplate?.agendaItems || minute.meetingTemplate.agendaItems.length === 0) && (
-                    <p className="text-xs text-gray-500">No agenda items recorded</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Notes Summary */}
-            {minute.notesSummary && (
-              <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                <p className="text-xs font-bold text-gray-600 mb-2">MEETING NOTES:</p>
-                <p className="text-sm text-gray-800">{minute.notesSummary}</p>
-              </div>
-            )}
-
-            {/* Approval Info */}
-            {minute.approvalStatus === 'approved' && (
-              <div className="bg-green-50 p-3 rounded-lg">
-                <p className="text-xs text-green-800">
-                  <strong>Approved by:</strong> {minute.approvedBy || 'N/A'} {minute.approvedDate && `on ${new Date(minute.approvedDate).toLocaleDateString()}`}
-                </p>
-                {minute.nextMeetingDate && (
-                  <p className="text-xs text-green-700 mt-1">
-                    <strong>Next Meeting:</strong> {new Date(minute.nextMeetingDate).toLocaleDateString()} {minute.nextMeetingAgenda && `- ${minute.nextMeetingAgenda}`}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-5">
-        <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
-          <CheckCircle className="w-5 h-5" /> Meeting Minutes Compliance
-        </h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>✅ Date, attendees, and absent members tracked</li>
-          <li>✅ Agenda items with presenters, duration, and outcomes</li>
-          <li>✅ Links to hazards, incidents, and inspections discussed</li>
-          <li>✅ CAPA generation tracking from meetings</li>
-          <li>✅ Approval workflow with digital signatures</li>
-        </ul>
-      </div>
-    </>
-  );
 
   const renderCAPAManagement = () => (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-purple-700 flex items-center gap-2">
-          <ClipboardList className="w-7 h-7" /> CAPA Management System (CLC Requirement 7)
+        <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: CUSTOM_COLORS.dark }}>
+          <ClipboardList className="w-7 h-7" /> CAPA Management System
         </h2>
         <button
           onClick={handleCreateCAPA}
-          className="px-4 py-2 rounded-lg text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
+          className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
           style={{
-            background: FLEET_COLORS.gradient,
-            boxShadow: `0 4px 6px ${FLEET_COLORS.focusRing}`
+            background: CUSTOM_COLORS.gradient,
+            boxShadow: `0 4px 6px rgba(0,0,0,0.1)`
           }}
         >
           <FaPlus /> New CAPA
@@ -954,7 +748,7 @@ const EnhancedCommitteeCAPA = () => {
               placeholder="Search CAPA number, title, or assignee..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div className="relative">
@@ -962,7 +756,7 @@ const EnhancedCommitteeCAPA = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none appearance-none"
+              className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
             >
               <option value="all">All Statuses</option>
               <option value="open">Open</option>
@@ -976,7 +770,7 @@ const EnhancedCommitteeCAPA = () => {
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none appearance-none"
+              className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
             >
               <option value="all">All Priorities</option>
               <option value="critical">Critical</option>
@@ -993,13 +787,12 @@ const EnhancedCommitteeCAPA = () => {
         {filteredCapas.map((capa) => {
           const daysUntilDue = getDaysUntilDue(capa.dueDate);
           const isUrgent = daysUntilDue <= 7 && capa.status !== 'completed';
-          
+
           return (
-            <div key={capa._id} className={`bg-white rounded-xl shadow-lg overflow-hidden ${
-              isUrgent ? 'border-2 border-red-500' : ''
-            }`}>
+            <div key={capa._id} className={`bg-white rounded-xl shadow-lg overflow-hidden ${isUrgent ? 'border-2 border-red-500' : ''
+              }`}>
               {/* Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 text-white">
+              <div className="bg-white p-4 text-white" style={{ background: CUSTOM_COLORS.gradient }}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -1186,15 +979,15 @@ const EnhancedCommitteeCAPA = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4 border-t">
-                  <button 
+                  <button
                     onClick={() => handleEditCAPA(capa)}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition font-semibold flex items-center justify-center gap-2"
+                    className="flex-1 bg-green-600 hover:bg-green-700 !text-white py-2 px-4 rounded-lg transition font-semibold flex items-center justify-center gap-2"
                   >
                     <Edit className="w-4 h-4" /> Edit CAPA
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleDeleteCAPA(capa._id)}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition font-semibold flex items-center justify-center gap-2"
+                    className="flex-1 bg-red-600 hover:bg-red-700 !text-white py-2 px-4 rounded-lg transition font-semibold flex items-center justify-center gap-2"
                   >
                     <FaTrash className="w-4 h-4" /> Delete
                   </button>
@@ -1237,7 +1030,7 @@ const EnhancedCommitteeCAPA = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
           <p className="text-xl font-semibold text-gray-700">Loading...</p>
         </div>
       </div>
@@ -1245,7 +1038,7 @@ const EnhancedCommitteeCAPA = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
       <div className="max-w-7xl mx-auto">
         {/* Toast Notifications */}
         <div className="fixed top-4 right-4 z-[10001] space-y-2">
@@ -1259,39 +1052,28 @@ const EnhancedCommitteeCAPA = () => {
         </div>
 
         {/* Header */}
-     
+
 
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl shadow-lg mb-6 p-2 flex gap-2">
           <button
             onClick={() => setActiveTab('committee')}
-            className={`flex-1 py-3 px-6 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
-              activeTab === 'committee'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            className={`flex-1 py-3 px-6 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${activeTab === 'committee'
+              ? '!text-white'
+              : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            style={activeTab === 'committee' ? { background: CUSTOM_COLORS.primary } : {}}
           >
             <Users className="w-5 h-5" />
             H&S Committee
           </button>
           <button
-            onClick={() => setActiveTab('meetings')}
-            className={`flex-1 py-3 px-6 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
-              activeTab === 'meetings'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <MessageSquare className="w-5 h-5" />
-            Meeting Minutes
-          </button>
-          <button
             onClick={() => setActiveTab('capa')}
-            className={`flex-1 py-3 px-6 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
-              activeTab === 'capa'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            className={`flex-1 py-3 px-6 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${activeTab === 'capa'
+              ? '!text-white'
+              : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            style={activeTab === 'capa' ? { background: CUSTOM_COLORS.primary } : {}}
           >
             <ClipboardList className="w-5 h-5" />
             CAPA Management
@@ -1301,7 +1083,6 @@ const EnhancedCommitteeCAPA = () => {
         {/* Tab Content */}
         <div>
           {activeTab === 'committee' && renderCommitteeManagement()}
-          {activeTab === 'meetings' && renderMeetingMinutes()}
           {activeTab === 'capa' && renderCAPAManagement()}
         </div>
 
@@ -1382,8 +1163,8 @@ const EnhancedCommitteeCAPA = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-lg text-white"
-                    style={{ background: FLEET_COLORS.gradient }}
+                    className="px-4 py-2 rounded-lg !text-white"
+                    style={{ background: CUSTOM_COLORS.gradient }}
                   >
                     {editingMember ? 'Update' : 'Create'}
                   </button>
@@ -1556,13 +1337,45 @@ const EnhancedCommitteeCAPA = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-lg text-white"
-                    style={{ background: FLEET_COLORS.gradient }}
+                    className="px-4 py-2 rounded-lg !text-white"
+                    style={{ background: CUSTOM_COLORS.gradient }}
                   >
                     {editingCAPA ? 'Update' : 'Create'}
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md transform transition-all scale-100 opacity-100">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                  <FaTrash className="text-red-600 text-xl" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Confirmation</h3>
+                <p className="text-gray-500 text-sm mb-6">
+                  Are you sure you want to delete this {deleteParams?.type === 'member' ? 'Committee Member' : 'CAPA'}? This action cannot be undone.
+                </p>
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    className="flex-1 px-4 py-2 bg-red-600 !text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

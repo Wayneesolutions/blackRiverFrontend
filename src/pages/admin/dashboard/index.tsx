@@ -12,6 +12,7 @@ import {
     Heart
 } from 'lucide-react';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import type { Libraries } from '@react-google-maps/api';
 import { getAdminDashboard, type Trip, type Truck, type DashboardStats } from '../../../axios/api/main.dashboard';
 
 declare global {
@@ -21,6 +22,7 @@ declare global {
 }
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
+const GOOGLE_MAPS_LIBRARIES: Libraries = ["marker", "places"];
 
 interface FeatureCard {
     id: string;
@@ -40,9 +42,9 @@ interface FeatureCard {
 const Index = () => {
     const navigate = useNavigate();
     const { isLoaded, loadError } = useJsApiLoader({
-        id: 'google-maps-script',
+        id: 'google-maps-api',
         googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-        libraries: ['places', 'marker'],
+        libraries: GOOGLE_MAPS_LIBRARIES,
     });
 
     const [loading, setLoading] = useState(true);
@@ -93,13 +95,13 @@ const Index = () => {
         }
 
         // Filter active trips - match backend filter (only 'planned' and 'in-progress')
-        const activeTrips = dashboardData.trips.filter(t => 
+        const activeTrips = dashboardData.trips.filter(t =>
             t.status === 'in-progress' || t.status === 'planned'
         );
-        
+
         // Collect all valid coordinates
         const coordinates: { lat: number; lng: number }[] = [];
-        
+
         // Add trip current locations
         activeTrips.forEach(trip => {
             if (trip.currentLat && trip.currentLng) {
@@ -239,7 +241,7 @@ const Index = () => {
     };
 
     // Filter active trips - match backend filter (only 'planned' and 'in-progress')
-    const activeTrips = dashboardData?.trips.filter(t => 
+    const activeTrips = dashboardData?.trips.filter(t =>
         t.status === 'in-progress' || t.status === 'planned'
     ) || [];
 
@@ -306,8 +308,8 @@ const Index = () => {
                             const Icon = feature.icon;
 
                             return (
-                                <div 
-                                    key={feature.id} 
+                                <div
+                                    key={feature.id}
                                     onClick={() => handleCardClick(feature.route)}
                                     className="bg-white rounded-lg p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
                                 >
@@ -367,9 +369,9 @@ const Index = () => {
                                         <p className="text-xs text-gray-500" style={{ fontSize: '0.75rem' }}>Real-time tracking of ongoing deliveries</p>
                                     </div>
                                 </div>
-                                <button 
+                                <button
                                     onClick={() => navigate('/admin/dispatch')}
-                                    className="px-3.5 py-1.5 text-xs font-medium text-[#42aeec] hover:bg-[#42aeec]/10 rounded-md transition-colors" 
+                                    className="px-3.5 py-1.5 text-xs font-medium text-[#42aeec] hover:bg-[#42aeec]/10 rounded-md transition-colors"
                                     style={{ fontSize: '0.75rem' }}
                                 >
                                     View All
@@ -433,11 +435,11 @@ const Index = () => {
                                     {/* All trucks current locations */}
                                     {dashboardData?.trucks.map((truck) => {
                                         // Skip if this truck is already shown as part of a trip
-                                        const isTripTruck = activeTrips.some(t => 
-                                            t.truckInfo?.id === truck.id || 
+                                        const isTripTruck = activeTrips.some(t =>
+                                            t.truckInfo?.id === truck.id ||
                                             t.truckInfo?.licensePlate === truck.licensePlate
                                         );
-                                        
+
                                         if (isTripTruck) return null;
 
                                         return (
@@ -476,15 +478,14 @@ const Index = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3.5 flex-1">
                                                 {/* Trip Icon */}
-                                                <div className={`rounded-md p-2 ${
-                                                    trip.status === "completed" ? "bg-green-100" :
-                                                    trip.status === "in-progress" || trip.status === "started" ? "bg-blue-100" :
-                                                    "bg-yellow-100"
-                                                }`}>
+                                                <div className={`rounded-md p-2 ${trip.status === "completed" ? "bg-green-100" :
+                                                        trip.status === "in-progress" || trip.status === "started" ? "bg-blue-100" :
+                                                            "bg-yellow-100"
+                                                    }`}>
                                                     <Package className={
                                                         trip.status === "completed" ? "text-green-600" :
-                                                        trip.status === "in-progress" || trip.status === "started" ? "text-[#42aeec]" :
-                                                        "text-yellow-600"
+                                                            trip.status === "in-progress" || trip.status === "started" ? "text-[#42aeec]" :
+                                                                "text-yellow-600"
                                                     } size={17} />
                                                 </div>
 
@@ -518,13 +519,12 @@ const Index = () => {
                                                 </div>
 
                                                 {/* Status Badge */}
-                                                <div className={`px-2.5 py-1 rounded-full text-[10px] font-medium ${
-                                                    trip.status === "completed" ? "bg-green-100 text-green-700" :
-                                                    trip.status === "in-progress" || trip.status === "started" ? "bg-blue-100 text-[#42aeec]" :
-                                                    "bg-yellow-100 text-yellow-700"
-                                                }`} style={{ fontSize: '0.625rem' }}>
-                                                    {trip.status === 'in-progress' || trip.status === 'started' ? 'In Transit' : 
-                                                     trip.status === 'completed' ? 'Completed' : trip.status}
+                                                <div className={`px-2.5 py-1 rounded-full text-[10px] font-medium ${trip.status === "completed" ? "bg-green-100 text-green-700" :
+                                                        trip.status === "in-progress" || trip.status === "started" ? "bg-blue-100 text-[#42aeec]" :
+                                                            "bg-yellow-100 text-yellow-700"
+                                                    }`} style={{ fontSize: '0.625rem' }}>
+                                                    {trip.status === 'in-progress' || trip.status === 'started' ? 'In Transit' :
+                                                        trip.status === 'completed' ? 'Completed' : trip.status}
                                                 </div>
                                             </div>
                                         </div>

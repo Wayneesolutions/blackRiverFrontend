@@ -215,14 +215,7 @@ const AttendanceTracking = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#EDF8FF] p-6 overflow-x-hidden"
-      style={{
-        transform: 'scale(0.98)',
-        transformOrigin: 'top left',
-        width: '102.04%',
-        minHeight: '102.04vh'
-      }}
-    >
+      className="min-h-screen bg-[#EDF8FF] p-6 overflow-x-hidden">
 
       {/* Toast Notifications Container */}
       <div className="fixed top-4 right-4 z-[10002] space-y-2">

@@ -929,23 +929,15 @@ const Tickets: React.FC = () => {
       </div>
 
       <div className="relative max-w-7xl mx-auto">
-        {/* Gradient band */}
-        <div
-          className="absolute inset-x-0 top-0"
-          style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
-            height: '101px'
-          }}
-          aria-hidden="true"
-        />
+
 
         <div className="relative z-10 px-4 pt-3 pb-6">
           {/* Header */}
           <div className="mb-4 relative z-10">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-xl font-bold text-white">Tickets (Fines & Penalties)</h1>
-                <div className="flex items-center gap-2 text-white/90">
+                <h1 className="text-2xl font-bold text-black">Tickets (Fines & Penalties)</h1>
+                <div className="flex items-center gap-2 text-black/90">
                   <span className="text-xs">Manage traffic violations and legal disputes for USA & Canada</span>
                 </div>
               </div>

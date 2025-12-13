@@ -16,7 +16,6 @@ const Layout = () => {
             <div className="flex-shrink-0 h-screen overflow-hidden">
                 <HealthSafetySidebar
                     isCollapsed={isSidebarCollapsed}
-                    onToggle={toggleSidebar}
                 />
             </div>
 

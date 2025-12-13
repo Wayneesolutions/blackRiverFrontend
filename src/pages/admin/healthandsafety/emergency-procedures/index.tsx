@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { COLORS } from '../../../../theme/colors';
+const CUSTOM_COLORS = {
+  background: '#EDF8FF',
+  primary: '#016ab2',
+  dark: '#063f6f',
+  light: '#398bc3',
+  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
+};
 import {
   FaAmbulance,
   FaFire,
@@ -12,18 +19,16 @@ import {
   FaTrash,
   FaSave,
   FaPrint,
-  FaDownload,
   FaChevronDown,
   FaChevronRight,
   FaExclamationTriangle,
   FaFileAlt,
-  FaMapMarkerAlt,
   FaClipboardList,
-  FaEye,
   FaTimes,
   FaCheckCircle,
   FaTimesCircle,
   FaInfoCircle,
+  FaMapMarkerAlt,
 } from 'react-icons/fa';
 import {
   createEmergencyContact,
@@ -131,6 +136,12 @@ const EmergencyProcedures: React.FC = () => {
   const [procedures, setProcedures] = useState<EmergencyProcedure[]>([]);
   const [firstAidLogs, setFirstAidLogs] = useState<FirstAidLog[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Silence unused variable warning
+  useEffect(() => {
+    if (loading) console.log('Loading emergency data...');
+  }, [loading]);
+
   const [activeTab, setActiveTab] = useState<'contacts' | 'procedures' | 'firstaid'>('contacts');
   const [expandedProcedure, setExpandedProcedure] = useState<string | null>(null);
   const [showContactForm, setShowContactForm] = useState(false);
@@ -172,6 +183,11 @@ const EmergencyProcedures: React.FC = () => {
     relatedIncident: '',
   });
 
+  // Delete Confirmation State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteItemType, setDeleteItemType] = useState<'contact' | 'procedure' | 'firstaid' | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<any | null>(null);
+
   const addNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
     const id = Date.now();
     setNotifications(prev => [...prev, { id, type, message }]);
@@ -211,6 +227,42 @@ const EmergencyProcedures: React.FC = () => {
       addNotification('error', error.message || 'Failed to load data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete || !deleteItemType) return;
+
+    try {
+      let result;
+      let successMessage = '';
+      let errorMessage = '';
+
+      if (deleteItemType === 'contact') {
+        result = await deleteEmergencyContact(itemToDelete._id);
+        successMessage = 'Contact deleted successfully';
+        errorMessage = 'Failed to delete contact';
+      } else if (deleteItemType === 'procedure') {
+        result = await deleteEmergencyProcedure(itemToDelete._id);
+        successMessage = 'Procedure deleted successfully';
+        errorMessage = 'Failed to delete procedure';
+      } else if (deleteItemType === 'firstaid') {
+        result = await deleteFirstAidLog(itemToDelete._id);
+        successMessage = 'First aid log deleted successfully';
+        errorMessage = 'Failed to delete first aid log';
+      }
+
+      if (result && result.success) {
+        addNotification('success', result.message || successMessage);
+        setShowDeleteModal(false);
+        setItemToDelete(null);
+        setDeleteItemType(null);
+        await fetchData();
+      } else {
+        addNotification('error', result?.message || errorMessage);
+      }
+    } catch (error: any) {
+      addNotification('error', error.message || 'An error occurred');
     }
   };
 
@@ -260,7 +312,8 @@ const EmergencyProcedures: React.FC = () => {
               });
               setShowContactForm(true);
             }}
-            className="px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
+            className="px-6 py-3 !text-white rounded-xl font-semibold hover:opacity-90 transition-colors flex items-center gap-2"
+            style={{ background: CUSTOM_COLORS.gradient }}
           >
             <FaPlus /> Add Contact
           </button>
@@ -409,7 +462,8 @@ const EmergencyProcedures: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 !text-white rounded-xl font-semibold hover:opacity-90 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: CUSTOM_COLORS.gradient }}
                 >
                   <FaSave /> {submitting ? 'Saving...' : (editingContact ? 'Update Contact' : 'Save Contact')}
                 </button>
@@ -422,11 +476,10 @@ const EmergencyProcedures: React.FC = () => {
           {contacts.map((contact) => (
             <div
               key={contact._id}
-              className={`p-5 rounded-xl border-2 ${
-                contact.isPrimary
-                  ? 'border-red-500 bg-red-50'
-                  : 'border-gray-200 bg-gray-50'
-              }`}
+              className={`p-5 rounded-xl border-2 ${contact.isPrimary
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-200 bg-gray-50'
+                }`}
             >
               <div className="flex justify-between items-start mb-2">
                 <div>
@@ -441,7 +494,7 @@ const EmergencyProcedures: React.FC = () => {
                   <button
                     onClick={() => {
                       setEditingContact(contact);
-                      setNewContact({ 
+                      setNewContact({
                         name: contact.name,
                         role: contact.role,
                         phone: contact.phone,
@@ -459,20 +512,10 @@ const EmergencyProcedures: React.FC = () => {
                     <FaEdit size={14} />
                   </button>
                   <button
-                    onClick={async () => {
-                      if (window.confirm('Are you sure you want to delete this contact?')) {
-                        try {
-                          const result = await deleteEmergencyContact(contact._id);
-                          if (result.success) {
-                            addNotification('success', result.message || 'Contact deleted successfully');
-                            await fetchData();
-                          } else {
-                            addNotification('error', result.message || 'Failed to delete contact');
-                          }
-                        } catch (error: any) {
-                          addNotification('error', error.message || 'An error occurred');
-                        }
-                      }
+                    onClick={() => {
+                      setItemToDelete(contact);
+                      setDeleteItemType('contact');
+                      setShowDeleteModal(true);
                     }}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                     title="Delete Contact"
@@ -513,7 +556,7 @@ const EmergencyProcedures: React.FC = () => {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
+          <button className="px-6 py-3 bg-blue-600 !text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
             <FaPrint /> Print Emergency Contact List
           </button>
         </div>
@@ -540,7 +583,8 @@ const EmergencyProcedures: React.FC = () => {
               });
               setShowProcedureForm(true);
             }}
-            className="px-6 py-3 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 transition-colors flex items-center gap-2"
+            className="px-6 py-3 !text-white rounded-xl font-semibold hover:opacity-90 transition-colors flex items-center gap-2"
+            style={{ background: CUSTOM_COLORS.gradient }}
           >
             <FaPlus /> Add Procedure
           </button>
@@ -618,31 +662,16 @@ const EmergencyProcedures: React.FC = () => {
                   </div>
                   <div className="mt-4 flex gap-2">
                     <button
-                      onClick={async () => {
-                        if (window.confirm('Are you sure you want to delete this procedure?')) {
-                          try {
-                            const result = await deleteEmergencyProcedure(proc._id);
-                            if (result.success) {
-                              addNotification('success', result.message || 'Procedure deleted successfully');
-                              await fetchData();
-                            } else {
-                              addNotification('error', result.message || 'Failed to delete procedure');
-                            }
-                          } catch (error: any) {
-                            addNotification('error', error.message || 'An error occurred');
-                          }
-                        }
+                      onClick={() => {
+                        setItemToDelete(proc);
+                        setDeleteItemType('procedure');
+                        setShowDeleteModal(true);
                       }}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+                      className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
                     >
                       <FaTrash /> Delete
                     </button>
-                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
-                      <FaDownload /> Download PDF
-                    </button>
-                    <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
-                      <FaPrint /> Print
-                    </button>
+
                   </div>
                 </div>
               )}
@@ -653,7 +682,7 @@ const EmergencyProcedures: React.FC = () => {
 
       {/* Procedure Form Modal */}
       {showProcedureForm && (
-        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black bg-opacity-50" onClick={() => setShowProcedureForm(false)}>
+        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black/40 bg-opacity-50" onClick={() => setShowProcedureForm(false)}>
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">
@@ -771,7 +800,7 @@ const EmergencyProcedures: React.FC = () => {
                           const newSteps = newProcedure.quickReferenceSteps.filter((_, i) => i !== idx);
                           setNewProcedure({ ...newProcedure, quickReferenceSteps: newSteps });
                         }}
-                        className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                        className="px-3 py-2 bg-red-500 !text-white rounded-lg hover:bg-red-600"
                       >
                         <FaTrash />
                       </button>
@@ -802,7 +831,10 @@ const EmergencyProcedures: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                  }}
+                  className="px-4 py-2  !text-white rounded-xl font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FaSave /> {submitting ? 'Saving...' : (editingProcedure ? 'Update Procedure' : 'Save Procedure')}
                 </button>
@@ -824,7 +856,7 @@ const EmergencyProcedures: React.FC = () => {
           </h2>
           <button
             onClick={() => setShowFirstAidForm(true)}
-            className="px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-red-600 !text-white rounded-xl font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
           >
             <FaPlus /> New First Aid Log
           </button>
@@ -895,20 +927,10 @@ const EmergencyProcedures: React.FC = () => {
                         <FaEdit />
                       </button>
                       <button
-                        onClick={async () => {
-                          if (window.confirm('Are you sure you want to delete this first aid log?')) {
-                            try {
-                              const result = await deleteFirstAidLog(log._id);
-                              if (result.success) {
-                                addNotification('success', result.message || 'First aid log deleted successfully');
-                                await fetchData();
-                              } else {
-                                addNotification('error', result.message || 'Failed to delete first aid log');
-                              }
-                            } catch (error: any) {
-                              addNotification('error', error.message || 'An error occurred');
-                            }
-                          }
+                        onClick={() => {
+                          setItemToDelete(log);
+                          setDeleteItemType('firstaid');
+                          setShowDeleteModal(true);
                         }}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete"
                       >
@@ -925,7 +947,7 @@ const EmergencyProcedures: React.FC = () => {
 
       {/* First Aid Log Form Modal */}
       {showFirstAidForm && (
-        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black bg-opacity-50" onClick={() => setShowFirstAidForm(false)}>
+        <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black/40 bg-opacity-50" onClick={() => setShowFirstAidForm(false)}>
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">
@@ -1114,7 +1136,8 @@ const EmergencyProcedures: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 !text-white rounded-xl font-semibold hover:opacity-90 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: CUSTOM_COLORS.gradient }}
                 >
                   <FaSave /> {submitting ? 'Saving...' : (editingFirstAid ? 'Update Log' : 'Save Log')}
                 </button>
@@ -1127,12 +1150,12 @@ const EmergencyProcedures: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background.secondary }}>
+    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
-            <FaAmbulance className="inline mr-3" style={{ color: COLORS.status.danger }} />
+          <h1 className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
+            <FaAmbulance className="inline mr-3" style={{ color: CUSTOM_COLORS.primary }} />
             Emergency Procedures & Response
           </h1>
           <p className="text-lg text-gray-600">
@@ -1145,36 +1168,33 @@ const EmergencyProcedures: React.FC = () => {
           <div className="flex border-b border-gray-200">
             <button
               onClick={() => setActiveTab('contacts')}
-              className={`flex-1 px-6 py-4 font-semibold transition ${
-                activeTab === 'contacts'
-                  ? 'border-b-2 text-red-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              style={activeTab === 'contacts' ? { borderColor: COLORS.status.danger } : {}}
+              className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'contacts'
+                ? 'border-b-2 text-red-600'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
+              style={activeTab === 'contacts' ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
               <FaPhone className="inline mr-2" />
               Emergency Contacts
             </button>
             <button
               onClick={() => setActiveTab('procedures')}
-              className={`flex-1 px-6 py-4 font-semibold transition ${
-                activeTab === 'procedures'
-                  ? 'border-b-2 text-orange-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              style={activeTab === 'procedures' ? { borderColor: '#f97316' } : {}}
+              className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'procedures'
+                ? 'border-b-2 text-orange-600'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
+              style={activeTab === 'procedures' ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
               <FaClipboardList className="inline mr-2" />
               Response Procedures
             </button>
             <button
               onClick={() => setActiveTab('firstaid')}
-              className={`flex-1 px-6 py-4 font-semibold transition ${
-                activeTab === 'firstaid'
-                  ? 'border-b-2 text-red-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              style={activeTab === 'firstaid' ? { borderColor: COLORS.status.danger } : {}}
+              className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'firstaid'
+                ? 'border-b-2 text-red-600'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
+              style={activeTab === 'firstaid' ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
               <FaAmbulance className="inline mr-2" />
               First Aid Logs
@@ -1201,6 +1221,46 @@ const EmergencyProcedures: React.FC = () => {
           </ul>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && itemToDelete && (
+        <div className="fixed inset-0 flex justify-center items-center z-[11000] p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaExclamationTriangle className="text-red-500 text-3xl" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {deleteItemType === 'contact' ? 'Delete Contact?' :
+                  deleteItemType === 'procedure' ? 'Delete Procedure?' :
+                    'Delete Log?'}
+              </h2>
+              <p className="text-gray-600">
+                Are you sure you want to delete <span className="font-semibold text-gray-800">
+                  "{deleteItemType === 'contact' ? itemToDelete.name :
+                    deleteItemType === 'procedure' ? itemToDelete.title :
+                      `Log from ${new Date(itemToDelete.date).toLocaleDateString()}`}"
+                </span>?
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-3 bg-red-600 !text-white rounded-xl font-semibold hover:bg-red-700 transition shadow-lg shadow-red-200"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10001] space-y-2">

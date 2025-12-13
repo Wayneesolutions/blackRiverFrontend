@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import ExcelJS from 'exceljs';
-import { Plus, Edit, Trash2, Search, Shield, AlertTriangle, Calendar, Download } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, AlertTriangle, Calendar, Download } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import {
   listRegulatorySafety,
@@ -451,23 +451,15 @@ const RegulatorySafety: React.FC = () => {
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
       <div className="relative max-w-7xl mx-auto">
-        {/* Gradient band */}
-        <div
-          className="absolute inset-x-0 top-0"
-          style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
-            height: '101px'
-          }}
-          aria-hidden="true"
-        />
+
 
         <div className="relative z-10 px-4 pt-3 pb-6">
           {/* Header */}
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-bold text-white">Regulatory & Safety</h1>
-                <div className="flex items-center gap-2 text-white/90">
+                <h1 className="text-2xl font-bold text-black">Regulatory & Safety</h1>
+                <div className="flex items-center gap-2 text-black/90">
                   <span className="text-xs">Track inspections and safety expiry dates</span>
                 </div>
               </div>
@@ -482,7 +474,8 @@ const RegulatorySafety: React.FC = () => {
                 </button>
                 <button
                   onClick={handleAddRecord}
-                  className="flex items-center gap-2 px-4 py-2 bg-white text-[#0ea3d8] rounded-lg hover:bg-white/90 shadow-sm transition-all font-bold text-sm"
+                  className="flex items-center gap-2 px-4 py-2 !text-white rounded-lg shadow-sm transition-all font-bold text-sm hover:opacity-90"
+                  style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
                 >
                   <Plus className="w-5 h-5" />
                   Add Record
@@ -806,22 +799,22 @@ const RegulatorySafety: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-6">
-                    <button
-                      onClick={closeModals}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleSaveRecord}
-                      disabled={saving}
-                      className={`px-6 py-2 !text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
-                      style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-                    >
-                      {saving ? 'Saving...' : showAddModal ? 'Add Record' : 'Save Changes'}
-                    </button>
-                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-200">
+                  <button
+                    onClick={closeModals}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveRecord}
+                    disabled={saving}
+                    className={`px-6 py-2 !text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
+                    style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                  >
+                    {saving ? 'Saving...' : showAddModal ? 'Add Record' : 'Save Changes'}
+                  </button>
                 </div>
               </div>
             </div >

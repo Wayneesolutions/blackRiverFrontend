@@ -294,10 +294,7 @@ const UserProfilesPortfolio: React.FC = () => {
             style={{
                 ...ACCENT_VARS,
                 background: 'linear-gradient(135deg, #f8fafc 0%, rgba(1, 106, 178, 0.08) 45%, rgba(6, 63, 111, 0.12) 100%)',
-                transform: 'scale(0.98)',
-                transformOrigin: 'top left',
-                width: '102.04%',
-                minHeight: '102.04vh'
+
             }}
         >
             <div className="max-w-7xl mx-auto">

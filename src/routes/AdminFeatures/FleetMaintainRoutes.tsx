@@ -4,11 +4,11 @@ import Layout from "../../components/fleetMaintain/Layout";
 import Loading from "../../components/common/Loading";
 
 
-const Dashboard = lazy(() => import("../../pages/admin/fleetMaintenance/complianceDashboard/index"));
+const Dashboard = lazy(() => import("../../pages/admin/fleetMaintenance/Dashboard/index"));
 const SpareParts = lazy(() => import("../../pages/admin/fleetMaintenance/sparePart/index"))
 const CostReports = lazy(() => import("../../pages/admin/fleetMaintenance/costReport/index"))
 const FleetUnits = lazy(() => import("../../pages/admin/fleetMaintenance/fleetUnits/index"))
-const ComplianceDashboard = lazy(() => import("../../pages/admin/fleetMaintenance/complianceDashboard/index"))
+const ComplianceDashboard = lazy(() => import("../../pages/admin/fleetMaintenance/Dashboard/index"))
 const ScheduledServicesLog = lazy(() => import("../../pages/admin/fleetMaintenance/scheduledServicesLog/index"))
 const GeneralRepairsLog = lazy(() => import("../../pages/admin/fleetMaintenance/generalRepairsLog/index"))
 const RegulatorySafety = lazy(() => import("../../pages/admin/fleetMaintenance/regulatorySafety/index"))

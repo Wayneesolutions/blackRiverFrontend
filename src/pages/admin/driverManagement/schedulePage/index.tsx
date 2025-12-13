@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Calendar, 
-  Clock, 
-  Truck, 
-  User, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Clock,
+  Truck,
+  User,
   Filter,
   X,
   Phone,
@@ -91,7 +91,7 @@ const UnifiedSchedulingPage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Scheduling specific states
   const [activeTab, setActiveTab] = useState<"unscheduled" | "scheduled">("unscheduled");
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -328,11 +328,11 @@ const UnifiedSchedulingPage = () => {
   const getTripsForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
     return filteredTrips.filter(trip => {
-      const tripDate = trip.plannedStartDate 
+      const tripDate = trip.plannedStartDate
         ? new Date(trip.plannedStartDate).toISOString().split('T')[0]
         : trip.actualStartDate
-        ? new Date(trip.actualStartDate).toISOString().split('T')[0]
-        : null;
+          ? new Date(trip.actualStartDate).toISOString().split('T')[0]
+          : null;
       return tripDate === dateStr;
     });
   };
@@ -400,10 +400,10 @@ const UnifiedSchedulingPage = () => {
   };
 
   const formatTime = (dateString: string | Date) => {
-    return new Date(dateString).toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
+    return new Date(dateString).toLocaleTimeString('en-US', {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: false 
+      hour12: false
     });
   };
 
@@ -488,7 +488,7 @@ const UnifiedSchedulingPage = () => {
 
       {/* Filters */}
       {showFilters && (
-        <div className="bg-white border-b border-gray-200 p-5">
+        <div className=" p-5">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
@@ -526,7 +526,7 @@ const UnifiedSchedulingPage = () => {
                     setDriverFilter('all');
                     setStatusFilter('all');
                   }}
-                  className="w-full px-3.5 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                  className="w-[50%] px-2 py-1.5 text-sm text-gray-700 bg-white hover:bg-gray-200 rounded-md transition-colors"
                 >
                   Clear Filters
                 </button>
@@ -555,8 +555,8 @@ const UnifiedSchedulingPage = () => {
                 <button
                   onClick={() => setActiveTab("unscheduled")}
                   className={`flex-1 px-3.5 py-1.5 text-sm font-medium border-b-2 transition-colors
-                    ${activeTab === "unscheduled" 
-                      ? "border-blue-500 text-blue-600 bg-blue-50" 
+                    ${activeTab === "unscheduled"
+                      ? "border-blue-500 text-blue-600 bg-blue-50"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                     }`}
                 >
@@ -565,8 +565,8 @@ const UnifiedSchedulingPage = () => {
                 <button
                   onClick={() => setActiveTab("scheduled")}
                   className={`flex-1 px-3.5 py-1.5 text-sm font-medium border-b-2 transition-colors
-                    ${activeTab === "scheduled" 
-                      ? "border-blue-500 text-blue-600 bg-blue-50" 
+                    ${activeTab === "scheduled"
+                      ? "border-blue-500 text-blue-600 bg-blue-50"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                     }`}
                 >
@@ -585,8 +585,8 @@ const UnifiedSchedulingPage = () => {
                       onDragStart={() => handleDragStart(trip)}
                       onDragEnd={handleDragEnd}
                       className={`p-2.5 rounded-md border cursor-pointer transition-all hover:shadow-md
-                        ${activeTab === "scheduled" 
-                          ? "bg-green-50 border-green-200" 
+                        ${activeTab === "scheduled"
+                          ? "bg-green-50 border-green-200"
                           : "bg-gray-50 border-gray-200"
                         }
                         ${draggedTrip?._id === trip._id ? "opacity-50" : ""}
@@ -625,7 +625,7 @@ const UnifiedSchedulingPage = () => {
                           </div>
                           {trip.scheduledDate && (
                             <div className="text-xs text-gray-500 mt-1">
-                              {typeof trip.scheduledDate === 'string' 
+                              {typeof trip.scheduledDate === 'string'
                                 ? new Date(trip.scheduledDate).toLocaleDateString("en-GB")
                                 : trip.scheduledDate.toLocaleDateString("en-GB")
                               }
@@ -717,11 +717,10 @@ const UnifiedSchedulingPage = () => {
                   <button
                     key={mode}
                     onClick={() => setViewMode(mode as 'month' | 'week' | 'day')}
-                    className={`px-2.5 py-0.5 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === mode
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    className={`px-2.5 py-0.5 rounded-md text-sm font-medium transition-colors ${viewMode === mode
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                      }`}
                   >
                     {mode.charAt(0).toUpperCase() + mode.slice(1)}
                   </button>
@@ -760,9 +759,8 @@ const UnifiedSchedulingPage = () => {
                           hover:bg-gray-50
                         `}
                       >
-                        <div className={`text-sm font-medium mb-1.5 ${
-                          !day.isCurrentMonth ? 'text-gray-400' : isToday ? 'text-blue-600 font-bold' : 'text-gray-900'
-                        }`}>
+                        <div className={`text-sm font-medium mb-1.5 ${!day.isCurrentMonth ? 'text-gray-400' : isToday ? 'text-blue-600 font-bold' : 'text-gray-900'
+                          }`}>
                           {day.date.getDate()}
                         </div>
 
@@ -963,7 +961,7 @@ const UnifiedSchedulingPage = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Schedule Trip
             </h3>
-            
+
             <div className="mb-4">
               <div className="font-medium text-gray-900">
                 {getTripIdentifier(selectedTrip)}
@@ -1098,7 +1096,7 @@ const UnifiedSchedulingPage = () => {
                       {selectedTrip.plannedStartDate && selectedTrip.plannedEndDate && (
                         <div><strong>Duration:</strong> {Math.round((new Date(selectedTrip.plannedEndDate).getTime() - new Date(selectedTrip.plannedStartDate).getTime()) / (1000 * 60 * 60) * 10) / 10} hours</div>
                       )}
-                      <div><strong>Status:</strong> 
+                      <div><strong>Status:</strong>
                         <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(selectedTrip.status)}`}>
                           {selectedTrip.status}
                         </span>

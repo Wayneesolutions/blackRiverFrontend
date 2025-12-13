@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { COLORS } from '../../../../theme/colors';
+
 import {
   FaSnowflake,
   FaBox,
   FaGasPump,
   FaBiohazard,
   FaPlus,
-  FaEye,
-  FaDownload,
   FaCheckCircle,
   FaTimesCircle,
-  FaCamera,
   FaThermometerHalf,
   FaExclamationTriangle,
   FaTimes,
   FaInfoCircle,
 } from '../../../../theme/icons';
+
+const CUSTOM_COLORS = {
+  background: '#EDF8FF',
+  primary: '#016ab2',
+  dark: '#063f6f',
+  light: '#398bc3',
+  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
+};
 import type { LoadSecurementLog, ReeferFoodSafetyLog, WinterSafetyChecklist, FuelingSpillPreventionLog, DangerousGoodsLog } from '../../../../types';
 import {
   getLoadSecurementLogs,
@@ -456,7 +462,7 @@ const TruckingOperations: React.FC = () => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: COLORS.modules.trucking }}>
+        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
           <div className="text-3xl font-bold text-gray-900">{loadSecurementLogs.length}</div>
           <div className="text-sm text-gray-600 mt-1">Total Logs (This Month)</div>
         </div>
@@ -491,7 +497,7 @@ const TruckingOperations: React.FC = () => {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Load Type</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Securement</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Compliance</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -527,21 +533,7 @@ const TruckingOperations: React.FC = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="View Details">
-                        <FaEye />
-                      </button>
-                      {log.photoEvidence && log.photoEvidence.length > 0 && (
-                        <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="View Photos">
-                          <FaCamera />
-                        </button>
-                      )}
-                      <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition" title="Download">
-                        <FaDownload />
-                      </button>
-                    </div>
-                  </td>
+
                 </tr>
               ))}
             </tbody>
@@ -555,7 +547,7 @@ const TruckingOperations: React.FC = () => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: COLORS.modules.trucking }}>
+        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
           <div className="text-3xl font-bold text-gray-900">{reeferLogs.length}</div>
           <div className="text-sm text-gray-600 mt-1">Reefer Inspections (This Month)</div>
         </div>
@@ -590,7 +582,7 @@ const TruckingOperations: React.FC = () => {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Temp (°C)</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Cleanliness</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -615,10 +607,10 @@ const TruckingOperations: React.FC = () => {
                   <td className="px-6 py-4 text-sm">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-semibold ${log.interiorCleanliness === 'excellent'
-                          ? 'bg-green-100 text-green-800'
-                          : log.interiorCleanliness === 'good'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-green-100 text-green-800'
+                        : log.interiorCleanliness === 'good'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-yellow-100 text-yellow-800'
                         }`}
                     >
                       {log.interiorCleanliness.toUpperCase()}
@@ -635,16 +627,7 @@ const TruckingOperations: React.FC = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="View Details">
-                        <FaEye />
-                      </button>
-                      <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition" title="Download">
-                        <FaDownload />
-                      </button>
-                    </div>
-                  </td>
+
                 </tr>
               ))}
             </tbody>
@@ -658,7 +641,7 @@ const TruckingOperations: React.FC = () => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: COLORS.modules.trucking }}>
+        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
           <div className="text-3xl font-bold text-gray-900">{winterChecklists.length}</div>
           <div className="text-sm text-gray-600 mt-1">Total Checklists (This Month)</div>
         </div>
@@ -692,7 +675,7 @@ const TruckingOperations: React.FC = () => {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Performed By</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Vehicle</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -717,16 +700,7 @@ const TruckingOperations: React.FC = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="View Details">
-                        <FaEye />
-                      </button>
-                      <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition" title="Download">
-                        <FaDownload />
-                      </button>
-                    </div>
-                  </td>
+
                 </tr>
               ))}
               {winterChecklists.length === 0 && (
@@ -747,7 +721,7 @@ const TruckingOperations: React.FC = () => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: COLORS.modules.trucking }}>
+        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
           <div className="text-3xl font-bold text-gray-900">{fuelingLogs.length}</div>
           <div className="text-sm text-gray-600 mt-1">Total Logs (This Month)</div>
         </div>
@@ -782,7 +756,7 @@ const TruckingOperations: React.FC = () => {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Vehicle</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Fuel Type</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Spill Status</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -812,16 +786,7 @@ const TruckingOperations: React.FC = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="View Details">
-                        <FaEye />
-                      </button>
-                      <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition" title="Download">
-                        <FaDownload />
-                      </button>
-                    </div>
-                  </td>
+
                 </tr>
               ))}
               {fuelingLogs.length === 0 && (
@@ -842,7 +807,7 @@ const TruckingOperations: React.FC = () => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: COLORS.modules.trucking }}>
+        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
           <div className="text-3xl font-bold text-gray-900">{tdgLogs.length}</div>
           <div className="text-sm text-gray-600 mt-1">Total TDG Shipments</div>
         </div>
@@ -878,7 +843,7 @@ const TruckingOperations: React.FC = () => {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Placarding</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -926,21 +891,7 @@ const TruckingOperations: React.FC = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="View Details">
-                        <FaEye />
-                      </button>
-                      {log.photoEvidence && log.photoEvidence.length > 0 && (
-                        <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="View Photos">
-                          <FaCamera />
-                        </button>
-                      )}
-                      <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition" title="Download">
-                        <FaDownload />
-                      </button>
-                    </div>
-                  </td>
+
                 </tr>
               ))}
               {tdgLogs.length === 0 && (
@@ -975,7 +926,7 @@ const TruckingOperations: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background.secondary }}>
+    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map(notification => (
@@ -991,8 +942,8 @@ const TruckingOperations: React.FC = () => {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <h1 className="text-4xl font-bold mb-2" style={{ color: COLORS.text.primary }}>
-              🚛 Trucking Operations
+            <h1 className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
+              Trucking Operations
             </h1>
             <p className="text-lg text-gray-600">
               Industry-specific safety logs for load securement, reefer safety, winter operations, and more.
@@ -1000,8 +951,8 @@ const TruckingOperations: React.FC = () => {
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="px-6 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all flex items-center space-x-2"
-            style={{ background: COLORS.gradients.trucking }}
+            className="px-6 py-3 rounded-xl !text-white font-semibold shadow-lg hover:shadow-xl transition-all flex items-center space-x-2"
+            style={{ background: CUSTOM_COLORS.gradient }}
           >
             <FaPlus />
             <span>New Log Entry</span>
@@ -1014,10 +965,10 @@ const TruckingOperations: React.FC = () => {
             <button
               onClick={() => setActiveTab(TABS.LOAD_SECUREMENT)}
               className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === TABS.LOAD_SECUREMENT
-                  ? 'border-b-4 text-gray-900 bg-orange-50'
-                  : 'text-gray-600 hover:bg-gray-50'
+                ? 'border-b-4 text-gray-900 bg-orange-50'
+                : 'text-gray-600 hover:bg-gray-50'
                 }`}
-              style={activeTab === TABS.LOAD_SECUREMENT ? { borderColor: COLORS.modules.trucking } : {}}
+              style={activeTab === TABS.LOAD_SECUREMENT ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
               <FaBox />
               <span>Load Securement</span>
@@ -1025,10 +976,10 @@ const TruckingOperations: React.FC = () => {
             <button
               onClick={() => setActiveTab(TABS.REEFER_SAFETY)}
               className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === TABS.REEFER_SAFETY
-                  ? 'border-b-4 text-gray-900 bg-orange-50'
-                  : 'text-gray-600 hover:bg-gray-50'
+                ? 'border-b-4 text-gray-900 bg-orange-50'
+                : 'text-gray-600 hover:bg-gray-50'
                 }`}
-              style={activeTab === TABS.REEFER_SAFETY ? { borderColor: COLORS.modules.trucking } : {}}
+              style={activeTab === TABS.REEFER_SAFETY ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
               <FaThermometerHalf />
               <span>Reefer Food Safety</span>
@@ -1036,10 +987,10 @@ const TruckingOperations: React.FC = () => {
             <button
               onClick={() => setActiveTab(TABS.WINTER_SAFETY)}
               className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === TABS.WINTER_SAFETY
-                  ? 'border-b-4 text-gray-900 bg-orange-50'
-                  : 'text-gray-600 hover:bg-gray-50'
+                ? 'border-b-4 text-gray-900 bg-orange-50'
+                : 'text-gray-600 hover:bg-gray-50'
                 }`}
-              style={activeTab === TABS.WINTER_SAFETY ? { borderColor: COLORS.modules.trucking } : {}}
+              style={activeTab === TABS.WINTER_SAFETY ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
               <FaSnowflake />
               <span>Winter Safety</span>
@@ -1047,10 +998,10 @@ const TruckingOperations: React.FC = () => {
             <button
               onClick={() => setActiveTab(TABS.FUELING_SPILL)}
               className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === TABS.FUELING_SPILL
-                  ? 'border-b-4 text-gray-900 bg-orange-50'
-                  : 'text-gray-600 hover:bg-gray-50'
+                ? 'border-b-4 text-gray-900 bg-orange-50'
+                : 'text-gray-600 hover:bg-gray-50'
                 }`}
-              style={activeTab === TABS.FUELING_SPILL ? { borderColor: COLORS.modules.trucking } : {}}
+              style={activeTab === TABS.FUELING_SPILL ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
               <FaGasPump />
               <span>Fueling & Spills</span>
@@ -1058,10 +1009,10 @@ const TruckingOperations: React.FC = () => {
             <button
               onClick={() => setActiveTab(TABS.TDG_LOGS)}
               className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === TABS.TDG_LOGS
-                  ? 'border-b-4 text-gray-900 bg-orange-50'
-                  : 'text-gray-600 hover:bg-gray-50'
+                ? 'border-b-4 text-gray-900 bg-orange-50'
+                : 'text-gray-600 hover:bg-gray-50'
                 }`}
-              style={activeTab === TABS.TDG_LOGS ? { borderColor: COLORS.modules.trucking } : {}}
+              style={activeTab === TABS.TDG_LOGS ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
               <FaBiohazard />
               <span>Dangerous Goods (TDG)</span>
@@ -1082,7 +1033,7 @@ const TruckingOperations: React.FC = () => {
       {/* Create Log Entry Modal */}
       {showModal && (
         <div
-          className="fixed inset-0 flex justify-center items-center z-[10001] p-4 bg-black bg-opacity-50"
+          className="fixed inset-0 flex justify-center items-center z-[10001] p-4  bg-black/40  bg-opacity-50"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowModal(false);
@@ -1495,7 +1446,7 @@ const TruckingOperations: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-6 py-2 !mr-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                   disabled={submitting}
                 >
                   Cancel
@@ -1503,8 +1454,8 @@ const TruckingOperations: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ background: COLORS.modules.trucking }}
+                  className="px-6 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: CUSTOM_COLORS.gradient }}
                 >
                   {submitting ? 'Creating...' : 'Create Log Entry'}
                 </button>

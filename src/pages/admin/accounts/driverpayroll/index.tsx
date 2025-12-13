@@ -19,7 +19,7 @@ interface Driver {
 interface Trip {
   _id: string;
   tripNumber?: string;
-  startLocation?: { 
+  startLocation?: {
     place?: string;
     latitude?: string;
     longitude?: string;
@@ -32,7 +32,7 @@ interface Trip {
       };
     };
   };
-  endLocation?: { 
+  endLocation?: {
     place?: string;
     latitude?: string;
     longitude?: string;
@@ -56,7 +56,7 @@ interface Trip {
     highTemperature?: boolean;
   };
   earnings?: string | number;
-  truck?: { 
+  truck?: {
     plateNumber?: string;
     licensePlate?: string;
     internalId?: string;
@@ -278,13 +278,13 @@ const DriverPayrollManagement = () => {
           const salaryPerMileSnow = driver.details?.salaryPerMileSnow ?? driver.salaryPerMileSnow ?? 0;
           const salaryPerMileHighTemp = driver.details?.salaryPerMileHighTemp ?? driver.salaryPerMileHighTemp ?? 0;
           const highTempThreshold = driver.details?.highTempThreshold ?? driver.highTempThreshold ?? 35;
-          
+
           console.log('Driver data:', {
             name: driver.name,
             details: driver.details,
             salaryPerMile: salaryPerMile
           });
-          
+
           return {
             _id: driver._id,
             name: driver.name,
@@ -325,10 +325,10 @@ const DriverPayrollManagement = () => {
       const searchValue = searchQuery !== undefined ? searchQuery : searchTerm;
       const searchParam = searchValue ? `?search=${encodeURIComponent(searchValue)}` : '';
       const response = await listPayrolls(searchParam);
-      
+
       if (response?.success) {
         // Filter to show only driver payrolls
-        const driverPayrolls = (response.data || []).filter((payroll: DriverPayroll) => 
+        const driverPayrolls = (response.data || []).filter((payroll: DriverPayroll) =>
           payroll.userId && payroll.userId.role?.toLowerCase() === 'driver'
         );
         setPayrollData(driverPayrolls);
@@ -365,13 +365,13 @@ const DriverPayrollManagement = () => {
       }
 
       const response = await getDriverCompletedTrips(driverId, startDate, endDate);
-      
+
       if (response?.success) {
         const trips: Trip[] = (response.data || []).map((trip: any) => ({
           ...trip,
           selected: true // Auto-select all trips
         }));
-        
+
         setDriverTrips(trips);
 
         if (response.summary) {
@@ -386,7 +386,7 @@ const DriverPayrollManagement = () => {
             const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
             return sum + earnings;
           }, 0);
-          
+
           const fallbackSummary: TripSummary = {
             totalTrips: trips.length,
             totalDistanceKm: trips.reduce((sum, trip) => sum + (trip.distance || 0), 0),
@@ -397,7 +397,7 @@ const DriverPayrollManagement = () => {
             snowRate: trips[0]?.snowRate || 0,
             highTempRate: trips[0]?.highTempRate || 0
           };
-          
+
           setDriverPayrollSummary(fallbackSummary);
         }
       } else {
@@ -433,26 +433,26 @@ const DriverPayrollManagement = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === 'userId') {
       const selectedDrv = drivers.find(drv => drv._id === value);
       setSelectedDriver(selectedDrv || null);
-      
+
       // Auto-fetch trips for current month
       const today = new Date();
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
       const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      
+
       const startDate = firstDay.toISOString().split('T')[0];
       const endDate = lastDay.toISOString().split('T')[0];
-      
+
       setFormData(prev => ({
         ...prev,
         [name]: value,
         startDate,
         endDate
       }));
-      
+
       if (value) {
         fetchDriverTrips(value, startDate, endDate);
       }
@@ -477,7 +477,7 @@ const DriverPayrollManagement = () => {
   };
 
   const toggleTripSelection = (tripId: string) => {
-    setDriverTrips(prev => prev.map(trip => 
+    setDriverTrips(prev => prev.map(trip =>
       trip._id === tripId ? { ...trip, selected: !trip.selected } : trip
     ));
   };
@@ -500,7 +500,7 @@ const DriverPayrollManagement = () => {
       const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
       return sum + earnings;
     }, 0);
-    
+
     return {
       count: selectedTrips.length,
       totalMiles,
@@ -616,10 +616,10 @@ const DriverPayrollManagement = () => {
     }
 
     setLoading(true);
-    
+
     try {
       const selectedTotals = getSelectedTripsTotals();
-      
+
       // Create payload for driver payroll
       const payload: any = {
         userId: formData.userId,
@@ -649,7 +649,7 @@ const DriverPayrollManagement = () => {
       };
 
       const response = await createPayroll(payload);
-      
+
       if (response?.success) {
         showNotification('success', response.message || 'Driver payroll created successfully!');
         setShowCreateModal(false);
@@ -676,7 +676,7 @@ const DriverPayrollManagement = () => {
     }
 
     setLoading(true);
-    
+
     try {
       const payload: any = {
         userId: formData.userId,
@@ -703,7 +703,7 @@ const DriverPayrollManagement = () => {
       };
 
       const response = await updatePayroll(selectedPayroll._id, payload);
-      
+
       if (response?.success) {
         showNotification('success', response.message || 'Driver payroll updated successfully!');
         setShowEditModal(false);
@@ -724,12 +724,12 @@ const DriverPayrollManagement = () => {
 
   const handleDelete = async () => {
     if (!selectedPayroll) return;
-    
+
     setLoading(true);
-    
+
     try {
       const response = await deletePayroll(selectedPayroll._id);
-      
+
       if (response?.success) {
         showNotification('success', response.message || 'Driver payroll deleted successfully!');
         setShowDeleteModal(false);
@@ -755,7 +755,7 @@ const DriverPayrollManagement = () => {
   const openEditModal = (payroll: DriverPayroll) => {
     setSelectedPayroll(payroll);
     const payDateFormatted = payroll.payDate ? payroll.payDate.split('T')[0] : '';
-    
+
     setFormData({
       userId: payroll.userId._id,
       bonus: payroll.bonus.toString(),
@@ -816,7 +816,7 @@ const DriverPayrollManagement = () => {
 
   const filteredPayrolls = payrollData.filter(payroll => {
     const searchLower = searchTerm.toLowerCase();
-    return searchTerm === '' || 
+    return searchTerm === '' ||
       payroll.userId.name?.toLowerCase().includes(searchLower);
   });
 
@@ -825,12 +825,11 @@ const DriverPayrollManagement = () => {
   const avgPerMile = totalMiles > 0 ? totalPayroll / totalMiles : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6">
+    <div className="min-h-screen bg-[#EDF8FF] px-6">
       <div className="py-8 max-w-7xl mx-auto">
         {notification && (
-          <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${
-            notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-          } text-white`}>
+          <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white`}>
             {notification.type === 'success' ? (
               <CheckCircle size={20} />
             ) : (
@@ -845,8 +844,8 @@ const DriverPayrollManagement = () => {
 
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Truck className="text-green-600" size={36} />
+            <h1 className="text-3xl font-bold flex items-center gap-3" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Truck className="text-[#42aeec]" size={36} />
               Driver Payroll
             </h1>
             <p className="text-gray-600 mt-2">Manage driver earnings based on trips and miles</p>
@@ -854,7 +853,8 @@ const DriverPayrollManagement = () => {
           <div className="flex gap-2">
             <button
               onClick={() => setShowBulkGenerateModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all font-medium flex items-center gap-2"
+              className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
+              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -863,7 +863,8 @@ const DriverPayrollManagement = () => {
             </button>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg transition-all font-medium flex items-center gap-2"
+              className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
+              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
             >
               <Plus size={16} />
               Create Driver Payroll
@@ -872,50 +873,50 @@ const DriverPayrollManagement = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
+          <div className="bg-[#E3F2FD] p-6 rounded-xl border-blue-100 shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Payroll</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">${totalPayroll.toLocaleString()}</p>
+                <p className="text-sm font-medium text-[#063f6f]">Total Payroll</p>
+                <p className="text-2xl font-bold text-[#016ab2] mt-1">${totalPayroll.toLocaleString()}</p>
               </div>
-              <div className="p-3 rounded-full bg-green-100">
-                <DollarSign className="text-green-600" size={24} />
+              <div className="p-3 rounded-full bg-white">
+                <DollarSign className="text-[#42aeec]" size={24} />
               </div>
             </div>
           </div>
-          
-          <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
+
+          <div className="bg-[#E1F5FE] p-6 rounded-xl border-cyan-100 shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Drivers</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{payrollData.length}</p>
+                <p className="text-sm font-medium text-[#063f6f]">Active Drivers</p>
+                <p className="text-2xl font-bold text-[#016ab2] mt-1">{payrollData.length}</p>
               </div>
-              <div className="p-3 rounded-full bg-blue-100">
-                <Users className="text-blue-600" size={24} />
+              <div className="p-3 rounded-full bg-white">
+                <Users className="text-[#42aeec]" size={24} />
               </div>
             </div>
           </div>
-          
-          <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
+
+          <div className="bg-[#E8F5E9] p-6 rounded-xl border-green-100 shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Miles</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{totalMiles.toLocaleString()}</p>
+                <p className="text-sm font-medium text-[#063f6f]">Total Miles</p>
+                <p className="text-2xl font-bold text-[#016ab2] mt-1">{totalMiles.toLocaleString()}</p>
               </div>
-              <div className="p-3 rounded-full bg-purple-100">
-                <TrendingUp className="text-purple-600" size={24} />
+              <div className="p-3 rounded-full bg-white">
+                <TrendingUp className="text-[#42aeec]" size={24} />
               </div>
             </div>
           </div>
-          
-          <div className="bg-white p-6 rounded-xl border-gray-200 shadow-sm border">
+
+          <div className="bg-[#F3E5F5] p-6 rounded-xl border-purple-100 shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg per Mile</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">${avgPerMile.toFixed(2)}</p>
+                <p className="text-sm font-medium text-[#063f6f]">Avg per Mile</p>
+                <p className="text-2xl font-bold text-[#016ab2] mt-1">${avgPerMile.toFixed(2)}</p>
               </div>
-              <div className="p-3 rounded-full bg-orange-100">
-                <Package className="text-orange-600" size={24} />
+              <div className="p-3 rounded-full bg-white">
+                <Package className="text-[#42aeec]" size={24} />
               </div>
             </div>
           </div>
@@ -1004,19 +1005,19 @@ const DriverPayrollManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-1">
-                          <button 
+                          <button
                             onClick={() => openViewModal(payroll)}
                             className="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded-lg"
                           >
                             <Eye size={18} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => openEditModal(payroll)}
                             className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg"
                           >
                             <Edit2 size={18} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => openDeleteModal(payroll)}
                             className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg"
                           >
@@ -1048,7 +1049,7 @@ const DriverPayrollManagement = () => {
                     <p className="text-sm text-gray-500">Based on completed trips and mileage</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => {
                     setShowCreateModal(false);
                     setShowEditModal(false);
@@ -1448,7 +1449,7 @@ const DriverPayrollManagement = () => {
                     <DollarSign size={20} className="text-purple-600" />
                     Tax Information
                   </h5>
-                  
+
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Country <span className="text-red-500">*</span>
@@ -1686,14 +1687,14 @@ const DriverPayrollManagement = () => {
                         ${(() => {
                           let totalTax = 0;
                           if (formData.country === 'Canada') {
-                            totalTax = 
+                            totalTax =
                               parseFloat(formData.federalIncomeTaxCA || '0') +
                               parseFloat(formData.provincialIncomeTaxCA || '0') +
                               parseFloat(formData.cpp || '0') +
                               parseFloat(formData.ei || '0') +
                               parseFloat(formData.provincialHealthTaxCA || '0');
                           } else {
-                            totalTax = 
+                            totalTax =
                               parseFloat(formData.federalIncomeTaxUS || '0') +
                               parseFloat(formData.stateIncomeTaxUS || '0') +
                               parseFloat(formData.socialSecurityTax || '0') +
@@ -1728,7 +1729,7 @@ const DriverPayrollManagement = () => {
                         <p className="text-sm text-green-100">Gross Earnings</p>
                         <p className="text-lg font-semibold">
                           ${(
-                            getSelectedTripsTotals().totalEarnings + 
+                            getSelectedTripsTotals().totalEarnings +
                             parseFloat(formData.bonus || '0')
                           ).toFixed(2)}
                         </p>
@@ -1743,14 +1744,14 @@ const DriverPayrollManagement = () => {
                           -${(() => {
                             let totalTax = 0;
                             if (formData.country === 'Canada') {
-                              totalTax = 
+                              totalTax =
                                 parseFloat(formData.federalIncomeTaxCA || '0') +
                                 parseFloat(formData.provincialIncomeTaxCA || '0') +
                                 parseFloat(formData.cpp || '0') +
                                 parseFloat(formData.ei || '0') +
                                 parseFloat(formData.provincialHealthTaxCA || '0');
                             } else {
-                              totalTax = 
+                              totalTax =
                                 parseFloat(formData.federalIncomeTaxUS || '0') +
                                 parseFloat(formData.stateIncomeTaxUS || '0') +
                                 parseFloat(formData.socialSecurityTax || '0') +
@@ -1770,14 +1771,14 @@ const DriverPayrollManagement = () => {
                             const deductions = parseFloat(formData.deductions || '0');
                             let totalTax = 0;
                             if (formData.country === 'Canada') {
-                              totalTax = 
+                              totalTax =
                                 parseFloat(formData.federalIncomeTaxCA || '0') +
                                 parseFloat(formData.provincialIncomeTaxCA || '0') +
                                 parseFloat(formData.cpp || '0') +
                                 parseFloat(formData.ei || '0') +
                                 parseFloat(formData.provincialHealthTaxCA || '0');
                             } else {
-                              totalTax = 
+                              totalTax =
                                 parseFloat(formData.federalIncomeTaxUS || '0') +
                                 parseFloat(formData.stateIncomeTaxUS || '0') +
                                 parseFloat(formData.socialSecurityTax || '0') +
@@ -1813,7 +1814,10 @@ const DriverPayrollManagement = () => {
                   </button>
                   <button
                     onClick={showCreateModal ? handleCreate : handleUpdate}
-                    className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg font-medium flex items-center gap-2 disabled:opacity-50"
+                    style={{
+                      background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                    }}
+                    className="px-4 py-2   !text-white rounded-lg font-medium flex items-center gap-2 disabled:opacity-50"
                     disabled={loading}
                   >
                     {loading ? (
@@ -1848,7 +1852,7 @@ const DriverPayrollManagement = () => {
                     <p className="text-sm text-gray-500">{selectedPayroll.userId.name}</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowViewModal(false)}
                   className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg"
                 >
@@ -2018,14 +2022,14 @@ const DriverPayrollManagement = () => {
                           let totalTax = 0;
                           const country = selectedPayroll.country || 'USA';
                           if (country === 'Canada') {
-                            totalTax = 
+                            totalTax =
                               (selectedPayroll.federalIncomeTaxCA || 0) +
                               (selectedPayroll.provincialIncomeTaxCA || 0) +
                               (selectedPayroll.cpp || 0) +
                               (selectedPayroll.ei || 0) +
                               (selectedPayroll.provincialHealthTaxCA || 0);
                           } else {
-                            totalTax = 
+                            totalTax =
                               (selectedPayroll.federalIncomeTaxUS || 0) +
                               (selectedPayroll.stateIncomeTaxUS || 0) +
                               (selectedPayroll.socialSecurityTax || 0) +
@@ -2049,17 +2053,17 @@ const DriverPayrollManagement = () => {
                   const country = selectedPayroll.country || 'USA';
                   const totalTaxes = country === 'Canada'
                     ? ((selectedPayroll.federalIncomeTaxCA || 0) +
-                       (selectedPayroll.provincialIncomeTaxCA || 0) +
-                       (selectedPayroll.cpp || 0) +
-                       (selectedPayroll.ei || 0) +
-                       (selectedPayroll.provincialHealthTaxCA || 0))
+                      (selectedPayroll.provincialIncomeTaxCA || 0) +
+                      (selectedPayroll.cpp || 0) +
+                      (selectedPayroll.ei || 0) +
+                      (selectedPayroll.provincialHealthTaxCA || 0))
                     : ((selectedPayroll.federalIncomeTaxUS || 0) +
-                       (selectedPayroll.stateIncomeTaxUS || 0) +
-                       (selectedPayroll.socialSecurityTax || 0) +
-                       (selectedPayroll.medicareTax || 0) +
-                       (selectedPayroll.stateDisabilityInsurance || 0) +
-                       (selectedPayroll.localTax || 0));
-                  
+                      (selectedPayroll.stateIncomeTaxUS || 0) +
+                      (selectedPayroll.socialSecurityTax || 0) +
+                      (selectedPayroll.medicareTax || 0) +
+                      (selectedPayroll.stateDisabilityInsurance || 0) +
+                      (selectedPayroll.localTax || 0));
+
                   if (totalTaxes > 0) {
                     return (
                       <div className="bg-purple-50 p-6 rounded-xl border border-purple-200">
@@ -2177,7 +2181,7 @@ const DriverPayrollManagement = () => {
                   <p className="text-sm text-gray-600">This action cannot be undone</p>
                 </div>
               </div>
-              
+
               <p className="text-gray-700 mb-6">
                 Are you sure you want to delete the payroll record for driver <strong>{selectedPayroll.userId.name}</strong>?
               </p>
@@ -2188,14 +2192,14 @@ const DriverPayrollManagement = () => {
                     setShowDeleteModal(false);
                     setSelectedPayroll(null);
                   }}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
+                  className="px-4 py-2 text-gray-700 !mr-3 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
                   disabled={loading}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium disabled:opacity-50"
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 !text-white rounded-lg font-medium disabled:opacity-50"
                   disabled={loading}
                 >
                   {loading ? 'Deleting...' : 'Delete'}

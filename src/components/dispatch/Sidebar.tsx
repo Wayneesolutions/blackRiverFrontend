@@ -9,10 +9,9 @@ import { getUserRole, getDashboardRoute } from "../../utils/auth";
 
 interface SidebarProps {
   isCollapsed?: boolean;
-  onToggle: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const navigate = useNavigate();
 
@@ -76,9 +75,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
       `}</style>
 
       <aside
-        className={`h-screen flex flex-col bg-white shadow-sm transition-all duration-300 ${
-          isCollapsed ? "w-20" : "w-56"
-        }`}
+        className={`h-screen flex flex-col bg-white shadow-sm transition-all duration-300 ${isCollapsed ? "w-20" : "w-56"
+          }`}
       >
         {/* --- LOGO SECTION --- */}
 
@@ -88,16 +86,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
             onClick={() => navigate(getDashboardRoute())}
           >
             {isCollapsed ? (
-              <img 
-                src={Logo} 
-                alt="FleetGo Logo" 
-                className="h-auto w-6 transition-all duration-300" 
+              <img
+                src={Logo}
+                alt="FleetGo Logo"
+                className="h-auto w-6 transition-all duration-300"
               />
             ) : (
-              <img 
-                src={FullLogo} 
-                alt="FleetGo Logo" 
-                className="h-auto max-h-10 transition-all duration-300" 
+              <img
+                src={FullLogo}
+                alt="FleetGo Logo"
+                className="h-auto max-h-10 transition-all duration-300"
               />
             )}
           </div>
@@ -118,23 +116,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
                     {/* PARENT ITEM */}
                     <button
                       onClick={() => toggleMenu(link.key)}
-                      className={`w-full transition group ${
-                        isCollapsed
+                      className={`w-full transition group ${isCollapsed
                           ? "flex flex-col items-center justify-center px-2 py-2"
                           : "flex items-center px-4 py-2 gap-3"
-                      } ${
-                        openMenus.includes(link.key)
+                        } ${openMenus.includes(link.key)
                           ? "bg-[#42aeec]/10"
                           : "hover:bg-gray-50"
-                      }`}
+                        }`}
                       title={link.label}
                     >
                       <span
-                        className={`${isCollapsed ? "text-2xl" : "text-xl"} ${
-                          openMenus.includes(link.key)
+                        className={`${isCollapsed ? "text-2xl" : "text-xl"} ${openMenus.includes(link.key)
                             ? "text-[#42aeec]"
                             : "text-gray-600 group-hover:text-[#42aeec]"
-                        }`}
+                          }`}
                       >
                         {link.icon}
                       </span>
@@ -142,11 +137,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
                       {!isCollapsed && (
                         <>
                           <span
-                            className={`flex-1 text-sm ${
-                              openMenus.includes(link.key)
+                            className={`flex-1 text-sm ${openMenus.includes(link.key)
                                 ? "text-[#42aeec]"
                                 : "text-gray-700 group-hover:text-[#42aeec]"
-                            }`}
+                              }`}
                           >
                             {link.label}
                           </span>
@@ -175,11 +169,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
                             <li key={child.key}>
                               <NavLink
                                 to={child.key}
-                                className={`flex items-center px-4 py-2 pl-12 text-sm transition ${
-                                  activeState
+                                className={`flex items-center px-4 py-2 pl-12 text-sm transition ${activeState
                                     ? "text-[#42aeec] bg-[#42aeec]/10"
                                     : "text-gray-600 hover:bg-gray-100 hover:text-[#42aeec]"
-                                }`}
+                                  }`}
                               >
                                 <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>
                                 {child.label}
@@ -203,15 +196,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
                         pathname
                       );
 
-                      return `transition group ${
-                        isCollapsed
+                      return `transition group ${isCollapsed
                           ? "flex flex-col items-center justify-center px-2 py-2"
                           : "flex items-center px-4 py-2 gap-3"
-                      } ${
-                        activeState
+                        } ${activeState
                           ? "text-[#42aeec] bg-[#42aeec]/10"
                           : "text-gray-600 hover:bg-gray-50 hover:text-[#42aeec]"
-                      }`;
+                        }`;
                     }}
                   >
                     <span className={`${isCollapsed ? "text-2xl" : "text-xl"}`}>

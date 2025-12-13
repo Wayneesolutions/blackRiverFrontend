@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { getSocket } from "../../../../socket/socketClient";
 import { listVehicle } from "../../../../axios/api/distapcher";
-import { GoogleMap, LoadScriptNext, Marker } from "@react-google-maps/api";
-import { ChevronLeft, ChevronRight, ExternalLink, X, Search, Fuel, Gauge, MapPin, User, Activity } from "lucide-react";
+import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
+import type { Libraries } from '@react-google-maps/api';
+import { ChevronLeft, ChevronRight, ExternalLink, X, Search, Fuel, Gauge, MapPin, User, Activity, RefreshCw } from "lucide-react";
 
 const containerStyle = { width: "100%", height: "100vh" };
 
@@ -30,6 +31,7 @@ interface Vehicle {
 }
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
+const GOOGLE_MAPS_LIBRARIES: Libraries = ["marker", "places"];
 
 const statusColors: Record<string, string> = {
   moving: "#10b981",
@@ -46,6 +48,12 @@ const statusBgColors: Record<string, string> = {
 };
 
 const ProfessionalFleetTracker: React.FC = () => {
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-maps-api',
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: GOOGLE_MAPS_LIBRARIES,
+  });
+
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -135,9 +143,9 @@ const ProfessionalFleetTracker: React.FC = () => {
   const openVehicleInNewTab = (vehicle: Vehicle) => {
     const lat = Number(vehicle.currentLocation?.latitude);
     const lng = Number(vehicle.currentLocation?.longitude);
-    
+
     const mapUrl = `https://www.google.com/maps?q=${lat},${lng}&z=15`;
-    
+
     const vehicleContent = `
       <!DOCTYPE html>
       <html>
@@ -307,7 +315,7 @@ const ProfessionalFleetTracker: React.FC = () => {
         </body>
       </html>
     `;
-    
+
     const newWindow = window.open('', '_blank', 'width=1000,height=800');
     if (newWindow) {
       newWindow.document.write(vehicleContent);
@@ -315,13 +323,16 @@ const ProfessionalFleetTracker: React.FC = () => {
     }
   };
 
+  if (loadError) {
+    return <div>Error loading maps</div>;
+  }
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Left Sidebar */}
       <div
-        className={`bg-white shadow-xl transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? "w-96" : "w-0"
-        } overflow-hidden`}
+        className={`bg-white shadow-xl transition-all duration-300 ease-in-out ${isSidebarOpen ? "w-96" : "w-0"
+          } overflow-hidden`}
       >
         <div className="h-full flex flex-col">
           {/* Header */}
@@ -338,7 +349,7 @@ const ProfessionalFleetTracker: React.FC = () => {
                 <ChevronLeft className="w-5 h-5" />
               </button>
             </div>
-            
+
             {/* Search Bar */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -363,11 +374,10 @@ const ProfessionalFleetTracker: React.FC = () => {
                 {filteredVehicles.map((v) => (
                   <div
                     key={v._id}
-                    className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 relative group ${
-                      selectedVehicle?._id === v._id
+                    className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 relative group ${selectedVehicle?._id === v._id
                         ? "bg-blue-50 border-blue-400 shadow-md"
                         : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm"
-                    }`}
+                      }`}
                   >
                     {/* Open in New Tab Button */}
                     <button
@@ -442,7 +452,11 @@ const ProfessionalFleetTracker: React.FC = () => {
 
       {/* Right Map */}
       <div className="flex-1 relative">
-        <LoadScriptNext googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
+        {!isLoaded ? (
+          <div className="flex items-center justify-center h-full">
+            <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        ) : (
           <GoogleMap
             mapContainerStyle={containerStyle}
             center={location || { lat: 20.5937, lng: 78.9629 }}
@@ -463,7 +477,7 @@ const ProfessionalFleetTracker: React.FC = () => {
               />
             )}
           </GoogleMap>
-        </LoadScriptNext>
+        )}
 
         {/* Advanced Info Panel */}
         {selectedVehicle && isInfoPanelOpen && (
@@ -550,9 +564,8 @@ const ProfessionalFleetTracker: React.FC = () => {
                 <div className="flex justify-between py-2 border-b border-gray-200">
                   <span className="text-gray-600">Engine</span>
                   <span
-                    className={`font-semibold ${
-                      selectedVehicle.engineOn ? "text-green-600" : "text-red-600"
-                    }`}
+                    className={`font-semibold ${selectedVehicle.engineOn ? "text-green-600" : "text-red-600"
+                      }`}
                   >
                     {selectedVehicle.engineOn ? "On ✓" : "Off ✗"}
                   </span>

@@ -117,7 +117,7 @@ export default function FleetMaintenanceFinance() {
   const [laborRates, setLaborRates] = useState<LaborRateItem[]>([]);
   const [maintenancePlans, setMaintenancePlans] = useState<MaintenancePlanItem[]>([]);
   const [fleetUnits, setFleetUnits] = useState<any[]>([]);
-  
+
   // Stats
   const [stats, setStats] = useState({
     totalMaintenanceCost: 0,
@@ -135,6 +135,8 @@ export default function FleetMaintenanceFinance() {
   const [editingParts, setEditingParts] = useState<PartsCostLogItem | null>(null);
   const [editingLabor, setEditingLabor] = useState<LaborRateItem | null>(null);
   const [editingPlan, setEditingPlan] = useState<MaintenancePlanItem | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'parts' | 'labor' | 'plan' } | null>(null);
 
   // Form data
   const [partsFormData, setPartsFormData] = useState({
@@ -222,16 +224,16 @@ export default function FleetMaintenanceFinance() {
   const calculateStatsFromPageData = () => {
     // Calculate total maintenance cost from expense summary
     const totalExpense = expenseSummary.reduce((sum, exp) => sum + (exp.totalExpense || 0), 0);
-    
+
     // Calculate avg cost per mile from expense summary (weighted average)
     const totalCostPerMileSum = expenseSummary.reduce((sum, exp) => sum + (exp.costPerMile || 0), 0);
-    const avgCostPerMileFromData = expenseSummary.length > 0 
-      ? totalCostPerMileSum / expenseSummary.length 
+    const avgCostPerMileFromData = expenseSummary.length > 0
+      ? totalCostPerMileSum / expenseSummary.length
       : 0;
-    
+
     // Count pending PM plans
     const pendingPlans = maintenancePlans.filter(p => p.status === 'Scheduled').length;
-    
+
     // Update stats - always use calculated values from page data
     setStats(prev => ({
       totalMaintenanceCost: totalExpense, // Always use calculated from expense summary
@@ -362,11 +364,11 @@ export default function FleetMaintenanceFinance() {
         vehicle: partsFormData.vehicle,
         vehicleId: partsFormData.vehicleId || undefined
       };
-      
-      const response = editingParts?._id 
+
+      const response = editingParts?._id
         ? await updatePartsCostLog(editingParts._id, data)
         : await createPartsCostLog(data);
-      
+
       if (response?.success) {
         setShowPartsModal(false);
         resetPartsForm();
@@ -385,12 +387,12 @@ export default function FleetMaintenanceFinance() {
   const handleEditParts = (item: PartsCostLogItem) => {
     setEditingParts(item);
     // Find the vehicle in fleet units to get the correct ID format
-    const vehicleUnit = fleetUnits.find(u => 
-      u._id === item.vehicleId || 
-      u.internalId === item.vehicle || 
+    const vehicleUnit = fleetUnits.find(u =>
+      u._id === item.vehicleId ||
+      u.internalId === item.vehicle ||
       u.unitNo === item.vehicle
     );
-    
+
     setPartsFormData({
       partNumber: item.partNumber,
       description: item.description,
@@ -403,22 +405,9 @@ export default function FleetMaintenanceFinance() {
     setShowPartsModal(true);
   };
 
-  const handleDeleteParts = async (id: string) => {
-    confirmAction('Are you sure you want to delete this parts cost log entry?', async () => {
-      try {
-        const response = await deletePartsCostLog(id);
-        if (response?.success) {
-          await fetchPartsCostLog();
-          await fetchStats();
-          showNotification('success', 'Parts cost log deleted successfully');
-        } else {
-          showNotification('error', response?.message || 'Failed to delete parts cost log');
-        }
-      } catch (error: any) {
-        console.error('Error deleting parts cost log:', error);
-        showNotification('error', error?.response?.data?.message || 'An error occurred while deleting parts cost log');
-      }
-    });
+  const handleDeleteParts = (id: string) => {
+    setItemToDelete({ id, type: 'parts' });
+    setShowDeleteModal(true);
   };
 
   const resetPartsForm = () => {
@@ -443,11 +432,11 @@ export default function FleetMaintenanceFinance() {
         rate: parseFloat(laborFormData.rate),
         isActive: laborFormData.isActive
       };
-      
+
       const response = editingLabor?._id
         ? await updateLaborRate(editingLabor._id, data)
         : await createLaborRate(data);
-      
+
       if (response?.success) {
         setShowLaborModal(false);
         resetLaborForm();
@@ -474,22 +463,9 @@ export default function FleetMaintenanceFinance() {
     setShowLaborModal(true);
   };
 
-  const handleDeleteLabor = async (id: string) => {
-    confirmAction('Are you sure you want to delete this labor rate?', async () => {
-      try {
-        const response = await deleteLaborRate(id);
-        if (response?.success) {
-          await fetchLaborRates();
-          await fetchStats();
-          showNotification('success', 'Labor rate deleted successfully');
-        } else {
-          showNotification('error', response?.message || 'Failed to delete labor rate');
-        }
-      } catch (error: any) {
-        console.error('Error deleting labor rate:', error);
-        showNotification('error', error?.response?.data?.message || 'An error occurred while deleting labor rate');
-      }
-    });
+  const handleDeleteLabor = (id: string) => {
+    setItemToDelete({ id, type: 'labor' });
+    setShowDeleteModal(true);
   };
 
   const resetLaborForm = () => {
@@ -515,11 +491,11 @@ export default function FleetMaintenanceFinance() {
         plannedDate: planFormData.plannedDate || undefined,
         completedDate: planFormData.completedDate || undefined
       };
-      
+
       const response = editingPlan?._id
         ? await updateMaintenancePlan(editingPlan._id, data)
         : await createMaintenancePlan(data);
-      
+
       if (response?.success) {
         setShowPlanModal(false);
         resetPlanForm();
@@ -538,12 +514,12 @@ export default function FleetMaintenanceFinance() {
   const handleEditPlan = (item: MaintenancePlanItem) => {
     setEditingPlan(item);
     // Find the vehicle in fleet units to get the correct ID format
-    const vehicleUnit = fleetUnits.find(u => 
-      u._id === item.vehicleId || 
-      u.internalId === item.vehicle || 
+    const vehicleUnit = fleetUnits.find(u =>
+      u._id === item.vehicleId ||
+      u.internalId === item.vehicle ||
       u.unitNo === item.vehicle
     );
-    
+
     setPlanFormData({
       planName: item.planName,
       vehicle: item.vehicle,
@@ -557,22 +533,9 @@ export default function FleetMaintenanceFinance() {
     setShowPlanModal(true);
   };
 
-  const handleDeletePlan = async (id: string) => {
-    confirmAction('Are you sure you want to delete this maintenance plan?', async () => {
-      try {
-        const response = await deleteMaintenancePlan(id);
-        if (response?.success) {
-          await fetchMaintenancePlans();
-          await fetchStats();
-          showNotification('success', 'Maintenance plan deleted successfully');
-        } else {
-          showNotification('error', response?.message || 'Failed to delete maintenance plan');
-        }
-      } catch (error: any) {
-        console.error('Error deleting maintenance plan:', error);
-        showNotification('error', error?.response?.data?.message || 'An error occurred while deleting maintenance plan');
-      }
-    });
+  const handleDeletePlan = (id: string) => {
+    setItemToDelete({ id, type: 'plan' });
+    setShowDeleteModal(true);
   };
 
   const resetPlanForm = () => {
@@ -587,6 +550,46 @@ export default function FleetMaintenanceFinance() {
       completedDate: ''
     });
     setEditingPlan(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      let response;
+      if (itemToDelete.type === 'parts') {
+        response = await deletePartsCostLog(itemToDelete.id);
+        if (response?.success) {
+          await fetchPartsCostLog();
+          await fetchStats();
+          showNotification('success', 'Parts cost log deleted successfully');
+        }
+      } else if (itemToDelete.type === 'labor') {
+        response = await deleteLaborRate(itemToDelete.id);
+        if (response?.success) {
+          await fetchLaborRates();
+          await fetchStats();
+          showNotification('success', 'Labor rate deleted successfully');
+        }
+      } else if (itemToDelete.type === 'plan') {
+        response = await deleteMaintenancePlan(itemToDelete.id);
+        if (response?.success) {
+          await fetchMaintenancePlans();
+          await fetchStats();
+          showNotification('success', 'Maintenance plan deleted successfully');
+        }
+      }
+
+      if (!response?.success) {
+        showNotification('error', response?.message || 'Failed to delete item');
+      }
+    } catch (error: any) {
+      console.error('Error deleting item:', error);
+      showNotification('error', error?.response?.data?.message || 'An error occurred while deleting item');
+    } finally {
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+    }
   };
 
   // Toast notification helpers
@@ -607,40 +610,40 @@ export default function FleetMaintenanceFinance() {
 
   // Summary Cards Data
   const summaryCards = [
-    { 
-      title: 'Total Maintenance Cost', 
-      value: `$${stats.totalMaintenanceCost.toLocaleString()}`, 
-      change: stats.percentChange !== 0 
+    {
+      title: 'Total Maintenance Cost',
+      value: `$${stats.totalMaintenanceCost.toLocaleString()}`,
+      change: stats.percentChange !== 0
         ? `${stats.percentChange > 0 ? '+' : ''}${stats.percentChange.toFixed(1)}% vs last month`
-        : 'No previous data', 
-      icon: DollarSign, 
-      color: 'blue' 
+        : 'No previous data',
+      icon: DollarSign,
+      color: 'blue'
     },
-    { 
-      title: 'Avg Cost Per Mile', 
-      value: `$${stats.avgCostPerMile.toFixed(2)}`, 
-      change: 'Fleet Average', 
-      icon: TrendingUp, 
-      color: 'green' 
+    {
+      title: 'Avg Cost Per Mile',
+      value: `$${stats.avgCostPerMile.toFixed(2)}`,
+      change: 'Fleet Average',
+      icon: TrendingUp,
+      color: 'green'
     },
-    { 
-      title: 'Parts Inventory Value', 
-      value: `$${stats.partsInventoryValue.toLocaleString()}`, 
-      change: `${stats.partsInventoryCount || 0} items in stock`, 
-      icon: Package, 
-      color: 'purple' 
+    {
+      title: 'Parts Inventory Value',
+      value: `$${stats.partsInventoryValue.toLocaleString()}`,
+      change: `${stats.partsInventoryCount || 0} items in stock`,
+      icon: Package,
+      color: 'purple'
     },
-    { 
-      title: 'Pending PM Plans', 
-      value: stats.pendingPMPlans.toString(), 
-      change: 'Due this month', 
-      icon: AlertCircle, 
-      color: 'orange' 
+    {
+      title: 'Pending PM Plans',
+      value: stats.pendingPMPlans.toString(),
+      change: 'Due this month',
+      icon: AlertCircle,
+      color: 'orange'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#EDF8FF]">
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map(notification => (
@@ -652,93 +655,107 @@ export default function FleetMaintenanceFinance() {
         ))}
       </div>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Fleet & Maintenance Finance</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Financial reporting and tracking for maintenance operations, parts costs, and service expenses
-              </p>
-            </div>
-            {activeTab === 'parts-cost-log' && (
-              <button 
-                onClick={() => {
-                  resetPartsForm();
-                  setShowPartsModal(true);
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                New Parts Entry
-              </button>
-            )}
-            {activeTab === 'labor-rates' && (
-              <button 
-                onClick={() => {
-                  resetLaborForm();
-                  setShowLaborModal(true);
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                New Labor Rate
-              </button>
-            )}
-            {activeTab === 'plan-financials' && (
-              <button 
-                onClick={() => {
-                  resetPlanForm();
-                  setShowPlanModal(true);
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                New Maintenance Plan
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="px-6">
-          <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
-            {tabs.map(tab => {
-              const Icon = tab.icon;
-              return (
+      <div className='p-5'>
+        <div className="bg-white border-b border-gray-200">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold border-none" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Fleet & Maintenance Finance</h1>
+                <p className="text-sm text-gray-600 mt-1">
+                  Financial reporting and tracking for maintenance operations, parts costs, and service expenses
+                </p>
+              </div>
+              {activeTab === 'parts-cost-log' && (
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
-                  }`}
+                  onClick={() => {
+                    resetPartsForm();
+                    setShowPartsModal(true);
+                  }}
+                  className="px-4 py-2 !text-white rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
+                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
                 >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
+                  <Plus className="w-4 h-4" />
+                  New Parts Entry
                 </button>
-              );
-            })}
+              )}
+              {activeTab === 'labor-rates' && (
+                <button
+                  onClick={() => {
+                    resetLaborForm();
+                    setShowLaborModal(true);
+                  }}
+                  className="px-4 py-2 !text-white rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
+                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                >
+                  <Plus className="w-4 h-4" />
+                  New Labor Rate
+                </button>
+              )}
+              {activeTab === 'plan-financials' && (
+                <button
+                  onClick={() => {
+                    resetPlanForm();
+                    setShowPlanModal(true);
+                  }}
+                  className="px-4 py-2 !text-white rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
+                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                >
+                  <Plus className="w-4 h-4" />
+                  New Maintenance Plan
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="px-6">
+            <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
+              {tabs.map(tab => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id
+                      ? 'border-[#42aeec] text-[#016ab2]'
+                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                      }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
-
       {/* Summary Cards */}
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {summaryCards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <div key={index} className="bg-white rounded-lg shadow p-6">
+              <div key={index} className={`rounded-xl shadow-sm border p-6 ${card.color === 'blue' ? 'bg-[#E3F2FD] border-blue-100' :
+                card.color === 'green' ? 'bg-[#E8F5E9] border-green-100' :
+                  card.color === 'purple' ? 'bg-[#F3E5F5] border-purple-100' :
+                    'bg-[#FFF3E0] border-orange-100'
+                }`}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-${card.color}-100`}>
-                    <Icon className={`w-6 h-6 text-${card.color}-600`} />
+                  <div className="p-3 rounded-full bg-white">
+                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[#42aeec]' :
+                      card.color === 'green' ? 'text-[#0ea3d8]' :
+                        card.color === 'purple' ? 'text-[#1db5f5]' :
+                          'text-[#42aeec]'
+                      }`} />
                   </div>
-                  <span className="text-sm text-gray-600 font-medium">{card.change}</span>
+                  <span className={`text-sm font-medium ${card.color === 'blue' ? 'text-[#063f6f]' :
+                    card.color === 'green' ? 'text-[#063f6f]' :
+                      'text-[#063f6f]'
+                    }`}>{card.change}</span>
                 </div>
-                <h3 className="text-gray-600 text-sm font-medium mb-1">{card.title}</h3>
-                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                <h3 className="text-[#063f6f] text-sm font-medium mb-1">{card.title}</h3>
+                <p className="text-2xl font-bold text-[#016ab2]">{card.value}</p>
               </div>
             );
           })}
@@ -768,7 +785,7 @@ export default function FleetMaintenanceFinance() {
                 <Download className="w-4 h-4" />
                 Export Report
               </button>
-              <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+              <button className="px-4 py-2 text-sm !text-white rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
                 <FileText className="w-4 h-4" />
                 Generate Report
               </button>
@@ -910,9 +927,8 @@ export default function FleetMaintenanceFinance() {
                         <td className="px-6 py-4 text-sm text-gray-600">{rate.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${rate.rate.toFixed(2)}/hr</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            rate.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                          }`}>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${rate.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                            }`}>
                             {rate.isActive ? 'Active' : 'Inactive'}
                           </span>
                         </td>
@@ -973,11 +989,10 @@ export default function FleetMaintenanceFinance() {
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            plan.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${plan.status === 'Completed' ? 'bg-green-100 text-green-800' :
                             plan.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
                             {plan.status}
                           </span>
                         </td>
@@ -1025,7 +1040,7 @@ export default function FleetMaintenanceFinance() {
                 <input
                   type="text"
                   value={partsFormData.partNumber}
-                  onChange={(e) => setPartsFormData({...partsFormData, partNumber: e.target.value})}
+                  onChange={(e) => setPartsFormData({ ...partsFormData, partNumber: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -1035,7 +1050,7 @@ export default function FleetMaintenanceFinance() {
                 <input
                   type="text"
                   value={partsFormData.description}
-                  onChange={(e) => setPartsFormData({...partsFormData, description: e.target.value})}
+                  onChange={(e) => setPartsFormData({ ...partsFormData, description: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -1047,7 +1062,7 @@ export default function FleetMaintenanceFinance() {
                     type="number"
                     step="0.01"
                     value={partsFormData.unitCost}
-                    onChange={(e) => setPartsFormData({...partsFormData, unitCost: e.target.value})}
+                    onChange={(e) => setPartsFormData({ ...partsFormData, unitCost: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
@@ -1057,7 +1072,7 @@ export default function FleetMaintenanceFinance() {
                   <input
                     type="number"
                     value={partsFormData.quantity}
-                    onChange={(e) => setPartsFormData({...partsFormData, quantity: e.target.value})}
+                    onChange={(e) => setPartsFormData({ ...partsFormData, quantity: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
@@ -1068,7 +1083,7 @@ export default function FleetMaintenanceFinance() {
                 <input
                   type="date"
                   value={partsFormData.dateOfUse}
-                  onChange={(e) => setPartsFormData({...partsFormData, dateOfUse: e.target.value})}
+                  onChange={(e) => setPartsFormData({ ...partsFormData, dateOfUse: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -1081,11 +1096,11 @@ export default function FleetMaintenanceFinance() {
                     const selectedId = e.target.value;
                     // Find unit by _id
                     const selected = fleetUnits.find(u => u._id === selectedId);
-                    
+
                     if (selected) {
                       // Use the actual unit identifier (internalId or unitNo) for display
                       const displayValue = selected.internalId || selected.unitNo || selected._id;
-                      
+
                       setPartsFormData({
                         ...partsFormData,
                         vehicle: displayValue,
@@ -1120,7 +1135,10 @@ export default function FleetMaintenanceFinance() {
                 </button>
                 <button
                   onClick={handleCreateParts}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  style={{
+                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                  }}
+                  className="px-4 py-2  !text-white rounded-lg transition-colors"
                 >
                   {editingParts ? 'Update' : 'Create'}
                 </button>
@@ -1151,7 +1169,7 @@ export default function FleetMaintenanceFinance() {
                 <input
                   type="text"
                   value={laborFormData.rateType}
-                  onChange={(e) => setLaborFormData({...laborFormData, rateType: e.target.value})}
+                  onChange={(e) => setLaborFormData({ ...laborFormData, rateType: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -1160,7 +1178,7 @@ export default function FleetMaintenanceFinance() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea
                   value={laborFormData.description}
-                  onChange={(e) => setLaborFormData({...laborFormData, description: e.target.value})}
+                  onChange={(e) => setLaborFormData({ ...laborFormData, description: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                 />
@@ -1171,7 +1189,7 @@ export default function FleetMaintenanceFinance() {
                   type="number"
                   step="0.01"
                   value={laborFormData.rate}
-                  onChange={(e) => setLaborFormData({...laborFormData, rate: e.target.value})}
+                  onChange={(e) => setLaborFormData({ ...laborFormData, rate: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -1181,7 +1199,7 @@ export default function FleetMaintenanceFinance() {
                   <input
                     type="checkbox"
                     checked={laborFormData.isActive}
-                    onChange={(e) => setLaborFormData({...laborFormData, isActive: e.target.checked})}
+                    onChange={(e) => setLaborFormData({ ...laborFormData, isActive: e.target.checked })}
                     className="rounded border-gray-300"
                   />
                   <span className="text-sm font-medium text-gray-700">Active</span>
@@ -1199,7 +1217,10 @@ export default function FleetMaintenanceFinance() {
                 </button>
                 <button
                   onClick={handleCreateLabor}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  style={{
+                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                  }}
+                  className="px-4 py-2  !text-white rounded-lg  transition-colors"
                 >
                   {editingLabor ? 'Update' : 'Create'}
                 </button>
@@ -1230,7 +1251,7 @@ export default function FleetMaintenanceFinance() {
                 <input
                   type="text"
                   value={planFormData.planName}
-                  onChange={(e) => setPlanFormData({...planFormData, planName: e.target.value})}
+                  onChange={(e) => setPlanFormData({ ...planFormData, planName: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -1243,11 +1264,11 @@ export default function FleetMaintenanceFinance() {
                     const selectedId = e.target.value;
                     // Find unit by _id
                     const selected = fleetUnits.find(u => u._id === selectedId);
-                    
+
                     if (selected) {
                       // Use the actual unit identifier (internalId or unitNo) for display
                       const displayValue = selected.internalId || selected.unitNo || selected._id;
-                      
+
                       setPlanFormData({
                         ...planFormData,
                         vehicle: displayValue,
@@ -1277,7 +1298,7 @@ export default function FleetMaintenanceFinance() {
                     type="number"
                     step="0.01"
                     value={planFormData.plannedCost}
-                    onChange={(e) => setPlanFormData({...planFormData, plannedCost: e.target.value})}
+                    onChange={(e) => setPlanFormData({ ...planFormData, plannedCost: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
@@ -1288,7 +1309,7 @@ export default function FleetMaintenanceFinance() {
                     type="number"
                     step="0.01"
                     value={planFormData.actualCost}
-                    onChange={(e) => setPlanFormData({...planFormData, actualCost: e.target.value})}
+                    onChange={(e) => setPlanFormData({ ...planFormData, actualCost: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -1297,7 +1318,7 @@ export default function FleetMaintenanceFinance() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <select
                   value={planFormData.status}
-                  onChange={(e) => setPlanFormData({...planFormData, status: e.target.value})}
+                  onChange={(e) => setPlanFormData({ ...planFormData, status: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="Scheduled">Scheduled</option>
@@ -1318,11 +1339,43 @@ export default function FleetMaintenanceFinance() {
                 </button>
                 <button
                   onClick={handleCreatePlan}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  style={{
+                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                  }}
+                  className="px-4 py-2 !text-white rounded-lg  transition-colors"
                 >
                   {editingPlan ? 'Update' : 'Create'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4 text-red-600">
+              <Trash2 className="w-6 h-6" />
+              <h3 className="text-lg font-bold">Confirm Deletion</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this item? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

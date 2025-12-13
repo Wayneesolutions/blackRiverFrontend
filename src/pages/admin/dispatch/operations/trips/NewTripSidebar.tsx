@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { X, ChevronDown, Search, Check } from "lucide-react";
+import { X, ChevronDown, Search } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import { listDriver, createTrip, updateTrip, uploadTripDocument, deleteTripDocument, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
 import { listOrder } from "../../../../../axios/api/distapcher";
-import { Upload, File, Trash2, Download } from "lucide-react";
+import { File, Trash2 } from "lucide-react";
 import { listFleetUnits } from "../../../../../axios/api/fleet.units";
 import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
 
@@ -78,7 +78,7 @@ interface Trip {
 const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose: () => void; onSave: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
-  
+
   const focusHandlers = getFocusStyles();
   const primaryButtonStyle: React.CSSProperties = {
     background: `linear-gradient(
@@ -90,35 +90,35 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     color: "#fff",
     boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
   };
-  
+
   // Dropdown states
   const [drivers, setDrivers] = useState<any[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<any | null>(null);
   const [driverSearch, setDriverSearch] = useState("");
   const [driverDropdownOpen, setDriverDropdownOpen] = useState(false);
-  
+
   const [trucks, setTrucks] = useState<any[]>([]);
   const [selectedTruck, setSelectedTruck] = useState<any | null>(null);
   const [truckSearch, setTruckSearch] = useState("");
   const [truckDropdownOpen, setTruckDropdownOpen] = useState(false);
-  
+
   const [trailers, setTrailers] = useState<any[]>([]);
   const [selectedTrailer, setSelectedTrailer] = useState<any | null>(null);
   const [trailerSearch, setTrailerSearch] = useState("");
   const [trailerDropdownOpen, setTrailerDropdownOpen] = useState(false);
-  
+
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<any[]>([]); // Store full order details for selected orders
   const [orderSearch, setOrderSearch] = useState("");
   const [orderDropdownOpen, setOrderDropdownOpen] = useState(false);
-  
+
   // Form fields
   const [plannedStartDate, setPlannedStartDate] = useState(trip?.plannedStartDate ? new Date(trip.plannedStartDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
   const [plannedEndDate, setPlannedEndDate] = useState(trip?.plannedEndDate ? new Date(trip.plannedEndDate).toISOString().split('T')[0] : "");
   const [status, setStatus] = useState(trip?.status || 'planned');
   const [notes, setNotes] = useState(trip?.notes || "");
-  
+
   // Documents
   const [documents, setDocuments] = useState<Array<{
     _id?: string;
@@ -267,7 +267,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           const oId = String(o._id || o);
           existingMap.set(oId, o);
         });
-        
+
         // Build new array with all selected orders
         const newDetails = selectedOrders.map((orderId: string) => {
           const orderIdStr = String(orderId);
@@ -282,7 +282,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           });
           return order || null;
         }).filter(Boolean);
-        
+
         return newDetails;
       });
     }
@@ -347,8 +347,8 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         } else if (ordersRes.data?.data && Array.isArray(ordersRes.data.data)) {
           orderData = ordersRes.data.data;
         }
-        
-        
+
+
         // Filter to show only orders that can be assigned (planned, QUOTED, CONFIRMED status)
         // Also show orders without status or with empty status
         // Exclude orders that are already assigned to a trip (have tripNo)
@@ -359,16 +359,16 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           }
           const status = order.status?.toLowerCase()?.trim() || '';
           // Show orders that are not dispatched, in-delivery, or completed
-          return !status || 
-                 status === '' ||
-                 status === 'planned' || 
-                 status === 'quoted' || 
-                 status === 'confirmed' ||
-                 status === 'in_progress';
+          return !status ||
+            status === '' ||
+            status === 'planned' ||
+            status === 'quoted' ||
+            status === 'confirmed' ||
+            status === 'in_progress';
         });
-        
+
         setOrders(assignableOrders);
-        
+
         // If editing and have selected orders, sync selectedOrderDetails with fetched orders
         if (trip && selectedOrders.length > 0) {
           const updatedSelectedDetails = selectedOrders.map((orderId: string) => {
@@ -423,19 +423,19 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       // If no search term, return all orders
       return orders;
     }
-    
+
     const searchLower = orderSearch.toLowerCase().trim();
     return orders.filter((order: any) => {
       const orderNumber = (order.orderNumber || '').toLowerCase();
       const customerOrderNo = (order.customerOrderNo || '').toLowerCase();
       const customerName = (order.customer?.name || order.customer?.firstName || '').toLowerCase();
-      const pickupPlace = typeof order.pickupLocation === 'string' 
+      const pickupPlace = typeof order.pickupLocation === 'string'
         ? order.pickupLocation.toLowerCase()
         : (order.pickupLocation?.place || order.pickupLocation?.placeId?.name || order.pickupLocation?.placeId?.currentLocation?.address || '').toLowerCase();
       const deliveryPlace = typeof order.deliveryLocation === 'string'
         ? order.deliveryLocation.toLowerCase()
         : (order.deliveryLocation?.place || order.deliveryLocation?.placeId?.name || order.deliveryLocation?.placeId?.currentLocation?.address || '').toLowerCase();
-      
+
       return orderNumber.includes(searchLower) ||
         customerOrderNo.includes(searchLower) ||
         customerName.includes(searchLower) ||
@@ -487,7 +487,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
       if (response?.success) {
         addNotification('success', trip?._id ? 'Trip updated successfully' : 'Trip created successfully');
-        
+
         // If trip was just created and we have pending files, upload them
         if (!trip?._id && response?.data?._id && pendingFiles.length > 0) {
           const newTripId = response.data._id;
@@ -498,7 +498,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             }
           }, 300);
         }
-        
+
         // If trip was updated, refresh documents from response
         if (trip?._id && response?.data?.documents) {
           setDocuments(response.data.documents || []);
@@ -522,7 +522,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     // Get current state first
     setSelectedOrders(prevOrders => {
       const isSelected = prevOrders.includes(orderId);
-      
+
       if (isSelected) {
         // Remove order
         const newOrders = prevOrders.filter(id => id !== orderId);
@@ -570,7 +570,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         // Upload all files
         const uploadPromises = filesArray.map(file => uploadTripDocument(tripId, file));
         const results = await Promise.allSettled(uploadPromises);
-        
+
         let successCount = 0;
         let failCount = 0;
 
@@ -616,7 +616,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     try {
       const uploadPromises = pendingFiles.map(file => uploadTripDocument(tripId, file));
       const results = await Promise.allSettled(uploadPromises);
-      
+
       let successCount = 0;
       let failCount = 0;
 
@@ -719,7 +719,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               <div
                 onClick={() => setDriverDropdownOpen(!driverDropdownOpen)}
                 className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
-                style={{ 
+                style={{
                   borderColor: driverDropdownOpen ? FLEET_COLORS.primary : undefined,
                   boxShadow: driverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
                 }}
@@ -761,7 +761,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         onChange={(e) => setDriverSearch(e.target.value)}
                         placeholder="Search drivers..."
                         className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
-                        style={{ ...focusHandlers }}
+
                         onFocus={focusHandlers.onFocus}
                         onBlur={focusHandlers.onBlur}
                         autoFocus
@@ -778,10 +778,9 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             setDriverSearch("");
                             setDriverDropdownOpen(false);
                           }}
-                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
-                            selectedDriver?._id === driver._id ? '' : ''
-                          }`}
-                          style={{ 
+                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${selectedDriver?._id === driver._id ? '' : ''
+                            }`}
+                          style={{
                             backgroundColor: selectedDriver?._id === driver._id ? `${FLEET_COLORS.primary}15` : undefined
                           }}
                           onMouseEnter={(e) => {
@@ -823,7 +822,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               <div
                 onClick={() => setTruckDropdownOpen(!truckDropdownOpen)}
                 className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
-                style={{ 
+                style={{
                   borderColor: truckDropdownOpen ? FLEET_COLORS.primary : undefined,
                   boxShadow: truckDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
                 }}
@@ -886,10 +885,9 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             setTruckSearch("");
                             setTruckDropdownOpen(false);
                           }}
-                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
-                            selectedTruck?._id === truck._id ? '' : ''
-                          }`}
-                          style={{ 
+                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${selectedTruck?._id === truck._id ? '' : ''
+                            }`}
+                          style={{
                             backgroundColor: selectedTruck?._id === truck._id ? `${FLEET_COLORS.primary}15` : undefined
                           }}
                           onMouseEnter={(e) => {
@@ -931,7 +929,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               <div
                 onClick={() => setTrailerDropdownOpen(!trailerDropdownOpen)}
                 className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
-                style={{ 
+                style={{
                   borderColor: driverDropdownOpen ? FLEET_COLORS.primary : undefined,
                   boxShadow: driverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
                 }}
@@ -942,10 +940,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                   value={
                     selectedTrailer
                       ? selectedTrailer.unitNo ||
-                        selectedTrailer.licensePlate ||
-                        selectedTrailer.plateNumber ||
-                        selectedTrailer.trailerNumber ||
-                        ''
+                      selectedTrailer.licensePlate ||
+                      selectedTrailer.plateNumber ||
+                      selectedTrailer.trailerNumber ||
+                      ''
                       : trailerSearch
                   }
                   onChange={(e) => {
@@ -995,9 +993,8 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         setTrailerSearch("");
                         setTrailerDropdownOpen(false);
                       }}
-                      className={`px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm text-gray-600 ${
-                        selectedTrailer === null ? 'bg-gray-50' : ''
-                      }`}
+                      className={`px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm text-gray-600 ${selectedTrailer === null ? 'bg-gray-50' : ''
+                        }`}
                     >
                       No Trailer
                     </div>
@@ -1010,10 +1007,9 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             setTrailerSearch("");
                             setTrailerDropdownOpen(false);
                           }}
-                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
-                            selectedTrailer?._id === trailer._id ? '' : ''
-                          }`}
-                          style={{ 
+                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${selectedTrailer?._id === trailer._id ? '' : ''
+                            }`}
+                          style={{
                             backgroundColor: selectedTrailer?._id === trailer._id ? `${FLEET_COLORS.primary}15` : undefined
                           }}
                           onMouseEnter={(e) => {
@@ -1115,7 +1111,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                   }
                 }}
                 className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
-                style={{ 
+                style={{
                   borderColor: orderDropdownOpen ? FLEET_COLORS.primary : undefined,
                   boxShadow: orderDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
                 }}
@@ -1194,93 +1190,92 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                           )}
                         </div>
                         {filteredOrders.map((order: any, index: number) => {
-                        const isSelected = selectedOrders.includes(order._id);
-                        const customerName = order.customer?.name || order.customer?.firstName || 'N/A';
-                        const pickupLocation = extractLocationString(order.pickupLocation);
-                        const deliveryLocation = extractLocationString(order.deliveryLocation);
-                        const orderStatus = order.status?.toLowerCase()?.trim() || '';
-                        const isAssignable = !orderStatus || 
-                                           orderStatus === '' ||
-                                           orderStatus === 'planned' || 
-                                           orderStatus === 'quoted' || 
-                                           orderStatus === 'confirmed' ||
-                                           orderStatus === 'in_progress';
-                        return (
-                          <div
-                            key={`order-${order._id}-${index}`}
-                            onClick={() => {
-                              if (isAssignable) {
-                                toggleOrderSelection(order._id);
-                              }
-                            }}
-                            className={`px-3 py-3 cursor-pointer text-sm border-b border-gray-100 transition-colors ${
-                              isSelected ? '' : ''
-                            } ${!isAssignable ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            style={{ 
-                              backgroundColor: isSelected ? `${FLEET_COLORS.primary}15` : undefined
-                            }}
-                            onMouseEnter={(e) => {
-                              if (isAssignable && !isSelected) {
-                                e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isSelected) {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                              }
-                            }}
-                            style={{ display: 'block' }}
-                          >
-                            <div className="flex items-start gap-2">
-                              <div 
-                                className="w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 mt-0.5"
-                                style={isSelected ? { backgroundColor: FLEET_COLORS.primary, borderColor: FLEET_COLORS.primary } : { borderColor: '#d1d5db' }}
-                              >
-                                {isSelected && <Check className="w-3 h-3 text-white" />}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.primary }}>{order.orderNumber || order._id}</div>
-                                {order.customerOrderNo && (
-                                  <div className="text-xs text-gray-600 mb-1">Customer Order: {order.customerOrderNo}</div>
-                                )}
-                                <div className="text-xs text-gray-700 space-y-0.5">
-                                  <div><span className="font-medium">Customer:</span> {customerName}</div>
-                                  <div><span className="font-medium">Pickup:</span> {pickupLocation}</div>
-                                  <div><span className="font-medium">Delivery:</span> {deliveryLocation}</div>
-                                  {order.pickupDate && (
-                                    <div><span className="font-medium">Pickup Date:</span> {new Date(order.pickupDate).toLocaleDateString()}</div>
+                          const isSelected = selectedOrders.includes(order._id);
+                          const customerName = order.customer?.name || order.customer?.firstName || 'N/A';
+                          const pickupLocation = extractLocationString(order.pickupLocation);
+                          const deliveryLocation = extractLocationString(order.deliveryLocation);
+                          const orderStatus = order.status?.toLowerCase()?.trim() || '';
+                          const isAssignable = !orderStatus ||
+                            orderStatus === '' ||
+                            orderStatus === 'planned' ||
+                            orderStatus === 'quoted' ||
+                            orderStatus === 'confirmed' ||
+                            orderStatus === 'in_progress';
+                          return (
+                            <div
+                              key={`order-${order._id}-${index}`}
+                              onClick={() => {
+                                if (isAssignable) {
+                                  toggleOrderSelection(order._id);
+                                }
+                              }}
+                              className={`px-3 py-3 cursor-pointer text-sm border-b border-gray-100 transition-colors ${isSelected ? '' : ''
+                                } ${!isAssignable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              style={{
+                                backgroundColor: isSelected ? `${FLEET_COLORS.primary}15` : undefined,
+                                display: 'block'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (isAssignable && !isSelected) {
+                                  e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.backgroundColor = 'transparent';
+                                }
+                              }}
+                            >
+                              <div className="flex items-start gap-2">
+                                <div
+                                  className="w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 mt-0.5"
+                                  style={isSelected ? { backgroundColor: FLEET_COLORS.primary, borderColor: FLEET_COLORS.primary } : { borderColor: '#d1d5db' }}
+                                >
+                                  {isSelected && <Check className="w-3 h-3 text-white" />}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.primary }}>{order.orderNumber || order._id}</div>
+                                  {order.customerOrderNo && (
+                                    <div className="text-xs text-gray-600 mb-1">Customer Order: {order.customerOrderNo}</div>
                                   )}
-                                  {order.deliveryDate && (
-                                    <div><span className="font-medium">Delivery Date:</span> {new Date(order.deliveryDate).toLocaleDateString()}</div>
-                                  )}
-                                  {order.orderType && (
-                                    <div><span className="font-medium">Type:</span> {order.orderType}</div>
-                                  )}
-                                  {order.status && (
-                                    <div><span className="font-medium">Status:</span> <span 
-                                      className="px-1.5 py-0.5 rounded text-xs"
-                                      style={
-                                        order.status?.toLowerCase() === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
-                                        order.status?.toLowerCase() === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
-                                        order.status?.toLowerCase() === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
-                                        order.status?.toLowerCase() === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
-                                        order.status?.toLowerCase() === 'quoted' ? { backgroundColor: '#e9d5ff', color: '#6b21a8' } :
-                                        order.status?.toLowerCase() === 'confirmed' ? { backgroundColor: '#ddd6fe', color: '#4c1d95' } :
-                                        { backgroundColor: '#f3f4f6', color: '#1f2937' }
-                                      }
-                                    >{order.status}</span></div>
-                                  )}
-                                  {!isAssignable && order.status && (
-                                    <div className="text-xs text-red-600 font-medium mt-1">
-                                      Cannot assign - Order is {order.status}
-                                    </div>
-                                  )}
+                                  <div className="text-xs text-gray-700 space-y-0.5">
+                                    <div><span className="font-medium">Customer:</span> {customerName}</div>
+                                    <div><span className="font-medium">Pickup:</span> {pickupLocation}</div>
+                                    <div><span className="font-medium">Delivery:</span> {deliveryLocation}</div>
+                                    {order.pickupDate && (
+                                      <div><span className="font-medium">Pickup Date:</span> {new Date(order.pickupDate).toLocaleDateString()}</div>
+                                    )}
+                                    {order.deliveryDate && (
+                                      <div><span className="font-medium">Delivery Date:</span> {new Date(order.deliveryDate).toLocaleDateString()}</div>
+                                    )}
+                                    {order.orderType && (
+                                      <div><span className="font-medium">Type:</span> {order.orderType}</div>
+                                    )}
+                                    {order.status && (
+                                      <div><span className="font-medium">Status:</span> <span
+                                        className="px-1.5 py-0.5 rounded text-xs"
+                                        style={
+                                          order.status?.toLowerCase() === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
+                                            order.status?.toLowerCase() === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
+                                              order.status?.toLowerCase() === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
+                                                order.status?.toLowerCase() === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
+                                                  order.status?.toLowerCase() === 'quoted' ? { backgroundColor: '#e9d5ff', color: '#6b21a8' } :
+                                                    order.status?.toLowerCase() === 'confirmed' ? { backgroundColor: '#ddd6fe', color: '#4c1d95' } :
+                                                      { backgroundColor: '#f3f4f6', color: '#1f2937' }
+                                        }
+                                      >{order.status}</span></div>
+                                    )}
+                                    {!isAssignable && order.status && (
+                                      <div className="text-xs text-red-600 font-medium mt-1">
+                                        Cannot assign - Order is {order.status}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
                       </>
                     ) : orders.length === 0 ? (
                       <div className="px-3 py-2 text-sm text-gray-500">No orders available. Please create orders first.</div>
@@ -1337,8 +1332,8 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     const pickupLocation = extractLocationString(order.pickupLocation);
                     const deliveryLocation = extractLocationString(order.deliveryLocation);
                     return (
-                      <div 
-                        key={orderId} 
+                      <div
+                        key={orderId}
                         className="p-2 border rounded text-xs"
                         style={{ backgroundColor: `${FLEET_COLORS.primary}15`, borderColor: FLEET_COLORS.light }}
                       >
@@ -1360,14 +1355,14 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                 <div><span className="font-medium">Type:</span> {order.orderType}</div>
                               )}
                               {order.status && (
-                                <div><span className="font-medium">Status:</span> <span 
+                                <div><span className="font-medium">Status:</span> <span
                                   className="px-1.5 py-0.5 rounded text-xs"
                                   style={
                                     order.status?.toLowerCase() === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
-                                    order.status?.toLowerCase() === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
-                                    order.status?.toLowerCase() === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
-                                    order.status?.toLowerCase() === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
-                                    { backgroundColor: '#f3f4f6', color: '#1f2937' }
+                                      order.status?.toLowerCase() === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
+                                        order.status?.toLowerCase() === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
+                                          order.status?.toLowerCase() === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
+                                            { backgroundColor: '#f3f4f6', color: '#1f2937' }
                                   }
                                 >{order.status}</span></div>
                               )}
@@ -1401,10 +1396,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
               placeholder="Add any notes about this trip..."
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
-                              style={{ ...focusHandlers }}
-                              onFocus={focusHandlers.onFocus}
-                              onBlur={focusHandlers.onBlur}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+
+              onFocus={focusHandlers.onFocus}
+              onBlur={focusHandlers.onBlur}
             />
           </div>
 
@@ -1432,7 +1427,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingDocument || loading}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ 
+                  style={{
                     color: FLEET_COLORS.primary,
                     backgroundColor: `${FLEET_COLORS.primary}15`,
                     border: `1px solid ${FLEET_COLORS.light}`
@@ -1490,88 +1485,88 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 </div>
               )}
 
-                {/* Document List */}
-                {documents.length > 0 && (
-                  <div className="space-y-2 border border-gray-200 rounded-lg p-3 bg-gray-50 max-h-64 overflow-y-auto">
-                    {documents.map((doc) => (
-                      <div
-                        key={doc._id || doc.fileUrl}
-                        className="flex items-start justify-between gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
-                      >
-                        <div className="flex items-start gap-3 flex-1 min-w-0">
-                          <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: FLEET_COLORS.primary }} />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm text-gray-900 truncate">
-                              {doc.fileName}
-                            </div>
-                            {doc.description && (
-                              <div className="text-xs text-gray-600 mt-1">{doc.description}</div>
+              {/* Document List */}
+              {documents.length > 0 && (
+                <div className="space-y-2 border border-gray-200 rounded-lg p-3 bg-gray-50 max-h-64 overflow-y-auto">
+                  {documents.map((doc) => (
+                    <div
+                      key={doc._id || doc.fileUrl}
+                      className="flex items-start justify-between gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                    >
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: FLEET_COLORS.primary }} />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-gray-900 truncate">
+                            {doc.fileName}
+                          </div>
+                          {doc.description && (
+                            <div className="text-xs text-gray-600 mt-1">{doc.description}</div>
+                          )}
+                          <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                            <span>{formatFileSize(doc.fileSize)}</span>
+                            {doc.uploadedAt && (
+                              <span>
+                                {new Date(doc.uploadedAt).toLocaleDateString()}
+                              </span>
                             )}
-                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                              <span>{formatFileSize(doc.fileSize)}</span>
-                              {doc.uploadedAt && (
-                                <span>
-                                  {new Date(doc.uploadedAt).toLocaleDateString()}
-                                </span>
-                              )}
-                              {doc.uploadedBy?.name && (
-                                <span>Uploaded by {doc.uploadedBy.name}</span>
-                              )}
-                            </div>
+                            {doc.uploadedBy?.name && (
+                              <span>Uploaded by {doc.uploadedBy.name}</span>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <button
-                            onClick={async () => {
-                              if (!trip?._id || !doc._id) return;
-                              try {
-                                const response = await getTripDocumentSignedUrl(trip._id, doc._id, 'inline');
-                                if (response?.success && response?.url) {
-                                  window.open(response.url, '_blank');
-                                } else {
-                                  // Fallback to original URL
-                                  window.open(doc.fileUrl, '_blank');
-                                }
-                              } catch (error) {
-                                console.error('Error getting signed URL:', error);
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={async () => {
+                            if (!trip?._id || !doc._id) return;
+                            try {
+                              const response = await getTripDocumentSignedUrl(trip._id, doc._id, 'inline');
+                              if (response?.success && response?.url) {
+                                window.open(response.url, '_blank');
+                              } else {
                                 // Fallback to original URL
                                 window.open(doc.fileUrl, '_blank');
                               }
-                            }}
-                            className="p-2 rounded-lg transition-colors"
-                            style={{ color: FLEET_COLORS.primary }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                            title="View Document"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteDocument(doc._id || '')}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Document"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                            } catch (error) {
+                              console.error('Error getting signed URL:', error);
+                              // Fallback to original URL
+                              window.open(doc.fileUrl, '_blank');
+                            }
+                          }}
+                          className="p-2 rounded-lg transition-colors"
+                          style={{ color: FLEET_COLORS.primary }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                          title="View Document"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDocument(doc._id || '')}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Document"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
-                {documents.length === 0 && trip?._id && pendingFiles.length === 0 && (
-                  <div className="text-sm text-gray-500 text-center py-4 border border-gray-200 rounded-lg bg-gray-50">
-                    No documents uploaded yet. Click "Upload Document(s)" to add files.
-                  </div>
-                )}
+              {documents.length === 0 && trip?._id && pendingFiles.length === 0 && (
+                <div className="text-sm text-gray-500 text-center py-4 border border-gray-200 rounded-lg bg-gray-50">
+                  No documents uploaded yet. Click "Upload Document(s)" to add files.
+                </div>
+              )}
 
-                {!trip?._id && pendingFiles.length === 0 && documents.length === 0 && (
-                  <div className="text-sm text-gray-500 text-center py-4 border border-gray-200 rounded-lg bg-gray-50">
-                    You can select files now. They will be uploaded automatically after trip creation.
-                  </div>
-                )}
-              </div>
+              {!trip?._id && pendingFiles.length === 0 && documents.length === 0 && (
+                <div className="text-sm text-gray-500 text-center py-4 border border-gray-200 rounded-lg bg-gray-50">
+                  You can select files now. They will be uploaded automatically after trip creation.
+                </div>
+              )}
             </div>
+          </div>
         </div>
       </div>
 
