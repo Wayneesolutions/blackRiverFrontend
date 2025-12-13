@@ -1,28 +1,28 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import ExcelJS from 'exceljs';
-import { 
-  FaEllipsisH, 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
-  FaEye, 
-  FaTimes, 
-  FaCheckCircle, 
-  FaExclamationCircle, 
-  FaInfoCircle, 
-  FaSearch, 
-  FaBox, 
-  FaHistory, 
-  FaExclamationTriangle,
-  FaFileInvoice,
-  FaBuilding,
-  FaShoppingCart
+import {
+    FaEllipsisH,
+    FaPlus,
+    FaEdit,
+    FaTrash,
+    FaEye,
+    FaTimes,
+    FaCheckCircle,
+    FaExclamationCircle,
+    FaInfoCircle,
+    FaSearch,
+    FaBox,
+    FaHistory,
+    FaExclamationTriangle,
+    FaFileInvoice,
+    FaBuilding,
+    FaShoppingCart
 } from 'react-icons/fa';
 import { Download } from 'lucide-react';
-import { 
-    getAllSpareParts, 
-    createSparePart, 
+import {
+    getAllSpareParts,
+    createSparePart,
     updateSparePart,
     deleteSparePart,
     useSparePart,
@@ -295,7 +295,7 @@ const SparePartsInventory = () => {
 
         fetchSuppliers();
         fetchSpareParts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfoReady, userInfo]);
 
     // Fetch suppliers when add or edit modal opens
@@ -597,15 +597,15 @@ const SparePartsInventory = () => {
             if (res?.success) {
                 addNotification('success', res.message || 'Supplier added successfully');
                 setShowSupplierModal(false);
-                
+
                 // Refresh suppliers list
                 await fetchSuppliers();
-                
+
                 // Auto-select the newly created supplier in the form
                 if (res.data && res.data._id) {
                     newPartRef.current.supplier = res.data._id;
                 }
-                
+
                 // Reset supplier form
                 newSupplierRef.current = {
                     name: '',
@@ -825,7 +825,7 @@ const SparePartsInventory = () => {
 
         const getDropdownPosition = () => {
             if (!buttonRef.current) return { top: 0, right: 0 };
-            
+
             const rect = buttonRef.current.getBoundingClientRect();
             return {
                 top: rect.bottom + 4,
@@ -855,70 +855,70 @@ const SparePartsInventory = () => {
                             right: `${position.right}px`
                         }}
                     >
-                            <button
-                                onClick={() => {
-                                    setSelectedPart(part);
-                                    newPartRef.current = {
-                                        partNumber: part.partNumber || '',
-                                        partName: part.partName || '',
-                                        description: part.description || '',
-                                        category: part.category || '',
-                                        stockQty: part.stockQty.toString(),
-                                        minStockLevel: part.minStockLevel?.toString() || '',
-                                        maxStockLevel: part.maxStockLevel?.toString() || '',
-                                        buyingPrice: part.buyingPrice?.toString() || '',
-                                        sellingPrice: part.sellingPrice?.toString() || '',
-                                        purchaseDate: part.purchaseDate ? new Date(part.purchaseDate).toISOString().split('T')[0] : '',
-                                        supplier: typeof part.supplier === 'object' ? part.supplier._id : part.supplier || '',
-                                        location: part.location || '',
-                                        condition: part.condition || 'new',
-                                        warrantyPeriod: part.warrantyPeriod?.toString() || ''
-                                    };
-                                    setShowEditModal(true);
-                                    setShowDropdown(false);
-                                }}
-                                className="flex items-center gap-3 w-full px-4 py-2 text-sm !text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                                <FaEdit size={14} className="text-blue-600" />
-                                Edit Part
-                            </button>
-                            <button
-                                    onClick={() => {
-                                        setSelectedPart(part);
-                                        usageDataRef.current = { unitNumber: '', qtyUsed: '' };
-                                        setQtyUsedInput('');
-                                        setShowUsageModal(true);
-                                        setShowDropdown(false);
-                                    }}
-                                className="flex items-center gap-3 w-full px-4 py-2 text-sm !text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                                <FaHistory size={14} className="text-orange-600" />
-                                Use Part
-                            </button>
-                           
-                            <button
-                                onClick={() => {
-                                    setSelectedPart(part);
-                                    setShowDetailsModal(true);
-                                    setShowDropdown(false);
-                                }}
-                                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                                <FaEye size={14} className="text-green-600" />
-                                View Details
-                            </button>
-                            <div className="border-t border-gray-100 my-1"></div>
-                            <button
-                                onClick={() => {
-                                    handleDeletePart(part);
-                                    setShowDropdown(false);
-                                }}
-                                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                            >
-                                <FaTrash size={14} />
-                                Delete Part
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => {
+                                setSelectedPart(part);
+                                newPartRef.current = {
+                                    partNumber: part.partNumber || '',
+                                    partName: part.partName || '',
+                                    description: part.description || '',
+                                    category: part.category || '',
+                                    stockQty: part.stockQty.toString(),
+                                    minStockLevel: part.minStockLevel?.toString() || '',
+                                    maxStockLevel: part.maxStockLevel?.toString() || '',
+                                    buyingPrice: part.buyingPrice?.toString() || '',
+                                    sellingPrice: part.sellingPrice?.toString() || '',
+                                    purchaseDate: part.purchaseDate ? new Date(part.purchaseDate).toISOString().split('T')[0] : '',
+                                    supplier: typeof part.supplier === 'object' ? part.supplier._id : part.supplier || '',
+                                    location: part.location || '',
+                                    condition: part.condition || 'new',
+                                    warrantyPeriod: part.warrantyPeriod?.toString() || ''
+                                };
+                                setShowEditModal(true);
+                                setShowDropdown(false);
+                            }}
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm !text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                            <FaEdit size={14} className="text-blue-600" />
+                            Edit Part
+                        </button>
+                        <button
+                            onClick={() => {
+                                setSelectedPart(part);
+                                usageDataRef.current = { unitNumber: '', qtyUsed: '' };
+                                setQtyUsedInput('');
+                                setShowUsageModal(true);
+                                setShowDropdown(false);
+                            }}
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm !text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                            <FaHistory size={14} className="text-orange-600" />
+                            Use Part
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setSelectedPart(part);
+                                setShowDetailsModal(true);
+                                setShowDropdown(false);
+                            }}
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                            <FaEye size={14} className="text-green-600" />
+                            View Details
+                        </button>
+                        <div className="border-t border-gray-100 my-1"></div>
+                        <button
+                            onClick={() => {
+                                handleDeletePart(part);
+                                setShowDropdown(false);
+                            }}
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                            <FaTrash size={14} />
+                            Delete Part
+                        </button>
+                    </div>
                 )}
             </div>
         );
@@ -1003,46 +1003,46 @@ const SparePartsInventory = () => {
                         <table className="w-full">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Part Number
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Part Name
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Category
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Description
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Stock Qty
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Min/Max Stock
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Buying Price
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Selling Price
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Purchase Date
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Supplier
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Location
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Condition
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Warranty
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
@@ -1053,23 +1053,23 @@ const SparePartsInventory = () => {
                                     const supplier = typeof part.supplier === 'object' ? part.supplier : suppliers.find(s => s._id === part.supplier);
                                     return (
                                         <tr key={part._id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-semibold text-gray-900">{part.partNumber || 'N/A'}</div>
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <div className="text-xs font-semibold text-gray-900">{part.partNumber || 'N/A'}</div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">{part.partName || 'N/A'}</div>
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <div className="text-xs font-medium text-gray-900">{part.partName || 'N/A'}</div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-600">{part.category || 'N/A'}</div>
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <div className="text-xs text-gray-600">{part.category || 'N/A'}</div>
                                             </td>
-                                            <td className="px-4 py-4">
-                                                <div className="text-sm text-gray-600 max-w-xs truncate" title={part.description || 'N/A'}>
+                                            <td className="px-4 py-2">
+                                                <div className="text-xs text-gray-600 max-w-xs truncate" title={part.description || 'N/A'}>
                                                     {part.description || 'N/A'}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
+                                            <td className="px-4 py-2 whitespace-nowrap">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="text-sm font-medium text-gray-900">{part.stockQty || 0}</div>
+                                                    <div className="text-xs font-medium text-gray-900">{part.stockQty || 0}</div>
                                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.color}`}>
                                                         {stockStatus.status}
                                                     </span>
@@ -1078,44 +1078,43 @@ const SparePartsInventory = () => {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-600">
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <div className="text-xs text-gray-600">
                                                     <div>Min: {part.minStockLevel || 0}</div>
                                                     <div>Max: {part.maxStockLevel || 0}</div>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <div className="text-xs text-gray-900">
                                                     ${part.buyingPrice ? part.buyingPrice.toFixed(2) : '0.00'}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <div className="text-xs text-gray-900">
                                                     ${part.sellingPrice ? part.sellingPrice.toFixed(2) : '0.00'}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-600">
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <div className="text-xs text-gray-600">
                                                     {part.purchaseDate ? formatDate(part.purchaseDate) : 'N/A'}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">{supplier?.name || 'N/A'}</div>
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <div className="text-xs text-gray-900">{supplier?.name || 'N/A'}</div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-600">{part.location || 'N/A'}</div>
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <div className="text-xs text-gray-600">{part.location || 'N/A'}</div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                                    part.condition === 'new' ? 'bg-green-100 text-green-800' :
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${part.condition === 'new' ? 'bg-green-100 text-green-800' :
                                                     part.condition === 'refurbished' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-gray-100 text-gray-800'
-                                                }`}>
+                                                        'bg-gray-100 text-gray-800'
+                                                    }`}>
                                                     {part.condition ? part.condition.charAt(0).toUpperCase() + part.condition.slice(1) : 'N/A'}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-600">
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <div className="text-xs text-gray-600">
                                                     {part.warrantyPeriod ? `${part.warrantyPeriod} months` : 'N/A'}
                                                 </div>
                                                 {part.warrantyExpiry && (
@@ -1140,55 +1139,131 @@ const SparePartsInventory = () => {
 
     // invoices tab removed; single invoices page is the source of truth
 
-                            return (
-        <div className="p-6 min-h-screen bg-gray-50">
-            {/* Notifications */}
-            <div className="fixed top-4 right-4 z-[999] flex flex-col gap-3 max-w-md">
-                {notifications.map(notification => (
-                    <Notification key={notification.id} notification={notification} onClose={removeNotification} />
-                ))}
-            </div>
-
-            {emptyStateMessage && (
-                <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
-                    <FaInfoCircle className="w-5 h-5" />
-                    <span className="text-sm">{emptyStateMessage}</span>
+    const StatCard = ({
+        title,
+        value,
+        subtitle,
+        icon: Icon,
+        bgColor,
+        iconColor
+    }: {
+        title: string;
+        value: number | string;
+        subtitle: string;
+        icon: any;
+        bgColor: string;
+        iconColor: string;
+    }) => (
+        <div className="bg-white rounded-lg p-3 shadow-sm border border-transparent hover:border-blue-100 transition-all">
+            <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                    <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+                    <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="text-xl font-bold text-gray-900">{value}</span>
+                    </div>
+                    <p className="text-xs text-gray-400">{subtitle}</p>
                 </div>
-            )}
- 
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Fleet Spare Parts</h1>
-                </div>
-                <div className="flex gap-3">
-                    <button
-                        onClick={handleExportParts}
-                        disabled={exporting}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 !text-white rounded-lg shadow-lg hover:shadow-xl transition-colors disabled:opacity-60"
-                    >
-                        <Download className="w-4 h-4" />
-                        {exporting ? 'Preparing Excel...' : 'Export to Excel'}
-                    </button>
-                    <button
-                        onClick={() => setShowSupplierModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                        <FaBuilding />
-                        Add Supplier
-                    </button>
-                    <button
-                        onClick={() => setShowAddModal(true)}
-                        className="flex items-center gap-2 px-5 py-3 !text-white rounded-lg shadow-lg hover:shadow-xl transition-all font-medium hover:opacity-90"
-                        style={{ background: ACCENT_GRADIENT }}
-                    >
-                        <FaPlus /> Add New Part
-                    </button>
+                <div className={`${bgColor} rounded-lg p-2 shadow-sm`}>
+                    <Icon className={iconColor} size={20} />
                 </div>
             </div>
+        </div>
+    );
 
-            {/* Inventory */}
-            {renderInventoryTab()}
+    const totalParts = spareParts.length;
+    const lowStockParts = spareParts.filter(p => p.stockQty <= p.minStockLevel).length;
+    const totalValue = spareParts.reduce((acc, p) => acc + (p.stockQty * p.buyingPrice), 0);
+
+    return (
+        <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
+            <div className="relative max-w-7xl mx-auto">
+                <div
+                    className="absolute inset-x-0 top-0"
+                    style={{
+                        background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+                        height: '101px'
+                    }}
+                    aria-hidden="true"
+                />
+
+                <div className="relative z-10 px-4 pt-3 pb-6">
+                    <div className="fixed top-4 right-4 z-[999] flex flex-col gap-3 max-w-md">
+                        {notifications.map(notification => (
+                            <Notification key={notification.id} notification={notification} onClose={removeNotification} />
+                        ))}
+                    </div>
+
+                    <div className="mb-4 relative z-10">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-xl font-bold text-white">Fleet Spare Parts</h1>
+                                <div className="flex items-center gap-2 text-white/90">
+                                    <span className="text-xs">Manage inventory and suppliers</span>
+                                </div>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={handleExportParts}
+                                    disabled={exporting}
+                                    className="inline-flex items-center gap-2 rounded-lg bg-white text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-white/90 transition disabled:opacity-60"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    {exporting ? 'Exporting...' : 'Export'}
+                                </button>
+                                <button
+                                    onClick={() => setShowSupplierModal(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white border border-white/20 rounded-lg hover:bg-white/20 backdrop-blur-sm transition-colors text-sm font-semibold"
+                                >
+                                    <FaBuilding />
+                                    Add Supplier
+                                </button>
+                                <button
+                                    onClick={() => setShowAddModal(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white text-[#0ea3d8] rounded-lg hover:bg-white/90 shadow-sm transition-all font-bold text-sm"
+                                >
+                                    <FaPlus /> Add New Part
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 -mt-2 mb-4">
+                        <StatCard
+                            title="Total Parts"
+                            value={totalParts}
+                            subtitle="In Inventory"
+                            icon={FaBox}
+                            bgColor="bg-blue-50"
+                            iconColor="text-blue-600"
+                        />
+                        <StatCard
+                            title="Low Stock"
+                            value={lowStockParts}
+                            subtitle="Needs Reorder"
+                            icon={FaExclamationTriangle}
+                            bgColor="bg-red-50"
+                            iconColor="text-red-600"
+                        />
+                        <StatCard
+                            title="Total Value"
+                            value={`$${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                            subtitle="Inventory Asset"
+                            icon={FaFileInvoice}
+                            bgColor="bg-green-50"
+                            iconColor="text-green-600"
+                        />
+                    </div>
+
+                    {emptyStateMessage && (
+                        <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
+                            <FaInfoCircle className="w-5 h-5" />
+                            <span className="text-sm">{emptyStateMessage}</span>
+                        </div>
+                    )}
+
+                    {renderInventoryTab()}
+                </div>
+            </div>
 
             {/* Add Part Modal */}
             {showAddModal && (
@@ -1210,19 +1285,19 @@ const SparePartsInventory = () => {
                                         required
                                     />
                                 </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Part Name <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    defaultValue={newPartRef.current.partName}
-                                    onChange={(e) => newPartRef.current.partName = e.target.value}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Enter part name"
-                                    required
-                                />
-                            </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Part Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        defaultValue={newPartRef.current.partName}
+                                        onChange={(e) => newPartRef.current.partName = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Enter part name"
+                                        required
+                                    />
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
@@ -1274,20 +1349,20 @@ const SparePartsInventory = () => {
                             </div>
 
                             <div className="grid grid-cols-3 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Stock Quantity <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    defaultValue={newPartRef.current.stockQty}
-                                    onChange={(e) => newPartRef.current.stockQty = e.target.value}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Stock Quantity <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        defaultValue={newPartRef.current.stockQty}
+                                        onChange={(e) => newPartRef.current.stockQty = e.target.value}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="0"
-                                    min="0"
-                                    required
-                                />
-                            </div>
+                                        min="0"
+                                        required
+                                    />
+                                </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Min Stock Level
@@ -1815,7 +1890,7 @@ const SparePartsInventory = () => {
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                         <h3 className="text-lg font-bold text-gray-900 mb-4">Create Invoice</h3>
-                        
+
                         {/* Customer Information */}
                         <div className="mb-6">
                             <h4 className="text-md font-semibold text-gray-800 mb-3">Customer Information</h4>
@@ -2132,7 +2207,7 @@ const SparePartsInventory = () => {
                                 <div className="border border-gray-200 rounded-xl p-4">
                                     <div className="text-sm text-gray-600">Part Number</div>
                                     <div className="text-lg font-bold text-gray-900">{selectedPart.partNumber}</div>
-                                    </div>
+                                </div>
                                 <div className="border border-gray-200 rounded-xl p-4">
                                     <div className="text-sm text-gray-600">Category</div>
                                     <div className="text-lg font-bold text-gray-900">{selectedPart.category}</div>
@@ -2143,7 +2218,7 @@ const SparePartsInventory = () => {
                                 <div className="border border-gray-200 rounded-xl p-4">
                                     <div className="text-sm text-gray-600">Buying Price</div>
                                     <div className="text-lg font-bold text-gray-900">${selectedPart.buyingPrice.toFixed(2)}</div>
-                                    </div>
+                                </div>
                                 <div className="border border-gray-200 rounded-xl p-4">
                                     <div className="text-sm text-gray-600">Selling Price</div>
                                     <div className="text-lg font-bold text-gray-900">${selectedPart.sellingPrice.toFixed(2)}</div>
@@ -2225,12 +2300,11 @@ const SparePartsInventory = () => {
                                 </div>
                                 <div className="border border-gray-200 rounded-xl p-4">
                                     <div className="text-sm text-gray-600">Status</div>
-                                    <div className={`text-lg font-bold ${
-                                        selectedInvoice.status === 'paid' ? 'text-green-600' :
+                                    <div className={`text-lg font-bold ${selectedInvoice.status === 'paid' ? 'text-green-600' :
                                         selectedInvoice.status === 'sent' ? 'text-blue-600' :
-                                        selectedInvoice.status === 'draft' ? 'text-yellow-600' :
-                                        'text-red-600'
-                                    }`}>
+                                            selectedInvoice.status === 'draft' ? 'text-yellow-600' :
+                                                'text-red-600'
+                                        }`}>
                                         {selectedInvoice.status.charAt(0).toUpperCase() + selectedInvoice.status.slice(1)}
                                     </div>
                                     <div className="text-sm text-gray-500">Due: {new Date(selectedInvoice.dueDate).toLocaleDateString()}</div>

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import type { CSSProperties } from 'react';
 import {
   Truck,
   Wrench,
@@ -9,6 +10,26 @@ import {
   Loader2
 } from 'lucide-react';
 import { DashboardStats, UpcomingOverdue, RecentWorkOrder, MonthlyCost } from "../../../axios/api/fleet.dashboard";
+import { FLEET_COLORS } from './colorUtils';
+
+const ACCENT_PRIMARY = FLEET_COLORS.primary;
+const ACCENT_DARK = FLEET_COLORS.dark;
+const hexToRgba = (hex: string, alpha = 1) => {
+  const parsed = hex.replace('#', '');
+  const bigint = parseInt(parsed, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+const ACCENT_SOFT = hexToRgba(ACCENT_PRIMARY, 0.1);
+const ACCENT_SOFT_BORDER = hexToRgba(ACCENT_PRIMARY, 0.25);
+const ACCENT_VARS = {
+  '--accent-color': ACCENT_PRIMARY,
+  '--accent-dark': ACCENT_DARK,
+  '--accent-soft': ACCENT_SOFT,
+  '--accent-soft-border': ACCENT_SOFT_BORDER
+} as CSSProperties;
 
 interface WorkOrder {
   id: string;
@@ -104,7 +125,7 @@ const Dashboard = () => {
     }
 
     fetchDashboardData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfoReady, userInfo]);
 
   const fetchDashboardData = async () => {
@@ -155,12 +176,12 @@ const Dashboard = () => {
       // Process Upcoming/Overdue Maintenance
       if (upcomingRes?.success && upcomingRes?.data) {
         const maintenanceData = upcomingRes.data || [];
-        
+
         // Separate overdue and upcoming
-        const overdue = maintenanceData.filter((item: any) => 
+        const overdue = maintenanceData.filter((item: any) =>
           item.daysLeft !== undefined && item.daysLeft < 0
         );
-        const upcoming = maintenanceData.filter((item: any) => 
+        const upcoming = maintenanceData.filter((item: any) =>
           item.daysLeft === undefined || item.daysLeft >= 0
         );
 
@@ -169,7 +190,7 @@ const Dashboard = () => {
           overdueMaintenance: overdue.length,
           pendingMaintenance: upcoming.length
         }));
-        
+
         setUpcomingMaintenance(upcoming);
       } else if (upcomingRes?.success === false && upcomingRes?.message) {
         setUpcomingMaintenance([]);
@@ -213,7 +234,7 @@ const Dashboard = () => {
     const statusLower = status.toLowerCase();
     switch (statusLower) {
       case 'open': return 'text-yellow-700 bg-yellow-100 border-yellow-200';
-      case 'in progress': 
+      case 'in progress':
       case 'in-progress': return 'text-blue-700 bg-blue-100 border-blue-200';
       case 'completed': return 'text-green-700 bg-green-100 border-green-200';
       case 'closed': return 'text-gray-700 bg-gray-100 border-gray-200';
@@ -223,13 +244,13 @@ const Dashboard = () => {
 
   const getStatusDisplay = (status: string) => {
     const statusLower = status.toLowerCase();
-    return statusLower.split('-').map((word: string) => 
+    return statusLower.split('-').map((word: string) =>
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   };
 
   const formatServiceType = (serviceType: string) => {
-    return serviceType.split('-').map((word: string) => 
+    return serviceType.split('-').map((word: string) =>
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   };
@@ -249,222 +270,243 @@ const Dashboard = () => {
     );
   }
 
+  const StatCard = ({
+    title,
+    value,
+    subtitle,
+    icon: Icon,
+    onClick,
+    bgColor,
+    iconColor
+  }: {
+    title: string;
+    value: number | string;
+    subtitle?: string;
+    icon: React.ReactNode;
+    onClick?: () => void;
+    bgColor: string;
+    iconColor: string;
+  }) => {
+    return (
+      <div
+        onClick={onClick}
+        className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+      >
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex-1">
+            <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+            <div className="flex items-baseline gap-2 mb-0.5">
+              <span className="text-xl font-bold text-gray-900">{value}</span>
+            </div>
+            {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
+          </div>
+          <div className={`${bgColor} rounded-lg p-2 shadow-sm`}>
+            {React.isValidElement(Icon) ? React.cloneElement(Icon as React.ReactElement<any>, { className: iconColor, size: 21 }) : null}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="p-6 space-y-6 min-h-screen bg-gray-50">
-      {emptyStateMessage && (
-        <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
-          <AlertTriangle className="w-5 h-5" />
-          <span className="text-sm">{emptyStateMessage}</span>
-        </div>
-      )}
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Fleet Maintenance Overview</h1>
-          <p className="text-gray-500">Monitor maintenance performance and upcoming services</p>
-        </div>
-        <div className="text-sm text-gray-500">
-          Last updated: {new Date().toLocaleString()}
-        </div>
-      </div>
+    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
+      <div className="relative max-w-7xl mx-auto">
+        {/* Gradient band */}
+        <div
+          className="absolute inset-x-0 top-0"
+          style={{
+            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            height: '101px'
+          }}
+          aria-hidden="true"
+        />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Total Vehicles</h3>
-            <Truck className="h-6 w-6 text-blue-600" />
-          </div>
-          <div className="text-3xl font-bold text-gray-900">{dashboardStats.totalVehicles}</div>
-          <p className="text-sm text-gray-500 mt-1">Active fleet vehicles</p>
-        </div>
+        <div className="relative z-10 px-4 pt-3 pb-6">
+          {emptyStateMessage && (
+            <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
+              <AlertTriangle className="w-5 h-5" />
+              <span className="text-sm">{emptyStateMessage}</span>
+            </div>
+          )}
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Total Trailers</h3>
-            <Truck className="h-6 w-6 text-purple-600" />
-          </div>
-          <div className="text-3xl font-bold text-gray-900">{dashboardStats.totalTrailers}</div>
-          <p className="text-sm text-gray-500 mt-1">Fleet trailers</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Active Work Orders</h3>
-            <Wrench className="h-6 w-6 text-orange-600" />
-          </div>
-          <div className="text-3xl font-bold text-gray-900">{dashboardStats.activeWorkOrders}</div>
-          <p className="text-sm text-gray-500 mt-1">Currently in progress</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Maintenance</h3>
-            <Wrench className="h-6 w-6 text-red-600" />
-          </div>
-          <div className="text-3xl font-bold text-gray-900">{dashboardStats.trailersMaintenance}</div>
-          <p className="text-sm text-gray-500 mt-1">Under repair</p>
-        </div>
-        {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Monthly Costs</h3>
-            <DollarSign className="h-6 w-6 text-green-600" />
-          </div>
-          <div className="text-3xl font-bold text-gray-900">${dashboardStats.totalCosts.toLocaleString()}</div>
-          <p className="text-sm text-gray-500 mt-1">This month's expenses</p>
-        </div> */}
-      </div>
-
-      {/* Trailer Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Available Trailers</h3>
-            <CheckCircle className="h-6 w-6 text-green-600" />
-          </div>
-          <div className="text-3xl font-bold text-gray-900">{dashboardStats.trailersAvailable}</div>
-          <p className="text-sm text-gray-500 mt-1">Ready for assignment</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">In Transit</h3>
-            <Truck className="h-6 w-6 text-blue-600" />
-          </div>
-          <div className="text-3xl font-bold text-gray-900">{dashboardStats.trailersInTransit}</div>
-          <p className="text-sm text-gray-500 mt-1">Currently moving</p>
-        </div>
-
-        {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Attached Trailers</h3>
-            <Truck className="h-6 w-6 text-indigo-600" />
-          </div>
-          <div className="text-3xl font-bold text-gray-900">{dashboardStats.trailersAttached}</div>
-          <p className="text-sm text-gray-500 mt-1">Connected to vehicles</p>
-        </div> */}
-
-       
-      </div>
-
-      {/* Alert Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-red-200 p-6">
-          <div className="flex items-center mb-4">
-            <AlertTriangle className="h-6 w-6 text-red-600 mr-3" />
-            <h3 className="text-sm font-medium text-red-800">Overdue Maintenance</h3>
-          </div>
-          <div className="text-3xl font-bold text-red-600">{dashboardStats.overdueMaintenance}</div>
-          <p className="text-sm text-red-600 mt-1">Vehicles require immediate attention</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-green-200 p-6">
-          <div className="flex items-center mb-4">
-            <CheckCircle className="h-6 w-6 text-green-600 mr-3" />
-            <h3 className="text-sm font-medium text-green-800">Completed This Month</h3>
-          </div>
-          <div className="text-3xl font-bold text-green-600">{dashboardStats.completedThisMonth}</div>
-          <p className="text-sm text-green-600 mt-1">Work orders completed</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-blue-200 p-6">
-          <div className="flex items-center mb-4">
-            <TrendingUp className="h-6 w-6 text-blue-600 mr-3" />
-            <h3 className="text-sm font-medium text-blue-800">Efficiency Rate</h3>
-          </div>
-          <div className="text-3xl font-bold text-blue-600">
-            {dashboardStats.completedThisMonth > 0 
-              ? Math.round((dashboardStats.completedThisMonth / (dashboardStats.completedThisMonth + dashboardStats.activeWorkOrders)) * 100)
-              : 0}%
-          </div>
-          <p className="text-sm text-blue-600 mt-1">On-time completion rate</p>
-        </div>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Work Orders */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Wrench className="h-5 w-5 mr-2" />
-              Recent Work Orders
-            </h3>
-          </div>
-          <div className="p-6">
-            {recentWorkOrders.length > 0 ? (
-              <div className="space-y-4">
-                {recentWorkOrders.map((order) => (
-                  <div key={order.id} className="p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-900 text-sm truncate">{order.vehicle}</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
-                        {getStatusDisplay(order.status)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 mb-1">{order.issue}</p>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xs text-gray-500">{order.date}</p>
-                      {order.estimatedCost && (
-                        <p className="text-xs font-medium text-gray-700">${order.estimatedCost.toLocaleString()}</p>
-                      )}
-                    </div>
-                    {order.assignedMechanic && (
-                      <p className="text-xs text-gray-500 mt-1">Mechanic: {order.assignedMechanic}</p>
-                    )}
-                  </div>
-                ))}
+          {/* Header */}
+          <div className="mb-4 relative z-10">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-xl font-bold text-white">Fleet Maintenance Overview</h1>
+                <div className="flex items-center gap-2 text-white/90">
+                  <span className="text-xs">Monitor maintenance performance and upcoming services</span>
+                </div>
               </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Wrench className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p>No recent work orders</p>
+              <div className="text-xs text-white/80">
+                Last updated: {new Date().toLocaleString()}
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 -mt-2 mb-4">
+            <StatCard
+              title="Total Vehicles"
+              value={dashboardStats.totalVehicles}
+              subtitle="Active fleet vehicles"
+              icon={<Truck />}
+              bgColor="bg-blue-50"
+              iconColor="text-blue-600"
+            />
+            <StatCard
+              title="Total Trailers"
+              value={dashboardStats.totalTrailers}
+              subtitle="Fleet trailers"
+              icon={<Truck />}
+              bgColor="bg-purple-50"
+              iconColor="text-purple-600"
+            />
+            <StatCard
+              title="Active Work Orders"
+              value={dashboardStats.activeWorkOrders}
+              subtitle="Currently in progress"
+              icon={<Wrench />}
+              bgColor="bg-orange-50"
+              iconColor="text-orange-600"
+            />
+            <StatCard
+              title="Maintenance"
+              value={dashboardStats.trailersMaintenance}
+              subtitle="Under repair"
+              icon={<Wrench />}
+              bgColor="bg-red-50"
+              iconColor="text-red-900"
+            />
+          </div>
+
+          {/* Trailer Status Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <StatCard
+              title="Available Trailers"
+              value={dashboardStats.trailersAvailable}
+              subtitle="Ready for assignment"
+              icon={<CheckCircle />}
+              bgColor="bg-green-50"
+              iconColor="text-green-600"
+            />
+            <StatCard
+              title="In Transit"
+              value={dashboardStats.trailersInTransit}
+              subtitle="Currently moving"
+              icon={<Truck />}
+              bgColor="bg-blue-50"
+              iconColor="text-blue-600"
+            />
+            <StatCard
+              title="Overdue Maintenance"
+              value={dashboardStats.overdueMaintenance}
+              subtitle="Immediate attention"
+              icon={<AlertTriangle />}
+              bgColor="bg-red-50"
+              iconColor="text-red-600"
+            />
+            <StatCard
+              title="Efficiency Rate"
+              value={`${dashboardStats.completedThisMonth > 0
+                ? Math.round((dashboardStats.completedThisMonth / (dashboardStats.completedThisMonth + dashboardStats.activeWorkOrders)) * 100)
+                : 0}%`}
+              subtitle="On-time completion"
+              icon={<TrendingUp />}
+              bgColor="bg-blue-50"
+              iconColor="text-blue-600"
+            />
           </div>
         </div>
 
-        {/* Upcoming Maintenance */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Calendar className="h-5 w-5 mr-2" />
-              Upcoming Maintenance
-            </h3>
-          </div>
-          <div className="p-6">
-            {upcomingMaintenance.length > 0 ? (
-              <div className="space-y-4">
-                {upcomingMaintenance.map((maintenance, index) => (
-                  <div key={index} className="p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <span className="font-medium text-gray-900">{maintenance.model}</span>
-                        <span className="text-xs text-gray-500 ml-2">({maintenance.plateNumber})</span>
+        {/* Main Content Grid */}
+        <div className="max-w-7xl mx-auto px-4 -mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Work Orders */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                  <Wrench className="h-5 w-5 mr-2 text-gray-500" />
+                  Recent Work Orders
+                </h3>
+              </div>
+              <div className="p-6">
+                {recentWorkOrders.length > 0 ? (
+                  <div className="space-y-4">
+                    {recentWorkOrders.map((order) => (
+                      <div key={order.id} className="p-4 border border-gray-100 rounded-lg hover:shadow-sm transition-shadow bg-gray-50/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-gray-900 text-sm truncate">{order.vehicle}</span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(order.status)}`}>
+                            {getStatusDisplay(order.status)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-1">{order.issue}</p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-gray-500">{order.date}</p>
+                          {order.estimatedCost && (
+                            <p className="text-xs font-bold text-gray-700">${order.estimatedCost.toLocaleString()}</p>
+                          )}
+                        </div>
+                        {order.assignedMechanic && (
+                          <p className="text-xs text-gray-500 mt-1">Mechanic: {order.assignedMechanic}</p>
+                        )}
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getPriorityColor(maintenance.daysLeft)}`}>
-                        {maintenance.daysLeft !== undefined && maintenance.daysLeft >= 0 
-                          ? `${maintenance.daysLeft} days` 
-                          : maintenance.daysLeft !== undefined 
-                            ? `${Math.abs(maintenance.daysLeft)} days overdue`
-                            : 'N/A'}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 mb-1">{formatServiceType(maintenance.serviceType)}</p>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xs text-gray-500">Due: {new Date(maintenance.dueDate).toLocaleDateString()}</p>
-                      {maintenance.dueMileage && (
-                        <p className="text-xs text-gray-500">{maintenance.dueMileage.toLocaleString()} miles</p>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Wrench className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>No recent work orders</p>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p>No upcoming maintenance scheduled</p>
+            </div>
+
+            {/* Upcoming Maintenance */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                  <Calendar className="h-5 w-5 mr-2 text-gray-500" />
+                  Upcoming Maintenance
+                </h3>
               </div>
-            )}
+              <div className="p-6">
+                {upcomingMaintenance.length > 0 ? (
+                  <div className="space-y-4">
+                    {upcomingMaintenance.map((maintenance, index) => (
+                      <div key={index} className="p-4 border border-gray-100 rounded-lg hover:shadow-sm transition-shadow bg-gray-50/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <span className="font-bold text-gray-900">{maintenance.model}</span>
+                            <span className="text-xs text-gray-500 ml-2">({maintenance.plateNumber})</span>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getPriorityColor(maintenance.daysLeft)}`}>
+                            {maintenance.daysLeft !== undefined && maintenance.daysLeft >= 0
+                              ? `${maintenance.daysLeft} days`
+                              : maintenance.daysLeft !== undefined
+                                ? `${Math.abs(maintenance.daysLeft)} days overdue`
+                                : 'N/A'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-1">{formatServiceType(maintenance.serviceType)}</p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-gray-500">Due: {new Date(maintenance.dueDate).toLocaleDateString()}</p>
+                          {maintenance.dueMileage && (
+                            <p className="text-xs text-gray-500">{maintenance.dueMileage.toLocaleString()} miles</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>No upcoming maintenance scheduled</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

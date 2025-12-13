@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import type { CSSProperties } from 'react';
 import ExcelJS from 'exceljs';
 import { Plus, Edit, Trash2, Search, Wrench, FileText, Download, AlertCircle, Clock } from 'lucide-react';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
@@ -12,6 +13,26 @@ import {
 } from '../../../../axios/api/generalRepairs';
 import { listFleetUnits } from '../../../../axios/api/fleet.units';
 import { getAllEmployees } from '../../../../axios/api/employee';
+import { FLEET_COLORS } from '../colorUtils';
+
+const ACCENT_PRIMARY = FLEET_COLORS.primary;
+const ACCENT_DARK = FLEET_COLORS.dark;
+const hexToRgba = (hex: string, alpha = 1) => {
+  const parsed = hex.replace('#', '');
+  const bigint = parseInt(parsed, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+const ACCENT_SOFT = hexToRgba(ACCENT_PRIMARY, 0.1);
+const ACCENT_SOFT_BORDER = hexToRgba(ACCENT_PRIMARY, 0.25);
+const ACCENT_VARS = {
+  '--accent-color': ACCENT_PRIMARY,
+  '--accent-dark': ACCENT_DARK,
+  '--accent-soft': ACCENT_SOFT,
+  '--accent-soft-border': ACCENT_SOFT_BORDER
+} as CSSProperties;
 
 interface UnitOption {
   _id?: string;
@@ -248,7 +269,7 @@ const GeneralRepairsLog: React.FC = () => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     sevenDaysAgo.setHours(0, 0, 0, 0);
-    
+
     // Count recent repairs (within last 30 days) as potential incoming maintenance indicators
     const recentRepairs = repairs.filter((repair) => {
       if (!repair.serviceDate) return false;
@@ -273,9 +294,9 @@ const GeneralRepairsLog: React.FC = () => {
     // Get most recent repair date
     const mostRecentRepairDate = recentRepairs.length > 0
       ? recentRepairs
-          .map(r => r.serviceDate ? new Date(r.serviceDate) : null)
-          .filter(Boolean)
-          .sort((a, b) => (b as Date).getTime() - (a as Date).getTime())[0]
+        .map(r => r.serviceDate ? new Date(r.serviceDate) : null)
+        .filter(Boolean)
+        .sort((a, b) => (b as Date).getTime() - (a as Date).getTime())[0]
       : null;
 
     // Recent Activity - all repairs in last 30 days
@@ -291,7 +312,7 @@ const GeneralRepairsLog: React.FC = () => {
       else if (desc.includes('engine')) type = 'Engine';
       else if (desc.includes('transmission')) type = 'Transmission';
       else if (desc.includes('electrical')) type = 'Electrical';
-      
+
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -506,44 +527,51 @@ const GeneralRepairsLog: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl shadow-lg" style={{ background: 'linear-gradient(to bottom right, #016ab2, #063f6f)' }}>
-                <Wrench className="w-8 h-8 text-white" />
-              </div>
+    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
+      <div className="relative max-w-7xl mx-auto">
+        {/* Gradient band */}
+        <div
+          className="absolute inset-x-0 top-0"
+          style={{
+            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            height: '101px'
+          }}
+          aria-hidden="true"
+        />
+
+        <div className="relative z-10 px-4 pt-3 pb-6">
+          {/* Header */}
+          <div className="mb-4 relative z-10">
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-4xl font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
-                  General Repairs Log
-                </h1>
-                <p className="text-gray-600 mt-1 flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  Log non-routine repairs (Tires, Brakes, Accident Repairs)
-                </p>
+                <h1 className="text-xl font-bold text-white">General Repairs Log</h1>
+                <div className="flex items-center gap-2 text-white/90">
+                  <span className="text-xs">Log non-routine repairs (Tires, Brakes, Accident Repairs)</span>
+                </div>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={handleExportRepairs}
-                disabled={exporting}
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-green-600 to-green-700 px-5 py-2.5 font-semibold !text-white shadow-lg transition hover:shadow-xl disabled:opacity-60"
-              >
-                <Download className="w-4 h-4" />
-                {exporting ? 'Preparing Excel...' : 'Export to Excel'}
-              </button>
-              <button
-                onClick={handleAddRepair}
-                className="flex items-center gap-2 px-6 py-3 !text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
-                style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-              >
-                <Plus className="w-5 h-5" />
-                Add Repair
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleExportRepairs}
+                  disabled={exporting}
+                  className="inline-flex items-center gap-2 rounded-lg bg-white text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-white/90 transition disabled:opacity-60"
+                >
+                  <Download className="w-4 h-4" />
+                  {exporting ? 'Exporting...' : 'Export'}
+                </button>
+                <button
+                  onClick={handleAddRepair}
+                  className="flex items-center gap-2 px-4 py-2 bg-white text-[#0ea3d8] rounded-lg hover:bg-white/90 shadow-sm transition-all font-bold text-sm"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add Repair
+                </button>
+              </div>
             </div>
           </div>
+        </div>
 
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 -mt-4">
           {requiresCompanySetup && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
               Please complete your company settings to view repairs.
@@ -555,311 +583,328 @@ const GeneralRepairsLog: React.FC = () => {
           {error && !requiresCompanySetup && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>
           )}
-        </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Incoming Maintenance Card */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600 mb-1">Incoming Maintenance</p>
-                <p className="text-3xl font-bold text-orange-600 mb-2">{summaryStats.incomingMaintenance}</p>
-                <p className="text-xs text-gray-500">Recent repairs requiring attention</p>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {/* Incoming Maintenance Card */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Incoming Maintenance</p>
+                  <p className="text-2xl font-bold text-orange-600 mb-1">{summaryStats.incomingMaintenance}</p>
+                  <p className="text-xs text-gray-500">Recent repairs requiring attention</p>
+                </div>
+                <div className="bg-orange-50 p-3 rounded-lg">
+                  <AlertCircle className="h-6 w-6 text-orange-600" />
+                </div>
               </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <AlertCircle className="h-8 w-8 text-orange-600" />
+              <div className="border-t border-gray-100 pt-3 space-y-1.5">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Last 7 Days</span>
+                  <span className="font-semibold text-orange-600">{summaryStats.urgentRepairs}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Last 30 Days</span>
+                  <span className="font-semibold text-gray-900">{summaryStats.incomingMaintenance}</span>
+                </div>
+                {summaryStats.mostRecentRepairDate && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Most Recent</span>
+                    <span className="font-semibold text-gray-900">
+                      {formatDate(summaryStats.mostRecentRepairDate.toISOString())}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-sm pt-1.5 border-t border-gray-100">
+                  <span className="text-gray-600">Units Affected</span>
+                  <span className="font-semibold text-gray-900">{summaryStats.unitsWithRecentRepairs}</span>
+                </div>
               </div>
             </div>
-            <div className="border-t border-gray-100 pt-4 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Last 7 Days</span>
-                <span className="font-semibold text-orange-600">{summaryStats.urgentRepairs}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Last 30 Days</span>
-                <span className="font-semibold text-gray-900">{summaryStats.incomingMaintenance}</span>
-              </div>
-              {summaryStats.mostRecentRepairDate && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Most Recent</span>
-                  <span className="font-semibold text-gray-900">
-                    {formatDate(summaryStats.mostRecentRepairDate.toISOString())}
-                  </span>
+
+            {/* Recent Repairs Activity Card */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Recent Repairs / Activity</p>
+                  <p className="text-2xl font-bold text-blue-600 mb-1">{summaryStats.recentActivity}</p>
+                  <p className="text-xs text-gray-500">Repairs logged in last 30 days</p>
                 </div>
-              )}
-              <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100">
-                <span className="text-gray-600">Units Affected</span>
-                <span className="font-semibold text-gray-900">{summaryStats.unitsWithRecentRepairs}</span>
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <Clock className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+              <div className="border-t border-gray-100 pt-3 space-y-1.5">
+                {summaryStats.mostRecentRepairDate && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Most Recent</span>
+                    <span className="font-semibold text-gray-900">
+                      {formatDate(summaryStats.mostRecentRepairDate.toISOString())}
+                    </span>
+                  </div>
+                )}
+                {summaryStats.topRepairType && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Top Repair Type</span>
+                    <span className="font-semibold text-blue-600 text-right max-w-[60%] truncate" title={summaryStats.topRepairType}>
+                      {summaryStats.topRepairType}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-sm pt-1.5 border-t border-gray-100">
+                  <span className="text-gray-600">Total Repairs</span>
+                  <span className="font-semibold text-gray-900">{summaryStats.recentActivity}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Recent Repairs Activity Card */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600 mb-1">Recent Repairs / Activity</p>
-                <p className="text-3xl font-bold text-blue-600 mb-2">{summaryStats.recentActivity}</p>
-                <p className="text-xs text-gray-500">Repairs logged in last 30 days</p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <Clock className="h-8 w-8 text-blue-600" />
-              </div>
-            </div>
-            <div className="border-t border-gray-100 pt-4 space-y-2">
-              {summaryStats.mostRecentRepairDate && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Most Recent</span>
-                  <span className="font-semibold text-gray-900">
-                    {formatDate(summaryStats.mostRecentRepairDate.toISOString())}
-                  </span>
-                </div>
-              )}
-              {summaryStats.topRepairType && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Top Repair Type</span>
-                  <span className="font-semibold text-blue-600 text-right max-w-[60%] truncate" title={summaryStats.topRepairType}>
-                    {summaryStats.topRepairType}
-                  </span>
-                </div>
-              )}
-              <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100">
-                <span className="text-gray-600">Total Repairs</span>
-                <span className="font-semibold text-gray-900">{summaryStats.recentActivity}</span>
-              </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
+            <div className="relative">
+              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by unit number, make/model, invoice, or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#016ab2';
+                  e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '';
+                  e.target.style.boxShadow = '';
+                }}
+              />
             </div>
           </div>
-        </div>
 
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
-          <div className="relative">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by unit number, make/model, invoice, or description..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#016ab2';
-                e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '';
-                e.target.style.boxShadow = '';
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Service Date</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Unit Number</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Make/Model</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">VIN/License Plate</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Description</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Odometer</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Parts</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Service Provider</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Invoice Number</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {loading ? (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
-                      Loading repairs...
-                    </td>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Service Date</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Unit Number</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Make/Model</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">VIN/License Plate</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Description</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Odometer</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Parts</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Service Provider</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Invoice Number</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
-                ) : filteredRepairs.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
-                      No repairs found
-                    </td>
-                  </tr>
-                ) : (
-                  filteredRepairs.map((repair) => (
-                    <tr key={repair._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 text-gray-900">{formatDate(repair.serviceDate)}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900">{repair.unitNumber}</td>
-                      <td className="px-6 py-4 text-gray-900">{repair.makeModel || '—'}</td>
-                      <td className="px-6 py-4 text-gray-600 font-mono text-sm">{repair.vinLicensePlate || '—'}</td>
-                      <td className="px-6 py-4 text-gray-900 max-w-xs">
-                        <div className="truncate" title={repair.description}>
-                          {repair.description}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-900">
-                        {typeof repair.odometer === 'number' ? `${repair.odometer.toLocaleString()} km` : '—'}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 max-w-xs">
-                        <div className="truncate" title={repair.parts || undefined}>
-                          {repair.parts || 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-900">{repair.serviceProvider}</td>
-                      <td className="px-6 py-4 text-gray-600 font-mono text-sm">{repair.invoiceNumber}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleEditRepair(repair)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteRepair(repair)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                        Loading repairs...
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {(showAddModal || showEditModal) && (
-          <>
-            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={closeModals} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl z-[101] border-l border-gray-200">
-              <div className="h-full flex flex-col">
-                <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
-                  <h2 className="text-2xl font-bold">{showAddModal ? 'Add General Repair' : 'Edit Repair'}</h2>
-                  <button onClick={closeModals} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
-                    <FaTimes className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                  {formError && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{formError}</div>
+                  ) : filteredRepairs.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                        No repairs found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredRepairs.map((repair) => (
+                      <tr key={repair._id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-gray-900">{formatDate(repair.serviceDate)}</td>
+                        <td className="px-6 py-4 font-medium text-gray-900">{repair.unitNumber}</td>
+                        <td className="px-6 py-4 text-gray-900">{repair.makeModel || '—'}</td>
+                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">{repair.vinLicensePlate || '—'}</td>
+                        <td className="px-6 py-4 text-gray-900 max-w-xs">
+                          <div className="truncate" title={repair.description}>
+                            {repair.description}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-gray-900">
+                          {typeof repair.odometer === 'number' ? `${repair.odometer.toLocaleString()} km` : '—'}
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 max-w-xs">
+                          <div className="truncate" title={repair.parts || undefined}>
+                            {repair.parts || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-gray-900">{repair.serviceProvider}</td>
+                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">{repair.invoiceNumber}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleEditRepair(repair)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteRepair(repair)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
                   )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Service Date *</label>
-                      <input
-                        type="date"
-                        value={formData.serviceDate}
-                        onChange={(e) => setFormData({ ...formData, serviceDate: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#016ab2';
-                          e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '';
-                          e.target.style.boxShadow = '';
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Unit Number *</label>
-                      <select
-                        value={formData.unitNumber}
-                        onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#016ab2';
-                          e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '';
-                          e.target.style.boxShadow = '';
-                        }}
-                      >
-                        <option value="">Select Unit</option>
-                        {units.map((unit) => (
-                          <option key={unit.unitNo} value={unit.unitNo}>
-                            {unit.unitNo} - {unit.makeModel}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Odometer</label>
-                      <input
-                        type="number"
-                        value={formData.odometer}
-                        onChange={(e) => setFormData({ ...formData, odometer: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#016ab2';
-                          e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '';
-                          e.target.style.boxShadow = '';
-                        }}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Service Provider *</label>
-                      {serviceProvidersLoading ? (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 inline-block" />
-                          Loading mechanics...
-                        </div>
-                      ) : serviceProviders.length > 0 ? (
-                        <>
-                          <select
-                            value={providerSelectValue}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              if (!value) {
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {(showAddModal || showEditModal) && (
+            <>
+              <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={closeModals} />
+              <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl z-[101] border-l border-gray-200">
+                <div className="h-full flex flex-col">
+                  <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
+                    <h2 className="text-2xl font-bold">{showAddModal ? 'Add General Repair' : 'Edit Repair'}</h2>
+                    <button onClick={closeModals} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                      <FaTimes className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                    {formError && (
+                      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{formError}</div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Service Date *</label>
+                        <input
+                          type="date"
+                          value={formData.serviceDate}
+                          onChange={(e) => setFormData({ ...formData, serviceDate: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = '#016ab2';
+                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '';
+                            e.target.style.boxShadow = '';
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Unit Number *</label>
+                        <select
+                          value={formData.unitNumber}
+                          onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = '#016ab2';
+                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '';
+                            e.target.style.boxShadow = '';
+                          }}
+                        >
+                          <option value="">Select Unit</option>
+                          {units.map((unit) => (
+                            <option key={unit.unitNo} value={unit.unitNo}>
+                              {unit.unitNo} - {unit.makeModel}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Odometer</label>
+                        <input
+                          type="number"
+                          value={formData.odometer}
+                          onChange={(e) => setFormData({ ...formData, odometer: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = '#016ab2';
+                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '';
+                            e.target.style.boxShadow = '';
+                          }}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Service Provider *</label>
+                        {serviceProvidersLoading ? (
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 inline-block" />
+                            Loading mechanics...
+                          </div>
+                        ) : serviceProviders.length > 0 ? (
+                          <>
+                            <select
+                              value={providerSelectValue}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (!value) {
+                                  setUseCustomProvider(false);
+                                  setFormData((prev) => ({ ...prev, serviceProviderId: undefined, serviceProvider: '' }));
+                                  return;
+                                }
+                                if (value === '__custom__') {
+                                  setUseCustomProvider(true);
+                                  setFormData((prev) => ({ ...prev, serviceProviderId: undefined, serviceProvider: '' }));
+                                  return;
+                                }
+                                const provider = serviceProviders.find((option) => option.id === value);
                                 setUseCustomProvider(false);
-                                setFormData((prev) => ({ ...prev, serviceProviderId: undefined, serviceProvider: '' }));
-                                return;
-                              }
-                              if (value === '__custom__') {
-                                setUseCustomProvider(true);
-                                setFormData((prev) => ({ ...prev, serviceProviderId: undefined, serviceProvider: '' }));
-                                return;
-                              }
-                              const provider = serviceProviders.find((option) => option.id === value);
-                              setUseCustomProvider(false);
-                              setFormData((prev) => ({
-                                ...prev,
-                                serviceProviderId: provider?.id,
-                                serviceProvider: provider?.name || ''
-                              }));
-                            }}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                            onFocus={(e) => {
-                              e.target.style.borderColor = '#016ab2';
-                              e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                            }}
-                            onBlur={(e) => {
-                              e.target.style.borderColor = '';
-                              e.target.style.boxShadow = '';
-                            }}
-                          >
-                            <option value="">Select mechanic</option>
-                            {serviceProviders.map((provider) => (
-                              <option key={provider.id} value={provider.id}>
-                                {provider.name} {provider.role ? `(${provider.role})` : ''}
-                              </option>
-                            ))}
-                            <option value="__custom__">Other / External Vendor</option>
-                          </select>
-                          {useCustomProvider && (
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  serviceProviderId: provider?.id,
+                                  serviceProvider: provider?.name || ''
+                                }));
+                              }}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                              style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                              onFocus={(e) => {
+                                e.target.style.borderColor = '#016ab2';
+                                e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                              }}
+                              onBlur={(e) => {
+                                e.target.style.borderColor = '';
+                                e.target.style.boxShadow = '';
+                              }}
+                            >
+                              <option value="">Select mechanic</option>
+                              {serviceProviders.map((provider) => (
+                                <option key={provider.id} value={provider.id}>
+                                  {provider.name} {provider.role ? `(${provider.role})` : ''}
+                                </option>
+                              ))}
+                              <option value="__custom__">Other / External Vendor</option>
+                            </select>
+                            {useCustomProvider && (
+                              <input
+                                type="text"
+                                value={formData.serviceProvider}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    serviceProvider: e.target.value,
+                                    serviceProviderId: undefined
+                                  })
+                                }
+                                className="mt-3 w-full px-4 !mt-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                                style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                                placeholder="Enter shop or vendor name"
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <>
                             <input
                               type="text"
                               value={formData.serviceProvider}
@@ -870,189 +915,169 @@ const GeneralRepairsLog: React.FC = () => {
                                   serviceProviderId: undefined
                                 })
                               }
-                              className="mt-3 w-full px-4 !mt-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
                               style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                               placeholder="Enter shop or vendor name"
                             />
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <input
-                            type="text"
-                            value={formData.serviceProvider}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                serviceProvider: e.target.value,
-                                serviceProviderId: undefined
-                              })
-                            }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                            placeholder="Enter shop or vendor name"
-                          />
-                          <p className="text-xs text-gray-500 mt-2">
-                            Add an employee with a mechanic role to auto-populate this list.
-                          </p>
-                        </>
-                      )}
-                      {serviceProvidersError && (
-                        <p className="text-sm text-red-600 mt-2">{serviceProvidersError}</p>
-                      )}
+                            <p className="text-xs text-gray-500 mt-2">
+                              Add an employee with a mechanic role to auto-populate this list.
+                            </p>
+                          </>
+                        )}
+                        {serviceProvidersError && (
+                          <p className="text-sm text-red-600 mt-2">{serviceProvidersError}</p>
+                        )}
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                        <textarea
+                          value={formData.description}
+                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = '#016ab2';
+                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '';
+                            e.target.style.boxShadow = '';
+                          }}
+                          placeholder="Be specific, e.g., 'Front right tire blow out - replaced'"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Parts</label>
+                        <textarea
+                          value={formData.parts}
+                          onChange={(e) => setFormData({ ...formData, parts: e.target.value })}
+                          rows={2}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = '#016ab2';
+                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '';
+                            e.target.style.boxShadow = '';
+                          }}
+                          placeholder="List major parts used"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Number *</label>
+                        <input
+                          type="text"
+                          value={formData.invoiceNumber}
+                          onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus-border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = '#016ab2';
+                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '';
+                            e.target.style.boxShadow = '';
+                          }}
+                          placeholder="INV-REP-2024-001"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                        <textarea
+                          value={formData.notes}
+                          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                          rows={2}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = '#016ab2';
+                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '';
+                            e.target.style.boxShadow = '';
+                          }}
+                          placeholder="e.g., 'Passed post-repair inspection'"
+                        />
+                      </div>
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
-                      <textarea
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        rows={3}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#016ab2';
-                          e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '';
-                          e.target.style.boxShadow = '';
-                        }}
-                        placeholder="Be specific, e.g., 'Front right tire blow out - replaced'"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Parts</label>
-                      <textarea
-                        value={formData.parts}
-                        onChange={(e) => setFormData({ ...formData, parts: e.target.value })}
-                        rows={2}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#016ab2';
-                          e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '';
-                          e.target.style.boxShadow = '';
-                        }}
-                        placeholder="List major parts used"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Number *</label>
-                      <input
-                        type="text"
-                        value={formData.invoiceNumber}
-                        onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus-border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#016ab2';
-                          e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '';
-                          e.target.style.boxShadow = '';
-                        }}
-                        placeholder="INV-REP-2024-001"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                      <textarea
-                        value={formData.notes}
-                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                        rows={2}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#016ab2';
-                          e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '';
-                          e.target.style.boxShadow = '';
-                        }}
-                        placeholder="e.g., 'Passed post-repair inspection'"
-                      />
+                    <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-6">
+                      <button
+                        onClick={closeModals}
+                        className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveRepair}
+                        disabled={saving}
+                        className={`px-6 py-2 !text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
+                          }`}
+                        style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                      >
+                        {saving ? 'Saving...' : showAddModal ? 'Add Repair' : 'Save Changes'}
+                      </button>
                     </div>
                   </div>
-                  <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-6">
+                </div>
+              </div>
+            </>
+          )}
+
+          {showDeleteModal && selectedRepair && (
+            <>
+              <div
+                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998]"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setSelectedRepair(null);
+                }}
+              />
+              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[9999] w-full max-w-md">
+                <div className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                      <FaExclamationCircle className="text-red-600" size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Delete Repair</h3>
+                      <p className="text-sm text-gray-500">This action cannot be undone</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 mb-6">
+                    Are you sure you want to delete this repair record for unit <strong>{selectedRepair.unitNumber}</strong>?
+                  </p>
+                  <div className="flex justify-end gap-3">
                     <button
-                      onClick={closeModals}
+                      onClick={() => {
+                        setShowDeleteModal(false);
+                        setSelectedRepair(null);
+                      }}
                       className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       Cancel
                     </button>
                     <button
-                      onClick={handleSaveRepair}
-                      disabled={saving}
-                      className={`px-6 py-2 !text-white rounded-lg transition-colors ${
-                        saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
-                      }`}
-                      style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                      onClick={handleConfirmDelete}
+                      disabled={deleting}
+                      className={`px-6 py-2 rounded-lg !text-white transition-colors ${deleting ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                        }`}
                     >
-                      {saving ? 'Saving...' : showAddModal ? 'Add Repair' : 'Save Changes'}
+                      {deleting ? 'Deleting...' : 'Delete'}
                     </button>
                   </div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
-
-        {showDeleteModal && selectedRepair && (
-          <>
-            <div
-              className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998]"
-              onClick={() => {
-                setShowDeleteModal(false);
-                setSelectedRepair(null);
-              }}
-            />
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[9999] w-full max-w-md">
-              <div className="p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                    <FaExclamationCircle className="text-red-600" size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Delete Repair</h3>
-                    <p className="text-sm text-gray-500">This action cannot be undone</p>
-                  </div>
-                </div>
-                <p className="text-gray-700 mb-6">
-                  Are you sure you want to delete this repair record for unit <strong>{selectedRepair.unitNumber}</strong>?
-                </p>
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => {
-                      setShowDeleteModal(false);
-                      setSelectedRepair(null);
-                    }}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleConfirmDelete}
-                    disabled={deleting}
-                    className={`px-6 py-2 rounded-lg !text-white transition-colors ${
-                      deleting ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
-                    }`}
-                  >
-                    {deleting ? 'Deleting...' : 'Delete'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
 export default GeneralRepairsLog;
-

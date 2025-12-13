@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import type { CSSProperties } from 'react';
 import ExcelJS from 'exceljs';
 import { Plus, Edit, Trash2, Search, Shield, AlertTriangle, Calendar, Download } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
@@ -11,6 +12,26 @@ import {
   type RegulatorySafetyPayload
 } from '../../../../axios/api/regulatorySafety';
 import { listFleetUnits } from '../../../../axios/api/fleet.units';
+import { FLEET_COLORS } from '../colorUtils';
+
+const ACCENT_PRIMARY = FLEET_COLORS.primary;
+const ACCENT_DARK = FLEET_COLORS.dark;
+const hexToRgba = (hex: string, alpha = 1) => {
+  const parsed = hex.replace('#', '');
+  const bigint = parseInt(parsed, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+const ACCENT_SOFT = hexToRgba(ACCENT_PRIMARY, 0.1);
+const ACCENT_SOFT_BORDER = hexToRgba(ACCENT_PRIMARY, 0.25);
+const ACCENT_VARS = {
+  '--accent-color': ACCENT_PRIMARY,
+  '--accent-dark': ACCENT_DARK,
+  '--accent-soft': ACCENT_SOFT,
+  '--accent-soft-border': ACCENT_SOFT_BORDER
+} as CSSProperties;
 
 type UnitStatus = 'Active' | 'Inactive';
 type TruckType = 'Semi-Truck' | 'Straight Truck' | 'Box Truck' | 'Flatbed' | 'Refrigerated Truck' | 'Dump Truck' | 'Tow Truck';
@@ -428,44 +449,51 @@ const RegulatorySafety: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl shadow-lg" style={{ background: 'linear-gradient(to bottom right, #016ab2, #063f6f)' }}>
-                <Shield className="w-8 h-8 text-white" />
-              </div>
+    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
+      <div className="relative max-w-7xl mx-auto">
+        {/* Gradient band */}
+        <div
+          className="absolute inset-x-0 top-0"
+          style={{
+            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            height: '101px'
+          }}
+          aria-hidden="true"
+        />
+
+        <div className="relative z-10 px-4 pt-3 pb-6">
+          {/* Header */}
+          <div className="mb-4 relative z-10">
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-4xl font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
-                  Regulatory & Safety
-                </h1>
-                <p className="text-gray-600 mt-1 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  Track inspections and safety expiry dates
-                </p>
+                <h1 className="text-xl font-bold text-white">Regulatory & Safety</h1>
+                <div className="flex items-center gap-2 text-white/90">
+                  <span className="text-xs">Track inspections and safety expiry dates</span>
+                </div>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={handleExportSafety}
-                disabled={exporting}
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-green-600 to-green-700 px-5 py-2.5 font-semibold !text-white shadow-lg transition hover:shadow-xl disabled:opacity-60"
-              >
-                <Download className="w-4 h-4" />
-                {exporting ? 'Preparing Excel...' : 'Export to Excel'}
-              </button>
-              <button
-                onClick={handleAddRecord}
-                className="flex items-center gap-2 px-6 py-3 !text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
-                style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-              >
-                <Plus className="w-5 h-5" />
-                Add Safety Record
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleExportSafety}
+                  disabled={exporting}
+                  className="inline-flex items-center gap-2 rounded-lg bg-white text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-white/90 transition disabled:opacity-60"
+                >
+                  <Download className="w-4 h-4" />
+                  {exporting ? 'Exporting...' : 'Export'}
+                </button>
+                <button
+                  onClick={handleAddRecord}
+                  className="flex items-center gap-2 px-4 py-2 bg-white text-[#0ea3d8] rounded-lg hover:bg-white/90 shadow-sm transition-all font-bold text-sm"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add Record
+                </button>
+              </div>
             </div>
           </div>
+        </div>
 
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 -mt-4">
           {requiresCompanySetup && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
               Please complete your company settings to view safety records.
@@ -477,150 +505,154 @@ const RegulatorySafety: React.FC = () => {
           {error && !requiresCompanySetup && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>
           )}
-        </div>
 
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
-          <div className="relative">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by unit number, make/model, invoice, or decal number..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#016ab2';
-                e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '';
-                e.target.style.boxShadow = '';
-              }}
-            />
+          {/* Search */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
+            <div className="relative">
+              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by unit number, make/model, invoice, or decal number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#016ab2';
+                  e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '';
+                  e.target.style.boxShadow = '';
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            {UNIT_FILTERS.map((filter) => (
+              <button
+                key={filter.key}
+                type="button"
+                onClick={() => setUnitFilter(filter.key)}
+                className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all ${unitFilter === filter.key ? '!text-white shadow-md' : 'text-gray-600 bg-white hover:text-gray-900'
+                  }`}
+                style={
+                  unitFilter === filter.key
+                    ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: 'transparent' }
+                    : { borderColor: 'rgba(0,0,0,0.08)' }
+                }
+              >
+                {filter.label}
+              </button>
+            ))}
+            <span className="text-sm text-gray-500">
+              Showing {filteredRecords.length} of {records.length} safety record{records.length === 1 ? '' : 's'}
+            </span>
+          </div>
+
+          {/* Table */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Unit No.</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Unit Type</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Make/Model</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Safety Expiry</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Safety Decal Number</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Safety Paper Number</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Shop Name</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Invoice No.</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                        Loading safety records...
+                      </td>
+                    </tr>
+                  ) : filteredRecords.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                        {unitFilter === 'all' ? 'No safety records found' : 'No records match the selected filter'}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredRecords.map((record) => {
+                      const status = getExpiryStatus(record.safetyExpiryDate);
+                      const rowAccent =
+                        status.status === 'expired'
+                          ? 'border-l-4 border-red-400'
+                          : status.status === 'warning'
+                            ? 'border-l-4 border-amber-400'
+                            : 'border-l-4 border-transparent';
+                      return (
+                        <tr
+                          key={record._id}
+                          className={`hover:bg-gray-50 transition-colors ${rowAccent}`}
+                        >
+                          <td className="px-6 py-4 font-medium text-gray-900">{record.unitNo}</td>
+                          <td className="px-6 py-4">
+                            <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                              {record.unitType || 'Unit'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-gray-900">{record.makeModel || '—'}</td>
+                          <td className="px-6 py-4 text-gray-900">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-gray-400" />
+                              {formatDate(record.safetyExpiryDate)}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-4 py-2 text-xs font-semibold rounded-full ${status.color}`}>
+                              {status.status === 'expired' && <FaExclamationCircle className="mr-1" size={12} />}
+                              {status.status === 'warning' && <AlertTriangle className="mr-1" size={12} />}
+                              {status.status === 'ok' && <FaCheckCircle className="mr-1" size={12} />}
+                              {status.text}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-gray-600 font-mono text-sm">{record.safetyDecalNumber || '—'}</td>
+                          <td className="px-6 py-4 text-gray-600 font-mono text-sm">{record.safetyPaperNumber || '—'}</td>
+                          <td className="px-6 py-4 text-gray-900">{record.shopName || '—'}</td>
+                          <td className="px-6 py-4 text-gray-600 font-mono text-sm">{record.invoiceNo || '—'}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleEditRecord(record)}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteRecord(record)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          {UNIT_FILTERS.map((filter) => (
-            <button
-              key={filter.key}
-              type="button"
-              onClick={() => setUnitFilter(filter.key)}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all ${
-                unitFilter === filter.key ? '!text-white shadow-md' : 'text-gray-600 bg-white hover:text-gray-900'
-              }`}
-              style={
-                unitFilter === filter.key
-                  ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: 'transparent' }
-                  : { borderColor: 'rgba(0,0,0,0.08)' }
-              }
-            >
-              {filter.label}
-            </button>
-          ))}
-          <span className="text-sm text-gray-500">
-            Showing {filteredRecords.length} of {records.length} safety record{records.length === 1 ? '' : 's'}
-          </span>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Unit No.</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Unit Type</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Make/Model</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Safety Expiry</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Safety Decal Number</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Safety Paper Number</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Shop Name</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Invoice No.</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {loading ? (
-                  <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
-                      Loading safety records...
-                    </td>
-                  </tr>
-                ) : filteredRecords.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
-                      {unitFilter === 'all' ? 'No safety records found' : 'No records match the selected filter'}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredRecords.map((record) => {
-                    const status = getExpiryStatus(record.safetyExpiryDate);
-                    const rowAccent =
-                      status.status === 'expired'
-                        ? 'border-l-4 border-red-400'
-                        : status.status === 'warning'
-                          ? 'border-l-4 border-amber-400'
-                          : 'border-l-4 border-transparent';
-                    return (
-                      <tr
-                        key={record._id}
-                        className={`hover:bg-gray-50 transition-colors ${rowAccent}`}
-                      >
-                        <td className="px-6 py-4 font-medium text-gray-900">{record.unitNo}</td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {record.unitType || 'Unit'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-gray-900">{record.makeModel || '—'}</td>
-                        <td className="px-6 py-4 text-gray-900">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
-                            {formatDate(record.safetyExpiryDate)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex px-4 py-2 text-xs font-semibold rounded-full ${status.color}`}>
-                            {status.status === 'expired' && <FaExclamationCircle className="mr-1" size={12} />}
-                            {status.status === 'warning' && <AlertTriangle className="mr-1" size={12} />}
-                            {status.status === 'ok' && <FaCheckCircle className="mr-1" size={12} />}
-                            {status.text}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">{record.safetyDecalNumber || '—'}</td>
-                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">{record.safetyPaperNumber || '—'}</td>
-                        <td className="px-6 py-4 text-gray-900">{record.shopName || '—'}</td>
-                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">{record.invoiceNo || '—'}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditRecord(record)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteRecord(record)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {(showAddModal || showEditModal) && (
+      {
+        (showAddModal || showEditModal) && (
           <>
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={closeModals} />
             <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl z-[101] border-l border-gray-200">
@@ -784,9 +816,7 @@ const RegulatorySafety: React.FC = () => {
                     <button
                       onClick={handleSaveRecord}
                       disabled={saving}
-                      className={`px-6 py-2 !text-white rounded-lg transition-colors ${
-                        saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
-                      }`}
+                      className={`px-6 py-2 !text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
                       style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
                     >
                       {saving ? 'Saving...' : showAddModal ? 'Add Record' : 'Save Changes'}
@@ -794,11 +824,13 @@ const RegulatorySafety: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div >
           </>
-        )}
+        )
+      }
 
-        {showDeleteModal && selectedRecord && (
+      {
+        showDeleteModal && selectedRecord && (
           <>
             <div
               className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998]"
@@ -834,9 +866,7 @@ const RegulatorySafety: React.FC = () => {
                   <button
                     onClick={handleConfirmDelete}
                     disabled={deleting}
-                    className={`px-6 py-2 rounded-lg text-white transition-colors ${
-                      deleting ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
-                    }`}
+                    className={`px-6 py-2 rounded-lg text-white transition-colors ${deleting ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
                   >
                     {deleting ? 'Deleting...' : 'Delete'}
                   </button>
@@ -844,11 +874,10 @@ const RegulatorySafety: React.FC = () => {
               </div>
             </div>
           </>
-        )}
-      </div>
-    </div>
+        )
+      }
+    </div >
   );
 };
 
 export default RegulatorySafety;
-

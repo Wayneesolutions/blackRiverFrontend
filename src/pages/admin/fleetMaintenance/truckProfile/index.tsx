@@ -10,9 +10,23 @@ import {
   FaTrailer,
   FaSpinner,
 } from "react-icons/fa";
-import { FLEET_COLORS } from "../colorUtils";
+// import { FLEET_COLORS } from "../colorUtils"; // Removing dependency on old colorUtils for new design
 import { getTruckProfile } from "../../../../axios/api/admin";
 import { listFleetUnits } from "../../../../axios/api/fleet.units";
+
+// Helper Component for Stats
+const StatCard = ({ title, value, subtitle, icon: Icon, bgColor, iconColor }: any) => (
+  <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-lg flex items-start justify-between">
+    <div>
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{title}</p>
+      <h3 className="text-2xl font-bold text-gray-900 mt-2">{value}</h3>
+      <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
+    </div>
+    <div className={`p-3 rounded-lg ${bgColor}`}>
+      <Icon className={`w-6 h-6 ${iconColor}`} />
+    </div>
+  </div>
+);
 
 // Static data types
 type VehicleProfileData = {
@@ -121,12 +135,6 @@ type VehicleProfileData = {
       reference: string;
     }>;
   };
-};
-
-
-const sectionCardStyle = {
-  borderColor: FLEET_COLORS.focusRing,
-  boxShadow: `0 18px 35px ${FLEET_COLORS.focusRing}`,
 };
 
 const TruckProfile = () => {
@@ -258,10 +266,10 @@ const TruckProfile = () => {
   // Loading state
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-[#EDF8FF] p-6 flex items-center justify-center">
         <div className="text-center">
           <FaSpinner className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading {activeTab === "truck" ? "truck" : "trailer"} profile...</p>
+          <p className="text-gray-600 font-medium">Loading {activeTab === "truck" ? "truck" : "trailer"} profile...</p>
         </div>
       </div>
     );
@@ -270,9 +278,13 @@ const TruckProfile = () => {
   // No units available
   if (!selectedVehicle && units.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-gray-600 text-center py-12">No {activeTab === "truck" ? "trucks" : "trailers"} found.</p>
+      <div className="min-h-screen bg-[#EDF8FF] p-6">
+        <div className="max-w-7xl mx-auto text-center py-20">
+          <div className="bg-white rounded-2xl p-10 shadow-lg inline-block">
+            <FaExclamationTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900">No Units Found</h3>
+            <p className="text-gray-500 mt-2">No {activeTab === "truck" ? "trucks" : "trailers"} are currently available in the system.</p>
+          </div>
         </div>
       </div>
     );
@@ -281,419 +293,438 @@ const TruckProfile = () => {
   // No selected vehicle
   if (!selectedVehicle) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-gray-600 text-center py-12">No profile data available for selected unit.</p>
+      <div className="min-h-screen bg-[#EDF8FF] p-6">
+        <div className="max-w-7xl mx-auto text-center py-20">
+          <div className="bg-white rounded-2xl p-10 shadow-lg inline-block">
+            <FaExclamationTriangle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900">No Profile Data</h3>
+            <p className="text-gray-500 mt-2">No profile data available for the selected unit.</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF] p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="mb-8">
+    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
+      <div className="relative max-w-7xl mx-auto">
+        {/* Gradient Banner */}
+        <div
+          className="absolute inset-x-0 top-0"
+          style={{
+            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            height: '140px'
+          }}
+          aria-hidden="true"
+        />
 
-          {/* TOP ROW → LEFT (title) | RIGHT (filters) */}
-          <div className="flex justify-between items-start">
-
-            {/* LEFT SIDE → Title + Description */}
-            <div className="flex items-center gap-4">
-              <div
-                className="p-3 rounded-2xl shadow-lg"
-                style={{ background: FLEET_COLORS.gradient }}
-              >
-                {activeTab === "truck" ? (
-                  <FaTruck className="w-8 h-8 text-white" />
-                ) : (
-                  <FaTrailer className="w-8 h-8 text-white" />
-                )}
+        <div className="relative z-10 px-4 pt-6 pb-6">
+          {/* Header & Filters Container */}
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
+            {/* Title Section */}
+            <div>
+              <div className="flex items-center gap-3 text-white mb-2">
+                {activeTab === "truck" ? <FaTruck className="w-6 h-6 text-white/90" /> : <FaTrailer className="w-6 h-6 text-white/90" />}
+                <h1 className="text-3xl font-bold text-white tracking-tight">{activeTab === "truck" ? "Truck Profile" : "Trailer Profile"}</h1>
               </div>
+              <p className="text-blue-50 text-sm font-medium opacity-90 ml-9">
+                Comprehensive analytics and maintenance history for {selectedVehicle.makeModel}
+              </p>
 
-              <div>
-                <h1
-                  className="text-4xl font-bold bg-clip-text text-transparent"
-                  style={{ backgroundImage: FLEET_COLORS.gradient }}
+              {/* Tab Switcher */}
+              <div className="flex gap-2 mt-6 ml-1">
+                <button
+                  onClick={() => { setActiveTab("truck"); setSelectedUnit(""); }}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "truck" ? "bg-white text-blue-600 shadow-md" : "bg-white/20 text-white hover:bg-white/30"
+                    }`}
                 >
-                  {activeTab === "truck" ? "Truck Profile" : "Trailer Profile"}
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Comprehensive {activeTab === "truck" ? "truck" : "trailer"} information and analytics
-                </p>
+                  Trucks
+                </button>
+                <button
+                  onClick={() => { setActiveTab("trailer"); setSelectedUnit(""); }}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "trailer" ? "bg-white text-blue-600 shadow-md" : "bg-white/20 text-white hover:bg-white/30"
+                    }`}
+                >
+                  Trailers
+                </button>
               </div>
+
             </div>
 
-            {/* RIGHT SIDE → Filters in a vertical stack */}
-            <div className="flex flex-col gap-4 text-right pt-2">
-
-              {/* SELECT TRUCK / TRAILER */}
-              <div className="flex items-center gap-3 justify-end">
-                <label className="font-semibold text-gray-700 whitespace-nowrap">
-                  Select {activeTab === "truck" ? "Truck" : "Trailer"}:
-                </label>
+            {/* Filters Section */}
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 flex flex-col sm:flex-row gap-4">
+              <div>
+                <label className="block text-xs font-bold text-white uppercase tracking-wider mb-1">Select Unit</label>
                 <select
                   value={selectedUnit}
                   onChange={(e) => setSelectedUnit(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ borderColor: FLEET_COLORS.focusRing }}
+                  className="w-full sm:w-40 px-3 py-2 bg-white text-gray-800 text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 border-none"
                 >
                   {units.map((unit) => (
-                    <option key={unit._id} value={unit.unitNo}>
-                      {unit.unitNo}
-                    </option>
+                    <option key={unit._id} value={unit.unitNo}>{unit.unitNo}</option>
                   ))}
                 </select>
               </div>
-
-              {/* TIME PERIOD */}
-              <div className="flex items-center gap-3 justify-end">
-                <label className="font-semibold text-gray-700 whitespace-nowrap">
-                  Time Period:
-                </label>
+              <div>
+                <label className="block text-xs font-bold text-white uppercase tracking-wider mb-1">Time Period</label>
                 <select
                   value={timeFilter}
-                  onChange={(e) =>
-                    setTimeFilter(e.target.value as "30d" | "60d" | "90d" | "all")
-                  }
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ borderColor: FLEET_COLORS.focusRing }}
+                  onChange={(e) => setTimeFilter(e.target.value as any)}
+                  className="w-full sm:w-40 px-3 py-2 bg-white text-gray-800 text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 border-none"
                 >
                   <option value="30d">Last 30 Days</option>
                   <option value="60d">Last 60 Days</option>
                   <option value="90d">Last 90 Days</option>
+                  <option value="all">All Time</option>
                 </select>
               </div>
             </div>
           </div>
 
-          {/* TABS BELOW TITLE */}
-          <div className="flex gap-2 mt-6">
-            <button
-              onClick={() => {
-                setActiveTab("truck");
-                setSelectedUnit("");
-              }}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === "truck"
-                  ? "!text-white shadow-lg"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
-              style={activeTab === "truck" ? { background: FLEET_COLORS.gradient } : {}}
-            >
-              <FaTruck className="inline mr-2" />
-              Truck Profile
-            </button>
-
-            <button
-              onClick={() => {
-                setActiveTab("trailer");
-                setSelectedUnit("");
-              }}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === "trailer"
-                  ? "!text-white shadow-lg"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
-              style={activeTab === "trailer" ? { background: FLEET_COLORS.gradient } : {}}
-            >
-              <FaTrailer className="inline mr-2" />
-              Trailer Profile
-            </button>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <StatCard
+              title="Total Service Cost"
+              value={`CA$ ${totalServiceCost.toLocaleString()}`}
+              subtitle="Maintenance spend"
+              icon={FaWrench}
+              bgColor="bg-blue-50"
+              iconColor="text-blue-600"
+            />
+            <StatCard
+              title="Repair Downtime"
+              value={`${totalRepairDowntime} hours`}
+              subtitle="Total operational loss"
+              icon={FaExclamationTriangle}
+              bgColor="bg-orange-50"
+              iconColor="text-orange-600"
+            />
+            <StatCard
+              title="Tickets Issued"
+              value={totalTickets}
+              subtitle="Compliance violations"
+              icon={FaTicketAlt}
+              bgColor="bg-yellow-50"
+              iconColor="text-yellow-600"
+            />
+            <StatCard
+              title="Incidents & Accidents"
+              value={totalIncidents}
+              subtitle="Safety events reported"
+              icon={FaShieldAlt}
+              bgColor="bg-red-50"
+              iconColor="text-red-600"
+            />
           </div>
 
-        </header>
 
+          {/* Vehicle Information Card */}
+          <section className="rounded-xl border border-gray-100 shadow-lg bg-white p-6 grid grid-cols-1 gap-6 lg:grid-cols-4 mb-6 relative overflow-hidden">
 
+            {/* Decorative side bar */}
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-blue-600"></div>
 
-        {/* Vehicle Information Card */}
-        <section
-          className="rounded-2xl border bg-white p-6 grid grid-cols-1 gap-6 lg:grid-cols-4 mb-6"
-          style={sectionCardStyle}
-        >
-          <div className="lg:col-span-2 space-y-2">
-            <p className="text-xs font-semibold uppercase text-gray-500">{activeTab === "truck" ? "Vehicle" : "Trailer"}</p>
-            <h2 className="text-2xl font-bold text-gray-900">{selectedVehicle.makeModel}</h2>
-            <p className="text-sm text-gray-500">
-              VIN {selectedVehicle.vinNo} • Plate {selectedVehicle.licensePlate}
-            </p>
-            {activeTab === "truck" && selectedVehicle.currentDriver && (
-              <p className="text-sm text-gray-500">
-                Assigned Driver:{" "}
-                <span className="font-semibold text-gray-800">{selectedVehicle.currentDriver.name}</span>
-                {selectedVehicle.currentDriver.phone && <> • {selectedVehicle.currentDriver.phone}</>}
-              </p>
-            )}
-            <div className="mt-4 flex flex-wrap gap-3">
-              <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                {selectedVehicle.status}
-              </span>
-              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                {selectedVehicle.operationStatus}
-              </span>
-              {selectedVehicle.currentAssignment && (
-                <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
-                  {selectedVehicle.currentAssignment.type === "load" ? "Active Load" : "Active Trip"}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <p className="text-xs font-semibold uppercase text-gray-500">Odometer</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {activeTab === "truck" ? selectedVehicle.currentOdometer.toLocaleString() : "N/A"} {activeTab === "truck" ? "mi" : ""}
-              </p>
-            </div>
-            {selectedVehicle.currentLocation && (
-              <div>
-                <p className="text-xs font-semibold uppercase text-gray-500">Location</p>
-                <p className="text-sm font-medium text-gray-900">{selectedVehicle.currentLocation.address}</p>
+            <div className="lg:col-span-2 space-y-2">
+              <p className="text-xs font-bold uppercase text-gray-400 tracking-wider">Vehicle Details</p>
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-gray-900">{selectedVehicle.makeModel}</h2>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200">{selectedVehicle.year}</span>
               </div>
-            )}
-          </div>
-          <div className="space-y-4">
-            <div>
-              <p className="text-xs font-semibold uppercase text-gray-500">Year</p>
-              <p className="text-2xl font-bold text-gray-900">{selectedVehicle.year || "N/A"}</p>
+
+              <p className="text-sm text-gray-500 font-medium">
+                VIN: <span className="text-gray-800">{selectedVehicle.vinNo}</span> • Plate: <span className="text-gray-800">{selectedVehicle.licensePlate}</span>
+              </p>
+              {activeTab === "truck" && selectedVehicle.currentDriver && (
+                <p className="text-sm text-gray-500 mt-2">
+                  Driver: <span className="font-semibold text-blue-700">{selectedVehicle.currentDriver.name}</span>
+                  <span className="text-xs text-gray-400 ml-2">{selectedVehicle.currentDriver.phone}</span>
+                </p>
+              )}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className={`rounded-lg px-3 py-1 text-xs font-bold ${selectedVehicle.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                  {selectedVehicle.status}
+                </span>
+                <span className="rounded-lg bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                  {selectedVehicle.operationStatus}
+                </span>
+              </div>
             </div>
-            {selectedVehicle.currentAssignment && (
+
+            <div className="space-y-4 pt-2">
               <div>
-                <p className="text-xs font-semibold uppercase text-gray-500">Current Assignment</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {selectedVehicle.currentAssignment.loadNumber || selectedVehicle.currentAssignment.tripNumber}
+                <p className="text-xs font-bold uppercase text-gray-400 tracking-wider">Odometer</p>
+                <p className="text-xl font-bold text-gray-900 font-mono">
+                  {activeTab === "truck" ? selectedVehicle.currentOdometer.toLocaleString() : "N/A"} <span className="text-sm text-gray-500 font-sans">{activeTab === "truck" ? "mi" : ""}</span>
                 </p>
               </div>
-            )}
-          </div>
-        </section>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white rounded-xl border p-6" style={sectionCardStyle}>
-            <div className="flex items-center justify-between mb-2">
-              <FaWrench className="w-6 h-6" style={{ color: FLEET_COLORS.primary }} />
-              <span className="text-2xl font-bold text-gray-900">{totalServiceCost}</span>
-            </div>
-            <p className="text-sm font-semibold text-gray-700">Total Service Cost</p>
-            <p className="text-xs text-gray-500 mt-1">CA$ {totalServiceCost.toLocaleString()}</p>
-          </div>
-
-          <div className="bg-white rounded-xl border p-6" style={sectionCardStyle}>
-            <div className="flex items-center justify-between mb-2">
-              <FaExclamationTriangle className="w-6 h-6 text-orange-500" />
-              <span className="text-2xl font-bold text-gray-900">{totalRepairDowntime}</span>
-            </div>
-            <p className="text-sm font-semibold text-gray-700">Repair Downtime</p>
-            <p className="text-xs text-gray-500 mt-1">{totalRepairDowntime} hours</p>
-          </div>
-
-          <div className="bg-white rounded-xl border p-6" style={sectionCardStyle}>
-            <div className="flex items-center justify-between mb-2">
-              <FaTicketAlt className="w-6 h-6 text-yellow-500" />
-              <span className="text-2xl font-bold text-gray-900">{totalTickets}</span>
-            </div>
-            <p className="text-sm font-semibold text-gray-700">Tickets</p>
-            <p className="text-xs text-gray-500 mt-1">Total violations</p>
-          </div>
-
-          <div className="bg-white rounded-xl border p-6" style={sectionCardStyle}>
-            <div className="flex items-center justify-between mb-2">
-              <FaShieldAlt className="w-6 h-6 text-red-500" />
-              <span className="text-2xl font-bold text-gray-900">{totalIncidents}</span>
-            </div>
-            <p className="text-sm font-semibold text-gray-700">Incidents & Accidents</p>
-            <p className="text-xs text-gray-500 mt-1">Total reported</p>
-          </div>
-        </div>
-
-        {/* Compliance Section */}
-        <section className="bg-white rounded-xl border p-6 mb-6" style={sectionCardStyle}>
-          <div className="flex items-center gap-3 mb-6">
-            <FaShieldAlt className="w-6 h-6" style={{ color: FLEET_COLORS.primary }} />
-            <h3 className="text-xl font-bold text-gray-900">Compliance & Safety</h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="border border-gray-300 rounded-lg p-4">
-
-              <div className="flex items-center justify-between mb-3">
-                <FaClipboardCheck className="w-5 h-5 text-blue-500" />
-                <span className={`px-2 py-1 text-xs font-semibold rounded ${selectedVehicle.compliance?.cvsa?.result === "Pass" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                  }`}>
-                  {selectedVehicle.compliance?.cvsa?.result || "N/A"}
-                </span>
-              </div>
-              <p className="text-sm font-semibold text-gray-700">Last CVSA Inspection</p>
-              <p className="text-xs text-gray-500 mt-1">{selectedVehicle.compliance?.cvsa?.lastInspection || "N/A"}</p>
-              <p className="text-xs text-gray-500">Officer: {selectedVehicle.compliance?.cvsa?.officer || "N/A"}</p>
-              {selectedVehicle.compliance?.cvsa?.violations && selectedVehicle.compliance.cvsa.violations.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-xs font-semibold text-red-600">Violations:</p>
-                  <ul className="text-xs text-gray-600 list-disc list-inside">
-                    {selectedVehicle.compliance.cvsa.violations.map((v, i) => (
-                      <li key={i}>{v}</li>
-                    ))}
-                  </ul>
+              {selectedVehicle.currentLocation && (
+                <div>
+                  <p className="text-xs font-bold uppercase text-gray-400 tracking-wider">Location</p>
+                  <p className="text-sm font-semibold text-gray-800 truncate">{selectedVehicle.currentLocation.address || "Unknown"}</p>
                 </div>
               )}
             </div>
 
-            <div className="border border-gray-300 rounded-lg p-4">
+            <div className="space-y-4 pt-2">
+              {selectedVehicle.currentAssignment && (
+                <div>
+                  <p className="text-xs font-bold uppercase text-gray-400 tracking-wider">Current Assignment</p>
+                  <div className="mt-1">
+                    <span className="inline-block px-2 py-1 rounded-md bg-purple-50 text-purple-700 text-xs font-bold mb-1">
+                      {selectedVehicle.currentAssignment.type === "load" ? "Load" : "Trip"}
+                    </span>
+                    <p className="text-lg font-bold text-gray-900">
+                      {selectedVehicle.currentAssignment.loadNumber || selectedVehicle.currentAssignment.tripNumber}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {!selectedVehicle.currentAssignment && (
+                <div>
+                  <p className="text-xs font-bold uppercase text-gray-400 tracking-wider">Assignment</p>
+                  <p className="text-sm font-medium text-gray-500 italic mt-1">Unassigned</p>
+                </div>
+              )}
+            </div>
+          </section>
 
-              <div className="flex items-center gap-2 mb-3">
-                <FaTicketAlt className="w-5 h-5 text-yellow-500" />
-                <p className="text-sm font-semibold text-gray-700">Tickets</p>
-                {timeFilter !== "all" && (
-                  <span className="text-xs text-gray-500">({filteredData.tickets?.length || 0} in period)</span>
+
+          {/* Compliance Section */}
+          <section className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-6">
+            <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
+              <FaShieldAlt className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-bold text-gray-900">Compliance & Safety</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* CVSA Card */}
+              <div className="bg-gray-50/50 rounded-xl p-5 border border-gray-200">
+
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                      <FaClipboardCheck className="w-4 h-4" />
+                    </div>
+                    <span className="text-sm font-bold text-gray-700">Last CVSA Inspection</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs font-bold rounded ${selectedVehicle.compliance?.cvsa?.result === "Pass" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    }`}>
+                    {selectedVehicle.compliance?.cvsa?.result || "N/A"}
+                  </span>
+                </div>
+
+                <div className="space-y-2 pl-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Date</span>
+                    <span className="font-semibold text-gray-900">{selectedVehicle.compliance?.cvsa?.lastInspection || "N/A"}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Officer</span>
+                    <span className="font-semibold text-gray-900">{selectedVehicle.compliance?.cvsa?.officer || "N/A"}</span>
+                  </div>
+                </div>
+
+                {selectedVehicle.compliance?.cvsa?.violations && selectedVehicle.compliance.cvsa.violations.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-gray-200">
+                    <p className="text-xs font-bold text-red-600 uppercase tracking-wide mb-2">Violations Reported</p>
+                    <ul className="text-xs text-gray-600 space-y-1">
+                      {selectedVehicle.compliance.cvsa.violations.map((v, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-red-400">•</span> {v}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
-              {filteredData.tickets && filteredData.tickets.length > 0 ? (
-                <div className="space-y-2">
-                  {filteredData.tickets.map((ticket) => (
-                    <div key={ticket.id} className="text-xs">
-                      <p className="font-medium text-gray-900">{ticket.category}</p>
-                      <p className="text-gray-500">CA$ {ticket.amount} • {ticket.issued}</p>
-                      <p className={`inline-block px-2 py-0.5 rounded text-xs mt-1 ${ticket.status === "Paid" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                        }`}>
-                        {ticket.status}
-                      </p>
+
+              {/* Tickets Card */}
+              <div className="bg-gray-50/50 rounded-xl p-5 border border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-yellow-100 rounded-lg text-yellow-600">
+                      <FaTicketAlt className="w-4 h-4" />
+                    </div>
+                    <span className="text-sm font-bold text-gray-700">Tickets</span>
+                  </div>
+                  {timeFilter !== "all" && (
+                    <span className="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded border border-gray-200">
+                      {filteredData.tickets?.length || 0} in period
+                    </span>
+                  )}
+                </div>
+
+                {filteredData.tickets && filteredData.tickets.length > 0 ? (
+                  <div className="space-y-3 max-h-[160px] overflow-y-auto pr-1">
+                    {filteredData.tickets.map((ticket) => (
+                      <div key={ticket.id} className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm text-xs">
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="font-bold text-gray-800">{ticket.category}</span>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${ticket.status === "Paid" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                            }`}>{ticket.status}</span>
+                        </div>
+                        <div className="flex justify-between text-gray-500 mt-1">
+                          <span>{ticket.issued}</span>
+                          <span className="font-medium text-gray-900">CA$ {ticket.amount}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-32 text-gray-400">
+                    <FaClipboardCheck className="w-8 h-8 mb-2 opacity-20" />
+                    <p className="text-xs">No tickets recorded</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+
+          {/* Fleet Maintenance Section */}
+          <section className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-6">
+            <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
+              <FaWrench className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-bold text-gray-900">Fleet Maintenance</h3>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Service Logs */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-bold text-gray-700">Service Logs</h4>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{filteredData.serviceLogs.length} Records</span>
+                </div>
+                <div className="space-y-3">
+                  {filteredData.serviceLogs.length > 0 ? (
+                    filteredData.serviceLogs.map((log) => (
+                      <div key={log.id} className="group border border-gray-200 rounded-lg p-3 hover:border-blue-400 hover:shadow-sm transition-all bg-white">
+                        <div className="flex justify-between items-start mb-1.5">
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-gray-800 group-hover:text-blue-600 transition-colors">{log.description}</p>
+                            <p className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                              <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wide">{log.vendor}</span>
+                              <span>{log.date}</span>
+                            </p>
+                          </div>
+                          <p className="text-sm font-bold text-gray-900">CA$ {log.cost}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-xl">
+                      <p className="text-xs text-gray-400">No service logs found in this period</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Repairs */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-bold text-gray-700">Repairs & Issues</h4>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{filteredData.repairs.length} Records</span>
+                </div>
+                <div className="space-y-3">
+                  {filteredData.repairs.length > 0 ? (
+                    filteredData.repairs.map((repair) => (
+                      <div key={repair.id} className="group border border-gray-200 rounded-lg p-3 hover:border-orange-400 hover:shadow-sm transition-all bg-white">
+                        <div className="flex justify-between items-start mb-1.5">
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-gray-800 group-hover:text-orange-600 transition-colors">{repair.issue}</p>
+                            <p className="text-xs text-gray-500 mt-1">{repair.date}</p>
+                          </div>
+                          <p className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">{repair.downtimeHours}h Downtime</p>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-2 p-2 bg-gray-50 rounded-md">
+                          <span className="font-semibold text-gray-700">Resolution:</span> {repair.resolution}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-xl">
+                      <p className="text-xs text-gray-400">No repairs recorded in this period</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-gray-100">
+              <h4 className="text-sm font-bold text-gray-700 mb-4">Spare Parts Usage</h4>
+              {selectedVehicle.fleet?.spareParts && selectedVehicle.fleet.spareParts.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {selectedVehicle.fleet.spareParts.map((part) => (
+                    <div key={part.partNumber} className="border border-gray-200 bg-gray-50/50 rounded-lg p-3 flex justify-between items-center">
+                      <div>
+                        <p className="text-sm font-bold text-gray-800">{part.partName}</p>
+                        <p className="text-[10px] font-mono text-gray-400 mt-0.5">{part.partNumber}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-bold text-gray-900">Qty: {part.quantity}</p>
+                        <p className="text-xs font-medium text-gray-500">CA$ {part.cost}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-gray-500">No tickets</p>
+                <p className="text-xs text-gray-400 italic">No spare parts used.</p>
               )}
             </div>
-          </div>
-        </section>
+          </section>
 
-      
-      {/* Fleet Maintenance Section */}
-      <section className="bg-white rounded-xl border p-6 mb-6" style={sectionCardStyle}>
-          <div className="flex items-center gap-3 mb-6">
-            <FaWrench className="w-6 h-6" style={{ color: FLEET_COLORS.primary }} />
-            <h3 className="text-xl font-bold text-gray-900">Fleet Maintenance</h3>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-semibold text-gray-700">Service Logs</h4>
-                {timeFilter !== "all" && (
-                  <span className="text-xs text-gray-500">({filteredData.serviceLogs.length} in period)</span>
-                )}
+          {/* Assignment History */}
+          {filteredData.assignmentHistory.length > 0 && (
+            <section className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+              <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-2">
+                  <FaRoute className="w-5 h-5 text-blue-600" />
+                  <h3 className="text-lg font-bold text-gray-900">Assignment History</h3>
+                </div>
+                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                  {filteredData.assignmentHistory.length} assignments
+                </span>
               </div>
-              <div className="space-y-2.5">
-                {filteredData.serviceLogs.length > 0 ? (
-                  filteredData.serviceLogs.map((log) => (
-                    <div key={log.id} className="border-l-4 border-blue-500 bg-blue-50/30 rounded-lg p-3 hover:bg-blue-50/50 transition-colors">
-                      <div className="flex justify-between items-start mb-1.5">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">{log.description}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{log.vendor} • {log.date}</p>
-                        </div>
-                        <p className="text-sm font-semibold text-blue-700 ml-3">CA$ {log.cost}</p>
+
+              <div className="space-y-3">
+                {filteredData.assignmentHistory.map((assignment) => (
+                  <div key={assignment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start gap-4">
+                      <div className={`p-2 rounded-full ${assignment.type === 'load' ? 'bg-purple-100 text-purple-600' : 'bg-indigo-100 text-indigo-600'}`}>
+                        {assignment.type === 'load' ? <FaTruck className="w-4 h-4" /> : <FaRoute className="w-4 h-4" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">
+                          {assignment.loadNumber || assignment.tripNumber}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          <span className="font-semibold">{assignment.driver.name}</span> • {assignment.driver.phone}
+                        </p>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-gray-500 text-center py-4">No service logs in selected period</p>
-                )}
-              </div>
-            </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-semibold text-gray-700">Repairs</h4>
-                {timeFilter !== "all" && (
-                  <span className="text-xs text-gray-500">({filteredData.repairs.length} in period)</span>
-                )}
-              </div>
-              <div className="space-y-2.5">
-                {filteredData.repairs.length > 0 ? (
-                  filteredData.repairs.map((repair) => (
-                    <div key={repair.id} className="border-l-4 border-orange-500 bg-orange-50/30 rounded-lg p-3 hover:bg-orange-50/50 transition-colors">
-                      <div className="flex justify-between items-start mb-1.5">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">{repair.issue}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{repair.date}</p>
+                    <div className="mt-3 sm:mt-0 flex items-center gap-4">
+                      {assignment.completedAt && (
+                        <div className="text-right">
+                          <p className="text-[10px] text-gray-400 bg-gray-100 px-2 py-1 rounded inline-block">
+                            Completed: {new Date(assignment.completedAt).toLocaleDateString()}
+                          </p>
                         </div>
-                        <p className="text-xs font-semibold text-orange-700 ml-3">{repair.downtimeHours}h</p>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">{repair.resolution}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-gray-500 text-center py-4">No repairs in selected period</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Spare Parts</h4>
-            {selectedVehicle.fleet?.spareParts && selectedVehicle.fleet.spareParts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {selectedVehicle.fleet.spareParts.map((part) => (
-                  <div key={part.partNumber} className="border-l-4 border-purple-500 bg-purple-50/30 rounded-lg p-3 hover:bg-purple-50/50 transition-colors">
-                    <p className="text-sm font-medium text-gray-900">{part.partName}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{part.partNumber}</p>
-                    <div className="flex justify-between items-center mt-2">
-                      <p className="text-xs text-gray-600">Qty: {part.quantity}</p>
-                      <p className="text-xs font-semibold text-purple-700">CA$ {part.cost}</p>
+                      )}
+                      <span className={`px-3 py-1 text-xs font-bold rounded-lg ${assignment.status === "Completed" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+                        }`}>
+                        {assignment.status}
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="text-xs text-gray-500 text-center py-4">No spare parts usage found</p>
-            )}
-          </div>
-        </section>
-
-        {/* Assignment History */}
-        {filteredData.assignmentHistory.length > 0 && (
-          <section className="bg-white rounded-xl border p-6" style={sectionCardStyle}>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <FaRoute className="w-6 h-6" style={{ color: FLEET_COLORS.primary }} />
-                <h3 className="text-xl font-bold text-gray-900">Assignment History</h3>
-              </div>
-              {timeFilter !== "all" && (
-                <span className="text-sm text-gray-500">({filteredData.assignmentHistory?.length || 0} in period)</span>
-              )}
-            </div>
-
-            <div className="space-y-3">
-              {filteredData.assignmentHistory.map((assignment) => (
-                <div key={assignment.id} className="border border-gray-300 rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {assignment.loadNumber || assignment.tripNumber}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Driver: {assignment.driver.name} • {assignment.driver.phone}
-                      </p>
-                    </div>
-                    <span className={`px-2 py-1 text-xs font-semibold rounded ${assignment.status === "Completed" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
-                      }`}>
-                      {assignment.status}
-                    </span>
-                  </div>
-                  {assignment.completedAt && (
-                    <p className="text-xs text-gray-500">
-                      Completed: {assignment.completedAt.toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+            </section>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
 export default TruckProfile;
-

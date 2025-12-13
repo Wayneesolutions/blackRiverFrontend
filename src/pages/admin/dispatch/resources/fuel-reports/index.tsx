@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, Fuel } from "lucide-react";
+import { FaFileInvoiceDollar, FaGasPump, FaClipboardList } from "react-icons/fa";
 import { message } from "antd";
 import NewFuelReportSidebar from "./NewFuelReportSidebar";
 import {
@@ -22,6 +23,7 @@ interface FuelReportType {
   volume: string;
   type: string;
   odometer: string;
+  cost?: number; // Added cost field
   status: string;
   createdAt: string;
 }
@@ -166,19 +168,19 @@ const FuelReports = () => {
       setLoading(true);
       setEmptyStateMessage(null);
       hasFetchedRef.current = true;
-      
+
       console.log('Fetching fuel reports with params:', { currentPage, pageSize, debouncedSearch, statusFilter });
-      
+
       const params: any = {
         page: currentPage,
         limit: pageSize,
         sortBy: 'createdAt',
         sortOrder: 'desc'
       };
-      
+
       if (debouncedSearch) params.search = debouncedSearch;
       if (statusFilter !== 'all') params.status = statusFilter;
-      
+
       const res = await listFuelReport(params);
       console.log('Fuel reports API response:', res);
       if (res.success) {
@@ -281,7 +283,7 @@ const FuelReports = () => {
   // Fetch fuel reports when user info is ready and when filters/pagination change
   useEffect(() => {
     console.log('Fetch effect triggered:', { userInfoReady, hasUserInfo: !!userInfo, currentPage, pageSize, debouncedSearch, statusFilter });
-    
+
     // Wait for userInfo to be loaded from localStorage
     if (!userInfoReady) {
       console.log('Waiting for userInfoReady...');
@@ -485,6 +487,42 @@ const FuelReports = () => {
   // No need for client-side filtering since backend handles it
   const filteredReports = fuelReports;
 
+  const StatCard = ({
+    title,
+    value,
+    subtitle,
+    icon: Icon,
+    bgColor,
+    iconColor
+  }: {
+    title: string;
+    value: number | string;
+    subtitle: string;
+    icon: any;
+    bgColor: string;
+    iconColor: string;
+  }) => (
+    <div className="bg-white rounded-lg p-3 shadow-sm border border-transparent hover:border-blue-100 transition-all">
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex-1">
+          <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+          <div className="flex items-baseline gap-2 mb-0.5">
+            <span className="text-xl font-bold text-gray-900">{value}</span>
+          </div>
+          <p className="text-xs text-gray-400">{subtitle}</p>
+        </div>
+        <div className={`${bgColor} rounded-lg p-2 shadow-sm`}>
+          <Icon className={iconColor} size={20} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const totalReports = fuelReports.length;
+  // Parse volume as float just in case
+  const totalVolume = fuelReports.reduce((acc, r) => acc + (parseFloat(r.volume) || 0), 0);
+  const totalCost = fuelReports.reduce((acc, r) => acc + (Number(r.cost) || 0), 0);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -511,39 +549,43 @@ const FuelReports = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div
-                className="p-3 rounded-2xl shadow-lg"
-                style={{ background: FLEET_COLORS.gradientVertical }}
-              >
-                <Fuel className="w-8 h-8 text-white" />
-              </div>
+    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
+      <div className="relative max-w-7xl mx-auto">
+        <div
+          className="absolute inset-x-0 top-0"
+          style={{
+            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            height: '101px'
+          }}
+          aria-hidden="true"
+        />
+
+        <div className="relative z-10 px-4 pt-3 pb-6">
+          <div className="mb-4 relative z-10">
+            <div className="flex items-center justify-between">
               <div>
-                <h1
-                  className="text-4xl font-bold bg-clip-text text-transparent"
-                  style={{ backgroundImage: FLEET_COLORS.gradient }}
-                >
-                  Fuel Reports
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Track refuelling activity and odometer updates across your fleet
-                </p>
+                <h1 className="text-xl font-bold text-white">Fuel Reports</h1>
+                <div className="flex items-center gap-2 text-white/90">
+                  <span className="text-xs">Manage fuel consumption</span>
+                </div>
               </div>
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-white text-[#0ea3d8] rounded-lg hover:bg-white/90 shadow-sm transition-all font-bold text-sm"
+              >
+                <Plus className="w-4 h-4" />
+                Create Fuel Report
+              </button>
             </div>
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="flex items-center gap-2 px-6 py-3 text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
-              style={{ background: FLEET_COLORS.gradient }}
-            >
-              <Plus className="w-4 h-4" />
-              Create Fuel Report
-            </button>
           </div>
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 -mt-2 mb-4">
+            <StatCard title="Total Reports" value={totalReports} subtitle="All time" icon={FaClipboardList} bgColor="bg-blue-50" iconColor="text-blue-600" />
+            <StatCard title="Total Fuel Cost" value={`$${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Estimated spend" icon={FaFileInvoiceDollar} bgColor="bg-green-50" iconColor="text-green-600" />
+            <StatCard title="Total Volume" value={`${totalVolume.toLocaleString()} L`} subtitle="Fuel consumed" icon={FaGasPump} bgColor="bg-orange-50" iconColor="text-orange-600" />
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
             <div className="relative flex-1 max-w-xl">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -551,19 +593,19 @@ const FuelReports = () => {
                 placeholder="Search by reporter, driver, vehicle or status..."
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm"
                 style={{ '--tw-ring-color': FLEET_COLORS.primary } as React.CSSProperties & { '--tw-ring-color': string }}
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Status:</label>
+              <label className="text-xs font-medium text-gray-700">Status:</label>
               <select
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                className="px-4 py-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:border-transparent"
                 style={{ '--tw-ring-color': FLEET_COLORS.primary } as React.CSSProperties & { '--tw-ring-color': string }}
               >
                 <option value="all">All Status</option>
@@ -576,30 +618,33 @@ const FuelReports = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mx-4 mb-6">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="text-white" style={{ background: FLEET_COLORS.gradient }}>
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Reporter
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Driver
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Vehicle
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Volume
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                    Cost
+                  </th>
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Odometer
                   </th>
-                  <th className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Actions
                   </th>
                 </tr>
@@ -608,7 +653,7 @@ const FuelReports = () => {
                 {filteredReports.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-6 py-8 text-center text-gray-500"
                     >
                       No fuel reports found
@@ -617,7 +662,7 @@ const FuelReports = () => {
                 ) : (
                   filteredReports.map((report) => (
                     <tr key={report._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm">
+                      <td className="px-6 py-2 text-xs">
                         {(() => {
                           const reporterInfo = getReporterDetails(report);
                           return (
@@ -626,7 +671,7 @@ const FuelReports = () => {
                                 {reporterInfo.name}
                               </div>
                               {reporterInfo.email && (
-                                <div className="text-xs text-gray-500">
+                                <div className="text-[10px] text-gray-500">
                                   {reporterInfo.email}
                                 </div>
                               )}
@@ -634,21 +679,21 @@ const FuelReports = () => {
                           );
                         })()}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-2 text-xs text-gray-500">
                         {report.driver?.name || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-2 text-xs text-gray-500">
                         {(() => {
                           const vehicleDetails = getVehicleDetails(report);
                           return (
-                            <div className="space-y-1">
+                            <div className="space-y-0.5">
                               <div className="font-semibold text-gray-900">{vehicleDetails.primary}</div>
                               {vehicleDetails.secondary && (
-                                <div className="text-xs text-gray-500">{vehicleDetails.secondary}</div>
+                                <div className="text-[10px] text-gray-500">{vehicleDetails.secondary}</div>
                               )}
                               {vehicleDetails.badge && (
                                 <span
-                                  className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide"
+                                  className="inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
                                   style={{
                                     backgroundColor:
                                       vehicleDetails.badge.toLowerCase().includes("trailer")
@@ -667,9 +712,9 @@ const FuelReports = () => {
                           );
                         })()}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-2">
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${getStatusColor(
                             report.status
                           )}`}
                           onClick={() =>
@@ -683,37 +728,40 @@ const FuelReports = () => {
                           {report.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-2 text-xs text-gray-500">
                         {report.volume} {report.type}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-2 text-xs text-gray-500">
+                        {report.cost ? `$${Number(report.cost).toFixed(2)}` : '-'}
+                      </td>
+                      <td className="px-6 py-2 text-xs text-gray-500">
                         {report.odometer}
                       </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => openEditModal(report)}
-                        className="inline-flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors h-9 w-9 shadow-sm border border-blue-100"
-                        title="Edit fuel report"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => openDeleteModal(report)}
-                        className="inline-flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors h-9 w-9 shadow-sm border border-red-100"
-                        title="Delete fuel report"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+                      <td className="px-6 py-2">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openEditModal(report)}
+                            className="inline-flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors h-7 w-7 shadow-sm border border-blue-100"
+                            title="Edit fuel report"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => openDeleteModal(report)}
+                            className="inline-flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors h-7 w-7 shadow-sm border border-red-100"
+                            title="Delete fuel report"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-          
+
           {/* Pagination Controls */}
           {total > 0 && (
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
@@ -727,11 +775,10 @@ const FuelReports = () => {
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className={`px-3 py-2 rounded-lg border ${
-                      currentPage === 1
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
-                    }`}
+                    className={`px-3 py-2 rounded-lg border ${currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                      }`}
                   >
                     <ChevronLeft size={14} />
                   </button>
@@ -751,11 +798,10 @@ const FuelReports = () => {
                         <button
                           key={pageNum}
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`px-3 py-2 rounded-lg border ${
-                            currentPage === pageNum
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
-                          }`}
+                          className={`px-3 py-2 rounded-lg border ${currentPage === pageNum
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -765,11 +811,10 @@ const FuelReports = () => {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-2 rounded-lg border ${
-                      currentPage === totalPages
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
-                    }`}
+                    className={`px-3 py-2 rounded-lg border ${currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                      }`}
                   >
                     <ChevronRight size={14} />
                   </button>
