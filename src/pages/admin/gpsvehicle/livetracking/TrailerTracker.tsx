@@ -80,7 +80,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
     const handleTrailerClick = useCallback((trailer: Trailer) => {
         console.log('🚛 Trailer selected:', trailer.plateNumber);
         setSelectedTrailer(trailer);
-        
+
         // Center map on selected trailer
         const lat = Number(trailer.currentLocation?.latitude);
         const lng = Number(trailer.currentLocation?.longitude);
@@ -89,16 +89,16 @@ const ProfessionalTrailerTracker: React.FC = () => {
             map.setZoom(15);
             console.log('🗺️ Map centered on selected trailer');
         }
-        
+
         // Leave previous trailer updates
         socket.emit("leaveTrailer");
-        
+
         // Join new trailer updates (use internalId if available, otherwise _id)
         const trailerId = trailer.internalId || trailer._id;
         if (trailerId) {
             socket.emit("joinTrailer", trailerId);
         }
-        
+
         // Listen for trailer updates
         socket.off("trailerLocation");
         socket.on("trailerLocation", (data) => {
@@ -106,10 +106,10 @@ const ProfessionalTrailerTracker: React.FC = () => {
             setTrailers((prev) =>
                 prev.map((t) => (t._id === data._id ? { ...t, ...data } : t))
             );
-            
+
             if (trailer._id === data._id) {
                 setSelectedTrailer((prev) => prev ? { ...prev, ...data } : data);
-                
+
                 // Update map center for real-time tracking
                 const newLat = Number(data.currentLocation?.latitude);
                 const newLng = Number(data.currentLocation?.longitude);
@@ -163,15 +163,15 @@ const ProfessionalTrailerTracker: React.FC = () => {
                         if (lower.includes('container')) return 'container';
                         return 'dry_van'; // default
                     };
-                    
+
                     return {
                         ...t,
                         trailer: t.unitNo || t.licensePlate,
                         plateNumber: t.licensePlate || t.unitNo,
                         type: mapUnitTypeToTrailerType(t.unitType),
                         capacity: t.capacity || "",
-                        status: (t.operationStatus === "in-transit" ? "moving" : 
-                                t.operationStatus === "maintenance" ? "maintenance" :
+                        status: (t.operationStatus === "in-transit" ? "moving" :
+                            t.operationStatus === "maintenance" ? "maintenance" :
                                 t.operationStatus === "idle" ? "idle" : "stopped") as 'moving' | 'idle' | 'stopped' | 'maintenance',
                         speed: (t as any).speed || 0,
                         isAttached: false, // TODO: Implement attachment logic if needed
@@ -208,13 +208,13 @@ const ProfessionalTrailerTracker: React.FC = () => {
             console.log('⚠️ Map already initialized, skipping...');
             return; // Prevent double initialization
         }
-        
+
         console.log('🗺️ Initializing Google Map...');
-        
+
         // Use first trailer location as center if available, otherwise use default
         let center = { lat: 20.5937, lng: 78.9629 }; // Default to India
         let zoom = 5;
-        
+
         if (trailers.length > 0 && trailers[0].currentLocation) {
             const firstTrailer = trailers[0];
             const lat = Number(firstTrailer.currentLocation.latitude);
@@ -225,7 +225,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                 console.log('📍 Centering map on first trailer:', firstTrailer.plateNumber, center);
             }
         }
-        
+
         const mapOptions: google.maps.MapOptions = {
             center,
             zoom,
@@ -251,7 +251,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
         try {
             const rect = mapElement.getBoundingClientRect();
             console.log('📐 Map element dimensions:', { width: rect.width, height: rect.height });
-            
+
             // Wait for element to have dimensions
             if (rect.width === 0 || rect.height === 0) {
                 console.log('⏳ Waiting for map element dimensions...');
@@ -263,7 +263,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                         console.log('✅ Google Map initialized successfully (after dimension check)');
                         setMap(newMap);
                         setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
-                        
+
                         // Trigger resize after a short delay to ensure map renders properly
                         setTimeout(() => {
                             if (newMap) {
@@ -273,7 +273,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                         }, 300);
                     }
                 }, 50);
-                
+
                 // Cleanup interval after 5 seconds
                 setTimeout(() => clearInterval(checkDimensions), 5000);
                 return;
@@ -283,7 +283,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
             console.log('✅ Google Map initialized successfully');
             setMap(newMap);
             setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
-            
+
             // Trigger resize after initialization to ensure proper rendering
             setTimeout(() => {
                 if (newMap) {
@@ -348,7 +348,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
         trailers.forEach((trailer) => {
             const lat = Number(trailer.currentLocation?.latitude);
             const lng = Number(trailer.currentLocation?.longitude);
-            
+
             if (isNaN(lat) || isNaN(lng)) {
                 console.error('❌ Invalid coordinates for trailer:', trailer.plateNumber);
                 return;
@@ -435,19 +435,18 @@ const ProfessionalTrailerTracker: React.FC = () => {
     }
 
     return (
-        <div className="flex h-screen bg-gray-100 overflow-hidden">
+        <div className="flex h-screen bg-[#EDF8FF] overflow-hidden">
             {/* Left Sidebar */}
             <div
-                className={`bg-white shadow-xl transition-all duration-300 ease-in-out ${
-                    sidebarCollapsed ? "w-0" : "w-96"
-                } overflow-hidden`}
+                className={`bg-white shadow-xl transition-all duration-300 ease-in-out ${sidebarCollapsed ? "w-0" : "w-72"
+                    } overflow-hidden`}
             >
                 <div className="h-full flex flex-col">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-6 text-white">
+                    <div className="bg-[linear-gradient(90deg,#42aeec_0%,#1db5f5_40%,#0ea3d8_100%)] p-4 text-white">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-2xl font-bold flex items-center gap-2">
-                                <Package className="w-6 h-6" />
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                                <Package className="w-5 h-5" />
                                 Trailer Tracker
                             </h2>
                             <button
@@ -457,14 +456,14 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                 <ChevronLeft className="w-5 h-5" />
                             </button>
                         </div>
-                        
+
                         {/* Search Bar */}
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
                             <input
                                 type="text"
                                 placeholder="Search by plate number..."
-                                className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/90 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
+                                className="w-full pl-10 pr-4 py-1.5 text-sm rounded-lg bg-white/90 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -472,7 +471,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                     </div>
 
                     {/* Trailer List */}
-                    <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex-1 overflow-y-auto p-3 bg-[#EDF8FF]">
                         {filteredTrailers.length === 0 ? (
                             <div className="text-center py-8">
                                 <p className="text-gray-500">No trailers found</p>
@@ -483,19 +482,18 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                     <div
                                         key={t._id}
                                         onClick={() => handleTrailerClick(t)}
-                                        className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 ${
-                                            selectedTrailer?._id === t._id
-                                                ? "bg-purple-50 border-purple-400 shadow-md"
-                                                : "bg-white border-gray-200 hover:border-purple-300 hover:shadow-sm"
-                                        }`}
+                                        className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border-2 ${selectedTrailer?._id === t._id
+                                            ? "bg-[#EDF8FF] border-[#42aeec] shadow-md"
+                                            : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm"
+                                            }`}
                                     >
                                         {/* Plate Number & Status */}
                                         <div className="flex items-center justify-between mb-3">
-                                            <h3 className="font-bold text-lg text-gray-800">
+                                            <h3 className="font-bold text-base text-gray-800">
                                                 {t.plateNumber}
                                             </h3>
                                             <span
-                                                className="px-3 py-1 rounded-full text-xs font-semibold"
+                                                className="px-2 py-0.5 rounded-full text-xs font-semibold"
                                                 style={{
                                                     backgroundColor: statusBgColors[t.status],
                                                     color: statusColors[t.status],
@@ -506,14 +504,14 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                         </div>
 
                                         {/* Trailer Details */}
-                                        <div className="space-y-2 text-sm">
+                                        <div className="space-y-2 text-xs">
                                             <div className="flex items-center gap-2 text-gray-600">
-                                                <Package className="w-4 h-4" />
+                                                <Package className="w-3 h-3" />
                                                 <span>{t.trailer} - {t.type}</span>
                                             </div>
                                             {t.attachedVehicle && (
                                                 <div className="flex items-center gap-2 text-gray-600">
-                                                    <Truck className="w-4 h-4" />
+                                                    <Truck className="w-3 h-3" />
                                                     <span>
                                                         Attached to: {t.attachedVehicle.plateNumber}
                                                         {t.attachedVehicle.driver && ` (${t.attachedVehicle.driver.name})`}
@@ -521,12 +519,12 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                                 </div>
                                             )}
                                             <div className="flex items-center gap-2 text-gray-600">
-                                                <MapPin className="w-4 h-4" />
+                                                <MapPin className="w-3 h-3" />
                                                 <span className="truncate">{t.currentLocation?.address || 'Location unavailable'}</span>
                                             </div>
                                             {t.speed !== undefined && (
                                                 <div className="flex items-center gap-1 text-gray-500 mt-2 pt-2 border-t border-gray-200">
-                                                    <Gauge className="w-4 h-4" />
+                                                    <Gauge className="w-3 h-3" />
                                                     <span>{t.speed} km/h</span>
                                                 </div>
                                             )}
@@ -543,7 +541,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
             {sidebarCollapsed && (
                 <button
                     onClick={() => setSidebarCollapsed(false)}
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-purple-600 text-white p-3 rounded-r-lg shadow-lg hover:bg-purple-700 transition-colors z-10"
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-[#0ea3d8] text-white p-2 rounded-r-lg shadow-lg hover:bg-[#0ea3d8]/90 transition-colors z-10"
                 >
                     <ChevronRight className="w-5 h-5" />
                 </button>
@@ -552,7 +550,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
             {/* Right Map */}
             <div className="flex-1 relative" style={{ height: '100vh', minHeight: '100vh' }}>
                 {!isLoaded && !loadError && (
-                    <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-10">
+                    <div className="absolute inset-0 bg-[#EDF8FF] flex items-center justify-center z-10">
                         <div className="text-center text-gray-600 space-y-2">
                             <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
                             <p className="text-sm">Loading Google Maps...</p>
@@ -560,7 +558,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                     </div>
                 )}
                 {loadError && (
-                    <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-10">
+                    <div className="absolute inset-0 bg-[#EDF8FF] flex items-center justify-center z-10">
                         <div className="text-center text-gray-600 space-y-2">
                             <div className="font-semibold text-red-500">Failed to load Google Maps</div>
                             <p className="text-sm">Please check your network connection and try again.</p>
@@ -569,11 +567,11 @@ const ProfessionalTrailerTracker: React.FC = () => {
                     </div>
                 )}
                 {/* Always render map container to prevent it from being destroyed */}
-                <div 
-                    id="trailer-google-map" 
+                <div
+                    id="trailer-google-map"
                     className="absolute inset-0 w-full h-full"
-                    style={{ 
-                        width: '100%', 
+                    style={{
+                        width: '100%',
                         height: '100%',
                         position: 'absolute',
                         top: 0,
@@ -586,9 +584,9 @@ const ProfessionalTrailerTracker: React.FC = () => {
 
                 {/* Selected Trailer Info Panel */}
                 {selectedTrailer && (
-                    <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm z-10">
+                    <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 max-w-xs z-10">
                         <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-lg font-bold text-gray-800">{selectedTrailer.plateNumber}</h3>
+                            <h3 className="text-base font-bold text-gray-800">{selectedTrailer.plateNumber}</h3>
                             <button
                                 onClick={() => setSelectedTrailer(null)}
                                 className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -635,23 +633,23 @@ const ProfessionalTrailerTracker: React.FC = () => {
                 )}
 
                 {/* Status Legend */}
-                <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg text-xs z-10">
+                <div className="absolute bottom-4 left-4 bg-white p-2 rounded-lg shadow-lg text-xs z-10">
                     <div className="font-semibold mb-2">Trailer Status:</div>
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#10b981'}}></div>
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
                             <span>Moving</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#f59e0b'}}></div>
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
                             <span>Idle</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#ef4444'}}></div>
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
                             <span>Stopped</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#6b7280'}}></div>
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#6b7280' }}></div>
                             <span>Maintenance</span>
                         </div>
                     </div>

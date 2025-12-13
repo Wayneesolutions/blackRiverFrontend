@@ -21,6 +21,7 @@ body {
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -63,7 +64,7 @@ body {
 }
 
 /* Ensure notification container is positioned correctly */
-.ant-notification-topRight > .ant-notification-notice-wrapper {
+.ant-notification-topRight>.ant-notification-notice-wrapper {
   z-index: 10001 !important;
   position: relative !important;
   pointer-events: auto !important;

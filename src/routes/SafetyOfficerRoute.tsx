@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import React from "react";
 import Loading from "../components/common/Loading";
@@ -17,7 +17,7 @@ const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
 
 function SafetyOfficerRoute() {
   const userRole = getUserRole();
-  
+
   // If not safety officer, redirect to login
   if (userRole !== 'safety officer') {
     return <Navigate to="/" replace />;
@@ -28,9 +28,9 @@ function SafetyOfficerRoute() {
       <RouteDebugger>
         <Routes>
           {/* Health and Safety Routes - matches /admin/healthandsafety/* */}
-          <Route 
-            path="*" 
-            element={<ErrorBoundary><HealthSafetyRoutes /></ErrorBoundary>} 
+          <Route
+            path="*"
+            element={<ErrorBoundary><HealthSafetyRoutes /></ErrorBoundary>}
           />
         </Routes>
       </RouteDebugger>

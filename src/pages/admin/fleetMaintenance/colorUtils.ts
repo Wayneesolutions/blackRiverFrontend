@@ -6,6 +6,9 @@ export const FLEET_COLORS = {
   gradient: 'linear-gradient(to right, #016ab2, #063f6f)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
   focusRing: 'rgba(1, 106, 178, 0.2)',
+  success: '#10b981',
+  warning: '#f59e0b',
+  danger: '#ef4444',
 };
 
 export const getFocusStyles = () => ({

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaChartBar, 
-  FaDownload, 
+import {
+  FaChartBar,
   FaFilePdf,
   FaFileExcel,
   FaCalendarAlt,
@@ -13,15 +12,7 @@ import {
   FaClipboardList,
   FaTimes,
   FaInfoCircle,
-  FaTrash,
-  FaFileArchive,
-  FaSearch,
-  FaShieldAlt,
-  FaClock,
-  FaBookOpen,
-  FaTools,
-  FaUserCheck,
-  FaFileMedical
+  FaTrash
 } from 'react-icons/fa';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import {
@@ -98,7 +89,7 @@ const ReportsAnalytics = () => {
   const [notificationId, setNotificationId] = useState(0);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [generateLoading, setGenerateLoading] = useState(false);
-  
+
   const [stats, setStats] = useState({
     totalIncidents: 0,
     openIncidents: 0,
@@ -259,7 +250,7 @@ const ReportsAnalytics = () => {
 
   const handleDeleteReport = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this report?')) return;
-    
+
     try {
       const response = await deleteReport(id);
       if (response?.success) {
@@ -284,11 +275,11 @@ const ReportsAnalytics = () => {
   };
 
   // Calculate chart percentages for inspection status
-  const inspectionTotal = (inspectionStatus.scheduled || 0) + 
-                          (inspectionStatus['in-progress'] || 0) + 
-                          (inspectionStatus.completed || 0) + 
-                          (inspectionStatus.overdue || 0);
-  
+  const inspectionTotal = (inspectionStatus.scheduled || 0) +
+    (inspectionStatus['in-progress'] || 0) +
+    (inspectionStatus.completed || 0) +
+    (inspectionStatus.overdue || 0);
+
   const inspectionPercentages = inspectionTotal > 0 ? {
     scheduled: ((inspectionStatus.scheduled || 0) / inspectionTotal * 100).toFixed(1),
     inProgress: ((inspectionStatus['in-progress'] || 0) / inspectionTotal * 100).toFixed(1),
@@ -472,23 +463,23 @@ const ReportsAnalytics = () => {
                     </div>
                   </div>
                   <div className="flex gap-1 h-4 rounded-full overflow-hidden">
-                    <div 
-                      className="bg-blue-500" 
+                    <div
+                      className="bg-blue-500"
                       style={{ width: `${inspectionPercentages.scheduled}%` }}
                       title={`Scheduled: ${inspectionPercentages.scheduled}%`}
                     />
-                    <div 
-                      className="bg-yellow-500" 
+                    <div
+                      className="bg-yellow-500"
                       style={{ width: `${inspectionPercentages.inProgress}%` }}
                       title={`In Progress: ${inspectionPercentages.inProgress}%`}
                     />
-                    <div 
-                      className="bg-green-500" 
+                    <div
+                      className="bg-green-500"
                       style={{ width: `${inspectionPercentages.completed}%` }}
                       title={`Completed: ${inspectionPercentages.completed}%`}
                     />
-                    <div 
-                      className="bg-red-500" 
+                    <div
+                      className="bg-red-500"
                       style={{ width: `${inspectionPercentages.overdue}%` }}
                       title={`Overdue: ${inspectionPercentages.overdue}%`}
                     />

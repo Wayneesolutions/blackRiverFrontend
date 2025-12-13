@@ -66,122 +66,7 @@ interface Driver {
     avgSpeed?: number;
 }
 
-const SAMPLE_DRIVER_ROWS: Driver[] = [
-    {
-        _id: 'sample-driver-1',
-        name: 'Sophia Reed',
-        email: 'sophia.reed@logistiq.com',
-        phone: '(555) 214-8976',
-        internalId: 'DRI-214',
-        status: 'active',
-        location: {
-            address: 'I-76 near King of Prussia, PA',
-            longitude: '-75.3830',
-            latitude: '40.1002',
-        },
-        details: {
-            vehicle: {
-                _id: 'veh-sample-1',
-                plateNumber: 'BR-204',
-                make: 'Volvo',
-                model: 'VNL 760',
-                internalId: 'BR-204',
-                status: 'moving',
-                currentLocation: {
-                    address: 'I-76 near King of Prussia, PA',
-                    longitude: '-75.3830',
-                    latitude: '40.1002',
-                },
-                speed: 64,
-                fuelLevel: 72,
-            },
-            licenceNumber: 'PA-8876214',
-            employeeCode: 'DRI-214',
-        },
-        milesToday: 312,
-        avgSpeed: 58,
-        joinDate: new Date('2023-02-14'),
-        profileImageUrl: '',
-        avatar: '',
-        country: 'USA',
-    },
-    {
-        _id: 'sample-driver-2',
-        name: 'Aaron Kim',
-        email: 'aaron.kim@logistiq.com',
-        phone: '(555) 664-0012',
-        internalId: 'DRI-099',
-        status: 'active',
-        location: {
-            address: 'Dallas Yard, TX',
-            longitude: '-96.7970',
-            latitude: '32.7767',
-        },
-        details: {
-            vehicle: {
-                _id: 'veh-sample-2',
-                plateNumber: 'TX-118',
-                make: 'Freightliner',
-                model: 'Cascadia',
-                internalId: 'TX-118',
-                status: 'idle',
-                currentLocation: {
-                    address: 'Dallas Yard, TX',
-                    longitude: '-96.7970',
-                    latitude: '32.7767',
-                },
-                speed: 0,
-                fuelLevel: 54,
-            },
-            licenceNumber: 'TX-902345',
-            employeeCode: 'DRI-099',
-        },
-        milesToday: 148,
-        avgSpeed: 46,
-        joinDate: new Date('2022-11-03'),
-        profileImageUrl: '',
-        avatar: '',
-        country: 'USA',
-    },
-    {
-        _id: 'sample-driver-3',
-        name: 'Priya Patel',
-        email: 'priya.patel@logistiq.com',
-        phone: '(555) 420-8891',
-        internalId: 'DRI-330',
-        status: 'inactive',
-        location: {
-            address: 'Port of Oakland, CA',
-            longitude: '-122.2711',
-            latitude: '37.8049',
-        },
-        details: {
-            vehicle: {
-                _id: 'veh-sample-3',
-                plateNumber: 'CA-441',
-                make: 'Kenworth',
-                model: 'T680',
-                internalId: 'CA-441',
-                status: 'stopped',
-                currentLocation: {
-                    address: 'Port of Oakland, CA',
-                    longitude: '-122.2711',
-                    latitude: '37.8049',
-                },
-                speed: 0,
-                fuelLevel: 31,
-            },
-            licenceNumber: 'CA-776500',
-            employeeCode: 'DRI-330',
-        },
-        milesToday: 0,
-        avgSpeed: 0,
-        joinDate: new Date('2021-07-19'),
-        profileImageUrl: '',
-        avatar: '',
-        country: 'USA',
-    },
-];
+
 
 const DriverList = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -225,11 +110,11 @@ const DriverList = () => {
                     }));
                     setDrivers(formattedDrivers);
                 } else {
-                    setDrivers(SAMPLE_DRIVER_ROWS);
+                    setDrivers(formattedDrivers);
                 }
             } catch (error) {
                 console.error('Error fetching drivers:', error);
-                setDrivers(SAMPLE_DRIVER_ROWS);
+                setDrivers(formattedDrivers);
             } finally {
                 setLoading(false);
             }
@@ -386,7 +271,7 @@ const DriverList = () => {
     }
 
     return (
-        <div className="min-h-screen p-4 bg-gray-50 px-6">
+        <div className="min-h-screen p-4 bg-[#EDF8FF] px-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
@@ -400,39 +285,89 @@ const DriverList = () => {
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-slate-900 mb-1">{stats.total}</div>
-                        <div className="text-sm font-medium text-slate-600">Total Drivers</div>
-                    </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-emerald-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-emerald-600 mb-1">{stats.active}</div>
-                        <div className="text-sm font-medium text-slate-600">Active</div>
-                        <div className="w-full bg-emerald-100 rounded-full h-1 mt-2">
-                            <div className="bg-emerald-500 h-1 rounded-full" style={{ width: `${stats.total > 0 ? (stats.active / stats.total) * 100 : 0}%` }}></div>
+                    {/* Total Drivers */}
+                    <div className="rounded-xl p-4 bg-slate-50 border border-slate-200">
+                        <div className="text-2xl font-bold text-slate-700 mb-1">
+                            {stats.total}
+                        </div>
+                        <div className="text-sm font-medium text-slate-600">
+                            Total Drivers
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-slate-600 mb-1">{stats.inactive}</div>
-                        <div className="text-sm font-medium text-slate-600">Inactive</div>
-                        <div className="w-full bg-slate-100 rounded-full h-1 mt-2">
-                            <div className="bg-slate-500 h-1 rounded-full" style={{ width: `${stats.total > 0 ? (stats.inactive / stats.total) * 100 : 0}%` }}></div>
+
+                    {/* Active */}
+                    <div className="rounded-xl p-4 bg-green-50 border border-green-200">
+                        <div className="text-2xl font-bold text-green-600 mb-1">
+                            {stats.active}
+                        </div>
+                        <div className="text-sm font-medium text-green-600">
+                            Active
+                        </div>
+                        <div className="w-full bg-green-100 rounded-full h-1 mt-2">
+                            <div
+                                className="bg-green-500 h-1 rounded-full"
+                                style={{
+                                    width: `${stats.total > 0 ? (stats.active / stats.total) * 100 : 0}%`,
+                                }}
+                            />
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-blue-600 mb-1">{stats.withVehicle}</div>
-                        <div className="text-sm font-medium text-slate-600">With Vehicle</div>
-                        <div className="w-full bg-blue-100 rounded-full h-1 mt-2">
-                            <div className="bg-blue-500 h-1 rounded-full" style={{ width: `${stats.total > 0 ? (stats.withVehicle / stats.total) * 100 : 0}%` }}></div>
+
+                    {/* Inactive */}
+                    <div className="rounded-xl p-4 bg-slate-100 border border-slate-200">
+                        <div className="text-2xl font-bold text-slate-600 mb-1">
+                            {stats.inactive}
+                        </div>
+                        <div className="text-sm font-medium text-slate-600">
+                            Inactive
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-1 mt-2">
+                            <div
+                                className="bg-slate-500 h-1 rounded-full"
+                                style={{
+                                    width: `${stats.total > 0 ? (stats.inactive / stats.total) * 100 : 0}%`,
+                                }}
+                            />
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-orange-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-orange-600 mb-1">{stats.withoutVehicle}</div>
-                        <div className="text-sm font-medium text-slate-600">Unassigned</div>
+
+                    {/* With Vehicle */}
+                    <div className="rounded-xl p-4 bg-purple-50 border border-purple-200">
+                        <div className="text-2xl font-bold text-purple-600 mb-1">
+                            {stats.withVehicle}
+                        </div>
+                        <div className="text-sm font-medium text-purple-600">
+                            With Vehicle
+                        </div>
+                        <div className="w-full bg-purple-100 rounded-full h-1 mt-2">
+                            <div
+                                className="bg-purple-500 h-1 rounded-full"
+                                style={{
+                                    width: `${stats.total > 0 ? (stats.withVehicle / stats.total) * 100 : 0}%`,
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Unassigned */}
+                    <div className="rounded-xl p-4 bg-orange-50 border border-orange-200">
+                        <div className="text-2xl font-bold text-orange-600 mb-1">
+                            {stats.withoutVehicle}
+                        </div>
+                        <div className="text-sm font-medium text-orange-600">
+                            Unassigned
+                        </div>
                         <div className="w-full bg-orange-100 rounded-full h-1 mt-2">
-                            <div className="bg-orange-500 h-1 rounded-full" style={{ width: `${stats.total > 0 ? (stats.withoutVehicle / stats.total) * 100 : 0}%` }}></div>
+                            <div
+                                className="bg-orange-500 h-1 rounded-full"
+                                style={{
+                                    width: `${stats.total > 0 ? (stats.withoutVehicle / stats.total) * 100 : 0}%`,
+                                }}
+                            />
                         </div>
                     </div>
                 </div>
+
 
                 {/* Filters and Search */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
@@ -507,8 +442,8 @@ const DriverList = () => {
                                                 <User className="w-12 h-12 text-slate-400 mb-4" />
                                                 <p className="text-slate-600 font-medium">No drivers found</p>
                                                 <p className="text-slate-500 text-sm mt-1">
-                                                    {searchTerm || filterStatus !== 'all' 
-                                                        ? 'Try adjusting your search or filter criteria' 
+                                                    {searchTerm || filterStatus !== 'all'
+                                                        ? 'Try adjusting your search or filter criteria'
                                                         : 'No drivers are available for your company'}
                                                 </p>
                                             </div>

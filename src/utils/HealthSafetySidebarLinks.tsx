@@ -1,19 +1,18 @@
 // HealthSafetySidebarLinks.ts (No change needed, it's perfect)
 import { MdDashboard } from "react-icons/md";
-import { 
-    FaExclamationTriangle, 
-    FaShieldAlt, 
-    FaClipboardList, 
-    FaFileAlt, 
-    FaUsersCog, 
+import {
+    FaExclamationTriangle,
+    FaShieldAlt,
+    FaClipboardList,
+    FaFileAlt,
+    FaUsersCog,
     FaChartBar,
     FaFileContract, // Added for policies to align with dashboard
     FaClipboardCheck, // For Safety Inspections
     FaTruck, // For Trucking Operations
-    FaComments, // For Toolbox Talks
+
     FaAmbulance, // For Emergency Procedures
     FaFolder, // For Document Library
-    FaBullhorn // For Safety Bulletins
 } from "react-icons/fa";
 
 type HealthSafetySidebarLink = {
@@ -53,7 +52,7 @@ export const HealthSafetySidebarLinks: HealthSafetySidebarLink[] = [
     {
         // Changed icon to FaFileContract for policy emphasis
         key: "policies-documents",
-        icon: <FaFileContract />, 
+        icon: <FaFileContract />,
         label: "Policy & Documents",
     },
     {

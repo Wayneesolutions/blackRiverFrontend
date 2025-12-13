@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaClipboardCheck, FaCheckCircle, FaPlus, FaEye, 
-  FaEdit, FaSearch, FaMapMarkerAlt, FaUser, 
-  FaTools, FaDownload, FaCamera, FaTimes, FaClock,
-  FaHistory, FaTrash, FaExclamationTriangle, FaInfoCircle
+import {
+  FaClipboardCheck, FaCheckCircle, FaPlus, FaEye,
+  FaSearch, FaMapMarkerAlt, FaUser,
+  FaTools, FaCamera, FaTimes, FaClock,
+  FaExclamationTriangle, FaInfoCircle,
+  FaHistory, FaDownload, FaEdit, FaTrash
 } from 'react-icons/fa';
-import { 
-  createInspection, 
-  getInspections, 
-  updateInspection, 
-  deleteInspection 
+import {
+  createInspection,
+  getInspections,
+  updateInspection,
+  deleteInspection
 } from '../../../../axios/api/healthSafety';
 
 interface ChecklistItem {
@@ -35,9 +36,9 @@ interface CorrectiveAction {
 interface Inspection {
   _id: string;
   inspectionNumber: string;
-  type: 'Yard Inspection' | 'Shop Safety' | 'Fire Extinguisher Check' | 'Reefer Food Safety' | 
-        'PPE Inspection' | 'Emergency Exit/Eyewash' | 'Equipment' | 'Vehicle' | 
-        'Workplace Safety' | 'Hazard Assessment' | 'Regulatory';
+  type: 'Yard Inspection' | 'Shop Safety' | 'Fire Extinguisher Check' | 'Reefer Food Safety' |
+  'PPE Inspection' | 'Emergency Exit/Eyewash' | 'Equipment' | 'Vehicle' |
+  'Workplace Safety' | 'Hazard Assessment' | 'Regulatory';
   category: 'Scheduled' | 'Routine' | 'Follow-up' | 'Complaint-Based' | 'Incident-Based' | 'Regulatory';
   status: 'scheduled' | 'in-progress' | 'completed' | 'overdue' | 'cancelled' | 'action-required';
   priority: 'low' | 'medium' | 'high' | 'critical';
@@ -241,7 +242,7 @@ const SafetyInspections: React.FC = () => {
     setLoading(true);
     try {
       const params: any = {};
-      
+
       if (applyFilters) {
         if (filterStatus !== 'all') {
           params.status = filterStatus;
@@ -259,7 +260,7 @@ const SafetyInspections: React.FC = () => {
       console.log('Fetching inspections with params:', apiParams);
       const response = await getInspections(apiParams);
       console.log('Inspections API response:', response);
-      
+
       if (response?.success && Array.isArray(response.data)) {
         console.log(`Fetched ${response.data.length} inspections`);
         // Map API response to frontend format
@@ -278,8 +279,8 @@ const SafetyInspections: React.FC = () => {
           const checklist: ChecklistItem[] = findingsArray.map((finding: any, idx: number) => ({
             id: finding._id || `finding-${idx}`,
             question: finding.description || '',
-            status: finding.status === 'resolved' || finding.status === 'closed' ? 'pass' : 
-                    finding.severity === 'critical' || finding.severity === 'high' ? 'fail' : 'pending',
+            status: finding.status === 'resolved' || finding.status === 'closed' ? 'pass' :
+              finding.severity === 'critical' || finding.severity === 'high' ? 'fail' : 'pending',
             notes: finding.correctiveAction || '',
             photoRequired: false,
             photos: []
@@ -292,13 +293,13 @@ const SafetyInspections: React.FC = () => {
             category: 'Scheduled' as Inspection['category'], // Default, backend doesn't have this
             status: inspection.status as Inspection['status'],
             priority: 'medium' as Inspection['priority'], // Default, backend doesn't have this
-            scheduledDate: inspection.scheduledDate ? new Date(inspection.scheduledDate).toISOString().split('T')[0] : 
-                          inspection.date ? new Date(inspection.date).toISOString().split('T')[0] : 
-                          new Date().toISOString().split('T')[0],
+            scheduledDate: inspection.scheduledDate ? new Date(inspection.scheduledDate).toISOString().split('T')[0] :
+              inspection.date ? new Date(inspection.date).toISOString().split('T')[0] :
+                new Date().toISOString().split('T')[0],
             completedDate: inspection.completedDate ? new Date(inspection.completedDate).toISOString().split('T')[0] : undefined,
-            dueDate: inspection.scheduledDate ? new Date(inspection.scheduledDate).toISOString().split('T')[0] : 
-                     inspection.date ? new Date(inspection.date).toISOString().split('T')[0] : 
-                     new Date().toISOString().split('T')[0],
+            dueDate: inspection.scheduledDate ? new Date(inspection.scheduledDate).toISOString().split('T')[0] :
+              inspection.date ? new Date(inspection.date).toISOString().split('T')[0] :
+                new Date().toISOString().split('T')[0],
             location: inspection.location,
             locationType: 'other' as Inspection['locationType'], // Default
             inspector: inspection.inspector,
@@ -306,9 +307,9 @@ const SafetyInspections: React.FC = () => {
             inspectedBy: inspection.inspector,
             checklist: checklist.length > 0 ? checklist : [],
             findings: findingsSummary,
-            complianceStatus: findingsSummary.total === 0 ? 'compliant' : 
-                             findingsSummary.critical > 0 ? 'non-compliant' : 
-                             findingsSummary.major > 0 ? 'partial' : 'compliant',
+            complianceStatus: findingsSummary.total === 0 ? 'compliant' :
+              findingsSummary.critical > 0 ? 'non-compliant' :
+                findingsSummary.major > 0 ? 'partial' : 'compliant',
             correctiveActions: [], // Backend doesn't have this structure
             notes: inspection.notes || '',
             documentUrl: undefined,
@@ -324,7 +325,7 @@ const SafetyInspections: React.FC = () => {
             ]
           };
         });
-        
+
         setInspections(mappedInspections);
       } else {
         if (response?.success && !Array.isArray(response.data)) {
@@ -366,7 +367,7 @@ const SafetyInspections: React.FC = () => {
 
   const filteredInspections = inspections.filter(i => {
     const matchesSearch = i.inspectionNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         i.location.toLowerCase().includes(searchTerm.toLowerCase());
+      i.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || i.type === filterType;
     const matchesStatus = filterStatus === 'all' || i.status === filterStatus;
     const matchesTab = currentTab === 'all' || i.status === currentTab;
@@ -394,7 +395,7 @@ const SafetyInspections: React.FC = () => {
       };
 
       const response = await createInspection(payload);
-      
+
       if (response?.success) {
         addNotification('success', 'Inspection created successfully');
         setShowNewInspectionModal(false);
@@ -460,7 +461,7 @@ const SafetyInspections: React.FC = () => {
     const [selectedLocation, setSelectedLocation] = useState(editing?.location || '');
     const [selectedInspector, setSelectedInspector] = useState(editing?.inspector || '');
     const [scheduledDate, setScheduledDate] = useState(
-      editing?.scheduledDate || editing?.date || ''
+      editing?.scheduledDate || ''
     );
     const [dueDate, setDueDate] = useState(
       editing?.dueDate || editing?.scheduledDate || ''
@@ -475,7 +476,7 @@ const SafetyInspections: React.FC = () => {
         setSelectedType(editing.type || '');
         setSelectedLocation(editing.location || '');
         setSelectedInspector(editing.inspector || '');
-        setScheduledDate(editing.scheduledDate || editing.date || '');
+        setScheduledDate(editing.scheduledDate || '');
         setDueDate(editing.dueDate || editing.scheduledDate || '');
         setPriority(editing.priority || 'medium');
         setNotes(editing.notes || '');
@@ -490,7 +491,7 @@ const SafetyInspections: React.FC = () => {
         setNotes('');
       }
     }, [editing]);
-    
+
     return (
       <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -498,22 +499,22 @@ const SafetyInspections: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900">
               {editing ? 'Edit Inspection' : 'Schedule New Inspection'}
             </h2>
-            <button 
+            <button
               onClick={() => {
                 setShowNewInspectionModal(false);
                 setEditingInspection(null);
-              }} 
+              }}
               className="text-gray-500 hover:text-gray-700"
             >
               <FaTimes size={24} />
             </button>
           </div>
-          
+
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Inspection Type *</label>
-                <select 
+                <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
@@ -526,10 +527,10 @@ const SafetyInspections: React.FC = () => {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Location *</label>
-                <input 
+                <input
                   type="text"
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
@@ -537,27 +538,27 @@ const SafetyInspections: React.FC = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Scheduled Date *</label>
-                <input 
+                <input
                   type="date"
                   value={scheduledDate}
                   onChange={(e) => setScheduledDate(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Due Date *</label>
-                <input 
+                <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Inspector *</label>
                 <input
@@ -568,12 +569,12 @@ const SafetyInspections: React.FC = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Priority</label>
-                <select 
+                <select
                   value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
+                  onChange={(e) => setPriority(e.target.value as any)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="low">Low</option>
@@ -582,7 +583,7 @@ const SafetyInspections: React.FC = () => {
                   <option value="critical">Critical</option>
                 </select>
               </div>
-              
+
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Notes</label>
                 <textarea
@@ -594,7 +595,7 @@ const SafetyInspections: React.FC = () => {
                 />
               </div>
             </div>
-            
+
             {selectedType && CHECKLIST_TEMPLATES[selectedType as ChecklistTemplateKey] && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <h3 className="font-semibold text-blue-900 mb-3">📋 Standard Checklist Preview</h3>
@@ -612,15 +613,15 @@ const SafetyInspections: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
             <div className="flex gap-4">
-              <button 
+              <button
                 onClick={async () => {
                   if (!selectedType || !selectedLocation || !selectedInspector || !scheduledDate) {
                     addNotification('error', 'Please fill in all required fields');
                     return;
                   }
-                  
+
                   setSaving(true);
                   try {
                     if (editing) {
@@ -668,7 +669,7 @@ const SafetyInspections: React.FC = () => {
                   </>
                 )}
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setShowNewInspectionModal(false);
                   setEditingInspection(null);
@@ -694,7 +695,7 @@ const SafetyInspections: React.FC = () => {
 
   const InspectionDetailModal = () => {
     if (!selectedInspection) return null;
-    
+
     return (
       <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
@@ -707,7 +708,7 @@ const SafetyInspections: React.FC = () => {
               <FaTimes size={24} />
             </button>
           </div>
-          
+
           <div className="p-6">
             {/* Status Overview */}
             <div className="grid grid-cols-4 gap-4 mb-6">
@@ -720,10 +721,8 @@ const SafetyInspections: React.FC = () => {
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="text-sm text-gray-600 mb-1">Scheduled</div>
                 <div className="font-semibold">
-                  {selectedInspection.scheduledDate 
-                    ? new Date(selectedInspection.scheduledDate).toLocaleDateString() 
-                    : selectedInspection.date 
-                    ? new Date(selectedInspection.date).toLocaleDateString() 
+                  {selectedInspection.scheduledDate
+                    ? new Date(selectedInspection.scheduledDate).toLocaleDateString()
                     : 'N/A'}
                 </div>
               </div>
@@ -784,12 +783,11 @@ const SafetyInspections: React.FC = () => {
                             <span>📅 Due: {new Date(action.dueDate).toLocaleDateString()}</span>
                           </div>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          action.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${action.status === 'completed' ? 'bg-green-100 text-green-800' :
                           action.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
-                          action.status === 'overdue' ? 'bg-red-100 text-red-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
+                            action.status === 'overdue' ? 'bg-red-100 text-red-800' :
+                              'bg-blue-100 text-blue-800'
+                          }`}>
                           {action.status.toUpperCase().replace('-', ' ')}
                         </span>
                       </div>
@@ -816,7 +814,7 @@ const SafetyInspections: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                </div>
+              </div>
             )}
 
             {/* Audit Trail */}
@@ -858,7 +856,7 @@ const SafetyInspections: React.FC = () => {
             <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2">
               <FaDownload /> Download Report
             </button>
-            <button 
+            <button
               onClick={() => {
                 setEditingInspection(selectedInspection);
                 setShowDetailModal(false);
@@ -868,13 +866,13 @@ const SafetyInspections: React.FC = () => {
             >
               <FaEdit /> Edit Inspection
             </button>
-            <button 
+            <button
               onClick={() => handleDeleteInspection(selectedInspection._id)}
               className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition flex items-center gap-2"
             >
               <FaTrash /> Delete
             </button>
-            <button 
+            <button
               onClick={() => {
                 setShowDetailModal(false);
                 setSelectedInspection(null);
@@ -945,7 +943,7 @@ const SafetyInspections: React.FC = () => {
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             />
           </div>
-          
+
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
@@ -956,7 +954,7 @@ const SafetyInspections: React.FC = () => {
               <option key={type.value} value={type.value}>{type.value}</option>
             ))}
           </select>
-          
+
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
@@ -969,8 +967,8 @@ const SafetyInspections: React.FC = () => {
             <option value="overdue">Overdue</option>
             <option value="action-required">Action Required</option>
           </select>
-          
-          <button 
+
+          <button
             onClick={() => {
               setEditingInspection(null);
               setShowNewInspectionModal(true);
@@ -988,11 +986,10 @@ const SafetyInspections: React.FC = () => {
           <button
             key={tab}
             onClick={() => setCurrentTab(tab)}
-            className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition ${
-              currentTab === tab
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition ${currentTab === tab
+              ? 'bg-indigo-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
           >
             {tab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
           </button>
@@ -1026,69 +1023,67 @@ const SafetyInspections: React.FC = () => {
                 </tr>
               ) : (
                 filteredInspections.map(inspection => (
-                <tr key={inspection._id} className="hover:bg-gray-50 transition">
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-gray-900">{inspection.inspectionNumber}</div>
-                    <div className="text-xs text-gray-500">{inspection.category}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{inspection.type}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <FaMapMarkerAlt className="text-gray-400" size={14} />
-                      <span className="text-gray-700">{inspection.location}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <FaUser className="text-gray-400" size={14} />
-                      <span className="text-gray-700">{inspection.inspector}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-700">
-                      {inspection.scheduledDate 
-                        ? new Date(inspection.scheduledDate).toLocaleDateString() 
-                        : inspection.date 
-                        ? new Date(inspection.date).toLocaleDateString() 
-                        : 'N/A'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(inspection.status)}`}>
-                      {inspection.status.toUpperCase().replace('-', ' ')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      {inspection.findings.critical > 0 && (
-                        <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">
-                          {inspection.findings.critical} Critical
-                        </span>
-                      )}
-                      {inspection.findings.major > 0 && (
-                        <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-semibold">
-                          {inspection.findings.major} Major
-                        </span>
-                      )}
-                      {inspection.findings.total === 0 && (
-                        <span className="text-green-600 text-xs">✓ No Issues</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button 
-                      onClick={() => {
-                        setSelectedInspection(inspection);
-                        setShowDetailModal(true);
-                      }}
-                      className="text-indigo-600 hover:text-indigo-800 font-semibold text-sm flex items-center gap-1"
-                    >
-                      <FaEye /> View
-                    </button>
-                  </td>
-                </tr>
+                  <tr key={inspection._id} className="hover:bg-gray-50 transition">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-gray-900">{inspection.inspectionNumber}</div>
+                      <div className="text-xs text-gray-500">{inspection.category}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-900">{inspection.type}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <FaMapMarkerAlt className="text-gray-400" size={14} />
+                        <span className="text-gray-700">{inspection.location}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <FaUser className="text-gray-400" size={14} />
+                        <span className="text-gray-700">{inspection.inspector}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-700">
+                        {inspection.scheduledDate
+                          ? new Date(inspection.scheduledDate).toLocaleDateString()
+                          : 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(inspection.status)}`}>
+                        {inspection.status.toUpperCase().replace('-', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        {inspection.findings.critical > 0 && (
+                          <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">
+                            {inspection.findings.critical} Critical
+                          </span>
+                        )}
+                        {inspection.findings.major > 0 && (
+                          <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-semibold">
+                            {inspection.findings.major} Major
+                          </span>
+                        )}
+                        {inspection.findings.total === 0 && (
+                          <span className="text-green-600 text-xs">✓ No Issues</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => {
+                          setSelectedInspection(inspection);
+                          setShowDetailModal(true);
+                        }}
+                        className="text-indigo-600 hover:text-indigo-800 font-semibold text-sm flex items-center gap-1"
+                      >
+                        <FaEye /> View
+                      </button>
+                    </td>
+                  </tr>
                 ))
               )}
             </tbody>
@@ -1099,7 +1094,7 @@ const SafetyInspections: React.FC = () => {
       {/* Modals */}
       {showNewInspectionModal && <NewInspectionModal editing={editingInspection} />}
       {showDetailModal && <InspectionDetailModal />}
-      
+
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10001] space-y-2">
         {notifications.map(notification => (

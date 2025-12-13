@@ -117,7 +117,7 @@ const getAssignmentForVehicle = (vehicle: Vehicle, assignments: Record<string, V
         vehicle.plateNumber?.toString()?.trim(),
         vehicle.vinNumber?.toString()?.trim()
     ].filter(Boolean) as string[];
-    
+
     // Check assignments map with all possible identifiers
     for (const identifier of vehicleIdentifiers) {
         const normalizedId = String(identifier).trim();
@@ -125,7 +125,7 @@ const getAssignmentForVehicle = (vehicle: Vehicle, assignments: Record<string, V
             return assignments[normalizedId];
         }
     }
-    
+
     // No real assignment found - return default
     return DEFAULT_ASSIGNMENT;
 };
@@ -154,11 +154,11 @@ const VehicleList = () => {
         const fetchAllData = async () => {
             try {
                 setLoading(true);
-                
+
                 // Fetch vehicles
                 const vehiclesRes = await apiClient.get('/admin/vehicles/list');
                 let formattedVehicles: Vehicle[] = [];
-                
+
                 if (vehiclesRes.data.success && vehiclesRes.data.data?.vehicles) {
                     formattedVehicles = vehiclesRes.data.data.vehicles.map((v: any) => ({
                         _id: v._id,
@@ -203,7 +203,7 @@ const VehicleList = () => {
                 // Fetch all trips (all statuses to show any assignment)
                 const allTripsRes = await listTrip({ limit: 500 }); // Fetch all trips, no status filter
                 let allTrips: any[] = [];
-                
+
                 if (allTripsRes?.success && Array.isArray(allTripsRes?.data)) {
                     allTrips = allTripsRes.data;
                 } else {
@@ -252,7 +252,7 @@ const VehicleList = () => {
                     // Extract all possible vehicle identifiers from the trip's truck
                     const truck = trip.truck;
                     const truckIds: string[] = [];
-                    
+
                     // Add all possible ID formats (convert to strings for consistent comparison)
                     if (truck._id) {
                         const idStr = typeof truck._id === 'string' ? truck._id : truck._id.toString();
@@ -262,7 +262,7 @@ const VehicleList = () => {
                     if (truck.internalId) truckIds.push(String(truck.internalId));
                     if (truck.licensePlate) truckIds.push(String(truck.licensePlate));
                     if (truck.unitNumber) truckIds.push(String(truck.unitNumber));
-                    
+
                     if (truckIds.length === 0) {
                         console.warn('⚠️ Trip truck has no identifiable ID:', trip.tripNumber || trip._id, truck);
                         return;
@@ -271,59 +271,59 @@ const VehicleList = () => {
                     // Extract origin and destination from trip
                     let origin = '—';
                     let destination = '—';
-                    
+
                     // Try startLocation first
                     if (trip.startLocation) {
-                        origin = trip.startLocation.place || 
-                                trip.startLocation.address ||
-                                (trip.startLocation.placeId?.name) ||
-                                (trip.startLocation.placeId?.currentLocation?.address) ||
-                                (typeof trip.startLocation === 'string' ? trip.startLocation : '—');
+                        origin = trip.startLocation.place ||
+                            trip.startLocation.address ||
+                            (trip.startLocation.placeId?.name) ||
+                            (trip.startLocation.placeId?.currentLocation?.address) ||
+                            (typeof trip.startLocation === 'string' ? trip.startLocation : '—');
                     }
-                    
+
                     // Try orders for origin if startLocation not available
                     if (origin === '—' && trip.orders && trip.orders.length > 0) {
                         const firstOrder = trip.orders[0];
                         if (firstOrder.pickupLocation) {
-                            origin = firstOrder.pickupLocation.place || 
-                                    firstOrder.pickupLocation.address ||
-                                    (firstOrder.pickupLocation.placeId?.name) ||
-                                    (firstOrder.pickupLocation.placeId?.currentLocation?.address) ||
-                                    '—';
+                            origin = firstOrder.pickupLocation.place ||
+                                firstOrder.pickupLocation.address ||
+                                (firstOrder.pickupLocation.placeId?.name) ||
+                                (firstOrder.pickupLocation.placeId?.currentLocation?.address) ||
+                                '—';
                         }
                     }
-                    
+
                     // Try endLocation for destination
                     if (trip.endLocation) {
-                        destination = trip.endLocation.place || 
-                                    trip.endLocation.address ||
-                                    (trip.endLocation.placeId?.name) ||
-                                    (trip.endLocation.placeId?.currentLocation?.address) ||
-                                    (typeof trip.endLocation === 'string' ? trip.endLocation : '—');
+                        destination = trip.endLocation.place ||
+                            trip.endLocation.address ||
+                            (trip.endLocation.placeId?.name) ||
+                            (trip.endLocation.placeId?.currentLocation?.address) ||
+                            (typeof trip.endLocation === 'string' ? trip.endLocation : '—');
                     }
-                    
+
                     // Try orders for destination if endLocation not available
                     if (destination === '—' && trip.orders && trip.orders.length > 0) {
                         const lastOrder = trip.orders[trip.orders.length - 1];
                         if (lastOrder.deliveryLocation) {
-                            destination = lastOrder.deliveryLocation.place || 
-                                        lastOrder.deliveryLocation.address ||
-                                        (lastOrder.deliveryLocation.placeId?.name) ||
-                                        (lastOrder.deliveryLocation.placeId?.currentLocation?.address) ||
-                                        '—';
+                            destination = lastOrder.deliveryLocation.place ||
+                                lastOrder.deliveryLocation.address ||
+                                (lastOrder.deliveryLocation.placeId?.name) ||
+                                (lastOrder.deliveryLocation.placeId?.currentLocation?.address) ||
+                                '—';
                         }
                     }
-                    
+
                     // Extract customer name from orders
                     let customerName = '—';
                     if (trip.orders && trip.orders.length > 0) {
                         const firstOrder = trip.orders[0];
-                        customerName = firstOrder.customer?.name || 
-                                     (typeof firstOrder.customer === 'string' ? firstOrder.customer : '—');
+                        customerName = firstOrder.customer?.name ||
+                            (typeof firstOrder.customer === 'string' ? firstOrder.customer : '—');
                     }
-                    
+
                     const driverName = trip.driver?.name || '—';
-                    
+
                     // Calculate ETA
                     let eta = '—';
                     if (trip.plannedEndDate) {
@@ -331,7 +331,7 @@ const VehicleList = () => {
                     } else if (trip.actualEndDate) {
                         eta = `Complete ${new Date(trip.actualEndDate).toLocaleDateString()}`;
                     }
-                    
+
                     // Calculate distance from route or traveledPath
                     let distance = 0;
                     if (trip.route?.totalDistance) {
@@ -340,7 +340,7 @@ const VehicleList = () => {
                         // Rough estimate: could calculate actual distance from coordinates
                         distance = trip.traveledPath.length * 0.1; // Rough estimate
                     }
-                    
+
                     // Store assignment with multiple keys for lookup
                     const assignment: VehicleAssignment = {
                         loadId: trip.tripNumber || `Trip-${trip._id?.toString().slice(-6)}`,
@@ -353,7 +353,7 @@ const VehicleList = () => {
                         milesThisWeek: 0, // Would need to calculate from trip history
                         lastCheckpoint: trip.status === 'in-progress' ? 'En route' : trip.status === 'planned' ? 'Scheduled' : trip.status
                     };
-                    
+
                     // Store assignment with all possible vehicle ID formats for flexible lookup
                     // Since trips are sorted by priority, we only store the first assignment for each vehicle
                     // This ensures in-progress trips take priority over planned trips
@@ -366,7 +366,7 @@ const VehicleList = () => {
                             }
                         }
                     });
-                    
+
                     // Log assignment creation for debugging
                     if (truckIds.length > 0) {
                         const storedCount = truckIds.filter(id => assignments[String(id).trim()]).length;
@@ -379,7 +379,7 @@ const VehicleList = () => {
                     console.log('📋 Assignment keys (first 10):', Object.keys(assignments).slice(0, 10));
                     console.log('📋 Sample assignment:', assignments[Object.keys(assignments)[0]]);
                 }
-                
+
                 // Log vehicle IDs for debugging
                 console.log(`🚛 Total vehicles: ${formattedVehicles.length}`);
                 if (formattedVehicles.length > 0) {
@@ -399,12 +399,12 @@ const VehicleList = () => {
         };
 
         fetchAllData();
-        
+
         // Refresh assignments every 30 seconds
         const interval = setInterval(() => {
             fetchAllData();
         }, 30000);
-        
+
         return () => clearInterval(interval);
     }, []);
 
@@ -559,7 +559,7 @@ const VehicleList = () => {
     }
 
     return (
-        <div className="min-h-screen p-4 bg-gray-50 px-6">
+        <div className="min-h-screen p-4 bg-[#EDF8FF] px-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
@@ -571,48 +571,98 @@ const VehicleList = () => {
                     </div>
                 </div>
 
-            
+
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-slate-900 mb-1">{stats.total}</div>
-                        <div className="text-sm font-medium text-slate-600">Total Vehicles</div>
-                    </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-emerald-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-emerald-600 mb-1">{stats.moving}</div>
-                        <div className="text-sm font-medium text-slate-600">Moving</div>
-                        <div className="w-full bg-emerald-100 rounded-full h-1 mt-2">
-                            <div className="bg-emerald-500 h-1 rounded-full" style={{ width: `${(stats.moving / stats.total) * 100}%` }}></div>
+                    {/* Total Vehicles */}
+                    <div className="rounded-xl p-4 bg-slate-50 border border-slate-200">
+                        <div className="text-2xl font-bold text-slate-700 mb-1">
+                            {stats.total}
+                        </div>
+                        <div className="text-sm font-medium text-slate-600">
+                            Total Vehicles
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-amber-600 mb-1">{stats.idle}</div>
-                        <div className="text-sm font-medium text-slate-600">Idle</div>
+
+                    {/* Moving */}
+                    <div className="rounded-xl p-4 bg-green-50 border border-green-200">
+                        <div className="text-2xl font-bold text-green-600 mb-1">
+                            {stats.moving}
+                        </div>
+                        <div className="text-sm font-medium text-green-600">
+                            Moving
+                        </div>
+                        <div className="w-full bg-green-100 rounded-full h-1 mt-2">
+                            <div
+                                className="bg-green-500 h-1 rounded-full"
+                                style={{ width: `${(stats.moving / stats.total) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Idle */}
+                    <div className="rounded-xl p-4 bg-amber-50 border border-amber-200">
+                        <div className="text-2xl font-bold text-amber-600 mb-1">
+                            {stats.idle}
+                        </div>
+                        <div className="text-sm font-medium text-amber-600">
+                            Idle
+                        </div>
                         <div className="w-full bg-amber-100 rounded-full h-1 mt-2">
-                            <div className="bg-amber-500 h-1 rounded-full" style={{ width: `${(stats.idle / stats.total) * 100}%` }}></div>
+                            <div
+                                className="bg-amber-500 h-1 rounded-full"
+                                style={{ width: `${(stats.idle / stats.total) * 100}%` }}
+                            />
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-slate-600 mb-1">{stats.stopped}</div>
-                        <div className="text-sm font-medium text-slate-600">Stopped</div>
-                        <div className="w-full bg-slate-100 rounded-full h-1 mt-2">
-                            <div className="bg-slate-500 h-1 rounded-full" style={{ width: `${(stats.stopped / stats.total) * 100}%` }}></div>
+
+                    {/* Stopped */}
+                    <div className="rounded-xl p-4 bg-purple-50 border border-purple-200">
+                        <div className="text-2xl font-bold text-purple-600 mb-1">
+                            {stats.stopped}
+                        </div>
+                        <div className="text-sm font-medium text-purple-600">
+                            Stopped
+                        </div>
+                        <div className="w-full bg-purple-100 rounded-full h-1 mt-2">
+                            <div
+                                className="bg-purple-500 h-1 rounded-full"
+                                style={{ width: `${(stats.stopped / stats.total) * 100}%` }}
+                            />
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-red-600 mb-1">{stats.maintenance}</div>
-                        <div className="text-sm font-medium text-slate-600">Maintenance</div>
+
+                    {/* Maintenance */}
+                    <div className="rounded-xl p-4 bg-red-50 border border-red-200">
+                        <div className="text-2xl font-bold text-red-600 mb-1">
+                            {stats.maintenance}
+                        </div>
+                        <div className="text-sm font-medium text-red-600">
+                            Maintenance
+                        </div>
                         <div className="w-full bg-red-100 rounded-full h-1 mt-2">
-                            <div className="bg-red-500 h-1 rounded-full" style={{ width: `${(stats.maintenance / stats.total) * 100}%` }}></div>
+                            <div
+                                className="bg-red-500 h-1 rounded-full"
+                                style={{ width: `${(stats.maintenance / stats.total) * 100}%` }}
+                            />
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-6 hover:shadow-md transition-shadow duration-200">
-                        <div className="text-2xl font-bold text-blue-600 mb-1">{stats.milesToday.toLocaleString()}</div>
-                        <div className="text-sm font-medium text-slate-600">Miles Logged Today</div>
-                        <p className="text-xs text-slate-500 mt-2">Across active assignments</p>
+
+                    {/* Miles Logged */}
+                    <div className="rounded-xl p-4 bg-orange-50 border border-orange-200">
+                        <div className="text-2xl font-bold text-orange-600 mb-1">
+                            {stats.milesToday.toLocaleString()}
+                        </div>
+                        <div className="text-sm font-medium text-orange-600">
+                            Miles Logged Today
+                        </div>
+                        <p className="text-xs text-orange-500 mt-1">
+                            Across active assignments
+                        </p>
                     </div>
                 </div>
+
 
                 {/* Filters and Search */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
@@ -688,8 +738,8 @@ const VehicleList = () => {
                                                 <Car className="w-12 h-12 text-slate-400 mb-4" />
                                                 <p className="text-slate-600 font-medium">No vehicles found</p>
                                                 <p className="text-slate-500 text-sm mt-1">
-                                                    {searchTerm || filterStatus !== 'all' 
-                                                        ? 'Try adjusting your search or filter criteria' 
+                                                    {searchTerm || filterStatus !== 'all'
+                                                        ? 'Try adjusting your search or filter criteria'
                                                         : 'No vehicles are available for your company'}
                                                 </p>
                                             </div>
@@ -697,88 +747,89 @@ const VehicleList = () => {
                                     </tr>
                                 ) : (
                                     currentVehicles.map((vehicle) => {
-                                    const assignment = getAssignmentForVehicle(vehicle, vehicleAssignments);
-                                    return (
-                                    <tr key={vehicle._id} className="hover:bg-slate-50 transition-colors duration-150">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="p-2 bg-blue-50 rounded-lg mr-3 border border-blue-100">
-                                                    <Car className="w-5 h-5 text-blue-600" />
-                                                </div>
-                                                <div className="text-sm font-semibold text-slate-900">
-                                                    {vehicle.internalId}
-                                                </div>
-                                            </div>
-                                        </td>
+                                        const assignment = getAssignmentForVehicle(vehicle, vehicleAssignments);
+                                        return (
+                                            <tr key={vehicle._id} className="hover:bg-slate-50 transition-colors duration-150">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        <div className="p-2 bg-blue-50 rounded-lg mr-3 border border-blue-100">
+                                                            <Car className="w-5 h-5 text-blue-600" />
+                                                        </div>
+                                                        <div className="text-sm font-semibold text-slate-900">
+                                                            {vehicle.internalId}
+                                                        </div>
+                                                    </div>
+                                                </td>
 
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-slate-900">
-                                                {vehicle.plateNumber}
-                                            </div>
-                                        </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm font-medium text-slate-900">
+                                                        {vehicle.plateNumber}
+                                                    </div>
+                                                </td>
 
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-start space-x-2">
-                                                <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
-                                                <div className="text-sm text-slate-900 max-w-xs">
-                                                    {vehicle.currentLocation.address}
-                                                </div>
-                                            </div>
-                                            <div className="text-xs text-slate-500 mt-1 ml-6">
-                                                {vehicle.currentLocation.latitude}, {vehicle.currentLocation.longitude}
-                                            </div>
-                                        </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-start space-x-2">
+                                                        <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
+                                                        <div className="text-sm text-slate-900 max-w-xs">
+                                                            {vehicle.currentLocation.address}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-xs text-slate-500 mt-1 ml-6">
+                                                        {vehicle.currentLocation.latitude}, {vehicle.currentLocation.longitude}
+                                                    </div>
+                                                </td>
 
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center space-x-2">
-                                                <Gauge className={`w-4 h-4 ${getSpeedColor(vehicle.speed, vehicle.status)}`} />
-                                                <span className={`text-sm font-medium ${getSpeedColor(vehicle.speed, vehicle.status)}`}>
-                                                    {vehicle.speed} km/h
-                                                </span>
-                                            </div>
-                                        </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Gauge className={`w-4 h-4 ${getSpeedColor(vehicle.speed, vehicle.status)}`} />
+                                                        <span className={`text-sm font-medium ${getSpeedColor(vehicle.speed, vehicle.status)}`}>
+                                                            {vehicle.speed} km/h
+                                                        </span>
+                                                    </div>
+                                                </td>
 
-                                        <td className="px-6 py-4">
-                                            <div className="space-y-1">
-                                                <div className="text-sm font-semibold text-slate-900 flex items-center space-x-2">
-                                                    <Route className="w-4 h-4 text-blue-500" />
-                                                    <span>{assignment.loadId}</span>
-                                                </div>
-                                                <p className="text-xs text-slate-500">
-                                                    {assignment.origin} → {assignment.destination}
-                                                </p>
-                                                <p className="text-xs text-slate-400">
-                                                    Dispatcher: {assignment.dispatcher}
-                                                </p>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-semibold text-slate-900">
-                                                {formatMiles(assignment.milesToday)} today
-                                            </div>
-                                            <p className="text-xs text-slate-500">
-                                                {formatMiles(assignment.milesThisWeek)} this week
-                                            </p>
-                                        </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="space-y-1">
+                                                        <div className="text-sm font-semibold text-slate-900 flex items-center space-x-2">
+                                                            <Route className="w-4 h-4 text-blue-500" />
+                                                            <span>{assignment.loadId}</span>
+                                                        </div>
+                                                        <p className="text-xs text-slate-500">
+                                                            {assignment.origin} → {assignment.destination}
+                                                        </p>
+                                                        <p className="text-xs text-slate-400">
+                                                            Dispatcher: {assignment.dispatcher}
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm font-semibold text-slate-900">
+                                                        {formatMiles(assignment.milesToday)} today
+                                                    </div>
+                                                    <p className="text-xs text-slate-500">
+                                                        {formatMiles(assignment.milesThisWeek)} this week
+                                                    </p>
+                                                </td>
 
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getStatusColor(vehicle.status)}`}>
-                                                {getStatusIcon(vehicle.status)}
-                                                <span className="capitalize">{vehicle.status}</span>
-                                            </span>
-                                        </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getStatusColor(vehicle.status)}`}>
+                                                        {getStatusIcon(vehicle.status)}
+                                                        <span className="capitalize">{vehicle.status}</span>
+                                                    </span>
+                                                </td>
 
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button
-                                                onClick={() => handleViewDetails(vehicle)}
-                                                className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors duration-150 text-sm font-medium"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                                <span>Details</span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    )})
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button
+                                                        onClick={() => handleViewDetails(vehicle)}
+                                                        className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors duration-150 text-sm font-medium"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                        <span>Details</span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })
                                 )}
                             </tbody>
                         </table>
@@ -855,367 +906,367 @@ const VehicleList = () => {
                 {showDetails && selectedVehicle && (() => {
                     const assignmentDetails = getAssignmentForVehicle(selectedVehicle, vehicleAssignments);
                     return (
-                    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] overflow-hidden">
-                        <div className="absolute transition-opacity" onClick={() => setShowDetails(false)} />
-                        <div className="absolute inset-y-0 right-0 max-w-2xl w-full bg-white shadow-xl">
-                            <div className="flex h-full flex-col">
-                                {/* Header */}
-                                <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-3">
-                                            <img
-                                                src={selectedVehicle.avatar}
-                                                alt={selectedVehicle.internalId}
-                                                className="w-12 h-12 rounded-lg object-cover border border-slate-200"
-                                            />
-                                            <div>
-                                                <h2 className="text-xl font-bold text-slate-900">
-                                                    {selectedVehicle.internalId}
-                                                </h2>
-                                                <p className="text-sm text-slate-600">{selectedVehicle.plateNumber}</p>
+                        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] overflow-hidden">
+                            <div className="absolute transition-opacity" onClick={() => setShowDetails(false)} />
+                            <div className="absolute inset-y-0 right-0 max-w-2xl w-full bg-white shadow-xl">
+                                <div className="flex h-full flex-col">
+                                    {/* Header */}
+                                    <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-3">
+                                            
+                                                    <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center border border-slate-200">
+                                                        <Truck className="w-6 h-6 text-black" />
+                                                    </div>
+                                               
+                                                <div>
+                                                    <h2 className="text-xl font-bold text-slate-900">
+                                                        {selectedVehicle.internalId}
+                                                    </h2>
+                                                    <p className="text-sm text-slate-600">{selectedVehicle.plateNumber}</p>
+                                                </div>
                                             </div>
+                                            <button
+                                                onClick={() => setShowDetails(false)}
+                                                className="p-2 hover:bg-slate-200 rounded-lg transition-colors duration-150"
+                                            >
+                                                <X className="w-5 h-5 text-slate-600" />
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() => setShowDetails(false)}
-                                            className="p-2 hover:bg-slate-200 rounded-lg transition-colors duration-150"
-                                        >
-                                            <X className="w-5 h-5 text-slate-600" />
-                                        </button>
                                     </div>
-                                </div>
 
-                                {/* Content */}
-                                <div className="flex-1 overflow-y-auto">
-                                    <div className="p-6 space-y-6">
+                                    {/* Content */}
+                                    <div className="flex-1 overflow-y-auto">
+                                        <div className="p-6 space-y-6">
 
-                                        {/* Basic Information */}
-                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                <Car className="w-5 h-5 mr-2 text-blue-600" />
-                                                Vehicle Information
-                                            </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Internal ID</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedVehicle.internalId}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Plate Number</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedVehicle.plateNumber}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">VIN Number</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedVehicle.vinNumber}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Make & Model</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedVehicle.make} {selectedVehicle.model}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Year</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedVehicle.year}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Odometer</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedVehicle.odometer.toLocaleString()} km</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Driver Information */}
-                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                <User className="w-5 h-5 mr-2 text-green-600" />
-                                                Driver Information
-                                            </h3>
-                                            {selectedVehicle.driver ? (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="text-sm font-medium text-slate-600">Driver Name</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.driver.name}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-sm font-medium text-slate-600">Phone Number</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.driver.phone}</p>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="text-sm text-slate-500 italic">No driver assigned</div>
-                                            )}
-                                        </div>
-
-                                        {/* Current Status */}
-                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                <Activity className="w-5 h-5 mr-2 text-purple-600" />
-                                                Current Status
-                                            </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Status</label>
-                                                    <div className="mt-1">
-                                                        <span className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getStatusColor(selectedVehicle.status)}`}>
-                                                            {getStatusIcon(selectedVehicle.status)}
-                                                            <span className="capitalize">{selectedVehicle.status}</span>
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Speed</label>
-                                                    <p className={`text-sm font-medium ${getSpeedColor(selectedVehicle.speed, selectedVehicle.status)}`}>
-                                                        {selectedVehicle.speed} km/h
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Miles Today</label>
-                                                    <p className="text-sm font-medium text-slate-900">
-                                                        {formatMiles(assignmentDetails.milesToday)}
-                                                    </p>
-                                                    <p className="text-xs text-slate-500">
-                                                        {formatMiles(assignmentDetails.milesThisWeek)} this week
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Engine</label>
-                                                    <p className="text-sm text-slate-900 font-medium">
-                                                        {selectedVehicle.engineOn ? (
-                                                            <span className="text-green-600">ON</span>
-                                                        ) : (
-                                                            <span className="text-red-600">OFF</span>
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Location Information */}
-                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                <MapPin className="w-5 h-5 mr-2 text-red-600" />
-                                                Current Location
-                                            </h3>
-                                            <div className="space-y-2">
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Address</label>
-                                                    <p className="text-sm text-slate-900">{selectedVehicle.currentLocation.address}</p>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="text-sm font-medium text-slate-600">Latitude</label>
-                                                        <p className="text-sm text-slate-900 font-mono">{selectedVehicle.currentLocation.latitude}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-sm font-medium text-slate-600">Longitude</label>
-                                                        <p className="text-sm text-slate-900 font-mono">{selectedVehicle.currentLocation.longitude}</p>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Last Updated</label>
-                                                    <p className="text-sm text-slate-900">{new Date(selectedVehicle.currentLocation.updatedAt).toLocaleString()}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Assignment Information */}
-                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                <Route className="w-5 h-5 mr-2 text-blue-600" />
-                                                Current Load
-                                            </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Load ID</label>
-                                                    <p className="text-sm text-slate-900 font-semibold">{assignmentDetails.loadId}</p>
-                                                    <p className="text-xs text-slate-500">{assignmentDetails.customer}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Dispatcher</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{assignmentDetails.dispatcher}</p>
-                                                    <p className="text-xs text-slate-500">{assignmentDetails.eta}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Route</label>
-                                                    <p className="text-sm text-slate-900">{assignmentDetails.origin}</p>
-                                                    <p className="text-xs text-slate-500">→ {assignmentDetails.destination}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600">Last checkpoint</label>
-                                                    <p className="text-sm text-slate-900">{assignmentDetails.lastCheckpoint}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Trailer Information */}
-                                        {selectedVehicle.hasTrailer && selectedVehicle.trailerDetails && (
+                                            {/* Basic Information */}
                                             <div className="bg-white border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <Truck className="w-5 h-5 mr-2 text-orange-600" />
-                                                    Trailer Information
+                                                    <Car className="w-5 h-5 mr-2 text-blue-600" />
+                                                    Vehicle Information
                                                 </h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Serial Number</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.trailerDetails.serialNumber}</p>
+                                                        <label className="text-sm font-medium text-slate-600">Internal ID</label>
+                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.internalId}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Capacity</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.trailerDetails.capacity}</p>
+                                                        <label className="text-sm font-medium text-slate-600">Plate Number</label>
+                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.plateNumber}</p>
                                                     </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600">VIN Number</label>
+                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.vinNumber}</p>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600">Make & Model</label>
+                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.make} {selectedVehicle.model}</p>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600">Year</label>
+                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.year}</p>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600">Odometer</label>
+                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.odometer.toLocaleString()} km</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Driver Information */}
+                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                                    <User className="w-5 h-5 mr-2 text-green-600" />
+                                                    Driver Information
+                                                </h3>
+                                                {selectedVehicle.driver ? (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="text-sm font-medium text-slate-600">Driver Name</label>
+                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.driver.name}</p>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-sm font-medium text-slate-600">Phone Number</label>
+                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.driver.phone}</p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-sm text-slate-500 italic">No driver assigned</div>
+                                                )}
+                                            </div>
+
+                                            {/* Current Status */}
+                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                                    <Activity className="w-5 h-5 mr-2 text-purple-600" />
+                                                    Current Status
+                                                </h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                                     <div>
                                                         <label className="text-sm font-medium text-slate-600">Status</label>
-                                                        <p className="text-sm text-slate-900 font-medium capitalize">{selectedVehicle.trailerDetails.status}</p>
+                                                        <div className="mt-1">
+                                                            <span className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getStatusColor(selectedVehicle.status)}`}>
+                                                                {getStatusIcon(selectedVehicle.status)}
+                                                                <span className="capitalize">{selectedVehicle.status}</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600">Speed</label>
+                                                        <p className={`text-sm font-medium ${getSpeedColor(selectedVehicle.speed, selectedVehicle.status)}`}>
+                                                            {selectedVehicle.speed} km/h
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600">Miles Today</label>
+                                                        <p className="text-sm font-medium text-slate-900">
+                                                            {formatMiles(assignmentDetails.milesToday)}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500">
+                                                            {formatMiles(assignmentDetails.milesThisWeek)} this week
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600">Engine</label>
+                                                        <p className="text-sm text-slate-900 font-medium">
+                                                            {selectedVehicle.engineOn ? (
+                                                                <span className="text-green-600">ON</span>
+                                                            ) : (
+                                                                <span className="text-red-600">OFF</span>
+                                                            )}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
-                                        )}
 
-                                        {/* Driver Behaviour */}
-                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                <TrendingUp className="w-5 h-5 mr-2 text-indigo-600" />
-                                                Driver Behaviour Metrics
-                                            </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                <div className="text-center p-4 bg-red-50 rounded-lg">
-                                                    <div className="text-2xl font-bold text-red-600">{selectedVehicle.driverBehaviour.harshBraking}</div>
-                                                    <div className="text-sm text-slate-600">Harsh Braking Events</div>
-                                                </div>
-                                                <div className="text-center p-4 bg-amber-50 rounded-lg">
-                                                    <div className="text-2xl font-bold text-amber-600">{selectedVehicle.driverBehaviour.speedingEvents}</div>
-                                                    <div className="text-sm text-slate-600">Speeding Events</div>
-                                                </div>
-                                                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                                                    <div className="text-2xl font-bold text-blue-600">{selectedVehicle.driverBehaviour.idlingDuration}</div>
-                                                    <div className="text-sm text-slate-600">Idling Duration (min)</div>
+                                            {/* Location Information */}
+                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                                    <MapPin className="w-5 h-5 mr-2 text-red-600" />
+                                                    Current Location
+                                                </h3>
+                                                <div className="space-y-2">
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600">Address</label>
+                                                        <p className="text-sm text-slate-900">{selectedVehicle.currentLocation.address}</p>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="text-sm font-medium text-slate-600">Latitude</label>
+                                                            <p className="text-sm text-slate-900 font-mono">{selectedVehicle.currentLocation.latitude}</p>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-sm font-medium text-slate-600">Longitude</label>
+                                                            <p className="text-sm text-slate-900 font-mono">{selectedVehicle.currentLocation.longitude}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600">Last Updated</label>
+                                                        <p className="text-sm text-slate-900">{new Date(selectedVehicle.currentLocation.updatedAt).toLocaleString()}</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* Engine Health */}
-                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                <Wrench className="w-5 h-5 mr-2 text-emerald-600" />
-                                                Engine Health
-                                            </h3>
-                                            <div className="space-y-4">
+                                            {/* Assignment Information */}
+                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                                    <Route className="w-5 h-5 mr-2 text-blue-600" />
+                                                    Current Load
+                                                </h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Battery Voltage</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.engineHealth.batteryVoltage}V</p>
+                                                        <label className="text-sm font-medium text-slate-600">Load ID</label>
+                                                        <p className="text-sm text-slate-900 font-semibold">{assignmentDetails.loadId}</p>
+                                                        <p className="text-xs text-slate-500">{assignmentDetails.customer}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Engine Hours</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.engineHealth.engineHours} hours</p>
+                                                        <label className="text-sm font-medium text-slate-600">Dispatcher</label>
+                                                        <p className="text-sm text-slate-900 font-medium">{assignmentDetails.dispatcher}</p>
+                                                        <p className="text-xs text-slate-500">{assignmentDetails.eta}</p>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600">Route</label>
+                                                        <p className="text-sm text-slate-900">{assignmentDetails.origin}</p>
+                                                        <p className="text-xs text-slate-500">→ {assignmentDetails.destination}</p>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600">Last checkpoint</label>
+                                                        <p className="text-sm text-slate-900">{assignmentDetails.lastCheckpoint}</p>
                                                     </div>
                                                 </div>
+                                            </div>
 
-                                                {/* Fault Codes */}
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-600 mb-2 block">Fault Codes</label>
-                                                    {selectedVehicle.engineHealth.faultCodes.length > 0 ? (
-                                                        <div className="space-y-2">
-                                                            {selectedVehicle.engineHealth.faultCodes.map((fault, index) => (
-                                                                <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                                                                    <div className="flex items-start space-x-2">
-                                                                        <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
-                                                                        <div>
-                                                                            <div className="text-sm font-medium text-red-900">{fault.code}</div>
-                                                                            <div className="text-sm text-red-700">{fault.description}</div>
+                                            {/* Trailer Information */}
+                                            {selectedVehicle.hasTrailer && selectedVehicle.trailerDetails && (
+                                                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                                        <Truck className="w-5 h-5 mr-2 text-orange-600" />
+                                                        Trailer Information
+                                                    </h3>
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <div>
+                                                            <label className="text-sm font-medium text-slate-600">Serial Number</label>
+                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.trailerDetails.serialNumber}</p>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-sm font-medium text-slate-600">Capacity</label>
+                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.trailerDetails.capacity}</p>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-sm font-medium text-slate-600">Status</label>
+                                                            <p className="text-sm text-slate-900 font-medium capitalize">{selectedVehicle.trailerDetails.status}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Driver Behaviour */}
+                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                                    <TrendingUp className="w-5 h-5 mr-2 text-indigo-600" />
+                                                    Driver Behaviour Metrics
+                                                </h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    <div className="text-center p-4 bg-red-50 rounded-lg">
+                                                        <div className="text-2xl font-bold text-red-600">{selectedVehicle.driverBehaviour.harshBraking}</div>
+                                                        <div className="text-sm text-slate-600">Harsh Braking Events</div>
+                                                    </div>
+                                                    <div className="text-center p-4 bg-amber-50 rounded-lg">
+                                                        <div className="text-2xl font-bold text-amber-600">{selectedVehicle.driverBehaviour.speedingEvents}</div>
+                                                        <div className="text-sm text-slate-600">Speeding Events</div>
+                                                    </div>
+                                                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                                                        <div className="text-2xl font-bold text-blue-600">{selectedVehicle.driverBehaviour.idlingDuration}</div>
+                                                        <div className="text-sm text-slate-600">Idling Duration (min)</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Engine Health */}
+                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                                    <Wrench className="w-5 h-5 mr-2 text-emerald-600" />
+                                                    Engine Health
+                                                </h3>
+                                                <div className="space-y-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="text-sm font-medium text-slate-600">Battery Voltage</label>
+                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.engineHealth.batteryVoltage}V</p>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-sm font-medium text-slate-600">Engine Hours</label>
+                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.engineHealth.engineHours} hours</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Fault Codes */}
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-600 mb-2 block">Fault Codes</label>
+                                                        {selectedVehicle.engineHealth.faultCodes.length > 0 ? (
+                                                            <div className="space-y-2">
+                                                                {selectedVehicle.engineHealth.faultCodes.map((fault, index) => (
+                                                                    <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                                        <div className="flex items-start space-x-2">
+                                                                            <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
+                                                                            <div>
+                                                                                <div className="text-sm font-medium text-red-900">{fault.code}</div>
+                                                                                <div className="text-sm text-red-700">{fault.description}</div>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
-                                                            No fault codes detected
-                                                        </div>
-                                                    )}
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                                                                No fault codes detected
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* Recent Trips */}
-                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                <Route className="w-5 h-5 mr-2 text-cyan-600" />
-                                                Recent Trips
-                                            </h3>
-                                            {selectedVehicle.trips.length > 0 ? (
-                                                <div className="space-y-3">
-                                                    {selectedVehicle.trips.map((trip, index) => (
-                                                        <div key={index} className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                <div>
-                                                                    <label className="text-xs font-medium text-slate-600">Start Time</label>
-                                                                    <p className="text-sm text-slate-900">{new Date(trip.startTime).toLocaleString()}</p>
-                                                                </div>
-                                                                <div>
-                                                                    <label className="text-xs font-medium text-slate-600">End Time</label>
-                                                                    <p className="text-sm text-slate-900">{new Date(trip.endTime).toLocaleString()}</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="mt-2">
-                                                                <label className="text-xs font-medium text-slate-600">Route Points</label>
-                                                                <p className="text-sm text-slate-900">{trip.route.length} GPS coordinates recorded</p>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className="text-sm text-slate-500 italic">No recent trips recorded</div>
-                                            )}
-                                        </div>
-
-                                        {/* Vehicle Images */}
-                                        {selectedVehicle.vehicleImage.length > 0 && (
+                                            {/* Recent Trips */}
                                             <div className="bg-white border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <ImageIcon className="w-5 h-5 mr-2 text-pink-600" />
-                                                    Vehicle Images
+                                                    <Route className="w-5 h-5 mr-2 text-cyan-600" />
+                                                    Recent Trips
                                                 </h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {selectedVehicle.vehicleImage.map((image, index) => (
-                                                        <img
-                                                            key={index}
-                                                            src={image.imageUrl}
-                                                            alt={`Vehicle ${index + 1}`}
-                                                            className="w-full h-48 object-cover rounded-lg border border-slate-200"
-                                                        />
-                                                    ))}
-                                                </div>
+                                                {selectedVehicle.trips.length > 0 ? (
+                                                    <div className="space-y-3">
+                                                        {selectedVehicle.trips.map((trip, index) => (
+                                                            <div key={index} className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <div>
+                                                                        <label className="text-xs font-medium text-slate-600">Start Time</label>
+                                                                        <p className="text-sm text-slate-900">{new Date(trip.startTime).toLocaleString()}</p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="text-xs font-medium text-slate-600">End Time</label>
+                                                                        <p className="text-sm text-slate-900">{new Date(trip.endTime).toLocaleString()}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="mt-2">
+                                                                    <label className="text-xs font-medium text-slate-600">Route Points</label>
+                                                                    <p className="text-sm text-slate-900">{trip.route.length} GPS coordinates recorded</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-sm text-slate-500 italic">No recent trips recorded</div>
+                                                )}
                                             </div>
-                                        )}
 
-                                        {/* Documents */}
-                                        {selectedVehicle.documents.length > 0 && (
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <FileText className="w-5 h-5 mr-2 text-violet-600" />
-                                                    Documents
-                                                </h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {selectedVehicle.documents.map((doc, index) => (
-                                                        <div key={index} className="relative">
+                                            {/* Vehicle Images */}
+                                            {selectedVehicle.vehicleImage.length > 0 && (
+                                                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                                        <ImageIcon className="w-5 h-5 mr-2 text-pink-600" />
+                                                        Vehicle Images
+                                                    </h3>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {selectedVehicle.vehicleImage.map((image, index) => (
                                                             <img
-                                                                src={doc.documentUrl}
-                                                                alt={`Document ${index + 1}`}
-                                                                className="w-full h-32 object-cover rounded-lg border border-slate-200"
+                                                                key={index}
+                                                                src={image.imageUrl}
+                                                                alt={`Vehicle ${index + 1}`}
+                                                                className="w-full h-48 object-cover rounded-lg border border-slate-200"
                                                             />
-                                                            <div className="absolute top-2 left-2 px-2 py-1 bg-black bg-opacity-75 text-white text-xs rounded">
-                                                                Document {index + 1}
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
 
+                                            {/* Documents */}
+                                            {selectedVehicle.documents.length > 0 && (
+                                                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                                        <FileText className="w-5 h-5 mr-2 text-violet-600" />
+                                                        Documents
+                                                    </h3>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {selectedVehicle.documents.map((doc, index) => (
+                                                            <div key={index} className="relative">
+                                                                <img
+                                                                    src={doc.documentUrl}
+                                                                    alt={`Document ${index + 1}`}
+                                                                    className="w-full h-32 object-cover rounded-lg border border-slate-200"
+                                                                />
+                                                                <div className="absolute top-2 left-2 px-2 py-1 bg-black bg-opacity-75 text-white text-xs rounded">
+                                                                    Document {index + 1}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                     );
                 })()}
             </div>
