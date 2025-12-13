@@ -1,54 +1,64 @@
-import React, { useState, useMemo } from 'react'
-import { HealthSafetySidebarLinks } from '../../utils/HealthSafetySidebarLinks';
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { HealthSafetySidebarLinks } from "../../utils/HealthSafetySidebarLinks";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa";
 import Logo from "../../assets/images/LI.png";
 import FullLogo from "../../assets/FleetGo.png";
 import { getUserRole, getDashboardRoute } from "../../utils/auth";
 
 interface SidebarProps {
-  isCollapsed: boolean;
+  isCollapsed?: boolean;
   onToggle: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false, onToggle }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
+
   const userRole = getUserRole();
+  const isSafetyOfficer = userRole === "safety officer";
 
-  const transformedLinks = useMemo(() => {
-    return HealthSafetySidebarLinks;
-  }, []);
+  /** Active route logic helpers */
+  const getBasePath = () => {
+    return isSafetyOfficer ? "/healthandsafety" : "/admin/healthandsafety";
+  };
 
+  /** Build transformed sidebar links with full paths */
+  const sidebarLinks = useMemo(() => {
+    const basePath = getBasePath();
+
+    const mapLink = (link: any): any => {
+      // Construct full path if key is not absolute
+      const fullPath = link.key.startsWith('/')
+        ? link.key
+        : `${basePath}/${link.key}`;
+
+      const updated = {
+        ...link,
+        key: fullPath,
+      };
+      if (link.children) updated.children = link.children.map(mapLink);
+      return updated;
+    };
+
+    return HealthSafetySidebarLinks.map(mapLink);
+  }, [isSafetyOfficer]);
+
+  /** Parent menu toggle */
   const toggleMenu = (key: string) => {
     setOpenMenus((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
   };
 
-  const getBasePath = () => {
-    return userRole === 'safety officer' ? '/healthandsafety' : '/admin/healthandsafety';
-  };
-
+  /** Active route logic */
   const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
-    const basePath = getBasePath();
-    if (linkKey === 'health-safety-summary') {
-      return (
-        pathname === basePath ||
-        pathname === `${basePath}/` ||
-        pathname === `${basePath}/dashboard` ||
-        pathname === `${basePath}/health-safety-summary`
-      );
+    // Exact match for the base path dashboard/summary
+    if (linkKey === getBasePath() + "/health-safety-summary") {
+      // Also match root specific routes if needed, or exact logic
+      return pathname === getBasePath() || pathname === linkKey;
     }
     return isActive;
-  };
-
-  const handleClick = (link: any) => {
-    if (link.action === "open-new-load") {
-      setSidebarOpen(true);
-    }
   };
 
   return (
@@ -64,6 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           }`}
       >
         {/* --- LOGO SECTION --- */}
+
         <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-gray-200">
           <div
             className="cursor-pointer flex items-center justify-center"
@@ -91,7 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           style={{ scrollbarWidth: "thin", scrollbarColor: "#9CA3AF #F3F4F6" }}
         >
           <ul className="space-y-0 py-2">
-            {transformedLinks.map((link) => (
+            {sidebarLinks.map((link) => (
               <li key={link.key || link.label}>
                 {link.children ? (
                   <>
@@ -140,7 +151,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                     {!isCollapsed && openMenus.includes(link.key) && (
                       <ul className="bg-gray-50">
                         {link.children.map((child: any) => {
-                          const pathname = location.pathname;
+                          const pathname = window.location.pathname;
                           const activeState = isActiveLink(
                             child.key,
                             pathname.includes(child.key),
@@ -150,13 +161,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                           return (
                             <li key={child.key}>
                               <NavLink
-                                to={`${getBasePath()}/${child.key}`}
+                                to={child.key}
                                 className={`flex items-center px-4 py-2 pl-12 text-sm transition ${activeState
                                     ? "text-[#42aeec] bg-[#42aeec]/10"
                                     : "text-gray-600 hover:bg-gray-100 hover:text-[#42aeec]"
                                   }`}
                               >
-                                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60 mr-2"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>
                                 {child.label}
                               </NavLink>
                             </li>
@@ -165,39 +176,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                       </ul>
                     )}
                   </>
-                ) : (link as any).action ? (
-                  // --- SPECIAL ACTION (open drawer) ---
-                  <button
-                    onClick={() => handleClick(link)}
-                    className={`w-full transition group ${isCollapsed
-                        ? "flex flex-col items-center justify-center px-2 py-2"
-                        : "flex items-center px-4 py-2 gap-3"
-                      } hover:bg-gray-50`}
-                    title={link.label}
-                  >
-                    <span
-                      className={`${isCollapsed ? "text-2xl" : "text-xl"} text-gray-600 group-hover:text-[#42aeec]`}
-                    >
-                      {link.icon}
-                    </span>
-                    {!isCollapsed && (
-                      <span className="text-sm font-medium text-gray-700 group-hover:text-[#42aeec]">{link.label}</span>
-                    )}
-                  </button>
                 ) : (
                   /* NORMAL LINK */
                   <NavLink
-                    to={
-                      link.key === 'health-safety-summary'
-                        ? getBasePath()
-                        : `${getBasePath()}/${link.key}`
-                    }
+                    to={link.key}
                     title={link.label}
                     className={({ isActive }) => {
-                      const pathname = location.pathname;
-                      const basePath = getBasePath();
-                      const isDashboardActive = link.key === 'health-safety-summary' && (pathname === basePath || pathname === `${basePath}/`);
-                      const activeState = isDashboardActive || isActiveLink(
+                      const pathname = window.location.pathname;
+                      const activeState = isActiveLink(
                         link.key,
                         isActive,
                         pathname
@@ -225,23 +211,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           </ul>
         </div>
       </aside>
-
-      {/* --- Drawer for New Load --- */}
-      <div
-        className={`fixed top-0 right-0 h-full max-w-lg w-full sm:w-[42rem] bg-white bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 border-opacity-50 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
-          }`}
-      >
-        {/* Future drawer content */}
-      </div>
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm transition-all duration-500"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
     </>
   );
 };
 
 export default Sidebar;
-

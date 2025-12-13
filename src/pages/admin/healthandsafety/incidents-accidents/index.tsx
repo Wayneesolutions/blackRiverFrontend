@@ -235,10 +235,10 @@ interface ToastNotification {
 
 const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
   const icons = {
-    success: <FaCheckCircleIcon className="text-green-500" size={24} />,
-    error: <FaExclamationCircle className="text-red-500" size={24} />,
-    info: <FaInfoCircle className="text-blue-500" size={24} />,
-    warning: <FaExclamationCircle className="text-yellow-500" size={24} />
+    success: <FaCheckCircle className="text-green-500" size={16} />,
+    error: <FaExclamationTriangle className="text-red-500" size={16} />,
+    info: <FaInfoCircle className="text-blue-500" size={16} />,
+    warning: <FaExclamationTriangle className="text-yellow-500" size={16} />
   };
 
   const bgColors = {
@@ -256,16 +256,16 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
   }, [notification.id, onClose]);
 
   return (
-    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[500px]`}>
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-3 rounded-lg border shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[400px]`}>
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-xs font-medium text-gray-800">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
         className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
       >
-        <FaTimes size={16} />
+        <FaTimes size={12} />
       </button>
     </div>
   );
@@ -277,6 +277,7 @@ const IncidentManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
+  const [filterRiskLevel, setFilterRiskLevel] = useState<string>('all');
   const [currentTab, setCurrentTab] = useState(TABS.INCIDENT_LIST);
   const [selectedIncidentForDetail, setSelectedIncidentForDetail] = useState<Incident | null>(null);
   const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
@@ -953,93 +954,134 @@ const IncidentManagement: React.FC = () => {
 
   // ==================== RENDER FUNCTIONS ====================
 
+  // Render main incident list
   const renderIncidentList = () => (
     <>
-      {/* Search & Filters */}
-      <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <FaSearch
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={18}
-            />
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Total Incidents</p>
+            <h3 className="text-xl font-bold text-gray-800">{incidents.length}</h3>
+          </div>
+          <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
+            <FaClipboardList size={16} />
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Open Cases</p>
+            <h3 className="text-xl font-bold text-gray-800">{incidents.filter(i => i.status === 'open').length}</h3>
+          </div>
+          <div className="bg-yellow-50 p-2 rounded-lg text-yellow-600">
+            <FaExclamationTriangle size={16} />
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Injuries</p>
+            <h3 className="text-xl font-bold text-gray-800">{incidents.filter(i => i.hasInjury).length}</h3>
+          </div>
+          <div className="bg-red-50 p-2 rounded-lg text-red-600">
+            <FaUserInjured size={16} />
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Resolved</p>
+            <h3 className="text-xl font-bold text-gray-800">{incidents.filter(i => i.status === 'resolved' || i.status === 'closed').length}</h3>
+          </div>
+          <div className="bg-green-50 p-2 rounded-lg text-green-600">
+            <FaCheckCircle size={16} />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-0">
+          <div className="relative w-full md:w-96">
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
             <input
               type="text"
-              placeholder="Search by incident #, location, type, or reporter..."
+              placeholder="Search incidents..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 transition-colors"
+              className="w-full pl-9 pr-4 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-xl">
-              <FaFilter className="text-gray-500" size={16} />
+          <div className="flex gap-2 w-full md:w-auto">
+            <div className="relative flex-1 md:flex-none">
+              <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="bg-transparent border-none focus:outline-none font-medium text-gray-700 cursor-pointer"
+                className="w-full pl-8 pr-8 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
               >
                 <option value="all">All Status</option>
                 <option value="open">Open</option>
                 <option value="investigating">Investigating</option>
-                <option value="action-required">Action Required</option>
                 <option value="resolved">Resolved</option>
                 <option value="closed">Closed</option>
               </select>
+              <FaChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={10} />
             </div>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:outline-none focus:border-purple-500 font-medium text-gray-700"
-            >
-              <option value="all">All Types</option>
-              <option value="Driver Injury">Driver Injury</option>
-              <option value="Vehicle Accident">Vehicle Accident</option>
-              <option value="Workplace Incident">Workplace Incident</option>
-              <option value="Near Miss">Near Miss</option>
-            </select>
+            <div className="relative flex-1 md:flex-none">
+              <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
+              <select
+                value={filterRiskLevel}
+                onChange={(e) => setFilterRiskLevel(e.target.value)}
+                className="w-full pl-8 pr-8 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
+              >
+                <option value="all">All Priorities</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+              <FaChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={10} />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Incidents Table */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr style={{ background: COLORS.gradients.incident }}>
-                <th className="px-6 py-4 text-left text-white font-semibold text-sm">
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                   Incident #
                 </th>
-                <th className="px-6 py-4 text-left text-white font-semibold text-sm">
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                   Date/Time
                 </th>
-                <th className="px-6 py-4 text-left text-white font-semibold text-sm">Type</th>
-                <th className="px-6 py-4 text-left text-white font-semibold text-sm">
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                   Location
                 </th>
-                <th className="px-6 py-4 text-left text-white font-semibold text-sm">
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                   Severity
                 </th>
-                <th className="px-6 py-4 text-left text-white font-semibold text-sm">Status</th>
-                <th className="px-6 py-4 text-left text-white font-semibold text-sm">CAPA</th>
-                <th className="px-6 py-4 text-left text-white font-semibold text-sm">Injury?</th>
-                <th className="px-6 py-4 text-left text-white font-semibold text-sm">Actions</th>
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">CAPA</th>
+                <th className="px-4 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">Injury?</th>
+                <th className="px-4 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100">
               {loading || filteredIncidents.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center">
                     {loading ? (
                       <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
-                        <p className="text-gray-500 font-medium">Loading incidents...</p>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                        <p className="text-xs text-gray-500 font-medium">Loading incidents...</p>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center space-y-3">
-                        <FaExclamationTriangle size={48} className="text-gray-300" />
-                        <p className="text-gray-500 font-medium">
+                        <FaExclamationTriangle size={32} className="text-gray-300" />
+                        <p className="text-xs text-gray-500 font-medium">
                           No incidents found matching your filters
                         </p>
                       </div>
@@ -1054,98 +1096,98 @@ const IncidentManagement: React.FC = () => {
                   return (
                     <tr
                       key={incident._id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      className="hover:bg-blue-50/30 transition-colors group"
                     >
-                      <td className="px-6 py-4">
-                        <span className="font-semibold text-gray-900">
+                      <td className="px-4 py-3">
+                        <span className="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                           {incident.incidentNumber}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <FaCalendarAlt className="text-gray-400" size={14} />
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <FaCalendarAlt className="text-gray-400" size={10} />
                           <div>
-                            <div className="font-medium text-gray-900">
+                            <div className="text-xs font-medium text-gray-900">
                               {new Date(incident.date).toLocaleDateString()}
                             </div>
-                            <div className="text-xs text-gray-500">{incident.time}</div>
+                            <div className="text-[10px] text-gray-500">{incident.time}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-medium text-gray-900">
+                      <td className="px-4 py-3">
+                        <span className="text-xs font-medium text-gray-700">
                           {incident.type}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <FaMapMarkerAlt className="text-gray-400 flex-shrink-0" size={14} />
-                          <span className="text-sm text-gray-700">{incident.location}</span>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5" title={incident.location}>
+                          <FaMapMarkerAlt className="text-gray-400 flex-shrink-0" size={10} />
+                          <span className="text-xs text-gray-600 truncate max-w-[120px]">{incident.location}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <span
-                          className="px-3 py-1 rounded-full text-xs font-bold"
+                          className="px-2 py-0.5 rounded text-[10px] font-bold border"
                           style={{
                             backgroundColor: severityColors.bg,
                             color: severityColors.text,
+                            borderColor: severityColors.bg,
                           }}
                         >
                           {incident.severity.toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <span
-                          className="px-3 py-1 rounded-full text-xs font-semibold"
+                          className="px-2 py-0.5 rounded text-[10px] font-bold border"
                           style={{
                             backgroundColor: statusColors.bg,
                             color: statusColors.text,
+                            borderColor: statusColors.bg,
                           }}
                         >
                           {incident.status.replace('-', ' ').toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         {incident.capa ? (
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs font-medium text-gray-700">
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-mono font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
                               {incident.capa.capaNumber}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">No CAPA</span>
+                          <span className="text-[10px] text-gray-400 italic">No CAPA</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-4 py-3 text-center">
                         {incident.hasInjury ? (
-                          <FaUserInjured
-                            className="text-red-500 inline-block"
-                            size={20}
-                            title="Injury Reported"
-                          />
+                          <div className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-50 text-red-500 ring-4 ring-white">
+                            <FaUserInjured size={10} title="Injury Reported" />
+                          </div>
                         ) : (
-                          <FaCheckCircle
-                            className="text-green-500 inline-block"
-                            size={20}
-                            title="No Injury"
-                          />
+                          <div className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-50 text-green-500 ring-4 ring-white">
+                            <FaCheckCircle size={10} title="No Injury" />
+                          </div>
                         )}
                       </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => setSelectedIncidentForDetail(incident)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="View Details"
-                        >
-                          <FaEye size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteIncident(incident._id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                          title="Delete"
-                        >
-                          <FaTrash />
-                        </button>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => setSelectedIncidentForDetail(incident)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="View Details"
+                          >
+                            <FaEye size={12} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteIncident(incident._id)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            title="Delete"
+                          >
+                            <FaTrash size={12} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -2000,9 +2042,9 @@ const IncidentManagement: React.FC = () => {
   const renderEmergencyProcedures = () => (
     <div className="space-y-6">
       {/* Emergency Contacts */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Emergency Contacts</h2>
+          <h2 className="text-lg font-bold text-gray-900 border-l-4 border-blue-500 pl-3">Emergency Contacts</h2>
           <button
             onClick={() => {
               setEditingEmergencyContact(null);
@@ -2016,46 +2058,50 @@ const IncidentManagement: React.FC = () => {
               });
               setShowEmergencyContactModal(true);
             }}
-            className="px-3 py-1 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition shadow-sm flex items-center gap-2"
           >
-            <FaPlus className="inline mr-1" /> Add Contact
+            <FaPlus size={10} /> Add Contact
           </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-100">
+            <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-2 text-left font-semibold">Name</th>
-                <th className="px-4 py-2 text-left font-semibold">Role</th>
-                <th className="px-4 py-2 text-left font-semibold">Phone</th>
-                <th className="px-4 py-2 text-left font-semibold">Email</th>
-                <th className="px-4 py-2 text-left font-semibold">Department</th>
-                <th className="px-4 py-2 text-left font-semibold">Actions</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phone</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Department</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100">
               {emergencyContacts.map((contact) => (
-                <tr key={contact._id} className="border-b">
+                <tr key={contact._id} className="hover:bg-blue-50/30 transition-colors">
                   <td className="px-4 py-2">
-                    {contact.isPrimary && <span className="text-red-600 font-bold mr-1">*</span>}
-                    {contact.name}
+                    <div className="flex items-center gap-2">
+                      {contact.isPrimary && (
+                        <span className="flex-shrink-0 w-2 h-2 bg-red-500 rounded-full animate-pulse" title="Primary Contact"></span>
+                      )}
+                      <span className="text-xs font-bold text-gray-900">{contact.name}</span>
+                    </div>
                   </td>
-                  <td className="px-4 py-2">{contact.role}</td>
+                  <td className="px-4 py-2 text-xs text-gray-700">{contact.role}</td>
                   <td className="px-4 py-2">
-                    <a href={`tel:${contact.phone}`} className="text-blue-600 hover:underline flex items-center gap-1">
-                      <FaPhone className="text-xs" /> {contact.phone}
+                    <a href={`tel:${contact.phone}`} className="text-blue-600 hover:text-blue-800 text-xs font-medium flex items-center gap-1.5 transition-colors">
+                      <FaPhone size={10} /> {contact.phone}
                     </a>
                   </td>
                   <td className="px-4 py-2">
                     {contact.email && (
-                      <a href={`mailto:${contact.email}`} className="text-blue-600 hover:underline flex items-center gap-1">
-                        <FaEnvelope className="text-xs" /> {contact.email}
+                      <a href={`mailto:${contact.email}`} className="text-blue-600 hover:text-blue-800 text-xs font-medium flex items-center gap-1.5 transition-colors">
+                        <FaEnvelope size={10} /> {contact.email}
                       </a>
                     )}
                   </td>
-                  <td className="px-4 py-2">{contact.department}</td>
+                  <td className="px-4 py-2 text-xs text-gray-700">{contact.department}</td>
                   <td className="px-4 py-2">
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                       <button
                         onClick={() => {
                           setEditingEmergencyContact(contact);
@@ -2064,20 +2110,22 @@ const IncidentManagement: React.FC = () => {
                             role: contact.role,
                             phone: contact.phone,
                             email: contact.email || '',
-                            department: contact.department,
+                            department: contact.department || '',
                             isPrimary: contact.isPrimary
                           });
                           setShowEmergencyContactModal(true);
                         }}
-                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                        title="Edit"
                       >
-                        <FaEdit />
+                        <FaEdit size={12} />
                       </button>
                       <button
                         onClick={() => handleDeleteEmergencyContact(contact._id!)}
-                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                        title="Delete"
                       >
-                        <FaTrash />
+                        <FaTrash size={12} />
                       </button>
                     </div>
                   </td>
@@ -2085,6 +2133,11 @@ const IncidentManagement: React.FC = () => {
               ))}
             </tbody>
           </table>
+          {emergencyContacts.length === 0 && (
+            <div className="p-8 text-center text-gray-500 bg-gray-50/50 rounded-b-xl border-t border-gray-100">
+              <p className="text-sm">No emergency contacts listed.</p>
+            </div>
+          )}
         </div>
         <button className="mt-4 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-2">
           <FaPrint /> Print Emergency Contact List
@@ -2092,9 +2145,10 @@ const IncidentManagement: React.FC = () => {
       </div>
 
       {/* Emergency Procedures */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      {/* Emergency Procedures Lists */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Emergency Response Procedures</h2>
+          <h2 className="text-lg font-bold text-gray-900 border-l-4 border-blue-500 pl-3">Emergency Response Procedures</h2>
           <button
             onClick={() => {
               setEditingEmergencyProcedure(null);
@@ -2106,36 +2160,46 @@ const IncidentManagement: React.FC = () => {
               setEmergencyProcedureFile(null);
               setShowEmergencyProcedureModal(true);
             }}
-            className="px-3 py-1 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition shadow-sm flex items-center gap-2"
           >
-            <FaPlus className="inline mr-1" /> Add Procedure
+            <FaPlus size={10} /> Add Procedure
           </button>
         </div>
-        <p className="mb-4 text-gray-700 text-sm">Centralized, accessible documents required for audits and immediate worker reference.</p>
+        <p className="mb-4 text-gray-500 text-xs text-xs">Centralized, accessible documents required for audits and immediate worker reference.</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-3 p-4 border rounded-lg bg-red-50">
-            <h3 className="font-bold text-lg text-red-700">Immediate Response</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2 p-3 border border-red-100 rounded-lg bg-red-50/50">
+            <h3 className="font-bold text-sm text-red-700 flex items-center gap-2">
+              <FaExclamationTriangle size={12} /> Immediate Response
+            </h3>
             {emergencyProcedures.filter(p => p.type === 'medical' || p.type === 'fire' || p.type === 'collision').map((proc) => (
-              <button key={proc._id} className="flex items-center w-full p-3 rounded-lg hover:bg-red-100 transition text-red-700 font-medium border border-red-200">
-                {proc.type === 'medical' && <FaHeartbeat className="mr-3" />}
-                {proc.type === 'fire' && <FaExclamationTriangle className="mr-3" />}
-                {proc.type === 'collision' && <FaExclamationTriangle className="mr-3" />}
+              <button key={proc._id} className="flex items-center w-full p-2 rounded-lg hover:bg-red-100 transition text-red-700 font-medium border border-red-200 text-xs">
+                {proc.type === 'medical' && <FaHeartbeat className="mr-2" size={12} />}
+                {proc.type === 'fire' && <FaExclamationTriangle className="mr-2" size={12} />}
+                {proc.type === 'collision' && <FaExclamationTriangle className="mr-2" size={12} />}
                 {proc.title}
               </button>
             ))}
+            {emergencyProcedures.filter(p => p.type === 'medical' || p.type === 'fire' || p.type === 'collision').length === 0 && (
+              <p className="text-[10px] text-gray-400 italic">No procedures listed.</p>
+            )}
           </div>
 
-          <div className="space-y-3 p-4 border rounded-lg bg-blue-50">
-            <h3 className="font-bold text-lg text-blue-700">Trucking & Site Specific</h3>
+          <div className="space-y-2 p-3 border border-blue-100 rounded-lg bg-blue-50/50">
+            <h3 className="font-bold text-sm text-blue-700 flex items-center gap-2">
+              <FaMapMarkerAlt size={12} /> Trucking & Site Specific
+            </h3>
             {emergencyProcedures.filter(p => p.type === 'spill' || p.type === 'breakdown' || p.type === 'violence').map((proc) => (
-              <button key={proc._id} className="flex items-center w-full p-3 rounded-lg hover:bg-blue-100 transition text-blue-700 font-medium border border-blue-200">
-                {proc.type === 'spill' && <FaExclamationTriangle className="mr-3" />}
-                {proc.type === 'breakdown' && <FaMapMarkerAlt className="mr-3" />}
-                {proc.type === 'violence' && <FaUser className="mr-3" />}
+              <button key={proc._id} className="flex items-center w-full p-2 rounded-lg hover:bg-blue-100 transition text-blue-700 font-medium border border-blue-200 text-xs">
+                {proc.type === 'spill' && <FaExclamationTriangle className="mr-2" size={12} />}
+                {proc.type === 'breakdown' && <FaMapMarkerAlt className="mr-2" size={12} />}
+                {proc.type === 'violence' && <FaUser className="mr-2" size={12} />}
                 {proc.title}
               </button>
             ))}
+            {emergencyProcedures.filter(p => p.type === 'spill' || p.type === 'breakdown' || p.type === 'violence').length === 0 && (
+              <p className="text-[10px] text-gray-400 italic">No procedures listed.</p>
+            )}
           </div>
         </div>
       </div>
@@ -2143,9 +2207,9 @@ const IncidentManagement: React.FC = () => {
   );
 
   const renderFirstAidLogs = () => (
-    <div className="bg-white rounded-xl p-6 shadow-lg">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">First Aid Logs</h2>
+        <h2 className="text-lg font-bold text-gray-900 border-l-4 border-blue-500 pl-3">First Aid Logs</h2>
         <button
           onClick={() => {
             setEditingFirstAidLog(null);
@@ -2162,51 +2226,51 @@ const IncidentManagement: React.FC = () => {
             });
             setShowFirstAidLogModal(true);
           }}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
+          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition shadow-sm flex items-center gap-2"
         >
-          <FaPlus /> New First Aid Entry
+          <FaPlus size={10} /> New First Aid Entry
         </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-4 py-2 text-left font-semibold">Date/Time</th>
-              <th className="px-4 py-2 text-left font-semibold">Location</th>
-              <th className="px-4 py-2 text-left font-semibold">Injured Person</th>
-              <th className="px-4 py-2 text-left font-semibold">Injury Description</th>
-              <th className="px-4 py-2 text-left font-semibold">First Aid Provided</th>
-              <th className="px-4 py-2 text-left font-semibold">Treated By</th>
-              <th className="px-4 py-2 text-left font-semibold">Follow-up</th>
-              <th className="px-4 py-2 text-left font-semibold">Actions</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date/Time</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Location</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Injured Person</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Injury Description</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">First Aid Provided</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Treated By</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Follow-up</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-100">
             {firstAidLogs.map((log) => (
-              <tr key={log._id} className="border-b hover:bg-gray-50">
+              <tr key={log._id} className="hover:bg-blue-50/30 transition-colors">
                 <td className="px-4 py-2">
-                  <div>{new Date(log.date).toLocaleDateString()}</div>
-                  <div className="text-xs text-gray-500">{log.time}</div>
+                  <div className="text-xs font-bold text-gray-900">{new Date(log.date).toLocaleDateString()}</div>
+                  <div className="text-[10px] text-gray-500">{log.time}</div>
                 </td>
-                <td className="px-4 py-2">{log.location}</td>
-                <td className="px-4 py-2">{log.injuredPerson}</td>
-                <td className="px-4 py-2">{log.injuryDescription}</td>
-                <td className="px-4 py-2">{log.firstAidProvided}</td>
-                <td className="px-4 py-2">{log.treatedBy}</td>
+                <td className="px-4 py-2 text-xs text-gray-700">{log.location}</td>
+                <td className="px-4 py-2 text-xs font-medium text-gray-900">{log.injuredPerson}</td>
+                <td className="px-4 py-2 text-xs text-gray-600 truncate max-w-[150px]" title={log.injuryDescription}>{log.injuryDescription}</td>
+                <td className="px-4 py-2 text-xs text-gray-600 truncate max-w-[150px]" title={log.firstAidProvided}>{log.firstAidProvided}</td>
+                <td className="px-4 py-2 text-xs text-gray-700">{log.treatedBy}</td>
                 <td className="px-4 py-2">
                   {log.followUpRequired ? (
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Required</span>
+                    <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full text-[10px] font-bold border border-yellow-200">Required</span>
                   ) : (
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">None</span>
+                    <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-[10px] font-bold border border-green-200">None</span>
                   )}
                 </td>
                 <td className="px-4 py-2">
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5">
                     <button
                       onClick={() => {
                         setEditingFirstAidLog(log);
                         setFirstAidLogFormData({
-                          date: new Date(log.date).toISOString().split('T')[0],
+                          date: log.date.split('T')[0],
                           time: log.time,
                           location: log.location,
                           injuredPerson: log.injuredPerson,
@@ -2218,15 +2282,17 @@ const IncidentManagement: React.FC = () => {
                         });
                         setShowFirstAidLogModal(true);
                       }}
-                      className="p-1 text-yellow-600 hover:bg-yellow-50 rounded"
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                      title="Edit"
                     >
-                      <FaEdit />
+                      <FaEdit size={12} />
                     </button>
                     <button
                       onClick={() => handleDeleteFirstAidLog(log._id!)}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                      title="Delete"
                     >
-                      <FaTrash />
+                      <FaTrash size={12} />
                     </button>
                   </div>
                 </td>
@@ -2234,6 +2300,11 @@ const IncidentManagement: React.FC = () => {
             ))}
           </tbody>
         </table>
+        {firstAidLogs.length === 0 && (
+          <div className="p-8 text-center text-gray-500 bg-gray-50/50 rounded-b-xl border-t border-gray-100">
+            <p className="text-sm">No first aid logs recorded.</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2256,137 +2327,146 @@ const IncidentManagement: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex justify-between items-center">
+    <div className="min-h-screen pb-10 flex flex-col relative" style={{ backgroundColor: '#EDF8FF' }}>
+      {/* Gradient Banner */}
+      <div
+        className="absolute inset-x-0 top-0"
+        style={{
+          background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+          height: '110px',
+          zIndex: 0
+        }}
+        aria-hidden="true"
+      />
+
+      <div className="flex-1 w-full max-w-7xl mx-auto px-4 pt-6 relative z-10">
+        <div className="mb-6 flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-bold mb-2" style={{ color: FLEET_COLORS.dark }}>
-              Incident, Accident & Near-Miss Management
+            <h1 className="text-2xl font-bold text-white mb-1">
+              Incident Management
             </h1>
-            <p className="text-gray-600">Comprehensive tool for reporting, investigation, injury management, and compliance tracking.</p>
+            <p className="text-blue-50 text-xs font-medium opacity-90">Report, investigate, and track safety events</p>
           </div>
 
           <div className="relative">
             <button
               onClick={() => setShowNewReportMenu(!showNewReportMenu)}
-              className="px-4 py-2 rounded-lg text-white shadow-md hover:opacity-90 transition flex items-center gap-2 font-semibold"
-              style={{
-                background: FLEET_COLORS.gradient,
-                boxShadow: `0 4px 6px ${FLEET_COLORS.focusRing}`
-              }}
+              className="px-3 py-2 bg-white text-[#0ea3d8] rounded-lg shadow-sm hover:bg-white/90 transition flex items-center gap-2 font-bold text-xs"
             >
-              <FaPlus /> Report New Incident
+              <FaPlus size={10} /> New Report
             </button>
 
             {showNewReportMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl z-10 border border-gray-100">
-                <p className="px-4 py-2 text-sm font-semibold text-gray-500 border-b">Select Report Type:</p>
-                <button
-                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
-                  onClick={() => {
-                    setShowNewReportMenu(false);
-                    setIncidentFormType('Driver Injury');
-                    setShowIncidentForm(true);
-                  }}
-                >
-                  Driver Injury Report
-                </button>
-                <button
-                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
-                  onClick={() => {
-                    setShowNewReportMenu(false);
-                    setIncidentFormType('Vehicle Accident');
-                    setShowIncidentForm(true);
-                  }}
-                >
-                  Vehicle Accident Report
-                </button>
-                <button
-                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
-                  onClick={() => {
-                    setShowNewReportMenu(false);
-                    setIncidentFormType('Workplace Incident');
-                    setShowIncidentForm(true);
-                  }}
-                >
-                  Workplace Incident (Shop/Yard/Warehouse)
-                </button>
-                <button
-                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
-                  onClick={() => {
-                    setShowNewReportMenu(false);
-                    setIncidentFormType('Near Miss');
-                    setShowIncidentForm(true);
-                  }}
-                >
-                  Near Miss Reporting
-                </button>
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl z-50 border border-gray-100 overflow-hidden">
+                <p className="px-4 py-2 text-[10px] font-bold text-gray-500 border-b bg-gray-50 uppercase tracking-wider">Select Report Type</p>
+                <div className="py-1">
+                  <button
+                    className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
+                    onClick={() => {
+                      setShowNewReportMenu(false);
+                      setIncidentFormType('Driver Injury');
+                      setShowIncidentForm(true);
+                    }}
+                  >
+                    Driver Injury Report
+                  </button>
+                  <button
+                    className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
+                    onClick={() => {
+                      setShowNewReportMenu(false);
+                      setIncidentFormType('Vehicle Accident');
+                      setShowIncidentForm(true);
+                    }}
+                  >
+                    Vehicle Accident Report
+                  </button>
+                  <button
+                    className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
+                    onClick={() => {
+                      setShowNewReportMenu(false);
+                      setIncidentFormType('Workplace Incident');
+                      setShowIncidentForm(true);
+                    }}
+                  >
+                    Workplace Incident
+                  </button>
+                  <button
+                    className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
+                    onClick={() => {
+                      setShowNewReportMenu(false);
+                      setIncidentFormType('Near Miss');
+                      setShowIncidentForm(true);
+                    }}
+                  >
+                    Near Miss Reporting
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl shadow-md p-2 overflow-x-auto">
+        <div className="flex border-b border-gray-200 mb-6 bg-white rounded-xl shadow-sm px-2 py-1 overflow-x-auto gap-2">
           <button
             onClick={() => setCurrentTab(TABS.INCIDENT_LIST)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INCIDENT_LIST
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${currentTab === TABS.INCIDENT_LIST
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
               }`}
           >
-            <FaClipboardList className="inline mr-2" />
-            Incident List
+            <FaClipboardList size={14} />
+            <span className="whitespace-nowrap">Incidents</span>
           </button>
           <button
             onClick={() => setCurrentTab(TABS.NEW_REPORT)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.NEW_REPORT
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${currentTab === TABS.NEW_REPORT
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
               }`}
           >
-            <FaPlus className="inline mr-2" />
-            New Report
+            <FaPlus />
+            <span className="whitespace-nowrap">New Report</span>
           </button>
           <button
             onClick={() => setCurrentTab(TABS.INVESTIGATIONS)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INVESTIGATIONS
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${currentTab === TABS.INVESTIGATIONS
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
               }`}
           >
-            <FaSearch className="inline mr-2" />
-            Investigations
+            <FaSearch />
+            <span className="whitespace-nowrap">Investigations</span>
           </button>
           <button
             onClick={() => setCurrentTab(TABS.INJURY_RTW)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INJURY_RTW
-                ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${currentTab === TABS.INJURY_RTW
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
               }`}
           >
-            <FaHeartbeat className="inline mr-2" />
-            Injury & RTW
+            <FaHeartbeat />
+            <span className="whitespace-nowrap">Injury & RTW</span>
           </button>
           <button
             onClick={() => setCurrentTab(TABS.EMERGENCY_PROCS)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.EMERGENCY_PROCS
-                ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${currentTab === TABS.EMERGENCY_PROCS
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
               }`}
           >
-            <FaPhone className="inline mr-2" />
-            Emergency Procedures
+            <FaPhone />
+            <span className="whitespace-nowrap">Emergency</span>
           </button>
           <button
             onClick={() => setCurrentTab(TABS.FIRST_AID_LOGS)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.FIRST_AID_LOGS
-                ? 'bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${currentTab === TABS.FIRST_AID_LOGS
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
               }`}
           >
-            <FaBriefcaseMedical className="inline mr-2" />
-            First Aid Logs
+            <FaBriefcaseMedical />
+            <span className="whitespace-nowrap">First Aid</span>
           </button>
         </div>
 
@@ -3109,8 +3189,8 @@ const IncidentManagement: React.FC = () => {
             <div
               key={contact._id}
               className={`p-5 rounded-xl border-2 ${contact.isPrimary
-                  ? 'border-red-500 bg-red-50'
-                  : 'border-gray-200 bg-gray-50'
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-200 bg-gray-50'
                 }`}
             >
               <div className="flex justify-between items-start mb-2">
@@ -3592,8 +3672,8 @@ const IncidentManagement: React.FC = () => {
           <button
             onClick={() => setCurrentTab(TABS.INCIDENT_LIST)}
             className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INCIDENT_LIST
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
+              : 'text-gray-600 hover:bg-gray-100'
               }`}
           >
             <FaClipboardList className="inline mr-2" />
@@ -3602,8 +3682,8 @@ const IncidentManagement: React.FC = () => {
           <button
             onClick={() => setCurrentTab(TABS.NEW_REPORT)}
             className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.NEW_REPORT
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
+              : 'text-gray-600 hover:bg-gray-100'
               }`}
           >
             <FaPlus className="inline mr-2" />
@@ -3612,8 +3692,8 @@ const IncidentManagement: React.FC = () => {
           <button
             onClick={() => setCurrentTab(TABS.INVESTIGATIONS)}
             className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INVESTIGATIONS
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
+              : 'text-gray-600 hover:bg-gray-100'
               }`}
           >
             <FaSearch className="inline mr-2" />
@@ -3622,8 +3702,8 @@ const IncidentManagement: React.FC = () => {
           <button
             onClick={() => setCurrentTab(TABS.INJURY_RTW)}
             className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentTab === TABS.INJURY_RTW
-                ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg'
+              : 'text-gray-600 hover:bg-gray-100'
               }`}
           >
             <FaHeartbeat className="inline mr-2" />

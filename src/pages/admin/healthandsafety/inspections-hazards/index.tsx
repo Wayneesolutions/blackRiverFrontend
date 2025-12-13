@@ -14,7 +14,9 @@ import {
     FaTimes,
     FaInfoCircle,
     FaChartLine,
-    FaCogs
+    FaCogs,
+    FaDownload,
+    FaChevronDown
 } from 'react-icons/fa';
 import {
     createHazard,
@@ -367,21 +369,77 @@ const HazardControl = () => {
     });
 
     const renderHazardReporting = () => (
-        <div className="space-y-6">
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
-                <div className="flex items-start">
-                    <FaShieldAlt className="text-blue-500 text-xl mt-1 mr-3" />
+        <div className="space-y-4">
+            {/* Stats Grid - Compact */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                     <div>
-                        <h3 className="font-bold text-blue-900">Federal Requirement - COHSR Part XIX</h3>
-                        <p className="text-sm text-blue-800 mt-1">Employers must identify and control workplace hazards through documented risk assessments and corrective actions. All hazards must be tracked until verified as resolved.</p>
+                        <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Critical Risks</p>
+                        <h3 className="text-xl font-bold text-gray-800">
+                            {hazards.filter(h => {
+                                const severity = (h.severity || '').toLowerCase();
+                                const riskLevel = (h.riskLevel || '').toLowerCase();
+                                return severity === 'critical' || severity === 'high' ||
+                                    riskLevel === 'critical' || riskLevel === 'high';
+                            }).length}
+                        </h3>
+                    </div>
+                    <div className="bg-red-50 p-2 rounded-lg text-red-600">
+                        <FaExclamationTriangle size={16} />
+                    </div>
+                </div>
+
+                <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Assessment Pending</p>
+                        <h3 className="text-xl font-bold text-gray-800">
+                            {hazards.filter(h => {
+                                const status = (h.status || '').toLowerCase();
+                                return status === 'identified' || status === 'assessed';
+                            }).length}
+                        </h3>
+                    </div>
+                    <div className="bg-yellow-50 p-2 rounded-lg text-yellow-600">
+                        <FaChartLine size={16} />
+                    </div>
+                </div>
+
+                <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">In Progress</p>
+                        <h3 className="text-xl font-bold text-gray-800">
+                            {hazards.filter(h => {
+                                const status = (h.status || '').toLowerCase();
+                                return status === 'controlled' || status === 'monitored';
+                            }).length}
+                        </h3>
+                    </div>
+                    <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
+                        <FaCogs size={16} />
+                    </div>
+                </div>
+
+                <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Resolved</p>
+                        <h3 className="text-xl font-bold text-gray-800">
+                            {hazards.filter(h => {
+                                const status = (h.status || '').toLowerCase();
+                                return status === 'resolved';
+                            }).length}
+                        </h3>
+                    </div>
+                    <div className="bg-green-50 p-2 rounded-lg text-green-600">
+                        <FaCheckCircle size={16} />
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl p-4 shadow-lg">
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1 relative">
-                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            {/* Filters */}
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                <div className="flex flex-col md:flex-row gap-6 items-center">
+                    <div className="relative w-full md:w-96">
+                        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                         <input
                             type="text"
                             placeholder="Search by Hazard ID, Type, or Description..."
@@ -392,213 +450,152 @@ const HazardControl = () => {
                                     fetchHazards();
                                 }
                             }}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full pl-9 pr-4 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         />
                     </div>
-                    <div className="flex items-center gap-2">
-                        <FaFilter className="text-gray-400" />
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        >
-                            <option value="all">All Status</option>
-                            <option value="reported">Reported</option>
-                            <option value="in-assessment">In Assessment</option>
-                            <option value="action-assigned">Action Assigned</option>
-                            <option value="action-in-progress">Action In Progress</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="verified">Verified</option>
-                        </select>
-                        <select
-                            value={filterRiskLevel}
-                            onChange={(e) => setFilterRiskLevel(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        >
-                            <option value="all">All Risk Levels</option>
-                            <option value="Critical">Critical</option>
-                            <option value="High">High</option>
-                            <option value="Medium">Medium</option>
-                            <option value="Low">Low</option>
-                        </select>
+                    <div className="flex gap-4 w-full md:w-auto">
+                        <div className="relative flex-1 md:flex-none">
+                            <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                className="w-full pl-8 pr-8 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
+                            >
+                                <option value="all">All Status</option>
+                                <option value="reported">Reported</option>
+                                <option value="in-assessment">In Assessment</option>
+                                <option value="action-assigned">Action Assigned</option>
+                                <option value="action-in-progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="verified">Verified</option>
+                            </select>
+                            <FaChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={10} />
+                        </div>
+                        <div className="relative flex-1 md:flex-none">
+                            <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
+                            <select
+                                value={filterRiskLevel}
+                                onChange={(e) => setFilterRiskLevel(e.target.value)}
+                                className="w-full pl-8 pr-8 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
+                            >
+                                <option value="all">All Risk Levels</option>
+                                <option value="Critical">Critical</option>
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                            <FaChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={10} />
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-xl shadow-md border-l-4 border-red-500">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-red-600 uppercase">Critical/High Risk</p>
-                            <p className="text-3xl font-bold text-red-800 mt-2">
-                                {hazards.filter(h => {
-                                    const severity = (h.severity || '').toLowerCase();
-                                    const riskLevel = (h.riskLevel || '').toLowerCase();
-                                    return severity === 'critical' || severity === 'high' ||
-                                        riskLevel === 'critical' || riskLevel === 'high';
-                                }).length}
-                            </p>
-                        </div>
-                        <FaExclamationTriangle className="text-4xl text-red-500 opacity-30" />
-                    </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl shadow-md border-l-4 border-yellow-500">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-yellow-600 uppercase">Awaiting Assessment</p>
-                            <p className="text-3xl font-bold text-yellow-800 mt-2">
-                                {hazards.filter(h => {
-                                    const status = (h.status || '').toLowerCase();
-                                    return status === 'identified' || status === 'assessed';
-                                }).length}
-                            </p>
-                        </div>
-                        <FaChartLine className="text-4xl text-yellow-500 opacity-30" />
-                    </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl shadow-md border-l-4 border-orange-500">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-orange-600 uppercase">In Progress</p>
-                            <p className="text-3xl font-bold text-orange-800 mt-2">
-                                {hazards.filter(h => {
-                                    const status = (h.status || '').toLowerCase();
-                                    return status === 'controlled' || status === 'monitored';
-                                }).length}
-                            </p>
-                        </div>
-                        <FaCogs className="text-4xl text-orange-500 opacity-30" />
-                    </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl shadow-md border-l-4 border-green-500">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-green-600 uppercase">Resolved</p>
-                            <p className="text-3xl font-bold text-green-800 mt-2">
-                                {hazards.filter(h => {
-                                    const status = (h.status || '').toLowerCase();
-                                    return status === 'resolved';
-                                }).length}
-                            </p>
-                        </div>
-                        <FaCheckCircle className="text-4xl text-green-500 opacity-30" />
-                    </div>
+            {/* List Header */}
+            <div className="flex justify-between items-center px-1 mb-2">
+                <h3 className="text-sm font-bold text-gray-700">Hazard Registry</h3>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => {
+                            setEditingHazard(null);
+                            setNewHazard({ type: '', description: '', location: '', reporter: '', likelihood: 3, severity: 3 });
+                            setSidebarType('hazard');
+                            setShowSidebar(true);
+                        }}
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition shadow-sm flex items-center gap-2"
+                    >
+                        <FaPlus size={10} /> Report Hazard
+                    </button>
+                    <button className="px-3 py-1.5 bg-white text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 shadow-sm transition flex items-center gap-2 text-xs font-bold">
+                        <FaDownload size={10} /> Export
+                    </button>
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-gray-800">Hazard Registry & Risk Assessments</h3>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => {
-                                setEditingHazard(null);
-                                setNewHazard({ type: '', description: '', location: '', reporter: '', likelihood: 3, severity: 3 });
-                                setSidebarType('hazard');
-                                setShowSidebar(true);
-                            }}
-                            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition flex items-center gap-2"
-                        >
-                            <FaPlus /> Report New Hazard
-                        </button>
-                        <button className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition flex items-center gap-2">
-                            <FaDownload /> Export Report
-                        </button>
-                    </div>
-                </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hazard ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type & Description</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Matrix</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Corrective Action</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Hazard ID</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Type & Description</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Location</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Risk Matrix</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Corrective Action</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="px-4 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="divide-y divide-gray-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                                    <td colSpan={7} className="px-6 py-8 text-center text-xs text-gray-500">Loading...</td>
                                 </tr>
                             ) : filteredHazards.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">No hazards found matching your filters.</td>
+                                    <td colSpan={7} className="px-6 py-8 text-center text-xs text-gray-500">No hazards found matching your filters.</td>
                                 </tr>
                             ) : (
                                 filteredHazards.map((hazard) => (
-                                    <tr key={hazard._id} className="hover:bg-gray-50 transition">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-bold text-gray-900">{hazard.hazardId}</div>
-                                            <div className="text-xs text-gray-500">{new Date(hazard.dateReported).toLocaleDateString()}</div>
+                                    <tr key={hazard._id} className="hover:bg-blue-50/30 transition-colors group">
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <div className="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{hazard.hazardId}</div>
+                                            <div className="text-[10px] text-gray-500">{new Date(hazard.dateReported).toLocaleDateString()}</div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm font-semibold text-gray-900">{hazard.category || hazard.type || 'General Hazard'}</div>
-                                            <div className="text-xs text-gray-600 mt-1">{hazard.description}</div>
-                                            <div className="text-xs text-gray-500 mt-1">
+                                        <td className="px-4 py-3">
+                                            <div className="text-xs font-semibold text-gray-900">{hazard.category || hazard.type || 'General Hazard'}</div>
+                                            <div className="text-[10px] text-gray-600 mt-0.5 truncate max-w-[200px]" title={hazard.description}>{hazard.description}</div>
+                                            <div className="text-[10px] text-gray-500 mt-0.5">
                                                 Reporter: {hazard.reporter || 'Unknown'}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{hazard.location}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex flex-col items-start gap-2">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="text-center bg-gray-50 px-3 py-2 rounded-lg">
-                                                        <div className="text-xs text-gray-500 mb-1">Risk Score</div>
-                                                        <div className="text-2xl font-bold text-gray-900">{hazard.riskScore}</div>
-                                                    </div>
-                                                    <div className="text-sm text-gray-600">
-                                                        <div>Likelihood: <span className="font-semibold">{hazard.likelihood}/5</span></div>
-                                                        <div>Severity: <span className="font-semibold">{hazard.severity}/5</span></div>
-                                                    </div>
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700">{hazard.location}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <div className="flex items-center gap-2">
+                                                <div className="bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 flex flex-col items-center min-w-[30px]">
+                                                    <span className="text-[8px] text-gray-400 uppercase">Score</span>
+                                                    <span className="text-xs font-bold text-gray-900 leading-none">{hazard.riskScore}</span>
                                                 </div>
-                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${getRiskLevelColor(hazard.riskLevel || '')}`}>
+                                                <span className={`px-2 py-0.5 text-[10px] font-bold border rounded ${hazard.riskLevel === 'Critical' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                    hazard.riskLevel === 'High' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                                                        hazard.riskLevel === 'Medium' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                                                            'bg-green-50 text-green-600 border-green-100'
+                                                    }`}>
                                                     {(hazard.riskLevel || '').toUpperCase()}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-3">
                                             {hazard.correctiveAction ? (
-                                                <div className="text-sm">
-                                                    <div className="font-medium text-gray-900">{hazard.correctiveAction.description}</div>
-                                                    <div className="text-xs text-gray-600 mt-1">
-                                                        Assigned: {hazard.correctiveAction.assignedTo}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500 mt-1">
+                                                <div className="text-[10px]">
+                                                    <div className="font-medium text-gray-900 truncate max-w-[150px]" title={hazard.correctiveAction.description}>{hazard.correctiveAction.description}</div>
+                                                    <div className="text-gray-500 mt-0.5">
                                                         Due: {new Date(hazard.correctiveAction.dueDate).toLocaleDateString()}
                                                     </div>
-                                                    {hazard.correctiveAction.completionDate && (
-                                                        <div className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                                                            <FaCheckCircle /> Completed: {new Date(hazard.correctiveAction.completionDate).toLocaleDateString()}
-                                                        </div>
-                                                    )}
                                                 </div>
                                             ) : (
-                                                <span className="text-sm text-orange-600 font-medium">⚠ Pending Assignment</span>
+                                                <span className="text-[10px] text-orange-600 font-medium italic">Pending Assignment</span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(hazard.status)}`}>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${hazard.status === 'resolved' ? 'bg-green-50 text-green-600 border-green-100' :
+                                                hazard.status.includes('progress') ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                                    'bg-gray-50 text-gray-600 border-gray-100'
+                                                }`}>
                                                 {hazard.status.replace('-', ' ').toUpperCase()}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex items-center gap-2">
+                                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                                            <div className="flex items-center justify-center gap-1">
                                                 <button
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
                                                     title="View Details"
                                                     onClick={() => setSelectedHazard(hazard)}
                                                 >
-                                                    <FaEye />
+                                                    <FaEye size={12} />
                                                 </button>
                                                 <button
-                                                    className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
                                                     title="Edit"
                                                     onClick={() => {
                                                         setEditingHazard(hazard);
@@ -606,14 +603,14 @@ const HazardControl = () => {
                                                         setShowSidebar(true);
                                                     }}
                                                 >
-                                                    <FaEdit />
+                                                    <FaEdit size={12} />
                                                 </button>
                                                 <button
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-100"
                                                     title="Delete"
                                                     onClick={() => handleDeleteHazard(hazard._id)}
                                                 >
-                                                    <FaTrash />
+                                                    <FaTrash size={12} />
                                                 </button>
                                             </div>
                                         </td>
@@ -628,76 +625,76 @@ const HazardControl = () => {
     );
 
     const renderDriverObservations = () => (
-        <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-gray-800">Driver Observations</h3>
+        <div className="space-y-4">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                    <h3 className="text-sm font-bold text-gray-700">Driver Observations</h3>
                     <button
                         onClick={() => {
                             setSidebarType('observation');
                             setShowSidebar(true);
                         }}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center gap-2"
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-xs font-bold shadow-sm"
                     >
-                        <FaPlus /> New Observation
+                        <FaPlus size={10} /> New Observation
                     </button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observation ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observer</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Observation ID</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Driver</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Observer</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Type</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Score</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="px-4 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="divide-y divide-gray-100">
                             {loading && observations.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                                    <td colSpan={7} className="px-6 py-8 text-center text-xs text-gray-500">Loading...</td>
                                 </tr>
                             ) : observations.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">No observations found.</td>
+                                    <td colSpan={7} className="px-6 py-8 text-center text-xs text-gray-500">No observations found.</td>
                                 </tr>
                             ) : (
                                 observations.map((observation) => (
-                                    <tr key={observation._id} className="hover:bg-gray-50 transition">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-bold text-gray-900">{observation.observationId}</div>
-                                            <div className="text-xs text-gray-500">{new Date(observation.date).toLocaleDateString()}</div>
+                                    <tr key={observation._id} className="hover:bg-blue-50/30 transition-colors group">
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <div className="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{observation.observationId}</div>
+                                            <div className="text-[10px] text-gray-500">{new Date(observation.date).toLocaleDateString()}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{observation.driver}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{observation.observer}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 capitalize">{observation.observationType.replace('-', ' ')}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${observation.score >= 90 ? 'bg-green-100 text-green-800' :
-                                                observation.score >= 70 ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-red-100 text-red-800'
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700">{observation.driver}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700">{observation.observer}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 capitalize">{observation.observationType.replace('-', ' ')}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className={`px-2 py-0.5 inline-flex text-[10px] font-bold rounded border ${observation.score >= 90 ? 'bg-green-50 text-green-700 border-green-100' :
+                                                observation.score >= 70 ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                                                    'bg-red-50 text-red-700 border-red-100'
                                                 }`}>
                                                 {observation.score}%
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(observation.status)}`}>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className={`px-2 py-0.5 inline-flex text-[10px] font-bold rounded border bg-gray-50 text-gray-600 border-gray-100`}>
                                                 {observation.status.replace('-', ' ').toUpperCase()}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex items-center gap-2">
+                                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                                            <div className="flex items-center justify-center gap-1">
                                                 <button
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
                                                     title="View Details"
                                                     onClick={() => setSelectedHazard(observation as any)}
                                                 >
-                                                    <FaEye />
+                                                    <FaEye size={12} />
                                                 </button>
                                                 <button
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-100"
                                                     title="Delete"
                                                     onClick={() => {
                                                         if (window.confirm('Are you sure you want to delete this observation?')) {
@@ -708,7 +705,7 @@ const HazardControl = () => {
                                                         }
                                                     }}
                                                 >
-                                                    <FaTrash />
+                                                    <FaTrash size={12} />
                                                 </button>
                                             </div>
                                         </td>
@@ -735,10 +732,10 @@ const HazardControl = () => {
         });
 
         return (
-            <div className="space-y-6">
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                        <h3 className="text-lg font-bold text-gray-800">Trucking-Specific Hazards</h3>
+            <div className="space-y-4">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                        <h3 className="text-sm font-bold text-gray-700">Trucking-Specific Hazards</h3>
                         <button
                             onClick={() => {
                                 setEditingHazard(null);
@@ -746,95 +743,79 @@ const HazardControl = () => {
                                 setSidebarType('trucking-hazard');
                                 setShowSidebar(true);
                             }}
-                            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition flex items-center gap-2"
+                            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-xs font-bold shadow-sm"
                         >
-                            <FaPlus /> Report Hazard
+                            <FaPlus size={10} /> Report Hazard
                         </button>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hazard ID</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Hazard ID</th>
+                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Location</th>
+                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Severity</th>
+                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Assigned To</th>
+                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th className="px-4 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="divide-y divide-gray-100">
                                 {loading && filteredTruckingHazards.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                                        <td colSpan={8} className="px-6 py-8 text-center text-xs text-gray-500">Loading...</td>
                                     </tr>
                                 ) : filteredTruckingHazards.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} className="px-6 py-8 text-center text-gray-500">No trucking hazards found.</td>
+                                        <td colSpan={8} className="px-6 py-8 text-center text-xs text-gray-500">No trucking hazards found.</td>
                                     </tr>
                                 ) : (
                                     filteredTruckingHazards.map((hazard) => (
-                                        <tr key={hazard._id} className="hover:bg-gray-50 transition">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-bold text-gray-900">{hazard.hazardId}</div>
-                                                <div className="text-xs text-gray-500">{new Date(hazard.dateReported).toLocaleDateString()}</div>
+                                        <tr key={hazard._id} className="hover:bg-blue-50/30 transition-colors group">
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <div className="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{hazard.hazardId}</div>
+                                                <div className="text-[10px] text-gray-500">{new Date(hazard.dateReported).toLocaleDateString()}</div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{hazard.truckingType}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-700">{hazard.description}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{hazard.location}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${getRiskLevelColor(hazard.severity)}`}>
+                                            <td className="px-4 py-3 whitespace-nowrap text-xs font-semibold text-gray-900">{hazard.truckingType}</td>
+                                            <td className="px-4 py-3 text-xs text-gray-700 truncate max-w-[200px]" title={hazard.description}>{hazard.description}</td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700">{hazard.location}</td>
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <span className={`px-2 py-0.5 inline-flex text-[10px] font-bold rounded border ${hazard.severity === 'Critical' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                    hazard.severity === 'High' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                                                        hazard.severity === 'Medium' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                                                            'bg-green-50 text-green-600 border-green-100'
+                                                    }`}>
                                                     {hazard.severity.toUpperCase()}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{hazard.assignedTo || 'Unassigned'}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(hazard.status)}`}>
+                                            <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700">{hazard.assignedTo || 'Unassigned'}</td>
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusColor(hazard.status)}`}>
                                                     {hazard.status.replace('-', ' ').toUpperCase()}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div className="flex items-center gap-2">
+                                            <td className="px-4 py-3 whitespace-nowrap text-center">
+                                                <div className="flex items-center justify-center gap-1">
                                                     <button
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                                        title="View Details"
-                                                        onClick={() => setSelectedHazard(hazard as any)}
-                                                    >
-                                                        <FaEye />
-                                                    </button>
-                                                    <button
-                                                        className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
                                                         title="Edit"
                                                         onClick={() => {
-                                                            setNewTruckingHazard({
-                                                                truckingType: hazard.truckingType,
-                                                                description: hazard.description,
-                                                                location: hazard.location,
-                                                                reporter: hazard.reporter,
-                                                                severity: hazard.severity
-                                                            });
-                                                            setEditingHazard(hazard as any);
+                                                            setEditingHazard(hazard);
+                                                            setNewTruckingHazard({ truckingType: '', description: '', location: '', reporter: '', severity: 'Medium' });
                                                             setSidebarType('trucking-hazard');
                                                             setShowSidebar(true);
                                                         }}
                                                     >
-                                                        <FaEdit />
+                                                        <FaEdit size={12} />
                                                     </button>
                                                     <button
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-100"
                                                         title="Delete"
-                                                        onClick={() => {
-                                                            if (window.confirm('Are you sure you want to delete this trucking hazard?')) {
-                                                                const updated = truckingHazards.filter(h => h._id !== hazard._id);
-                                                                setTruckingHazards(updated);
-                                                                localStorage.setItem('truckingHazards', JSON.stringify(updated));
-                                                                addNotification('success', 'Trucking hazard deleted successfully');
-                                                            }
-                                                        }}
+                                                        onClick={() => handleDeleteHazard(hazard._id)}
                                                     >
-                                                        <FaTrash />
+                                                        <FaTrash size={12} />
                                                     </button>
                                                 </div>
                                             </td>
@@ -1537,55 +1518,67 @@ const HazardControl = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Inspections & Hazards</h1>
-                <p className="text-gray-600">Manage safety inspections, hazard reporting, and driver observations</p>
-            </div>
+        <div className="min-h-screen pb-10 flex flex-col relative" style={{ backgroundColor: '#EDF8FF' }}>
+            {/* Gradient Banner */}
+            <div
+                className="absolute inset-x-0 top-0"
+                style={{
+                    background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+                    height: '110px',
+                    zIndex: 0
+                }}
+                aria-hidden="true"
+            />
 
-
-
-            {(
-                <div>
-                    <div className="bg-white rounded-xl shadow-lg mb-6">
-                        <div className="border-b border-gray-200">
-                            <div className="flex">
-                                <button
-                                    onClick={() => setHazardSubTab('reporting')}
-                                    className={`px-6 py-3 font-semibold transition ${hazardSubTab === 'reporting'
-                                        ? 'text-orange-600 border-b-2 border-orange-600'
-                                        : 'text-gray-600 hover:text-gray-900'
-                                        }`}
-                                >
-                                    Hazard Reporting
-                                </button>
-                                <button
-                                    onClick={() => setHazardSubTab('observations')}
-                                    className={`px-6 py-3 font-semibold transition ${hazardSubTab === 'observations'
-                                        ? 'text-orange-600 border-b-2 border-orange-600'
-                                        : 'text-gray-600 hover:text-gray-900'
-                                        }`}
-                                >
-                                    Driver Observations
-                                </button>
-                                <button
-                                    onClick={() => setHazardSubTab('trucking-specific')}
-                                    className={`px-6 py-3 font-semibold transition ${hazardSubTab === 'trucking-specific'
-                                        ? 'text-orange-600 border-b-2 border-orange-600'
-                                        : 'text-gray-600 hover:text-gray-900'
-                                        }`}
-                                >
-                                    Trucking-Specific Hazards
-                                </button>
-                            </div>
-                        </div>
+            <div className="flex-1 w-full max-w-7xl mx-auto px-4 pt-6 relative z-10">
+                <div className="mb-6 flex justify-between items-end">
+                    <div>
+                        <h1 className="text-2xl font-bold text-white mb-1">
+                            Inspections & Hazards
+                        </h1>
+                        <p className="text-blue-50 text-xs font-medium opacity-90">Manage safety inspections, hazard reporting, and driver observations</p>
                     </div>
-
-                    {hazardSubTab === 'reporting' && renderHazardReporting()}
-                    {hazardSubTab === 'observations' && renderDriverObservations()}
-                    {hazardSubTab === 'trucking-specific' && renderTruckingHazards()}
                 </div>
-            )}
+
+                <div className="bg-white rounded-xl shadow-lg border border-gray-100 min-h-[600px] p-2">
+                    {/* Inner Content with Dispatch Feel */}
+                    <div className="bg-gray-50/50 rounded-lg p-4">
+                        <div className="flex border-b border-gray-200 mb-6 bg-white rounded-lg shadow-sm px-2 py-1 gap-2">
+                            <button
+                                onClick={() => setHazardSubTab('reporting')}
+                                className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all text-center ${hazardSubTab === 'reporting'
+                                    ? 'bg-blue-50 text-blue-600 shadow-sm'
+                                    : 'text-gray-500 hover:bg-gray-50'
+                                    }`}
+                            >
+                                Hazard Reporting
+                            </button>
+                            <button
+                                onClick={() => setHazardSubTab('observations')}
+                                className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all text-center ${hazardSubTab === 'observations'
+                                    ? 'bg-blue-50 text-blue-600 shadow-sm'
+                                    : 'text-gray-500 hover:bg-gray-50'
+                                    }`}
+                            >
+                                Driver Observations
+                            </button>
+                            <button
+                                onClick={() => setHazardSubTab('trucking-specific')}
+                                className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all text-center ${hazardSubTab === 'trucking-specific'
+                                    ? 'bg-blue-50 text-blue-600 shadow-sm'
+                                    : 'text-gray-500 hover:bg-gray-50'
+                                    }`}
+                            >
+                                Trucking-Specific Hazards
+                            </button>
+                        </div>
+
+                        {hazardSubTab === 'reporting' && renderHazardReporting()}
+                        {hazardSubTab === 'observations' && renderDriverObservations()}
+                        {hazardSubTab === 'trucking-specific' && renderTruckingHazards()}
+                    </div>
+                </div>
+            </div>
 
             {renderHazardDetailModal()}
             {renderSidebar()}
