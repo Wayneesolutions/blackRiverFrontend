@@ -18,6 +18,7 @@ const ToolboxTalks = lazy(() => import("../../pages/admin/healthandsafety/toolbo
 const EmergencyProcedures = lazy(() => import("../../pages/admin/healthandsafety/emergency-procedures/index"));
 const DocumentLibrary = lazy(() => import("../../pages/admin/healthandsafety/document-library/index"));
 const SafetyBulletins = lazy(() => import("../../pages/admin/healthandsafety/safety-bulletins/index"));
+const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"));
 
 function HealthSafetyRoutes() {
   return (
@@ -40,6 +41,7 @@ function HealthSafetyRoutes() {
           <Route path="emergency-procedures" element={<ErrorBoundary><EmergencyProcedures /></ErrorBoundary>} />
           <Route path="document-library" element={<ErrorBoundary><DocumentLibrary /></ErrorBoundary>} />
           <Route path="safety-bulletins" element={<ErrorBoundary><SafetyBulletins /></ErrorBoundary>} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
       </Routes>
     </Suspense>
