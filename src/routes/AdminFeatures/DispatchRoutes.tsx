@@ -22,6 +22,7 @@ const Fleets = lazy(() => import("../../pages/admin/dispatch/resources/fleet/ind
 const Vendors = lazy(() => import("../../pages/admin/dispatch/resources/vendors/index"))
 const Contacts = lazy(() => import("../../pages/admin/dispatch/resources/contacts/index"))
 const Places = lazy(() => import("../../pages/admin/dispatch/resources/places/index"))
+const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"))
 
 
 function DispatchRoutes() {
@@ -32,6 +33,7 @@ function DispatchRoutes() {
 
           <Route index element={<DispatchDashboard />} />
           <Route path="/dashboard" element={<DispatchDashboard />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/order-list" element={<OrderList />} />
           <Route path="/bulk-order" element={<BulkOrder />} />
           <Route path="/trips" element={<Trips />} />
@@ -50,7 +52,7 @@ function DispatchRoutes() {
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/places" element={<Places />} />
 
-        
+
 
         </Route>
       </Routes>

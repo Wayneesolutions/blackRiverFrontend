@@ -13,9 +13,10 @@ const ScheduledServicesLog = lazy(() => import("../../pages/admin/fleetMaintenan
 const GeneralRepairsLog = lazy(() => import("../../pages/admin/fleetMaintenance/generalRepairsLog/index"))
 const RegulatorySafety = lazy(() => import("../../pages/admin/fleetMaintenance/regulatorySafety/index"))
 const VehicleDocuments = lazy(() => import("../../pages/admin/driverManagement/VehicleDocuments"))
-const FuelReports = lazy(()=>import('../../pages/admin/dispatch/resources/fuel-reports/index'))
+const FuelReports = lazy(() => import('../../pages/admin/dispatch/resources/fuel-reports/index'))
 const FleetInvoices = lazy(() => import("../../pages/admin/compilance/invoices"))
 const TruckProfile = lazy(() => import("../../pages/admin/fleetMaintenance/truckProfile/index"))
+const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"))
 
 function FleetMaintainRoutes() {
     return (
@@ -23,7 +24,8 @@ function FleetMaintainRoutes() {
             <Routes>
                 <Route element={<Layout />}>
                     <Route index element={<Dashboard />} />
-               
+                    <Route path="/profile" element={<Profile />} />
+
                     <Route path="/spare-parts" element={<SpareParts />} />
                     <Route path="/vehicle-documents" element={<VehicleDocuments />} />
                     <Route path="/cost-reports" element={<CostReports />} />
