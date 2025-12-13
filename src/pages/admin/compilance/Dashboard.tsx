@@ -14,6 +14,7 @@ import {
 import { getCvsaInspectionStats, getTicketStats, getIncidentStats } from "../../../axios/api/admin";
 import { useNavigate } from "react-router-dom";
 import { FLEET_COLORS } from "../fleetMaintenance/colorUtils";
+import { ChevronRight } from "lucide-react";
 
 interface CvsaStats {
   total: number;
@@ -50,38 +51,6 @@ const hexToRgba = (hex: string, alpha = 1) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-type CardToneKey = "primary" | "dark" | "light" | "gradient";
-
-type CardTone = {
-  fill?: string;
-  gradient?: string;
-  text: string;
-  border: string;
-};
-
-const CARD_TONES: Record<CardToneKey, CardTone> = {
-  primary: {
-    fill: hexToRgba(FLEET_COLORS.primary, 0.12),
-    text: FLEET_COLORS.primary,
-    border: hexToRgba(FLEET_COLORS.primary, 0.3)
-  },
-  dark: {
-    fill: hexToRgba(FLEET_COLORS.dark, 0.12),
-    text: FLEET_COLORS.dark,
-    border: hexToRgba(FLEET_COLORS.dark, 0.3)
-  },
-  light: {
-    fill: hexToRgba(FLEET_COLORS.light, 0.12),
-    text: FLEET_COLORS.light,
-    border: hexToRgba(FLEET_COLORS.light, 0.3)
-  },
-  gradient: {
-    gradient: FLEET_COLORS.gradient,
-    text: "#ffffff",
-    border: "transparent"
-  }
-};
-
 function Dashboard() {
   const navigate = useNavigate();
   const [cvsaStats, setCvsaStats] = useState<CvsaStats>({
@@ -113,91 +82,27 @@ function Dashboard() {
   const fetchComplianceData = async () => {
     setLoading(true);
     try {
-      console.log('📊 Fetching compliance dashboard data...');
-      
       const [cvsaRes, ticketRes, incidentRes] = await Promise.all([
         getCvsaInspectionStats(),
         getTicketStats(),
         getIncidentStats(),
       ]);
 
-      console.log('📥 API Responses:', { cvsaRes, ticketRes, incidentRes });
-
       if (cvsaRes?.success) {
-        const cvsaData = cvsaRes.data || {
-          total: 0,
-          pass: 0,
-          fail: 0,
-          warning: 0,
-          outOfService: 0,
-        };
-        console.log('✅ CVSA Stats:', cvsaData);
-        setCvsaStats(cvsaData);
-      } else {
-        console.warn('⚠️ CVSA Stats API failed:', cvsaRes?.message);
+        setCvsaStats(cvsaRes.data || { total: 0, pass: 0, fail: 0, warning: 0, outOfService: 0 });
       }
 
       if (ticketRes?.success) {
-        const ticketData = ticketRes.data || {
-          total: 0,
-          paid: 0,
-          unpaid: 0,
-          fight: 0,
-          totalAmount: 0,
-          paidAmount: 0,
-          unpaidAmount: 0,
-          fightAmount: 0,
-        };
-        console.log('✅ Ticket Stats:', ticketData);
-        setTicketStats(ticketData);
-      } else {
-        console.warn('⚠️ Ticket Stats API failed:', ticketRes?.message);
+        setTicketStats(ticketRes.data || { total: 0, paid: 0, unpaid: 0, fight: 0, totalAmount: 0, paidAmount: 0, unpaidAmount: 0, fightAmount: 0 });
       }
 
       if (incidentRes?.success) {
-        const incidentData = incidentRes.data || {
-          total: 0,
-          open: 0,
-          underReview: 0,
-          closed: 0,
-        };
-        console.log('✅ Incident Stats:', incidentData);
-        setIncidentStats(incidentData);
-      } else {
-        console.warn('⚠️ Incident Stats API failed:', incidentRes?.message);
+        setIncidentStats(incidentRes.data || { total: 0, open: 0, underReview: 0, closed: 0 });
       }
 
       setLastUpdated(new Date().toISOString());
-      console.log('✅ Compliance dashboard data loaded successfully');
     } catch (error: any) {
-      console.error("❌ Error fetching compliance data:", error);
-      // Set default values on error to prevent UI issues
-      if (!cvsaStats.total && !ticketStats.total && !incidentStats.total) {
-        // Only reset if we have no data at all
-        setCvsaStats({
-          total: 0,
-          pass: 0,
-          fail: 0,
-          warning: 0,
-          outOfService: 0,
-        });
-        setTicketStats({
-          total: 0,
-          paid: 0,
-          unpaid: 0,
-          fight: 0,
-          totalAmount: 0,
-          paidAmount: 0,
-          unpaidAmount: 0,
-          fightAmount: 0,
-        });
-        setIncidentStats({
-          total: 0,
-          open: 0,
-          underReview: 0,
-          closed: 0,
-        });
-      }
+      console.error("Error fetching compliance data:", error);
     } finally {
       setLoading(false);
     }
@@ -208,373 +113,284 @@ function Dashboard() {
   }, []);
 
   const StatCard = ({
-    icon,
-    label,
-    value,
-    tone = "primary",
-    onClick
-  }: {
-    icon: React.ReactNode;
-    label: string;
-    value: number | string;
-    tone?: keyof typeof CARD_TONES;
-    onClick?: () => void;
-  }) => {
-    const toneMeta = CARD_TONES[tone];
-    const badgeStyle: CSSProperties = toneMeta.gradient
-      ? { backgroundImage: toneMeta.gradient, color: toneMeta.text }
-      : { backgroundColor: toneMeta.fill, color: toneMeta.text };
-
-    return (
-    <div
-      onClick={onClick}
-      className={`bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all duration-300 ${
-        onClick ? "cursor-pointer hover:scale-105" : ""
-      }`}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div
-            className="p-3 rounded-lg border"
-            style={{ ...badgeStyle, borderColor: toneMeta.border }}
-          >
-            {icon}
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">{label}</p>
-            <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-  };
-
-  const ComplianceSection = ({
     title,
-    icon,
-    stats,
-    type,
-    onHeaderClick,
+    value,
+    subtitle,
+    icon: Icon,
+    onClick,
+    bgColor,
+    iconColor
   }: {
     title: string;
-    icon: React.ReactNode;
-    stats: CvsaStats | TicketStats | IncidentStats;
-    type: "cvsa" | "tickets" | "incidents";
-    onHeaderClick?: () => void;
+    value: number | string;
+    subtitle: string;
+    icon: React.ComponentType<any>;
+    onClick?: () => void;
+    bgColor: string;
+    iconColor: string;
   }) => {
-    const getPassRate = () => {
-      if (type === "cvsa") {
-        const cvsa = stats as CvsaStats;
-        return cvsa.total > 0 ? Math.round((cvsa.pass / cvsa.total) * 100) : 0;
-      }
-      if (type === "tickets") {
-        const tickets = stats as TicketStats;
-        return tickets.total > 0 ? Math.round((tickets.paid / tickets.total) * 100) : 0;
-      }
-      if (type === "incidents") {
-        const incidents = stats as IncidentStats;
-        return incidents.total > 0 ? Math.round((incidents.closed / incidents.total) * 100) : 0;
-      }
-      return 0;
-    };
-
-    const getColor = () => {
-      const rate = getPassRate();
-      if (rate >= 80) return "text-green-500";
-      if (rate >= 60) return "text-yellow-500";
-      return "text-red-500";
-    };
-
     return (
-      <div className="rounded-2xl shadow-lg p-6 border border-gray-100" style={{ background: "linear-gradient(135deg, #ffffff, rgba(1,106,178,0.04))" }}>
-        <div 
-          onClick={onHeaderClick}
-          className={`flex items-center justify-between mb-6 ${onHeaderClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="p-3 rounded-lg border"
-              style={{
-                background: hexToRgba(FLEET_COLORS.primary, 0.08),
-                borderColor: hexToRgba(FLEET_COLORS.primary, 0.2),
-                color: FLEET_COLORS.primary
-              }}
-            >
-              {icon}
+      <div
+        onClick={onClick}
+        className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+      >
+        <div className="flex items-start justify-between mb-2">
+          {/* Left side content */}
+          <div className="flex-1">
+            <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+            <div className="flex items-baseline gap-2 mb-0.5">
+              <span className="text-xl font-bold text-gray-900">{value}</span>
             </div>
-            <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+            <p className="text-xs text-gray-400">{subtitle}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <div className={`text-3xl font-bold ${getColor()}`}>{getPassRate()}%</div>
-              <div className="text-xs text-gray-500">
-                {type === "cvsa" ? "Pass Rate" : type === "tickets" ? "Paid Rate" : "Resolution Rate"}
-              </div>
-            </div>
-            {onHeaderClick && (
-              <span className="text-sm text-gray-500">View All →</span>
-            )}
+
+          {/* Right side icon */}
+          <div className={`${bgColor} rounded-lg p-2 shadow-sm`}>
+            {/* The icons from react-icons/fa usually don't accept strokeWidth, so we adjust sizing if needed */}
+            <Icon className={iconColor} size={21} />
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {type === "cvsa" && (
-            <>
-              <StatCard
-                icon={<FaCheckCircle />}
-                label="Pass"
-                value={(stats as CvsaStats).pass}
-                tone="primary"
-                onClick={() => navigate("/admin/compliance/cvsa-inspection?status=pass")}
-              />
-              <StatCard
-                icon={<FaTimesCircle />}
-                label="Fail"
-                value={(stats as CvsaStats).fail}
-                tone="dark"
-                onClick={() => navigate("/admin/compliance/cvsa-inspection?status=fail")}
-              />
-              <StatCard
-                icon={<FaExclamationTriangle />}
-                label="Warning"
-                value={(stats as CvsaStats).warning}
-                tone="light"
-                onClick={() => navigate("/admin/compliance/cvsa-inspection?status=warning")}
-              />
-              <StatCard
-                icon={<FaShieldAlt />}
-                label="Out of Service"
-                value={(stats as CvsaStats).outOfService}
-                tone="gradient"
-                onClick={() => navigate("/admin/compliance/cvsa-inspection?status=out-of-service")}
-              />
-            </>
-          )}
-
-          {type === "tickets" && (
-            <>
-              <StatCard
-                icon={<FaCheckCircle />}
-                label="Paid"
-                value={(stats as TicketStats).paid}
-                tone="primary"
-                onClick={() => navigate("/admin/compliance/tickets?status=paid")}
-              />
-              <StatCard
-                icon={<FaExclamationTriangle />}
-                label="Unpaid"
-                value={(stats as TicketStats).unpaid}
-                tone="dark"
-                onClick={() => navigate("/admin/compliance/tickets?status=unpaid")}
-              />
-              <StatCard
-                icon={<FaShieldAlt />}
-                label="Fighting"
-                value={(stats as TicketStats).fight}
-                tone="light"
-                onClick={() => navigate("/admin/compliance/tickets?status=fight")}
-              />
-              <StatCard
-                icon={<FaFileInvoiceDollar />}
-                label="Total Amount"
-                value={`$${((stats as TicketStats).totalAmount || 0).toLocaleString()}`}
-                tone="gradient"
-                onClick={() => navigate("/admin/compliance/tickets")}
-              />
-            </>
-          )}
-
-          {type === "incidents" && (
-            <>
-              <StatCard
-                icon={<FaExclamationTriangle />}
-                label="Open"
-                value={(stats as IncidentStats).open}
-                tone="dark"
-                onClick={() => navigate("/admin/compliance/incidents?status=open")}
-              />
-              <StatCard
-                icon={<FaClipboardCheck />}
-                label="Under Review"
-                value={(stats as IncidentStats).underReview}
-                tone="light"
-                onClick={() => navigate("/admin/compliance/incidents?status=under-review")}
-              />
-              <StatCard
-                icon={<FaCheckCircle />}
-                label="Closed"
-                value={(stats as IncidentStats).closed}
-                tone="primary"
-                onClick={() => navigate("/admin/compliance/incidents?status=closed")}
-              />
-              <StatCard
-                icon={<FaCarCrash />}
-                label="Total"
-                value={(stats as IncidentStats).total}
-                tone="gradient"
-                onClick={() => navigate("/admin/compliance/incidents")}
-              />
-            </>
-          )}
         </div>
       </div>
     );
   };
 
+  const DetailSection = ({ title, icon: Icon, children, onClickHeader }: { title: string, icon: any, children: React.ReactNode, onClickHeader?: () => void }) => (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
+      <div
+        className={`px-6 py-4 border-b border-gray-200 flex justify-between items-center ${onClickHeader ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''}`}
+        onClick={onClickHeader}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-lg bg-blue-50`}>
+            <Icon className="text-blue-600" size={18} />
+          </div>
+          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+        </div>
+        {onClickHeader && <ChevronRight className="text-gray-400" size={20} />}
+      </div>
+      <div className="p-6">
+        {children}
+      </div>
+    </div>
+  );
+
+  // Reusing the smaller card style for inner grid items as well to match overall density
+  const InnerGridCard = ({ label, value, colorClass, onClick, icon: Icon }: { label: string, value: string | number, colorClass: string, onClick?: () => void, icon: any }) => (
+    <div
+      onClick={onClick}
+      className={`bg-white border rounded-lg p-4 flex items-center justify-between shadow-sm hover:shadow transition-all ${onClick ? 'cursor-pointer hover:border-blue-200' : 'border-gray-100'}`}
+    >
+      <div>
+        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{label}</p>
+        <p className={`text-2xl font-bold mt-1 ${colorClass}`}>{value}</p>
+      </div>
+      <div className={`p-2 rounded-full ${colorClass.replace('text-', 'bg-').replace('600', '50').replace('500', '50')}`}>
+        <Icon className={colorClass} size={16} />
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="p-6 min-h-screen bg-gray-100 flex flex-col items-center justify-center gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#EDF8FF' }}>
         <div className="text-center">
-          <p className="text-gray-700 font-medium text-lg">Loading compliance data...</p>
-          <p className="text-gray-500 text-sm mt-1">Fetching statistics from all compliance modules</p>
+          {/* Using simple loading text matching dispatch style */}
+          <div className="w-12 h-12 border-4 border-[#42aeec] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
-  const totalComplianceItems =
-    cvsaStats.total + ticketStats.total + incidentStats.total;
-
   return (
-    <div className="p-6 bg-gray-100 min-h-screen space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Compliance Dashboard</h1>
-          <p className="text-gray-500 mt-1">
-            Overview of CVSA Inspections, Tickets, and Incidents
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={fetchComplianceData}
-            className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <FaSync className="text-blue-500" />
-            <span className="text-sm text-gray-700">Refresh</span>
-          </button>
-          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200">
-            <FaChartLine className="text-blue-500" />
-            <div className="text-sm text-gray-500">
-              Last updated:
-              <span className="font-medium text-gray-700 ml-1">
-                {lastUpdated ? new Date(lastUpdated).toLocaleString() : "Just now"}
-              </span>
+    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
+      <div className="relative max-w-7xl mx-auto">
+        {/* Gradient band - Matching Dispatch */}
+        <div
+          className="absolute inset-x-0 top-0"
+          style={{
+            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            height: '101px'
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Main content */}
+        <div className="relative z-10 px-4 pt-3 pb-6">
+          {/* Header Section */}
+          <div className="mb-4 relative z-10">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-white">Compliance Overview</h1>
+              <div className="flex items-center gap-2 text-white/90">
+                <span className="text-xs">Compliance Dashboard</span>
+                {lastUpdated && <span className="text-[10px] opacity-75">Updated: {new Date(lastUpdated).toLocaleTimeString()}</span>}
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard
-          icon={<FaClipboardCheck />}
-          label="Total CVSA Inspections"
-          value={cvsaStats.total}
-          tone="primary"
-          onClick={() => navigate("/admin/compliance/cvsa-inspection")}
-        />
-        <StatCard
-          icon={<FaFileInvoiceDollar />}
-          label="Total Tickets"
-          value={ticketStats.total}
-          tone="light"
-          onClick={() => navigate("/admin/compliance/tickets")}
-        />
-        <StatCard
-          icon={<FaCarCrash />}
-          label="Total Incidents"
-          value={incidentStats.total}
-          tone="dark"
-          onClick={() => navigate("/admin/compliance/incidents")}
-        />
-      </div>
-
-      {/* Compliance Sections */}
-      <div className="space-y-6">
-        <ComplianceSection
-          title="CVSA Inspections"
-          icon={<FaClipboardCheck />}
-          stats={cvsaStats}
-          type="cvsa"
-          onHeaderClick={() => navigate("/admin/compliance/cvsa-inspection")}
-        />
-        <ComplianceSection
-          title="Tickets"
-          icon={<FaFileInvoiceDollar />}
-          stats={ticketStats}
-          type="tickets"
-          onHeaderClick={() => navigate("/admin/compliance/tickets")}
-        />
-        <ComplianceSection
-          title="Incidents"
-          icon={<FaCarCrash />}
-          stats={incidentStats}
-          type="incidents"
-          onHeaderClick={() => navigate("/admin/compliance/incidents")}
-        />
-      </div>
-
-      {/* Monthly Report Section */}
-      <div 
-        onClick={() => navigate("/admin/compliance/monthly-report")}
-        className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 cursor-pointer hover:shadow-xl transition-shadow"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className="p-3 rounded-lg border"
-              style={{
-                background: hexToRgba(FLEET_COLORS.primary, 0.08),
-                borderColor: hexToRgba(FLEET_COLORS.primary, 0.2),
-                color: FLEET_COLORS.primary
-              }}
-            >
-              <FaChartLine />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Monthly Report</h2>
-              <p className="text-sm text-gray-500 mt-1">View comprehensive monthly compliance reports</p>
-            </div>
-          </div>
-          <span className="text-sm text-gray-500">View Report →</span>
-        </div>
-      </div>
-
-    
-
-      {/* Quick Actions */}
-      {totalComplianceItems === 0 && (
-        <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-          <FaShieldAlt className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">No Compliance Data Yet</h2>
-          <p className="text-gray-500 mb-6">
-            Start tracking compliance by adding CVSA inspections, tickets, or incidents.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <button
+          {/* Stats Cards - Matching Dispatch Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 -mt-2 mb-4">
+            <StatCard
+              title="Total Inspections"
+              value={cvsaStats.total}
+              subtitle={`Pass: ${cvsaStats.pass} | Fail: ${cvsaStats.fail}`}
+              icon={FaClipboardCheck}
+              bgColor="bg-blue-50"
+              iconColor="text-blue-600"
               onClick={() => navigate("/admin/compliance/cvsa-inspection")}
-              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              Add CVSA Inspection
-            </button>
-            <button
+            />
+            <StatCard
+              title="Total Tickets"
+              value={ticketStats.total}
+              subtitle={`Paid: ${ticketStats.paid} | Unpaid: ${ticketStats.unpaid}`}
+              icon={FaFileInvoiceDollar}
+              bgColor="bg-purple-50"
+              iconColor="text-purple-600"
               onClick={() => navigate("/admin/compliance/tickets")}
-              className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-            >
-              Add Ticket
-            </button>
-            <button
+            />
+            <StatCard
+              title="Total Incidents"
+              value={incidentStats.total}
+              subtitle={`Open: ${incidentStats.open} | Closed: ${incidentStats.closed}`}
+              icon={FaCarCrash}
+              bgColor="bg-orange-50"
+              iconColor="text-orange-600"
               onClick={() => navigate("/admin/compliance/incidents")}
-              className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            />
+          </div>
+
+          {/* Feature Sections - Matching Table Container Style */}
+          <div className="space-y-6">
+
+            {/* CVSA Section */}
+            <DetailSection
+              title="CVSA Inspections Breakdown"
+              icon={FaClipboardCheck}
+              onClickHeader={() => navigate("/admin/compliance/cvsa-inspection")}
             >
-              Add Incident
-            </button>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <InnerGridCard
+                  label="Pass"
+                  value={cvsaStats.pass}
+                  colorClass="text-green-600"
+                  icon={FaCheckCircle}
+                  onClick={() => navigate("/admin/compliance/cvsa-inspection?status=pass")}
+                />
+                <InnerGridCard
+                  label="Fail"
+                  value={cvsaStats.fail}
+                  colorClass="text-red-600"
+                  icon={FaTimesCircle}
+                  onClick={() => navigate("/admin/compliance/cvsa-inspection?status=fail")}
+                />
+                <InnerGridCard
+                  label="Warning"
+                  value={cvsaStats.warning}
+                  colorClass="text-yellow-600"
+                  icon={FaExclamationTriangle}
+                  onClick={() => navigate("/admin/compliance/cvsa-inspection?status=warning")}
+                />
+                <InnerGridCard
+                  label="Out of Service"
+                  value={cvsaStats.outOfService}
+                  colorClass="text-red-800"
+                  icon={FaShieldAlt}
+                  onClick={() => navigate("/admin/compliance/cvsa-inspection?status=out-of-service")}
+                />
+              </div>
+            </DetailSection>
+
+            {/* Tickets Section */}
+            <DetailSection
+              title="Tickets Breakdown"
+              icon={FaFileInvoiceDollar}
+              onClickHeader={() => navigate("/admin/compliance/tickets")}
+            >
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <InnerGridCard
+                  label="Paid"
+                  value={ticketStats.paid}
+                  colorClass="text-green-600"
+                  icon={FaCheckCircle}
+                  onClick={() => navigate("/admin/compliance/tickets?status=paid")}
+                />
+                <InnerGridCard
+                  label="Unpaid"
+                  value={ticketStats.unpaid}
+                  colorClass="text-red-600"
+                  icon={FaExclamationTriangle}
+                  onClick={() => navigate("/admin/compliance/tickets?status=unpaid")}
+                />
+                <InnerGridCard
+                  label="Fighting"
+                  value={ticketStats.fight}
+                  colorClass="text-orange-600"
+                  icon={FaShieldAlt}
+                  onClick={() => navigate("/admin/compliance/tickets?status=fight")}
+                />
+                <div className="bg-gray-50 border border-gray-100 rounded-lg p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Amount</p>
+                    <p className="text-xl font-bold mt-1 text-gray-800">${ticketStats.totalAmount.toLocaleString()}</p>
+                  </div>
+                  <div className="p-2 bg-gray-200 rounded-full">
+                    <FaFileInvoiceDollar className="text-gray-600" size={16} />
+                  </div>
+                </div>
+              </div>
+            </DetailSection>
+
+            {/* Incidents Section */}
+            <DetailSection
+              title="Incidents Breakdown"
+              icon={FaCarCrash}
+              onClickHeader={() => navigate("/admin/compliance/incidents")}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <InnerGridCard
+                  label="Open Cases"
+                  value={incidentStats.open}
+                  colorClass="text-red-600"
+                  icon={FaExclamationTriangle}
+                  onClick={() => navigate("/admin/compliance/incidents?status=open")}
+                />
+                <InnerGridCard
+                  label="Under Review"
+                  value={incidentStats.underReview}
+                  colorClass="text-yellow-600"
+                  icon={FaClipboardCheck}
+                  onClick={() => navigate("/admin/compliance/incidents?status=under-review")}
+                />
+                <InnerGridCard
+                  label="Closed Cases"
+                  value={incidentStats.closed}
+                  colorClass="text-green-600"
+                  icon={FaCheckCircle}
+                  onClick={() => navigate("/admin/compliance/incidents?status=closed")}
+                />
+              </div>
+            </DetailSection>
+
+            {/* Monthly Report Quick Link */}
+            <div
+              className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => navigate("/admin/compliance/monthly-report")}
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <FaChartLine className="text-blue-600" size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-800">Monthly Compliance Report</h3>
+                  <p className="text-sm text-gray-500">View detailed reports and analytics</p>
+                </div>
+              </div>
+              <ChevronRight className="text-gray-400" />
+            </div>
+
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
