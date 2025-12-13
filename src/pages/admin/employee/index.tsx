@@ -48,13 +48,13 @@ const EmployeeDashboard = () => {
     const token = localStorage.getItem('token');
     console.log('🔐 User Info from localStorage:', userInfo);
     console.log('🔑 Token from localStorage:', token);
-    
+
     if (!token || !userInfo) {
       console.log('❌ User not authenticated - redirecting to login');
       setError('Please log in to access this page');
       return;
     }
-    
+
     fetchDashboardData();
   }, []);
 
@@ -90,30 +90,30 @@ const EmployeeDashboard = () => {
         console.error('Failed to fetch document stats');
       }
 
-          if (expiringDocsRes.success) {
-            setExpiringDocuments(expiringDocsRes.data);
-          } else {
-            console.error('Failed to fetch expiring documents');
-          }
-        } catch (error) {
-          console.error('Error fetching dashboard data:', error);
-          setError('Failed to load dashboard data. Please try again.');
-        } finally {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      };
+      if (expiringDocsRes.success) {
+        setExpiringDocuments(expiringDocsRes.data);
+      } else {
+        console.error('Failed to fetch expiring documents');
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setError('Failed to load dashboard data. Please try again.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
-      // Check for expiring documents and show popup
-      useEffect(() => {
-        if (documentStats && documentStats.expiringSoon > 0) {
-          // Show popup after a short delay to let the page load
-          const timer = setTimeout(() => {
-            setShowExpiringPopup(true);
-          }, 3000);
-          return () => clearTimeout(timer);
-        }
-      }, [documentStats]);
+  // Check for expiring documents and show popup
+  useEffect(() => {
+    if (documentStats && documentStats.expiringSoon > 0) {
+      // Show popup after a short delay to let the page load
+      const timer = setTimeout(() => {
+        setShowExpiringPopup(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [documentStats]);
 
   const handleRefresh = () => {
     fetchDashboardData(true);
@@ -156,10 +156,10 @@ const EmployeeDashboard = () => {
 
   // Generate role distribution from API data
   const roleDistribution = employeeStats?.roleStats?.map(role => {
-    const percentage = employeeStats.totalEmployees > 0 
-      ? Math.round((role.count / employeeStats.totalEmployees) * 100) 
+    const percentage = employeeStats.totalEmployees > 0
+      ? Math.round((role.count / employeeStats.totalEmployees) * 100)
       : 0;
-    
+
     return {
       role: role._id.charAt(0).toUpperCase() + role._id.slice(1).replace(/([A-Z])/g, ' $1'),
       count: role.count,
@@ -170,7 +170,7 @@ const EmployeeDashboard = () => {
   // Generate recent activity from expiring documents
   const recentActivity = expiringDocuments.slice(0, 4).map(doc => {
     const daysUntilExpiry = Math.ceil((new Date(doc.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-    
+
     return {
       name: doc.employee?.name || 'Unknown Employee',
       action: `${doc.documentType} expires in ${daysUntilExpiry} days`,
@@ -201,171 +201,158 @@ const EmployeeDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex bg-gray-50">
-        <div className="flex-1 overflow-auto">
-          <div className="p-8">
-            <div className="grid grid-cols-4 gap-6 mb-8">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                      <div className="h-8 bg-gray-200 rounded"></div>
-                    </div>
-                    <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
-                  </div>
-                  <div className="h-4 bg-gray-200 rounded"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen p-4 bg-[#EDF8FF] px-6 flex items-center justify-center">
+        <div className="text-slate-500">Loading dashboard...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex bg-gray-50">
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        {/* Dashboard Content */}
-        <div className="p-8">
-          {/* Header with Refresh Button */}
-          <div className="flex justify-between items-center mb-6">
+    <div className="min-h-screen p-4 bg-[#EDF8FF] px-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Employee Dashboard</h1>
-              <p className="text-gray-600">Overview of employee management and document status</p>
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">Employee Dashboard</h1>
+              <p className="text-slate-600">Overview of employee management and document status</p>
             </div>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="mt-4 sm:mt-0 flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
               <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
             </button>
           </div>
+        </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
-              <AlertCircle className="w-5 h-5 text-red-500 mr-3" />
-              <span className="text-red-700">{error}</span>
-            </div>
-          )}
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center">
+            <AlertCircle className="w-5 h-5 text-red-500 mr-3" />
+            <span className="text-red-700">{error}</span>
+          </div>
+        )}
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <p className="text-gray-500 text-sm mb-1">{stat.title}</p>
-                    <h3 className="text-3xl font-bold text-gray-800">{stat.value}</h3>
-                  </div>
-                  <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                    <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                  </div>
-                </div>
-                <p className={`text-sm font-medium ${
-                  stat.change.startsWith('+') ? 'text-green-600' : 
-                  stat.change.startsWith('-') ? 'text-red-600' : 'text-gray-600'
-                }`}>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {stats.map((stat, index) => (
+            <div key={index} className={`rounded-xl p-4 border border-opacity-50 ${stat.bgColor.replace('bg-', 'bg-').replace('50', '50')} border-${stat.color.split('-')[1]}-200`}>
+              <div className={`text-2xl font-bold mb-1 ${stat.color.replace('text-', 'text-').replace('500', '700')}`}>
+                {stat.value}
+              </div>
+              <div className={`text-sm font-medium ${stat.color.replace('text-', 'text-').replace('500', '600')}`}>
+                {stat.title}
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <div className={`text-xs font-semibold ${stat.change.startsWith('+') ? 'text-green-600' :
+                    stat.change.startsWith('-') ? 'text-red-600' : 'text-slate-600'
+                  }`}>
                   {stat.change} vs last month
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Role Distribution and Document Status */}
-          <div className="grid grid-cols-3 gap-6 mb-8">
-            <div className="col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Employee Role Distribution</h3>
-              <div className="space-y-4">
-                {roleDistribution.length > 0 ? (
-                  roleDistribution.map((role, index) => (
-                    <div key={index}>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-gray-700">{role.role}</span>
-                        <span className="text-sm text-gray-500">{role.count} employees ({role.percentage}%)</span>
-                      </div>
-                      <div className="w-full bg-gray-100 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
-                          style={{ width: `${Math.min(role.percentage * 3, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>No role data available</p>
-                  </div>
-                )}
+                </div>
+                <stat.icon className={`w-5 h-5 ${stat.color} opacity-80`} />
               </div>
             </div>
+          ))}
+        </div>
 
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Document Status</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">Valid</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-800">{documentStats?.validDocuments || 0}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">Pending</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-800">{documentStats?.pendingDocuments || 0}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">Expired</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-800">{documentStats?.expiredDocuments || 0}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-gray-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">Rejected</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-800">{documentStats?.rejectedDocuments || 0}</span>
-                </div>
-              </div>
+        {/* Role Distribution and Document Status */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="col-span-1 md:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-800">Employee Role Distribution</h3>
             </div>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Employee Activity</h3>
-            <div className="space-y-4">
-              {allRecentActivity.length > 0 ? (
-                allRecentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-2 h-2 rounded-full ${
-                        activity.status === 'success' ? 'bg-green-500' :
-                        activity.status === 'warning' ? 'bg-yellow-500' :
-                        activity.status === 'info' ? 'bg-blue-500' :
-                        'bg-gray-500'
-                      }`} />
-                      <div>
-                        <p className="font-medium text-gray-800">{activity.name}</p>
-                        <p className="text-sm text-gray-500">{activity.action}</p>
-                      </div>
+            <div className="p-6 space-y-4">
+              {roleDistribution.length > 0 ? (
+                roleDistribution.map((role, index) => (
+                  <div key={index}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-slate-700">{role.role}</span>
+                      <span className="text-sm text-slate-500">{role.count} employees ({role.percentage}%)</span>
                     </div>
-                    <span className="text-sm text-gray-400">{activity.time}</span>
+                    <div className="w-full bg-slate-100 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
+                        style={{ width: `${Math.min(role.percentage * 3, 100)}%` }}
+                      />
+                    </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <div className="text-center py-8 text-slate-500">
+                  <Users className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                  <p>No role data available</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-800">Document Status</h3>
+            </div>
+            <div className="p-6 space-y-5">
+              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-3 shadow-sm"></div>
+                  <span className="text-sm font-medium text-slate-700">Valid</span>
+                </div>
+                <span className="text-sm font-bold text-slate-800">{documentStats?.validDocuments || 0}</span>
+              </div>
+              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3 shadow-sm"></div>
+                  <span className="text-sm font-medium text-slate-700">Pending</span>
+                </div>
+                <span className="text-sm font-bold text-slate-800">{documentStats?.pendingDocuments || 0}</span>
+              </div>
+              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-red-500 rounded-full mr-3 shadow-sm"></div>
+                  <span className="text-sm font-medium text-slate-700">Expired</span>
+                </div>
+                <span className="text-sm font-bold text-slate-800">{documentStats?.expiredDocuments || 0}</span>
+              </div>
+              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-slate-500 rounded-full mr-3 shadow-sm"></div>
+                  <span className="text-sm font-medium text-slate-700">Rejected</span>
+                </div>
+                <span className="text-sm font-bold text-slate-800">{documentStats?.rejectedDocuments || 0}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="p-6 border-b border-slate-100">
+            <h3 className="text-lg font-bold text-slate-800">Recent Employee Activity</h3>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {allRecentActivity.length > 0 ? (
+                allRecentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 px-2 rounded-lg transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-2.5 h-2.5 rounded-full ${activity.status === 'success' ? 'bg-green-500' :
+                          activity.status === 'warning' ? 'bg-yellow-500' :
+                            activity.status === 'info' ? 'bg-blue-500' :
+                              'bg-slate-500'
+                        }`} />
+                      <div>
+                        <p className="font-semibold text-slate-800">{activity.name}</p>
+                        <p className="text-sm text-slate-500">{activity.action}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded-full">{activity.time}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-slate-500">
+                  <Clock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
                   <p>No recent activity</p>
                 </div>
               )}

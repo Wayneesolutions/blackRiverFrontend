@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
-import { 
-  Search, 
-  Filter, 
-  Edit, 
-  Trash2, 
-  Plus, 
-  X, 
-  User, 
-  Mail, 
+import {
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  Plus,
+  X,
+  User,
+  Mail,
   AlertCircle,
   Truck,
   FileText,
@@ -18,11 +18,11 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { 
-  getAllEmployees, 
-  createEmployee, 
-  updateEmployee, 
-  deleteEmployee, 
+import {
+  getAllEmployees,
+  createEmployee,
+  updateEmployee,
+  deleteEmployee,
   updateEmployeeStatus
 } from '../../../../axios/api/employee';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
@@ -30,7 +30,7 @@ import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const ACCENT_DARK = FLEET_COLORS.dark;
 const ACCENT_LIGHT = FLEET_COLORS.light;
-const ACCENT_GRADIENT = FLEET_COLORS.gradient;
+const ACCENT_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
 const ACCENT_VARS = {
   '--accent-color': ACCENT_PRIMARY,
   '--accent-dark': ACCENT_DARK
@@ -125,7 +125,7 @@ interface DriverFormData {
   incorporation: string;
   employeeCode: string;
   postalCode: string;
-  
+
   // Employment & Contact
   fleet: string;
   citizenship: string;
@@ -149,8 +149,8 @@ interface DriverFormData {
   fastCardNo: string;
   fastCardExpiry: string;
   medicalRequired: boolean;
-  
-  
+
+
   // Payment Profile - Default Charges
   defaultChargeName: string;
   defaultCurrency: string;
@@ -158,7 +158,7 @@ interface DriverFormData {
   defaultMode: string;
   defaultAmount: number;
   defaultRemarks: string;
-  
+
   // Payment Profile - Payment Profile
   defaultPayrollType: string;
   paymentCurrency: string;
@@ -218,9 +218,9 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
   const infoStyle =
     notification.type === 'info'
       ? {
-          backgroundColor: 'rgba(1, 106, 178, 0.08)',
-          borderColor: 'rgba(1, 106, 178, 0.3)'
-        }
+        backgroundColor: 'rgba(1, 106, 178, 0.08)',
+        borderColor: 'rgba(1, 106, 178, 0.3)'
+      }
       : undefined;
 
   return (
@@ -249,8 +249,8 @@ const EmployeesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+
   const [activeTab, setActiveTab] = useState('basic');
-  const [showDriverPanel, setShowDriverPanel] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
@@ -260,7 +260,7 @@ const EmployeesPage = () => {
     show: false,
     employeeId: null
   });
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -281,7 +281,7 @@ const EmployeesPage = () => {
     incorporation: '',
     employeeCode: '',
     postalCode: '',
-    
+
     // Employment & Contact
     fleet: '',
     citizenship: '',
@@ -305,7 +305,7 @@ const EmployeesPage = () => {
     fastCardNo: '',
     fastCardExpiry: '',
     medicalRequired: false,
-    
+
     // Payment Profile - Default Charges
     defaultChargeName: '',
     defaultCurrency: '',
@@ -313,7 +313,7 @@ const EmployeesPage = () => {
     defaultMode: '',
     defaultAmount: 0,
     defaultRemarks: '',
-    
+
     // Payment Profile - Payment Profile
     defaultPayrollType: '',
     paymentCurrency: '',
@@ -343,12 +343,12 @@ const EmployeesPage = () => {
 
   // Available roles
   const roles = [
-    'driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter',
+    'dispatcher', 'hr', 'contact', 'customer', 'reporter',
     'Fleet Maintenance Manager', 'Compliance Manager', 'Maintenance Crew (Mechanics)', 'safety officer'
   ];
 
   // Roles that require login access (ID, username, password)
-  const rolesWithLoginAccess = ['driver', 'dispatcher', 'hr', 'Fleet Maintenance Manager', 'Compliance Manager', 'safety officer'];
+  const rolesWithLoginAccess = ['dispatcher', 'hr', 'Fleet Maintenance Manager', 'Compliance Manager', 'safety officer'];
 
   // Role display mapping - show different text in UI but pass correct value to backend
   const getRoleDisplayName = (role: string) => {
@@ -360,7 +360,7 @@ const EmployeesPage = () => {
     }
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
-  
+
   // Roles without login access (only basic information)
   const rolesWithoutLoginAccess = ['contact', 'customer', 'reporter', 'Maintenance Crew (Mechanics)'];
 
@@ -383,7 +383,7 @@ const EmployeesPage = () => {
       setLoading(true);
       const response = await getAllEmployees(1, 100, searchQuery, selectedRole || undefined, selectedStatus || undefined);
       if (response.success) {
-        setEmployees(response.data || []);
+        setEmployees((response.data || []).filter((e: Employee) => e.role !== 'driver'));
       } else {
         addNotification('error', response?.message || 'Failed to fetch employees');
       }
@@ -405,7 +405,7 @@ const EmployeesPage = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    
+
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setDriverFormData(prev => ({
@@ -422,7 +422,7 @@ const EmployeesPage = () => {
 
   const handleDriverInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    
+
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setDriverFormData(prev => ({
@@ -516,7 +516,7 @@ const EmployeesPage = () => {
     });
     setEditingEmployee(null);
     setActiveTab('basic');
-    setShowDriverPanel(false);
+    setActiveTab('basic');
     setShowPassword(false);
   };
 
@@ -524,15 +524,15 @@ const EmployeesPage = () => {
     try {
       // Prepare data for submission
       const submitData: any = { ...formData };
-      
+
       // If driver role is selected, include all driver-specific data
       if (formData.role === 'driver' || editingEmployee?.role === 'driver') {
         // Preserve the company ObjectId from basic form if it exists
         const companyObjectId = submitData.company;
-        
+
         // Extract company checkbox value before assigning (it's a boolean, not ObjectId)
         const companyFlagValue = driverFormData.company;
-        
+
         // Add all driver form data - ensure ALL fields are included even if empty
         const driverData: any = {
           incorporation: driverFormData.incorporation || '',
@@ -591,10 +591,10 @@ const EmployeesPage = () => {
           settlementCurrencyByOrder: driverFormData.settlementCurrencyByOrder !== undefined ? driverFormData.settlementCurrencyByOrder : false,
           isDefault: driverFormData.isDefault !== undefined ? driverFormData.isDefault : false
         };
-        
+
         // Merge driver data into submitData
         Object.assign(submitData, driverData);
-        
+
         // Restore the company ObjectId if it was set in basic form
         if (companyObjectId && typeof companyObjectId === 'string') {
           submitData.company = companyObjectId;
@@ -602,18 +602,18 @@ const EmployeesPage = () => {
           // Remove the boolean 'company' field to avoid conflict
           delete submitData.company;
         }
-        
+
         // Use joinDate for hireDate (joinDate from basic form is used as hireDate for drivers)
         if (submitData.joinDate) {
           submitData.hireDate = submitData.joinDate;
         }
       }
-      
+
       // Remove empty password for updates
       if (editingEmployee && !submitData.password) {
         delete submitData.password;
       }
-      
+
       // Log the data being sent for debugging
       console.log('📤 Submitting employee data:', {
         isUpdate: !!editingEmployee,
@@ -622,26 +622,26 @@ const EmployeesPage = () => {
         hasDriverData: formData.role === 'driver' || editingEmployee?.role === 'driver',
         dataKeys: Object.keys(submitData)
       });
-      
+
       if (editingEmployee) {
         // Update existing employee
         const response = await updateEmployee(editingEmployee._id, submitData);
         console.log('📥 Update employee response:', response);
-        
+
         // Check if response exists and has success property
         if (response && response.success === true) {
           addNotification('success', response.message || 'Employee updated successfully');
-          
+
           // Close modal and reset state
           setShowAddModal(false);
           resetForm();
-          
+
           // Refresh the employee list to show updated data
           await fetchEmployees();
         } else {
           // Handle both success: false and error responses
           let errorMessage = 'Failed to update employee';
-          
+
           if (Array.isArray(response?.errors) && response.errors.length > 0) {
             const errorDetails = response.errors.map((e: any) => {
               const field = e.path || e.field || '';
@@ -656,7 +656,7 @@ const EmployeesPage = () => {
           } else if (typeof response?.error === 'string') {
             errorMessage = response.error;
           }
-          
+
           console.log('❌ Update employee error - Response:', JSON.stringify(response, null, 2));
           console.log('❌ Error message to show:', errorMessage);
           addNotification('error', errorMessage);
@@ -665,7 +665,7 @@ const EmployeesPage = () => {
         // Create new employee
         const response = await createEmployee(submitData);
         console.log('Create employee response:', response);
-        
+
         // Check if response exists and has success property
         if (response && response.success === true) {
           addNotification('success', response.message || 'Employee created successfully');
@@ -676,7 +676,7 @@ const EmployeesPage = () => {
           // Handle both success: false and error responses
           // Prioritize detailed errors from errors array over generic message
           let errorMessage = 'Failed to create employee';
-          
+
           if (Array.isArray(response?.errors) && response.errors.length > 0) {
             // Extract detailed validation errors
             const errorDetails = response.errors.map((e: any) => {
@@ -692,7 +692,7 @@ const EmployeesPage = () => {
           } else if (typeof response?.error === 'string') {
             errorMessage = response.error;
           }
-          
+
           console.log('❌ Create employee error - Response:', JSON.stringify(response, null, 2));
           console.log('❌ Error message to show:', errorMessage);
           addNotification('error', errorMessage);
@@ -700,12 +700,12 @@ const EmployeesPage = () => {
       }
     } catch (error: any) {
       console.error('❌ Error saving employee (catch block):', error);
-      
+
       // Extract error message from various possible locations
       // Prioritize detailed errors from errors array over generic message
       let errorMessage = 'An unexpected error occurred';
       const errorData = error?.response?.data;
-      
+
       if (Array.isArray(errorData?.errors) && errorData.errors.length > 0) {
         // Extract detailed validation errors
         const errorDetails = errorData.errors.map((e: any) => {
@@ -723,7 +723,7 @@ const EmployeesPage = () => {
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       console.log('❌ Catch error message to show:', errorMessage);
       console.log('❌ Full error object:', JSON.stringify(errorData || error, null, 2));
       addNotification('error', errorMessage);
@@ -746,11 +746,11 @@ const EmployeesPage = () => {
       policies: employee.policies,
       password: ''
     });
-    
+
     // Show driver panel and populate driver fields if role is driver
     if (employee.role === 'driver') {
-      setShowDriverPanel(true);
-      
+      // setShowDriverPanel(true);
+
       // Populate driver form data from employee details
       const details = (employee as any).details || {};
       setDriverFormData({
@@ -811,7 +811,7 @@ const EmployeesPage = () => {
         isDefault: details.isDefault || false
       });
     }
-    
+
     setShowAddModal(true);
   };
 
@@ -821,7 +821,7 @@ const EmployeesPage = () => {
 
   const confirmDelete = async () => {
     if (!deleteConfirm.employeeId) return;
-    
+
     try {
       const response = await deleteEmployee(deleteConfirm.employeeId);
       if (response.success) {
@@ -859,7 +859,7 @@ const EmployeesPage = () => {
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const role = e.target.value;
     setFormData(prev => ({ ...prev, role }));
-    setShowDriverPanel(role === 'driver');
+    // setShowDriverPanel(role === 'driver');
     setActiveTab('basic');
   };
 
@@ -1389,7 +1389,7 @@ const EmployeesPage = () => {
             />
           </div>
 
-       
+
         </div>
       </div>
 
@@ -1734,283 +1734,286 @@ const EmployeesPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8" style={ACCENT_VARS}>
-      {/* Notifications Container - Updated z-index to be above modal */}
-      <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
-        {notifications.map(notification => (
-          <Notification
-            key={notification.id}
-            notification={notification}
-            onClose={removeNotification}
-          />
-        ))}
-      </div>
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">All Employees ({employees.length})</h2>
-          <button 
-            onClick={() => {
-              resetForm();
-              setShowAddModal(true);
-            }}
-            className="px-4 py-2 !text-white rounded-lg transition-opacity flex items-center space-x-2 shadow-sm hover:opacity-90"
-            style={{ backgroundImage: ACCENT_GRADIENT }}
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Employee</span>
-          </button>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search by name, ID, role, or department..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2"
-              style={focusRingStyle}
-            />
+    <div className="flex h-screen bg-[#EDF8FF] overflow-hidden">
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${showAddModal ? 'mr-[800px]' : ''} overflow-hidden`}>
+        <div className="flex-1 overflow-y-auto p-8" style={{ ...ACCENT_VARS, transform: 'scale(0.99)', transformOrigin: 'top left', width: '101.01%', height: '101.01%' }}>
+          {/* Notifications Container - Updated z-index to be above modal */}
+          <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
+            {notifications.map(notification => (
+              <Notification
+                key={notification.id}
+                notification={notification}
+                onClose={removeNotification}
+              />
+            ))}
           </div>
-          <div className="relative">
-            <button 
-              onClick={() => setShowFilterPanel(!showFilterPanel)}
-              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2"
-              style={
-                showFilterPanel
-                  ? { backgroundColor: "rgba(1, 106, 178, 0.08)", borderColor: ACCENT_PRIMARY }
-                  : undefined
-              }
-            >
-              <Filter className="w-4 h-4" />
-              <span>Filter</span>
-              {(selectedRole || selectedStatus) && (
-                <span
-                  className="ml-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                  style={{ backgroundColor: ACCENT_PRIMARY }}
-                >
-                  {(selectedRole ? 1 : 0) + (selectedStatus ? 1 : 0)}
-                </span>
-              )}
-            </button>
-            
-            {showFilterPanel && (
-              <>
-                <div 
-                  className="fixed inset-0 z-40" 
-                  onClick={() => setShowFilterPanel(false)}
-                ></div>
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-gray-800">Filter Employees</h3>
-                    <button
-                      onClick={() => setShowFilterPanel(false)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Role
-                      </label>
-                      <select
-                        value={selectedRole}
-                        onChange={(e) => setSelectedRole(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm"
-                        style={focusRingStyle}
-                      >
-                        <option value="">All Roles</option>
-                        {roles.map(role => (
-                          <option key={role} value={role}>
-                            {getRoleDisplayName(role)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Status
-                      </label>
-                      <select
-                        value={selectedStatus}
-                        onChange={(e) => setSelectedStatus(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm"
-                        style={focusRingStyle}
-                      >
-                        <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                      </select>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 pt-2 border-t border-gray-200">
-                      <button
-                        onClick={() => {
-                          setSelectedRole('');
-                          setSelectedStatus('');
-                          setShowFilterPanel(false);
-                        }}
-                        className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
-                      >
-                        Clear
-                      </button>
-                      <button
-                        onClick={() => setShowFilterPanel(false)}
-                        className="flex-1 px-3 py-2 text-sm text-white rounded-lg hover:opacity-90"
-                        style={{ backgroundImage: ACCENT_GRADIENT }}
-                      >
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="grid grid-cols-2 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
-              <div className="bg-gray-200 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-                    <div>
-                      <div className="h-4 bg-gray-300 rounded w-32 mb-2"></div>
-                      <div className="h-3 bg-gray-300 rounded w-20"></div>
-                    </div>
-                  </div>
-                  <div className="h-6 bg-gray-300 rounded-full w-16"></div>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="space-y-3">
-                  <div className="h-3 bg-gray-200 rounded w-full"></div>
-                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-6">
-          {employees.map((employee) => (
-            <div key={employee._id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div
-                className="p-4 text-white rounded-t-xl"
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-gray-800">All Employees ({employees.length})</h2>
+              <button
+                onClick={() => {
+                  resetForm();
+                  setShowAddModal(true);
+                }}
+                className="px-4 py-2 !text-white rounded-lg transition-opacity flex items-center space-x-2 shadow-sm hover:opacity-90"
                 style={{ backgroundImage: ACCENT_GRADIENT }}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className="w-12 h-12 bg-white rounded-full flex items-center justify-center font-bold text-lg"
-                      style={{ color: ACCENT_PRIMARY }}
-                    >
-                      {employee.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div>
-                      <h3 className="text-white font-semibold">{employee.name}</h3>
-                      <p className="text-sm text-white">
-                        {employee.internalId}
-                      </p>
-                    </div>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    employee.status === 'active' 
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {employee.status}
-                  </span>
-                </div>
+                <Plus className="w-4 h-4" />
+                <span>Add Employee</span>
+              </button>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search by name, ID, role, or department..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2"
+                  style={focusRingStyle}
+                />
               </div>
-
-              <div className="p-6">
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Role</p>
-                    <p className="text-sm font-medium text-gray-800">{getRoleDisplayName(employee.role)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Country</p>
-                    <p className="text-sm font-medium text-gray-800">{employee.country}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Email</p>
-                    <p className="text-sm font-medium" style={{ color: ACCENT_DARK }}>
-                      {employee.email}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Phone</p>
-                    <p className="text-sm font-medium text-gray-800">{employee.phone}</p>
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <p className="text-xs text-gray-500 mb-1">Address</p>
-                  <p className="text-sm text-gray-700">{employee.location?.address || 'No address provided'}</p>
-                </div>
-
-                <div className="mb-4">
-                  <p className="text-xs text-gray-500 mb-1">Location</p>
-                  <p className="text-sm text-gray-700">{employee.city}, {employee.state}</p>
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Join Date</p>
-                    <p className="text-sm font-medium text-gray-800">
-                      {new Date(employee.joinDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Employee ID</p>
-                    <p className="text-sm font-medium text-gray-800">{employee.internalId}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="px-6 pb-4 flex items-center space-x-2">
-                <button 
-                  onClick={() => handleStatusToggle(employee)}
-                  className={`flex-1 px-4 py-2 !mr-3 rounded-lg transition-colors text-sm font-medium flex items-center justify-center space-x-1 ${
-                    employee.status === 'active' 
-                      ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100' 
-                      : 'bg-green-50 text-green-600 hover:bg-green-100'
-                  }`}
+              <div className="relative">
+                <button
+                  onClick={() => setShowFilterPanel(!showFilterPanel)}
+                  className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2"
+                  style={
+                    showFilterPanel
+                      ? { backgroundColor: "rgba(1, 106, 178, 0.08)", borderColor: ACCENT_PRIMARY }
+                      : undefined
+                  }
                 >
-                  <span>{employee.status === 'active' ? 'Deactivate' : 'Activate'}</span>
+                  <Filter className="w-4 h-4" />
+                  <span>Filter</span>
+                  {(selectedRole || selectedStatus) && (
+                    <span
+                      className="ml-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                      style={{ backgroundColor: ACCENT_PRIMARY }}
+                    >
+                      {(selectedRole ? 1 : 0) + (selectedStatus ? 1 : 0)}
+                    </span>
+                  )}
                 </button>
-                <button 
-                  onClick={() => handleEdit(employee)}
-                  className="flex-1 px-4 py-2 !mr-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium flex items-center justify-center space-x-1">
-                  <Edit className="w-4 h-4" />
-                  <span>Edit</span>
-                </button>
-                <button 
-                  onClick={() => handleDelete(employee._id)}
-                  className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
-                  <Trash2 className="w-4 h-4" />
-                </button>
+
+                {showFilterPanel && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40 bg-gray-900/20 backdrop-blur-sm"
+                      onClick={() => setShowFilterPanel(false)}
+                    ></div>
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-semibold text-gray-800">Filter Employees</h3>
+                        <button
+                          onClick={() => setShowFilterPanel(false)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Role
+                          </label>
+                          <select
+                            value={selectedRole}
+                            onChange={(e) => setSelectedRole(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm"
+                            style={focusRingStyle}
+                          >
+                            <option value="">All Roles</option>
+                            {roles.map(role => (
+                              <option key={role} value={role}>
+                                {getRoleDisplayName(role)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Status
+                          </label>
+                          <select
+                            value={selectedStatus}
+                            onChange={(e) => setSelectedStatus(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm"
+                            style={focusRingStyle}
+                          >
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-center space-x-2 pt-2 border-t border-gray-200">
+                          <button
+                            onClick={() => {
+                              setSelectedRole('');
+                              setSelectedStatus('');
+                              setShowFilterPanel(false);
+                            }}
+                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
+                          >
+                            Clear
+                          </button>
+                          <button
+                            onClick={() => setShowFilterPanel(false)}
+                            className="flex-1 px-3 py-2 text-sm text-white rounded-lg hover:opacity-90"
+                            style={{ backgroundImage: ACCENT_GRADIENT }}
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-          ))}
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+                  <div className="bg-gray-200 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+                        <div>
+                          <div className="h-4 bg-gray-300 rounded w-32 mb-2"></div>
+                          <div className="h-3 bg-gray-300 rounded w-20"></div>
+                        </div>
+                      </div>
+                      <div className="h-6 bg-gray-300 rounded-full w-16"></div>
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <div className="space-y-3">
+                      <div className="h-3 bg-gray-200 rounded w-full"></div>
+                      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-6">
+              {employees.map((employee) => (
+                <div key={employee._id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                  <div
+                    className="p-4 text-white rounded-t-xl"
+                    style={{ backgroundImage: ACCENT_GRADIENT }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className="w-12 h-12 bg-white rounded-full flex items-center justify-center font-bold text-lg"
+                          style={{ color: ACCENT_PRIMARY }}
+                        >
+                          {employee.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold">{employee.name}</h3>
+                          <p className="text-sm text-white">
+                            {employee.internalId}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${employee.status === 'active'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                        {employee.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Role</p>
+                        <p className="text-sm font-medium text-gray-800">{getRoleDisplayName(employee.role)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Country</p>
+                        <p className="text-sm font-medium text-gray-800">{employee.country}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Email</p>
+                        <p className="text-sm font-medium" style={{ color: ACCENT_DARK }}>
+                          {employee.email}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Phone</p>
+                        <p className="text-sm font-medium text-gray-800">{employee.phone}</p>
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-500 mb-1">Address</p>
+                      <p className="text-sm text-gray-700">{employee.location?.address || 'No address provided'}</p>
+                    </div>
+
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-500 mb-1">Location</p>
+                      <p className="text-sm text-gray-700">{employee.city}, {employee.state}</p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Join Date</p>
+                        <p className="text-sm font-medium text-gray-800">
+                          {new Date(employee.joinDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Employee ID</p>
+                        <p className="text-sm font-medium text-gray-800">{employee.internalId}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="px-6 pb-4 flex items-center space-x-2">
+                    <button
+                      onClick={() => handleStatusToggle(employee)}
+                      className={`flex-1 px-4 py-2 !mr-3 rounded-lg transition-colors text-sm font-medium flex items-center justify-center space-x-1 ${employee.status === 'active'
+                        ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100'
+                        : 'bg-green-50 text-green-600 hover:bg-green-100'
+                        }`}
+                    >
+                      <span>{employee.status === 'active' ? 'Deactivate' : 'Activate'}</span>
+                    </button>
+                    <button
+                      onClick={() => handleEdit(employee)}
+                      className="flex-1 px-4 py-2 !mr-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium flex items-center justify-center space-x-1">
+                      <Edit className="w-4 h-4" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(employee._id)}
+                      className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
         </div>
-      )}
+      </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-[10001] p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[10001] flex justify-end">
+          <div className="bg-white w-[800px] h-full shadow-2xl overflow-y-auto border-l border-gray-200">
             <div
               className="px-6 py-4 flex items-center justify-between"
               style={{ backgroundImage: ACCENT_GRADIENT }}
@@ -2023,12 +2026,12 @@ const EmployeesPage = () => {
                   <h2 className="text-xl font-bold text-white">
                     {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
                   </h2>
-                  <p className="text-sm" style={{ color: ACCENT_LIGHT }}>
+                  <p className="text-sm !text-white">
                     Fill in the employee details below
                   </p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowAddModal(false)}
                 className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
               >
@@ -2057,7 +2060,7 @@ const EmployeesPage = () => {
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Role <span className="text-red-500">*</span>
@@ -2155,73 +2158,7 @@ const EmployeesPage = () => {
                 </div>
               </div>
 
-              {/* Driver-specific panel */}
-              {showDriverPanel && (
-                <div className="mb-6">
-                  <div
-                    className="p-4 rounded-lg mb-6 text-white"
-                    style={{ backgroundImage: ACCENT_GRADIENT }}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Truck className="w-6 h-6 text-white" />
-                      <h3 className="text-lg font-semibold text-white">Driver Information</h3>
-                    </div>
-                  </div>
 
-                  {/* Driver Tabs */}
-                  <div className="mb-6">
-                    <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-                    {[
-                      { id: 'basic', label: 'Basic Information', icon: User },
-                      { id: 'employment', label: 'Employment & Contact', icon: Mail },
-                      { id: 'payment', label: 'Payment Profile', icon: CreditCard }
-                    ].map((tab) => (
-                        <button
-                          key={tab.id}
-                          onClick={() => setActiveTab(tab.id)}
-                          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
-                            activeTab === tab.id
-                              ? 'bg-white text-gray-900 shadow-sm'
-                              : 'text-gray-600 hover:text-gray-900'
-                          }`}
-                        >
-                          <tab.icon className="w-4 h-4" />
-                          <span>{tab.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Tab Content */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    {activeTab === 'basic' && renderBasicInformationTab()}
-                    {activeTab === 'employment' && renderEmploymentContactTab()}
-                    {activeTab === 'payment' && renderPaymentProfileTab()}
-                  </div>
-                  
-                  {/* Note about documents */}
-                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-start space-x-3">
-                      <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-blue-900 mb-1">
-                          Document Management
-                        </p>
-                        <p className="text-sm text-blue-700">
-                          License documents and travel documents can be managed in the{' '}
-                          <button 
-                            onClick={() => navigate('/admin/Management/documents')}
-                            className="underline font-medium hover:text-blue-900"
-                          >
-                            Employee Documents
-                          </button>{' '}
-                          section.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Contact Information */}
               <div className="mb-6">
@@ -2343,34 +2280,36 @@ const EmployeesPage = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div >
       )}
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirm.show && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Confirm Delete</h2>
-              <p className="text-gray-600 mb-6">Are you sure you want to delete this employee? This action cannot be undone.</p>
-              <div className="flex justify-end space-x-4">
-                <button
-                  onClick={() => setDeleteConfirm({ show: false, employeeId: null })}
-                  className="px-6 py-3 !mr-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="px-6 py-3 bg-red-600 hover:bg-red-700 !text-white rounded-lg transition-colors font-medium"
-                >
-                  Delete
-                </button>
+      {
+        deleteConfirm.show && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl max-w-md w-full shadow-2xl">
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Confirm Delete</h2>
+                <p className="text-gray-600 mb-6">Are you sure you want to delete this employee? This action cannot be undone.</p>
+                <div className="flex justify-end space-x-4">
+                  <button
+                    onClick={() => setDeleteConfirm({ show: false, employeeId: null })}
+                    className="px-6 py-3 !mr-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    className="px-6 py-3 bg-red-600 hover:bg-red-700 !text-white rounded-lg transition-colors font-medium"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       <style>{`
         @keyframes slide-in {
@@ -2387,7 +2326,7 @@ const EmployeesPage = () => {
           animation: slide-in 0.3s ease-out;
         }
       `}</style>
-    </div>
+    </div >
   );
 };
 

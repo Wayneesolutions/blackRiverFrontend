@@ -8,7 +8,7 @@ import {
   Edit,
   Trash2,
   Search,
-  Clock as ClockIcon
+  Clock
 } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import { getUserRole } from '../../../../utils/auth';
@@ -46,7 +46,7 @@ const AttendanceTracking = () => {
     return role === 'hr' ? '/Management' : '/admin/Management';
   };
 
-  const [employees, setEmployees] = useState<{_id: string; name: string}[]>([]);
+  const [employees, setEmployees] = useState<{ _id: string; name: string }[]>([]);
 
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
@@ -65,17 +65,28 @@ const AttendanceTracking = () => {
       const res = await apiGetEmployees(1, 100);
       if (res?.success) {
         const list = Array.isArray(res.data) ? res.data : (res.data?.employees || []);
-        setEmployees((list || []).map((u:any)=>({_id:u._id,name:u.name})));
+        setEmployees((list || []).map((u: any) => ({ _id: u._id, name: u.name })));
       }
-    } catch {}
+    } catch { }
   };
+  useEffect(() => {
+    if (showAddModal || deleteConfirm.show) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showAddModal]);
 
   const fetchAttendance = async () => {
     const now = new Date();
     try {
-      const res = await apiListAttendance({ month: now.getMonth()+1, year: now.getFullYear() });
+      const res = await apiListAttendance({ month: now.getMonth() + 1, year: now.getFullYear() });
       if (res?.success) setAttendanceRecords(res.data || []);
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
@@ -120,7 +131,6 @@ const AttendanceTracking = () => {
       return;
     }
 
-    // Calculate hours
     try {
       const payload = {
         employee: attendanceForm.employeeId,
@@ -134,7 +144,6 @@ const AttendanceTracking = () => {
         addNotification('success', editingRecord ? 'Attendance record updated successfully' : 'Attendance record added successfully');
         await fetchAttendance();
         setEditingRecord(null);
-        // Reset form
         setAttendanceForm({
           employeeId: '',
           date: new Date().toISOString().split('T')[0],
@@ -155,7 +164,7 @@ const AttendanceTracking = () => {
     setEditingRecord(record);
     setAttendanceForm({
       employeeId: typeof record.employee === 'string' ? record.employee : (record.employee?._id || ''),
-      date: (record.date || '').slice(0,10),
+      date: (record.date || '').slice(0, 10),
       checkIn: record.checkIn || '',
       checkOut: record.checkOut || '',
       status: record.status
@@ -198,26 +207,34 @@ const AttendanceTracking = () => {
   };
 
   const filteredRecords = attendanceRecords.filter(record => {
-    const name = (typeof record.employee === 'string' ? (employees.find(e=>e._id===record.employee)?.name || '') : (record.employee as any)?.name || '');
+    const name = (typeof record.employee === 'string' ? (employees.find(e => e._id === record.employee)?.name || '') : (record.employee as any)?.name || '');
     const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || record.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div
+      className="min-h-screen bg-[#EDF8FF] p-6 overflow-x-hidden"
+      style={{
+        transform: 'scale(0.98)',
+        transformOrigin: 'top left',
+        width: '102.04%',
+        minHeight: '102.04vh'
+      }}
+    >
+
       {/* Toast Notifications Container */}
       <div className="fixed top-4 right-4 z-[10002] space-y-2">
         {notifications.map((notification) => (
           <div
             key={notification.id}
-            className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg min-w-[300px] max-w-md animate-slide-in ${
-              notification.type === 'success'
-                ? 'bg-green-50 border-green-200'
-                : notification.type === 'error'
+            className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg min-w-[300px] max-w-md animate-slide-in ${notification.type === 'success'
+              ? 'bg-green-50 border-green-200'
+              : notification.type === 'error'
                 ? 'bg-red-50 border-red-200'
                 : 'bg-blue-50 border-blue-200'
-            }`}
+              }`}
           >
             <div className="flex-shrink-0 mt-0.5">
               {notification.type === 'success' ? (
@@ -249,7 +266,8 @@ const AttendanceTracking = () => {
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 !text-white rounded-lg transition-all font-medium flex items-center gap-2"
+              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
             >
               <Plus size={20} />
               Add Attendance
@@ -258,58 +276,72 @@ const AttendanceTracking = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div 
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Total Employees */}
+          <div
             onClick={() => navigate(`${getBasePath()}/employee-profiles`)}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
+            className="rounded-lg p-4 bg-purple-50 border border-purple-200 cursor-pointer hover:shadow-sm transition-shadow"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Employees</p>
-                <p className="text-3xl font-bold text-gray-900">{totalEmployees}</p>
+                <p className="text-xs text-purple-600 mb-0.5">Total Employees</p>
+                <p className="text-2xl font-semibold text-purple-700">
+                  {totalEmployees}
+                </p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <Users className="text-blue-600" size={24} />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Present Today</p>
-                <p className="text-3xl font-bold text-green-600">{presentToday}</p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <CheckCircle className="text-green-600" size={24} />
+              <div className="p-2 bg-purple-100 rounded-full">
+                <Users className="text-purple-600" size={18} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          {/* Present Today */}
+          <div className="rounded-lg p-4 bg-green-50 border border-green-200 hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Late Today</p>
-                <p className="text-3xl font-bold text-yellow-600">{lateToday}</p>
+                <p className="text-xs text-green-600 mb-0.5">Present Today</p>
+                <p className="text-2xl font-semibold text-green-700">
+                  {presentToday}
+                </p>
               </div>
-              <div className="p-3 bg-yellow-100 rounded-full">
-                <ClockIcon className="text-yellow-600" size={24} />
+              <div className="p-2 bg-green-100 rounded-full">
+                <CheckCircle className="text-green-600" size={18} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          {/* Late Today */}
+          <div className="rounded-lg p-4 bg-amber-50 border border-amber-200 hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Absent Today</p>
-                <p className="text-3xl font-bold text-red-600">{absentToday}</p>
+                <p className="text-xs text-amber-600 mb-0.5">Late Today</p>
+                <p className="text-2xl font-semibold text-amber-700">
+                  {lateToday}
+                </p>
               </div>
-              <div className="p-3 bg-red-100 rounded-full">
-                <XCircle className="text-red-600" size={24} />
+              <div className="p-2 bg-amber-100 rounded-full">
+                <Clock className="text-amber-600" size={18} />
+              </div>
+            </div>
+          </div>
+
+          {/* Absent Today */}
+          <div className="rounded-lg p-4 bg-red-50 border border-red-200 hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-red-600 mb-0.5">Absent Today</p>
+                <p className="text-2xl font-semibold text-red-700">
+                  {absentToday}
+                </p>
+              </div>
+              <div className="p-2 bg-red-100 rounded-full">
+                <XCircle className="text-red-600" size={18} />
               </div>
             </div>
           </div>
         </div>
+
+
 
         {/* Attendance Records */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -364,9 +396,9 @@ const AttendanceTracking = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                            {((typeof record.employee === 'string' ? employees.find(e=>e._id===record.employee)?.name : (record.employee as any)?.name) || '').split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                            {((typeof record.employee === 'string' ? employees.find(e => e._id === record.employee)?.name : (record.employee as any)?.name) || '').split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </div>
-                          <span className="font-medium text-gray-900">{typeof record.employee === 'string' ? (employees.find(e=>e._id===record.employee)?.name || '') : (record.employee as any)?.name}</span>
+                          <span className="font-medium text-gray-900">{typeof record.employee === 'string' ? (employees.find(e => e._id === record.employee)?.name || '') : (record.employee as any)?.name}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
@@ -419,7 +451,8 @@ const AttendanceTracking = () => {
 
       {/* Add/Edit Attendance Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
@@ -594,7 +627,7 @@ const ConfirmationModal = ({
       : 'bg-blue-600 hover:bg-blue-700 text-white';
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
       <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
         <div className="border-b border-gray-200 px-6 py-4">
           <h3 className="text-lg font-semibold text-gray-900">{title}</h3>

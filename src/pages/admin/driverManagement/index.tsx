@@ -1,5 +1,5 @@
-import { 
-  Users, 
+import {
+  Users,
   FileText,
   UserPlus,
   FolderOpen,
@@ -10,7 +10,7 @@ import {
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserRole } from '../../../utils/auth';
-import { 
+import {
   getHRDashboard
 } from '../../../axios/api/driverDashboard';
 
@@ -42,7 +42,7 @@ interface HRDashboardStats {
   };
 }
 
-const index = () => {
+const Index = () => {
   const navigate = useNavigate();
   const [dashboardStats, setDashboardStats] = useState<HRDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,7 +54,7 @@ const index = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch HR dashboard data
       const dashboardRes = await getHRDashboard();
       setDashboardStats(dashboardRes.success && dashboardRes.data ? dashboardRes.data : null);
@@ -65,21 +65,6 @@ const index = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6 bg-gray-50 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-              <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const getBasePath = () => {
     const role = getUserRole();
     return role === 'hr' ? '/Management' : '/admin/Management';
@@ -87,171 +72,219 @@ const index = () => {
 
   const basePath = getBasePath();
 
-  return (
-    <div className="space-y-6 bg-gray-50 p-6">
-      {/* Main Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Total Employees */}
-        <div 
-          onClick={() => navigate(`${basePath}/employeelist`)}
-          className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-500 text-sm font-medium">Total Employees</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {dashboardStats?.totalEmployees ?? 0}
-              </p>
-            </div>
-            <div className="bg-purple-50 p-3 rounded-lg">
-              <Users className="h-6 w-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
+  const features = [
+    {
+      id: 'employees',
+      title: 'Total Employees',
+      value: dashboardStats?.totalEmployees ?? 0,
+      subtitle: 'Active workforce',
+      icon: Users,
+      bgColor: 'bg-purple-100',
+      iconColor: 'text-purple-700',
+      cardBg: 'bg-gradient-to-br from-purple-50 to-purple-100'
+    },
+    {
+      id: 'documents',
+      title: 'Pending Renewals',
+      value: dashboardStats?.pendingDocumentRenewals ?? 0,
+      subtitle: 'Documents requiring attention',
+      icon: FileText,
+      bgColor: 'bg-orange-100',
+      iconColor: 'text-orange-700',
+      cardBg: 'bg-gradient-to-br from-orange-50 to-orange-100'
+    },
+    {
+      id: 'joiners',
+      title: 'New Joiners',
+      value: dashboardStats?.newJoinersThisMonth ?? 0,
+      subtitle: 'Added this month',
+      icon: UserPlus,
+      bgColor: 'bg-pink-100',
+      iconColor: 'text-pink-700',
+      cardBg: 'bg-gradient-to-br from-pink-50 to-pink-100'
+    },
+    {
+      id: 'attendance',
+      title: 'Present Today',
+      value: dashboardStats?.attendance?.presentToday ?? 0,
+      subtitle: 'Current attendance',
+      icon: Clock,
+      bgColor: 'bg-emerald-100',
+      iconColor: 'text-emerald-700',
+      cardBg: 'bg-gradient-to-br from-emerald-50 to-emerald-100'
+    }
+  ];
 
-        {/* Pending Document Renewals */}
-        <div 
-          onClick={() => navigate(`${basePath}/documents`)}
-          className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-500 text-sm font-medium">Pending Document Renewals</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {dashboardStats?.pendingDocumentRenewals ?? 0}
-              </p>
-            </div>
-            <div className="bg-orange-50 p-3 rounded-lg">
-              <FileText className="h-6 w-6 text-orange-600" />
-            </div>
-          </div>
-        </div>
+  const quickActions = [
+    {
+      id: 'documents',
+      title: 'Documents',
+      subtitle: 'Pending',
+      value: dashboardStats?.documents?.pending ?? 0,
+      icon: FileText,
+      bgColor: 'bg-orange-100',
+      iconColor: 'text-orange-700',
+      path: `${basePath}/documents`
+    },
+    {
+      id: 'company-documents',
+      title: 'Company Docs',
+      subtitle: `${dashboardStats?.companyDocuments?.expiringSoon ?? 0} expiring`,
+      value: dashboardStats?.companyDocuments?.total ?? 0,
+      icon: FolderOpen,
+      bgColor: 'bg-sky-100',
+      iconColor: 'text-sky-700',
+      path: `${basePath}/company-documents`
+    },
+    {
+      id: 'attendance',
+      title: 'Attendance',
+      subtitle: 'Present today',
+      value: dashboardStats?.attendance?.presentToday ?? 0,
+      icon: Clock,
+      bgColor: 'bg-emerald-100',
+      iconColor: 'text-emerald-700',
+      path: `${basePath}/attendence`
+    },
+    {
+      id: 'portfolio',
+      title: 'Portfolio',
+      subtitle: 'Completed',
+      value: dashboardStats?.employeePortfolio?.completed ?? 0,
+      icon: Briefcase,
+      bgColor: 'bg-indigo-100',
+      iconColor: 'text-indigo-700',
+      path: `${basePath}/employee-profiles`
+    },
+    {
+      id: 'issues',
+      title: 'Issues',
+      subtitle: 'Open',
+      value: dashboardStats?.issues?.open ?? 0,
+      icon: AlertCircle,
+      bgColor: 'bg-rose-100',
+      iconColor: 'text-rose-700',
+      path: `${basePath}/issues`
+    },
+    {
+      id: 'all-employees',
+      title: 'All Employees',
+      subtitle: 'View List',
+      value: dashboardStats?.totalEmployees ?? 0,
+      icon: Users,
+      bgColor: 'bg-purple-100',
+      iconColor: 'text-purple-700',
+      path: `${basePath}/employeelist`
+    }
+  ];
 
-        {/* New Joiners This Month */}
-        <div 
-          onClick={() => navigate(`${basePath}/employeelist`)}
-          className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-500 text-sm font-medium">New Joiners This Month</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {dashboardStats?.newJoinersThisMonth ?? 0}
-              </p>
-            </div>
-            <div className="bg-pink-50 p-3 rounded-lg">
-              <UserPlus className="h-6 w-6 text-pink-600" />
-            </div>
-          </div>
-        </div>
+  if (loading) {
+    return (
+      <div className="min-h-screen p-4 bg-[#EDF8FF] px-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500"></div>
       </div>
+    );
+  }
 
-      {/* Quick Access Sections - 6 cards in 2 rows */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-        {/* Documents */}
-        <div 
-          onClick={() => navigate(`${basePath}/documents`)}
-          className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="bg-orange-50 p-2 rounded-lg">
-              <FileText className="h-5 w-5 text-orange-600" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">
-              {dashboardStats?.documents?.pending ?? 0}
-            </span>
-          </div>
-          <p className="text-sm font-medium text-gray-700">Documents</p>
-          <p className="text-xs text-gray-500 mt-1">Pending</p>
-        </div>
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+      <div className="relative max-w-7xl mx-auto">
+        {/* Gradient band */}
+        <div
+          className="absolute inset-x-0 top-0"
+          style={{
+            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            height: '101px'
+          }}
+          aria-hidden="true"
+        />
 
-        {/* Company Documents */}
-        <div 
-          onClick={() => navigate(`${basePath}/company-documents`)}
-          className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="bg-blue-50 p-2 rounded-lg">
-              <FolderOpen className="h-5 w-5 text-blue-600" />
+        {/* Main content */}
+        <div className="relative z-10 px-4 pt-3 pb-6">
+          {/* Header Section */}
+          <div className="mb-4 relative z-10">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-white">HR Management</h1>
+              <div className="flex items-center gap-2 text-white/90">
+                <span className="text-xs">Dashboard Overview</span>
+              </div>
             </div>
-            <span className="text-lg font-bold text-gray-900">
-              {dashboardStats?.companyDocuments?.total ?? 0}
-            </span>
           </div>
-          <p className="text-sm font-medium text-gray-700">Company Docs</p>
-          <p className="text-xs text-gray-500 mt-1">
-            {dashboardStats?.companyDocuments?.expiringSoon ?? 0} expiring
-          </p>
-        </div>
 
-        {/* Attendance */}
-        <div 
-          onClick={() => navigate(`${basePath}/attendence`)}
-          className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="bg-green-50 p-2 rounded-lg">
-              <Clock className="h-5 w-5 text-green-600" />
-            </div>
-            <span className="text-lg font-bold text-green-600">
-              {dashboardStats?.attendance?.presentToday ?? 0}
-            </span>
-          </div>
-          <p className="text-sm font-medium text-gray-700">Attendance</p>
-          <p className="text-xs text-gray-500 mt-1">Present today</p>
-        </div>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 -mt-2 mb-4">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.id}
+                  onClick={() => {
+                    if (feature.id === 'employees' || feature.id === 'joiners') {
+                      navigate(`${basePath}/employeelist`);
+                    } else if (feature.id === 'documents') {
+                      navigate(`${basePath}/documents`);
+                    } else if (feature.id === 'attendance') {
+                      navigate(`${basePath}/attendence`);
+                    }
+                  }}
+                  className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    {/* Left side content */}
+                    <div className="flex-1">
+                      <h3 className="text-sm font-bold text-gray-900 mb-1">
+                        {feature.title}
+                      </h3>
 
-        {/* Employee Portfolio */}
-        <div 
-          onClick={() => navigate(`${basePath}/employee-profiles`)}
-          className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="bg-indigo-50 p-2 rounded-lg">
-              <Briefcase className="h-5 w-5 text-indigo-600" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">
-              {dashboardStats?.employeePortfolio?.completed ?? 0}
-            </span>
-          </div>
-          <p className="text-sm font-medium text-gray-700">Portfolio</p>
-          <p className="text-xs text-gray-500 mt-1">Completed</p>
-        </div>
+                      <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="text-xl font-bold text-gray-900">{feature.value}</span>
+                      </div>
 
-        {/* Issues */}
-        <div 
-          onClick={() => navigate(`${basePath}/issues`)}
-          className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="bg-red-50 p-2 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-red-600" />
-            </div>
-            <span className="text-lg font-bold text-red-600">
-              {dashboardStats?.issues?.open ?? 0}
-            </span>
-          </div>
-          <p className="text-sm font-medium text-gray-700">Issues</p>
-          <p className="text-xs text-gray-500 mt-1">Open</p>
-        </div>
+                      <p className="text-xs text-gray-400">{feature.subtitle}</p>
+                    </div>
 
-        {/* Employees */}
-        <div 
-          onClick={() => navigate(`${basePath}/employeelist`)}
-          className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="bg-purple-50 p-2 rounded-lg">
-              <Users className="h-5 w-5 text-purple-600" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">{dashboardStats?.totalEmployees ?? 0}</span>
+                    {/* Right side icon */}
+                    <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
+                      <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <p className="text-sm font-medium text-gray-700">Employees</p>
-          <p className="text-xs text-gray-500 mt-1">Total</p>
+
+          {/* Quick Actions Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions & Overview</h2>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+              {quickActions.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <div
+                    key={action.id}
+                    onClick={() => navigate(action.path)}
+                    className="group p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className={`${action.bgColor} group-hover:bg-white p-2 rounded-lg transition-colors`}>
+                        <Icon className={`h-5 w-5 ${action.iconColor}`} />
+                      </div>
+                      <span className="text-lg font-bold text-gray-900 group-hover:text-blue-700">
+                        {action.value}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-700 group-hover:text-blue-800">{action.title}</p>
+                    <p className="text-xs text-gray-500 mt-1 group-hover:text-blue-600">{action.subtitle}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default index
+export default Index;

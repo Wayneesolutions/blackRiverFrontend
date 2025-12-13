@@ -149,8 +149,8 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">Status</h3>
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(issue.status)}`}>
-                {issue.status.replace('-', ' ').charAt(0).toUpperCase() + 
-                 issue.status.replace('-', ' ').slice(1)}
+                {issue.status.replace('-', ' ').charAt(0).toUpperCase() +
+                  issue.status.replace('-', ' ').slice(1)}
               </span>
             </div>
           </div>
@@ -226,7 +226,7 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
         <div className="p-6 border-t border-gray-200 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors"
           >
             Close
           </button>

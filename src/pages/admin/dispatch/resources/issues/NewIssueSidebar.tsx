@@ -63,7 +63,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
 
         if (vehiclesResponse.success && vehiclesResponse.data) {
           // Filter to only trucks and set directly
-          const trucks = vehiclesResponse.data.filter((unit: FleetUnitDto) => 
+          const trucks = vehiclesResponse.data.filter((unit: FleetUnitDto) =>
             unit.unitType === "Truck" || unit.unitType === "Bus/Van"
           );
           setFleetUnits(trucks);
@@ -155,7 +155,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
   };
 
   return (
-    <div className="fixed inset-0 bg-transparent z-50 flex justify-end">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-end">
       <div className="bg-white w-full max-w-2xl h-full overflow-y-auto">
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-center">
@@ -220,7 +220,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 // Extract make and model
                 let make = unit.make || '';
                 let model = unit.model || '';
-                
+
                 // If makeModel exists but make/model don't, parse makeModel
                 if ((!make || !model) && unit.makeModel) {
                   const makeModelParts = unit.makeModel.trim().split(/\s+/);
@@ -229,11 +229,11 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                     model = model || makeModelParts.slice(1).join(' ');
                   }
                 }
-                
+
                 // Build display name
                 const vehicleName = [make, model].filter(Boolean).join(' ').trim() || unit.makeModel || 'Vehicle';
                 const identifier = unit.licensePlate || unit.unitNo || unit.internalId || unit._id;
-                
+
                 return (
                   <option key={unit._id} value={unit._id}>
                     {vehicleName} ({identifier})
@@ -352,7 +352,10 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
               <button
                 type="button"
                 onClick={handleAddTag}
-                className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700"
+                style={{
+                  background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)"
+                }}
+                className="px-4 py-2 !text-white rounded-lg hover:bg-blue-700"
               >
                 Add
               </button>
@@ -406,7 +409,10 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              style={{
+                background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)"
+              }}
+              className="flex items-center gap-2 px-4 py-2  !text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               <MdSave />
               {loading ? 'Saving...' : (issue ? 'Update Issue' : 'Create Issue')}

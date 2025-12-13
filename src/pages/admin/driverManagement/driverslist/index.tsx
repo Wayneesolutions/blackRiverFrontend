@@ -128,10 +128,10 @@ const DriverManagement = () => {
         const transformedDrivers = await Promise.all(
           response.data.map(async (driver: any) => {
             // Ensure profileImageUrl is properly preserved and decoded if needed
-            const profileImageUrl = driver.profileImageUrl 
+            const profileImageUrl = driver.profileImageUrl
               ? (typeof driver.profileImageUrl === 'string' ? driver.profileImageUrl.trim() : null)
               : null;
-            
+
             // Fetch documents for each driver
             let documents: EmployeeDocument[] = [];
             try {
@@ -142,7 +142,7 @@ const DriverManagement = () => {
             } catch (err) {
               console.error(`Error fetching documents for driver ${driver._id}:`, err);
             }
-            
+
             // Transform driver data to ensure all fields are properly mapped
             // Backend should already provide transformed data, but we ensure all fields exist
             return {
@@ -293,7 +293,7 @@ const DriverManagement = () => {
 
     try {
       const formDataToSend = new FormData();
-      
+
       // Append all form fields
       formDataToSend.append('name', formData.name);
       formDataToSend.append('email', formData.email);
@@ -301,7 +301,7 @@ const DriverManagement = () => {
       formDataToSend.append('password', formData.password);
       formDataToSend.append('role', formData.role || 'driver');
       formDataToSend.append('status', formData.status || 'active');
-      
+
       if (formData.country) formDataToSend.append('country', formData.country);
       // Always send policies (required field, can be empty string)
       formDataToSend.append('policies', formData.policies || '');
@@ -316,7 +316,7 @@ const DriverManagement = () => {
       if (formData.fastCard) formDataToSend.append('fastCard', formData.fastCard);
       if (formData.medicalTracking) formDataToSend.append('medicalTracking', formData.medicalTracking);
       if (formData.csa) formDataToSend.append('csa', formData.csa);
-      
+
       // Append file if exists
       if (formData.file) {
         formDataToSend.append('file', formData.file);
@@ -325,7 +325,7 @@ const DriverManagement = () => {
       const response = await driverApi.createDriver(formDataToSend);
       if (response.success) {
         const driverId = response.data?._id || response.data?.id;
-        
+
         // Upload documents if any
         if (driverId && driverDocuments.length > 0) {
           try {
@@ -340,7 +340,7 @@ const DriverManagement = () => {
                 if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
                 if (doc.description) docFormData.append('description', doc.description);
                 docFormData.append('documentFile', doc.file);
-                
+
                 await createEmployeeDocument(docFormData);
               }
             }
@@ -349,7 +349,7 @@ const DriverManagement = () => {
             alert('Driver created but some documents failed to upload. Please add them manually.');
           }
         }
-        
+
         await fetchDrivers();
         resetForm();
         setShowSidebar(false);
@@ -371,7 +371,7 @@ const DriverManagement = () => {
       if (response.success && response.data) {
         const driverData = response.data;
         setEditingId(driver._id);
-        
+
         // Properly map fields from backend response (which may have details/location nested objects)
         setFormData({
           name: driverData.name || '',
@@ -401,7 +401,7 @@ const DriverManagement = () => {
           salaryPerMileHighTemp: driverData.details?.salaryPerMileHighTemp?.toString() || driverData.salaryPerMileHighTemp?.toString() || '',
           highTempThreshold: driverData.details?.highTempThreshold?.toString() || driverData.highTempThreshold?.toString() || '35'
         });
-        
+
         // Fetch existing documents
         try {
           const docsResponse = await getDocumentsByEmployee(driver._id);
@@ -425,7 +425,7 @@ const DriverManagement = () => {
           setExistingDocuments([]);
           setDriverDocuments([]);
         }
-        
+
         setCurrentStep(1);
         setShowSidebar(true);
       } else {
@@ -454,7 +454,7 @@ const DriverManagement = () => {
           status: driver.status || 'active',
           policies: ''
         });
-        
+
         // Use documents from driver object if available
         if (driver.documents && Array.isArray(driver.documents)) {
           setExistingDocuments(driver.documents);
@@ -470,7 +470,7 @@ const DriverManagement = () => {
           }));
           setDriverDocuments(formDocs);
         }
-        
+
         setCurrentStep(1);
         setShowSidebar(true);
       }
@@ -501,7 +501,7 @@ const DriverManagement = () => {
         status: driver.status || 'active',
         policies: ''
       });
-      
+
       if (driver.documents && Array.isArray(driver.documents)) {
         setExistingDocuments(driver.documents);
         const formDocs = driver.documents.map((doc: EmployeeDocument) => ({
@@ -516,7 +516,7 @@ const DriverManagement = () => {
         }));
         setDriverDocuments(formDocs);
       }
-      
+
       setCurrentStep(1);
       setShowSidebar(true);
     } finally {
@@ -535,14 +535,14 @@ const DriverManagement = () => {
 
     try {
       const formDataToSend = new FormData();
-      
+
       // Append all form fields (password is optional for update)
       formDataToSend.append('name', formData.name);
       formDataToSend.append('email', formData.email);
       formDataToSend.append('phone', formData.phone);
       formDataToSend.append('role', formData.role || 'driver');
       formDataToSend.append('status', formData.status || 'active');
-      
+
       if (formData.password) formDataToSend.append('password', formData.password);
       if (formData.country) formDataToSend.append('country', formData.country);
       // Always send policies (required field, can be empty string)
@@ -558,13 +558,13 @@ const DriverManagement = () => {
       if (formData.fastCard) formDataToSend.append('fastCard', formData.fastCard);
       if (formData.medicalTracking) formDataToSend.append('medicalTracking', formData.medicalTracking);
       if (formData.csa) formDataToSend.append('csa', formData.csa);
-      
+
       // Append salary per mile fields
       if (formData.salaryPerMile !== undefined) formDataToSend.append('salaryPerMile', formData.salaryPerMile);
       if (formData.salaryPerMileSnow !== undefined) formDataToSend.append('salaryPerMileSnow', formData.salaryPerMileSnow);
       if (formData.salaryPerMileHighTemp !== undefined) formDataToSend.append('salaryPerMileHighTemp', formData.salaryPerMileHighTemp);
       if (formData.highTempThreshold !== undefined) formDataToSend.append('highTempThreshold', formData.highTempThreshold);
-      
+
       // Append file if exists
       if (formData.file) {
         formDataToSend.append('file', formData.file);
@@ -586,7 +586,7 @@ const DriverManagement = () => {
                 if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
                 if (doc.description) docFormData.append('description', doc.description);
                 docFormData.append('documentFile', doc.file);
-                
+
                 // If it's an existing document, update it; otherwise create new
                 if (doc._id) {
                   // Update existing document
@@ -615,7 +615,7 @@ const DriverManagement = () => {
             alert('Driver updated but some documents failed to update. Please check them manually.');
           }
         }
-        
+
         await fetchDrivers();
         setEditingId(null);
         resetForm();
@@ -636,7 +636,7 @@ const DriverManagement = () => {
 
   const confirmDeleteDriver = async () => {
     if (!deleteConfirm.driverId) return;
-    
+
     try {
       const response = await driverApi.deleteDriver(deleteConfirm.driverId);
       if (response.success) {
@@ -798,9 +798,9 @@ const DriverManagement = () => {
                     filteredDrivers.map((driver) => (
                       <tr key={driver._id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span 
+                          <span
                             className="font-mono text-sm px-2 py-1 rounded"
-                            style={{ 
+                            style={{
                               backgroundColor: `${FLEET_COLORS.primary}15`,
                               color: FLEET_COLORS.dark
                             }}
@@ -812,9 +812,9 @@ const DriverManagement = () => {
                           <div className="flex items-center">
                             <div className="h-10 w-10 flex-shrink-0">
                               {driver.profileImageUrl && !imageErrors.has(driver._id) ? (
-                                <img 
-                                  className="h-10 w-10 rounded-full object-cover" 
-                                  src={driver.profileImageUrl} 
+                                <img
+                                  className="h-10 w-10 rounded-full object-cover"
+                                  src={driver.profileImageUrl}
                                   alt={driver.name || 'Driver'}
                                   onError={() => {
                                     // Mark this image as failed to load
@@ -822,7 +822,7 @@ const DriverManagement = () => {
                                   }}
                                 />
                               ) : (
-                                <div 
+                                <div
                                   className="h-10 w-10 rounded-full flex items-center justify-center text-white font-semibold"
                                   style={{ background: FLEET_COLORS.gradientVertical }}
                                 >
@@ -839,20 +839,18 @@ const DriverManagement = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.company || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.gender || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            driver.csa === 'Yes' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                          }`}>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${driver.csa === 'Yes' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                            }`}>
                             {driver.csa || 'N/A'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
                             onClick={() => toggleStatus(driver._id, driver.status)}
-                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
-                              driver.status === 'active'
-                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                : 'bg-red-100 text-red-800 hover:bg-red-200'
-                            }`}
+                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full transition-colors ${driver.status === 'active'
+                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                              : 'bg-red-100 text-red-800 hover:bg-red-200'
+                              }`}
                           >
                             {driver.status}
                           </button>
@@ -933,930 +931,924 @@ const DriverManagement = () => {
 
       {/* Sidebar Form */}
       {showSidebar && (
-        <div className="fixed right-0 top-0 h-full w-156 bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200">
-          {/* Sidebar Header */}
-          <div 
-            className="px-6 py-4 flex justify-between items-center"
-            style={{ background: FLEET_COLORS.gradient }}
-          >
-            <h2 className="text-xl font-bold text-white">
-              {editingId ? 'Edit Driver' : 'Create New Driver'}
-            </h2>
-            <button
-              onClick={() => {
-                setShowSidebar(false);
-                setEditingId(null);
-                resetForm();
-              }}
-              className="!text-white hover:opacity-80 p-1 rounded transition-opacity"
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+          onClick={() => setShowSidebar(false)}
+        >
+          <div className="fixed right-0 top-0 h-full  w-156 bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200">
+            {/* Sidebar Header */}
+            <div
+              className="px-6 py-4 flex justify-between items-center"
+              style={{ background: FLEET_COLORS.gradient }}
             >
-              <X size={24} />
-            </button>
-          </div>
+              <h2 className="text-xl font-bold text-white">
+                {editingId ? 'Edit Driver' : 'Create New Driver'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowSidebar(false);
+                  setEditingId(null);
+                  resetForm();
+                }}
+                className="!text-white hover:opacity-80 p-1 rounded transition-opacity"
+              >
+                <X size={24} />
+              </button>
+            </div>
 
-          {/* Step Indicator */}
-          {!editingId ? (
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 flex-1">
-                  <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-blue-600' : '!text-white'}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                      currentStep >= 1 
-                        ? 'border-blue-600 bg-blue-50' 
+            {/* Step Indicator */}
+            {!editingId ? (
+              <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1">
+                    <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-blue-600' : '!text-white'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 1
+                        ? 'border-blue-600 bg-blue-50'
                         : 'border-gray-300 bg-white'
-                    }`}>
-                      {currentStep > 1 ? <CheckCircle size={16} className="text-blue-600" /> : '1'}
+                        }`}>
+                        {currentStep > 1 ? <CheckCircle size={16} className="text-blue-600" /> : '1'}
+                      </div>
+                      <span className="text-sm font-medium">Information</span>
                     </div>
-                    <span className="text-sm font-medium">Information</span>
-                  </div>
-                  <div className="flex-1 h-0.5 bg-gray-200 mx-2">
-                    <div 
-                      className={`h-full transition-all ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}
-                      style={{ width: currentStep >= 2 ? '100%' : '0%' }}
-                    />
-                  </div>
-                  <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                      currentStep >= 2 
-                        ? 'border-blue-600 bg-blue-50' 
+                    <div className="flex-1 h-0.5 bg-gray-200 mx-2">
+                      <div
+                        className={`h-full transition-all ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}
+                        style={{ width: currentStep >= 2 ? '100%' : '0%' }}
+                      />
+                    </div>
+                    <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 2
+                        ? 'border-blue-600 bg-blue-50'
                         : 'border-gray-300 bg-white'
-                    }`}>
-                      2
+                        }`}>
+                        2
+                      </div>
+                      <span className="text-sm font-medium">Documents</span>
                     </div>
-                    <span className="text-sm font-medium">Documents</span>
                   </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentStep(1)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentStep === 1 
-                      ? 'bg-blue-600 !text-white' 
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Information
-                </button>
-                <button
-                  onClick={() => setCurrentStep(2)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentStep === 2 
-                      ? 'bg-blue-600 !text-white' 
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Documents ({driverDocuments.length})
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Sidebar Content */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-5">
-            {(currentStep === 2) ? (
-              /* Step 2: Documents Upload */
-              <div className="space-y-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2 font-semibold" style={{ color: FLEET_COLORS.primary }}>
-                    <FileText size={18} />
-                    <span>Driver Documents</span>
-                  </div>
+            ) : (
+              <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={addDocument}
-                    className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+                    onClick={() => setCurrentStep(1)}
+                    style={
+                      currentStep === 1
+                        ? {
+                          background:
+                            'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                        }
+                        : undefined
+                    }
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 1
+                      ? '!text-white shadow-sm'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                      }`}
                   >
-                    <Plus size={16} />
-                    Add Document
+                    Information
+                  </button>
+
+                  <button
+                    onClick={() => setCurrentStep(2)}
+                    style={
+                      currentStep === 2
+                        ? {
+                          background:
+                            'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                        }
+                        : undefined
+                    }
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 2
+                      ? '!text-white shadow-sm'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                      }`}
+                  >
+                    Documents ({driverDocuments.length})
                   </button>
                 </div>
 
-                {driverDocuments.length === 0 ? (
-                  <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-600 mb-2">No documents added yet</p>
-                    <p className="text-sm text-gray-500 mb-4">Click "Add Document" to upload driver documents</p>
+              </div>
+            )}
+
+            {/* Sidebar Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-5">
+              {(currentStep === 2) ? (
+                /* Step 2: Documents Upload */
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2 font-semibold" style={{ color: FLEET_COLORS.primary }}>
+                      <FileText size={18} />
+                      <span>Driver Documents</span>
+                    </div>
                     <button
                       onClick={addDocument}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                      className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
                     >
-                      Add First Document
+                      <Plus size={16} />
+                      Add Document
                     </button>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {driverDocuments.map((doc, index) => (
-                      <div key={doc._id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-semibold text-gray-700">Document {index + 1}</h4>
-                            {doc._id && (
-                              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">Existing</span>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => removeDocument(index)}
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                          >
-                            <X size={18} />
-                          </button>
-                        </div>
 
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Document Type <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                              value={doc.documentType}
-                              onChange={(e) => updateDocument(index, 'documentType', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              style={{ borderColor: '#d1d5db' }}
-                            >
-                              <option value="">Select Document Type</option>
-                              {DRIVER_DOCUMENT_TYPES.map((type) => (
-                                <option key={type} value={type}>{type}</option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Document Number</label>
-                              <input
-                                type="text"
-                                value={doc.documentNumber}
-                                onChange={(e) => updateDocument(index, 'documentNumber', e.target.value)}
-                                placeholder="e.g., CDL-123456"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                style={{ borderColor: '#d1d5db' }}
-                              />
+                  {driverDocuments.length === 0 ? (
+                    <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                      <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600 mb-2">No documents added yet</p>
+                      <p className="text-sm text-gray-500 mb-4">Click "Add Document" to upload driver documents</p>
+                      <button
+                        onClick={addDocument}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                      >
+                        Add First Document
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {driverDocuments.map((doc, index) => (
+                        <div key={doc._id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-semibold text-gray-700">Document {index + 1}</h4>
+                              {doc._id && (
+                                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">Existing</span>
+                              )}
                             </div>
+                            <button
+                              onClick={() => removeDocument(index)}
+                              className="text-red-600 hover:text-red-800 transition-colors"
+                            >
+                              <X size={18} />
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Document Type <span className="text-red-500">*</span>
+                              </label>
                               <select
-                                value={doc.status}
-                                onChange={(e) => updateDocument(index, 'status', e.target.value)}
+                                value={doc.documentType}
+                                onChange={(e) => updateDocument(index, 'documentType', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 style={{ borderColor: '#d1d5db' }}
                               >
-                                <option value="valid">Valid</option>
-                                <option value="pending">Pending</option>
-                                <option value="expired">Expired</option>
-                                <option value="rejected">Rejected</option>
+                                <option value="">Select Document Type</option>
+                                {DRIVER_DOCUMENT_TYPES.map((type) => (
+                                  <option key={type} value={type}>{type}</option>
+                                ))}
                               </select>
                             </div>
-                          </div>
 
-                          <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Document Number</label>
+                                <input
+                                  type="text"
+                                  value={doc.documentNumber}
+                                  onChange={(e) => updateDocument(index, 'documentNumber', e.target.value)}
+                                  placeholder="e.g., CDL-123456"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  style={{ borderColor: '#d1d5db' }}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select
+                                  value={doc.status}
+                                  onChange={(e) => updateDocument(index, 'status', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  style={{ borderColor: '#d1d5db' }}
+                                >
+                                  <option value="valid">Valid</option>
+                                  <option value="pending">Pending</option>
+                                  <option value="expired">Expired</option>
+                                  <option value="rejected">Rejected</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                                <input
+                                  type="date"
+                                  value={doc.issueDate}
+                                  onChange={(e) => updateDocument(index, 'issueDate', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  style={{ borderColor: '#d1d5db' }}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                <input
+                                  type="date"
+                                  value={doc.expiryDate}
+                                  onChange={(e) => updateDocument(index, 'expiryDate', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  style={{ borderColor: '#d1d5db' }}
+                                />
+                              </div>
+                            </div>
+
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
-                              <input
-                                type="date"
-                                value={doc.issueDate}
-                                onChange={(e) => updateDocument(index, 'issueDate', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                              <textarea
+                                value={doc.description}
+                                onChange={(e) => updateDocument(index, 'description', e.target.value)}
+                                rows={2}
+                                placeholder="Enter document description or notes..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                                 style={{ borderColor: '#d1d5db' }}
                               />
                             </div>
+
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Document File {!doc._id && <span className="text-red-500">*</span>}
+                              </label>
                               <input
-                                type="date"
-                                value={doc.expiryDate}
-                                onChange={(e) => updateDocument(index, 'expiryDate', e.target.value)}
+                                type="file"
+                                onChange={(e) => handleDocumentFileChange(index, e.target.files?.[0] || null)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                                 style={{ borderColor: '#d1d5db' }}
                               />
+                              {doc.file && (
+                                <p className="text-xs mt-1 text-green-600 flex items-center gap-1">
+                                  <CheckCircle size={12} />
+                                  Selected: {doc.file.name}
+                                </p>
+                              )}
+                              {doc._id && !doc.file && (
+                                <p className="text-xs mt-1 text-gray-500">
+                                  Leave empty to keep existing file
+                                </p>
+                              )}
                             </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                            <textarea
-                              value={doc.description}
-                              onChange={(e) => updateDocument(index, 'description', e.target.value)}
-                              rows={2}
-                              placeholder="Enter document description or notes..."
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                              style={{ borderColor: '#d1d5db' }}
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Document File {!doc._id && <span className="text-red-500">*</span>}
-                            </label>
-                            <input
-                              type="file"
-                              onChange={(e) => handleDocumentFileChange(index, e.target.files?.[0] || null)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
-                              style={{ borderColor: '#d1d5db' }}
-                            />
-                            {doc.file && (
-                              <p className="text-xs mt-1 text-green-600 flex items-center gap-1">
-                                <CheckCircle size={12} />
-                                Selected: {doc.file.name}
-                              </p>
-                            )}
-                            {doc._id && !doc.file && (
-                              <p className="text-xs mt-1 text-gray-500">
-                                Leave empty to keep existing file
-                              </p>
-                            )}
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* Step 1: Driver Information */
-              <>
-            {/* Personal Info Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                <User size={18} />
-                <span>Personal Info</span>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Enter driver name"
-                  required
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Employment Details Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                <Briefcase size={18} />
-                <span>Employment Details</span>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Internal ID</label>
-                <input
-                  type="text"
-                  name="internalId"
-                  value={formData.internalId}
-                  onChange={handleInputChange}
-                  placeholder="e.g., DRV-001 (auto-generated if empty)"
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
-                <input
-                  type="date"
-                  name="joinDate"
-                  value={formData.joinDate}
-                  onChange={handleInputChange}
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Employment Details</label>
-                <textarea
-                  name="employmentDetails"
-                  value={formData.employmentDetails}
-                  onChange={handleInputChange}
-                  rows={3}
-                  placeholder="Employment history, position, etc."
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Policies</label>
-                <textarea
-                  name="policies"
-                  value={formData.policies}
-                  onChange={handleInputChange}
-                  rows={3}
-                  placeholder="Company policies, terms, etc."
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
-                />
-              </div>
-            </div>
-
-            {/* Contact Information Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                <Phone size={18} />
-                <span>Contact Information</span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="driver@example.com"
-                  required
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+1-555-0123"
-                  required
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
-                <input
-                  type="tel"
-                  name="mobile"
-                  value={formData.mobile}
-                  onChange={handleInputChange}
-                  placeholder="+1-555-0124"
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-              </div>
-
-              {!editingId && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="Enter password"
-                    required={!editingId}
-                    style={{ borderColor: '#d1d5db' }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = FLEET_COLORS.primary;
-                      e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.boxShadow = '';
-                    }}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                  />
-                </div>
-              )}
-
-              {editingId && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    New Password <span className="text-gray-400 text-xs">(leave blank to keep current)</span>
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="Enter new password (optional)"
-                    style={{ borderColor: '#d1d5db' }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = FLEET_COLORS.primary;
-                      e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.boxShadow = '';
-                    }}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Citizenship Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                <Globe size={18} />
-                <span>Citizenship</span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Citizenship</label>
-                <input
-                  type="text"
-                  name="citizenship"
-                  value={formData.citizenship}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Canadian"
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                <input
-                  type="text"
-                  name="country"
-                  value={formData.country}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Canada"
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Address Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                <MapPin size={18} />
-                <span>Address</span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  rows={3}
-                  placeholder="Street address, city, province, postal code"
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
-                />
-              </div>
-            </div>
-
-            {/* WSIB Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                <FileText size={18} />
-                <span>WSIB</span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">WSIB Number</label>
-                <input
-                  type="text"
-                  name="wsib"
-                  value={formData.wsib}
-                  onChange={handleInputChange}
-                  placeholder="WSIB-12345"
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-              </div>
-            </div>
-
-            {/* FAST Card Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                <CreditCard size={18} />
-                <span>FAST Card</span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">FAST Card Number</label>
-                <input
-                  type="text"
-                  name="fastCard"
-                  value={formData.fastCard}
-                  onChange={handleInputChange}
-                  placeholder="FAST-67890"
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Medical Tracking Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                <Heart size={18} />
-                <span>Medical Tracking</span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Medical Information</label>
-                <textarea
-                  name="medicalTracking"
-                  value={formData.medicalTracking}
-                  onChange={handleInputChange}
-                  rows={3}
-                  placeholder="Medical certification dates, expiry, restrictions, etc."
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
-                />
-              </div>
-            </div>
-
-            {/* CSA Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                <Building2 size={18} />
-                <span>CSA</span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">CSA Status</label>
-                <select
-                  name="csa"
-                  value={formData.csa}
-                  onChange={handleInputChange}
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                >
-                  <option value="">Select CSA Status</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Salary Per Mile Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                <DollarSign size={18} />
-                <span>Salary Per Mile</span>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <p className="text-xs text-blue-700">
-                  <strong>Note:</strong> These rates are used to calculate driver salary based on miles driven and weather conditions during trips.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Base Salary Per Mile ($)
-                </label>
-                <input
-                  type="number"
-                  name="salaryPerMile"
-                  value={formData.salaryPerMile}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 0.50"
-                  step="0.01"
-                  min="0"
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-                <p className="text-xs text-gray-500 mt-1">Base rate per mile for all trips</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                  <Snowflake size={16} className="text-blue-500" />
-                  Snow Condition Premium Per Mile ($)
-                </label>
-                <input
-                  type="number"
-                  name="salaryPerMileSnow"
-                  value={formData.salaryPerMileSnow}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 0.25"
-                  step="0.01"
-                  min="0"
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-                <p className="text-xs text-gray-500 mt-1">Additional premium per mile for trips in snow conditions</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                  <Thermometer size={16} className="text-red-500" />
-                  High Temperature Premium Per Mile ($)
-                </label>
-                <input
-                  type="number"
-                  name="salaryPerMileHighTemp"
-                  value={formData.salaryPerMileHighTemp}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 0.30"
-                  step="0.01"
-                  min="0"
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-                <p className="text-xs text-gray-500 mt-1">Additional premium per mile for trips in high temperature conditions</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  High Temperature Threshold (°C)
-                </label>
-                <input
-                  type="number"
-                  name="highTempThreshold"
-                  value={formData.highTempThreshold}
-                  onChange={handleInputChange}
-                  placeholder="35"
-                  step="1"
-                  min="0"
-                  style={{ borderColor: '#d1d5db' }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = FLEET_COLORS.primary;
-                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = '';
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                />
-                <p className="text-xs text-gray-500 mt-1">Temperature threshold in Celsius (default: 35°C) above which high temperature premium applies</p>
-              </div>
-            </div>
-
-            {/* Driver Profile Upload Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                <Upload size={18} />
-                <span>Driver Profile Upload</span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
-                <div className="mt-1">
-                  <label className="block cursor-pointer">
-                    <input
-                      type="file"
-                      onChange={handleFileChange}
-                      accept="image/*"
-                      className="hidden"
-                      id="profile-upload"
-                    />
-                    <div 
-                      className="px-4 py-2 border rounded-lg text-sm font-semibold text-center transition-colors"
-                      style={{ 
-                        borderColor: FLEET_COLORS.primary,
-                        color: FLEET_COLORS.primary,
-                        backgroundColor: `${FLEET_COLORS.primary}08`
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}08`;
-                      }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        document.getElementById('profile-upload')?.click();
-                      }}
-                    >
-                      {formData.file ? formData.file.name : 'Choose File'}
+                      ))}
                     </div>
-                  </label>
+                  )}
                 </div>
-                {formData.file && (
-                  <p className="text-xs mt-2 flex items-center gap-1" style={{ color: '#10b981' }}>
-                    <span>✓</span> File selected: {formData.file.name}
-                  </p>
-                )}
-              </div>
-            </div>
-              </>
-            )}
-          </div>
-
-          {/* Sidebar Footer */}
-          <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
-            <div className="flex gap-3">
-              {!editingId && currentStep === 2 ? (
-                <>
-                  <button
-                    onClick={() => setCurrentStep(1)}
-                    className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
-                  >
-                    <ChevronLeft size={18} />
-                    Back
-                  </button>
-                  <button
-                    onClick={handleCreate}
-                    style={{ backgroundColor: FLEET_COLORS.primary }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
-                    className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
-                  >
-                    <Save size={18} />
-                    Create Driver
-                  </button>
-                </>
               ) : (
+                /* Step 1: Driver Information */
                 <>
-                  <button
-                    onClick={() => {
-                      setShowSidebar(false);
-                      setEditingId(null);
-                      resetForm();
-                    }}
-                    className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                  {!editingId ? (
+                  {/* Personal Info Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                      <User size={18} />
+                      <span>Personal Info</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Full Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder="Enter driver name"
+                        required
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                      <select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Employment Details Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                      <Briefcase size={18} />
+                      <span>Employment Details</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Internal ID</label>
+                      <input
+                        type="text"
+                        name="internalId"
+                        value={formData.internalId}
+                        onChange={handleInputChange}
+                        placeholder="e.g., DRV-001 (auto-generated if empty)"
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
+                      <input
+                        type="date"
+                        name="joinDate"
+                        value={formData.joinDate}
+                        onChange={handleInputChange}
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Employment Details</label>
+                      <textarea
+                        name="employmentDetails"
+                        value={formData.employmentDetails}
+                        onChange={handleInputChange}
+                        rows={3}
+                        placeholder="Employment history, position, etc."
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Policies</label>
+                      <textarea
+                        name="policies"
+                        value={formData.policies}
+                        onChange={handleInputChange}
+                        rows={3}
+                        placeholder="Company policies, terms, etc."
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Contact Information Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                      <Phone size={18} />
+                      <span>Contact Information</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="driver@example.com"
+                        required
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder="+1-555-0123"
+                        required
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                      <input
+                        type="tel"
+                        name="mobile"
+                        value={formData.mobile}
+                        onChange={handleInputChange}
+                        placeholder="+1-555-0124"
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+
+                    {!editingId && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Password <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="password"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          placeholder="Enter password"
+                          required={!editingId}
+                          style={{ borderColor: '#d1d5db' }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = FLEET_COLORS.primary;
+                            e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '#d1d5db';
+                            e.target.style.boxShadow = '';
+                          }}
+                          className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                        />
+                      </div>
+                    )}
+
+                    {editingId && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          New Password <span className="text-gray-400 text-xs">(leave blank to keep current)</span>
+                        </label>
+                        <input
+                          type="password"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          placeholder="Enter new password (optional)"
+                          style={{ borderColor: '#d1d5db' }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = FLEET_COLORS.primary;
+                            e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '#d1d5db';
+                            e.target.style.boxShadow = '';
+                          }}
+                          className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Citizenship Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                      <Globe size={18} />
+                      <span>Citizenship</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Citizenship</label>
+                      <input
+                        type="text"
+                        name="citizenship"
+                        value={formData.citizenship}
+                        onChange={handleInputChange}
+                        placeholder="e.g., Canadian"
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                      <input
+                        type="text"
+                        name="country"
+                        value={formData.country}
+                        onChange={handleInputChange}
+                        placeholder="e.g., Canada"
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Address Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                      <MapPin size={18} />
+                      <span>Address</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                      <textarea
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        rows={3}
+                        placeholder="Street address, city, province, postal code"
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* WSIB Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                      <FileText size={18} />
+                      <span>WSIB</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">WSIB Number</label>
+                      <input
+                        type="text"
+                        name="wsib"
+                        value={formData.wsib}
+                        onChange={handleInputChange}
+                        placeholder="WSIB-12345"
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* FAST Card Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                      <CreditCard size={18} />
+                      <span>FAST Card</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">FAST Card Number</label>
+                      <input
+                        type="text"
+                        name="fastCard"
+                        value={formData.fastCard}
+                        onChange={handleInputChange}
+                        placeholder="FAST-67890"
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Medical Tracking Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                      <Heart size={18} />
+                      <span>Medical Tracking</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Medical Information</label>
+                      <textarea
+                        name="medicalTracking"
+                        value={formData.medicalTracking}
+                        onChange={handleInputChange}
+                        rows={3}
+                        placeholder="Medical certification dates, expiry, restrictions, etc."
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* CSA Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                      <Building2 size={18} />
+                      <span>CSA</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">CSA Status</label>
+                      <select
+                        name="csa"
+                        value={formData.csa}
+                        onChange={handleInputChange}
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      >
+                        <option value="">Select CSA Status</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Salary Per Mile Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                      <DollarSign size={18} />
+                      <span>Salary Per Mile</span>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                      <p className="text-xs text-blue-700">
+                        <strong>Note:</strong> These rates are used to calculate driver salary based on miles driven and weather conditions during trips.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Base Salary Per Mile ($)
+                      </label>
+                      <input
+                        type="number"
+                        name="salaryPerMile"
+                        value={formData.salaryPerMile}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 0.50"
+                        step="0.01"
+                        min="0"
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Base rate per mile for all trips</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                        <Snowflake size={16} className="text-blue-500" />
+                        Snow Condition Premium Per Mile ($)
+                      </label>
+                      <input
+                        type="number"
+                        name="salaryPerMileSnow"
+                        value={formData.salaryPerMileSnow}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 0.25"
+                        step="0.01"
+                        min="0"
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Additional premium per mile for trips in snow conditions</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                        <Thermometer size={16} className="text-red-500" />
+                        High Temperature Premium Per Mile ($)
+                      </label>
+                      <input
+                        type="number"
+                        name="salaryPerMileHighTemp"
+                        value={formData.salaryPerMileHighTemp}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 0.30"
+                        step="0.01"
+                        min="0"
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Additional premium per mile for trips in high temperature conditions</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        High Temperature Threshold (°C)
+                      </label>
+                      <input
+                        type="number"
+                        name="highTempThreshold"
+                        value={formData.highTempThreshold}
+                        onChange={handleInputChange}
+                        placeholder="35"
+                        step="1"
+                        min="0"
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Temperature threshold in Celsius (default: 35°C) above which high temperature premium applies</p>
+                    </div>
+                  </div>
+
+                  {/* Driver Profile Upload Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
+                      <Upload size={18} />
+                      <span>Driver Profile Upload</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
+                      <div className="mt-1">
+                        <label className="block cursor-pointer">
+                          <input
+                            type="file"
+                            onChange={handleFileChange}
+                            accept="image/*"
+                            className="hidden"
+                            id="profile-upload"
+                          />
+                          <div
+                            className="px-4 py-2 border rounded-lg text-sm font-semibold text-center transition-colors"
+                            style={{
+                              borderColor: FLEET_COLORS.primary,
+                              color: FLEET_COLORS.primary,
+                              backgroundColor: `${FLEET_COLORS.primary}08`
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}08`;
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              document.getElementById('profile-upload')?.click();
+                            }}
+                          >
+                            {formData.file ? formData.file.name : 'Choose File'}
+                          </div>
+                        </label>
+                      </div>
+                      {formData.file && (
+                        <p className="text-xs mt-2 flex items-center gap-1" style={{ color: '#10b981' }}>
+                          <span>✓</span> File selected: {formData.file.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Sidebar Footer */}
+            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
+              <div className="flex gap-3">
+                {!editingId && currentStep === 2 ? (
+                  <>
+                    <button
+                      onClick={() => setCurrentStep(1)}
+                      className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                    >
+                      <ChevronLeft size={18} />
+                      Back
+                    </button>
                     <button
                       onClick={handleCreate}
                       style={{ backgroundColor: FLEET_COLORS.primary }}
@@ -1864,47 +1856,72 @@ const DriverManagement = () => {
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
                       className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
                     >
-                      Next
-                      <ChevronRight size={18} />
+                      <Save size={18} />
+                      Create Driver
                     </button>
-                  ) : (
-                    <>
-                      {currentStep === 1 ? (
-                        <button
-                          onClick={() => setCurrentStep(2)}
-                          style={{ backgroundColor: FLEET_COLORS.primary }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
-                          className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
-                        >
-                          Next
-                          <ChevronRight size={18} />
-                        </button>
-                      ) : (
-                        <>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        setShowSidebar(false);
+                        setEditingId(null);
+                        resetForm();
+                      }}
+                      className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium"
+                    >
+                      Cancel
+                    </button>
+                    {!editingId ? (
+                      <button
+                        onClick={handleCreate}
+                        style={{ backgroundColor: FLEET_COLORS.primary }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
+                        className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
+                      >
+                        Next
+                        <ChevronRight size={18} />
+                      </button>
+                    ) : (
+                      <>
+                        {currentStep === 1 ? (
                           <button
-                            onClick={() => setCurrentStep(1)}
-                            className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
-                          >
-                            <ChevronLeft size={18} />
-                            Back
-                          </button>
-                          <button
-                            onClick={handleUpdate}
+                            onClick={() => setCurrentStep(2)}
                             style={{ backgroundColor: FLEET_COLORS.primary }}
                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
                             className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
                           >
-                            <Save size={18} />
-                            Update Driver
+                            Next
+                            <ChevronRight size={18} />
                           </button>
-                        </>
-                      )}
-                    </>
-                  )}
-                </>
-              )}
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => setCurrentStep(1)}
+                              className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                            >
+                              <ChevronLeft size={18} />
+                              Back
+                            </button>
+                            <button
+                              onClick={handleUpdate}
+                              style={{ backgroundColor: FLEET_COLORS.primary }}
+                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
+                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
+                              className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
+                            >
+                              <Save size={18} />
+                              Update Driver
+                            </button>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1934,86 +1951,85 @@ const DriverManagement = () => {
                     // Ensure document has required fields
                     if (!doc || !doc._id) return null;
                     return (
-                    <div key={doc._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <FileText className="w-5 h-5 text-blue-500" />
-                            <h3 className="font-semibold text-gray-900">{doc.documentType}</h3>
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              doc.status === 'valid' ? 'bg-green-100 text-green-700' :
-                              doc.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                              doc.status === 'expired' ? 'bg-red-100 text-red-700' :
-                              'bg-gray-100 text-gray-700'
-                            }`}>
-                              {doc.status}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
-                            {doc.documentNumber && (
-                              <div>
-                                <span className="text-gray-500">Number:</span>
-                                <span className="ml-2 font-medium text-gray-900">{doc.documentNumber}</span>
-                              </div>
-                            )}
-                            {doc.issueDate && (
-                              <div>
-                                <span className="text-gray-500">Issue Date:</span>
-                                <span className="ml-2 font-medium text-gray-900">
-                                  {new Date(doc.issueDate).toLocaleDateString()}
-                                </span>
-                              </div>
-                            )}
-                            {doc.expiryDate && (
-                              <div>
-                                <span className="text-gray-500">Expiry Date:</span>
-                                <span className="ml-2 font-medium text-gray-900">
-                                  {new Date(doc.expiryDate).toLocaleDateString()}
-                                </span>
-                              </div>
-                            )}
-                            {doc.fileSize && (
-                              <div>
-                                <span className="text-gray-500">File Size:</span>
-                                <span className="ml-2 font-medium text-gray-900">
-                                  {(doc.fileSize / 1024).toFixed(2)} KB
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          {doc.description && (
-                            <div className="mt-3 text-sm">
-                              <span className="text-gray-500">Description:</span>
-                              <p className="mt-1 text-gray-900">{doc.description}</p>
+                      <div key={doc._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <FileText className="w-5 h-5 text-blue-500" />
+                              <h3 className="font-semibold text-gray-900">{doc.documentType}</h3>
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${doc.status === 'valid' ? 'bg-green-100 text-green-700' :
+                                doc.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                  doc.status === 'expired' ? 'bg-red-100 text-red-700' :
+                                    'bg-gray-100 text-gray-700'
+                                }`}>
+                                {doc.status}
+                              </span>
                             </div>
-                          )}
-                        </div>
-                        {doc.fileUrl && (
-                          <button
-                            onClick={async () => {
-                              try {
-                                // Get signed URL for S3 files
-                                const signedUrlResponse = await getSignedEmployeeDocumentUrl(doc._id, 'inline');
-                                if (signedUrlResponse.success && signedUrlResponse.url) {
-                                  window.open(signedUrlResponse.url, '_blank');
-                                } else {
-                                  // Fallback to direct URL if signed URL fails
+                            <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
+                              {doc.documentNumber && (
+                                <div>
+                                  <span className="text-gray-500">Number:</span>
+                                  <span className="ml-2 font-medium text-gray-900">{doc.documentNumber}</span>
+                                </div>
+                              )}
+                              {doc.issueDate && (
+                                <div>
+                                  <span className="text-gray-500">Issue Date:</span>
+                                  <span className="ml-2 font-medium text-gray-900">
+                                    {new Date(doc.issueDate).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              )}
+                              {doc.expiryDate && (
+                                <div>
+                                  <span className="text-gray-500">Expiry Date:</span>
+                                  <span className="ml-2 font-medium text-gray-900">
+                                    {new Date(doc.expiryDate).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              )}
+                              {doc.fileSize && (
+                                <div>
+                                  <span className="text-gray-500">File Size:</span>
+                                  <span className="ml-2 font-medium text-gray-900">
+                                    {(doc.fileSize / 1024).toFixed(2)} KB
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            {doc.description && (
+                              <div className="mt-3 text-sm">
+                                <span className="text-gray-500">Description:</span>
+                                <p className="mt-1 text-gray-900">{doc.description}</p>
+                              </div>
+                            )}
+                          </div>
+                          {doc.fileUrl && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  // Get signed URL for S3 files
+                                  const signedUrlResponse = await getSignedEmployeeDocumentUrl(doc._id, 'inline');
+                                  if (signedUrlResponse.success && signedUrlResponse.url) {
+                                    window.open(signedUrlResponse.url, '_blank');
+                                  } else {
+                                    // Fallback to direct URL if signed URL fails
+                                    window.open(doc.fileUrl, '_blank');
+                                  }
+                                } catch (error) {
+                                  console.error('Error getting signed URL:', error);
+                                  // Fallback to direct URL on error
                                   window.open(doc.fileUrl, '_blank');
                                 }
-                              } catch (error) {
-                                console.error('Error getting signed URL:', error);
-                                // Fallback to direct URL on error
-                                window.open(doc.fileUrl, '_blank');
-                              }
-                            }}
-                            className="ml-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="View Document"
-                          >
-                            <Eye size={20} />
-                          </button>
-                        )}
+                              }}
+                              className="ml-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="View Document"
+                            >
+                              <Eye size={20} />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
                     );
                   })}
                 </div>
