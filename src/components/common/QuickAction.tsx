@@ -1,6 +1,5 @@
-
 // hooks/useQuickActions.ts
-import { Package, DollarSign, FileText, Truck, UserCheck, ShieldCheck, Wrench, Plus, User } from "lucide-react";
+import { Search, X, Home, Users, Settings, LogOut, FileText, Truck, AlertCircle, Shield, Briefcase, LayoutDashboard, AlertOctagon, FileCheck, Package, DollarSign, UserCheck, ShieldCheck, Wrench, Plus, User } from "lucide-react";
 
 export interface QuickActionOption {
     id: string;
@@ -10,7 +9,7 @@ export interface QuickActionOption {
     path?: string;
     icon: React.ReactNode;
     keywords: string[];
-    roles?: ('admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch')[];
+    roles?: ('admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' | 'safety')[];
 }
 
 
@@ -547,6 +546,312 @@ export const useQuickActions = () => {
             keywords: ['gps', 'drivers', 'staff'],
             roles: ['dispatch']
         },
+
+        // Safety Officer Actions
+        {
+            id: 'safety-summary',
+            type: 'navigation',
+            title: 'Health & Safety Summary',
+            description: 'Safety Dashboard',
+            path: '/healthandsafety/health-safety-summary',
+            icon: <LayoutDashboard size={16} />,
+            keywords: ['safety', 'dashboard', 'summary'],
+            roles: ['safety']
+        },
+        {
+            id: 'safety-incidents',
+            type: 'navigation',
+            title: 'Incidents & Accidents',
+            description: 'Manage safety incidents',
+            path: '/healthandsafety/incidents-accidents',
+            icon: <AlertCircle size={16} />,
+            keywords: ['safety', 'incidents', 'accidents', 'report'],
+            roles: ['safety']
+        },
+        {
+            id: 'safety-hazards',
+            type: 'navigation',
+            title: 'Hazards Management',
+            description: 'Manage hazards',
+            path: '/healthandsafety/inspections-hazards',
+            icon: <AlertOctagon size={16} />,
+            keywords: ['safety', 'hazards', 'risk', 'management'],
+            roles: ['safety']
+        },
+        {
+            id: 'safety-inspections',
+            type: 'navigation',
+            title: 'Safety Inspections',
+            description: 'View safety inspections',
+            path: '/healthandsafety/safety-inspections',
+            icon: <FileCheck size={16} />,
+            keywords: ['safety', 'inspections', 'check'],
+            roles: ['safety']
+        },
+        {
+            id: 'safety-training',
+            type: 'navigation',
+            title: 'Training & Certificates',
+            description: 'Manage safety training',
+            path: '/healthandsafety/training-certificates',
+            icon: <FileText size={16} />,
+            keywords: ['safety', 'training', 'certificates', 'education'],
+            roles: ['safety']
+        },
+        {
+            id: 'safety-policies',
+            type: 'navigation',
+            title: 'Policy & Documents',
+            description: 'Safety policies',
+            path: '/healthandsafety/policies-documents',
+            icon: <FileText size={16} />,
+            keywords: ['safety', 'policy', 'documents', 'rules'],
+            roles: ['safety']
+        },
+        {
+            id: 'safety-compliance',
+            type: 'navigation',
+            title: 'Compliance Records',
+            description: 'View compliance records',
+            path: '/healthandsafety/compliance-records',
+            icon: <FileText size={16} />,
+            keywords: ['safety', 'compliance', 'records'],
+            roles: ['safety']
+        },
+        {
+            id: 'safety-committee',
+            type: 'navigation',
+            title: 'H&S Committee',
+            description: 'Safety committee & CAPA',
+            path: '/healthandsafety/committee-capa',
+            icon: <Users size={16} />,
+            keywords: ['safety', 'committee', 'capa', 'meeting'],
+            roles: ['safety']
+        },
+        {
+            id: 'safety-trucking',
+            type: 'navigation',
+            title: 'Trucking Operations',
+            description: 'Safety in trucking',
+            path: '/healthandsafety/trucking-operations',
+            icon: <Truck size={16} />,
+            keywords: ['safety', 'trucking', 'operations'],
+            roles: ['safety']
+        },
+        {
+            id: 'safety-emergency',
+            type: 'navigation',
+            title: 'Emergency Procedures',
+            description: 'Emergency protocols',
+            path: '/healthandsafety/emergency-procedures',
+            icon: <AlertCircle size={16} />,
+            keywords: ['safety', 'emergency', 'procedures', '911'],
+            roles: ['safety']
+        },
+
+        // HR & Accounts Actions (Unified for HR Role)
+        {
+            id: 'hr-management-home',
+            type: 'navigation',
+            title: 'HR Dashboard',
+            description: 'HR Management Home',
+            path: '/Management',
+            icon: <LayoutDashboard size={16} />,
+            keywords: ['hr', 'dashboard', 'home', 'management'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-drivers',
+            type: 'navigation',
+            title: 'Drivers Management',
+            description: 'Manage drivers',
+            path: '/Management/drivers',
+            icon: <Truck size={16} />,
+            keywords: ['hr', 'drivers', 'staff'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-employees',
+            type: 'navigation',
+            title: 'Employees List',
+            description: 'Manage employees',
+            path: '/Management/employeelist',
+            icon: <Users size={16} />,
+            keywords: ['hr', 'employees', 'staff', 'list'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-documents',
+            type: 'navigation',
+            title: 'Employee Documents',
+            description: 'Manage documents',
+            path: '/Management/documents',
+            icon: <FileText size={16} />,
+            keywords: ['hr', 'documents', 'files', 'records'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-company-documents',
+            type: 'navigation',
+            title: 'Company Documents',
+            description: 'View company docs',
+            path: '/Management/company-documents',
+            icon: <Briefcase size={16} />,
+            keywords: ['hr', 'company', 'documents', 'policy'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-attendance',
+            type: 'navigation',
+            title: 'Attendance Tracking',
+            description: 'Track attendance',
+            path: '/Management/attendence',
+            icon: <UserCheck size={16} />,
+            keywords: ['hr', 'attendance', 'time', 'tracking'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-employee-profiles',
+            type: 'navigation',
+            title: 'Employee Portfolio',
+            description: 'Employee profiles',
+            path: '/Management/employee-profiles',
+            icon: <User size={16} />,
+            keywords: ['hr', 'profiles', 'portfolio', 'employee'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-driver-profiles',
+            type: 'navigation',
+            title: 'Driver Portfolio',
+            description: 'Driver profiles',
+            path: '/Management/driver-profiles',
+            icon: <Truck size={16} />,
+            keywords: ['hr', 'profiles', 'portfolio', 'driver'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-issues',
+            type: 'navigation',
+            title: 'Issues Management',
+            description: 'Manage issues',
+            path: '/Management/issues',
+            icon: <AlertCircle size={16} />,
+            keywords: ['hr', 'issues', 'problems', 'complaints'],
+            roles: ['hr']
+        },
+
+        // Accounts Actions for HR Role
+        {
+            id: 'hr-accounts-dashboard',
+            type: 'navigation',
+            title: 'Accounts Dashboard',
+            description: 'Financial overview',
+            path: '/accounts',
+            icon: <DollarSign size={16} />,
+            keywords: ['hr', 'accounts', 'finance', 'dashboard'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-settlements',
+            type: 'navigation',
+            title: 'Settlements',
+            description: 'Manage settlements',
+            path: '/accounts/settlements',
+            icon: <FileCheck size={16} />,
+            keywords: ['hr', 'accounts', 'settlements', 'payment'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-expenses',
+            type: 'navigation',
+            title: 'Expense Management',
+            description: 'Manage expenses',
+            path: '/accounts/expenses',
+            icon: <DollarSign size={16} />,
+            keywords: ['hr', 'accounts', 'expenses', 'costs'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-invoicing',
+            type: 'navigation',
+            title: 'Invoicing',
+            description: 'Manage invoices',
+            path: '/accounts/invoice',
+            icon: <FileText size={16} />,
+            keywords: ['hr', 'accounts', 'invoices', 'billing'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-payroll',
+            type: 'navigation',
+            title: 'Employees Payroll',
+            description: 'Manage payroll',
+            path: '/accounts/payroll',
+            icon: <Users size={16} />,
+            keywords: ['hr', 'accounts', 'payroll', 'salary'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-driver-payroll',
+            type: 'navigation',
+            title: 'Driver Payroll',
+            description: 'Driver payments',
+            path: '/accounts/driverpayroll',
+            icon: <Truck size={16} />,
+            keywords: ['hr', 'accounts', 'driver', 'payroll'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-fleet-finance',
+            type: 'navigation',
+            title: 'Fleet & Maint. Finance',
+            description: 'Fleet financials',
+            path: '/accounts/fleet-maintenance',
+            icon: <Wrench size={16} />,
+            keywords: ['hr', 'accounts', 'fleet', 'maintenance', 'finance'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-receipts',
+            type: 'navigation',
+            title: 'Receipts & Notes',
+            description: 'View receipts',
+            path: '/accounts/receipts-notes',
+            icon: <FileText size={16} />,
+            keywords: ['hr', 'accounts', 'receipts', 'notes'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-accounting-config',
+            type: 'navigation',
+            title: 'Accounting Config',
+            description: 'Finance settings',
+            path: '/accounts/config',
+            icon: <Settings size={16} />,
+            keywords: ['hr', 'accounts', 'config', 'settings'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-cash-flow',
+            type: 'navigation',
+            title: 'Cash Flow Insights',
+            description: 'Financial insights',
+            path: '/accounts/cash-flow-insights',
+            icon: <DollarSign size={16} />,
+            keywords: ['hr', 'accounts', 'cash', 'flow', 'insights'],
+            roles: ['hr']
+        },
+        {
+            id: 'hr-tax-setup',
+            type: 'navigation',
+            title: 'Tax Setup',
+            description: 'Tax management',
+            path: '/accounts/tax-setup',
+            icon: <DollarSign size={16} />,
+            keywords: ['hr', 'accounts', 'tax', 'setup'],
+            roles: ['hr']
+        },
         {
             id: 'dispatch-profile',
             type: 'navigation',
@@ -623,11 +928,45 @@ export const useQuickActions = () => {
         },
     ];
 
-    const filterActions = (query: string, role: 'admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' = 'admin'): QuickActionOption[] => {
+    const filterActions = (query: string, role: 'admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' | 'safety' = 'admin'): QuickActionOption[] => {
         const searchQuery = query.toLowerCase();
-        return availableActions.filter(action => {
-            // Filter by role
-            if (action.roles && !action.roles.includes(role)) {
+
+        // Ensure admin has access to all actions
+        let actionsToFilter = availableActions;
+
+        if (role === 'admin') {
+            // For admin, we want to include all actions, but check if we need to adjust paths
+            // Most sub-modules are mounted under /admin in AdminRoute.tsx
+            // e.g. /Management -> /admin/Management
+            // However, some actions already have /admin prefix (the original admin ones)
+
+            actionsToFilter = availableActions.map(action => {
+                // If it's an admin action, keep as is
+                if (action.roles?.includes('admin')) return action;
+
+                // If it's a module action (hr, dispatch, etc) and doesn't start with /admin
+                // We need to prepend /admin (unless it's an absolute external URL or similar, but here they are internal)
+                // BUT, we need to be careful. Let's look at the paths.
+                // hr: /Management/drivers
+                // dispatch: /dispatch/dashboard
+                // These perfectly map to AdminRoute children: path="Management/*", path="dispatch/*"
+                // So yes, we prepend /admin
+
+                if (action.path && !action.path.startsWith('/admin')) {
+                    return {
+                        ...action,
+                        path: `/admin${action.path}`
+                    };
+                }
+
+                return action;
+            });
+        }
+
+        return actionsToFilter.filter(action => {
+            // Filter by role - if admin, allow everything (we verified/mapped above)
+            // If specific role, restrict
+            if (role !== 'admin' && action.roles && !action.roles.includes(role)) {
                 return false;
             }
 

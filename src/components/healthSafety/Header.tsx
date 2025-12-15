@@ -23,9 +23,10 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const { userInfo } = useSelector((state: RootState) => state.userAuth);
     const navigate = useNavigate();
     const userRole = getUserRole();
+    const isSafetyOfficer = userRole === 'safety officer';
     const { filterActions } = useQuickActions();
 
-    const filteredActions = filterActions(searchQuery);
+    const filteredActions = filterActions(searchQuery, isSafetyOfficer ? 'safety' : 'admin');
 
     // Close dropdowns when clicking outside
     useEffect(() => {
