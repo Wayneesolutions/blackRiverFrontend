@@ -13,6 +13,7 @@ interface Driver {
   email: string;
   phone: string;
   mobile?: string;
+  licenseNumber?: string;
   company?: string;
   gender?: string;
   csa?: string;
@@ -41,6 +42,7 @@ interface DriverFormData {
   joinDate: string;
   phone: string;
   mobile: string;
+  licenseNumber: string;
   citizenship: string;
   country: string;
   address: string;
@@ -96,6 +98,7 @@ const DriverManagement = () => {
     joinDate: '',
     phone: '',
     mobile: '',
+    licenseNumber: '',
     citizenship: '',
     country: '',
     address: '',
@@ -152,6 +155,7 @@ const DriverManagement = () => {
               email: driver.email || '',
               phone: driver.phone || '',
               mobile: driver.mobile || driver.details?.cell1 || '',
+              licenseNumber: driver.licenseNumber || driver.details?.licenseNumber || '',
               company: driver.company || (typeof driver.company === 'object' ? driver.company?.companyName : '') || '-',
               gender: driver.gender || driver.details?.gender || '',
               csa: driver.csa || (driver.details?.csa ? 'Yes' : (driver.details?.csa === false ? 'No' : '')) || 'N/A',
@@ -197,6 +201,7 @@ const DriverManagement = () => {
       joinDate: '',
       phone: '',
       mobile: '',
+      licenseNumber: '',
       citizenship: '',
       country: '',
       address: '',
@@ -310,6 +315,7 @@ const DriverManagement = () => {
       if (formData.gender) formDataToSend.append('gender', formData.gender);
       if (formData.employmentDetails) formDataToSend.append('employmentDetails', formData.employmentDetails);
       if (formData.mobile) formDataToSend.append('mobile', formData.mobile);
+      if (formData.licenseNumber) formDataToSend.append('licenseNumber', formData.licenseNumber);
       if (formData.citizenship) formDataToSend.append('citizenship', formData.citizenship);
       if (formData.address) formDataToSend.append('address', formData.address);
       if (formData.wsib) formDataToSend.append('wsib', formData.wsib);
@@ -383,6 +389,7 @@ const DriverManagement = () => {
           joinDate: driverData.joinDate ? new Date(driverData.joinDate).toISOString().split('T')[0] : '',
           phone: driverData.phone || '',
           mobile: driverData.mobile || driverData.details?.cell1 || '',
+          licenseNumber: driverData.licenseNumber || driverData.details?.licenseNumber || '',
           citizenship: driverData.citizenship || driverData.details?.citizenship || '',
           country: driverData.country || '',
           address: driverData.address || driverData.location?.address || '',
@@ -441,6 +448,7 @@ const DriverManagement = () => {
           joinDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
           phone: driver.phone || '',
           mobile: driver.mobile || '',
+          licenseNumber: driver.licenseNumber || '',
           citizenship: driver.citizenship || '',
           country: driver.country || '',
           address: driver.address || '',
@@ -488,6 +496,7 @@ const DriverManagement = () => {
         joinDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
         phone: driver.phone || '',
         mobile: driver.mobile || '',
+        licenseNumber: driver.licenseNumber || '',
         citizenship: driver.citizenship || '',
         country: driver.country || '',
         address: driver.address || '',
@@ -552,6 +561,7 @@ const DriverManagement = () => {
       if (formData.gender) formDataToSend.append('gender', formData.gender);
       if (formData.employmentDetails) formDataToSend.append('employmentDetails', formData.employmentDetails);
       if (formData.mobile) formDataToSend.append('mobile', formData.mobile);
+      if (formData.licenseNumber) formDataToSend.append('licenseNumber', formData.licenseNumber);
       if (formData.citizenship) formDataToSend.append('citizenship', formData.citizenship);
       if (formData.address) formDataToSend.append('address', formData.address);
       if (formData.wsib) formDataToSend.append('wsib', formData.wsib);
@@ -763,6 +773,7 @@ const DriverManagement = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CSA</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License Number</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile/Phone</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Modified</th>
@@ -856,6 +867,7 @@ const DriverManagement = () => {
                           </button>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{driver.address || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.licenseNumber || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div>{driver.mobile || '-'}</div>
                           <div className="text-xs text-gray-500">{driver.phone || ''}</div>
@@ -1212,6 +1224,27 @@ const DriverManagement = () => {
                         onChange={handleInputChange}
                         placeholder="Enter driver name"
                         required
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">License Number</label>
+                      <input
+                        type="text"
+                        name="licenseNumber"
+                        value={formData.licenseNumber}
+                        onChange={handleInputChange}
+                        placeholder="Enter license number"
                         style={{ borderColor: '#d1d5db' }}
                         onFocus={(e) => {
                           e.target.style.borderColor = FLEET_COLORS.primary;

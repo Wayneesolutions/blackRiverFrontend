@@ -13,6 +13,7 @@ import {
 
     FaAmbulance, // For Emergency Procedures
     FaFolder, // For Document Library
+    FaBalanceScale,
 } from "react-icons/fa";
 
 type HealthSafetySidebarLink = {
@@ -71,6 +72,11 @@ export const HealthSafetySidebarLinks: HealthSafetySidebarLink[] = [
         label: "Trucking Operations",
     },
 
+    {
+        key: "compliance-audit",
+        icon: <FaBalanceScale />,
+        label: "Compliance & Audit",
+    },
     {
         key: "emergency-procedures",
         icon: <FaAmbulance />,
