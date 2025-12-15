@@ -5,6 +5,7 @@ import Loading from "../../components/common/Loading";
 
 
 const Dashboard = lazy(() => import("../../pages/admin/fleetMaintenance/Dashboard/index"));
+const VehicleEldMonitor = lazy(() => import("../../pages/admin/fleetMaintenance/vehicle-eld-monitor/index"));
 const SpareParts = lazy(() => import("../../pages/admin/fleetMaintenance/sparePart/index"))
 const CostReports = lazy(() => import("../../pages/admin/fleetMaintenance/costReport/index"))
 const FleetUnits = lazy(() => import("../../pages/admin/fleetMaintenance/fleetUnits/index"))
@@ -24,6 +25,7 @@ function FleetMaintainRoutes() {
             <Routes>
                 <Route element={<Layout />}>
                     <Route index element={<Dashboard />} />
+                    <Route path="/vehicle-monitor" element={<VehicleEldMonitor />} />
                     <Route path="/profile" element={<Profile />} />
 
                     <Route path="/spare-parts" element={<SpareParts />} />
