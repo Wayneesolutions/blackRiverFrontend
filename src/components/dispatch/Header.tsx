@@ -5,6 +5,7 @@ import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
+import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
 
 const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
@@ -14,8 +15,10 @@ const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIndex, setSelectedIndex] = useState(0);
     const { filterActions } = useQuickActions();
+    const userRole = getUserRole();
+    const isDispatcher = userRole === "dispatcher";
 
-    const filteredActions = filterActions(searchQuery);
+    const filteredActions = filterActions(searchQuery, isDispatcher ? 'dispatch' : 'admin');
 
     const searchRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);

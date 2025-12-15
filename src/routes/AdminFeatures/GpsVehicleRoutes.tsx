@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Layout from "../../components/gpsvehicle/Layout";
 import Loading from "../../components/common/Loading";
@@ -22,14 +22,15 @@ function GpsVehicleRoutes() {
           <Route index element={<GpsDashboard />} />
           {/* <Route path="gpsvechile" element={<GpsDashboard />} /> */}
 
-          <Route path="/assets" element={<Assets />} />
-          <Route path="/vehicles" element={<Vehicles />} />
-          <Route path="/drivers" element={<Drivers />} />
-          <Route path="/livetracking/truck" element={<LiveTracking />} />
+          <Route path="assets" element={<Assets />} />
+          <Route path="vehicles" element={<Vehicles />} />
+          <Route path="drivers" element={<Drivers />} />
+          <Route path="livetracking" element={<Navigate to="livetracking/truck" replace />} />
+          <Route path="livetracking/truck" element={<LiveTracking />} />
 
-          <Route path="/livetracking/trailer" element={<LiveTrackingTrailer />} />
-          <Route path="/livetracking/trip" element={<LiveTrackingTrip />} />
-          <Route path="/triphistory" element={<TripHistory />} />
+          <Route path="livetracking/trailer" element={<LiveTrackingTrailer />} />
+          <Route path="livetracking/trip" element={<LiveTrackingTrip />} />
+          <Route path="triphistory" element={<TripHistory />} />
         </Route>
       </Routes>
     </Suspense>

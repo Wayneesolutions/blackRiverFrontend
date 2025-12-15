@@ -5,6 +5,7 @@ import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
+import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
@@ -22,8 +23,10 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const { userInfo } = useSelector((state: RootState) => state.userAuth);
     const navigate = useNavigate();
     const { filterActions } = useQuickActions();
+    const userRole = getUserRole();
+    const isDispatcher = userRole === "dispatcher";
 
-    const filteredActions = filterActions(searchQuery);
+    const filteredActions = filterActions(searchQuery, isDispatcher ? 'dispatch' : 'admin');
 
     // Close dropdowns when clicking outside
     useEffect(() => {

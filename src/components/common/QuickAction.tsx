@@ -10,20 +10,11 @@ export interface QuickActionOption {
     path?: string;
     icon: React.ReactNode;
     keywords: string[];
-    roles?: ('admin' | 'hr' | 'compliance')[];
+    roles?: ('admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch')[];
 }
 
 
-export interface QuickActionOption {
-    id: string;
-    type: 'command' | 'navigation' | 'create' | 'search';
-    title: string;
-    description: string;
-    path?: string;
-    icon: React.ReactNode;
-    keywords: string[];
-    roles?: ('admin' | 'hr' | 'compliance')[];
-}
+
 
 export const useQuickActions = () => {
     const availableActions: QuickActionOption[] = [
@@ -283,6 +274,290 @@ export const useQuickActions = () => {
             roles: ['compliance']
         },
 
+        // Fleet Maintenance Specific Routes
+        {
+            id: 'fleet-dashboard',
+            type: 'navigation',
+            title: 'Fleet Dashboard',
+            description: 'Go to Fleet Dashboard',
+            path: '/fleetmaintenance',
+            icon: <Truck size={16} />,
+            keywords: ['fleet', 'dashboard', 'home'],
+            roles: ['fleet']
+        },
+        {
+            id: 'fleet-units',
+            type: 'navigation',
+            title: 'Fleets',
+            description: 'Manage Fleet Units',
+            path: '/fleetmaintenance/fleet-units',
+            icon: <Truck size={16} />,
+            keywords: ['fleet', 'units', 'trucks', 'vehicles'],
+            roles: ['fleet']
+        },
+        {
+            id: 'fleet-docs',
+            type: 'navigation',
+            title: 'Fleet Documents',
+            description: 'View fleet documents',
+            path: '/fleetmaintenance/vehicle-documents',
+            icon: <FileText size={16} />,
+            keywords: ['fleet', 'documents', 'files'],
+            roles: ['fleet']
+        },
+        {
+            id: 'fleet-scheduled',
+            type: 'navigation',
+            title: 'Scheduled Services',
+            description: 'View scheduled services log',
+            path: '/fleetmaintenance/scheduled-services-log',
+            icon: <Wrench size={16} />,
+            keywords: ['scheduled', 'service', 'maintenance', 'log'],
+            roles: ['fleet']
+        },
+        {
+            id: 'fleet-repairs',
+            type: 'navigation',
+            title: 'General Repairs',
+            description: 'View general repairs log',
+            path: '/fleetmaintenance/general-repairs-log',
+            icon: <Wrench size={16} />,
+            keywords: ['repair', 'maintenance', 'fix', 'log'],
+            roles: ['fleet']
+        },
+        {
+            id: 'fleet-regulatory',
+            type: 'navigation',
+            title: 'Regulatory & Safety',
+            description: 'Regulatory and safety compliance',
+            path: '/fleetmaintenance/regulatory-safety',
+            icon: <ShieldCheck size={16} />,
+            keywords: ['regulatory', 'safety', 'compliance'],
+            roles: ['fleet']
+        },
+        {
+            id: 'fleet-parts',
+            type: 'navigation',
+            title: 'Spare Parts',
+            description: 'Spare Parts Inventory',
+            path: '/fleetmaintenance/spare-parts',
+            icon: <Package size={16} />,
+            keywords: ['parts', 'inventory', 'spare'],
+            roles: ['fleet']
+        },
+        {
+            id: 'fleet-fuel',
+            type: 'navigation',
+            title: 'Fuel Reports',
+            description: 'View fuel reports',
+            path: '/fleetmaintenance/fuel-reports',
+            icon: <DollarSign size={16} />,
+            keywords: ['fuel', 'gas', 'diesel', 'report'],
+            roles: ['fleet']
+        },
+        {
+            id: 'fleet-invoices',
+            type: 'navigation',
+            title: 'Fleet Invoices',
+            description: 'View fleet invoices',
+            path: '/fleetmaintenance/invoices',
+            icon: <FileText size={16} />,
+            keywords: ['invoice', 'billing', 'fleet'],
+            roles: ['fleet']
+        },
+        {
+            id: 'fleet-truck-profile',
+            type: 'navigation',
+            title: 'Truck & Trailer Profile',
+            description: 'View profiles',
+            path: '/fleetmaintenance/truck-profile',
+            icon: <Truck size={16} />,
+            keywords: ['truck', 'trailer', 'profile'],
+            roles: ['fleet']
+        },
+        {
+            id: 'fleet-profile',
+            type: 'navigation',
+            title: 'Profile',
+            description: 'View Profile',
+            path: '/fleetmaintenance/profile',
+            icon: <UserCheck size={16} />,
+            keywords: ['profile', 'user'],
+            roles: ['fleet']
+        },
+
+        // Dispatch Specific Routes
+        {
+            id: 'dispatch-dashboard',
+            type: 'navigation',
+            title: 'Dispatch Dashboard',
+            description: 'Go to Dispatch Dashboard',
+            path: '/dispatch/dashboard',
+            icon: <Package size={16} />,
+            keywords: ['dispatch', 'dashboard', 'home'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-orders',
+            type: 'navigation',
+            title: 'Order List',
+            description: 'View order list',
+            path: '/dispatch/order-list',
+            icon: <FileText size={16} />,
+            keywords: ['orders', 'list', 'dispatch'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-bulk',
+            type: 'navigation',
+            title: 'Bulk Order',
+            description: 'Bulk order management',
+            path: '/dispatch/bulk-order',
+            icon: <Package size={16} />,
+            keywords: ['bulk', 'order', 'dispatch'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-trips',
+            type: 'navigation',
+            title: 'Trips',
+            description: 'View trips',
+            path: '/dispatch/trips',
+            icon: <Truck size={16} />,
+            keywords: ['trips', 'delivery', 'route'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-scheduling',
+            type: 'navigation',
+            title: 'Trip Scheduling',
+            description: 'Schedule trips',
+            path: '/dispatch/scheduling',
+            icon: <FileText size={16} />,
+            keywords: ['scheduling', 'schedule', 'planning'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-drivers',
+            type: 'navigation',
+            title: 'Drivers',
+            description: 'View drivers',
+            path: '/dispatch/drivers',
+            icon: <User size={16} />,
+            keywords: ['drivers', 'staff', 'dispatch'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-fleets',
+            type: 'navigation',
+            title: 'Fleets',
+            description: 'View fleets',
+            path: '/dispatch/fleets',
+            icon: <Truck size={16} />,
+            keywords: ['fleets', 'vehicles', 'trucks'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-contacts',
+            type: 'navigation',
+            title: 'Contacts',
+            description: 'View contacts',
+            path: '/dispatch/contacts',
+            icon: <UserCheck size={16} />,
+            keywords: ['contacts', 'people', 'directory'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-places',
+            type: 'navigation',
+            title: 'Places',
+            description: 'View places',
+            path: '/dispatch/places',
+            icon: <ShieldCheck size={16} />,
+            keywords: ['places', 'locations', 'map'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-gps',
+            type: 'navigation',
+            title: 'GPS Dashboard',
+            description: 'GPS Tracking Dashboard',
+            path: '/gpsvehicle',
+            icon: <Truck size={16} />,
+            keywords: ['gps', 'tracking', 'vehicle', 'map', 'dashboard'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-gps-live',
+            type: 'navigation',
+            title: 'Live Tracking',
+            description: 'Real-time vehicle tracking',
+            path: '/gpsvehicle/livetracking/truck',
+            icon: <Truck size={16} />,
+            keywords: ['live', 'tracking', 'real-time', 'gps'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-gps-truck',
+            type: 'navigation',
+            title: 'Truck Tracking',
+            description: 'Track trucks',
+            path: '/gpsvehicle/livetracking/truck',
+            icon: <Truck size={16} />,
+            keywords: ['truck', 'tracking', 'gps'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-gps-trailer',
+            type: 'navigation',
+            title: 'Trailer Tracking',
+            description: 'Track trailers',
+            path: '/gpsvehicle/livetracking/trailer',
+            icon: <Truck size={16} />,
+            keywords: ['trailer', 'tracking', 'gps'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-gps-trip',
+            type: 'navigation',
+            title: 'Trip Tracking',
+            description: 'Track active trips',
+            path: '/gpsvehicle/livetracking/trip',
+            icon: <Truck size={16} />,
+            keywords: ['trip', 'tracking', 'gps', 'route'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-gps-fleets',
+            type: 'navigation',
+            title: 'GPS Fleets',
+            description: 'View GPS fleets',
+            path: '/gpsvehicle/vehicles',
+            icon: <Truck size={16} />,
+            keywords: ['gps', 'fleets', 'vehicles'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-gps-drivers',
+            type: 'navigation',
+            title: 'GPS Drivers',
+            description: 'View GPS drivers',
+            path: '/gpsvehicle/drivers',
+            icon: <User size={16} />,
+            keywords: ['gps', 'drivers', 'staff'],
+            roles: ['dispatch']
+        },
+        {
+            id: 'dispatch-profile',
+            type: 'navigation',
+            title: 'Profile',
+            description: 'View Profile',
+            path: '/dispatch/profile',
+            icon: <UserCheck size={16} />,
+            keywords: ['profile', 'user'],
+            roles: ['dispatch']
+        },
+
         // Shared or Profile
         {
             id: 'goto-profile',
@@ -292,7 +567,7 @@ export const useQuickActions = () => {
             path: '/admin/profile', /* Note: Adjust path if HR has different profile path - handled in Profile click but good to have here if searchable */
             icon: <UserCheck size={16} />,
             keywords: ['profile', 'account', 'settings', 'user'],
-            roles: ['admin', 'hr']
+            roles: ['admin', 'hr', 'compliance', 'fleet', 'dispatch']
         },
 
         // Create commands - Admin Only
@@ -348,7 +623,7 @@ export const useQuickActions = () => {
         },
     ];
 
-    const filterActions = (query: string, role: 'admin' | 'hr' = 'admin'): QuickActionOption[] => {
+    const filterActions = (query: string, role: 'admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' = 'admin'): QuickActionOption[] => {
         const searchQuery = query.toLowerCase();
         return availableActions.filter(action => {
             // Filter by role
