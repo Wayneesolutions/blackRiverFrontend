@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash2, Eye, Search, X, File } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, X, File, Download } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck, FaUser, FaTrailer } from "react-icons/fa";
 import NewTripSidebar from "./NewTripSidebar";
 import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
@@ -388,7 +388,6 @@ const Trips = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by trip number..."
               className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
-              style={{ ...focusHandlers }}
               onFocus={focusHandlers.onFocus}
               onBlur={focusHandlers.onBlur}
             />
@@ -401,7 +400,6 @@ const Trips = () => {
               setCurrentPage(1);
             }}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
-            style={{ ...focusHandlers }}
             onFocus={focusHandlers.onFocus}
             onBlur={focusHandlers.onBlur}
           >
@@ -419,7 +417,6 @@ const Trips = () => {
               setCurrentPage(1);
             }}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
-            style={{ ...focusHandlers }}
             onFocus={focusHandlers.onFocus}
             onBlur={focusHandlers.onBlur}
           >
@@ -438,7 +435,6 @@ const Trips = () => {
               setCurrentPage(1);
             }}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
-            style={{ ...focusHandlers }}
             onFocus={focusHandlers.onFocus}
             onBlur={focusHandlers.onBlur}
           >

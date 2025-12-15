@@ -112,13 +112,12 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
     const [pickupSearch, setPickupSearch] = useState("");
     const [pickupDropdownOpen, setPickupDropdownOpen] = useState(false);
     
-    const [deliveryPlaces] = useState<Place[]>([
+    const [] = useState<Place[]>([
         { _id: '1', name: 'Warehouse A', city: 'Toronto', state: 'ON', currentLocation: { address: '100 Industrial Rd, Toronto, ON' } },
         { _id: '2', name: 'Distribution Center', city: 'Vancouver', state: 'BC', currentLocation: { address: '200 Marine Dr, Vancouver, BC' } }
     ]);
     const [selectedDeliveryPlace, setSelectedDeliveryPlace] = useState<Place | null>(null);
-    const [deliverySearch, setDeliverySearch] = useState("");
-    const [deliveryDropdownOpen, setDeliveryDropdownOpen] = useState(false);
+    const [, setDeliverySearch] = useState("");
     
     const [commodity, setCommodity] = useState("");
     const [loadType, setLoadType] = useState("FTL");
@@ -159,12 +158,6 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
         (place.city || '').toLowerCase().includes(pickupSearch.toLowerCase())
     );
 
-    const filteredDeliveryPlaces = deliveryPlaces.filter(place =>
-        !deliverySearch ||
-        (place.name || '').toLowerCase().includes(deliverySearch.toLowerCase()) ||
-        (place.currentLocation?.address || '').toLowerCase().includes(deliverySearch.toLowerCase()) ||
-        (place.city || '').toLowerCase().includes(deliverySearch.toLowerCase())
-    );
 
     const handleSubmit = () => {
         if (!selectedCustomer) {

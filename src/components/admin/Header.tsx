@@ -25,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
     const navigate = useNavigate();
     const { filterActions } = useQuickActions();
 
-    const filteredActions = filterActions(searchQuery);
+    const filteredActions = filterActions(searchQuery, 'admin');
 
     // Close search overlay when clicking outside
     useEffect(() => {

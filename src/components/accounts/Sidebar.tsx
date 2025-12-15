@@ -12,7 +12,7 @@ interface SidebarProps {
     onToggle: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     const [openMenus, setOpenMenus] = useState<string[]>([]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const userRole = getUserRole();

@@ -92,7 +92,7 @@ export default function SettlementSystem() {
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [deductions, setDeductions] = useState<DeductionAddition[]>([]);
   const [milesTracking, setMilesTracking] = useState<MilesTracking[]>([]);
-  const [stats, setStats] = useState<any>(null);
+  const [, setStats] = useState<any>(null);
   const [drivers, setDrivers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
 
@@ -401,13 +401,7 @@ export default function SettlementSystem() {
     return `${startMonth} ${startDay}-${endDay}, ${year}`;
   };
 
-  // Calculate percentage changes (mock for now, can be enhanced with historical data)
-  const calculateChange = (current: number, previous: number = 0) => {
-    if (previous === 0) return current > 0 ? '+100%' : '0%';
-    const change = ((current - previous) / previous) * 100;
-    return change >= 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
-  };
-
+ 
   // Calculate current week for miles tracking
   const getCurrentWeekRange = () => {
     const today = new Date();

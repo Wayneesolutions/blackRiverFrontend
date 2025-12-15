@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { Search, Plus, Filter, Download, DollarSign, CreditCard, Calendar, CheckCircle, Clock, AlertCircle, MoreHorizontal } from 'lucide-react';
 
 export default function PaymentsPage() {

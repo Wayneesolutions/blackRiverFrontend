@@ -742,7 +742,7 @@ const Incidents: React.FC = () => {
             {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
           </div>
           <div className={`${bgColor} rounded-lg p-2 shadow-sm`}>
-            {React.isValidElement(Icon) ? React.cloneElement(Icon as React.ReactElement, { className: iconColor, size: 21 }) : null}
+            {React.isValidElement(Icon) ? React.cloneElement(Icon as React.ReactElement<{ className?: string, size?: number }>, { className: iconColor, size: 21 }) : null}
           </div>
         </div>
       </div>

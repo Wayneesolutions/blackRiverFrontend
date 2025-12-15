@@ -11,7 +11,6 @@ import {
   Building,
   X
 } from 'lucide-react';
-import { message } from 'antd';
 import {
   getCurrentUserProfile,
   updateCurrentUserProfile,

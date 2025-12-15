@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {  useState } from "react";
 import { Truck, MapPin, Users, Shield, CheckCircle, Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, Phone, Building2, FileCheck, HeartPulse, ChevronDown, ChevronUp } from "lucide-react";
 import { registerAdmin } from "../../../axios/api/auth";
 import { getCompany } from "../../../axios/api/admin";

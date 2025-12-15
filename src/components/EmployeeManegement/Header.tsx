@@ -23,7 +23,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const navigate = useNavigate();
   const { filterActions } = useQuickActions();
 
-  const filteredActions = filterActions(searchQuery);
+  const filteredActions = filterActions(searchQuery, 'hr');
 
   // Close dropdowns when clicking outside
   useEffect(() => {

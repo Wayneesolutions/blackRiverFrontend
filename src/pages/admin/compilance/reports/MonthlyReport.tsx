@@ -398,7 +398,7 @@ const MonthlyReport: React.FC = () => {
           {/* Right side icon */}
           <div className={`${bgColor} rounded-lg p-2 shadow-sm`}>
             {/* Render the icon directly if it's an element, or as component if passed as ref */}
-            {React.isValidElement(Icon) ? React.cloneElement(Icon as React.ReactElement, { className: iconColor, size: 21 }) : null}
+            {React.isValidElement(Icon) ? React.cloneElement(Icon as React.ReactElement<any>, { className: iconColor, size: 21 }) : null}
           </div>
         </div>
       </div>

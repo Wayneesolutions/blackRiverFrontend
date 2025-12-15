@@ -26,7 +26,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const isHR = userRole === 'hr';
   const { filterActions } = useQuickActions();
 
-  const filteredActions = filterActions(searchQuery);
+  const filteredActions = filterActions(searchQuery, isHR ? 'hr' : 'admin');
 
   // Close dropdown when clicking outside
   useEffect(() => {

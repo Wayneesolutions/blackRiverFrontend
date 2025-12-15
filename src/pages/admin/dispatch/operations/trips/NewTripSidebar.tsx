@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { X, ChevronDown, Search } from "lucide-react";
+import { X, ChevronDown, Search, Download, Check, Upload } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import { listDriver, createTrip, updateTrip, uploadTripDocument, deleteTripDocument, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
 import { listOrder } from "../../../../../axios/api/distapcher";
@@ -868,7 +868,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         onChange={(e) => setTruckSearch(e.target.value)}
                         placeholder="Search trucks..."
                         className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
-                        style={{ ...focusHandlers }}
+
                         onFocus={focusHandlers.onFocus}
                         onBlur={focusHandlers.onBlur}
                         autoFocus
@@ -979,7 +979,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         onChange={(e) => setTrailerSearch(e.target.value)}
                         placeholder="Search trailers..."
                         className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
-                        style={{ ...focusHandlers }}
+
                         onFocus={focusHandlers.onFocus}
                         onBlur={focusHandlers.onBlur}
                         autoFocus
@@ -1053,7 +1053,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 value={plannedStartDate}
                 onChange={(e) => setPlannedStartDate(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
-                style={{ ...focusHandlers }}
+
                 onFocus={focusHandlers.onFocus}
                 onBlur={focusHandlers.onBlur}
               />
@@ -1068,7 +1068,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 onChange={(e) => setPlannedEndDate(e.target.value)}
                 min={plannedStartDate}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
-                style={{ ...focusHandlers }}
+
                 onFocus={focusHandlers.onFocus}
                 onBlur={focusHandlers.onBlur}
               />
@@ -1084,7 +1084,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
-              style={{ ...focusHandlers }}
+
               onFocus={focusHandlers.onFocus}
               onBlur={focusHandlers.onBlur}
             >
@@ -1160,7 +1160,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         onChange={(e) => setOrderSearch(e.target.value)}
                         placeholder="Search orders..."
                         className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
-                        style={{ ...focusHandlers }}
+
                         onFocus={focusHandlers.onFocus}
                         onBlur={focusHandlers.onBlur}
                         autoFocus

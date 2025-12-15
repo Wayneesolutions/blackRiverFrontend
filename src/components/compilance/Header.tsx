@@ -23,7 +23,19 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const navigate = useNavigate();
     const { filterActions } = useQuickActions();
 
-    const filteredActions = filterActions(searchQuery);
+    const userRole = getUserRole(); // Need to get user role in Header if not already there, wait, getUserRole was not imported in Header.tsx snippet shown earlier? Let me check line imports.
+    // Ah, imports show: import { getUserRole } from "../../utils/auth"; is MISSING in Header.tsx based on previous view_file. No wait, let me re-check Header.tsx.
+    // Line 8: import { useQuickActions } from "../common/QuickAction";
+    // Line 4: import { useLogout } from "../../hooks/useLogout";
+    // I need to add import getUserRole.
+
+    // Actually, I should do this in two steps or be careful.
+    // Let me check imports again.
+    // The previous view_file for Header.tsx does NOT show getUserRole imported.
+    // So I need to add the import AND updates.
+    // Since I can only replace a contiguous block, and imports are at top and usage is in function...
+    // I should use multi_replace.
+
 
     // Close dropdowns when clicking outside
     useEffect(() => {

@@ -602,11 +602,6 @@ export default function FleetMaintenanceFinance() {
     setNotifications((prev: ToastNotification[]) => prev.filter((n: ToastNotification) => n.id !== id));
   };
 
-  const confirmAction = (message: string, onConfirm: () => void) => {
-    if (window.confirm(message)) {
-      onConfirm();
-    }
-  };
 
   // Summary Cards Data
   const summaryCards = [
