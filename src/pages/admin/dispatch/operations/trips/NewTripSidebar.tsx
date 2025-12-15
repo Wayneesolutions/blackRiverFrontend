@@ -73,6 +73,18 @@ interface Trip {
     uploadedAt?: string;
     description?: string;
   }>;
+  borderCompliance?: {
+    required: boolean;
+    type?: 'ACE' | 'ACI';
+    provider?: 'Descartes' | 'BorderConnect';
+    status: 'Not Filed' | 'Pending' | 'Accepted' | 'Rejected';
+    lastUpdated?: string;
+    papsNumber?: string;
+    parsNumber?: string;
+    acceptanceTime?: string;
+    rejectionReason?: string;
+    brokerConfirmation?: boolean;
+  };
 }
 
 const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose: () => void; onSave: () => void }) => {
@@ -134,6 +146,20 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Border Compliance State
+  const [borderRequired, setBorderRequired] = useState(false);
+  const [borderType, setBorderType] = useState<'ACE' | 'ACI' | ''>('');
+  const [borderProvider, setBorderProvider] = useState<'Descartes' | 'BorderConnect'>('Descartes');
+  const [manifestStatus, setManifestStatus] = useState<'Not Filed' | 'Pending' | 'Accepted' | 'Rejected'>('Not Filed');
+  const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [papsNumber, setPapsNumber] = useState('');
+  const [parsNumber, setParsNumber] = useState('');
+  const [acceptanceTime, setAcceptanceTime] = useState('');
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [brokerConfirmation, setBrokerConfirmation] = useState(false);
+  const [isFiling, setIsFiling] = useState(false);
+
+
   const trailerKeywords = useMemo(
     () => ['trailer', 'dry van', 'reefer', 'flatbed', 'step deck', 'lowboy', 'tank', 'dump'],
     []
@@ -192,6 +218,29 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     if (trip) {
       setDocuments(trip.documents || []);
       setPendingFiles([]); // Clear pending files when editing existing trip
+      setDocuments(trip.documents || []);
+      setPendingFiles([]); // Clear pending files when editing existing trip
+
+      // Populate Border Compliance
+      if (trip.borderCompliance) {
+        setManifestStatus(trip.borderCompliance.status || 'Not Filed');
+        setBorderProvider(trip.borderCompliance.provider || 'Descartes');
+        setLastUpdated(trip.borderCompliance.lastUpdated || '');
+        setPapsNumber(trip.borderCompliance.papsNumber || '');
+        setParsNumber(trip.borderCompliance.parsNumber || '');
+        setAcceptanceTime(trip.borderCompliance.acceptanceTime || '');
+        setRejectionReason(trip.borderCompliance.rejectionReason || '');
+        setBrokerConfirmation(trip.borderCompliance.brokerConfirmation || false);
+      } else {
+        setManifestStatus('Not Filed');
+        setLastUpdated('');
+        setPapsNumber('');
+        setParsNumber('');
+        setAcceptanceTime('');
+        setRejectionReason('');
+        setBrokerConfirmation(false);
+      }
+
       if (trip.driver) {
         if (typeof trip.driver === 'object') {
           setSelectedDriver(trip.driver);
@@ -314,7 +363,64 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Calculate Border Requirements based on selected orders
+  useEffect(() => {
+    let required = false;
+    let type: 'ACE' | 'ACI' | '' = '';
+
+    // Check all selected orders for border requirements
+    // We prioritize the first requirement found, or if mixed, we might need a more complex logic.
+    // For now, if ANY order needs border, the trip needs border. 
+    // If we have CA->US, it's ACE. If US->CA, it's ACI.
+
+    for (const order of selectedOrderDetails) {
+      if (order.borderInfo?.detailsRequired) {
+        required = true;
+        const dir = order.borderInfo.direction;
+        if (dir === 'CA_TO_US') type = 'ACE';
+        else if (dir === 'US_TO_CA') type = 'ACI';
+        break; // Assuming one border crossing type per trip for simplicity
+      }
+    }
+
+    setBorderRequired(required);
+    setBorderType(type);
+  }, [selectedOrderDetails]);
+
+  const handleFileManifest = () => {
+    setIsFiling(true);
+    setManifestStatus('Pending');
+    setLastUpdated(new Date().toISOString());
+
+    // Mock API call simulation
+    setTimeout(() => {
+      setIsFiling(false);
+      const success = Math.random() > 0.3; // 70% success rate
+
+      if (success) {
+        setManifestStatus('Accepted');
+        setAcceptanceTime(new Date().toISOString());
+        setBrokerConfirmation(true);
+        setRejectionReason('');
+        if (borderType === 'ACE') {
+          setPapsNumber(`PAPS-${Math.floor(Math.random() * 1000000)}`);
+        } else {
+          setParsNumber(`PARS-${Math.floor(Math.random() * 1000000)}`);
+        }
+        addNotification('success', 'Manifest accepted by CBP/CBSA');
+      } else {
+        setManifestStatus('Rejected');
+        setRejectionReason('Invalid Cargo Description: Code mismatch');
+        setBrokerConfirmation(false);
+        addNotification('error', 'Manifest rejected: Invalid Cargo Description');
+      }
+      setLastUpdated(new Date().toISOString());
+    }, 2000);
+  };
+
 
   const fetchData = async () => {
     try {
@@ -444,6 +550,16 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     });
   }, [orders, orderSearch]);
 
+  const getManifestStatusColor = (status: string) => {
+    switch (status) {
+      case 'Accepted': return 'text-green-600 bg-green-50 border-green-200';
+      case 'Rejected': return 'text-red-600 bg-red-50 border-red-200';
+      case 'Pending': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+
   const handleSave = async () => {
     if (!selectedDriver) {
       addNotification('error', 'Please select a driver');
@@ -465,6 +581,12 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       return;
     }
 
+    // Border Compliance Validation
+    if (borderRequired && manifestStatus !== 'Accepted') {
+      addNotification('error', 'ACI / ACE not accepted. Cannot dispatch this trip.');
+      return;
+    }
+
     setLoading(true);
     try {
       const tripData = {
@@ -475,8 +597,22 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         plannedStartDate,
         plannedEndDate: plannedEndDate || null,
         status: trip?._id ? status : 'planned', // Always create new trips with 'planned' status
-        notes
+        notes,
+        // Add Border Compliance Data
+        borderCompliance: borderRequired ? {
+          required: true,
+          type: borderType,
+          provider: borderProvider,
+          status: manifestStatus,
+          lastUpdated: lastUpdated,
+          papsNumber: papsNumber,
+          parsNumber: parsNumber,
+          acceptanceTime: acceptanceTime,
+          rejectionReason: rejectionReason,
+          brokerConfirmation: brokerConfirmation
+        } : null
       };
+
 
       let response;
       if (trip?._id) {
@@ -710,6 +846,297 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       {/* Form Content */}
       <div className="flex-1 overflow-auto px-6 py-6">
         <div className="max-w-4xl mx-auto space-y-6 min-w-0">
+          {/* Orders Selection */}
+          <div className="relative" ref={orderDropdownRef}>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Assign Orders
+            </label>
+            <div className="relative">
+              <div
+                onClick={() => {
+                  const willOpen = !orderDropdownOpen;
+                  setOrderDropdownOpen(willOpen);
+                  if (willOpen) {
+                    // Always clear search when opening dropdown to show all orders
+                    setOrderSearch("");
+                  }
+                }}
+                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                style={{
+                  borderColor: orderDropdownOpen ? FLEET_COLORS.primary : undefined,
+                  boxShadow: orderDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
+                }}
+              >
+                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${orderDropdownOpen ? 'rotate-180' : ''}`} />
+                <input
+                  type="text"
+                  value={selectedOrders.length > 0 && !orderDropdownOpen ? `${selectedOrders.length} order(s) selected` : orderSearch}
+                  onChange={(e) => {
+                    setOrderSearch(e.target.value);
+                    setOrderDropdownOpen(true);
+                  }}
+                  onFocus={() => {
+                    setOrderDropdownOpen(true);
+                    // Clear search when focusing to show all orders
+                    if (selectedOrders.length > 0 && !orderSearch) {
+                      setOrderSearch("");
+                    }
+                  }}
+                  placeholder={selectedOrders.length > 0 ? `${selectedOrders.length} order(s) selected - click to add more` : "Select orders to assign"}
+                  className="flex-1 outline-none text-sm min-w-0"
+                  readOnly={selectedOrders.length > 0 && !orderDropdownOpen}
+                />
+                {selectedOrders.length > 0 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedOrders([]);
+                      setSelectedOrderDetails([]);
+                      setOrderSearch("");
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                )}
+              </div>
+              {orderDropdownOpen && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg" style={{ maxHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+                  <div className="p-2 border-b border-gray-200 flex-shrink-0">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={orderSearch}
+                        onChange={(e) => setOrderSearch(e.target.value)}
+                        placeholder="Search orders..."
+                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+
+                        onFocus={focusHandlers.onFocus}
+                        onBlur={focusHandlers.onBlur}
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                  <div className="overflow-y-auto flex-1" style={{ maxHeight: '500px', minHeight: '200px' }}>
+                    {orders.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-gray-500">No orders available. Please create orders first.</div>
+                    ) : filteredOrders.length > 0 ? (
+                      <>
+                        <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 border-b sticky top-0 z-10 bg-gray-50">
+                          Showing {filteredOrders.length} of {orders.length} available orders
+                          {orderSearch && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOrderSearch("");
+                              }}
+                              className="ml-2 underline transition-colors"
+                              style={{ color: FLEET_COLORS.primary }}
+                              onMouseEnter={(e) => e.currentTarget.style.color = FLEET_COLORS.dark}
+                              onMouseLeave={(e) => e.currentTarget.style.color = FLEET_COLORS.primary}
+                            >
+                              Clear search
+                            </button>
+                          )}
+                        </div>
+                        {filteredOrders.map((order: any, index: number) => {
+                          const isSelected = selectedOrders.includes(order._id);
+                          const customerName = order.customer?.name || order.customer?.firstName || 'N/A';
+                          const pickupLocation = extractLocationString(order.pickupLocation);
+                          const deliveryLocation = extractLocationString(order.deliveryLocation);
+                          const orderStatus = order.status?.toLowerCase()?.trim() || '';
+                          const isAssignable = !orderStatus ||
+                            orderStatus === '' ||
+                            orderStatus === 'planned' ||
+                            orderStatus === 'quoted' ||
+                            orderStatus === 'confirmed' ||
+                            orderStatus === 'in_progress';
+                          return (
+                            <div
+                              key={`order-${order._id}-${index}`}
+                              onClick={() => {
+                                if (isAssignable) {
+                                  toggleOrderSelection(order._id);
+                                }
+                              }}
+                              className={`px-3 py-3 cursor-pointer text-sm border-b border-gray-100 transition-colors ${isSelected ? '' : ''
+                                } ${!isAssignable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              style={{
+                                backgroundColor: isSelected ? `${FLEET_COLORS.primary}15` : undefined,
+                                display: 'block'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (isAssignable && !isSelected) {
+                                  e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.backgroundColor = 'transparent';
+                                }
+                              }}
+                            >
+                              <div className="flex items-start gap-2">
+                                <div
+                                  className="w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 mt-0.5"
+                                  style={isSelected ? { backgroundColor: FLEET_COLORS.primary, borderColor: FLEET_COLORS.primary } : { borderColor: '#d1d5db' }}
+                                >
+                                  {isSelected && <Check className="w-3 h-3 text-white" />}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.primary }}>{order.orderNumber || order._id}</div>
+                                  {order.customerOrderNo && (
+                                    <div className="text-xs text-gray-600 mb-1">Customer Order: {order.customerOrderNo}</div>
+                                  )}
+                                  <div className="text-xs text-gray-700 space-y-0.5">
+                                    <div><span className="font-medium">Customer:</span> {customerName}</div>
+                                    <div><span className="font-medium">Pickup:</span> {pickupLocation}</div>
+                                    <div><span className="font-medium">Delivery:</span> {deliveryLocation}</div>
+                                    {order.pickupDate && (
+                                      <div><span className="font-medium">Pickup Date:</span> {new Date(order.pickupDate).toLocaleDateString()}</div>
+                                    )}
+                                    {order.deliveryDate && (
+                                      <div><span className="font-medium">Delivery Date:</span> {new Date(order.deliveryDate).toLocaleDateString()}</div>
+                                    )}
+                                    {order.orderType && (
+                                      <div><span className="font-medium">Type:</span> {order.orderType}</div>
+                                    )}
+                                    {order.status && (
+                                      <div><span className="font-medium">Status:</span> <span
+                                        className="px-1.5 py-0.5 rounded text-xs"
+                                        style={
+                                          order.status?.toLowerCase() === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
+                                            order.status?.toLowerCase() === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
+                                              order.status?.toLowerCase() === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
+                                                order.status?.toLowerCase() === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
+                                                  order.status?.toLowerCase() === 'quoted' ? { backgroundColor: '#e9d5ff', color: '#6b21a8' } :
+                                                    order.status?.toLowerCase() === 'confirmed' ? { backgroundColor: '#ddd6fe', color: '#4c1d95' } :
+                                                      { backgroundColor: '#f3f4f6', color: '#1f2937' }
+                                        }
+                                      >{order.status}</span></div>
+                                    )}
+                                    {!isAssignable && order.status && (
+                                      <div className="text-xs text-red-600 font-medium mt-1">
+                                        Cannot assign - Order is {order.status}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </>
+                    ) : orders.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-gray-500">No orders available. Please create orders first.</div>
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        No orders match your search. Try clearing the search field or check if orders are already assigned to trips.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            {selectedOrders.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <div className="text-xs font-medium text-gray-600 mb-1">
+                  Selected Orders ({selectedOrders.length}):
+                </div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {selectedOrders.map((orderId: string) => {
+                    // First try to find from selectedOrderDetails (for trip orders), then from orders list
+                    let order = selectedOrderDetails.find((o: any) => {
+                      const oId = o._id || o;
+                      return oId === orderId || String(oId) === String(orderId);
+                    });
+                    if (!order) {
+                      order = orders.find((o: any) => {
+                        const oId = o._id || o;
+                        return oId === orderId || String(oId) === String(orderId);
+                      });
+                    }
+                    // If still not found, it might be just an ID from the trip
+                    if (!order) {
+                      return (
+                        <div key={orderId} className="p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.dark }}>Order ID: {orderId}</div>
+                              <div className="text-gray-500 text-xs">Loading order details...</div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleOrderSelection(orderId);
+                              }}
+                              className="p-1 hover:bg-red-100 rounded flex-shrink-0 text-red-600"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+                    const customerName = order.customer?.name || order.customer?.firstName || 'N/A';
+                    const pickupLocation = extractLocationString(order.pickupLocation);
+                    const deliveryLocation = extractLocationString(order.deliveryLocation);
+                    return (
+                      <div
+                        key={orderId}
+                        className="p-2 border rounded text-xs"
+                        style={{ backgroundColor: `${FLEET_COLORS.primary}15`, borderColor: FLEET_COLORS.light }}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.dark }}>{order.orderNumber || order._id}</div>
+                            <div className="text-gray-700 space-y-0.5">
+                              {order.customerOrderNo && <div>Customer Order: {order.customerOrderNo}</div>}
+                              <div><span className="font-medium">Customer:</span> {customerName}</div>
+                              <div><span className="font-medium">Pickup:</span> {pickupLocation}</div>
+                              <div><span className="font-medium">Delivery:</span> {deliveryLocation}</div>
+                              {order.pickupDate && (
+                                <div><span className="font-medium">Pickup Date:</span> {new Date(order.pickupDate).toLocaleDateString()}</div>
+                              )}
+                              {order.deliveryDate && (
+                                <div><span className="font-medium">Delivery Date:</span> {new Date(order.deliveryDate).toLocaleDateString()}</div>
+                              )}
+                              {order.orderType && (
+                                <div><span className="font-medium">Type:</span> {order.orderType}</div>
+                              )}
+                              {order.status && (
+                                <div><span className="font-medium">Status:</span> <span
+                                  className="px-1.5 py-0.5 rounded text-xs"
+                                  style={
+                                    order.status?.toLowerCase() === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
+                                      order.status?.toLowerCase() === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
+                                        order.status?.toLowerCase() === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
+                                          order.status?.toLowerCase() === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
+                                            { backgroundColor: '#f3f4f6', color: '#1f2937' }
+                                  }
+                                >{order.status}</span></div>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleOrderSelection(orderId);
+                            }}
+                            className="p-1 hover:bg-red-100 rounded flex-shrink-0 text-red-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Driver Selection */}
           <div className="relative" ref={driverDropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -1042,6 +1469,110 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             </div>
           </div>
 
+          {/* Border Compliance (CORE SECTION) */}
+          {borderRequired && (
+            <div className="border-2 border-orange-200 rounded-lg overflow-hidden mt-6 mb-6">
+              <div className="bg-orange-50 px-4 py-3 border-b border-orange-200 flex justify-between items-center">
+                <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                  Border Compliance
+                  <span className="bg-orange-200 text-orange-800 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Required: {borderType}
+                  </span>
+                </h3>
+                <div className={`px-2 py-1 rounded text-xs font-bold border ${getManifestStatusColor(manifestStatus)}`}>
+                  {manifestStatus.toUpperCase()}
+                </div>
+              </div>
+
+              <div className="p-4 space-y-6 bg-white">
+                {/* A. Filing Summary */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Provider</label>
+                    <div className="text-sm font-medium text-gray-800">{borderProvider}</div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Last Updated</label>
+                    <div className="text-sm text-gray-600">{lastUpdated ? new Date(lastUpdated).toLocaleString() : '-'}</div>
+                  </div>
+                  <div className="col-span-2">
+                    {/* B. Filing Action */}
+                    {manifestStatus === 'Not Filed' && (
+                      <button
+                        onClick={handleFileManifest}
+                        disabled={isFiling}
+                        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {isFiling ? 'Filing...' : `File ${borderType} Manifest`}
+                      </button>
+                    )}
+                    {manifestStatus === 'Rejected' && (
+                      <button
+                        onClick={handleFileManifest}
+                        disabled={isFiling}
+                        className="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {isFiling ? 'Re-Submitting...' : 'Re-Submit Manifest'}
+                      </button>
+                    )}
+                    {manifestStatus === 'Pending' && (
+                      <div className="w-full py-2 bg-yellow-100 text-yellow-800 rounded text-sm font-medium text-center border border-yellow-200">
+                        Transmitting to CBP/CBSA...
+                      </div>
+                    )}
+                    {manifestStatus === 'Accepted' && (
+                      <div className="w-full py-2 bg-green-100 text-green-800 rounded text-sm font-medium text-center border border-green-200 flex items-center justify-center gap-2">
+                        <FaCheckCircle className="w-4 h-4" /> Manifest Active
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* C. Returned From Provider */}
+                <div className="bg-gray-50 rounded p-3 border border-gray-200">
+                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Bureau Response</label>
+
+                  {manifestStatus === 'Accepted' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      {borderType === 'ACE' && (
+                        <div>
+                          <label className="block text-[10px] font-medium text-gray-500 uppercase">PAPS Number</label>
+                          <div className="text-sm font-mono font-bold text-gray-800">{papsNumber}</div>
+                        </div>
+                      )}
+                      {borderType === 'ACI' && (
+                        <div>
+                          <label className="block text-[10px] font-medium text-gray-500 uppercase">PARS / CCN</label>
+                          <div className="text-sm font-mono font-bold text-gray-800">{parsNumber}</div>
+                        </div>
+                      )}
+                      <div>
+                        <label className="block text-[10px] font-medium text-gray-500 uppercase">Acceptance Time</label>
+                        <div className="text-sm text-gray-800">{new Date(acceptanceTime).toLocaleString()}</div>
+                      </div>
+                      <div className="col-span-2 flex items-center gap-2 text-green-700 text-sm">
+                        <FaCheckCircle className="w-4 h-4" /> Broker Confirmed Entry
+                      </div>
+                    </div>
+                  )}
+
+                  {manifestStatus === 'Rejected' && (
+                    <div className="bg-red-50 p-2 rounded border border-red-100">
+                      <label className="block text-[10px] font-medium text-red-500 uppercase">Rejection Reason</label>
+                      <div className="text-sm text-red-700 font-medium mt-1">{rejectionReason}</div>
+                    </div>
+                  )}
+
+                  {(manifestStatus === 'Not Filed' || manifestStatus === 'Pending') && (
+                    <div className="text-xs text-gray-400 italic">
+                      Waiting for filing submission...
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -1095,296 +1626,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             </select>
           </div>
 
-          {/* Orders Selection */}
-          <div className="relative" ref={orderDropdownRef}>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Assign Orders
-            </label>
-            <div className="relative">
-              <div
-                onClick={() => {
-                  const willOpen = !orderDropdownOpen;
-                  setOrderDropdownOpen(willOpen);
-                  if (willOpen) {
-                    // Always clear search when opening dropdown to show all orders
-                    setOrderSearch("");
-                  }
-                }}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
-                style={{
-                  borderColor: orderDropdownOpen ? FLEET_COLORS.primary : undefined,
-                  boxShadow: orderDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
-                }}
-              >
-                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${orderDropdownOpen ? 'rotate-180' : ''}`} />
-                <input
-                  type="text"
-                  value={selectedOrders.length > 0 && !orderDropdownOpen ? `${selectedOrders.length} order(s) selected` : orderSearch}
-                  onChange={(e) => {
-                    setOrderSearch(e.target.value);
-                    setOrderDropdownOpen(true);
-                  }}
-                  onFocus={() => {
-                    setOrderDropdownOpen(true);
-                    // Clear search when focusing to show all orders
-                    if (selectedOrders.length > 0 && !orderSearch) {
-                      setOrderSearch("");
-                    }
-                  }}
-                  placeholder={selectedOrders.length > 0 ? `${selectedOrders.length} order(s) selected - click to add more` : "Select orders to assign"}
-                  className="flex-1 outline-none text-sm min-w-0"
-                  readOnly={selectedOrders.length > 0 && !orderDropdownOpen}
-                />
-                {selectedOrders.length > 0 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedOrders([]);
-                      setSelectedOrderDetails([]);
-                      setOrderSearch("");
-                    }}
-                    className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                  >
-                    <X className="w-4 h-4 text-gray-400" />
-                  </button>
-                )}
-              </div>
-              {orderDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg" style={{ maxHeight: '600px', display: 'flex', flexDirection: 'column' }}>
-                  <div className="p-2 border-b border-gray-200 flex-shrink-0">
-                    <div className="relative">
-                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="text"
-                        value={orderSearch}
-                        onChange={(e) => setOrderSearch(e.target.value)}
-                        placeholder="Search orders..."
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
 
-                        onFocus={focusHandlers.onFocus}
-                        onBlur={focusHandlers.onBlur}
-                        autoFocus
-                      />
-                    </div>
-                  </div>
-                  <div className="overflow-y-auto flex-1" style={{ maxHeight: '500px', minHeight: '200px' }}>
-                    {orders.length === 0 ? (
-                      <div className="px-3 py-2 text-sm text-gray-500">No orders available. Please create orders first.</div>
-                    ) : filteredOrders.length > 0 ? (
-                      <>
-                        <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 border-b sticky top-0 z-10 bg-gray-50">
-                          Showing {filteredOrders.length} of {orders.length} available orders
-                          {orderSearch && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOrderSearch("");
-                              }}
-                              className="ml-2 underline transition-colors"
-                              style={{ color: FLEET_COLORS.primary }}
-                              onMouseEnter={(e) => e.currentTarget.style.color = FLEET_COLORS.dark}
-                              onMouseLeave={(e) => e.currentTarget.style.color = FLEET_COLORS.primary}
-                            >
-                              Clear search
-                            </button>
-                          )}
-                        </div>
-                        {filteredOrders.map((order: any, index: number) => {
-                          const isSelected = selectedOrders.includes(order._id);
-                          const customerName = order.customer?.name || order.customer?.firstName || 'N/A';
-                          const pickupLocation = extractLocationString(order.pickupLocation);
-                          const deliveryLocation = extractLocationString(order.deliveryLocation);
-                          const orderStatus = order.status?.toLowerCase()?.trim() || '';
-                          const isAssignable = !orderStatus ||
-                            orderStatus === '' ||
-                            orderStatus === 'planned' ||
-                            orderStatus === 'quoted' ||
-                            orderStatus === 'confirmed' ||
-                            orderStatus === 'in_progress';
-                          return (
-                            <div
-                              key={`order-${order._id}-${index}`}
-                              onClick={() => {
-                                if (isAssignable) {
-                                  toggleOrderSelection(order._id);
-                                }
-                              }}
-                              className={`px-3 py-3 cursor-pointer text-sm border-b border-gray-100 transition-colors ${isSelected ? '' : ''
-                                } ${!isAssignable ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              style={{
-                                backgroundColor: isSelected ? `${FLEET_COLORS.primary}15` : undefined,
-                                display: 'block'
-                              }}
-                              onMouseEnter={(e) => {
-                                if (isAssignable && !isSelected) {
-                                  e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (!isSelected) {
-                                  e.currentTarget.style.backgroundColor = 'transparent';
-                                }
-                              }}
-                            >
-                              <div className="flex items-start gap-2">
-                                <div
-                                  className="w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 mt-0.5"
-                                  style={isSelected ? { backgroundColor: FLEET_COLORS.primary, borderColor: FLEET_COLORS.primary } : { borderColor: '#d1d5db' }}
-                                >
-                                  {isSelected && <Check className="w-3 h-3 text-white" />}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.primary }}>{order.orderNumber || order._id}</div>
-                                  {order.customerOrderNo && (
-                                    <div className="text-xs text-gray-600 mb-1">Customer Order: {order.customerOrderNo}</div>
-                                  )}
-                                  <div className="text-xs text-gray-700 space-y-0.5">
-                                    <div><span className="font-medium">Customer:</span> {customerName}</div>
-                                    <div><span className="font-medium">Pickup:</span> {pickupLocation}</div>
-                                    <div><span className="font-medium">Delivery:</span> {deliveryLocation}</div>
-                                    {order.pickupDate && (
-                                      <div><span className="font-medium">Pickup Date:</span> {new Date(order.pickupDate).toLocaleDateString()}</div>
-                                    )}
-                                    {order.deliveryDate && (
-                                      <div><span className="font-medium">Delivery Date:</span> {new Date(order.deliveryDate).toLocaleDateString()}</div>
-                                    )}
-                                    {order.orderType && (
-                                      <div><span className="font-medium">Type:</span> {order.orderType}</div>
-                                    )}
-                                    {order.status && (
-                                      <div><span className="font-medium">Status:</span> <span
-                                        className="px-1.5 py-0.5 rounded text-xs"
-                                        style={
-                                          order.status?.toLowerCase() === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
-                                            order.status?.toLowerCase() === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
-                                              order.status?.toLowerCase() === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
-                                                order.status?.toLowerCase() === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
-                                                  order.status?.toLowerCase() === 'quoted' ? { backgroundColor: '#e9d5ff', color: '#6b21a8' } :
-                                                    order.status?.toLowerCase() === 'confirmed' ? { backgroundColor: '#ddd6fe', color: '#4c1d95' } :
-                                                      { backgroundColor: '#f3f4f6', color: '#1f2937' }
-                                        }
-                                      >{order.status}</span></div>
-                                    )}
-                                    {!isAssignable && order.status && (
-                                      <div className="text-xs text-red-600 font-medium mt-1">
-                                        Cannot assign - Order is {order.status}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </>
-                    ) : orders.length === 0 ? (
-                      <div className="px-3 py-2 text-sm text-gray-500">No orders available. Please create orders first.</div>
-                    ) : (
-                      <div className="px-3 py-2 text-sm text-gray-500">
-                        No orders match your search. Try clearing the search field or check if orders are already assigned to trips.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-            {selectedOrders.length > 0 && (
-              <div className="mt-3 space-y-2">
-                <div className="text-xs font-medium text-gray-600 mb-1">
-                  Selected Orders ({selectedOrders.length}):
-                </div>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {selectedOrders.map((orderId: string) => {
-                    // First try to find from selectedOrderDetails (for trip orders), then from orders list
-                    let order = selectedOrderDetails.find((o: any) => {
-                      const oId = o._id || o;
-                      return oId === orderId || String(oId) === String(orderId);
-                    });
-                    if (!order) {
-                      order = orders.find((o: any) => {
-                        const oId = o._id || o;
-                        return oId === orderId || String(oId) === String(orderId);
-                      });
-                    }
-                    // If still not found, it might be just an ID from the trip
-                    if (!order) {
-                      return (
-                        <div key={orderId} className="p-2 bg-blue-50 border border-blue-200 rounded text-xs">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.dark }}>Order ID: {orderId}</div>
-                              <div className="text-gray-500 text-xs">Loading order details...</div>
-                            </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleOrderSelection(orderId);
-                              }}
-                              className="p-1 hover:bg-red-100 rounded flex-shrink-0 text-red-600"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    }
-                    const customerName = order.customer?.name || order.customer?.firstName || 'N/A';
-                    const pickupLocation = extractLocationString(order.pickupLocation);
-                    const deliveryLocation = extractLocationString(order.deliveryLocation);
-                    return (
-                      <div
-                        key={orderId}
-                        className="p-2 border rounded text-xs"
-                        style={{ backgroundColor: `${FLEET_COLORS.primary}15`, borderColor: FLEET_COLORS.light }}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.dark }}>{order.orderNumber || order._id}</div>
-                            <div className="text-gray-700 space-y-0.5">
-                              {order.customerOrderNo && <div>Customer Order: {order.customerOrderNo}</div>}
-                              <div><span className="font-medium">Customer:</span> {customerName}</div>
-                              <div><span className="font-medium">Pickup:</span> {pickupLocation}</div>
-                              <div><span className="font-medium">Delivery:</span> {deliveryLocation}</div>
-                              {order.pickupDate && (
-                                <div><span className="font-medium">Pickup Date:</span> {new Date(order.pickupDate).toLocaleDateString()}</div>
-                              )}
-                              {order.deliveryDate && (
-                                <div><span className="font-medium">Delivery Date:</span> {new Date(order.deliveryDate).toLocaleDateString()}</div>
-                              )}
-                              {order.orderType && (
-                                <div><span className="font-medium">Type:</span> {order.orderType}</div>
-                              )}
-                              {order.status && (
-                                <div><span className="font-medium">Status:</span> <span
-                                  className="px-1.5 py-0.5 rounded text-xs"
-                                  style={
-                                    order.status?.toLowerCase() === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
-                                      order.status?.toLowerCase() === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
-                                        order.status?.toLowerCase() === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
-                                          order.status?.toLowerCase() === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
-                                            { backgroundColor: '#f3f4f6', color: '#1f2937' }
-                                  }
-                                >{order.status}</span></div>
-                              )}
-                            </div>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleOrderSelection(orderId);
-                            }}
-                            className="p-1 hover:bg-red-100 rounded flex-shrink-0 text-red-600"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
 
           {/* Notes */}
           <div>

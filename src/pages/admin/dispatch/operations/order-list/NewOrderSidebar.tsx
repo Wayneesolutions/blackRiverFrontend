@@ -63,6 +63,10 @@ interface Place {
         latitude?: string | number;
         longitude?: string | number;
     };
+    country?: string;
+    address?: string; // Optional top-level address
+    latitude?: string | number;
+    longitude?: string | number;
 }
 
 interface Customer {
@@ -155,6 +159,23 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         TARP: false,
         OverDimension: false
     });
+
+    // Border Information states
+    const [borderRequired, setBorderRequired] = useState(false);
+    const [borderDirection, setBorderDirection] = useState("CA_TO_US");
+    const [portOfEntry, setPortOfEntry] = useState("");
+    const [cargoDescription, setCargoDescription] = useState("");
+    const [hsCode, setHsCode] = useState("");
+    const [brokerName, setBrokerName] = useState("");
+    const [brokerPhone, setBrokerPhone] = useState("");
+    const [brokerEmail, setBrokerEmail] = useState("");
+    const [commercialValue, setCommercialValue] = useState("");
+    const [countryOfOrigin, setCountryOfOrigin] = useState("");
+
+    // Custom Brokers List (Mock for now as per "Pre-saved brokers")
+    const BROKER_OPTIONS = ["Livingston International", "C.H. Robinson", "Hub Group", "XPO Logistics", "Delmar International", "Kuehne + Nagel"];
+    const PORT_OPTIONS = ["Detroit", "Buffalo", "Windsor", "Port Huron", "Champlain", "Lewiston", "Sarnia", "Fort Erie", "International Falls", "Pembina"];
+
 
     // Multi-step form state
     const [currentStep, setCurrentStep] = useState(1); // 1: Details, 2: Shipper, 3: Receiver, 4: Documents, 5: Review
@@ -274,6 +295,21 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     TARP: order.additionalInfo.TARP || false,
                     OverDimension: order.additionalInfo.OverDimension || false
                 });
+            }
+
+            // Border Info
+            if (order.borderInfo) {
+                setPortOfEntry(order.borderInfo.portOfEntry || '');
+                setCargoDescription(order.borderInfo.cargoDescription || '');
+                setHsCode(order.borderInfo.hsCode || '');
+                setBrokerName(order.borderInfo.brokerName || '');
+                setBrokerPhone(order.borderInfo.brokerPhone || '');
+                setBrokerEmail(order.borderInfo.brokerEmail || '');
+                setCommercialValue(order.borderInfo.commercialValue || '');
+                setCountryOfOrigin(order.borderInfo.countryOfOrigin || '');
+
+                // direction and requirement are auto-calculated but we can set them as initial if needed
+                if (order.borderInfo.direction) setBorderDirection(order.borderInfo.direction);
             }
 
             // Pickup location
@@ -408,6 +444,19 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 TARP: false,
                 OverDimension: false
             });
+
+            // Reset Border Info
+            setBorderRequired(false);
+            setBorderDirection("CA_TO_US");
+            setPortOfEntry("");
+            setCargoDescription("");
+            setHsCode("");
+            setBrokerName("");
+            setBrokerPhone("");
+            setBrokerEmail("");
+            setCommercialValue("");
+            setCountryOfOrigin("");
+
             setSelectedPickupPlace(null);
             setPickupSearch('');
             setPickupDate(new Date().toISOString().split('T')[0]);
@@ -450,6 +499,68 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setCurrentStep(1);
         }
     }, [order, customers, pickupPlaces, deliveryPlaces]);
+
+    // Helper to determine country
+    const getCountryFromPlace = (place: Place | null): string => {
+        if (!place) return '';
+        if (place.country) return place.country;
+
+        // Basic inference from address or state
+        const address = (place.currentLocation?.address || place.address || '').toLowerCase();
+        const cityState = (place.state || '').toUpperCase();
+
+        if (address.includes('usa') || address.includes('united states')) return 'USA';
+        if (address.includes('canada')) return 'Canada';
+
+        // Check state if available
+        const US_STATES = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
+        const CA_PROVINCES = ['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'];
+
+        if (US_STATES.includes(cityState)) return 'USA';
+        if (CA_PROVINCES.includes(cityState)) return 'Canada';
+
+        return '';
+    };
+
+    // Effect to determine Border Requirement
+    useEffect(() => {
+        const pickupCountry = selectedPickupPlace?.country || getCountryFromPlace(selectedPickupPlace);
+        const deliveryCountry = selectedDeliveryPlace?.country || getCountryFromPlace(selectedDeliveryPlace);
+
+        // Normalize countries for comparison
+        const pNorm = pickupCountry.toLowerCase().trim();
+        const dNorm = deliveryCountry.toLowerCase().trim();
+        const isUS = (c: string) => c === 'usa' || c === 'us' || c === 'united states';
+        const isCA = (c: string) => c === 'canada' || c === 'ca';
+
+        let requiresBorder = false;
+        if (pickupCountry && deliveryCountry) {
+            if ((isUS(pNorm) && isCA(dNorm)) || (isCA(pNorm) && isUS(dNorm))) {
+                requiresBorder = true;
+            } else if (pNorm !== dNorm && pNorm !== '' && dNorm !== '') {
+                // If strictly different strings and not both empty (generic mismatch)
+                requiresBorder = true;
+            }
+        }
+
+        setBorderRequired(requiresBorder);
+
+        if (requiresBorder) {
+            if (isCA(pNorm) && isUS(dNorm)) {
+                setBorderDirection("CA_TO_US");
+            } else if (isUS(pNorm) && isCA(dNorm)) {
+                setBorderDirection("US_TO_CA");
+            }
+        }
+
+        // Auto-fill some fields if border is required and fields are empty
+        if (requiresBorder) {
+            if (!cargoDescription && commodity) setCargoDescription(commodity);
+            if (!commercialValue && valueOfGoods) setCommercialValue(valueOfGoods);
+        }
+
+    }, [selectedPickupPlace, selectedDeliveryPlace, commodity, valueOfGoods]);
+
 
     const fetchPlaces = async () => {
         try {
@@ -766,6 +877,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 addNotification('error', "Please enter commodity");
                 return false;
             }
+
+            if (borderRequired) {
+                if (!borderDirection) { addNotification('error', "Border Direction is required"); return false; }
+                if (!portOfEntry) { addNotification('error', "Port of Entry is required"); return false; }
+                if (!brokerName) { addNotification('error', "Broker Name is required"); return false; }
+                if (!brokerPhone) { addNotification('error', "Broker Phone is required"); return false; }
+                if (!cargoDescription) { addNotification('error', "Cargo Description is required"); return false; }
+            }
         } else if (step === 2) {
             if (!shipperName) {
                 addNotification('error', "Please enter shipper name");
@@ -904,6 +1023,21 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 accountingStatus: 'pending',
                 totalAmount: valueOfGoods ? parseFloat(valueOfGoods) : 0,
                 currency: valueOfGoodsCurrency || 'CAD',
+
+                // Border Information
+                borderInfo: borderRequired ? {
+                    detailsRequired: true,
+                    direction: borderDirection,
+                    portOfEntry: portOfEntry,
+                    cargoDescription: cargoDescription,
+                    hsCode: hsCode,
+                    brokerName: brokerName,
+                    brokerPhone: brokerPhone,
+                    brokerEmail: brokerEmail,
+                    commercialValue: commercialValue,
+                    countryOfOrigin: countryOfOrigin
+                } : null,
+
                 // New fields
                 shipper: {
                     name: shipperName,
@@ -1024,17 +1158,17 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="text-xl font-bold text-gray-800">{order ? 'Edit Order' : 'Create New Order'}</h2>
                         {!order && (
-                          <button
-                          onClick={() => setShowAutoEntryModal(true)}
-                          style={{
-                            background: 'linear-gradient(to right, #016ab2, #063f6f)',
-                          }}
-                          className="px-3 py-1.5 !text-white text-sm font-medium rounded flex items-center gap-2 hover:opacity-90 transition"
-                        >
-                          <Upload className="w-4 h-4" />
-                          AI Auto-Entry
-                        </button>
-                        
+                            <button
+                                onClick={() => setShowAutoEntryModal(true)}
+                                style={{
+                                    background: 'linear-gradient(to right, #016ab2, #063f6f)',
+                                }}
+                                className="px-3 py-1.5 !text-white text-sm font-medium rounded flex items-center gap-2 hover:opacity-90 transition"
+                            >
+                                <Upload className="w-4 h-4" />
+                                AI Auto-Entry
+                            </button>
+
                         )}
                     </div>
                     {/* Step Indicator */}
@@ -1043,8 +1177,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                             <div key={index} className="flex items-center">
                                 <div className={`flex items-center gap-2 ${index + 1 === currentStep ? 'text-white' : index + 1 < currentStep ? 'text-green-600' : 'text-gray-400'}`} style={index + 1 === currentStep ? { color: PRIMARY_COLOR } : {}}>
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all text-white ${index + 1 === currentStep ? 'shadow-md ring-2' :
-                                            index + 1 < currentStep ? 'bg-green-600' :
-                                                'bg-gray-200 text-gray-500'
+                                        index + 1 < currentStep ? 'bg-green-600' :
+                                            'bg-gray-200 text-gray-500'
                                         }`} style={index + 1 === currentStep ? { background: PRIMARY_GRADIENT, '--tw-ring-color': PRIMARY_LIGHT_BG } as React.CSSProperties & { '--tw-ring-color'?: string } : {}}>
                                         {index + 1 < currentStep ? '✓' : index + 1}
                                     </div>
@@ -1065,249 +1199,1087 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 </button>
             </div>
 
-          {/* Scrollable Content */}
-<div className="flex-1 overflow-auto px-6 py-6">
-  <div className="max-w-4xl mx-auto space-y-6 min-w-0">
-                {/* Step 1: Details Section */}
-                {currentStep === 1 && (
-                    <div className="border-b border-gray-200">
-                        <div className="p-5 border-b border-gray-200" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
-                            <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style={{ background: PRIMARY_GRADIENT }}>1</span>
-                                Order Details
-                            </h3>
-                            <p className="text-xs text-gray-600 mt-1 ml-10">Enter basic order information and shipment details</p>
-                        </div>
-                        <div className="px-5 pt-5 pb-0 space-y-6">
-                            {/* Customer Information */}
-                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Customer Information</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                                    {/* Customer Field */}
-                                    <div className="relative" ref={customerDropdownRef}>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Customer *</label>
-                                        <div className="relative">
-                                            <div
-                                                onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
-                                                className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 "
-                                            >
-                                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-auto px-6 py-6">
+                <div className="max-w-4xl mx-auto space-y-6 min-w-0">
+                    {/* Step 1: Details Section */}
+                    {currentStep === 1 && (
+                        <div className="border-b border-gray-200">
+                            <div className="p-5 border-b border-gray-200" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
+                                <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                                    <span className="w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style={{ background: PRIMARY_GRADIENT }}>1</span>
+                                    Order Details
+                                </h3>
+                                <p className="text-xs text-gray-600 mt-1 ml-10">Enter basic order information and shipment details</p>
+                            </div>
+                            <div className="px-5 pt-5 pb-0 space-y-6">
+                                {/* Customer Information */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Customer Information</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                                        {/* Customer Field */}
+                                        <div className="relative" ref={customerDropdownRef}>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Customer *</label>
+                                            <div className="relative">
+                                                <div
+                                                    onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
+                                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 "
+                                                >
+                                                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
+                                                    <input
+                                                        type="text"
+                                                        value={selectedCustomer ? `${selectedCustomer.name || ''} | ${selectedCustomer.address || selectedCustomer.email || ''}` : customerSearch}
+                                                        onChange={(e) => {
+                                                            setCustomerSearch(e.target.value);
+                                                            setCustomerDropdownOpen(true);
+                                                        }}
+                                                        onFocus={() => setCustomerDropdownOpen(true)}
+                                                        placeholder="customer"
+                                                        className="flex-1 outline-none text-sm min-w-0"
+                                                        readOnly={!!selectedCustomer}
+                                                    />
+                                                    {selectedCustomer && (
+                                                        <>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedCustomer(null);
+                                                                    setCustomerSearch("");
+                                                                }}
+                                                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                            >
+                                                                <X className="w-4 h-4 text-gray-400" />
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    // Edit functionality
+                                                                }}
+                                                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                            >
+                                                                <Pencil className="w-4 h-4 text-gray-400" />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
+                                                </div>
+
+                                                {customerDropdownOpen && (
+                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                        <div className="p-2 border-b border-gray-200">
+                                                            <div className="relative">
+                                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                <input
+                                                                    type="text"
+                                                                    value={customerSearch}
+                                                                    onChange={(e) => setCustomerSearch(e.target.value)}
+                                                                    placeholder="Search..."
+                                                                    className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                    autoFocus
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="overflow-y-auto max-h-48">
+                                                            {filteredCustomers.length > 0 ? (
+                                                                filteredCustomers.map((customer) => (
+                                                                    <div
+                                                                        key={customer._id || customer.id}
+                                                                        onClick={() => {
+                                                                            setSelectedCustomer(customer);
+                                                                            setCustomerSearch("");
+                                                                            setCustomerDropdownOpen(false);
+                                                                        }}
+                                                                        className={`px-3 py-2 cursor-pointer text-sm ${(selectedCustomer?._id || selectedCustomer?.id) === (customer._id || customer.id) ? '' : ''
+                                                                            }`}
+                                                                    >
+                                                                        <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
+                                                                        <div className="text-xs text-gray-600">{customer.address || customer.email || customer.phone || ''}</div>
+                                                                    </div>
+                                                                ))
+                                                            ) : (
+                                                                <div className="px-3 py-2 text-sm text-gray-500">No customers found</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Customer Order # */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Customer Order # *</label>
+                                            <input
+                                                type="text"
+                                                value={customerOrderNo}
+                                                onChange={(e) => setCustomerOrderNo(e.target.value)}
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                            />
+                                        </div>
+
+                                        {/* Order Type Toggle */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Order Type</label>
+                                            <div className="flex border border-gray-300 rounded overflow-hidden">
+                                                <button
+                                                    onClick={() => setLoadType("FTL")}
+                                                    className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${loadType === "FTL"
+                                                        ? "!text-white"
+                                                        : "bg-white text-gray-700 hover:bg-gray-50"
+                                                        }`}
+                                                    style={loadType === "FTL" ? { background: PRIMARY_GRADIENT } : {}}
+                                                >
+                                                    FTL
+                                                </button>
+                                                <button
+                                                    onClick={() => setLoadType("LTL")}
+                                                    className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${loadType === "LTL"
+                                                        ? "!text-white"
+                                                        : "bg-white text-gray-700 hover:bg-gray-50"
+                                                        }`}
+                                                    style={loadType === "LTL" ? { background: PRIMARY_GRADIENT } : {}}
+                                                >
+                                                    LTL
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Freight on Toggle */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Freight on</label>
+                                            <div className="flex border border-gray-300 rounded overflow-hidden">
+                                                <button
+                                                    onClick={() => setFreightOn("Order")}
+                                                    className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${freightOn === "Order"
+                                                        ? "!text-white"
+                                                        : "bg-white text-gray-700 hover:bg-gray-50"
+                                                        }`}
+                                                >
+                                                    Order
+                                                </button>
+                                                <button
+                                                    onClick={() => setFreightOn("Item")}
+                                                    className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${freightOn === "Item"
+                                                        ? "!text-white"
+                                                        : "bg-white text-gray-700 hover:bg-gray-50"
+                                                        }`}
+                                                >
+                                                    Item
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Salesman */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Salesman</label>
+                                            <div className="flex gap-1">
+                                                <select
+                                                    value={selectedSalesman}
+                                                    onChange={(e) => setSelectedSalesman(e.target.value)}
+                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                >
+                                                    <option value="">Select</option>
+                                                    <option value="john">John Doe</option>
+                                                    <option value="jane">Jane Smith</option>
+                                                </select>
+                                                <button
+                                                    className="px-2 rounded text-xl leading-none flex-shrink-0 transition-colors"
+                                                    style={{ color: PRIMARY_COLOR }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
+                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
+                                                >+</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4">
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Order Notes</label>
+                                        <textarea
+                                            rows={2}
+                                            value={orderNotes}
+                                            onChange={(e) => setOrderNotes(e.target.value)}
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2  text-sm"
+                                            placeholder="Enter any additional notes for this order..."
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Shipment Section - Part of Step 1 */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
+                                        <h4 className="text-sm font-semibold text-gray-800">Shipment Details</h4>
+                                    </div>
+                                    {/* Top Fields */}
+                                    <div className="space-y-4">
+                                        {/* Commodity */}
+                                        <div className="flex items-center relative">
+                                            <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                                Commodity <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="flex-1 relative">
                                                 <input
                                                     type="text"
-                                                    value={selectedCustomer ? `${selectedCustomer.name || ''} | ${selectedCustomer.address || selectedCustomer.email || ''}` : customerSearch}
+                                                    value={commodity}
                                                     onChange={(e) => {
-                                                        setCustomerSearch(e.target.value);
-                                                        setCustomerDropdownOpen(true);
+                                                        setCommodity(e.target.value);
+                                                        debouncedFetchSuggestions('commodity', e.target.value);
                                                     }}
-                                                    onFocus={() => setCustomerDropdownOpen(true)}
-                                                    placeholder="customer"
-                                                    className="flex-1 outline-none text-sm min-w-0"
-                                                    readOnly={!!selectedCustomer}
+                                                    onFocus={() => {
+                                                        if (commodity && commodity.length >= 2) {
+                                                            fetchSuggestions('commodity', commodity);
+                                                        }
+                                                    }}
+                                                    onBlur={() => {
+                                                        setTimeout(() => setShowCommoditySuggestions(false), 200);
+                                                    }}
+                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    placeholder="Enter commodity"
                                                 />
-                                                {selectedCustomer && (
-                                                    <>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedCustomer(null);
-                                                                setCustomerSearch("");
-                                                            }}
-                                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                                                        >
-                                                            <X className="w-4 h-4 text-gray-400" />
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                // Edit functionality
-                                                            }}
-                                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                                                        >
-                                                            <Pencil className="w-4 h-4 text-gray-400" />
-                                                        </button>
-                                                    </>
+                                                {showCommoditySuggestions && commoditySuggestions.length > 0 && (
+                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                                        {commoditySuggestions.map((suggestion, index) => (
+                                                            <div
+                                                                key={index}
+                                                                onClick={() => {
+                                                                    setCommodity(suggestion);
+                                                                    setShowCommoditySuggestions(false);
+                                                                }}
+                                                                className="px-3 py-2 cursor-pointer text-sm"
+                                                                style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
+                                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
+                                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
+                                                            >
+                                                                {suggestion}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 )}
-                                                <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
                                             </div>
+                                        </div>
 
-                                            {customerDropdownOpen && (
-                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                    <div className="p-2 border-b border-gray-200">
+                                        {/* Value of goods - Input on left, Dropdown on right (like Weight) */}
+                                        <div className="flex items-center">
+                                            <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                                Value of goods
+                                            </label>
+                                            <div className="flex-1 flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={valueOfGoods}
+                                                    onChange={(e) => setValueOfGoods(e.target.value)}
+                                                    placeholder="Enter value"
+                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                />
+                                                <select
+                                                    value={valueOfGoodsCurrency}
+                                                    onChange={(e) => setValueOfGoodsCurrency(e.target.value)}
+                                                    className="w-48 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                >
+                                                    <option value="">Select</option>
+                                                    {currencyOptions.map(currency => (
+                                                        <option key={currency.value} value={currency.value}>{currency.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Equipment */}
+                                        <div className="flex items-start">
+                                            <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0 pt-2">
+                                                Equipment
+                                            </label>
+                                            <div className="flex-1 relative" ref={equipmentDropdownRef}>
+                                                <div className="flex gap-2">
+                                                    <div
+                                                        onClick={() => setEquipmentDropdownOpen(!equipmentDropdownOpen)}
+                                                        className="flex-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 focus-within:ring-2 focus-within:ring-blue-500 flex items-center justify-between"
+                                                    >
+                                                        <span className="text-sm text-gray-600">
+                                                            {selectedEquipment.length > 0
+                                                                ? `${selectedEquipment.length} selected`
+                                                                : "Select equipment"
+                                                            }
+                                                        </span>
+                                                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${equipmentDropdownOpen ? 'rotate-180' : ''}`} />
+                                                    </div>
+                                                    <button
+                                                        className="px-3 py-2 !text-white rounded hover:opacity-90 transition-opacity text-sm font-medium flex-shrink-0 shadow-md"
+                                                        style={{ background: PRIMARY_GRADIENT }}
+                                                        onClick={() => addNotification('warning', 'Add new equipment functionality coming soon')}
+                                                    >
+                                                        + Add
+                                                    </button>
+                                                </div>
+
+                                                {equipmentDropdownOpen && (
+                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                                                        {equipmentTypes.map((equipment) => (
+                                                            <label
+                                                                key={equipment}
+                                                                className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+                                                                style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
+                                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
+                                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedEquipment.includes(equipment)}
+                                                                    onChange={() => handleEquipmentToggle(equipment)}
+                                                                    className="w-4 h-4  rounded focus:ring-2"
+                                                                />
+                                                                <span className="text-sm text-gray-700">{equipment}</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* No of Packages - Input on left, Dropdown on right (like Weight) */}
+                                        <div className="flex items-center">
+                                            <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                                No of Packages
+                                            </label>
+                                            <div className="flex-1 flex gap-2 relative" ref={packagesDropdownRef}>
+                                                <input
+                                                    type="text"
+                                                    value={noOfPackages}
+                                                    onChange={(e) => setNoOfPackages(e.target.value)}
+                                                    placeholder="Enter number"
+                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                />
+                                                <div className="relative w-48">
+                                                    <div
+                                                        onClick={() => setNoOfPackagesDropdownOpen(!noOfPackagesDropdownOpen)}
+                                                        className="flex items-center justify-between p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 focus-within:ring-2 focus-within:ring-blue-500"
+                                                    >
+                                                        <span className="text-sm text-gray-600 truncate">
+                                                            {noOfPackagesType || "Select"}
+                                                        </span>
+                                                        {noOfPackagesType && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setNoOfPackagesType("");
+                                                                }}
+                                                                className="p-0.5 hover:bg-gray-100 rounded mr-1 flex-shrink-0"
+                                                            >
+                                                                <X className="w-3 h-3 text-gray-400" />
+                                                            </button>
+                                                        )}
+                                                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${noOfPackagesDropdownOpen ? 'rotate-180' : ''}`} />
+                                                    </div>
+
+                                                    {noOfPackagesDropdownOpen && (
+                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                            <div className="p-2 border-b border-gray-200">
+                                                                <div className="relative">
+                                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                    <input
+                                                                        type="text"
+                                                                        value={noOfPackagesSearch}
+                                                                        onChange={(e) => setNoOfPackagesSearch(e.target.value)}
+                                                                        placeholder="Searching..."
+                                                                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                        autoFocus
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div className="overflow-y-auto max-h-48">
+                                                                {filteredPackages.map((pkg) => (
+                                                                    <div
+                                                                        key={pkg}
+                                                                        onClick={() => {
+                                                                            setNoOfPackagesType(pkg);
+                                                                            setNoOfPackagesSearch("");
+                                                                            setNoOfPackagesDropdownOpen(false);
+                                                                        }}
+                                                                        className="px-3 py-2 cursor-pointer text-sm"
+                                                                        style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
+                                                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
+                                                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
+                                                                    >
+                                                                        {pkg}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Weight */}
+                                        <div className="flex items-center">
+                                            <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                                Weight
+                                            </label>
+                                            <div className="flex-1 flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={weight}
+                                                    onChange={(e) => setWeight(e.target.value)}
+                                                    placeholder="Enter weight"
+                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                />
+                                                <select
+                                                    value={weightUnit}
+                                                    onChange={(e) => setWeightUnit(e.target.value)}
+                                                    className="w-24 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                >
+                                                    <option value="">Unit</option>
+                                                    {weightUnits.map(unit => (
+                                                        <option key={unit} value={unit}>{unit}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Temperature */}
+                                        <div className="flex items-center">
+                                            <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                                Temperature
+                                            </label>
+                                            <div className="flex-1 flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={temperature}
+                                                    onChange={(e) => setTemperature(e.target.value)}
+                                                    placeholder="Enter temperature"
+                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                />
+                                                <select
+                                                    value={temperatureUnit}
+                                                    onChange={(e) => setTemperatureUnit(e.target.value)}
+                                                    className="w-32 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                >
+                                                    <option value="Celsius">Celsius</option>
+                                                    <option value="Fahrenheit">Fahrenheit</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Weather Conditions */}
+                                        <div className="flex items-center">
+                                            <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                                Weather Conditions
+                                            </label>
+                                            <div className="flex-1 flex gap-4">
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={weatherConditions.snow}
+                                                        onChange={(e) => setWeatherConditions(prev => ({ ...prev, snow: e.target.checked }))}
+                                                        className="w-4 h-4  border-gray-300 rounded focus:ring-2"
+                                                    />
+                                                    <span className="text-sm text-gray-700">Snow Conditions</span>
+                                                </label>
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={weatherConditions.highTemperature}
+                                                        onChange={(e) => setWeatherConditions(prev => ({ ...prev, highTemperature: e.target.checked }))}
+                                                        className="w-4 h-4  border-gray-300 rounded focus:ring-2"
+                                                    />
+                                                    <span className="text-sm text-gray-700">High Temperature</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {/* Dimensions */}
+                                        <div className="mb-4 mt-4">
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Dimension (LxBxH)</label>
+                                            <div className="flex gap-2 items-center flex-wrap">
+                                                <input
+                                                    type="text"
+                                                    value={dimensionL}
+                                                    onChange={(e) => setDimensionL(e.target.value)}
+                                                    placeholder="L"
+                                                    className="w-20 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                />
+                                                <span className="text-gray-400 text-sm">×</span>
+                                                <input
+                                                    type="text"
+                                                    value={dimensionB}
+                                                    onChange={(e) => setDimensionB(e.target.value)}
+                                                    placeholder="B"
+                                                    className="w-20 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                />
+                                                <span className="text-gray-400 text-sm">×</span>
+                                                <input
+                                                    type="text"
+                                                    value={dimensionH}
+                                                    onChange={(e) => setDimensionH(e.target.value)}
+                                                    placeholder="H"
+                                                    className="w-20 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                />
+                                                <select
+                                                    value={dimensionUnit}
+                                                    onChange={(e) => setDimensionUnit(e.target.value)}
+                                                    className="p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm min-w-[100px]"
+                                                >
+                                                    <option value="">Select</option>
+                                                    {dimensionUnits.map(unit => (
+                                                        <option key={unit} value={unit}>{unit}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* PICKUP and DELIVERY Side by Side */}
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 mt-6 pt-4 border-t border-gray-200">
+                                            {/* PICKUP Section */}
+                                            <div className="rounded-lg p-4" style={{ border: `2px solid ${PRIMARY_LIGHT_BG.replace('0.1', '0.3')}`, backgroundColor: PRIMARY_LIGHT_BG }}>
+                                                <div className="flex items-center gap-4 mb-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <input type="checkbox" id="pickup-checkbox" className="w-4 h-4" defaultChecked />
+                                                        <label htmlFor="pickup-checkbox" className="font-medium text-gray-800 text-sm">PICKUP</label>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <input type="checkbox" id="same-pickup" className="w-4 h-4" />
+                                                        <label htmlFor="same-pickup" className="text-xs text-gray-600">Same pickup for next shipment</label>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-3">
+                                                    <div className="relative" ref={pickupDropdownRef}>
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Location *</label>
                                                         <div className="relative">
-                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                            <div
+                                                                onClick={() => setPickupDropdownOpen(!pickupDropdownOpen)}
+                                                                className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 "
+                                                            >
+                                                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
+                                                                <input
+                                                                    type="text"
+                                                                    value={selectedPickupPlace ? `${selectedPickupPlace.name || ''} | ${selectedPickupPlace.currentLocation?.address || ''}` : pickupSearch}
+                                                                    onChange={(e) => {
+                                                                        setPickupSearch(e.target.value);
+                                                                        setPickupDropdownOpen(true);
+                                                                    }}
+                                                                    onFocus={() => setPickupDropdownOpen(true)}
+                                                                    placeholder="Search pickup location..."
+                                                                    className="flex-1 outline-none text-sm min-w-0"
+                                                                    readOnly={!!selectedPickupPlace}
+                                                                />
+                                                                {selectedPickupPlace && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setSelectedPickupPlace(null);
+                                                                                setPickupSearch("");
+                                                                            }}
+                                                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                                        >
+                                                                            <X className="w-4 h-4 text-gray-400" />
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                            </div>
+
+                                                            {pickupDropdownOpen && (
+                                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                                    <div className="p-2 border-b border-gray-200">
+                                                                        <div className="relative">
+                                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                            <input
+                                                                                type="text"
+                                                                                value={pickupSearch}
+                                                                                onChange={(e) => setPickupSearch(e.target.value)}
+                                                                                placeholder="Search places..."
+                                                                                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                                autoFocus
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="overflow-y-auto max-h-48">
+                                                                        {filteredPickupPlaces.length > 0 ? (
+                                                                            filteredPickupPlaces.map((place) => (
+                                                                                <div
+                                                                                    key={place._id}
+                                                                                    onClick={() => {
+                                                                                        setSelectedPickupPlace(place);
+                                                                                        setPickupSearch("");
+                                                                                        setPickupDropdownOpen(false);
+                                                                                    }}
+                                                                                    className="px-3 py-2 cursor-pointer text-sm"
+                                                                                    style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
+                                                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
+                                                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
+                                                                                >
+                                                                                    <div className="font-medium ">{place.name || 'Unnamed Place'}</div>
+                                                                                    <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
+                                                                                </div>
+                                                                            ))
+                                                                        ) : (
+                                                                            <div className="px-3 py-2 text-sm text-gray-500">No places found</div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Reference No.</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Ref No"
+                                                            value={pickupRefNo}
+                                                            onChange={(e) => setPickupRefNo(e.target.value)}
+                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                        />
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Pickup Date *</label>
                                                             <input
-                                                                type="text"
-                                                                value={customerSearch}
-                                                                onChange={(e) => setCustomerSearch(e.target.value)}
-                                                                placeholder="Search..."
-                                                                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
-                                                                autoFocus
+                                                                type="date"
+                                                                value={pickupDate}
+                                                                onChange={(e) => setPickupDate(e.target.value)}
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Time *</label>
+                                                            <input
+                                                                type="time"
+                                                                value={pickupTime}
+                                                                onChange={(e) => setPickupTime(e.target.value)}
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="overflow-y-auto max-h-48">
-                                                        {filteredCustomers.length > 0 ? (
-                                                            filteredCustomers.map((customer) => (
-                                                                <div
-                                                                    key={customer._id || customer.id}
-                                                                    onClick={() => {
-                                                                        setSelectedCustomer(customer);
-                                                                        setCustomerSearch("");
-                                                                        setCustomerDropdownOpen(false);
-                                                                    }}
-                                                                    className={`px-3 py-2 cursor-pointer text-sm ${(selectedCustomer?._id || selectedCustomer?.id) === (customer._id || customer.id) ? '' : ''
-                                                                        }`}
-                                                                >
-                                                                    <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
-                                                                    <div className="text-xs text-gray-600">{customer.address || customer.email || customer.phone || ''}</div>
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <div className="px-3 py-2 text-sm text-gray-500">No customers found</div>
-                                                        )}
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Appointment</label>
+                                                        <div className="flex items-center gap-4 mb-2">
+                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="pickup-appointment"
+                                                                    value="Yes"
+                                                                    checked={pickupAppointment === "Yes"}
+                                                                    onChange={(e) => setPickupAppointment(e.target.value)}
+                                                                    className="w-4 h-4"
+                                                                />
+                                                                <span className="text-sm">Yes</span>
+                                                            </label>
+                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="pickup-appointment"
+                                                                    value="No"
+                                                                    checked={pickupAppointment === "No"}
+                                                                    onChange={(e) => setPickupAppointment(e.target.value)}
+                                                                    className="w-4 h-4"
+                                                                />
+                                                                <span className="text-sm">No</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Note</label>
+                                                        <textarea
+                                                            rows={3}
+                                                            value={pickupNote}
+                                                            onChange={(e) => setPickupNote(e.target.value)}
+                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                        />
                                                     </div>
                                                 </div>
-                                            )}
+                                            </div>
+
+                                            {/* DELIVERY Section */}
+                                            <div className="border-2 border-green-100 rounded-lg p-4 bg-green-50/30">
+                                                <div className="flex items-center gap-4 mb-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <input type="checkbox" id="delivery-checkbox" className="w-4 h-4" defaultChecked />
+                                                        <label htmlFor="delivery-checkbox" className="font-medium text-gray-800 text-sm">DELIVERY</label>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-3">
+                                                    <div className="relative" ref={deliveryDropdownRef}>
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Location *</label>
+                                                        <div className="relative">
+                                                            <div
+                                                                onClick={() => setDeliveryDropdownOpen(!deliveryDropdownOpen)}
+                                                                className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 "
+                                                            >
+                                                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${deliveryDropdownOpen ? 'rotate-180' : ''}`} />
+                                                                <input
+                                                                    type="text"
+                                                                    value={selectedDeliveryPlace ? `${selectedDeliveryPlace.name || ''} | ${selectedDeliveryPlace.currentLocation?.address || ''}` : deliverySearch}
+                                                                    onChange={(e) => {
+                                                                        setDeliverySearch(e.target.value);
+                                                                        setDeliveryDropdownOpen(true);
+                                                                    }}
+                                                                    onFocus={() => setDeliveryDropdownOpen(true)}
+                                                                    placeholder="Search delivery location..."
+                                                                    className="flex-1 outline-none text-sm min-w-0"
+                                                                    readOnly={!!selectedDeliveryPlace}
+                                                                />
+                                                                {selectedDeliveryPlace && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setSelectedDeliveryPlace(null);
+                                                                                setDeliverySearch("");
+                                                                            }}
+                                                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                                        >
+                                                                            <X className="w-4 h-4 text-gray-400" />
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                            </div>
+
+                                                            {deliveryDropdownOpen && (
+                                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                                    <div className="p-2 border-b border-gray-200">
+                                                                        <div className="relative">
+                                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                            <input
+                                                                                type="text"
+                                                                                value={deliverySearch}
+                                                                                onChange={(e) => setDeliverySearch(e.target.value)}
+                                                                                placeholder="Search places..."
+                                                                                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                                autoFocus
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="overflow-y-auto max-h-48">
+                                                                        {filteredDeliveryPlaces.length > 0 ? (
+                                                                            filteredDeliveryPlaces.map((place) => (
+                                                                                <div
+                                                                                    key={place._id}
+                                                                                    onClick={() => {
+                                                                                        setSelectedDeliveryPlace(place);
+                                                                                        setDeliverySearch("");
+                                                                                        setDeliveryDropdownOpen(false);
+                                                                                    }}
+                                                                                    className="px-3 py-2 cursor-pointer text-sm"
+                                                                                    style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
+                                                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
+                                                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
+                                                                                >
+                                                                                    <div className="font-medium ">{place.name || 'Unnamed Place'}</div>
+                                                                                    <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
+                                                                                </div>
+                                                                            ))
+                                                                        ) : (
+                                                                            <div className="px-3 py-2 text-sm text-gray-500">No places found</div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Reference No.</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Ref No"
+                                                            value={deliveryRefNo}
+                                                            onChange={(e) => setDeliveryRefNo(e.target.value)}
+                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                        />
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Delivery Date *</label>
+                                                            <input
+                                                                type="date"
+                                                                value={deliveryDate}
+                                                                onChange={(e) => setDeliveryDate(e.target.value)}
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Time *</label>
+                                                            <input
+                                                                type="time"
+                                                                value={deliveryTime}
+                                                                onChange={(e) => setDeliveryTime(e.target.value)}
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Appointment</label>
+                                                        <div className="flex items-center gap-4 mb-2">
+                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="delivery-appointment"
+                                                                    value="Yes"
+                                                                    checked={deliveryAppointment === "Yes"}
+                                                                    onChange={(e) => setDeliveryAppointment(e.target.value)}
+                                                                    className="w-4 h-4"
+                                                                />
+                                                                <span className="text-sm">Yes</span>
+                                                            </label>
+                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="delivery-appointment"
+                                                                    value="No"
+                                                                    checked={deliveryAppointment === "No"}
+                                                                    onChange={(e) => setDeliveryAppointment(e.target.value)}
+                                                                    className="w-4 h-4"
+                                                                />
+                                                                <span className="text-sm">No</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Note</label>
+                                                        <textarea
+                                                            rows={3}
+                                                            value={deliveryNote}
+                                                            onChange={(e) => setDeliveryNote(e.target.value)}
+                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Border Information Section - ONLY SHOW IF CROSS BORDER */}
+                                        {borderRequired && (
+                                            <div className="bg-white rounded-lg border-2 border-orange-200 p-4 mt-6 mb-4">
+                                                <div className="flex items-center justify-between mb-4 pb-2 border-b border-orange-200">
+                                                    <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                                                        Border Information
+
+                                                    </h4>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    {/* Direction and Port */}
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Border Direction</label>
+                                                            <select
+                                                                value={borderDirection}
+                                                                onChange={(e) => setBorderDirection(e.target.value)}
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-gray-50 font-medium text-gray-800"
+                                                            >
+                                                                <option value="CA_TO_US">CA → US (ACE)</option>
+                                                                <option value="US_TO_CA">US → CA (ACI)</option>
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Port of Entry</label>
+                                                            <select
+                                                                value={portOfEntry}
+                                                                onChange={(e) => setPortOfEntry(e.target.value)}
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                            >
+                                                                <option value="">Select Port</option>
+                                                                {PORT_OPTIONS.map(port => (
+                                                                    <option key={port} value={port}>{port}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Broker Information */}
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <div className="md:col-span-1">
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Broker Name</label>
+                                                            <div className="relative">
+                                                                <input
+                                                                    list="broker-options"
+                                                                    type="text"
+                                                                    value={brokerName}
+                                                                    onChange={(e) => setBrokerName(e.target.value)}
+                                                                    placeholder="Select or type broker"
+                                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                />
+                                                                <datalist id="broker-options">
+                                                                    {BROKER_OPTIONS.map(broker => (
+                                                                        <option key={broker} value={broker} />
+                                                                    ))}
+                                                                </datalist>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Broker Phone</label>
+                                                            <input
+                                                                type="text"
+                                                                value={brokerPhone}
+                                                                onChange={(e) => setBrokerPhone(e.target.value)}
+                                                                placeholder="For driver"
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Broker Email</label>
+                                                            <input
+                                                                type="email"
+                                                                value={brokerEmail}
+                                                                onChange={(e) => setBrokerEmail(e.target.value)}
+                                                                placeholder="Optional"
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Cargo Details for Border */}
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Cargo Description</label>
+                                                            <input
+                                                                type="text"
+                                                                value={cargoDescription}
+                                                                onChange={(e) => setCargoDescription(e.target.value)}
+                                                                placeholder="Plain English (CBP rule)"
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">HS Code</label>
+                                                            <input
+                                                                type="text"
+                                                                value={hsCode}
+                                                                onChange={(e) => setHsCode(e.target.value)}
+                                                                placeholder="Recommend for faster clearance"
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Value/Country Origin */}
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Commercial Value</label>
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={commercialValue}
+                                                                    onChange={(e) => setCommercialValue(e.target.value)}
+                                                                    placeholder="Customs value"
+                                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                />
+                                                                <div className="flex items-center px-3 bg-gray-50 border border-gray-300 rounded text-gray-500 text-sm">
+                                                                    {valueOfGoodsCurrency || 'CAD'}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Country of Origin</label>
+                                                            <input
+                                                                type="text"
+                                                                value={countryOfOrigin}
+                                                                onChange={(e) => setCountryOfOrigin(e.target.value)}
+                                                                placeholder="Optional"
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Distance and Additional Info */}
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4 pt-4 border-t border-gray-200">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">Distance</label>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Distance"
+                                                        value={distance || (typeof calculatedMileage === 'number' && calculatedMileage > 0 ? calculatedMileage.toString() : '')}
+                                                        onChange={(e) => setDistance(e.target.value)}
+                                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    />
+                                                    <button
+                                                        onClick={() => {
+                                                            const mileage = calculateMileage();
+                                                            if (typeof mileage === 'number' && mileage > 0) {
+                                                                setDistance(mileage.toString());
+                                                                addNotification('success', `Distance calculated: ${mileage} miles`);
+                                                            } else {
+                                                                addNotification('warning', 'Please select both pickup and delivery locations to calculate distance');
+                                                            }
+                                                        }}
+                                                        className="px-4 py-2 !text-white rounded text-sm font-medium hover:opacity-90 transition-opacity flex-shrink-0 shadow-md"
+                                                        style={{ background: PRIMARY_GRADIENT }}
+                                                    >
+                                                        Calculate
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">Additional Info</label>
+                                                <div className="flex flex-wrap gap-3">
+                                                    {(Object.keys(additionalInfo) as Array<keyof typeof additionalInfo>).map((key) => (
+                                                        <label key={key} className="flex items-center gap-1 cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={additionalInfo[key]}
+                                                                onChange={() => handleAdditionalInfoToggle(key)}
+                                                                className="w-4 h-4  rounded focus:ring-2"
+                                                            />
+                                                            <span className="text-xs">{key === "OverDimension" ? "Over Dimension" : key}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    {/* Customer Order # */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Customer Order # *</label>
-                                        <input
-                                            type="text"
-                                            value={customerOrderNo}
-                                            onChange={(e) => setCustomerOrderNo(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                        />
-                                    </div>
-
-                                    {/* Order Type Toggle */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Order Type</label>
-                                        <div className="flex border border-gray-300 rounded overflow-hidden">
-                                            <button
-                                                onClick={() => setLoadType("FTL")}
-                                                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${loadType === "FTL"
-                                                    ? "!text-white"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
-                                                    }`}
-                                                style={loadType === "FTL" ? { background: PRIMARY_GRADIENT } : {}}
-                                            >
-                                                FTL
-                                            </button>
-                                            <button
-                                                onClick={() => setLoadType("LTL")}
-                                                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${loadType === "LTL"
-                                                    ? "!text-white"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
-                                                    }`}
-                                                style={loadType === "LTL" ? { background: PRIMARY_GRADIENT } : {}}
-                                            >
-                                                LTL
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Freight on Toggle */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Freight on</label>
-                                        <div className="flex border border-gray-300 rounded overflow-hidden">
-                                            <button
-                                                onClick={() => setFreightOn("Order")}
-                                                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${freightOn === "Order"
-                                                    ? "!text-white"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
-                                                    }`}
-                                            >
-                                                Order
-                                            </button>
-                                            <button
-                                                onClick={() => setFreightOn("Item")}
-                                                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${freightOn === "Item"
-                                                    ? "!text-white"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
-                                                    }`}
-                                            >
-                                                Item
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Salesman */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Salesman</label>
-                                        <div className="flex gap-1">
-                                            <select
-                                                value={selectedSalesman}
-                                                onChange={(e) => setSelectedSalesman(e.target.value)}
-                                                className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                            >
-                                                <option value="">Select</option>
-                                                <option value="john">John Doe</option>
-                                                <option value="jane">Jane Smith</option>
-                                            </select>
-                                            <button
-                                                className="px-2 rounded text-xl leading-none flex-shrink-0 transition-colors"
-                                                style={{ color: PRIMARY_COLOR }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
-                                            >+</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mt-4">
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Order Notes</label>
-                                    <textarea
-                                        rows={2}
-                                        value={orderNotes}
-                                        onChange={(e) => setOrderNotes(e.target.value)}
-                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2  text-sm"
-                                        placeholder="Enter any additional notes for this order..."
-                                    />
                                 </div>
                             </div>
+                        </div>
+                    )}
 
-                            {/* Shipment Section - Part of Step 1 */}
-                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
-                                    <h4 className="text-sm font-semibold text-gray-800">Shipment Details</h4>
-                                </div>
-                                {/* Top Fields */}
-                                <div className="space-y-4">
-                                    {/* Commodity */}
-                                    <div className="flex items-center relative">
-                                        <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
-                                            Commodity <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="flex-1 relative">
+
+
+                    {currentStep === 2 && (
+                        <div className="border-b border-gray-200">
+                            <div className="p-5 border-b border-gray-200" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
+                                <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                                    <span className="w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style={{ background: PRIMARY_GRADIENT }}>2</span>
+                                    Shipper Information
+                                </h3>
+                                <p className="text-xs text-gray-600 mt-1 ml-10">Enter shipper contact details and pickup appointment information</p>
+                            </div>
+                            <div className="px-5 pt-5 pb-0 space-y-6">
+                                {/* Shipper Contact Information */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Contact Information</h4>
+                                    <div className="space-y-4">
+                                        {/* Shipper Name */}
+                                        <div className="relative">
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Name *</label>
                                             <input
                                                 type="text"
-                                                value={commodity}
+                                                value={shipperName}
                                                 onChange={(e) => {
-                                                    setCommodity(e.target.value);
-                                                    debouncedFetchSuggestions('commodity', e.target.value);
+                                                    setShipperName(e.target.value);
+                                                    debouncedFetchSuggestions('shipperName', e.target.value);
                                                 }}
                                                 onFocus={() => {
-                                                    if (commodity && commodity.length >= 2) {
-                                                        fetchSuggestions('commodity', commodity);
+                                                    if (shipperName && shipperName.length >= 2) {
+                                                        fetchSuggestions('shipperName', shipperName);
                                                     }
                                                 }}
                                                 onBlur={() => {
-                                                    setTimeout(() => setShowCommoditySuggestions(false), 200);
+                                                    setTimeout(() => setShowShipperNameSuggestions(false), 200);
                                                 }}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                                placeholder="Enter commodity"
+                                                className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
+                                                placeholder="Enter shipper name"
                                             />
-                                            {showCommoditySuggestions && commoditySuggestions.length > 0 && (
+                                            {showShipperNameSuggestions && shipperNameSuggestions.length > 0 && (
                                                 <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                                    {commoditySuggestions.map((suggestion, index) => (
+                                                    {shipperNameSuggestions.map((suggestion, index) => (
                                                         <div
                                                             key={index}
                                                             onClick={() => {
-                                                                setCommodity(suggestion);
-                                                                setShowCommoditySuggestions(false);
+                                                                setShipperName(suggestion);
+                                                                setShowShipperNameSuggestions(false);
                                                             }}
                                                             className="px-3 py-2 cursor-pointer text-sm"
                                                             style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
@@ -1320,1386 +2292,685 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
 
-                                    {/* Value of goods - Input on left, Dropdown on right (like Weight) */}
-                                    <div className="flex items-center">
-                                        <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
-                                            Value of goods
-                                        </label>
-                                        <div className="flex-1 flex gap-2">
+                                        {/* Shipper Phone */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Phone *</label>
                                             <input
-                                                type="text"
-                                                value={valueOfGoods}
-                                                onChange={(e) => setValueOfGoods(e.target.value)}
-                                                placeholder="Enter value"
-                                                className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                type="tel"
+                                                value={shipperPhone}
+                                                onChange={(e) => setShipperPhone(e.target.value)}
+                                                className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
+                                                placeholder="Enter shipper phone"
                                             />
-                                            <select
-                                                value={valueOfGoodsCurrency}
-                                                onChange={(e) => setValueOfGoodsCurrency(e.target.value)}
-                                                className="w-48 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
-                                            >
-                                                <option value="">Select</option>
-                                                {currencyOptions.map(currency => (
-                                                    <option key={currency.value} value={currency.value}>{currency.label}</option>
-                                                ))}
-                                            </select>
                                         </div>
-                                    </div>
 
-                                    {/* Equipment */}
-                                    <div className="flex items-start">
-                                        <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0 pt-2">
-                                            Equipment
-                                        </label>
-                                        <div className="flex-1 relative" ref={equipmentDropdownRef}>
-                                            <div className="flex gap-2">
-                                                <div
-                                                    onClick={() => setEquipmentDropdownOpen(!equipmentDropdownOpen)}
-                                                    className="flex-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 focus-within:ring-2 focus-within:ring-blue-500 flex items-center justify-between"
-                                                >
-                                                    <span className="text-sm text-gray-600">
-                                                        {selectedEquipment.length > 0
-                                                            ? `${selectedEquipment.length} selected`
-                                                            : "Select equipment"
-                                                        }
-                                                    </span>
-                                                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${equipmentDropdownOpen ? 'rotate-180' : ''}`} />
-                                                </div>
+                                        {/* Shipper Email */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Email (optional)</label>
+                                            <input
+                                                type="email"
+                                                value={shipperEmail}
+                                                onChange={(e) => setShipperEmail(e.target.value)}
+                                                className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
+                                                placeholder="Enter shipper email"
+                                            />
+                                        </div>
+
+                                        {/* Shipper Address */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Address *</label>
+                                            <div className="flex gap-2 mb-2">
                                                 <button
-                                                    className="px-3 py-2 !text-white rounded hover:opacity-90 transition-opacity text-sm font-medium flex-shrink-0 shadow-md"
-                                                    style={{ background: PRIMARY_GRADIENT }}
-                                                    onClick={() => addNotification('warning', 'Add new equipment functionality coming soon')}
+                                                    onClick={() => setShipperAddressType("saved")}
+                                                    className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${shipperAddressType === "saved"
+                                                        ? "!text-white"
+                                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                        }`}
                                                 >
-                                                    + Add
+                                                    Saved Master
+                                                </button>
+                                                <button
+                                                    onClick={() => setShipperAddressType("manual")}
+                                                    className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${shipperAddressType === "manual"
+                                                        ? "!text-white"
+                                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                        }`}
+                                                >
+                                                    Manual Entry
                                                 </button>
                                             </div>
 
-                                            {equipmentDropdownOpen && (
-                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                                                    {equipmentTypes.map((equipment) => (
-                                                        <label
-                                                            key={equipment}
-                                                            className="flex items-center gap-2 px-3 py-2 cursor-pointer"
-                                                            style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
-                                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
-                                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
+                                            {shipperAddressType === "saved" ? (
+                                                <div className="relative" ref={shipperAddressDropdownRef}>
+                                                    <div className="relative">
+                                                        <div
+                                                            onClick={() => setShipperAddressDropdownOpen(!shipperAddressDropdownOpen)}
+                                                            className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 "
                                                         >
+                                                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${shipperAddressDropdownOpen ? 'rotate-180' : ''}`} />
                                                             <input
-                                                                type="checkbox"
-                                                                checked={selectedEquipment.includes(equipment)}
-                                                                onChange={() => handleEquipmentToggle(equipment)}
-                                                                className="w-4 h-4  rounded focus:ring-2"
+                                                                type="text"
+                                                                value={selectedShipperAddress ? `${selectedShipperAddress.name || ''} | ${selectedShipperAddress.currentLocation?.address || ''}` : shipperAddressSearch}
+                                                                onChange={(e) => {
+                                                                    setShipperAddressSearch(e.target.value);
+                                                                    setShipperAddressDropdownOpen(true);
+                                                                }}
+                                                                onFocus={() => setShipperAddressDropdownOpen(true)}
+                                                                placeholder="Search saved address..."
+                                                                className="flex-1 outline-none text-sm min-w-0"
+                                                                readOnly={!!selectedShipperAddress}
                                                             />
-                                                            <span className="text-sm text-gray-700">{equipment}</span>
-                                                        </label>
-                                                    ))}
+                                                            {selectedShipperAddress && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSelectedShipperAddress(null);
+                                                                        setShipperAddressSearch("");
+                                                                    }}
+                                                                    className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                                >
+                                                                    <X className="w-4 h-4 text-gray-400" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        {shipperAddressDropdownOpen && (
+                                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                                <div className="p-2 border-b border-gray-200">
+                                                                    <div className="relative">
+                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                        <input
+                                                                            type="text"
+                                                                            value={shipperAddressSearch}
+                                                                            onChange={(e) => setShipperAddressSearch(e.target.value)}
+                                                                            placeholder="Search addresses..."
+                                                                            className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                            autoFocus
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="overflow-y-auto max-h-48">
+                                                                    {filteredShipperAddresses.length > 0 ? (
+                                                                        filteredShipperAddresses.map((place) => (
+                                                                            <div
+                                                                                key={place._id}
+                                                                                onClick={() => {
+                                                                                    setSelectedShipperAddress(place);
+                                                                                    setShipperAddressSearch("");
+                                                                                    setShipperAddressDropdownOpen(false);
+                                                                                }}
+                                                                                className="px-3 py-2 cursor-pointer text-sm"
+                                                                                style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
+                                                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
+                                                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
+                                                                            >
+                                                                                <div className="font-medium ">{place.name || 'Unnamed Place'}</div>
+                                                                                <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
+                                                                            </div>
+                                                                        ))
+                                                                    ) : (
+                                                                        <div className="px-3 py-2 text-sm text-gray-500">No addresses found</div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
+                                            ) : (
+                                                <textarea
+                                                    rows={3}
+                                                    value={shipperManualAddress}
+                                                    onChange={(e) => setShipperManualAddress(e.target.value)}
+                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    placeholder="Enter shipper address manually"
+                                                />
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* No of Packages - Input on left, Dropdown on right (like Weight) */}
-                                    <div className="flex items-center">
-                                        <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
-                                            No of Packages
-                                        </label>
-                                        <div className="flex-1 flex gap-2 relative" ref={packagesDropdownRef}>
-                                            <input
-                                                type="text"
-                                                value={noOfPackages}
-                                                onChange={(e) => setNoOfPackages(e.target.value)}
-                                                placeholder="Enter number"
-                                                className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                            />
-                                            <div className="relative w-48">
-                                                <div
-                                                    onClick={() => setNoOfPackagesDropdownOpen(!noOfPackagesDropdownOpen)}
-                                                    className="flex items-center justify-between p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 focus-within:ring-2 focus-within:ring-blue-500"
-                                                >
-                                                    <span className="text-sm text-gray-600 truncate">
-                                                        {noOfPackagesType || "Select"}
-                                                    </span>
-                                                    {noOfPackagesType && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setNoOfPackagesType("");
-                                                            }}
-                                                            className="p-0.5 hover:bg-gray-100 rounded mr-1 flex-shrink-0"
-                                                        >
-                                                            <X className="w-3 h-3 text-gray-400" />
-                                                        </button>
-                                                    )}
-                                                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${noOfPackagesDropdownOpen ? 'rotate-180' : ''}`} />
-                                                </div>
+                                    {/* Pickup Appointment */}
+                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                        <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Pickup Appointment Details</h4>
 
-                                                {noOfPackagesDropdownOpen && (
-                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                        <div className="p-2 border-b border-gray-200">
-                                                            <div className="relative">
-                                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                                <input
-                                                                    type="text"
-                                                                    value={noOfPackagesSearch}
-                                                                    onChange={(e) => setNoOfPackagesSearch(e.target.value)}
-                                                                    placeholder="Searching..."
-                                                                    className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
-                                                                    autoFocus
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="overflow-y-auto max-h-48">
-                                                            {filteredPackages.map((pkg) => (
-                                                                <div
-                                                                    key={pkg}
-                                                                    onClick={() => {
-                                                                        setNoOfPackagesType(pkg);
-                                                                        setNoOfPackagesSearch("");
-                                                                        setNoOfPackagesDropdownOpen(false);
-                                                                    }}
-                                                                    className="px-3 py-2 cursor-pointer text-sm"
-                                                                    style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
-                                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
-                                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
-                                                                >
-                                                                    {pkg}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Weight */}
-                                    <div className="flex items-center">
-                                        <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
-                                            Weight
-                                        </label>
-                                        <div className="flex-1 flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={weight}
-                                                onChange={(e) => setWeight(e.target.value)}
-                                                placeholder="Enter weight"
-                                                className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                            />
-                                            <select
-                                                value={weightUnit}
-                                                onChange={(e) => setWeightUnit(e.target.value)}
-                                                className="w-24 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
-                                            >
-                                                <option value="">Unit</option>
-                                                {weightUnits.map(unit => (
-                                                    <option key={unit} value={unit}>{unit}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    {/* Temperature */}
-                                    <div className="flex items-center">
-                                        <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
-                                            Temperature
-                                        </label>
-                                        <div className="flex-1 flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={temperature}
-                                                onChange={(e) => setTemperature(e.target.value)}
-                                                placeholder="Enter temperature"
-                                                className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                            />
-                                            <select
-                                                value={temperatureUnit}
-                                                onChange={(e) => setTemperatureUnit(e.target.value)}
-                                                className="w-32 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
-                                            >
-                                                <option value="Celsius">Celsius</option>
-                                                <option value="Fahrenheit">Fahrenheit</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    {/* Weather Conditions */}
-                                    <div className="flex items-center">
-                                        <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
-                                            Weather Conditions
-                                        </label>
-                                        <div className="flex-1 flex gap-4">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={weatherConditions.snow}
-                                                    onChange={(e) => setWeatherConditions(prev => ({ ...prev, snow: e.target.checked }))}
-                                                    className="w-4 h-4  border-gray-300 rounded focus:ring-2"
-                                                />
-                                                <span className="text-sm text-gray-700">Snow Conditions</span>
-                                            </label>
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={weatherConditions.highTemperature}
-                                                    onChange={(e) => setWeatherConditions(prev => ({ ...prev, highTemperature: e.target.checked }))}
-                                                    className="w-4 h-4  border-gray-300 rounded focus:ring-2"
-                                                />
-                                                <span className="text-sm text-gray-700">High Temperature</span>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {/* Dimensions */}
-                                    <div className="mb-4 mt-4">
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Dimension (LxBxH)</label>
-                                        <div className="flex gap-2 items-center flex-wrap">
-                                            <input
-                                                type="text"
-                                                value={dimensionL}
-                                                onChange={(e) => setDimensionL(e.target.value)}
-                                                placeholder="L"
-                                                className="w-20 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                            />
-                                            <span className="text-gray-400 text-sm">×</span>
-                                            <input
-                                                type="text"
-                                                value={dimensionB}
-                                                onChange={(e) => setDimensionB(e.target.value)}
-                                                placeholder="B"
-                                                className="w-20 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                            />
-                                            <span className="text-gray-400 text-sm">×</span>
-                                            <input
-                                                type="text"
-                                                value={dimensionH}
-                                                onChange={(e) => setDimensionH(e.target.value)}
-                                                placeholder="H"
-                                                className="w-20 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                            />
-                                            <select
-                                                value={dimensionUnit}
-                                                onChange={(e) => setDimensionUnit(e.target.value)}
-                                                className="p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm min-w-[100px]"
-                                            >
-                                                <option value="">Select</option>
-                                                {dimensionUnits.map(unit => (
-                                                    <option key={unit} value={unit}>{unit}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    {/* PICKUP and DELIVERY Side by Side */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 mt-6 pt-4 border-t border-gray-200">
-                                        {/* PICKUP Section */}
-                                        <div className="rounded-lg p-4" style={{ border: `2px solid ${PRIMARY_LIGHT_BG.replace('0.1', '0.3')}`, backgroundColor: PRIMARY_LIGHT_BG }}>
-                                            <div className="flex items-center gap-4 mb-3">
-                                                <div className="flex items-center gap-2">
-                                                    <input type="checkbox" id="pickup-checkbox" className="w-4 h-4" defaultChecked />
-                                                    <label htmlFor="pickup-checkbox" className="font-medium text-gray-800 text-sm">PICKUP</label>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <input type="checkbox" id="same-pickup" className="w-4 h-4" />
-                                                    <label htmlFor="same-pickup" className="text-xs text-gray-600">Same pickup for next shipment</label>
+                                        <div className="space-y-4">
+                                            {/* Appointment Type */}
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-2">Appointment Type *</label>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => setPickupAppointmentType("FCFS")}
+                                                        className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-md ${pickupAppointmentType === "FCFS"
+                                                            ? "!text-white"
+                                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                            }`}
+                                                    >
+                                                        FCFS
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setPickupAppointmentType("Window")}
+                                                        className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-md ${pickupAppointmentType === "Window"
+                                                            ? "!text-white"
+                                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                            }`}
+                                                    >
+                                                        Window
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setPickupAppointmentType("Strict Time")}
+                                                        className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-md ${pickupAppointmentType === "Strict Time"
+                                                            ? "!text-white"
+                                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                            }`}
+                                                    >
+                                                        Strict Time
+                                                    </button>
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-3">
-                                                <div className="relative" ref={pickupDropdownRef}>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Location *</label>
-                                                    <div className="relative">
-                                                        <div
-                                                            onClick={() => setPickupDropdownOpen(!pickupDropdownOpen)}
-                                                            className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 "
-                                                        >
-                                                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
-                                                            <input
-                                                                type="text"
-                                                                value={selectedPickupPlace ? `${selectedPickupPlace.name || ''} | ${selectedPickupPlace.currentLocation?.address || ''}` : pickupSearch}
-                                                                onChange={(e) => {
-                                                                    setPickupSearch(e.target.value);
-                                                                    setPickupDropdownOpen(true);
-                                                                }}
-                                                                onFocus={() => setPickupDropdownOpen(true)}
-                                                                placeholder="Search pickup location..."
-                                                                className="flex-1 outline-none text-sm min-w-0"
-                                                                readOnly={!!selectedPickupPlace}
-                                                            />
-                                                            {selectedPickupPlace && (
-                                                                <>
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setSelectedPickupPlace(null);
-                                                                            setPickupSearch("");
-                                                                        }}
-                                                                        className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                                                                    >
-                                                                        <X className="w-4 h-4 text-gray-400" />
-                                                                    </button>
-                                                                </>
-                                                            )}
-                                                        </div>
-
-                                                        {pickupDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                                <div className="p-2 border-b border-gray-200">
-                                                                    <div className="relative">
-                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                                        <input
-                                                                            type="text"
-                                                                            value={pickupSearch}
-                                                                            onChange={(e) => setPickupSearch(e.target.value)}
-                                                                            placeholder="Search places..."
-                                                                            className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
-                                                                            autoFocus
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="overflow-y-auto max-h-48">
-                                                                    {filteredPickupPlaces.length > 0 ? (
-                                                                        filteredPickupPlaces.map((place) => (
-                                                                            <div
-                                                                                key={place._id}
-                                                                                onClick={() => {
-                                                                                    setSelectedPickupPlace(place);
-                                                                                    setPickupSearch("");
-                                                                                    setPickupDropdownOpen(false);
-                                                                                }}
-                                                                                className="px-3 py-2 cursor-pointer text-sm"
-                                                                                style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
-                                                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
-                                                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
-                                                                            >
-                                                                                <div className="font-medium ">{place.name || 'Unnamed Place'}</div>
-                                                                                <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
-                                                                            </div>
-                                                                        ))
-                                                                    ) : (
-                                                                        <div className="px-3 py-2 text-sm text-gray-500">No places found</div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
+                                            {/* Date + Time */}
+                                            <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Reference No.</label>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Date *</label>
                                                     <input
-                                                        type="text"
-                                                        placeholder="Ref No"
-                                                        value={pickupRefNo}
-                                                        onChange={(e) => setPickupRefNo(e.target.value)}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                        type="date"
+                                                        value={pickupAppointmentDate}
+                                                        onChange={(e) => setPickupAppointmentDate(e.target.value)}
+                                                        className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm bg-white"
                                                     />
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Pickup Date *</label>
-                                                        <input
-                                                            type="date"
-                                                            value={pickupDate}
-                                                            onChange={(e) => setPickupDate(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Time *</label>
-                                                        <input
-                                                            type="time"
-                                                            value={pickupTime}
-                                                            onChange={(e) => setPickupTime(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
-                                                        />
-                                                    </div>
-                                                </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Appointment</label>
-                                                    <div className="flex items-center gap-4 mb-2">
-                                                        <label className="flex items-center gap-2 cursor-pointer">
-                                                            <input
-                                                                type="radio"
-                                                                name="pickup-appointment"
-                                                                value="Yes"
-                                                                checked={pickupAppointment === "Yes"}
-                                                                onChange={(e) => setPickupAppointment(e.target.value)}
-                                                                className="w-4 h-4"
-                                                            />
-                                                            <span className="text-sm">Yes</span>
-                                                        </label>
-                                                        <label className="flex items-center gap-2 cursor-pointer">
-                                                            <input
-                                                                type="radio"
-                                                                name="pickup-appointment"
-                                                                value="No"
-                                                                checked={pickupAppointment === "No"}
-                                                                onChange={(e) => setPickupAppointment(e.target.value)}
-                                                                className="w-4 h-4"
-                                                            />
-                                                            <span className="text-sm">No</span>
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Note</label>
-                                                    <textarea
-                                                        rows={3}
-                                                        value={pickupNote}
-                                                        onChange={(e) => setPickupNote(e.target.value)}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* DELIVERY Section */}
-                                        <div className="border-2 border-green-100 rounded-lg p-4 bg-green-50/30">
-                                            <div className="flex items-center gap-4 mb-3">
-                                                <div className="flex items-center gap-2">
-                                                    <input type="checkbox" id="delivery-checkbox" className="w-4 h-4" defaultChecked />
-                                                    <label htmlFor="delivery-checkbox" className="font-medium text-gray-800 text-sm">DELIVERY</label>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                <div className="relative" ref={deliveryDropdownRef}>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Location *</label>
-                                                    <div className="relative">
-                                                        <div
-                                                            onClick={() => setDeliveryDropdownOpen(!deliveryDropdownOpen)}
-                                                            className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 "
-                                                        >
-                                                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${deliveryDropdownOpen ? 'rotate-180' : ''}`} />
-                                                            <input
-                                                                type="text"
-                                                                value={selectedDeliveryPlace ? `${selectedDeliveryPlace.name || ''} | ${selectedDeliveryPlace.currentLocation?.address || ''}` : deliverySearch}
-                                                                onChange={(e) => {
-                                                                    setDeliverySearch(e.target.value);
-                                                                    setDeliveryDropdownOpen(true);
-                                                                }}
-                                                                onFocus={() => setDeliveryDropdownOpen(true)}
-                                                                placeholder="Search delivery location..."
-                                                                className="flex-1 outline-none text-sm min-w-0"
-                                                                readOnly={!!selectedDeliveryPlace}
-                                                            />
-                                                            {selectedDeliveryPlace && (
-                                                                <>
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setSelectedDeliveryPlace(null);
-                                                                            setDeliverySearch("");
-                                                                        }}
-                                                                        className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                                                                    >
-                                                                        <X className="w-4 h-4 text-gray-400" />
-                                                                    </button>
-                                                                </>
-                                                            )}
-                                                        </div>
-
-                                                        {deliveryDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                                <div className="p-2 border-b border-gray-200">
-                                                                    <div className="relative">
-                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                                        <input
-                                                                            type="text"
-                                                                            value={deliverySearch}
-                                                                            onChange={(e) => setDeliverySearch(e.target.value)}
-                                                                            placeholder="Search places..."
-                                                                            className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
-                                                                            autoFocus
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="overflow-y-auto max-h-48">
-                                                                    {filteredDeliveryPlaces.length > 0 ? (
-                                                                        filteredDeliveryPlaces.map((place) => (
-                                                                            <div
-                                                                                key={place._id}
-                                                                                onClick={() => {
-                                                                                    setSelectedDeliveryPlace(place);
-                                                                                    setDeliverySearch("");
-                                                                                    setDeliveryDropdownOpen(false);
-                                                                                }}
-                                                                                className="px-3 py-2 cursor-pointer text-sm"
-                                                                                style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
-                                                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
-                                                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
-                                                                            >
-                                                                                <div className="font-medium ">{place.name || 'Unnamed Place'}</div>
-                                                                                <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
-                                                                            </div>
-                                                                        ))
-                                                                    ) : (
-                                                                        <div className="px-3 py-2 text-sm text-gray-500">No places found</div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Reference No.</label>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Time *</label>
                                                     <input
-                                                        type="text"
-                                                        placeholder="Ref No"
-                                                        value={deliveryRefNo}
-                                                        onChange={(e) => setDeliveryRefNo(e.target.value)}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
-                                                    />
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Delivery Date *</label>
-                                                        <input
-                                                            type="date"
-                                                            value={deliveryDate}
-                                                            onChange={(e) => setDeliveryDate(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Time *</label>
-                                                        <input
-                                                            type="time"
-                                                            value={deliveryTime}
-                                                            onChange={(e) => setDeliveryTime(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Appointment</label>
-                                                    <div className="flex items-center gap-4 mb-2">
-                                                        <label className="flex items-center gap-2 cursor-pointer">
-                                                            <input
-                                                                type="radio"
-                                                                name="delivery-appointment"
-                                                                value="Yes"
-                                                                checked={deliveryAppointment === "Yes"}
-                                                                onChange={(e) => setDeliveryAppointment(e.target.value)}
-                                                                className="w-4 h-4"
-                                                            />
-                                                            <span className="text-sm">Yes</span>
-                                                        </label>
-                                                        <label className="flex items-center gap-2 cursor-pointer">
-                                                            <input
-                                                                type="radio"
-                                                                name="delivery-appointment"
-                                                                value="No"
-                                                                checked={deliveryAppointment === "No"}
-                                                                onChange={(e) => setDeliveryAppointment(e.target.value)}
-                                                                className="w-4 h-4"
-                                                            />
-                                                            <span className="text-sm">No</span>
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Note</label>
-                                                    <textarea
-                                                        rows={3}
-                                                        value={deliveryNote}
-                                                        onChange={(e) => setDeliveryNote(e.target.value)}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                                        type="time"
+                                                        value={pickupAppointmentTime}
+                                                        onChange={(e) => setPickupAppointmentTime(e.target.value)}
+                                                        className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm bg-white"
                                                     />
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
 
-                                    {/* Distance and Additional Info */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4 pt-4 border-t border-gray-200">
-                                        <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Distance</label>
-                                            <div className="flex gap-2">
+                                            {/* Special Instructions */}
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">Special Instructions</label>
+                                                <textarea
+                                                    rows={3}
+                                                    value={pickupSpecialInstructions}
+                                                    onChange={(e) => setPickupSpecialInstructions(e.target.value)}
+                                                    className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
+                                                    placeholder="Enter special instructions"
+                                                />
+                                            </div>
+
+                                            {/* Gate Pass / Dock Number */}
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">Gate Pass / Dock Number (optional)</label>
                                                 <input
                                                     type="text"
-                                                    placeholder="Distance"
-                                                    value={distance || (typeof calculatedMileage === 'number' && calculatedMileage > 0 ? calculatedMileage.toString() : '')}
-                                                    onChange={(e) => setDistance(e.target.value)}
-                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    value={pickupGatePass}
+                                                    onChange={(e) => setPickupGatePass(e.target.value)}
+                                                    className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
+                                                    placeholder="Enter gate pass or dock number"
                                                 />
-                                                <button
-                                                    onClick={() => {
-                                                        const mileage = calculateMileage();
-                                                        if (typeof mileage === 'number' && mileage > 0) {
-                                                            setDistance(mileage.toString());
-                                                            addNotification('success', `Distance calculated: ${mileage} miles`);
-                                                        } else {
-                                                            addNotification('warning', 'Please select both pickup and delivery locations to calculate distance');
-                                                        }
-                                                    }}
-                                                    className="px-4 py-2 !text-white rounded text-sm font-medium hover:opacity-90 transition-opacity flex-shrink-0 shadow-md"
-                                                    style={{ background: PRIMARY_GRADIENT }}
-                                                >
-                                                    Calculate
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Additional Info</label>
-                                            <div className="flex flex-wrap gap-3">
-                                                {(Object.keys(additionalInfo) as Array<keyof typeof additionalInfo>).map((key) => (
-                                                    <label key={key} className="flex items-center gap-1 cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={additionalInfo[key]}
-                                                            onChange={() => handleAdditionalInfoToggle(key)}
-                                                            className="w-4 h-4  rounded focus:ring-2"
-                                                        />
-                                                        <span className="text-xs">{key === "OverDimension" ? "Over Dimension" : key}</span>
-                                                    </label>
-                                                ))}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-
-
-                {currentStep === 2 && (
-                    <div className="border-b border-gray-200">
-                        <div className="p-5 border-b border-gray-200" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
-                            <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style={{ background: PRIMARY_GRADIENT }}>2</span>
-                                Shipper Information
-                            </h3>
-                            <p className="text-xs text-gray-600 mt-1 ml-10">Enter shipper contact details and pickup appointment information</p>
-                        </div>
-                        <div className="px-5 pt-5 pb-0 space-y-6">
-                            {/* Shipper Contact Information */}
-                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Contact Information</h4>
-                                <div className="space-y-4">
-                                    {/* Shipper Name */}
-                                    <div className="relative">
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Name *</label>
-                                        <input
-                                            type="text"
-                                            value={shipperName}
-                                            onChange={(e) => {
-                                                setShipperName(e.target.value);
-                                                debouncedFetchSuggestions('shipperName', e.target.value);
-                                            }}
-                                            onFocus={() => {
-                                                if (shipperName && shipperName.length >= 2) {
-                                                    fetchSuggestions('shipperName', shipperName);
-                                                }
-                                            }}
-                                            onBlur={() => {
-                                                setTimeout(() => setShowShipperNameSuggestions(false), 200);
-                                            }}
-                                            className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
-                                            placeholder="Enter shipper name"
-                                        />
-                                        {showShipperNameSuggestions && shipperNameSuggestions.length > 0 && (
-                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                                {shipperNameSuggestions.map((suggestion, index) => (
-                                                    <div
-                                                        key={index}
-                                                        onClick={() => {
-                                                            setShipperName(suggestion);
-                                                            setShowShipperNameSuggestions(false);
-                                                        }}
-                                                        className="px-3 py-2 cursor-pointer text-sm"
-                                                        style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
-                                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
-                                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
-                                                    >
-                                                        {suggestion}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Shipper Phone */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Phone *</label>
-                                        <input
-                                            type="tel"
-                                            value={shipperPhone}
-                                            onChange={(e) => setShipperPhone(e.target.value)}
-                                            className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
-                                            placeholder="Enter shipper phone"
-                                        />
-                                    </div>
-
-                                    {/* Shipper Email */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Email (optional)</label>
-                                        <input
-                                            type="email"
-                                            value={shipperEmail}
-                                            onChange={(e) => setShipperEmail(e.target.value)}
-                                            className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
-                                            placeholder="Enter shipper email"
-                                        />
-                                    </div>
-
-                                    {/* Shipper Address */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Address *</label>
-                                        <div className="flex gap-2 mb-2">
-                                            <button
-                                                onClick={() => setShipperAddressType("saved")}
-                                                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${shipperAddressType === "saved"
-                                                    ? "!text-white"
-                                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                    }`}
-                                            >
-                                                Saved Master
-                                            </button>
-                                            <button
-                                                onClick={() => setShipperAddressType("manual")}
-                                                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${shipperAddressType === "manual"
-                                                    ? "!text-white"
-                                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                    }`}
-                                            >
-                                                Manual Entry
-                                            </button>
-                                        </div>
-
-                                        {shipperAddressType === "saved" ? (
-                                            <div className="relative" ref={shipperAddressDropdownRef}>
-                                                <div className="relative">
-                                                    <div
-                                                        onClick={() => setShipperAddressDropdownOpen(!shipperAddressDropdownOpen)}
-                                                        className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 "
-                                                    >
-                                                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${shipperAddressDropdownOpen ? 'rotate-180' : ''}`} />
-                                                        <input
-                                                            type="text"
-                                                            value={selectedShipperAddress ? `${selectedShipperAddress.name || ''} | ${selectedShipperAddress.currentLocation?.address || ''}` : shipperAddressSearch}
-                                                            onChange={(e) => {
-                                                                setShipperAddressSearch(e.target.value);
-                                                                setShipperAddressDropdownOpen(true);
-                                                            }}
-                                                            onFocus={() => setShipperAddressDropdownOpen(true)}
-                                                            placeholder="Search saved address..."
-                                                            className="flex-1 outline-none text-sm min-w-0"
-                                                            readOnly={!!selectedShipperAddress}
-                                                        />
-                                                        {selectedShipperAddress && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setSelectedShipperAddress(null);
-                                                                    setShipperAddressSearch("");
-                                                                }}
-                                                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                                                            >
-                                                                <X className="w-4 h-4 text-gray-400" />
-                                                            </button>
-                                                        )}
-                                                    </div>
-
-                                                    {shipperAddressDropdownOpen && (
-                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                            <div className="p-2 border-b border-gray-200">
-                                                                <div className="relative">
-                                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                                    <input
-                                                                        type="text"
-                                                                        value={shipperAddressSearch}
-                                                                        onChange={(e) => setShipperAddressSearch(e.target.value)}
-                                                                        placeholder="Search addresses..."
-                                                                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
-                                                                        autoFocus
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                            <div className="overflow-y-auto max-h-48">
-                                                                {filteredShipperAddresses.length > 0 ? (
-                                                                    filteredShipperAddresses.map((place) => (
-                                                                        <div
-                                                                            key={place._id}
-                                                                            onClick={() => {
-                                                                                setSelectedShipperAddress(place);
-                                                                                setShipperAddressSearch("");
-                                                                                setShipperAddressDropdownOpen(false);
-                                                                            }}
-                                                                            className="px-3 py-2 cursor-pointer text-sm"
-                                                                            style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
-                                                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
-                                                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
-                                                                        >
-                                                                            <div className="font-medium ">{place.name || 'Unnamed Place'}</div>
-                                                                            <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
-                                                                        </div>
-                                                                    ))
-                                                                ) : (
-                                                                    <div className="px-3 py-2 text-sm text-gray-500">No addresses found</div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <textarea
-                                                rows={3}
-                                                value={shipperManualAddress}
-                                                onChange={(e) => setShipperManualAddress(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                                placeholder="Enter shipper address manually"
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Pickup Appointment */}
+                    {/* Step 3: Receiver Information Section */}
+                    {currentStep === 3 && (
+                        <div className="border-b border-gray-200">
+                            <div className="p-5 bg-gradient-to-r from-green-50 to-gray-50 border-b border-gray-200">
+                                <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                                    <span className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold">3</span>
+                                    Receiver Information
+                                </h3>
+                                <p className="text-xs text-gray-600 mt-1 ml-10">Enter receiver contact details and delivery appointment information</p>
+                            </div>
+                            <div className="px-5 pt-5 pb-0 space-y-6">
+                                {/* Receiver Contact Information */}
                                 <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                    <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Pickup Appointment Details</h4>
-
+                                    <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Contact Information</h4>
                                     <div className="space-y-4">
-                                        {/* Appointment Type */}
-                                        <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-2">Appointment Type *</label>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => setPickupAppointmentType("FCFS")}
-                                                    className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-md ${pickupAppointmentType === "FCFS"
-                                                        ? "!text-white"
-                                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                        }`}
-                                                >
-                                                    FCFS
-                                                </button>
-                                                <button
-                                                    onClick={() => setPickupAppointmentType("Window")}
-                                                    className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-md ${pickupAppointmentType === "Window"
-                                                        ? "!text-white"
-                                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                        }`}
-                                                >
-                                                    Window
-                                                </button>
-                                                <button
-                                                    onClick={() => setPickupAppointmentType("Strict Time")}
-                                                    className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-md ${pickupAppointmentType === "Strict Time"
-                                                        ? "!text-white"
-                                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                        }`}
-                                                >
-                                                    Strict Time
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Date + Time */}
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Date *</label>
-                                                <input
-                                                    type="date"
-                                                    value={pickupAppointmentDate}
-                                                    onChange={(e) => setPickupAppointmentDate(e.target.value)}
-                                                    className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm bg-white"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Time *</label>
-                                                <input
-                                                    type="time"
-                                                    value={pickupAppointmentTime}
-                                                    onChange={(e) => setPickupAppointmentTime(e.target.value)}
-                                                    className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm bg-white"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Special Instructions */}
-                                        <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Special Instructions</label>
-                                            <textarea
-                                                rows={3}
-                                                value={pickupSpecialInstructions}
-                                                onChange={(e) => setPickupSpecialInstructions(e.target.value)}
-                                                className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
-                                                placeholder="Enter special instructions"
-                                            />
-                                        </div>
-
-                                        {/* Gate Pass / Dock Number */}
-                                        <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Gate Pass / Dock Number (optional)</label>
+                                        {/* Receiver Name */}
+                                        <div className="relative">
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Receiver Name *</label>
                                             <input
                                                 type="text"
-                                                value={pickupGatePass}
-                                                onChange={(e) => setPickupGatePass(e.target.value)}
-                                                className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
-                                                placeholder="Enter gate pass or dock number"
+                                                value={receiverName}
+                                                onChange={(e) => {
+                                                    setReceiverName(e.target.value);
+                                                    debouncedFetchSuggestions('receiverName', e.target.value);
+                                                }}
+                                                onFocus={() => {
+                                                    if (receiverName && receiverName.length >= 2) {
+                                                        fetchSuggestions('receiverName', receiverName);
+                                                    }
+                                                }}
+                                                onBlur={() => {
+                                                    setTimeout(() => setShowReceiverNameSuggestions(false), 200);
+                                                }}
+                                                className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                                placeholder="Enter receiver name"
+                                            />
+                                            {showReceiverNameSuggestions && receiverNameSuggestions.length > 0 && (
+                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                                    {receiverNameSuggestions.map((suggestion, index) => (
+                                                        <div
+                                                            key={index}
+                                                            onClick={() => {
+                                                                setReceiverName(suggestion);
+                                                                setShowReceiverNameSuggestions(false);
+                                                            }}
+                                                            className="px-3 py-2 cursor-pointer hover:bg-green-50 text-sm"
+                                                        >
+                                                            {suggestion}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Receiver Phone */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Receiver Phone *</label>
+                                            <input
+                                                type="tel"
+                                                value={receiverPhone}
+                                                onChange={(e) => setReceiverPhone(e.target.value)}
+                                                className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                                placeholder="Enter receiver phone"
+                                            />
+                                        </div>
+
+                                        {/* Delivery Address */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Delivery Address *</label>
+                                            <textarea
+                                                rows={3}
+                                                value={receiverAddress}
+                                                onChange={(e) => setReceiverAddress(e.target.value)}
+                                                className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                                placeholder="Enter delivery address"
                                             />
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Delivery Appointment */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Delivery Appointment Details</h4>
+
+                                    {/* Appointment Type */}
+                                    <div className="mb-3">
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Appointment Type *</label>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => setDeliveryAppointmentType("Window")}
+                                                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${deliveryAppointmentType === "Window"
+                                                    ? "!text-white"
+                                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                    }`}
+                                                style={deliveryAppointmentType === "Window" ? { background: PRIMARY_GRADIENT } : {}}
+                                            >
+                                                Window
+                                            </button>
+                                            <button
+                                                onClick={() => setDeliveryAppointmentType("Strict Time")}
+                                                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${deliveryAppointmentType === "Strict Time"
+                                                    ? "!text-white"
+                                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                    }`}
+                                                style={deliveryAppointmentType === "Strict Time" ? { background: PRIMARY_GRADIENT } : {}}
+                                            >
+                                                Strict Time
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Date + Time */}
+                                    <div className="grid grid-cols-2 gap-2 mb-3">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Date *</label>
+                                            <input
+                                                type="date"
+                                                value={deliveryAppointmentDate}
+                                                onChange={(e) => setDeliveryAppointmentDate(e.target.value)}
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Time *</label>
+                                            <input
+                                                type="time"
+                                                value={deliveryAppointmentTime}
+                                                onChange={(e) => setDeliveryAppointmentTime(e.target.value)}
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Unloading Instructions */}
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Unloading Instructions</label>
+                                        <textarea
+                                            rows={3}
+                                            value={deliveryUnloadingInstructions}
+                                            onChange={(e) => setDeliveryUnloadingInstructions(e.target.value)}
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                            placeholder="Enter unloading instructions"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
 
-                {/* Step 3: Receiver Information Section */}
-                {currentStep === 3 && (
-                    <div className="border-b border-gray-200">
-                        <div className="p-5 bg-gradient-to-r from-green-50 to-gray-50 border-b border-gray-200">
-                            <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold">3</span>
-                                Receiver Information
-                            </h3>
-                            <p className="text-xs text-gray-600 mt-1 ml-10">Enter receiver contact details and delivery appointment information</p>
-                        </div>
-                        <div className="px-5 pt-5 pb-0 space-y-6">
-                            {/* Receiver Contact Information */}
-                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Contact Information</h4>
-                                <div className="space-y-4">
-                                    {/* Receiver Name */}
-                                    <div className="relative">
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Receiver Name *</label>
-                                        <input
-                                            type="text"
-                                            value={receiverName}
-                                            onChange={(e) => {
-                                                setReceiverName(e.target.value);
-                                                debouncedFetchSuggestions('receiverName', e.target.value);
-                                            }}
-                                            onFocus={() => {
-                                                if (receiverName && receiverName.length >= 2) {
-                                                    fetchSuggestions('receiverName', receiverName);
-                                                }
-                                            }}
-                                            onBlur={() => {
-                                                setTimeout(() => setShowReceiverNameSuggestions(false), 200);
-                                            }}
-                                            className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                                            placeholder="Enter receiver name"
-                                        />
-                                        {showReceiverNameSuggestions && receiverNameSuggestions.length > 0 && (
-                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                                {receiverNameSuggestions.map((suggestion, index) => (
-                                                    <div
-                                                        key={index}
-                                                        onClick={() => {
-                                                            setReceiverName(suggestion);
-                                                            setShowReceiverNameSuggestions(false);
-                                                        }}
-                                                        className="px-3 py-2 cursor-pointer hover:bg-green-50 text-sm"
-                                                    >
-                                                        {suggestion}
+                    )}
+
+                    {/* Step 4: Document Area */}
+                    {currentStep === 4 && (
+                        <div className="border-b border-gray-200">
+                            <div className="p-5 bg-gradient-to-r from-purple-50 to-gray-50 border-b border-gray-200">
+                                <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                                    <span className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">4</span>
+                                    Documents & Notes
+                                </h3>
+                                <p className="text-xs text-gray-600 mt-1 ml-10">Upload documents and add internal or customer notes</p>
+                            </div>
+                            <div className="px-5 pt-5 pb-0 space-y-6">
+                                {/* Upload BOL */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <label className="block text-sm font-semibold text-gray-800 mb-3">Upload BOL (optional)</label>
+                                    <div
+                                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 transition-colors cursor-pointer"
+                                        onMouseEnter={(e) => e.currentTarget.style.borderColor = PRIMARY_COLOR}
+                                        onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
+                                    >
+                                        {bolFile ? (
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FileText className="w-5 h-5 " />
+                                                    <span className="text-sm text-gray-700">{bolFile.name}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeFile('bol')}
+                                                    className="text-red-500 hover:text-red-700"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <label className="flex flex-col items-center cursor-pointer">
+                                                <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                                                <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        if (e.target.files && e.target.files[0]) {
+                                                            handleFileUpload(e.target.files[0], 'bol');
+                                                        }
+                                                    }}
+                                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                />
+                                            </label>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Upload Customs / HAZMAT docs */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <label className="block text-sm font-semibold text-gray-800 mb-3">Upload Customs / HAZMAT docs</label>
+                                    <div
+                                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 transition-colors cursor-pointer"
+                                        onMouseEnter={(e) => e.currentTarget.style.borderColor = PRIMARY_COLOR}
+                                        onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
+                                    >
+                                        {customsHazmatFiles.length > 0 ? (
+                                            <div className="space-y-2">
+                                                {customsHazmatFiles.map((file, index) => (
+                                                    <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                                                        <div className="flex items-center gap-2">
+                                                            <FileText className="w-4 h-4 " />
+                                                            <span className="text-sm text-gray-700">{file.name}</span>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => removeFile('customs', index)}
+                                                            className="text-red-500 hover:text-red-700"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
                                                     </div>
                                                 ))}
                                             </div>
+                                        ) : null}
+                                        <label className="flex items-center gap-2 cursor-pointer mt-2">
+                                            <Plus className="w-5 h-5 " />
+                                            <span className="text-sm ">Add file</span>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        handleFileUpload(e.target.files[0], 'customs');
+                                                    }
+                                                }}
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                multiple
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Upload Rate Confirmation */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <label className="block text-sm font-semibold text-gray-800 mb-3">Upload Rate Confirmation (for internal use)</label>
+                                    <div
+                                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 transition-colors cursor-pointer"
+                                        onMouseEnter={(e) => e.currentTarget.style.borderColor = PRIMARY_COLOR}
+                                        onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
+                                    >
+                                        {rateConfirmationFile ? (
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FileText className="w-5 h-5 " />
+                                                    <span className="text-sm text-gray-700">{rateConfirmationFile.name}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeFile('rate')}
+                                                    className="text-red-500 hover:text-red-700"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <label className="flex flex-col items-center cursor-pointer">
+                                                <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                                                <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        if (e.target.files && e.target.files[0]) {
+                                                            handleFileUpload(e.target.files[0], 'rate');
+                                                        }
+                                                    }}
+                                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                />
+                                            </label>
                                         )}
                                     </div>
-
-                                    {/* Receiver Phone */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Receiver Phone *</label>
-                                        <input
-                                            type="tel"
-                                            value={receiverPhone}
-                                            onChange={(e) => setReceiverPhone(e.target.value)}
-                                            className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                                            placeholder="Enter receiver phone"
-                                        />
-                                    </div>
-
-                                    {/* Delivery Address */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Delivery Address *</label>
-                                        <textarea
-                                            rows={3}
-                                            value={receiverAddress}
-                                            onChange={(e) => setReceiverAddress(e.target.value)}
-                                            className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                                            placeholder="Enter delivery address"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Delivery Appointment */}
-                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Delivery Appointment Details</h4>
-
-                                {/* Appointment Type */}
-                                <div className="mb-3">
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Appointment Type *</label>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setDeliveryAppointmentType("Window")}
-                                            className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${deliveryAppointmentType === "Window"
-                                                ? "!text-white"
-                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                }`}
-                                            style={deliveryAppointmentType === "Window" ? { background: PRIMARY_GRADIENT } : {}}
-                                        >
-                                            Window
-                                        </button>
-                                        <button
-                                            onClick={() => setDeliveryAppointmentType("Strict Time")}
-                                            className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${deliveryAppointmentType === "Strict Time"
-                                                ? "!text-white"
-                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                }`}
-                                            style={deliveryAppointmentType === "Strict Time" ? { background: PRIMARY_GRADIENT } : {}}
-                                        >
-                                            Strict Time
-                                        </button>
-                                    </div>
                                 </div>
 
-                                {/* Date + Time */}
-                                <div className="grid grid-cols-2 gap-2 mb-3">
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Date *</label>
-                                        <input
-                                            type="date"
-                                            value={deliveryAppointmentDate}
-                                            onChange={(e) => setDeliveryAppointmentDate(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Time *</label>
-                                        <input
-                                            type="time"
-                                            value={deliveryAppointmentTime}
-                                            onChange={(e) => setDeliveryAppointmentTime(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm bg-white"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Unloading Instructions */}
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Unloading Instructions</label>
+                                {/* Internal Notes */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <label className="block text-sm font-semibold text-gray-800 mb-2">Internal Notes (visible to dispatcher)</label>
                                     <textarea
-                                        rows={3}
-                                        value={deliveryUnloadingInstructions}
-                                        onChange={(e) => setDeliveryUnloadingInstructions(e.target.value)}
-                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                        placeholder="Enter unloading instructions"
+                                        rows={4}
+                                        value={internalNotes}
+                                        onChange={(e) => setInternalNotes(e.target.value)}
+                                        className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                                        placeholder="Enter internal notes for dispatcher"
+                                    />
+                                </div>
+
+                                {/* Customer Notes */}
+                                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <label className="block text-sm font-semibold text-gray-800 mb-2">Customer Notes (visible to customer)</label>
+                                    <textarea
+                                        rows={4}
+                                        value={customerNotes}
+                                        onChange={(e) => setCustomerNotes(e.target.value)}
+                                        className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                                        placeholder="Enter notes visible to customer"
                                     />
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
-                )}
-
-                {/* Step 4: Document Area */}
-                {currentStep === 4 && (
-                    <div className="border-b border-gray-200">
-                        <div className="p-5 bg-gradient-to-r from-purple-50 to-gray-50 border-b border-gray-200">
-                            <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">4</span>
-                                Documents & Notes
-                            </h3>
-                            <p className="text-xs text-gray-600 mt-1 ml-10">Upload documents and add internal or customer notes</p>
-                        </div>
-                        <div className="px-5 pt-5 pb-0 space-y-6">
-                            {/* Upload BOL */}
-                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                <label className="block text-sm font-semibold text-gray-800 mb-3">Upload BOL (optional)</label>
-                                <div
-                                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 transition-colors cursor-pointer"
-                                    onMouseEnter={(e) => e.currentTarget.style.borderColor = PRIMARY_COLOR}
-                                    onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
-                                >
-                                    {bolFile ? (
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <FileText className="w-5 h-5 " />
-                                                <span className="text-sm text-gray-700">{bolFile.name}</span>
+                    {/* Step 5: Review Page */}
+                    {currentStep === 5 && (
+                        <div className="border-b border-gray-200">
+                            <div className="p-5 bg-gradient-to-r from-green-50 to-gray-50 border-b border-gray-200">
+                                <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                                    <span className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold">5</span>
+                                    Review & Submit
+                                </h3>
+                                <p className="text-xs text-gray-600 mt-1 ml-10">Review all information before creating the order</p>
+                            </div>
+                            <div className="px-5 pt-5 pb-0 space-y-6">
+                                {/* Shipper Summary */}
+                                <div className="bg-white rounded-lg p-5 shadow-sm" style={{ border: `2px solid ${PRIMARY_LIGHT_BG.replace('0.1', '0.3')}` }}>
+                                    <h4 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: PRIMARY_COLOR }}>
+                                        <span className="w-6 h-6 rounded-full text-white flex items-center justify-center text-xs" style={{ background: PRIMARY_GRADIENT }}>1</span>
+                                        Shipper Summary
+                                    </h4>
+                                    <div className="space-y-2.5 text-sm">
+                                        <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Name:</span> <span className="text-gray-800">{shipperName || 'N/A'}</span></div>
+                                        <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Phone:</span> <span className="text-gray-800">{shipperPhone || 'N/A'}</span></div>
+                                        <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Email:</span> <span className="text-gray-800">{shipperEmail || 'N/A'}</span></div>
+                                        <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Address:</span> <span className="text-gray-800">{
+                                            shipperAddressType === "saved"
+                                                ? (selectedShipperAddress?.currentLocation?.address || `${selectedShipperAddress?.name || ''}, ${selectedShipperAddress?.city || ''}, ${selectedShipperAddress?.state || ''}` || 'N/A')
+                                                : (shipperManualAddress || 'N/A')
+                                        }</span></div>
+                                        <div className="mt-4 pt-4 border-t border-gray-200">
+                                            <div className="font-semibold mb-3 text-gray-800">Pickup Appointment:</div>
+                                            <div className="space-y-2 ml-4">
+                                                <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Type:</span> <span className="text-gray-800">{pickupAppointmentType}</span></div>
+                                                <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Date:</span> <span className="text-gray-800">{pickupAppointmentDate}</span></div>
+                                                <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Time:</span> <span className="text-gray-800">{pickupAppointmentTime}</span></div>
+                                                {pickupSpecialInstructions && <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Instructions:</span> <span className="text-gray-800">{pickupSpecialInstructions}</span></div>}
+                                                {pickupGatePass && <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Gate Pass/Dock:</span> <span className="text-gray-800">{pickupGatePass}</span></div>}
                                             </div>
-                                            <button
-                                                onClick={() => removeFile('bol')}
-                                                className="text-red-500 hover:text-red-700"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <label className="flex flex-col items-center cursor-pointer">
-                                            <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                            <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
-                                            <input
-                                                type="file"
-                                                className="hidden"
-                                                onChange={(e) => {
-                                                    if (e.target.files && e.target.files[0]) {
-                                                        handleFileUpload(e.target.files[0], 'bol');
-                                                    }
-                                                }}
-                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            />
-                                        </label>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Upload Customs / HAZMAT docs */}
-                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                <label className="block text-sm font-semibold text-gray-800 mb-3">Upload Customs / HAZMAT docs</label>
-                                <div
-                                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 transition-colors cursor-pointer"
-                                    onMouseEnter={(e) => e.currentTarget.style.borderColor = PRIMARY_COLOR}
-                                    onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
-                                >
-                                    {customsHazmatFiles.length > 0 ? (
-                                        <div className="space-y-2">
-                                            {customsHazmatFiles.map((file, index) => (
-                                                <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                                    <div className="flex items-center gap-2">
-                                                        <FileText className="w-4 h-4 " />
-                                                        <span className="text-sm text-gray-700">{file.name}</span>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => removeFile('customs', index)}
-                                                        className="text-red-500 hover:text-red-700"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : null}
-                                    <label className="flex items-center gap-2 cursor-pointer mt-2">
-                                        <Plus className="w-5 h-5 " />
-                                        <span className="text-sm ">Add file</span>
-                                        <input
-                                            type="file"
-                                            className="hidden"
-                                            onChange={(e) => {
-                                                if (e.target.files && e.target.files[0]) {
-                                                    handleFileUpload(e.target.files[0], 'customs');
-                                                }
-                                            }}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            multiple
-                                        />
-                                    </label>
-                                </div>
-                            </div>
-
-                            {/* Upload Rate Confirmation */}
-                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                <label className="block text-sm font-semibold text-gray-800 mb-3">Upload Rate Confirmation (for internal use)</label>
-                                <div
-                                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 transition-colors cursor-pointer"
-                                    onMouseEnter={(e) => e.currentTarget.style.borderColor = PRIMARY_COLOR}
-                                    onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
-                                >
-                                    {rateConfirmationFile ? (
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <FileText className="w-5 h-5 " />
-                                                <span className="text-sm text-gray-700">{rateConfirmationFile.name}</span>
-                                            </div>
-                                            <button
-                                                onClick={() => removeFile('rate')}
-                                                className="text-red-500 hover:text-red-700"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <label className="flex flex-col items-center cursor-pointer">
-                                            <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                            <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
-                                            <input
-                                                type="file"
-                                                className="hidden"
-                                                onChange={(e) => {
-                                                    if (e.target.files && e.target.files[0]) {
-                                                        handleFileUpload(e.target.files[0], 'rate');
-                                                    }
-                                                }}
-                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            />
-                                        </label>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Internal Notes */}
-                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                <label className="block text-sm font-semibold text-gray-800 mb-2">Internal Notes (visible to dispatcher)</label>
-                                <textarea
-                                    rows={4}
-                                    value={internalNotes}
-                                    onChange={(e) => setInternalNotes(e.target.value)}
-                                    className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
-                                    placeholder="Enter internal notes for dispatcher"
-                                />
-                            </div>
-
-                            {/* Customer Notes */}
-                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                <label className="block text-sm font-semibold text-gray-800 mb-2">Customer Notes (visible to customer)</label>
-                                <textarea
-                                    rows={4}
-                                    value={customerNotes}
-                                    onChange={(e) => setCustomerNotes(e.target.value)}
-                                    className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
-                                    placeholder="Enter notes visible to customer"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Step 5: Review Page */}
-                {currentStep === 5 && (
-                    <div className="border-b border-gray-200">
-                        <div className="p-5 bg-gradient-to-r from-green-50 to-gray-50 border-b border-gray-200">
-                            <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold">5</span>
-                                Review & Submit
-                            </h3>
-                            <p className="text-xs text-gray-600 mt-1 ml-10">Review all information before creating the order</p>
-                        </div>
-                        <div className="px-5 pt-5 pb-0 space-y-6">
-                            {/* Shipper Summary */}
-                            <div className="bg-white rounded-lg p-5 shadow-sm" style={{ border: `2px solid ${PRIMARY_LIGHT_BG.replace('0.1', '0.3')}` }}>
-                                <h4 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: PRIMARY_COLOR }}>
-                                    <span className="w-6 h-6 rounded-full text-white flex items-center justify-center text-xs" style={{ background: PRIMARY_GRADIENT }}>1</span>
-                                    Shipper Summary
-                                </h4>
-                                <div className="space-y-2.5 text-sm">
-                                    <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Name:</span> <span className="text-gray-800">{shipperName || 'N/A'}</span></div>
-                                    <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Phone:</span> <span className="text-gray-800">{shipperPhone || 'N/A'}</span></div>
-                                    <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Email:</span> <span className="text-gray-800">{shipperEmail || 'N/A'}</span></div>
-                                    <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Address:</span> <span className="text-gray-800">{
-                                        shipperAddressType === "saved"
-                                            ? (selectedShipperAddress?.currentLocation?.address || `${selectedShipperAddress?.name || ''}, ${selectedShipperAddress?.city || ''}, ${selectedShipperAddress?.state || ''}` || 'N/A')
-                                            : (shipperManualAddress || 'N/A')
-                                    }</span></div>
-                                    <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <div className="font-semibold mb-3 text-gray-800">Pickup Appointment:</div>
-                                        <div className="space-y-2 ml-4">
-                                            <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Type:</span> <span className="text-gray-800">{pickupAppointmentType}</span></div>
-                                            <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Date:</span> <span className="text-gray-800">{pickupAppointmentDate}</span></div>
-                                            <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Time:</span> <span className="text-gray-800">{pickupAppointmentTime}</span></div>
-                                            {pickupSpecialInstructions && <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Instructions:</span> <span className="text-gray-800">{pickupSpecialInstructions}</span></div>}
-                                            {pickupGatePass && <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Gate Pass/Dock:</span> <span className="text-gray-800">{pickupGatePass}</span></div>}
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Receiver Summary */}
-                            <div className="bg-white border-2 border-green-100 rounded-lg p-5 shadow-sm">
-                                <h4 className="text-sm font-semibold text-green-700 mb-4 flex items-center gap-2">
-                                    <span className="w-6 h-6 rounded-full bg-green-600 text-white flex items-center justify-center text-xs">2</span>
-                                    Receiver Summary
-                                </h4>
-                                <div className="space-y-2.5 text-sm">
-                                    <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Name:</span> <span className="text-gray-800">{receiverName || 'N/A'}</span></div>
-                                    <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Phone:</span> <span className="text-gray-800">{receiverPhone || 'N/A'}</span></div>
-                                    <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Address:</span> <span className="text-gray-800">{receiverAddress || 'N/A'}</span></div>
-                                    <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <div className="font-semibold mb-3 text-gray-800">Delivery Appointment:</div>
-                                        <div className="space-y-2 ml-4">
-                                            <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Type:</span> <span className="text-gray-800">{deliveryAppointmentType}</span></div>
-                                            <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Date:</span> <span className="text-gray-800">{deliveryAppointmentDate}</span></div>
-                                            <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Time:</span> <span className="text-gray-800">{deliveryAppointmentTime}</span></div>
-                                            {deliveryUnloadingInstructions && <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Unloading:</span> <span className="text-gray-800">{deliveryUnloadingInstructions}</span></div>}
+                                {/* Receiver Summary */}
+                                <div className="bg-white border-2 border-green-100 rounded-lg p-5 shadow-sm">
+                                    <h4 className="text-sm font-semibold text-green-700 mb-4 flex items-center gap-2">
+                                        <span className="w-6 h-6 rounded-full bg-green-600 text-white flex items-center justify-center text-xs">2</span>
+                                        Receiver Summary
+                                    </h4>
+                                    <div className="space-y-2.5 text-sm">
+                                        <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Name:</span> <span className="text-gray-800">{receiverName || 'N/A'}</span></div>
+                                        <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Phone:</span> <span className="text-gray-800">{receiverPhone || 'N/A'}</span></div>
+                                        <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Address:</span> <span className="text-gray-800">{receiverAddress || 'N/A'}</span></div>
+                                        <div className="mt-4 pt-4 border-t border-gray-200">
+                                            <div className="font-semibold mb-3 text-gray-800">Delivery Appointment:</div>
+                                            <div className="space-y-2 ml-4">
+                                                <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Type:</span> <span className="text-gray-800">{deliveryAppointmentType}</span></div>
+                                                <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Date:</span> <span className="text-gray-800">{deliveryAppointmentDate}</span></div>
+                                                <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Time:</span> <span className="text-gray-800">{deliveryAppointmentTime}</span></div>
+                                                {deliveryUnloadingInstructions && <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Unloading:</span> <span className="text-gray-800">{deliveryUnloadingInstructions}</span></div>}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Commodity Details */}
-                            <div className="bg-white border-2 border-gray-200 rounded-lg p-5 shadow-sm">
-                                <h4 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                    <span className="w-6 h-6 rounded-full bg-gray-600 text-white flex items-center justify-center text-xs">3</span>
-                                    Commodity Details
-                                </h4>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><span className="font-medium">Commodity:</span> {commodity || 'N/A'}</div>
-                                    <div><span className="font-medium">Temperature:</span> {temperature ? `${temperature}° ${temperatureUnit}` : 'N/A'}</div>
-                                    <div><span className="font-medium">Weight:</span> {weight ? `${weight} ${weightUnit}` : 'N/A'}</div>
-                                    <div><span className="font-medium">Packages:</span> {noOfPackages ? `${noOfPackages} ${noOfPackagesType}` : 'N/A'}</div>
-                                    <div><span className="font-medium">Mileage:</span> {calculatedMileage ? `${calculatedMileage} miles` : (distance || 'N/A')}</div>
-                                    <div><span className="font-medium">Value:</span> {valueOfGoods ? `${valueOfGoods} ${valueOfGoodsCurrency}` : 'N/A'}</div>
+                                {/* Commodity Details */}
+                                <div className="bg-white border-2 border-gray-200 rounded-lg p-5 shadow-sm">
+                                    <h4 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                        <span className="w-6 h-6 rounded-full bg-gray-600 text-white flex items-center justify-center text-xs">3</span>
+                                        Commodity Details
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div><span className="font-medium">Commodity:</span> {commodity || 'N/A'}</div>
+                                        <div><span className="font-medium">Temperature:</span> {temperature ? `${temperature}° ${temperatureUnit}` : 'N/A'}</div>
+                                        <div><span className="font-medium">Weight:</span> {weight ? `${weight} ${weightUnit}` : 'N/A'}</div>
+                                        <div><span className="font-medium">Packages:</span> {noOfPackages ? `${noOfPackages} ${noOfPackagesType}` : 'N/A'}</div>
+                                        <div><span className="font-medium">Mileage:</span> {calculatedMileage ? `${calculatedMileage} miles` : (distance || 'N/A')}</div>
+                                        <div><span className="font-medium">Value:</span> {valueOfGoods ? `${valueOfGoods} ${valueOfGoodsCurrency}` : 'N/A'}</div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Document List */}
-                            <div className="bg-white border-2 border-purple-100 rounded-lg p-5 shadow-sm">
-                                <h4 className="text-sm font-semibold text-purple-700 mb-4 flex items-center gap-2">
-                                    <span className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs">4</span>
-                                    Documents
-                                </h4>
-                                <div className="space-y-2 text-sm">
-                                    {bolFile && <div className="flex items-center gap-2"><FileText className="w-4 h-4" /> BOL: {bolFile.name}</div>}
-                                    {customsHazmatFiles.length > 0 && (
-                                        <div>
-                                            <div className="font-medium mb-1">Customs/HAZMAT:</div>
-                                            {customsHazmatFiles.map((file, index) => (
-                                                <div key={index} className="flex items-center gap-2 ml-4"><FileText className="w-4 h-4" /> {file.name}</div>
-                                            ))}
-                                        </div>
-                                    )}
-                                    {rateConfirmationFile && <div className="flex items-center gap-2"><FileText className="w-4 h-4" /> Rate Confirmation: {rateConfirmationFile.name}</div>}
-                                    {!bolFile && customsHazmatFiles.length === 0 && !rateConfirmationFile && <div className="text-gray-500">No documents uploaded</div>}
+                                {/* Document List */}
+                                <div className="bg-white border-2 border-purple-100 rounded-lg p-5 shadow-sm">
+                                    <h4 className="text-sm font-semibold text-purple-700 mb-4 flex items-center gap-2">
+                                        <span className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs">4</span>
+                                        Documents
+                                    </h4>
+                                    <div className="space-y-2 text-sm">
+                                        {bolFile && <div className="flex items-center gap-2"><FileText className="w-4 h-4" /> BOL: {bolFile.name}</div>}
+                                        {customsHazmatFiles.length > 0 && (
+                                            <div>
+                                                <div className="font-medium mb-1">Customs/HAZMAT:</div>
+                                                {customsHazmatFiles.map((file, index) => (
+                                                    <div key={index} className="flex items-center gap-2 ml-4"><FileText className="w-4 h-4" /> {file.name}</div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {rateConfirmationFile && <div className="flex items-center gap-2"><FileText className="w-4 h-4" /> Rate Confirmation: {rateConfirmationFile.name}</div>}
+                                        {!bolFile && customsHazmatFiles.length === 0 && !rateConfirmationFile && <div className="text-gray-500">No documents uploaded</div>}
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Instructions */}
-                            <div className="bg-white border-2 border-amber-100 rounded-lg p-5 shadow-sm">
-                                <h4 className="text-sm font-semibold text-amber-700 mb-4 flex items-center gap-2">
-                                    <span className="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs">5</span>
-                                    All Instructions & Notes
-                                </h4>
-                                <div className="space-y-3 text-sm">
-                                    {pickupSpecialInstructions && (
-                                        <div>
-                                            <div className="font-medium">Pickup Instructions:</div>
-                                            <div className="text-gray-600">{pickupSpecialInstructions}</div>
-                                        </div>
-                                    )}
-                                    {deliveryUnloadingInstructions && (
-                                        <div>
-                                            <div className="font-medium">Delivery Instructions:</div>
-                                            <div className="text-gray-600">{deliveryUnloadingInstructions}</div>
-                                        </div>
-                                    )}
-                                    {internalNotes && (
-                                        <div>
-                                            <div className="font-medium">Internal Notes:</div>
-                                            <div className="text-gray-600">{internalNotes}</div>
-                                        </div>
-                                    )}
-                                    {customerNotes && (
-                                        <div>
-                                            <div className="font-medium">Customer Notes:</div>
-                                            <div className="text-gray-600">{customerNotes}</div>
-                                        </div>
-                                    )}
-                                    {!pickupSpecialInstructions && !deliveryUnloadingInstructions && !internalNotes && !customerNotes && (
-                                        <div className="text-gray-500">No instructions provided</div>
-                                    )}
+                                {/* Instructions */}
+                                <div className="bg-white border-2 border-amber-100 rounded-lg p-5 shadow-sm">
+                                    <h4 className="text-sm font-semibold text-amber-700 mb-4 flex items-center gap-2">
+                                        <span className="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs">5</span>
+                                        All Instructions & Notes
+                                    </h4>
+                                    <div className="space-y-3 text-sm">
+                                        {pickupSpecialInstructions && (
+                                            <div>
+                                                <div className="font-medium">Pickup Instructions:</div>
+                                                <div className="text-gray-600">{pickupSpecialInstructions}</div>
+                                            </div>
+                                        )}
+                                        {deliveryUnloadingInstructions && (
+                                            <div>
+                                                <div className="font-medium">Delivery Instructions:</div>
+                                                <div className="text-gray-600">{deliveryUnloadingInstructions}</div>
+                                            </div>
+                                        )}
+                                        {internalNotes && (
+                                            <div>
+                                                <div className="font-medium">Internal Notes:</div>
+                                                <div className="text-gray-600">{internalNotes}</div>
+                                            </div>
+                                        )}
+                                        {customerNotes && (
+                                            <div>
+                                                <div className="font-medium">Customer Notes:</div>
+                                                <div className="text-gray-600">{customerNotes}</div>
+                                            </div>
+                                        )}
+                                        {!pickupSpecialInstructions && !deliveryUnloadingInstructions && !internalNotes && !customerNotes && (
+                                            <div className="text-gray-500">No instructions provided</div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
-</div>
             {/* Fixed Footer */}
             <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 shadow-lg">
                 <div className="flex gap-3 justify-between">
