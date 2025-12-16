@@ -353,7 +353,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-[#EDF8FF] p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full mx-auto space-y-6">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase text-gray-500">Dispatch Fleet</p>

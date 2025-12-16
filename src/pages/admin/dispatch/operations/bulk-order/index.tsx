@@ -5,45 +5,45 @@ import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 type NotificationType = 'success' | 'error' | 'warning';
 
 interface ToastNotification {
-  id: number;
-  type: NotificationType;
-  message: string;
+    id: number;
+    type: NotificationType;
+    message: string;
 }
 
 const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
-  const icons = {
-    success: <FaCheckCircle className="text-green-500" size={22} />,
-    error: <FaExclamationCircle className="text-red-500" size={22} />,
-    warning: <FaExclamationCircle className="text-yellow-500" size={22} />,
-  };
+    const icons = {
+        success: <FaCheckCircle className="text-green-500" size={22} />,
+        error: <FaExclamationCircle className="text-red-500" size={22} />,
+        warning: <FaExclamationCircle className="text-yellow-500" size={22} />,
+    };
 
-  const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    warning: 'bg-yellow-50 border-yellow-200',
-  };
+    const bgColors = {
+        success: 'bg-green-50 border-green-200',
+        error: 'bg-red-50 border-red-200',
+        warning: 'bg-yellow-50 border-yellow-200',
+    };
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose(notification.id);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [notification.id, onClose]);
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            onClose(notification.id);
+        }, 5000);
+        return () => clearTimeout(timer);
+    }, [notification.id, onClose]);
 
-  return (
-    <div className={`fixed top-4 right-4 flex items-start gap-3 p-3.5 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} animate-slide-in min-w-[280px] max-w-[480px]`}>
-      <div className="flex-shrink-0 mt-0.5">
-        {icons[notification.type]}
-      </div>
-      <p className="flex-1 text-[13px] font-medium text-gray-800">{notification.message}</p>
-      <button
-        onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <FaTimes size={15} />
-      </button>
-    </div>
-  );
+    return (
+        <div className={`fixed top-4 right-4 flex items-start gap-3 p-3.5 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} animate-slide-in min-w-[280px] max-w-[480px]`}>
+            <div className="flex-shrink-0 mt-0.5">
+                {icons[notification.type]}
+            </div>
+            <p className="flex-1 text-[13px] font-medium text-gray-800">{notification.message}</p>
+            <button
+                onClick={() => onClose(notification.id)}
+                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+                <FaTimes size={15} />
+            </button>
+        </div>
+    );
 };
 
 interface BulkOrderItem {
@@ -74,28 +74,28 @@ interface BulkOrderItem {
 }
 
 interface Place {
-  _id: string;
-  name?: string;
-  city?: string;
-  state?: string;
-  currentLocation?: {
-    address?: string;
-    latitude?: string | number;
-    longitude?: string | number;
-  };
+    _id: string;
+    name?: string;
+    city?: string;
+    state?: string;
+    currentLocation?: {
+        address?: string;
+        latitude?: string | number;
+        longitude?: string | number;
+    };
 }
 
 interface Customer {
-  _id: string;
-  name: string;
-  address?: string;
-  email?: string;
-  phone?: string;
+    _id: string;
+    name: string;
+    address?: string;
+    email?: string;
+    phone?: string;
 }
 
 const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
     const [notifications, setNotifications] = useState<ToastNotification[]>([]);
-    
+
     const [customers] = useState<Customer[]>([
         { _id: '1', name: 'ABC Corp', address: '123 Main St, Toronto', email: 'abc@corp.com', phone: '555-0100' },
         { _id: '2', name: 'XYZ Ltd', address: '456 King St, Vancouver', email: 'xyz@ltd.com', phone: '555-0200' }
@@ -103,7 +103,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [customerSearch, setCustomerSearch] = useState("");
     const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
-    
+
     const [pickupPlaces] = useState<Place[]>([
         { _id: '1', name: 'Warehouse A', city: 'Toronto', state: 'ON', currentLocation: { address: '100 Industrial Rd, Toronto, ON' } },
         { _id: '2', name: 'Distribution Center', city: 'Vancouver', state: 'BC', currentLocation: { address: '200 Marine Dr, Vancouver, BC' } }
@@ -111,14 +111,14 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
     const [selectedPickupPlace, setSelectedPickupPlace] = useState<Place | null>(null);
     const [pickupSearch, setPickupSearch] = useState("");
     const [pickupDropdownOpen, setPickupDropdownOpen] = useState(false);
-    
+
     const [] = useState<Place[]>([
         { _id: '1', name: 'Warehouse A', city: 'Toronto', state: 'ON', currentLocation: { address: '100 Industrial Rd, Toronto, ON' } },
         { _id: '2', name: 'Distribution Center', city: 'Vancouver', state: 'BC', currentLocation: { address: '200 Marine Dr, Vancouver, BC' } }
     ]);
     const [selectedDeliveryPlace, setSelectedDeliveryPlace] = useState<Place | null>(null);
     const [, setDeliverySearch] = useState("");
-    
+
     const [commodity, setCommodity] = useState("");
     const [loadType, setLoadType] = useState("FTL");
     const [pickupDate, setPickupDate] = useState(new Date().toISOString().split('T')[0]);
@@ -242,7 +242,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
     };
 
     return (
-        <div className="h-full flex flex-col bg-white">
+        <div className="min-h-screen flex flex-col bg-white">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200" style={{
                 background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
@@ -323,9 +323,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                             setCustomerSearch("");
                                                             setCustomerDropdownOpen(false);
                                                         }}
-                                                        className={`px-3 py-2 cursor-pointer hover:bg-[#42aeec]/10 text-[13px] ${
-                                                            selectedCustomer?._id === customer._id ? 'bg-[#42aeec]/10' : ''
-                                                        }`}
+                                                        className={`px-3 py-2 cursor-pointer hover:bg-[#42aeec]/10 text-[13px] ${selectedCustomer?._id === customer._id ? 'bg-[#42aeec]/10' : ''
+                                                            }`}
                                                     >
                                                         <div className="font-medium text-[#016ab2]">{customer.name || 'Unnamed Customer'}</div>
                                                         <div className="text-xs text-gray-600">{customer.address || customer.email || customer.phone || ''}</div>
@@ -360,11 +359,10 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setLoadType("FTL")}
-                                    className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${
-                                        loadType === "FTL"
+                                    className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${loadType === "FTL"
                                             ? "!text-white shadow-md"
                                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    }`}
+                                        }`}
                                     style={loadType === "FTL" ? {
                                         background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
                                     } : {}}
@@ -373,11 +371,10 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 </button>
                                 <button
                                     onClick={() => setLoadType("LTL")}
-                                    className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${
-                                        loadType === "LTL"
+                                    className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${loadType === "LTL"
                                             ? "!text-white shadow-md"
                                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    }`}
+                                        }`}
                                     style={loadType === "LTL" ? {
                                         background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
                                     } : {}}
@@ -450,9 +447,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                             setPickupSearch("");
                                                             setPickupDropdownOpen(false);
                                                         }}
-                                                        className={`px-3 py-2 cursor-pointer hover:bg-[#42aeec]/10 text-[13px] ${
-                                                            selectedPickupPlace?._id === place._id ? 'bg-[#42aeec]/10' : ''
-                                                        }`}
+                                                        className={`px-3 py-2 cursor-pointer hover:bg-[#42aeec]/10 text-[13px] ${selectedPickupPlace?._id === place._id ? 'bg-[#42aeec]/10' : ''
+                                                            }`}
                                                     >
                                                         <div className="font-medium text-[#016ab2]">{place.name || 'Unnamed Place'}</div>
                                                         <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
@@ -914,9 +910,8 @@ const BulkOrder = () => {
                 <div className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
             )}
             <div
-                className={`fixed top-0 right-0 h-full max-w-4xl w-full bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${
-                    sidebarOpen ? "translate-x-0" : "translate-x-full"
-                }`}
+                className={`fixed top-0 right-0 h-full max-w-4xl w-full bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
+                    }`}
             >
                 <NewBulkOrderSidebar
                     order={editingOrder}

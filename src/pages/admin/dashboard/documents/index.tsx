@@ -368,9 +368,9 @@ const DocumentManagement: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#EDF8FF] px-5 py-7"
+      className="min-h-screen bg-[#EDF8FF]  p-5 space-y-5 overflow-hidden"
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="w-full mx-auto">
         {/* Header */}
         <div
           className="bg-white rounded-2xl shadow-md border p-5 mb-6"

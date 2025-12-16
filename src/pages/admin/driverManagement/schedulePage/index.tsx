@@ -433,7 +433,7 @@ const UnifiedSchedulingPage = () => {
     <div className="min-h-screen bg-[#EDF8FF]">
       {/* Header */}
       <div className=" p-5">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Trip Scheduling</h1>
@@ -489,7 +489,7 @@ const UnifiedSchedulingPage = () => {
       {/* Filters */}
       {showFilters && (
         <div className=" p-5">
-          <div className="max-w-7xl mx-auto">
+          <div className="w-full mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Driver</label>
@@ -537,7 +537,7 @@ const UnifiedSchedulingPage = () => {
       )}
 
       {emptyStateMessage && trips.length === 0 && (
-        <div className="max-w-7xl mx-auto p-5">
+        <div className="w-full mx-auto p-5">
           <div className="bg-blue-50 border border-blue-100 text-blue-700 px-3.5 py-2.5 rounded-md flex items-center gap-2.5">
             <Calendar className="text-lg" />
             <span className="text-sm">{emptyStateMessage}</span>
@@ -545,7 +545,7 @@ const UnifiedSchedulingPage = () => {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto p-5">
+      <div className="w-full mx-auto p-5">
         <div className="flex flex-col gap-5">
           {/* Trip Management - Top Section */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">

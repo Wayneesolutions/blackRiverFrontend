@@ -96,7 +96,7 @@ const SubscriptionPage = () => {
   const [cancelling, setCancelling] = useState(false);
   const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
 
-  
+
   const primaryButtonStyle: CSSProperties = {
     background: FLEET_COLORS.gradient,
     color: '#fff',
@@ -190,7 +190,7 @@ const SubscriptionPage = () => {
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
     console.log('Cancel subscription clicked for:', subscriptionId);
     setCancelSubscriptionId(subscriptionId);
     setShowCancelModal(true);
@@ -198,15 +198,15 @@ const SubscriptionPage = () => {
 
   const confirmCancelSubscription = async () => {
     if (!cancelSubscriptionId) return;
-    
+
     console.log('Confirming cancellation for:', cancelSubscriptionId);
     setCancelling(true);
-    
+
     try {
       console.log('Calling cancelSubscription API with ID:', cancelSubscriptionId);
       const response = await cancelSubscription(cancelSubscriptionId);
       console.log('Cancel subscription API response:', response);
-      
+
       if (response?.success) {
         message.success('Subscription cancelled successfully');
         setShowCancelModal(false);
@@ -285,7 +285,7 @@ const SubscriptionPage = () => {
 
   return (
     <div className="min-h-screen bg-[#EDF8FF]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Enhanced Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -311,16 +311,15 @@ const SubscriptionPage = () => {
 
         {/* Trial Status Card */}
         {trialStatus && !trialStatus.hasActiveSubscription && trialStatus.hasTrial && (
-          <div className={`mb-8 relative overflow-hidden rounded-2xl shadow-2xl ${
-            trialStatus.isTrialExpired 
-              ? 'bg-gradient-to-br from-red-500 via-red-600 to-orange-600' 
+          <div className={`mb-8 relative overflow-hidden rounded-2xl shadow-2xl ${trialStatus.isTrialExpired
+              ? 'bg-gradient-to-br from-red-500 via-red-600 to-orange-600'
               : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
-              ? 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500'
-              : 'bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600'
-          }`}>
+                ? 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500'
+                : 'bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600'
+            }`}>
             <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
-            
+
             <div className="relative p-8 z-10">
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div className="flex-1">
@@ -337,11 +336,11 @@ const SubscriptionPage = () => {
                         {trialStatus.isTrialExpired ? 'Free Trial Expired' : 'Free Trial Active'}
                       </h2>
                       <p className="text-white/90 mt-1">
-                        {trialStatus.isTrialExpired 
+                        {trialStatus.isTrialExpired
                           ? 'Your 7-day free trial has ended. Subscribe now to continue using the platform.'
                           : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
-                          ? `⚠️ Your free trial is expiring soon! Only ${trialStatus.daysRemaining} day${trialStatus.daysRemaining === 1 ? '' : 's'} remaining.`
-                          : `You have ${trialStatus.daysRemaining || 0} days remaining in your free trial.`
+                            ? `⚠️ Your free trial is expiring soon! Only ${trialStatus.daysRemaining} day${trialStatus.daysRemaining === 1 ? '' : 's'} remaining.`
+                            : `You have ${trialStatus.daysRemaining || 0} days remaining in your free trial.`
                         }
                       </p>
                     </div>
@@ -393,8 +392,8 @@ const SubscriptionPage = () => {
                           {Math.round(((7 - (trialStatus.daysRemaining || 0)) / 7) * 100)}%
                         </span>
                       </div>
-                      <Progress 
-                        percent={Math.round(((7 - (trialStatus.daysRemaining || 0)) / 7) * 100)} 
+                      <Progress
+                        percent={Math.round(((7 - (trialStatus.daysRemaining || 0)) / 7) * 100)}
                         strokeColor="#ffffff"
                         trailColor="rgba(255,255,255,0.3)"
                         showInfo={false}
@@ -427,7 +426,7 @@ const SubscriptionPage = () => {
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-50 rounded-full -ml-24 -mb-24 pointer-events-none"></div>
-            
+
             <div className="relative p-8 z-10">
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div className="flex-1">
@@ -458,8 +457,8 @@ const SubscriptionPage = () => {
                         <span className="text-gray-700 text-sm font-medium">Plan Name</span>
                       </div>
                       <p className="text-gray-900 text-xl font-bold">
-                        {typeof activeSubscription.plan === 'object' 
-                          ? activeSubscription.plan?.planName 
+                        {typeof activeSubscription.plan === 'object'
+                          ? activeSubscription.plan?.planName
                           : activeSubscription.planSnapshot?.planName || 'Plan'}
                       </p>
                     </div>
@@ -603,20 +602,18 @@ const SubscriptionPage = () => {
                 return (
                   <div
                     key={plan._id}
-                    className={`group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 flex flex-col ${
-                      isCurrentPlan
+                    className={`group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 flex flex-col ${isCurrentPlan
                         ? 'border-blue-300 ring-2 ring-blue-100'
                         : 'border-gray-200 hover:border-blue-300'
-                    }`}
+                      }`}
                     style={isCurrentPlan ? { borderColor: '#93c5fd', boxShadow: '0 10px 25px rgba(59, 130, 246, 0.15)' } : cardAccentStyle}
                   >
                     {/* Plan Header with Light Background */}
                     <div
-                      className={`relative p-6 ${
-                        isCurrentPlan
+                      className={`relative p-6 ${isCurrentPlan
                           ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-b-2 border-blue-200'
                           : 'bg-gradient-to-br from-gray-50 to-blue-50 border-b-2 border-gray-200'
-                      }`}
+                        }`}
                     >
                       {isCurrentPlan && (
                         <div className="absolute top-4 right-4">
@@ -660,9 +657,9 @@ const SubscriptionPage = () => {
                                   icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
                                   onClick={() => handleSubscribe(plan, 'one-time')}
                                   disabled={isCurrentPlan}
-                                  style={isCurrentPlan ? { 
-                                    background: '#3b82f6', 
-                                    color: '#fff', 
+                                  style={isCurrentPlan ? {
+                                    background: '#3b82f6',
+                                    color: '#fff',
                                     border: 'none',
                                     cursor: 'default'
                                   } : primaryButtonStyle}
@@ -689,9 +686,9 @@ const SubscriptionPage = () => {
                                     icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
                                     onClick={() => handleSubscribe(plan, '3-months')}
                                     disabled={isCurrentPlan}
-                                    style={isCurrentPlan ? { 
-                                      background: '#3b82f6', 
-                                      color: '#fff', 
+                                    style={isCurrentPlan ? {
+                                      background: '#3b82f6',
+                                      color: '#fff',
                                       border: 'none',
                                       cursor: 'default'
                                     } : primaryButtonStyle}
@@ -720,9 +717,9 @@ const SubscriptionPage = () => {
                                     icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
                                     onClick={() => handleSubscribe(plan, '6-months')}
                                     disabled={isCurrentPlan}
-                                    style={isCurrentPlan ? { 
-                                      background: '#3b82f6', 
-                                      color: '#fff', 
+                                    style={isCurrentPlan ? {
+                                      background: '#3b82f6',
+                                      color: '#fff',
                                       border: 'none',
                                       cursor: 'default'
                                     } : primaryButtonStyle}
@@ -755,9 +752,9 @@ const SubscriptionPage = () => {
                                     icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
                                     onClick={() => handleSubscribe(plan, 'full-app')}
                                     disabled={isCurrentPlan}
-                                    style={isCurrentPlan ? { 
-                                      background: '#3b82f6', 
-                                      color: '#fff', 
+                                    style={isCurrentPlan ? {
+                                      background: '#3b82f6',
+                                      color: '#fff',
                                       border: 'none',
                                       cursor: 'default'
                                     } : primaryButtonStyle}
@@ -786,9 +783,9 @@ const SubscriptionPage = () => {
                                     icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
                                     onClick={() => handleSubscribe(plan, 'without-hr')}
                                     disabled={isCurrentPlan}
-                                    style={isCurrentPlan ? { 
-                                      background: '#3b82f6', 
-                                      color: '#fff', 
+                                    style={isCurrentPlan ? {
+                                      background: '#3b82f6',
+                                      color: '#fff',
                                       border: 'none',
                                       cursor: 'default'
                                     } : primaryButtonStyle}
@@ -829,8 +826,8 @@ const SubscriptionPage = () => {
                           <div className="flex items-center gap-3 mb-4">
                             {getStatusIcon(sub.status)}
                             <h3 className="text-xl font-bold text-gray-900">
-                              {typeof sub.plan === 'object' 
-                                ? sub.plan?.planName 
+                              {typeof sub.plan === 'object'
+                                ? sub.plan?.planName
                                 : sub.planSnapshot?.planName || 'Plan'}
                             </h3>
                             <Tag color={getStatusColor(sub.status)}>{sub.status.toUpperCase()}</Tag>

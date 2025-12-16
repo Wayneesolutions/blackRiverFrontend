@@ -952,7 +952,7 @@ const OrderList = () => {
               onClick={() => setSidebarOpen(false)}
             />
             <div
-              className="fixed top-0 right-0 h-screen w-full max-w-4xl bg-white"
+              className="fixed top-0 right-0 h-screen w-full max-w-5xl bg-white"
               style={{ zIndex: 100000 }}
             >
               <NewOrderSidebar

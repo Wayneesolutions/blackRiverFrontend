@@ -274,7 +274,7 @@ const Index = () => {
 
     return (
         <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
-            <div className="relative max-w-7xl mx-auto">
+            <div className="relative w-full mx-auto">
                 {/* Gradient band */}
                 <div
                     className="absolute inset-x-0 top-0"
@@ -479,8 +479,8 @@ const Index = () => {
                                             <div className="flex items-center gap-3.5 flex-1">
                                                 {/* Trip Icon */}
                                                 <div className={`rounded-md p-2 ${trip.status === "completed" ? "bg-green-100" :
-                                                        trip.status === "in-progress" || trip.status === "started" ? "bg-blue-100" :
-                                                            "bg-yellow-100"
+                                                    trip.status === "in-progress" || trip.status === "started" ? "bg-blue-100" :
+                                                        "bg-yellow-100"
                                                     }`}>
                                                     <Package className={
                                                         trip.status === "completed" ? "text-green-600" :
@@ -520,8 +520,8 @@ const Index = () => {
 
                                                 {/* Status Badge */}
                                                 <div className={`px-2.5 py-1 rounded-full text-[10px] font-medium ${trip.status === "completed" ? "bg-green-100 text-green-700" :
-                                                        trip.status === "in-progress" || trip.status === "started" ? "bg-blue-100 text-[#42aeec]" :
-                                                            "bg-yellow-100 text-yellow-700"
+                                                    trip.status === "in-progress" || trip.status === "started" ? "bg-blue-100 text-[#42aeec]" :
+                                                        "bg-yellow-100 text-yellow-700"
                                                     }`} style={{ fontSize: '0.625rem' }}>
                                                     {trip.status === 'in-progress' || trip.status === 'started' ? 'In Transit' :
                                                         trip.status === 'completed' ? 'Completed' : trip.status}

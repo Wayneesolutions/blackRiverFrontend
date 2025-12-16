@@ -25,22 +25,17 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
     key: "/admin/dispatch/dashboard",
     icon: <MdDashboard />,
     label: "Dashboard",
-  },
-  {
-    key: "/admin/dispatch/order-list",
-    icon: <FaList />,
-    label: "Order List",
+  }, {
+    key: "/admin/dispatch/trips",
+    icon: <FaRoute />,
+    label: "Trips",
   },
   {
     key: "/admin/dispatch/bulk-order",
     icon: <FaLayerGroup />,
     label: "Bulk Order",
   },
-  {
-    key: "/admin/dispatch/trips",
-    icon: <FaRoute />,
-    label: "Trips",
-  },
+
   {
     key: "/admin/dispatch/scheduling",
     icon: <MdEventNote />,
@@ -61,7 +56,7 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
   {
     key: "/admin/dispatch/contacts",
     icon: <MdContacts />,
-    label: "Contacts",
+    label: "Customer",
   },
   {
     key: "/admin/dispatch/places",

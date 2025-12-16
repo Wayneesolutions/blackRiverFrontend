@@ -306,8 +306,8 @@ const TruckProfile = () => {
   }
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
-      <div className="relative max-w-7xl mx-auto">
+    <div className="min-h-screen pb-10 p-5" style={{ backgroundColor: '#EDF8FF' }}>
+      <div className="relative w-full mx-auto">
 
 
         <div className="relative z-10 px-4 pt-6 pb-6">
