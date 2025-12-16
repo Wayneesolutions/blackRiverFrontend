@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Truck, Users, Package, Loader2, Search, ChevronLeft, ChevronRight, Filter, X, Route } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -90,21 +90,41 @@ interface Trip {
 }
 
 interface Order {
-  _id: string;
-  orderNumber: string;
-  customerOrderNo?: string;
-  status?: string;
-  customer?: {
-    name?: string;
-    firstName?: string;
-    lastName?: string;
-  };
-  pickupLocation?: any;
-  deliveryLocation?: any;
-  pickupDate?: string;
-  deliveryDate?: string;
+  id: string;
+  orderNo: string;
+  custOrderNo?: string;
+  tripNo?: string;
+  orderDate?: string;
   orderType?: string;
+  totalItems?: number;
+  companyName?: string;
+  customerName?: string;
+  pickupDate?: string;
+  pickupLocation?: string;
+  pickupRefNo?: string;
+  deliveryDate?: string;
+  deliveryLocation?: string;
+  deliveryRefNo?: string;
+  totalAmount?: string;
+  currency?: string;
+  status: string;
+  driver?: string;
+  truckNo?: string;
+  trailerNo?: string;
+  // Keep original fields if needed for broader compatibility, or just use the mapped ones. 
+  // For this component, we only use the mapped ones.
 }
+
+const getStatusColor = (status: string) => {
+  const s = status?.toUpperCase() || '';
+  if (['COMPLETED', 'DELIVERED'].includes(s)) return 'bg-green-100 text-green-800';
+  if (['PLANNED', 'DISPATCHED'].includes(s)) return 'bg-blue-100 text-blue-800';
+  if (['CANCELLED'].includes(s)) return 'bg-red-100 text-red-800';
+  if (['QUOTED', 'CONFIRMED'].includes(s)) return 'bg-yellow-100 text-yellow-800';
+  return 'bg-gray-100 text-gray-800';
+};
+
+
 
 interface FeatureCard {
   id: string;
@@ -160,6 +180,44 @@ const Index = () => {
       fetchCurrentData();
     }
   }, [activeTab, loading]);
+  const extractLocationString = (location: any): string => {
+    if (!location) return '';
+    if (typeof location === 'string') return location;
+    if (typeof location !== 'object') return '';
+
+    try {
+      // Try different paths to get the location string
+      // First check if place field exists
+      if (location.place && typeof location.place === 'string') {
+        return location.place;
+      }
+
+      // Check if placeId is populated (object) with currentLocation
+      if (location.placeId) {
+        if (typeof location.placeId === 'object' && location.placeId !== null) {
+          // Check for populated Place object
+          if (location.placeId.currentLocation?.address && typeof location.placeId.currentLocation.address === 'string') {
+            return location.placeId.currentLocation.address;
+          }
+          if (location.placeId.name && typeof location.placeId.name === 'string') {
+            return location.placeId.name;
+          }
+        }
+      }
+
+      // Fallback to other fields
+      if (location.address && typeof location.address === 'string') {
+        return location.address;
+      }
+      if (location.name && typeof location.name === 'string') {
+        return location.name;
+      }
+    } catch (error) {
+      console.error('Error extracting location string:', error);
+    }
+
+    return '';
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -312,6 +370,71 @@ const Index = () => {
       setTotalPages(0);
     }
   };
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const response = await listOrder({
+        page: currentPage,
+        limit: itemsPerPage,
+      });
+
+      if (response?.success && response?.data) {
+        const formattedOrders = response.data.map((order: any) => ({
+          id: order._id,
+          orderNo: order.orderNumber || order._id,
+          custOrderNo: order.customerOrderNo || '',
+          tripNo: order.tripNo || '',
+          orderDate: order.orderDate
+            ? new Date(order.orderDate).toLocaleString('en-US', {
+              month: '2-digit',
+              day: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true,
+            })
+            : '',
+          orderType: order.orderType || 'Regular',
+          totalItems: order.noOfPackages || 0,
+          companyName: 'Black River Logistics Ltd',
+          customerName: order.customer?.name || 'N/A',
+          pickupDate: order.pickupDate
+            ? new Date(order.pickupDate).toLocaleDateString('en-US')
+            : '',
+          pickupLocation: order.pickupLocation || '',
+          pickupRefNo: order.pickupRefNo || '',
+          deliveryDate: order.deliveryDate
+            ? new Date(order.deliveryDate).toLocaleDateString('en-US')
+            : '',
+          deliveryLocation: order.deliveryLocation || '',
+          deliveryRefNo: order.deliveryRefNo || '',
+          totalAmount: order.totalAmount?.toFixed(2) || '0.00',
+          currency: order.currency || 'CAD',
+          status: order.status || 'QUOTED',
+          driver: order.driver?.name || '',
+          truckNo:
+            order.truck?.licensePlate ||
+            order.truck?.unitNo ||
+            order.truck?.internalId ||
+            '',
+          trailerNo:
+            order.trailer?.licensePlate ||
+            order.trailer?.unitNo ||
+            '',
+        }));
+
+        setOrders(formattedOrders);
+      } else {
+        setOrders([]);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleTabChange = (tab: "drivers" | "vehicles" | "trailers" | "trips" | "orders") => {
     setActiveTab(tab);
@@ -377,7 +500,7 @@ const Index = () => {
     }
   };
 
-  const fetchCurrentData = () => {
+  const fetchCurrentData = useCallback(() => {
     if (activeTab === "drivers") {
       fetchDrivers(currentPage, searchTerm, statusFilter);
     } else if (activeTab === "vehicles") {
@@ -387,9 +510,9 @@ const Index = () => {
     } else if (activeTab === "trips") {
       fetchTrips(currentPage, searchTerm, statusFilter);
     } else if (activeTab === "orders") {
-      fetchOrders(currentPage, searchTerm, statusFilter);
+      fetchOrders();
     }
-  };
+  }, [activeTab, currentPage, searchTerm, statusFilter, operationStatusFilter, typeFilter]);
 
   const filteredDrivers = drivers;
   const filteredVehicles = vehicles;
@@ -921,7 +1044,7 @@ const Index = () => {
                               {trip.driver?.name || "N/A"}
                             </div>
                             <div className="text-xs text-gray-500">
-                              ID: {trip.driver?.internalId || trip.driver?.empId || "N/A"}
+                              ID: {(trip.driver as any)?.internalId || (trip.driver as any)?.empId || trip.driver?._id.slice(-8) || "N/A"}
                             </div>
                             <div className="text-xs text-gray-500">
                               {trip.driver?.phone || ""}
@@ -929,10 +1052,10 @@ const Index = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">
-                              {trip.truck?.unitNo || trip.truck?.licensePlate || trip.truck?.plateNumber || "N/A"}
+                              {(trip.truck as any)?.unitNo || trip.truck?.plateNumber || trip.truck?.internalId || "N/A"}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {trip.truck?.makeModel || `${trip.truck?.make || ''} ${trip.truck?.model || ''}`.trim()}
+                              {(trip.truck as any)?.makeModel || `${trip.truck?.make || ''} ${trip.truck?.model || ''}`.trim() || "N/A"}
                             </div>
                             <div className="text-xs text-gray-500">
                               ID: {trip.truck?.internalId || "N/A"}
@@ -940,13 +1063,13 @@ const Index = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">
-                              {trip.trailer?.unitNo || trip.trailer?.licensePlate || trip.trailer?.trailerNumber || "N/A"}
+                              {(trip.trailer as any)?.unitNo || trip.trailer?.plateNumber || trip.trailer?.trailerNumber || "N/A"}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {trip.trailer?.unitType || trip.trailer?.trailerType || ""}
+                              {(trip.trailer as any)?.unitType || (trip.trailer as any)?.trailerType || ""}
                             </div>
                             <div className="text-xs text-gray-500">
-                              ID: {trip.trailer?.internalId || "N/A"} {trip.trailer?.capacity ? `• ${trip.trailer.capacity}` : ""}
+                              ID: {(trip.trailer as any)?.internalId || trip.trailer?._id.slice(-8) || "N/A"} {(trip.trailer as any)?.capacity ? `• ${(trip.trailer as any).capacity}` : ""}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1071,25 +1194,38 @@ const Index = () => {
 
               {activeTab === "orders" && (
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Order #
+
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Order#/Cust. Order#
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Customer
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Trip#
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Type
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Order Date
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Company Name
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Pickup
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Customer Name
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Delivery
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Pickup Date/Location/Ref No
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Delivery Date/Location/Ref No
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Total Amount
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Driver
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Truck#/Trailer#
                       </th>
                     </tr>
                   </thead>
@@ -1097,69 +1233,84 @@ const Index = () => {
                     {filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                          No orders found
+                          No Orders found
                         </td>
                       </tr>
                     ) : (
-                      filteredOrders.map((order) => {
-                        const getLoc = (loc: any) => {
-                          if (!loc) return "N/A";
-                          if (typeof loc === 'string') return loc;
-                          return loc.place || loc.address || "N/A";
-                        };
-                        return (
-                          <tr key={order._id} className="hover:bg-blue-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">
-                                {order.orderNumber || order._id.slice(-8).toUpperCase()}
+                      filteredOrders.map((order) => (
+                        <tr key={order.id} className="hover:bg-gray-50">
+
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{order.orderNo}</div>
+                            <div className="text-xs text-gray-500">{order.orderType}</div>
+                            {order.custOrderNo && (
+                              <div className="text-xs text-gray-500">{order.custOrderNo}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {order.tripNo || "-"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{order.orderDate}</div>
+                            <div className="text-xs text-gray-500">Total Item: {order.totalItems}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {order.companyName}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {order.customerName}
+                          </td>
+                          <td className="px-6 py-4">
+                            {(() => {
+                              const pickupLoc = extractLocationString(order.pickupLocation);
+                              return pickupLoc ? (
+                                <div className="text-sm">
+                                  <div className="text-gray-900">{pickupLoc}</div>
+                                  {order.pickupRefNo && <div className="text-gray-600">Ref: {order.pickupRefNo}</div>}
+                                  {order.pickupDate && <div className="text-red-600">{order.pickupDate}</div>}
+                                </div>
+                              ) : (
+                                <span className="text-sm text-gray-400">-</span>
+                              );
+                            })()}
+                          </td>
+                          <td className="px-6 py-4">
+                            {(() => {
+                              const deliveryLoc = extractLocationString(order.deliveryLocation);
+                              return deliveryLoc ? (
+                                <div className="text-sm">
+                                  <div className="text-gray-900">{deliveryLoc}</div>
+                                  {order.deliveryRefNo && <div className="text-gray-600">Ref: {order.deliveryRefNo}</div>}
+                                  {order.deliveryDate && <div className="text-red-600">{order.deliveryDate}</div>}
+                                </div>
+                              ) : (
+                                <span className="text-sm text-gray-400">-</span>
+                              );
+                            })()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {order.currency} {order.totalAmount}
+                            </div>
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                              {order.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {order.driver || "-"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {order.truckNo || order.trailerNo ? (
+                              <div>
+                                {order.truckNo && <div>Truck: {order.truckNo}</div>}
+                                {order.trailerNo && <div>Trailer: {order.trailerNo}</div>}
                               </div>
-                              {order.customerOrderNo && (
-                                <div className="text-xs text-gray-500">PO: {order.customerOrderNo}</div>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
-                                {order.customer?.name || order.customer?.firstName || "N/A"}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500">{order.orderType || "N/A"}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.status === "completed"
-                                    ? "bg-green-100 text-green-800"
-                                    : order.status === "planned"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : order.status === "in-delivery"
-                                        ? "bg-blue-100 text-blue-800"
-                                        : order.status === "cancelled"
-                                          ? "bg-red-100 text-red-800"
-                                          : "bg-gray-100 text-gray-800"
-                                  }`}
-                              >
-                                {order.status || "N/A"}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
-                                {order.pickupDate ? new Date(order.pickupDate).toLocaleDateString() : ""}
-                              </div>
-                              <div className="text-xs text-gray-500 truncate max-w-[150px]" title={getLoc(order.pickupLocation)}>
-                                {getLoc(order.pickupLocation)}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
-                                {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : ""}
-                              </div>
-                              <div className="text-xs text-gray-500 truncate max-w-[150px]" title={getLoc(order.deliveryLocation)}>
-                                {getLoc(order.deliveryLocation)}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
+                            ) : (
+                              "-"
+                            )}
+                          </td>
+                        </tr>
+                      ))
                     )}
                   </tbody>
                 </table>
