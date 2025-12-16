@@ -2,6 +2,7 @@ import apiClient from "../apiClient";
 
 export type FleetUnitType =
   | "Truck"
+  | "Trailer"
   | "Reefer Trailer"
   | "Tri-Axle Trailer"
   | "Dry Van"
