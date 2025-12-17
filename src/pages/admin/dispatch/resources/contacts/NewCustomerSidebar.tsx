@@ -699,7 +699,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        className="px-5 py-2.5 rounded-lg text-white transition-all font-medium"
+                        className="px-5 py-2.5 rounded-lg !text-white transition-all font-medium"
                         style={{
                             background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
                         }}

@@ -1,33 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-    Truck,
-    MapPin,
-    Activity,
-    Clock,
-    Wifi,
-    WifiOff,
-    AlertTriangle,
-    Wrench,
-    Navigation,
-    Search,
-    Filter,
-    RefreshCw,
-    Zap,
-    Thermometer
+    Truck, MapPin, Activity, Clock, Wifi, AlertTriangle, 
+    Wrench, Navigation, Search, RefreshCw, Zap, ShieldCheck, 
+    Download
 } from 'lucide-react';
 import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
+    ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
-
 // --- Mock Data ---
 
 const VEHICLES = [
@@ -37,7 +17,12 @@ const VEHICLES = [
     { id: 'TRK-104', driver: 'Unassigned', status: 'offline', engineHours: 11000, idleTime: '-', lastPing: '2 days ago', location: 'Yard A', coordinates: { x: 10, y: 10 }, signal: 'none' },
     { id: 'TRK-105', driver: 'James Wilson', status: 'active', engineHours: 9800, idleTime: '1h 20m', lastPing: '3 mins ago', location: 'Cleveland, OH', coordinates: { x: 50, y: 50 }, signal: 'strong' },
 ];
-
+const HOS_AUDIT_LOGS = [
+  { id: 1, driver: 'John Doe', date: '2023-10-24', driveUsed: '10h 30m', dutyUsed: '13h 45m', status: 'compliant', violation: 'None' },
+  { id: 2, driver: 'Sarah Smith', date: '2023-10-24', driveUsed: '11h 15m', dutyUsed: '14h 20m', status: 'violation', violation: '11-Hour Limit' },
+  { id: 3, driver: 'Mike Johnson', date: '2023-10-23', driveUsed: '8h 00m', dutyUsed: '9h 30m', status: 'warning', violation: 'Approaching 70h' },
+  { id: 4, driver: 'James Wilson', date: '2023-10-24', driveUsed: '0h 00m', dutyUsed: '4h 00m', status: 'compliant', violation: 'None' },
+];
 const MAINTENANCE_ALERTS = [
     { id: 1, vehicle: 'TRK-103', type: 'High Idle', description: 'Idling > 4 hours detected', severity: 'medium', time: '10:30 AM' },
     { id: 2, vehicle: 'TRK-101', type: 'Engine Check', description: 'Oil pressure irregular', severity: 'high', time: '09:15 AM' },
@@ -59,62 +44,123 @@ const STATUS_DATA = [
 ];
 
 const VehicleEldMonitor = () => {
-    const [activeTab, setActiveTab] = useState<'overview' | 'gps' | 'maintenance'>('overview');
-    const [searchTerm, setSearchTerm] = useState('');
+  // UPDATED: Added 'compliance' to tabs
+  const [activeTab, setActiveTab] = useState<'overview' | 'gps' | 'maintenance' | 'compliance'>('overview');
+  const [searchTerm, setSearchTerm] = useState('');
 
-    const filteredVehicles = VEHICLES.filter(v =>
-        v.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.driver.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const filteredVehicles = VEHICLES.filter(vehicle =>
+      vehicle.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.driver.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-    return (
-        <div className="min-h-screen bg-[#EDF8FF] font-sans pb-12">
-            {/* Header */}
-            <div className="top-0 z-30">
-                <div className="px-8 py-5 flex justify-between items-center">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                            <Truck size={28} className="text-blue-500" />
-                            Vehicle ELD Monitor
-                        </h1>
-                        <p className="text-sm text-gray-500 mt-1 ml-10">Real-time operational truck data and status monitoring.</p>
-                    </div>
+  return (
+      <div className="min-h-screen bg-[#EDF8FF] font-sans pb-12">
+          {/* Header */}
+          <div className="top-0 z-30 bg-white shadow-sm">
+              <div className="px-8 py-5 flex justify-between items-center">
+                  <div>
+                      <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                          <ShieldCheck size={28} className="text-blue-600" />
+                          Fleet Compliance Portal
+                      </h1>
+                      <p className="text-sm text-gray-500 mt-1 ml-10">ELD Mandate Monitoring & HOS Audit Tracking</p>
+                  </div>
+              </div>
 
-                </div>
-
-                {/* Navigation Tabs */}
-                <div className="px-8 flex gap-6">
-                    <button
-                        onClick={() => setActiveTab('overview')}
-                        className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-                            }`}
-                    >
-                        Operational Overview
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('gps')}
-                        className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'gps' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-                            }`}
-                    >
-                        Live GPS Map
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('maintenance')}
-                        className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'maintenance' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-                            }`}
-                    >
-                        Engine & Maintenance
-                        {MAINTENANCE_ALERTS.length > 0 && (
-                            <span className="bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">
-                                {MAINTENANCE_ALERTS.length}
-                            </span>
-                        )}
-                    </button>
-                </div>
-            </div>
+              {/* Navigation Tabs */}
+              <div className="px-8 flex gap-6">
+                  {['overview', 'gps', 'maintenance', 'compliance'].map((tab) => (
+                      <button
+                          key={tab}
+                          onClick={() => setActiveTab(tab as any)}
+                          className={`pb-3 px-2 text-sm font-bold capitalize transition-colors border-b-2 ${
+                              activeTab === tab ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-400'
+                          }`}
+                      >
+                          {tab === 'compliance' ? 'HOS Audit Tracker' : tab.replace('_', ' ')}
+                      </button>
+                  ))}
+              </div>
+          </div>
 
             <div className="w-full mx-auto px-4 mt-8">
+            {activeTab === 'compliance' && (
+                    <div className="space-y-6">
+                        {/* HOS Summary Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="bg-white p-5 rounded-xl border-l-4 border-green-500 shadow-sm">
+                                <p className="text-xs text-gray-500 font-bold uppercase">Fully Compliant</p>
+                                <h3 className="text-2xl font-bold">85%</h3>
+                                <p className="text-xs text-gray-400 mt-1">12 Drivers</p>
+                            </div>
+                            <div className="bg-white p-5 rounded-xl border-l-4 border-red-500 shadow-sm">
+                                <p className="text-xs text-gray-500 font-bold uppercase">Active Violations</p>
+                                <h3 className="text-2xl font-bold text-red-600">2</h3>
+                                <p className="text-xs text-gray-400 mt-1">Requires immediate audit</p>
+                            </div>
+                            <div className="bg-white p-5 rounded-xl border-l-4 border-amber-500 shadow-sm">
+                                <p className="text-xs text-gray-500 font-bold uppercase">Uncertified Logs</p>
+                                <h3 className="text-2xl font-bold text-amber-600">5</h3>
+                                <p className="text-xs text-gray-400 mt-1">Pending driver signature</p>
+                            </div>
+                        </div>
 
+                        {/* Audit Table (Mirroring Excel Columns) */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+                                <h3 className="font-bold text-gray-800">Driver Log Audit (Last 24 Hours)</h3>
+                                <button 
+                                   style={{
+                                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                  }}
+                                className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                    <Download size={16} /> Export HOS Report
+                                </button>
+                            </div>
+
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-gray-100 text-gray-600 uppercase text-[11px] font-bold">
+                                    <tr>
+                                        <th className="px-6 py-4">Driver Name</th>
+                                        <th className="px-6 py-4">Log Date</th>
+                                        <th className="px-6 py-4">Driving Time</th>
+                                        <th className="px-6 py-4">On-Duty Time</th>
+                                        <th className="px-6 py-4">Violation Type</th>
+                                        <th className="px-6 py-4">Status</th>
+                                        <th className="px-6 py-4">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {HOS_AUDIT_LOGS.map((log) => (
+                                        <tr key={log.id} className="hover:bg-blue-50/30">
+                                            <td className="px-6 py-4 font-bold text-gray-900">{log.driver}</td>
+                                            <td className="px-6 py-4 text-gray-600">{log.date}</td>
+                                            <td className="px-6 py-4 font-mono text-gray-700">{log.driveUsed}</td>
+                                            <td className="px-6 py-4 font-mono text-gray-700">{log.dutyUsed}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`font-medium ${log.violation !== 'None' ? 'text-red-600' : 'text-gray-400'}`}>
+                                                    {log.violation}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
+                                                    log.status === 'compliant' ? 'bg-green-100 text-green-700' :
+                                                    log.status === 'violation' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                                                }`}>
+                                                    {log.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <button className="text-blue-600 font-bold hover:underline">View Log</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
                 {/* --- OVERVIEW TAB --- */}
                 {activeTab === 'overview' && (
                     <div className="space-y-6">
@@ -240,11 +286,13 @@ const VehicleEldMonitor = () => {
                                                 {v.location}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`${v.idleTime !== '-' && parseInt(v.idleTime) > 3 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
-                                                    {v.idleTime}
+                                                <span className={`${v.idleTime && v.idleTime !== '-' && parseInt(v.idleTime) > 3 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
+                                                    {v.idleTime || '-'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 font-mono text-gray-600">{v.engineHours.toLocaleString()} h</td>
+                                            <td className="px-6 py-4 font-mono text-gray-600">
+                                                {v.engineHours ? v.engineHours.toLocaleString() : '0'} h
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -271,7 +319,7 @@ const VehicleEldMonitor = () => {
                             </div>
 
                             {/* Mock Data Points */}
-                            {VEHICLES.filter(v => v.status !== 'offline').map((v, i) => (
+                            {VEHICLES.filter(v => v.status !== 'offline').map((v) => (
                                 <div
                                     key={v.id}
                                     className="absolute group cursor-pointer transition-all duration-1000 ease-in-out"
