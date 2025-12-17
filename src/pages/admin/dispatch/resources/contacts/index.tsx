@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent } from "react";
-import { Search, Edit2, Trash2, X, UserPlus, Users } from "lucide-react";
+import { Search, Edit2, Trash2, X, UserPlus, Users, MapPin } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import NewContactSidebar from "./NewContactSidebar";
 import NewCustomerSidebar from "./NewCustomerSidebar";
+import NewPlacesSidebar from "../places/NewPlacesSidebar";
 import {
   listContact,
   deleteContact,
@@ -11,6 +12,12 @@ import {
   updateCustomer,
   deleteCustomer,
 } from "../../../../../axios/api/distapcher";
+import {
+  listPlace,
+  deletePlace,
+  updatePlace,
+  updateStatusPlace,
+} from "../../../../../axios/api/dispatcher.places";
 
 interface Contact {
   _id: string;
@@ -32,6 +39,29 @@ interface Customer {
   country: string;
   role: string;
   createdAt: string;
+}
+
+interface Place {
+  _id: string;
+  name: string;
+  street1?: string;
+  street2?: string;
+  neighbourHood?: string;
+  building?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  phone?: string;
+  status?: string;
+  postalCode?: string;
+  securityAccessCodepostalCode?: string;
+  currentLocation?: {
+    address?: string;
+    longitude?: number | null;
+    latitude?: number | null;
+  };
+  createdAt: string;
+  updatedAt?: string;
 }
 
 interface ToastNotification {
@@ -78,9 +108,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("contacts");
+  const [activeTab, setActiveTab] = useState("customers");
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [places, setPlaces] = useState<Place[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
@@ -95,7 +126,7 @@ const Index = () => {
   });
 
   // Edit modal state
-  const [editItem, setEditItem] = useState<Contact | Customer | null>(null);
+  const [editItem, setEditItem] = useState<Contact | Customer | Place | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     internalId: "",
@@ -103,11 +134,19 @@ const Index = () => {
     email: "",
     phone: "",
     country: "",
+    street1: "",
+    street2: "",
+    neighbourHood: "",
+    building: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    securityAccessCodepostalCode: "",
   });
   const [editLoading, setEditLoading] = useState(false);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{ item: Contact | Customer; type: "contact" | "customer" } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ item: Contact | Customer | Place; type: "contact" | "customer" | "place" } | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
@@ -171,10 +210,10 @@ const Index = () => {
       if (res?.success) {
         const data = Array.isArray(res.data) ? res.data : [];
         setCustomers(data);
-        updateEmptyState(res?.message, data.length > 0 || contacts.length > 0);
+        updateEmptyState(res?.message, data.length > 0 || contacts.length > 0 || places.length > 0);
       } else if (res?.message) {
         setCustomers([]);
-        updateEmptyState(res.message, contacts.length > 0);
+        updateEmptyState(res.message, contacts.length > 0 || places.length > 0);
         showToast('warning', res.message);
       } else {
         setCustomers([]);
@@ -182,10 +221,32 @@ const Index = () => {
     } catch (error: any) {
       console.error('Error fetching customers:', error);
       setCustomers([]);
-      updateEmptyState(error?.message, contacts.length > 0);
+      updateEmptyState(error?.message, contacts.length > 0 || places.length > 0);
       showToast('error', error?.message || "Failed to fetch customers");
     }
-  }, [contacts.length, updateEmptyState, showToast]);
+  }, [contacts.length, places.length, updateEmptyState, showToast]);
+
+  const fetchPlaces = useCallback(async () => {
+    try {
+      const res = await listPlace();
+      if (res?.success) {
+        const data = Array.isArray(res.data) ? res.data : [];
+        setPlaces(data);
+        updateEmptyState(res?.message, data.length > 0 || contacts.length > 0 || customers.length > 0);
+      } else if (res?.message) {
+        setPlaces([]);
+        updateEmptyState(res.message, contacts.length > 0 || customers.length > 0);
+        showToast('warning', res.message);
+      } else {
+        setPlaces([]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching places:', error);
+      setPlaces([]);
+      updateEmptyState(error?.message, contacts.length > 0 || customers.length > 0);
+      showToast('error', error?.message || "Failed to fetch places");
+    }
+  }, [contacts.length, customers.length, updateEmptyState, showToast]);
 
   const fetchAllData = useCallback(async () => {
     setLoading(true);
@@ -215,9 +276,9 @@ const Index = () => {
       return;
     }
 
-    await Promise.all([fetchContacts(), fetchCustomers()]);
+    await Promise.all([fetchContacts(), fetchCustomers(), fetchPlaces()]);
     setLoading(false);
-  }, [userInfo, fetchContacts, fetchCustomers]);
+  }, [userInfo, fetchContacts, fetchCustomers, fetchPlaces]);
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
@@ -254,13 +315,25 @@ const Index = () => {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      const res =
-        deleteTarget.type === "contact"
-          ? await deleteContact(deleteTarget.item._id)
-          : await deleteCustomer(deleteTarget.item._id);
+      let res;
+      if (deleteTarget.type === "contact") {
+        res = await deleteContact(deleteTarget.item._id);
+      } else if (deleteTarget.type === "customer") {
+        res = await deleteCustomer(deleteTarget.item._id);
+      } else {
+        res = await deletePlace(deleteTarget.item._id);
+      }
+      
       if (res?.success) {
-        showToast('success', res.message || `${deleteTarget.type === "contact" ? "Contact" : "Customer"} deleted successfully`);
-        deleteTarget.type === "contact" ? fetchContacts() : fetchCustomers();
+        const itemType = deleteTarget.type === "contact" ? "Contact" : deleteTarget.type === "customer" ? "Customer" : "Place";
+        showToast('success', res.message || `${itemType} deleted successfully`);
+        if (deleteTarget.type === "contact") {
+          fetchContacts();
+        } else if (deleteTarget.type === "customer") {
+          fetchCustomers();
+        } else {
+          fetchPlaces();
+        }
         closeDeleteModal();
       } else {
         showToast('error', res?.message || "Delete failed");
@@ -271,18 +344,46 @@ const Index = () => {
     } finally {
       setDeleteLoading(false);
     }
-  }, [deleteTarget, fetchContacts, fetchCustomers, closeDeleteModal, showToast]);
+  }, [deleteTarget, fetchContacts, fetchCustomers, fetchPlaces, closeDeleteModal, showToast]);
 
   // Open edit modal
-  const handleEdit = useCallback((item: Contact | Customer) => {
+  const handleEdit = useCallback((item: Contact | Customer | Place) => {
     setEditItem(item);
-    setEditForm({
-      internalId: item.internalId,
-      name: item.name,
-      email: item.email,
-      phone: item.phone,
-      country: item.country,
-    });
+    if ('internalId' in item) {
+      // Contact or Customer
+      setEditForm({
+        internalId: item.internalId || "",
+        name: item.name,
+        email: 'email' in item ? item.email : "",
+        phone: item.phone || "",
+        country: item.country || "",
+        street1: "",
+        street2: "",
+        neighbourHood: "",
+        building: "",
+        city: "",
+        state: "",
+        postalCode: "",
+        securityAccessCodepostalCode: "",
+      });
+    } else {
+      // Place
+      setEditForm({
+        internalId: "",
+        name: item.name || "",
+        email: "",
+        phone: item.phone || "",
+        country: item.country || "",
+        street1: item.street1 || "",
+        street2: item.street2 || "",
+        neighbourHood: item.neighbourHood || "",
+        building: item.building || "",
+        city: item.city || "",
+        state: item.state || "",
+        postalCode: item.postalCode || "",
+        securityAccessCodepostalCode: item.securityAccessCodepostalCode || "",
+      });
+    }
     setIsEditModalOpen(true);
   }, []);
 
@@ -295,17 +396,36 @@ const Index = () => {
   // Update item
   const handleUpdate = useCallback(async () => {
     if (!editItem) return;
-    const type = activeTab === "contacts" ? "contact" : "customer";
+    let type: "contact" | "customer" | "place";
+    if (activeTab === "contacts") {
+      type = "contact";
+    } else if (activeTab === "customers") {
+      type = "customer";
+    } else {
+      type = "place";
+    }
+    
     setEditLoading(true);
     try {
-      const res =
-        type === "contact"
-          ? await updateContact(editItem._id, editForm)
-          : await updateCustomer(editItem._id, editForm);
+      let res;
+      if (type === "contact") {
+        res = await updateContact(editItem._id, editForm);
+      } else if (type === "customer") {
+        res = await updateCustomer(editItem._id, editForm);
+      } else {
+        res = await updatePlace(editItem._id, editForm);
+      }
 
       if (res?.success) {
-        showToast('success', res.message || `${type === "contact" ? "Contact" : "Customer"} updated successfully`);
-        type === "contact" ? fetchContacts() : fetchCustomers();
+        const itemType = type === "contact" ? "Contact" : type === "customer" ? "Customer" : "Place";
+        showToast('success', res.message || `${itemType} updated successfully`);
+        if (type === "contact") {
+          fetchContacts();
+        } else if (type === "customer") {
+          fetchCustomers();
+        } else {
+          fetchPlaces();
+        }
         setIsEditModalOpen(false);
         setEditItem(null);
       } else {
@@ -317,7 +437,7 @@ const Index = () => {
     } finally {
       setEditLoading(false);
     }
-  }, [activeTab, editItem, editForm, fetchContacts, fetchCustomers, showToast]);
+  }, [activeTab, editItem, editForm, fetchContacts, fetchCustomers, fetchPlaces, showToast]);
 
   // Search
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
@@ -350,13 +470,38 @@ const Index = () => {
     [customers, searchQuery]
   );
 
+  const filteredPlaces = useMemo(
+    () => {
+      if (!searchQuery) return places;
+      const searchLower = searchQuery.toLowerCase();
+      return places.filter((place) => {
+        const searchableFields = [
+          place?.name,
+          place?.street1,
+          place?.street2,
+          place?.neighbourHood,
+          place?.building,
+          place?.city,
+          place?.state,
+          place?.country,
+          place?.phone,
+          place?.postalCode,
+          place?.securityAccessCodepostalCode,
+          place?.currentLocation?.address,
+        ].filter(Boolean).join(" ").toLowerCase();
+        return searchableFields.includes(searchLower);
+      });
+    },
+    [places, searchQuery]
+  );
+
   const handleSidebarClose = () => {
     setIsSidebarOpen(false);
     fetchAllData();
   };
 
   const tableData =
-    activeTab === "contacts" ? filteredContacts : filteredCustomers;
+    activeTab === "contacts" ? filteredContacts : activeTab === "customers" ? filteredCustomers : filteredPlaces;
 
   if (loading) {
     return (
@@ -381,10 +526,9 @@ const Index = () => {
       <div className="px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-6">
           <div className="flex space-x-4">
-
             <button
               onClick={() => setActiveTab("customers")}
-              className={`pb-2 px-2 text-sm font-medium flex items-center gap-2 ${activeTab === "customers"
+              className={`pb-2 px-2 text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === "customers"
                 ? "text-blue-600 border-b-2 border-blue-600"
                 : "text-gray-500 hover:text-gray-700"
                 }`}
@@ -392,9 +536,10 @@ const Index = () => {
               <Users className="w-4 h-4" />
               Customers
             </button>
+  
             <button
               onClick={() => setActiveTab("contacts")}
-              className={`pb-2 px-2 text-sm font-medium flex items-center gap-2 ${activeTab === "contacts"
+              className={`pb-2 px-2 text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === "contacts"
                 ? "text-blue-600 border-b-2 border-blue-600"
                 : "text-gray-500 hover:text-gray-700"
                 }`}
@@ -426,7 +571,9 @@ const Index = () => {
               className="!text-white px-4 py-2 rounded-md hover:opacity-90 transition-opacity flex items-center space-x-2 text-sm font-medium"
             >
               <UserPlus className="w-4 h-4" />
-              <span>{activeTab === "contacts" ? "Create Contact" : "Create Customer"}</span>
+              <span>
+                {activeTab === "contacts" ? "Create Contact" : activeTab === "customers" ? "Create Customer" : "Create Place"}
+              </span>
             </button>
           )}
         </div>
@@ -445,73 +592,153 @@ const Index = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Internal ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Phone
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Country
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created At
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+           
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Internal ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Phone
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Country
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Role
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Created At
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </>
+            
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {tableData.length > 0 ? (
-                  tableData.map((item) => (
-                    <tr key={item._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm">{item.internalId}</td>
-                      <td className="px-6 py-4 text-sm">{item.name}</td>
-                      <td className="px-6 py-4 text-sm">{item.email}</td>
-                      <td className="px-6 py-4 text-sm">{item.phone}</td>
-                      <td className="px-6 py-4 text-sm">{item.country}</td>
-                      <td className="px-6 py-4 text-sm">{item.role}</td>
-                      <td className="px-6 py-4 text-sm">{new Date(item.createdAt).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
-                          <button
-                            onClick={() => handleEdit(item)}
-                            style={{
-                              background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
-                            }}
-                            className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium !text-white hover:opacity-90 transition-opacity"
-                          >
-                            <Edit2 className="h-3 w-3" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={() =>
-                              openDeleteModal(item, activeTab === "contacts" ? "contact" : "customer")
-                            }
-                            className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                  tableData.map((item) => {
+                    if (activeTab === "places") {
+                      const place = item as Place;
+                      const addressParts = [
+                        place.street1,
+                        place.street2,
+                        place.neighbourHood,
+                        place.building,
+                        place.city,
+                        place.state,
+                      ].filter(Boolean);
+                      const hasManualAddress = addressParts.length > 0;
+                      const fullAddress = hasManualAddress
+                        ? addressParts.join(", ")
+                        : place.currentLocation?.address || "N/A";
+                      const postalCode = place.postalCode || place.securityAccessCodepostalCode || "N/A";
+
+                      return (
+                        <tr key={place._id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-sm text-gray-900 font-medium">{place.name || "N/A"}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            <div className="max-w-xs">
+                              <div className="font-medium text-gray-700 mb-1">{fullAddress}</div>
+                              {postalCode !== "N/A" && (
+                                <div className="text-xs text-gray-400">Postal: {postalCode}</div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{place.phone || "N/A"}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{place.country || "N/A"}</td>
+                          <td className="px-6 py-4 text-sm">
+                            <span
+                              onClick={() => updateStatusPlace(place._id).then(() => fetchPlaces())}
+                              className={`cursor-pointer px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                place.status === "active"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {place.status || "N/A"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            {place.createdAt ? new Date(place.createdAt).toLocaleDateString() : "N/A"}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+                              <button
+                                onClick={() => handleEdit(place)}
+                                style={{
+                                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                }}
+                                className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium !text-white hover:opacity-90 transition-opacity"
+                              >
+                                <Edit2 className="h-3 w-3" />
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => openDeleteModal(place, "place")}
+                                className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    } else {
+                      const contactOrCustomer = item as Contact | Customer;
+                      return (
+                        <tr key={contactOrCustomer._id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-sm">{contactOrCustomer.internalId}</td>
+                          <td className="px-6 py-4 text-sm">{contactOrCustomer.name}</td>
+                          <td className="px-6 py-4 text-sm">{contactOrCustomer.email}</td>
+                          <td className="px-6 py-4 text-sm">{contactOrCustomer.phone}</td>
+                          <td className="px-6 py-4 text-sm">{contactOrCustomer.country}</td>
+                          <td className="px-6 py-4 text-sm">{contactOrCustomer.role}</td>
+                          <td className="px-6 py-4 text-sm">{new Date(contactOrCustomer.createdAt).toLocaleDateString()}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+                              <button
+                                onClick={() => handleEdit(contactOrCustomer)}
+                                style={{
+                                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                }}
+                                className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium !text-white hover:opacity-90 transition-opacity"
+                              >
+                                <Edit2 className="h-3 w-3" />
+                                Edit
+                              </button>
+                              <button
+                                onClick={() =>
+                                  openDeleteModal(contactOrCustomer, activeTab === "contacts" ? "contact" : "customer")
+                                }
+                                className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+                  })
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={activeTab === "places" ? 7 : 8} className="px-6 py-12 text-center text-gray-500">
                       <div className="flex flex-col items-center space-y-2">
-                        <Users className="w-12 h-12 text-gray-300" />
+                        {activeTab === "places" ? (
+                          <MapPin className="w-12 h-12 text-gray-300" />
+                        ) : (
+                          <Users className="w-12 h-12 text-gray-300" />
+                        )}
                         <p className="text-sm">No {activeTab} found.</p>
                         {emptyStateMessage && (
                           <p className="text-xs text-gray-400">{emptyStateMessage}</p>
@@ -529,13 +756,15 @@ const Index = () => {
       {/* Sidebars */}
       {activeTab === "contacts" ? (
         <NewContactSidebar isOpen={isSidebarOpen && canCreate} onClose={handleSidebarClose} />
-      ) : (
+      ) : activeTab === "customers" ? (
         <NewCustomerSidebar isOpen={isSidebarOpen && canCreate} onClose={handleSidebarClose} />
+      ) : (
+        <NewPlacesSidebar isOpen={isSidebarOpen && canCreate} onClose={handleSidebarClose} />
       )}
 
       {isEditModalOpen && editItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative animate-fadeIn">
+          <div className={`bg-white rounded-xl shadow-xl w-full ${activeTab === "places" ? "max-w-2xl" : "max-w-md"} p-6 relative animate-fadeIn`}>
             <button
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
               onClick={() => setIsEditModalOpen(false)}
@@ -544,20 +773,22 @@ const Index = () => {
             </button>
 
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Edit {activeTab === "contacts" ? "Contact" : "Customer"}
+              Edit {activeTab === "contacts" ? "Contact" : activeTab === "customers" ? "Customer" : "Place"}
             </h2>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-600 text-sm mb-1">Internal ID</label>
-                <input
-                  type="text"
-                  name="internalId"
-                  value={editForm.internalId}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
-                />
-              </div>
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+              {activeTab !== "places" && (
+                <div>
+                  <label className="block text-gray-600 text-sm mb-1">Internal ID</label>
+                  <input
+                    type="text"
+                    name="internalId"
+                    value={editForm.internalId}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-gray-600 text-sm mb-1">Name</label>
@@ -570,16 +801,18 @@ const Index = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-gray-600 text-sm mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={editForm.email}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
-                />
-              </div>
+              {activeTab !== "places" && (
+                <div>
+                  <label className="block text-gray-600 text-sm mb-1">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={editForm.email}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-gray-600 text-sm mb-1">Phone</label>
@@ -591,6 +824,91 @@ const Index = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
+
+              {activeTab === "places" && (
+                <>
+                  <div>
+                    <label className="block text-gray-600 text-sm mb-1">Street 1</label>
+                    <input
+                      type="text"
+                      name="street1"
+                      value={editForm.street1}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-600 text-sm mb-1">Street 2</label>
+                    <input
+                      type="text"
+                      name="street2"
+                      value={editForm.street2}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-gray-600 text-sm mb-1">Neighbourhood</label>
+                      <input
+                        type="text"
+                        name="neighbourHood"
+                        value={editForm.neighbourHood}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-600 text-sm mb-1">Building</label>
+                      <input
+                        type="text"
+                        name="building"
+                        value={editForm.building}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-gray-600 text-sm mb-1">City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={editForm.city}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-600 text-sm mb-1">State</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={editForm.state}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-gray-600 text-sm mb-1">Postal Code / Security Access Code</label>
+                    <input
+                      type="text"
+                      name="postalCode"
+                      value={editForm.postalCode || editForm.securityAccessCodepostalCode}
+                      onChange={(e) => {
+                        setEditForm({
+                          ...editForm,
+                          postalCode: e.target.value,
+                          securityAccessCodepostalCode: e.target.value
+                        });
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                </>
+              )}
 
               <div>
                 <label className="block text-gray-600 text-sm mb-1">Country</label>
@@ -632,7 +950,7 @@ const Index = () => {
           <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between border-b pb-3">
               <h2 className="text-lg font-semibold text-red-600">
-                Delete {deleteTarget.type === "contact" ? "Contact" : "Customer"}
+                Delete {deleteTarget.type === "contact" ? "Contact" : deleteTarget.type === "customer" ? "Customer" : "Place"}
               </h2>
               <button
                 onClick={closeDeleteModal}
