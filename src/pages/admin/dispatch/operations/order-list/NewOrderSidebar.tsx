@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { X, Plus, ChevronDown, ChevronUp, Search, Pencil, Upload, FileText, ArrowLeft, ArrowRight } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
@@ -58,6 +58,7 @@ interface Place {
     name?: string;
     city?: string;
     state?: string;
+    phone?: string;
     currentLocation?: {
         address?: string;
         latitude?: string | number;
@@ -102,6 +103,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [customerSearch, setCustomerSearch] = useState("");
     const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
     const [customers, setCustomers] = useState<Customer[]>([]);
+
+    // Shipper customer states
+    const [selectedShipperCustomer, setSelectedShipperCustomer] = useState<Customer | null>(null);
+    const [shipperCustomerSearch, setShipperCustomerSearch] = useState("");
+    const [shipperCustomerDropdownOpen, setShipperCustomerDropdownOpen] = useState(false);
+
+    // Receiver customer states
+    const [selectedReceiverCustomer, setSelectedReceiverCustomer] = useState<Customer | null>(null);
+    const [receiverCustomerSearch, setReceiverCustomerSearch] = useState("");
+    const [receiverCustomerDropdownOpen, setReceiverCustomerDropdownOpen] = useState(false);
 
     // Pickup location states
     const [pickupPlaces, setPickupPlaces] = useState<Place[]>([]);
@@ -240,12 +251,18 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         fetchCustomers();
     }, []);
 
-    // Fetch shipper saved addresses (using places as saved addresses)
+    // Fetch shipper saved addresses (using all places as saved addresses)
     useEffect(() => {
         if (shipperAddressType === "saved") {
-            setShipperSavedAddresses(pickupPlaces);
+            // Combine pickup and delivery places for shipper addresses
+            const allPlaces = [...pickupPlaces, ...deliveryPlaces];
+            // Remove duplicates based on _id
+            const uniquePlaces = allPlaces.filter((place, index, self) => 
+                index === self.findIndex(p => p._id === place._id)
+            );
+            setShipperSavedAddresses(uniquePlaces);
         }
-    }, [shipperAddressType, pickupPlaces]);
+    }, [shipperAddressType, pickupPlaces, deliveryPlaces]);
 
     // Populate form fields when editing an order
     useEffect(() => {
@@ -480,6 +497,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setDeliveryNote('');
 
             // Reset new fields
+            setSelectedShipperCustomer(null);
+            setShipperCustomerSearch('');
             setShipperName('');
             setShipperPhone('');
             setShipperEmail('');
@@ -491,6 +510,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setPickupAppointmentTime('12:00');
             setPickupSpecialInstructions('');
             setPickupGatePass('');
+            setSelectedReceiverCustomer(null);
+            setReceiverCustomerSearch('');
             setReceiverName('');
             setReceiverPhone('');
             setReceiverAddress('');
@@ -530,43 +551,18 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     };
 
     // Effect to determine Border Requirement
+    // Note: Border requirement logic is simplified since we removed delivery location dropdown
+    // Users can manually set border requirements if needed
     useEffect(() => {
-        const pickupCountry = selectedPickupPlace?.country || getCountryFromPlace(selectedPickupPlace);
-        const deliveryCountry = selectedDeliveryPlace?.country || getCountryFromPlace(selectedDeliveryPlace);
-
-        // Normalize countries for comparison
-        const pNorm = pickupCountry.toLowerCase().trim();
-        const dNorm = deliveryCountry.toLowerCase().trim();
-        const isUS = (c: string) => c === 'usa' || c === 'us' || c === 'united states';
-        const isCA = (c: string) => c === 'canada' || c === 'ca';
-
-        let requiresBorder = false;
-        if (pickupCountry && deliveryCountry) {
-            if ((isUS(pNorm) && isCA(dNorm)) || (isCA(pNorm) && isUS(dNorm))) {
-                requiresBorder = true;
-            } else if (pNorm !== dNorm && pNorm !== '' && dNorm !== '') {
-                // If strictly different strings and not both empty (generic mismatch)
-                requiresBorder = true;
-            }
-        }
-
-        setBorderRequired(requiresBorder);
-
-        if (requiresBorder) {
-            if (isCA(pNorm) && isUS(dNorm)) {
-                setBorderDirection("CA_TO_US");
-            } else if (isUS(pNorm) && isCA(dNorm)) {
-                setBorderDirection("US_TO_CA");
-            }
-        }
+        const shipperCountry = selectedShipperAddress?.country || getCountryFromPlace(selectedShipperAddress);
 
         // Auto-fill some fields if border is required and fields are empty
-        if (requiresBorder) {
+        if (borderRequired) {
             if (!cargoDescription && commodity) setCargoDescription(commodity);
             if (!commercialValue && valueOfGoods) setCommercialValue(valueOfGoods);
         }
 
-    }, [selectedPickupPlace, selectedDeliveryPlace, commodity, valueOfGoods]);
+    }, [selectedShipperAddress, commodity, valueOfGoods, borderRequired]);
 
 
     const fetchPlaces = async () => {
@@ -604,6 +600,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     ];
 
     const customerDropdownRef = useRef<HTMLDivElement>(null);
+    const shipperCustomerDropdownRef = useRef<HTMLDivElement>(null);
+    const receiverCustomerDropdownRef = useRef<HTMLDivElement>(null);
     const equipmentDropdownRef = useRef<HTMLDivElement>(null);
     const packagesDropdownRef = useRef<HTMLDivElement>(null);
     const pickupDropdownRef = useRef<HTMLDivElement>(null);
@@ -615,6 +613,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             const target = event.target as Node | null;
             if (customerDropdownRef.current && target && !customerDropdownRef.current.contains(target)) {
                 setCustomerDropdownOpen(false);
+            }
+            if (shipperCustomerDropdownRef.current && target && !shipperCustomerDropdownRef.current.contains(target)) {
+                setShipperCustomerDropdownOpen(false);
+            }
+            if (receiverCustomerDropdownRef.current && target && !receiverCustomerDropdownRef.current.contains(target)) {
+                setReceiverCustomerDropdownOpen(false);
             }
             if (equipmentDropdownRef.current && target && !equipmentDropdownRef.current.contains(target)) {
                 setEquipmentDropdownOpen(false);
@@ -640,6 +644,92 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         (customer.name || '').toLowerCase().includes(customerSearch.toLowerCase()) ||
         (customer.address || '').toLowerCase().includes(customerSearch.toLowerCase())
     );
+
+    // Combined filtered lists for shipper (customers + places)
+    const filteredShipperOptions = useMemo(() => {
+        const searchTerm = shipperCustomerSearch.toLowerCase();
+        const filteredCustomers = customers.filter(customer =>
+            (customer.name || '').toLowerCase().includes(searchTerm) ||
+            (customer.address || '').toLowerCase().includes(searchTerm) ||
+            (customer.email || '').toLowerCase().includes(searchTerm)
+        );
+        const filteredPlaces = pickupPlaces.filter(place =>
+            (place.name || '').toLowerCase().includes(searchTerm) ||
+            (place.currentLocation?.address || '').toLowerCase().includes(searchTerm) ||
+            (place.city || '').toLowerCase().includes(searchTerm)
+        );
+        return { customers: filteredCustomers, places: filteredPlaces };
+    }, [customers, pickupPlaces, shipperCustomerSearch]);
+
+    // Combined filtered lists for receiver (customers + places)
+    const filteredReceiverOptions = useMemo(() => {
+        const searchTerm = receiverCustomerSearch.toLowerCase();
+        const filteredCustomers = customers.filter(customer =>
+            (customer.name || '').toLowerCase().includes(searchTerm) ||
+            (customer.address || '').toLowerCase().includes(searchTerm) ||
+            (customer.email || '').toLowerCase().includes(searchTerm)
+        );
+        const filteredPlaces = deliveryPlaces.filter(place =>
+            (place.name || '').toLowerCase().includes(searchTerm) ||
+            (place.currentLocation?.address || '').toLowerCase().includes(searchTerm) ||
+            (place.city || '').toLowerCase().includes(searchTerm)
+        );
+        return { customers: filteredCustomers, places: filteredPlaces };
+    }, [customers, deliveryPlaces, receiverCustomerSearch]);
+
+    // Combined handler for shipper (customer or place)
+    const handleShipperSelect = (item: Customer | Place, type: 'customer' | 'place') => {
+        if (type === 'customer') {
+            const customer = item as Customer;
+            setSelectedShipperCustomer(customer);
+            setSelectedShipperAddress(null);
+            setShipperCustomerSearch("");
+            setShipperCustomerDropdownOpen(false);
+            // Auto-fill shipper fields from customer
+            if (customer.name) setShipperName(customer.name);
+            if (customer.phone) setShipperPhone(customer.phone);
+            if (customer.email) setShipperEmail(customer.email);
+        } else {
+            const place = item as Place;
+            setSelectedShipperAddress(place);
+            setSelectedShipperCustomer(null);
+            setShipperAddressSearch("");
+            setShipperAddressDropdownOpen(false);
+            // Auto-fill shipper fields from place
+            if (place.name) setShipperName(place.name);
+            if (place.phone) setShipperPhone(place.phone);
+            // Use place name as address identifier
+            if (place.currentLocation?.address) {
+                setShipperManualAddress(place.currentLocation.address);
+            }
+        }
+    };
+
+    // Combined handler for receiver (customer or place)
+    const handleReceiverSelect = (item: Customer | Place, type: 'customer' | 'place') => {
+        if (type === 'customer') {
+            const customer = item as Customer;
+            setSelectedReceiverCustomer(customer);
+            setSelectedDeliveryPlace(null);
+            setReceiverCustomerSearch("");
+            setReceiverCustomerDropdownOpen(false);
+            // Auto-fill receiver fields from customer
+            if (customer.name) setReceiverName(customer.name);
+            if (customer.phone) setReceiverPhone(customer.phone);
+        } else {
+            const place = item as Place;
+            setSelectedDeliveryPlace(place);
+            setSelectedReceiverCustomer(null);
+            setDeliverySearch("");
+            setDeliveryDropdownOpen(false);
+            // Auto-fill receiver fields from place
+            if (place.name) setReceiverName(place.name);
+            if (place.phone) setReceiverPhone(place.phone);
+            if (place.currentLocation?.address) {
+                setReceiverAddress(place.currentLocation.address);
+            }
+        }
+    };
 
     const filteredPackages = packageTypes.filter(pkg =>
         pkg.toLowerCase().includes(noOfPackagesSearch.toLowerCase())
@@ -864,10 +954,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     // Validation for each step
     const validateStep = (step: number): boolean => {
         if (step === 1) {
-            if (!selectedCustomer) {
-                addNotification('error', "Please select a customer");
-                return false;
-            }
             if (!customerOrderNo) {
                 addNotification('error', "Please enter customer order number");
                 return false;
@@ -885,8 +971,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 if (!cargoDescription) { addNotification('error', "Cargo Description is required"); return false; }
             }
         } else if (step === 2) {
-            if (!selectedPickupPlace) {
-                addNotification('error', "Please select a pickup location");
+            if (!selectedShipperAddress) {
+                addNotification('error', "Please select a shipper address");
                 return false;
             }
             if (!shipperName) {
@@ -898,10 +984,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 return false;
             }
         } else if (step === 3) {
-            if (!selectedDeliveryPlace) {
-                addNotification('error', "Please select a delivery location");
-                return false;
-            }
             if (!receiverName) {
                 addNotification('error', "Please enter receiver name");
                 return false;
@@ -924,16 +1006,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     const handleSaveOrder = async () => {
         // Final validation
-        if (!selectedCustomer) {
-            addNotification('error', "Please select a customer");
+        // Use shipper customer as the order customer if available, otherwise use receiver customer
+        const orderCustomer = selectedShipperCustomer || selectedReceiverCustomer || selectedCustomer;
+        if (!orderCustomer) {
+            addNotification('error', "Please select a shipper or receiver customer");
             return;
         }
-        if (!selectedPickupPlace) {
-            addNotification('error', "Please select a pickup location");
-            return;
-        }
-        if (!selectedDeliveryPlace) {
-            addNotification('error', "Please select a delivery location");
+        if (!selectedShipperAddress) {
+            addNotification('error', "Please select a shipper address");
             return;
         }
         if (!customerOrderNo) {
@@ -969,12 +1049,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 freightOn: freightOn || 'Order',
                 salesman: selectedSalesman || '',
                 orderNotes: orderNotes || '',
-                customer: selectedCustomer._id || selectedCustomer.id,
+                customer: orderCustomer._id || orderCustomer.id,
                 pickupLocation: {
-                    placeId: selectedPickupPlace._id,
-                    place: selectedPickupPlace.currentLocation?.address || `${selectedPickupPlace.name || ''}, ${selectedPickupPlace.city || ''}, ${selectedPickupPlace.state || ''}`,
-                    latitude: selectedPickupPlace.currentLocation?.latitude?.toString() || '',
-                    longitude: selectedPickupPlace.currentLocation?.longitude?.toString() || ''
+                    placeId: selectedShipperAddress._id,
+                    place: selectedShipperAddress.currentLocation?.address || `${selectedShipperAddress.name || ''}, ${selectedShipperAddress.city || ''}, ${selectedShipperAddress.state || ''}`,
+                    latitude: selectedShipperAddress.currentLocation?.latitude?.toString() || '',
+                    longitude: selectedShipperAddress.currentLocation?.longitude?.toString() || ''
                 },
                 pickupDate: pickupDateTime,
                 pickupTime: pickupTime || '',
@@ -982,10 +1062,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 pickupRefNo: pickupRefNo || '',
                 pickupNote: pickupNote || '',
                 deliveryLocation: {
-                    placeId: selectedDeliveryPlace._id,
-                    place: selectedDeliveryPlace.currentLocation?.address || `${selectedDeliveryPlace.name || ''}, ${selectedDeliveryPlace.city || ''}, ${selectedDeliveryPlace.state || ''}`,
-                    latitude: selectedDeliveryPlace.currentLocation?.latitude?.toString() || '',
-                    longitude: selectedDeliveryPlace.currentLocation?.longitude?.toString() || ''
+                    placeId: '',
+                    place: receiverAddress || '',
+                    latitude: '',
+                    longitude: ''
                 },
                 deliveryDate: deliveryDateTime,
                 deliveryTime: deliveryTime || '',
@@ -1038,7 +1118,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     name: shipperName,
                     phone: shipperPhone,
                     email: shipperEmail,
-                    address: selectedPickupPlace?.currentLocation?.address || `${selectedPickupPlace?.name || ''}, ${selectedPickupPlace?.city || ''}, ${selectedPickupPlace?.state || ''}`,
+                    address: selectedShipperAddress?.currentLocation?.address || `${selectedShipperAddress?.name || ''}, ${selectedShipperAddress?.city || ''}, ${selectedShipperAddress?.state || ''}`,
                     addressType: 'saved'
                 },
                 pickupAppointmentDetails: {
@@ -1051,7 +1131,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 receiver: {
                     name: receiverName,
                     phone: receiverPhone,
-                    address: selectedDeliveryPlace?.currentLocation?.address || `${selectedDeliveryPlace?.name || ''}, ${selectedDeliveryPlace?.city || ''}, ${selectedDeliveryPlace?.state || ''}`
+                    address: receiverAddress || ''
                 },
                 deliveryAppointmentDetails: {
                     type: deliveryAppointmentType,
@@ -1115,27 +1195,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     );
 
     // Calculate mileage (auto-calc)
+    // Note: Distance calculation is disabled since we removed delivery location dropdown
+    // This function returns 0 as we no longer have delivery location coordinates
     const calculateMileage = () => {
-        if (selectedPickupPlace && selectedDeliveryPlace &&
-            selectedPickupPlace.currentLocation?.latitude && selectedPickupPlace.currentLocation?.longitude &&
-            selectedDeliveryPlace.currentLocation?.latitude && selectedDeliveryPlace.currentLocation?.longitude) {
-            // Simple distance calculation (Haversine formula would be better, but this is a placeholder)
-            const lat1 = parseFloat(selectedPickupPlace.currentLocation.latitude.toString());
-            const lon1 = parseFloat(selectedPickupPlace.currentLocation.longitude.toString());
-            const lat2 = parseFloat(selectedDeliveryPlace.currentLocation.latitude.toString());
-            const lon2 = parseFloat(selectedDeliveryPlace.currentLocation.longitude.toString());
-
-            // Rough calculation (not accurate, but placeholder)
-            const R = 3959; // Earth radius in miles
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            const distance = R * c;
-            return Math.round(distance);
-        }
+        // Distance calculation requires both pickup and delivery locations with coordinates
+        // Since we removed delivery location dropdown, we can't calculate distance automatically
         return 0;
     };
 
@@ -1210,94 +1274,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 <div className="bg-white rounded-lg border border-gray-200 p-4">
                                     <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Customer Information</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                                        {/* Customer Field */}
-                                        <div className="relative" ref={customerDropdownRef}>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Customer *</label>
-                                            <div className="relative">
-                                                <div
-                                                    onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
-                                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75 "
-                                                >
-                                                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
-                                                    <input
-                                                        type="text"
-                                                        value={selectedCustomer ? `${selectedCustomer.name || ''} | ${selectedCustomer.address || selectedCustomer.email || ''}` : customerSearch}
-                                                        onChange={(e) => {
-                                                            setCustomerSearch(e.target.value);
-                                                            setCustomerDropdownOpen(true);
-                                                        }}
-                                                        onFocus={() => setCustomerDropdownOpen(true)}
-                                                        placeholder="customer"
-                                                        className="flex-1 outline-none text-sm min-w-0"
-                                                        readOnly={!!selectedCustomer}
-                                                    />
-                                                    {selectedCustomer && (
-                                                        <>
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setSelectedCustomer(null);
-                                                                    setCustomerSearch("");
-                                                                }}
-                                                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                                                            >
-                                                                <X className="w-4 h-4 text-gray-400" />
-                                                            </button>
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    // Edit functionality
-                                                                }}
-                                                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                                                            >
-                                                                <Pencil className="w-4 h-4 text-gray-400" />
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                    <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
-                                                </div>
-
-                                                {customerDropdownOpen && (
-                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                        <div className="p-2 border-b border-gray-200">
-                                                            <div className="relative">
-                                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                                <input
-                                                                    type="text"
-                                                                    value={customerSearch}
-                                                                    onChange={(e) => setCustomerSearch(e.target.value)}
-                                                                    placeholder="Search..."
-                                                                    className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
-                                                                    autoFocus
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="overflow-y-auto max-h-48">
-                                                            {filteredCustomers.length > 0 ? (
-                                                                filteredCustomers.map((customer) => (
-                                                                    <div
-                                                                        key={customer._id || customer.id}
-                                                                        onClick={() => {
-                                                                            setSelectedCustomer(customer);
-                                                                            setCustomerSearch("");
-                                                                            setCustomerDropdownOpen(false);
-                                                                        }}
-                                                                        className={`px-3 py-2 cursor-pointer text-sm ${(selectedCustomer?._id || selectedCustomer?.id) === (customer._id || customer.id) ? '' : ''
-                                                                            }`}
-                                                                    >
-                                                                        <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
-                                                                        <div className="text-xs text-gray-600">{customer.address || customer.email || customer.phone || ''}</div>
-                                                                    </div>
-                                                                ))
-                                                            ) : (
-                                                                <div className="px-3 py-2 text-sm text-gray-500">No customers found</div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
                                         {/* Customer Order # */}
                                         <div>
                                             <label className="block text-xs font-medium text-gray-700 mb-1">Customer Order # *</label>
@@ -1911,73 +1887,157 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                     <div className="bg-white rounded-lg border border-gray-200 p-4">
                                         <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Contact Information</h4>
                                         <div className="space-y-4">
-                                            {/* Shipper Name */}
-                                            <div className="relative">
+                                            {/* Select Shipper (Customers + Places Combined) */}
+                                            <div className="relative" ref={shipperCustomerDropdownRef}>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">Select Shipper *</label>
+                                                <div className="relative">
+                                                    <div
+                                                        onClick={() => setShipperCustomerDropdownOpen(!shipperCustomerDropdownOpen)}
+                                                        className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75"
+                                                    >
+                                                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${shipperCustomerDropdownOpen ? 'rotate-180' : ''}`} />
+                                                        <input
+                                                            type="text"
+                                                            value={
+                                                                selectedShipperCustomer 
+                                                                    ? `${selectedShipperCustomer.name || ''} | ${selectedShipperCustomer.address || selectedShipperCustomer.email || ''}`
+                                                                    : selectedShipperAddress
+                                                                    ? `${selectedShipperAddress.name || ''} | ${selectedShipperAddress.currentLocation?.address || ''}`
+                                                                    : shipperCustomerSearch
+                                                            }
+                                                            onChange={(e) => {
+                                                                setShipperCustomerSearch(e.target.value);
+                                                                setShipperCustomerDropdownOpen(true);
+                                                            }}
+                                                            onFocus={() => setShipperCustomerDropdownOpen(true)}
+                                                            placeholder="Select shipper (customer or place)"
+                                                            className="flex-1 outline-none text-sm min-w-0"
+                                                            readOnly={!!selectedShipperCustomer || !!selectedShipperAddress}
+                                                        />
+                                                        {(selectedShipperCustomer || selectedShipperAddress) && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedShipperCustomer(null);
+                                                                    setSelectedShipperAddress(null);
+                                                                    setShipperCustomerSearch("");
+                                                                    setShipperName("");
+                                                                    setShipperPhone("");
+                                                                    setShipperEmail("");
+                                                                    setShipperManualAddress("");
+                                                                }}
+                                                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                            >
+                                                                <X className="w-4 h-4 text-gray-400" />
+                                                            </button>
+                                                        )}
+                                                        <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${shipperCustomerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
+                                                    </div>
+
+                                                    {shipperCustomerDropdownOpen && (
+                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                            <div className="p-2 border-b border-gray-200">
+                                                                <div className="relative">
+                                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                    <input
+                                                                        type="text"
+                                                                        value={shipperCustomerSearch}
+                                                                        onChange={(e) => setShipperCustomerSearch(e.target.value)}
+                                                                        placeholder="Search customers or places..."
+                                                                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                        autoFocus
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div className="overflow-y-auto max-h-48">
+                                                                {filteredShipperOptions.customers.length > 0 || filteredShipperOptions.places.length > 0 ? (
+                                                                    <>
+                                                                        {filteredShipperOptions.customers.length > 0 && (
+                                                                            <>
+                                                                                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
+                                                                                    Customers
+                                                                                </div>
+                                                                                {filteredShipperOptions.customers.map((customer) => (
+                                                                                    <div
+                                                                                        key={`customer-${customer._id || customer.id}`}
+                                                                                        onClick={() => handleShipperSelect(customer, 'customer')}
+                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
+                                                                                            (selectedShipperCustomer?._id || selectedShipperCustomer?.id) === (customer._id || customer.id) ? 'bg-blue-50' : ''
+                                                                                        }`}
+                                                                                    >
+                                                                                        <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
+                                                                                        <div className="text-xs text-gray-600">{customer.address || customer.email || customer.phone || ''}</div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </>
+                                                                        )}
+                                                                        {filteredShipperOptions.places.length > 0 && (
+                                                                            <>
+                                                                                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
+                                                                                    Places
+                                                                                </div>
+                                                                                {filteredShipperOptions.places.map((place) => (
+                                                                                    <div
+                                                                                        key={`place-${place._id}`}
+                                                                                        onClick={() => handleShipperSelect(place, 'place')}
+                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
+                                                                                            selectedShipperAddress?._id === place._id ? 'bg-blue-50' : ''
+                                                                                        }`}
+                                                                                    >
+                                                                                        <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{place.name || 'Unnamed Place'}</div>
+                                                                                        <div className="text-xs text-gray-600">{place.currentLocation?.address || place.address || ''}</div>
+                                                                                        {(place.city || place.state) && (
+                                                                                            <div className="text-xs text-gray-500">{[place.city, place.state].filter(Boolean).join(', ')}</div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                ))}
+                                                                            </>
+                                                                        )}
+                                                                    </>
+                                                                ) : (
+                                                                    <div className="px-3 py-2 text-sm text-gray-500">No customers or places found</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Shipper Name (Read-only, auto-populated) */}
+                                            <div>
                                                 <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Name *</label>
                                                 <input
                                                     type="text"
                                                     value={shipperName}
-                                                    onChange={(e) => {
-                                                        setShipperName(e.target.value);
-                                                        debouncedFetchSuggestions('shipperName', e.target.value);
-                                                    }}
-                                                    onFocus={() => {
-                                                        if (shipperName && shipperName.length >= 2) {
-                                                            fetchSuggestions('shipperName', shipperName);
-                                                        }
-                                                    }}
-                                                    onBlur={() => {
-                                                        setTimeout(() => setShowShipperNameSuggestions(false), 200);
-                                                    }}
-                                                    className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
-                                                    placeholder="Enter shipper name"
+                                                    readOnly
+                                                    className="w-full p-2.5 border border-gray-300 rounded-md bg-gray-50 text-sm cursor-not-allowed"
+                                                    placeholder="Auto-filled from selection"
                                                 />
-                                                {showShipperNameSuggestions && shipperNameSuggestions.length > 0 && (
-                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                                        {shipperNameSuggestions.map((suggestion, index) => (
-                                                            <div
-                                                                key={index}
-                                                                onClick={() => {
-                                                                    setShipperName(suggestion);
-                                                                    setShowShipperNameSuggestions(false);
-                                                                }}
-                                                                className="px-3 py-2 cursor-pointer text-sm"
-                                                                style={{ '--hover-bg': PRIMARY_LIGHT_BG } as React.CSSProperties}
-                                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = PRIMARY_LIGHT_BG}
-                                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
-                                                            >
-                                                                {suggestion}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
                                             </div>
 
-                                            {/* Shipper Phone */}
+                                            {/* Shipper Phone (Read-only, auto-populated) */}
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Phone *</label>
                                                 <input
                                                     type="tel"
                                                     value={shipperPhone}
-                                                    onChange={(e) => setShipperPhone(e.target.value)}
-                                                    className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
-                                                    placeholder="Enter shipper phone"
+                                                    readOnly
+                                                    className="w-full p-2.5 border border-gray-300 rounded-md bg-gray-50 text-sm cursor-not-allowed"
+                                                    placeholder="Auto-filled from selection"
                                                 />
                                             </div>
 
-                                            {/* Shipper Email */}
+                                            {/* Shipper Email (Read-only, auto-populated) */}
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-700 mb-1">Shipper Email (optional)</label>
                                                 <input
                                                     type="email"
                                                     value={shipperEmail}
-                                                    onChange={(e) => setShipperEmail(e.target.value)}
-                                                    className="w-full p-2.5 !mb-5 border border-gray-300 rounded-md focus:outline-none focus:ring-2  text-sm"
-                                                    placeholder="Enter shipper email"
+                                                    readOnly
+                                                    className="w-full p-2.5 border border-gray-300 rounded-md bg-gray-50 text-sm cursor-not-allowed"
+                                                    placeholder="Auto-filled from selection"
                                                 />
                                             </div>
-
-                                            {/* Shipper Address (Hidden - Inherited from Pickup Location) */}
                                         </div>
 
                                         {/* Pickup Appointment (Merged) */}
@@ -1987,63 +2047,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </h4>
 
                                             <div className="space-y-4">
-
-                                                {/* Location */}
-                                                <div className="relative" ref={pickupDropdownRef}>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Pickup Location *</label>
-                                                    <div
-                                                        onClick={() => setPickupDropdownOpen(!pickupDropdownOpen)}
-                                                        className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer"
-                                                    >
-                                                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
-                                                        <input
-                                                            type="text"
-                                                            value={
-                                                                selectedPickupPlace
-                                                                    ? `${selectedPickupPlace.name || ''} | ${selectedPickupPlace.currentLocation?.address || ''}`
-                                                                    : pickupSearch
-                                                            }
-                                                            onChange={(e) => {
-                                                                setPickupSearch(e.target.value);
-                                                                setPickupDropdownOpen(true);
-                                                            }}
-                                                            placeholder="Search pickup location..."
-                                                            className="flex-1 outline-none text-sm"
-                                                            readOnly={!!selectedPickupPlace}
-                                                        />
-                                                        {selectedPickupPlace && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setSelectedPickupPlace(null);
-                                                                    setPickupSearch("");
-                                                                }}
-                                                                className="p-1 hover:bg-gray-100 rounded"
-                                                            >
-                                                                <X className="w-4 h-4 text-gray-400" />
-                                                            </button>
-                                                        )}
-                                                    </div>
-
-                                                    {pickupDropdownOpen && (
-                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                                                            {filteredPickupPlaces.map((place) => (
-                                                                <div
-                                                                    key={place._id}
-                                                                    onClick={() => {
-                                                                        setSelectedPickupPlace(place);
-                                                                        setPickupSearch("");
-                                                                        setPickupDropdownOpen(false);
-                                                                    }}
-                                                                    className="px-3 py-2 cursor-pointer text-sm hover:bg-gray-100"
-                                                                >
-                                                                    <div className="font-medium">{place.name}</div>
-                                                                    <div className="text-xs text-gray-600">{place.currentLocation?.address}</div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
 
                                                 {/* Reference No */}
                                                 <div>
@@ -2188,58 +2191,144 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                     <div className="bg-white rounded-lg border border-gray-200 p-4">
                                         <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Contact Information</h4>
                                         <div className="space-y-4">
-                                            {/* Receiver Name */}
-                                            <div className="relative">
+                                            {/* Select Receiver (Customers + Places Combined) */}
+                                            <div className="relative" ref={receiverCustomerDropdownRef}>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">Select Receiver *</label>
+                                                <div className="relative">
+                                                    <div
+                                                        onClick={() => setReceiverCustomerDropdownOpen(!receiverCustomerDropdownOpen)}
+                                                        className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75"
+                                                    >
+                                                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${receiverCustomerDropdownOpen ? 'rotate-180' : ''}`} />
+                                                        <input
+                                                            type="text"
+                                                            value={
+                                                                selectedReceiverCustomer 
+                                                                    ? `${selectedReceiverCustomer.name || ''} | ${selectedReceiverCustomer.address || selectedReceiverCustomer.email || ''}`
+                                                                    : selectedDeliveryPlace
+                                                                    ? `${selectedDeliveryPlace.name || ''} | ${selectedDeliveryPlace.currentLocation?.address || ''}`
+                                                                    : receiverCustomerSearch
+                                                            }
+                                                            onChange={(e) => {
+                                                                setReceiverCustomerSearch(e.target.value);
+                                                                setReceiverCustomerDropdownOpen(true);
+                                                            }}
+                                                            onFocus={() => setReceiverCustomerDropdownOpen(true)}
+                                                            placeholder="Select receiver (customer or place)"
+                                                            className="flex-1 outline-none text-sm min-w-0"
+                                                            readOnly={!!selectedReceiverCustomer || !!selectedDeliveryPlace}
+                                                        />
+                                                        {(selectedReceiverCustomer || selectedDeliveryPlace) && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedReceiverCustomer(null);
+                                                                    setSelectedDeliveryPlace(null);
+                                                                    setReceiverCustomerSearch("");
+                                                                    setReceiverName("");
+                                                                    setReceiverPhone("");
+                                                                    setReceiverAddress("");
+                                                                }}
+                                                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                            >
+                                                                <X className="w-4 h-4 text-gray-400" />
+                                                            </button>
+                                                        )}
+                                                        <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${receiverCustomerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
+                                                    </div>
+
+                                                    {receiverCustomerDropdownOpen && (
+                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                            <div className="p-2 border-b border-gray-200">
+                                                                <div className="relative">
+                                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                    <input
+                                                                        type="text"
+                                                                        value={receiverCustomerSearch}
+                                                                        onChange={(e) => setReceiverCustomerSearch(e.target.value)}
+                                                                        placeholder="Search customers or places..."
+                                                                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                        autoFocus
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div className="overflow-y-auto max-h-48">
+                                                                {filteredReceiverOptions.customers.length > 0 || filteredReceiverOptions.places.length > 0 ? (
+                                                                    <>
+                                                                        {filteredReceiverOptions.customers.length > 0 && (
+                                                                            <>
+                                                                                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
+                                                                                    Customers
+                                                                                </div>
+                                                                                {filteredReceiverOptions.customers.map((customer) => (
+                                                                                    <div
+                                                                                        key={`customer-${customer._id || customer.id}`}
+                                                                                        onClick={() => handleReceiverSelect(customer, 'customer')}
+                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
+                                                                                            (selectedReceiverCustomer?._id || selectedReceiverCustomer?.id) === (customer._id || customer.id) ? 'bg-green-50' : ''
+                                                                                        }`}
+                                                                                    >
+                                                                                        <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
+                                                                                        <div className="text-xs text-gray-600">{customer.address || customer.email || customer.phone || ''}</div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </>
+                                                                        )}
+                                                                        {filteredReceiverOptions.places.length > 0 && (
+                                                                            <>
+                                                                                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
+                                                                                    Places
+                                                                                </div>
+                                                                                {filteredReceiverOptions.places.map((place) => (
+                                                                                    <div
+                                                                                        key={`place-${place._id}`}
+                                                                                        onClick={() => handleReceiverSelect(place, 'place')}
+                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
+                                                                                            selectedDeliveryPlace?._id === place._id ? 'bg-green-50' : ''
+                                                                                        }`}
+                                                                                    >
+                                                                                        <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{place.name || 'Unnamed Place'}</div>
+                                                                                        <div className="text-xs text-gray-600">{place.currentLocation?.address || place.address || ''}</div>
+                                                                                        {(place.city || place.state) && (
+                                                                                            <div className="text-xs text-gray-500">{[place.city, place.state].filter(Boolean).join(', ')}</div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                ))}
+                                                                            </>
+                                                                        )}
+                                                                    </>
+                                                                ) : (
+                                                                    <div className="px-3 py-2 text-sm text-gray-500">No customers or places found</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Receiver Name (Read-only, auto-populated) */}
+                                            <div>
                                                 <label className="block text-xs font-medium text-gray-700 mb-1">Receiver Name *</label>
                                                 <input
                                                     type="text"
                                                     value={receiverName}
-                                                    onChange={(e) => {
-                                                        setReceiverName(e.target.value);
-                                                        debouncedFetchSuggestions('receiverName', e.target.value);
-                                                    }}
-                                                    onFocus={() => {
-                                                        if (receiverName && receiverName.length >= 2) {
-                                                            fetchSuggestions('receiverName', receiverName);
-                                                        }
-                                                    }}
-                                                    onBlur={() => {
-                                                        setTimeout(() => setShowReceiverNameSuggestions(false), 200);
-                                                    }}
-                                                    className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                                                    placeholder="Enter receiver name"
+                                                    readOnly
+                                                    className="w-full p-2.5 border border-gray-300 rounded-md bg-gray-50 text-sm cursor-not-allowed"
+                                                    placeholder="Auto-filled from selection"
                                                 />
-                                                {showReceiverNameSuggestions && receiverNameSuggestions.length > 0 && (
-                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                                        {receiverNameSuggestions.map((suggestion, index) => (
-                                                            <div
-                                                                key={index}
-                                                                onClick={() => {
-                                                                    setReceiverName(suggestion);
-                                                                    setShowReceiverNameSuggestions(false);
-                                                                }}
-                                                                className="px-3 py-2 cursor-pointer hover:bg-green-50 text-sm"
-                                                            >
-                                                                {suggestion}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
                                             </div>
 
-                                            {/* Receiver Phone */}
+                                            {/* Receiver Phone (Read-only, auto-populated) */}
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-700 mb-1">Receiver Phone *</label>
                                                 <input
                                                     type="tel"
                                                     value={receiverPhone}
-                                                    onChange={(e) => setReceiverPhone(e.target.value)}
-                                                    className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                                                    placeholder="Enter receiver phone"
+                                                    readOnly
+                                                    className="w-full p-2.5 border border-gray-300 rounded-md bg-gray-50 text-sm cursor-not-allowed"
+                                                    placeholder="Auto-filled from selection"
                                                 />
                                             </div>
-
-                                            {/* Delivery Address (Hidden - Inherited from Delivery Location) */}
                                         </div>
                                     </div>
                                     {/* Delivery Details & Appointment (Merged) */}
@@ -2249,75 +2338,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         </h4>
 
                                         <div className="space-y-4">
-
-                                            {/* Location */}
-                                            <div className="relative" ref={deliveryDropdownRef}>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Delivery Location *</label>
-                                                <div
-                                                    onClick={() => setDeliveryDropdownOpen(!deliveryDropdownOpen)}
-                                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer"
-                                                >
-                                                    <ChevronDown
-                                                        className={`w-4 h-4 text-gray-400 transition-transform ${deliveryDropdownOpen ? "rotate-180" : ""
-                                                            }`}
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={
-                                                            selectedDeliveryPlace
-                                                                ? `${selectedDeliveryPlace.name || ""} | ${selectedDeliveryPlace.currentLocation?.address || ""
-                                                                }`
-                                                                : deliverySearch
-                                                        }
-                                                        onChange={(e) => {
-                                                            setDeliverySearch(e.target.value);
-                                                            setDeliveryDropdownOpen(true);
-                                                        }}
-                                                        placeholder="Search delivery location..."
-                                                        className="flex-1 outline-none text-sm"
-                                                        readOnly={!!selectedDeliveryPlace}
-                                                    />
-                                                    {selectedDeliveryPlace && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedDeliveryPlace(null);
-                                                                setDeliverySearch("");
-                                                            }}
-                                                            className="p-1 hover:bg-gray-100 rounded"
-                                                        >
-                                                            <X className="w-4 h-4 text-gray-400" />
-                                                        </button>
-                                                    )}
-                                                </div>
-
-                                                {deliveryDropdownOpen && (
-                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-auto">
-                                                        {filteredDeliveryPlaces.length > 0 ? (
-                                                            filteredDeliveryPlaces.map((place) => (
-                                                                <div
-                                                                    key={place._id}
-                                                                    onClick={() => {
-                                                                        setSelectedDeliveryPlace(place);
-                                                                        setDeliverySearch("");
-                                                                        setDeliveryDropdownOpen(false);
-                                                                    }}
-                                                                    className="px-3 py-2 cursor-pointer text-sm hover:bg-gray-100"
-                                                                >
-                                                                    <div className="font-medium">{place.name}</div>
-                                                                    <div className="text-xs text-gray-600">
-                                                                        {place.currentLocation?.address}
-                                                                    </div>
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <div className="px-3 py-2 text-sm text-gray-500">
-                                                                No places found
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
 
                                             {/* Reference No */}
                                             <div>
@@ -2729,7 +2749,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Phone:</span> <span className="text-gray-800">{shipperPhone || 'N/A'}</span></div>
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Email:</span> <span className="text-gray-800">{shipperEmail || 'N/A'}</span></div>
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Address:</span> <span className="text-gray-800">{
-                                                selectedPickupPlace?.currentLocation?.address || `${selectedPickupPlace?.city || ''}, ${selectedPickupPlace?.state || ''}` || 'N/A'
+                                                selectedShipperAddress?.currentLocation?.address || `${selectedShipperAddress?.name || ''}, ${selectedShipperAddress?.city || ''}, ${selectedShipperAddress?.state || ''}` || 'N/A'
                                             }</span></div>
                                             <div className="mt-4 pt-4 border-t border-gray-200">
                                                 <div className="font-semibold mb-3 text-gray-800">Pickup Appointment:</div>
@@ -2754,7 +2774,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Name:</span> <span className="text-gray-800">{receiverName || 'N/A'}</span></div>
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Phone:</span> <span className="text-gray-800">{receiverPhone || 'N/A'}</span></div>
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Address:</span> <span className="text-gray-800">{
-                                                selectedDeliveryPlace?.currentLocation?.address || `${selectedDeliveryPlace?.city || ''}, ${selectedDeliveryPlace?.state || ''}` || 'N/A'
+                                                receiverAddress || 'N/A'
                                             }</span></div>
                                             <div className="mt-4 pt-4 border-t border-gray-200">
                                                 <div className="font-semibold mb-3 text-gray-800">Delivery Appointment:</div>

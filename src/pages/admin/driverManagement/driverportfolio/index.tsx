@@ -267,7 +267,7 @@ const DriverPortfolio: React.FC = () => {
                 background: 'linear-gradient(135deg, #f8fafc 0%, rgba(1, 106, 178, 0.08) 45%, rgba(6, 63, 111, 0.12) 100%)',
             }}
         >
-            <div className="max-w-7xl mx-auto">
+            <div className="w-full mx-auto p-2">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">

@@ -58,9 +58,5 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
     icon: <MdContacts />,
     label: "Customer",
   },
-  {
-    key: "/admin/dispatch/places",
-    icon: <MdOutlineMap />,
-    label: "Places",
-  },
+
 ];

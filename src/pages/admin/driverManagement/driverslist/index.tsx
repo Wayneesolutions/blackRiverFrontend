@@ -87,6 +87,7 @@ const DriverManagement = () => {
   const [driverDocuments, setDriverDocuments] = useState<DriverDocumentForm[]>([]);
 
   const [showDocumentsModal, setShowDocumentsModal] = useState<{ show: boolean; driver: Driver | null }>({ show: false, driver: null });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<DriverFormData>({
     name: '',
@@ -110,6 +111,7 @@ const DriverManagement = () => {
     password: '',
     role: 'driver',
     status: 'active',
+    policies: '', // Added missing policies field
     // Salary per mile fields
     salaryPerMile: '',
     salaryPerMileSnow: '',
@@ -221,8 +223,8 @@ const DriverManagement = () => {
       highTempThreshold: '35'
     });
     setDriverDocuments([]);
-
     setCurrentStep(1);
+    setIsSubmitting(false);
   };
 
   // Static driver document types
@@ -296,6 +298,12 @@ const DriverManagement = () => {
       return;
     }
 
+    // Prevent double submission
+    if (isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const formDataToSend = new FormData();
 
@@ -323,12 +331,28 @@ const DriverManagement = () => {
       if (formData.medicalTracking) formDataToSend.append('medicalTracking', formData.medicalTracking);
       if (formData.csa) formDataToSend.append('csa', formData.csa);
 
+      // Append salary per mile fields
+      if (formData.salaryPerMile) formDataToSend.append('salaryPerMile', formData.salaryPerMile);
+      if (formData.salaryPerMileSnow) formDataToSend.append('salaryPerMileSnow', formData.salaryPerMileSnow);
+      if (formData.salaryPerMileHighTemp) formDataToSend.append('salaryPerMileHighTemp', formData.salaryPerMileHighTemp);
+      if (formData.highTempThreshold) formDataToSend.append('highTempThreshold', formData.highTempThreshold);
+
       // Append file if exists
       if (formData.file) {
         formDataToSend.append('file', formData.file);
       }
 
+      console.log('📤 Sending driver data:', {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        hasPassword: !!formData.password,
+        policies: formData.policies || '(empty)'
+      });
+
       const response = await driverApi.createDriver(formDataToSend);
+      console.log('📥 Driver creation response:', response);
+      
       if (response.success) {
         const driverId = response.data?._id || response.data?.id;
 
@@ -365,7 +389,10 @@ const DriverManagement = () => {
       }
     } catch (error: any) {
       console.error('Error creating driver:', error);
-      alert(error.response?.data?.message || error.message || 'Failed to create driver');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create driver';
+      alert(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -680,7 +707,14 @@ const DriverManagement = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      // Ensure policies is always a string, not undefined
+      if (name === 'policies' && !updated.policies) {
+        updated.policies = '';
+      }
+      return updated;
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -945,7 +979,14 @@ const DriverManagement = () => {
       {showSidebar && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-          onClick={() => setShowSidebar(false)}
+          onClick={(e) => {
+            // Only close if clicking directly on the backdrop, not on sidebar content
+            if (e.target === e.currentTarget) {
+              setShowSidebar(false);
+              setEditingId(null);
+              resetForm();
+            }
+          }}
         >
           <div
             className="fixed right-0 top-0 h-full  w-156 bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200"
@@ -1359,7 +1400,7 @@ const DriverManagement = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Policies</label>
                       <textarea
                         name="policies"
-                        value={formData.policies}
+                        value={formData.policies || ''}
                         onChange={handleInputChange}
                         rows={3}
                         placeholder="Company policies, terms, etc."
@@ -1887,13 +1928,22 @@ const DriverManagement = () => {
                     </button>
                     <button
                       onClick={handleCreate}
-                      style={{ backgroundColor: FLEET_COLORS.primary }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
-                      className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
+                      disabled={isSubmitting}
+                      style={{ backgroundColor: isSubmitting ? '#9CA3AF' : FLEET_COLORS.primary }}
+                      onMouseEnter={(e) => {
+                        if (!isSubmitting) {
+                          e.currentTarget.style.backgroundColor = FLEET_COLORS.dark;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSubmitting) {
+                          e.currentTarget.style.backgroundColor = FLEET_COLORS.primary;
+                        }
+                      }}
+                      className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <Save size={18} />
-                      Create Driver
+                      {isSubmitting ? 'Creating...' : 'Create Driver'}
                     </button>
                   </>
                 ) : (
@@ -1911,10 +1961,19 @@ const DriverManagement = () => {
                     {!editingId ? (
                       <button
                         onClick={handleCreate}
-                        style={{ backgroundColor: FLEET_COLORS.primary }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
-                        className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
+                        disabled={isSubmitting}
+                        style={{ backgroundColor: isSubmitting ? '#9CA3AF' : FLEET_COLORS.primary }}
+                        onMouseEnter={(e) => {
+                          if (!isSubmitting) {
+                            e.currentTarget.style.backgroundColor = FLEET_COLORS.dark;
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSubmitting) {
+                            e.currentTarget.style.backgroundColor = FLEET_COLORS.primary;
+                          }
+                        }}
+                        className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         Next
                         <ChevronRight size={18} />

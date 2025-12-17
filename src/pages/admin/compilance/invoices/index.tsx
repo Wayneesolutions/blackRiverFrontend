@@ -231,7 +231,7 @@ const ComplianceInvoices = () => {
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
-      <div className="relative max-w-7xl mx-auto">
+      <div className="relative w-full mx-auto p-2">
 
         <div className="relative z-10 px-4 pt-3 pb-6">
           <div className="mb-4 relative z-10">

@@ -928,7 +928,7 @@ const Tickets: React.FC = () => {
         ))}
       </div>
 
-      <div className="relative max-w-7xl mx-auto">
+      <div className="relative w-full mx-auto p-2">
 
 
         <div className="relative z-10 px-4 pt-3 pb-6">
@@ -1003,7 +1003,7 @@ const Tickets: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 -mt-4">
+      <div className="w-full mx-auto px-4 -mt-4">
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
           {/* Country Tabs */}

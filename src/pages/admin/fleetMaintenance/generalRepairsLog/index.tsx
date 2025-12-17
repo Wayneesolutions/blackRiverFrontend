@@ -528,7 +528,7 @@ const GeneralRepairsLog: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
-      <div className="relative max-w-7xl mx-auto">
+      <div className="relative w-full mx-auto p-2">
         {/* Gradient band */}
 
 
@@ -565,7 +565,7 @@ const GeneralRepairsLog: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 -mt-4">
+        <div className="w-full mx-auto px-4 -mt-4">
           {requiresCompanySetup && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
               Please complete your company settings to view repairs.

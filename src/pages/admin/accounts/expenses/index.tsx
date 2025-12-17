@@ -460,7 +460,7 @@ const ExpensesPage = () => {
 
   return (
     <div className="min-h-screen p-6 bg-[#EDF8FF]">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto p-2">
         {emptyStateMessage && (
           <div className="mb-6">
             <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 shadow-sm">

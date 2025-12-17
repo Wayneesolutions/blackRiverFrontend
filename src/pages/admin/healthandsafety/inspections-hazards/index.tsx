@@ -1573,7 +1573,7 @@ const HazardControl = () => {
         <div className="min-h-screen pb-10 flex flex-col relative" style={{ backgroundColor: CUSTOM_COLORS.background }}>
 
 
-            <div className="flex-1 w-full max-w-7xl mx-auto px-4 pt-6 relative z-10">
+            <div className="flex-1 w-full mx-auto px-4 pt-6 relative z-10">
                 <div className="mb-6 flex justify-between items-end">
                     <div>
                         <h1 className="text-2xl font-bold text-black mb-1">

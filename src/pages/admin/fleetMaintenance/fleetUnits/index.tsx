@@ -214,11 +214,8 @@ const FleetUnits: React.FC = () => {
       return;
     }
 
-    // Map UnitType to FleetUnitType - if it's just "Trailer", use the selected trailerType
-    const mappedUnitType: import('../../../../axios/api/fleet.units').FleetUnitType =
-      formData.unitType === 'Truck'
-        ? 'Truck'
-        : (formData.trailerType as import('../../../../axios/api/fleet.units').FleetUnitType) || 'Dry Van';
+    // Map UnitType to FleetUnitType
+    const mappedUnitType: import('../../../../axios/api/fleet.units').FleetUnitType = formData.unitType;
 
     const payload: import('../../../../axios/api/fleet.units').FleetUnitPayload = {
       unitNo: formData.unitNo.trim(),
@@ -356,7 +353,7 @@ const FleetUnits: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
-      <div className="relative max-w-7xl mx-auto">
+      <div className="relative w-full mx-auto p-2">
 
 
         <div className="relative z-10 px-4 pt-3 pb-6">
@@ -418,7 +415,7 @@ const FleetUnits: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 -mt-4">
+        <div className="w-full mx-auto px-4 -mt-4">
           {requiresCompanySetup && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
               Please complete your company settings to view and manage fleet units.
@@ -555,7 +552,7 @@ const FleetUnits: React.FC = () => {
                               <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${unit.unitType === 'Truck' ? 'bg-blue-100 text-blue-800' :
                                 unit.unitType === 'Reefer Trailer' ? 'bg-green-100 text-green-800' :
                                   unit.unitType === 'Tri-Axle Trailer' ? 'bg-orange-100 text-orange-800' :
-                                    unit.unitType === 'Dry Van' ? 'bg-purple-100 text-purple-800' :
+                                    unit.unitType === 'Dry Van' || unit.unitType === 'Trailer' ? 'bg-purple-100 text-purple-800' :
                                       unit.unitType === 'Flatbed' ? 'bg-indigo-100 text-indigo-800' :
                                         'bg-gray-100 text-gray-800'
                                 }`}>

@@ -963,7 +963,7 @@ const PolicyManagementModule = () => {
           />
         ))}
       </div>
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto">
         <div className="mb-6 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>

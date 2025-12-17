@@ -754,7 +754,7 @@ const CvsaInspection: React.FC = () => {
         ))}
       </div>
 
-      <div className="relative max-w-7xl mx-auto">
+      <div className="relative w-full mx-auto p-2">
 
 
         {/* Main content */}
@@ -891,7 +891,7 @@ const CvsaInspection: React.FC = () => {
       </div>
 
       {/* Main Content Area (Filters + Table) moved inside the container for spacing */}
-      <div className="max-w-7xl mx-auto px-4 -mt-4">
+      <div className="w-full mx-auto px-4 -mt-4">
 
 
         {/* Filters and Search */}

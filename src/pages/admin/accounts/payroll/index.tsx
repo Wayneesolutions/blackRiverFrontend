@@ -1023,7 +1023,7 @@ const PayrollManagement = () => {
 
     return (
         <div className="min-h-screen bg-[#EDF8FF] px-6">
-            <div className="py-8 max-w-7xl mx-auto">
+            <div className="py-8 w-full mx-auto">
                 {notification && (
                     <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
                         } text-white`}>

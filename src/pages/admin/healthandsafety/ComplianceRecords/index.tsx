@@ -343,7 +343,7 @@ const EnhancedComplianceRecords: React.FC = () => {
 
   return (
     <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto">
         {/* Toast Notifications */}
         <div className="fixed top-4 right-4 z-[10001] space-y-2">
           {notifications.map(notification => (

@@ -649,7 +649,7 @@ export default function TaxConfigurationPage() {
   const tabInfo = getTabInfo();
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF] p-6">
+    <div className="min-h-screen bg-[#EDF8FF] p-4">
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map(notification => (
@@ -661,7 +661,7 @@ export default function TaxConfigurationPage() {
         ))}
       </div>
 
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto p-2">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">

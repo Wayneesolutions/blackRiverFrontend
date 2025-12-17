@@ -560,7 +560,7 @@ const VehicleList = () => {
 
     return (
         <div className="min-h-screen p-4 bg-[#EDF8FF] px-6">
-            <div className="max-w-7xl mx-auto">
+            <div className="w-full mx-auto p-2">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">

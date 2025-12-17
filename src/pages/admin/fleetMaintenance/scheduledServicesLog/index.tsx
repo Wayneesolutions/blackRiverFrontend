@@ -486,7 +486,7 @@ const ScheduledServicesLog: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
-      <div className="relative max-w-7xl mx-auto">
+      <div className="relative w-full mx-auto p-2">
 
 
         <div className="relative z-10 px-4 pt-3 pb-6">
@@ -521,7 +521,7 @@ const ScheduledServicesLog: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 -mt-4">
+        <div className="w-full mx-auto px-4 -mt-4">
           {notification && (
             <div
               className={`mb-4 rounded-lg border px-4 py-3 ${notification.type === 'success'

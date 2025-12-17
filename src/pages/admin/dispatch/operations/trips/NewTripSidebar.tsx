@@ -109,6 +109,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   const [driverSearch, setDriverSearch] = useState("");
   const [driverDropdownOpen, setDriverDropdownOpen] = useState(false);
 
+  const [selectedCoDriver, setSelectedCoDriver] = useState<any | null>(null);
+  const [coDriverSearch, setCoDriverSearch] = useState("");
+  const [coDriverDropdownOpen, setCoDriverDropdownOpen] = useState(false);
+
   const [trucks, setTrucks] = useState<any[]>([]);
   const [selectedTruck, setSelectedTruck] = useState<any | null>(null);
   const [truckSearch, setTruckSearch] = useState("");
@@ -168,10 +172,19 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   const isTrailerUnit = useCallback(
     (unit: any) => {
       const type = (unit?.unitType || '').toLowerCase();
-      if (unit?.source === 'trailer') return true;
+      // If it's explicitly "Trailer" or has trailerType
+      if (type === 'trailer') return true;
       if (unit?.trailerType) return true;
-      if (!type) return false;
+
+      // If no unit type, check source
+      if (!type) {
+        return unit?.source === 'trailer';
+      }
+
+      // If it is explicitly Truck, it is not a trailer
       if (type === 'truck' || type.includes('truck') || type === 'bus/van') return false;
+
+      // Otherwise check against trailer keywords
       return trailerKeywords.some((keyword) => type.includes(keyword));
     },
     [trailerKeywords]
@@ -181,6 +194,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     (unit: any) => ({
       _id: unit._id,
       unitNo: unit.unitNo,
+      internalId: unit.internalId,
       unitType: unit.unitType,
       make: unit.make || '',
       model: unit.model || '',
@@ -190,7 +204,8 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       trailerType: unit.trailerType,
       capacity: unit.capacity,
       source: unit.source,
-      status: unit.status
+      status: unit.status,
+      operationStatus: unit.operationStatus
     }),
     []
   );
@@ -205,6 +220,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   }, []);
 
   const driverDropdownRef = useRef<HTMLDivElement>(null);
+  const coDriverDropdownRef = useRef<HTMLDivElement>(null);
   const truckDropdownRef = useRef<HTMLDivElement>(null);
   const trailerDropdownRef = useRef<HTMLDivElement>(null);
   const orderDropdownRef = useRef<HTMLDivElement>(null);
@@ -246,6 +262,13 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           setSelectedDriver(trip.driver);
         } else {
           // Driver is just an ID, will be set when drivers load
+        }
+      }
+      if (trip.coDriver) {
+        if (typeof trip.coDriver === 'object') {
+          setSelectedCoDriver(trip.coDriver);
+        } else {
+          // CoDriver is just an ID logic if needed
         }
       }
       if (trip.truck) {
@@ -351,6 +374,9 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       if (driverDropdownRef.current && target && !driverDropdownRef.current.contains(target)) {
         setDriverDropdownOpen(false);
       }
+      if (coDriverDropdownRef.current && target && !coDriverDropdownRef.current.contains(target)) {
+        setCoDriverDropdownOpen(false);
+      }
       if (truckDropdownRef.current && target && !truckDropdownRef.current.contains(target)) {
         setTruckDropdownOpen(false);
       }
@@ -437,8 +463,17 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
       if (fleetUnitsRes?.success && Array.isArray(fleetUnitsRes.data)) {
         const normalizedUnits = fleetUnitsRes.data.map(normalizeFleetUnit);
-        const truckUnits = normalizedUnits.filter((unit) => !isTrailerUnit(unit));
-        const trailerUnits = normalizedUnits.filter((unit) => isTrailerUnit(unit));
+
+        // Trucks: strictly where unitType is 'Truck'
+        const truckUnits = normalizedUnits.filter((unit) => {
+          return (unit.unitType || '').toLowerCase() === 'truck';
+        });
+
+        // Trailers: everything else (Trailer, Dry Van, Reefer Trailer, etc.)
+        const trailerUnits = normalizedUnits.filter((unit) => {
+          return (unit.unitType || '').toLowerCase() !== 'truck';
+        });
+
         setTrucks(truckUnits);
         setTrailers(trailerUnits);
       }
@@ -498,29 +533,57 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     }
   };
 
-  const filteredDrivers = drivers.filter(driver =>
-    !driverSearch ||
-    (driver.name || '').toLowerCase().includes(driverSearch.toLowerCase()) ||
-    ((driver.firstName || '') + ' ' + (driver.lastName || '')).toLowerCase().includes(driverSearch.toLowerCase())
-  );
+  const filteredDrivers = drivers.filter(driver => {
+    // Status filter: Only Active drivers
+    if (driver.status && driver.status.toLowerCase() !== 'active') return false;
+
+    return !driverSearch ||
+      (driver.name || '').toLowerCase().includes(driverSearch.toLowerCase()) ||
+      ((driver.firstName || '') + ' ' + (driver.lastName || '')).toLowerCase().includes(driverSearch.toLowerCase()) ||
+      (driver.internalId || '').toLowerCase().includes(driverSearch.toLowerCase());
+  });
+
+  // Filter out drivers already selected as main driver from co-driver list
+  const filteredCoDrivers = drivers.filter(driver => {
+    // Status filter: Only Active drivers
+    if (driver.status && driver.status.toLowerCase() !== 'active') return false;
+
+    // Exclude selected main driver
+    if (selectedDriver && driver._id === selectedDriver._id) return false;
+
+    return !coDriverSearch ||
+      (driver.name || '').toLowerCase().includes(coDriverSearch.toLowerCase()) ||
+      ((driver.firstName || '') + ' ' + (driver.lastName || '')).toLowerCase().includes(coDriverSearch.toLowerCase()) ||
+      (driver.internalId || '').toLowerCase().includes(coDriverSearch.toLowerCase());
+  });
 
   const filteredTrucks = trucks.filter((truck) => {
+    // Status filter: Must be Active AND Available
+    if (truck.status && truck.status.toLowerCase() !== 'active') return false;
+    if (truck.operationStatus && truck.operationStatus.toLowerCase() !== 'available') return false;
+
     if (!truckSearch) return true;
     const search = truckSearch.toLowerCase();
     return (
       (truck.unitNo || '').toLowerCase().includes(search) ||
       (truck.licensePlate || truck.plateNumber || '').toLowerCase().includes(search) ||
-      (truck.makeModel || `${truck.make || ''} ${truck.model || ''}` || '').toLowerCase().includes(search)
+      (truck.makeModel || `${truck.make || ''} ${truck.model || ''}` || '').toLowerCase().includes(search) ||
+      (truck.internalId || '').toLowerCase().includes(search)
     );
   });
 
   const filteredTrailers = trailers.filter((trailer) => {
+    // Status filter: Must be Active AND Available
+    if (trailer.status && trailer.status.toLowerCase() !== 'active') return false;
+    if (trailer.operationStatus && trailer.operationStatus.toLowerCase() !== 'available') return false;
+
     if (!trailerSearch) return true;
     const search = trailerSearch.toLowerCase();
     return (
       (trailer.unitNo || '').toLowerCase().includes(search) ||
       (trailer.licensePlate || trailer.plateNumber || trailer.trailerNumber || '').toLowerCase().includes(search) ||
-      (trailer.makeModel || trailer.trailerType || '').toLowerCase().includes(search)
+      (trailer.makeModel || trailer.trailerType || '').toLowerCase().includes(search) ||
+      (trailer.internalId || '').toLowerCase().includes(search)
     );
   });
 
@@ -591,6 +654,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     try {
       const tripData = {
         driver: selectedDriver._id || selectedDriver,
+        coDriver: selectedCoDriver ? (selectedCoDriver._id || selectedCoDriver) : null,
         truck: selectedTruck._id || selectedTruck,
         trailer: selectedTrailer?._id || selectedTrailer || null,
         orders: selectedOrders,
@@ -1138,105 +1202,232 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           </div>
 
           {/* Driver Selection */}
-          <div className="relative" ref={driverDropdownRef}>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Driver <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <div
-                onClick={() => setDriverDropdownOpen(!driverDropdownOpen)}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
-                style={{
-                  borderColor: driverDropdownOpen ? FLEET_COLORS.primary : undefined,
-                  boxShadow: driverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
-                }}
-              >
-                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${driverDropdownOpen ? 'rotate-180' : ''}`} />
-                <input
-                  type="text"
-                  value={selectedDriver ? (selectedDriver.name || `${selectedDriver.firstName || ''} ${selectedDriver.lastName || ''}`.trim()) : driverSearch}
-                  onChange={(e) => {
-                    setDriverSearch(e.target.value);
-                    setDriverDropdownOpen(true);
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="relative" ref={driverDropdownRef}>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Driver <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div
+                  onClick={() => setDriverDropdownOpen(!driverDropdownOpen)}
+                  className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                  style={{
+                    borderColor: driverDropdownOpen ? FLEET_COLORS.primary : undefined,
+                    boxShadow: driverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
                   }}
-                  onFocus={() => setDriverDropdownOpen(true)}
-                  placeholder="Select driver"
-                  className="flex-1 outline-none text-sm min-w-0"
-                  readOnly={!!selectedDriver}
-                />
-                {selectedDriver && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedDriver(null);
-                      setDriverSearch("");
+                >
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${driverDropdownOpen ? 'rotate-180' : ''}`} />
+                  <input
+                    type="text"
+                    value={selectedDriver ? (selectedDriver.name || `${selectedDriver.firstName || ''} ${selectedDriver.lastName || ''}`.trim()) : driverSearch}
+                    onChange={(e) => {
+                      setDriverSearch(e.target.value);
+                      setDriverDropdownOpen(true);
                     }}
-                    className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                  >
-                    <X className="w-4 h-4 text-gray-400" />
-                  </button>
-                )}
-              </div>
-              {driverDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                  <div className="p-2 border-b border-gray-200">
-                    <div className="relative">
-                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="text"
-                        value={driverSearch}
-                        onChange={(e) => setDriverSearch(e.target.value)}
-                        placeholder="Search drivers..."
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
-
-                        onFocus={focusHandlers.onFocus}
-                        onBlur={focusHandlers.onBlur}
-                        autoFocus
-                      />
+                    onFocus={() => setDriverDropdownOpen(true)}
+                    placeholder="Select driver"
+                    className="flex-1 outline-none text-sm min-w-0"
+                    readOnly={!!selectedDriver}
+                  />
+                  {selectedDriver && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedDriver(null);
+                        setDriverSearch("");
+                      }}
+                      className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                    >
+                      <X className="w-4 h-4 text-gray-400" />
+                    </button>
+                  )}
+                </div>
+                {driverDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                    <div className="p-2 border-b border-gray-200">
+                      <div className="relative">
+                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          value={driverSearch}
+                          onChange={(e) => setDriverSearch(e.target.value)}
+                          placeholder="Search drivers..."
+                          className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+                          onFocus={focusHandlers.onFocus}
+                          onBlur={focusHandlers.onBlur}
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                    <div className="overflow-y-auto max-h-48">
+                      {filteredDrivers.length > 0 ? (
+                        filteredDrivers.map((driver) => (
+                          <div
+                            key={driver._id}
+                            onClick={() => {
+                              setSelectedDriver(driver);
+                              setDriverSearch("");
+                              setDriverDropdownOpen(false);
+                            }}
+                            className={`px-3 py-2 cursor-pointer text-sm transition-colors border-b border-gray-50 last:border-0 ${selectedDriver?._id === driver._id ? '' : ''
+                              }`}
+                            style={{
+                              backgroundColor: selectedDriver?._id === driver._id ? `${FLEET_COLORS.primary}15` : undefined
+                            }}
+                            onMouseEnter={(e) => {
+                              if (selectedDriver?._id !== driver._id) {
+                                e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (selectedDriver?._id !== driver._id) {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                              }
+                            }}
+                          >
+                            <div className="flex justify-between items-start gap-2">
+                              <div>
+                                <div className="font-medium" style={{ color: FLEET_COLORS.dark }}>
+                                  {driver.name || `${driver.firstName || ''} ${driver.lastName || ''}`.trim() || 'Unnamed Driver'}
+                                </div>
+                                <div className="text-xs text-gray-600 mt-0.5">
+                                  ID: {driver.internalId || driver.empId || 'N/A'}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs text-gray-500">
+                                  {driver.phone || 'No Phone'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-gray-500">No active drivers found</div>
+                      )}
                     </div>
                   </div>
-                  <div className="overflow-y-auto max-h-48">
-                    {filteredDrivers.length > 0 ? (
-                      filteredDrivers.map((driver) => (
-                        <div
-                          key={driver._id}
-                          onClick={() => {
-                            setSelectedDriver(driver);
-                            setDriverSearch("");
-                            setDriverDropdownOpen(false);
-                          }}
-                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${selectedDriver?._id === driver._id ? '' : ''
-                            }`}
-                          style={{
-                            backgroundColor: selectedDriver?._id === driver._id ? `${FLEET_COLORS.primary}15` : undefined
-                          }}
-                          onMouseEnter={(e) => {
-                            if (selectedDriver?._id !== driver._id) {
-                              e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (selectedDriver?._id !== driver._id) {
-                              e.currentTarget.style.backgroundColor = 'transparent';
-                            }
-                          }}
-                        >
-                          <div className="font-medium" style={{ color: FLEET_COLORS.primary }}>
-                            {driver.name || `${driver.firstName || ''} ${driver.lastName || ''}`.trim() || 'Unnamed Driver'}
-                          </div>
-                          {(driver.email || driver.phone) && (
-                            <div className="text-xs text-gray-600">
-                              {driver.email || driver.phone}
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-sm text-gray-500">No drivers found</div>
-                    )}
-                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="relative" ref={coDriverDropdownRef}>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Co-Driver (Optional)
+              </label>
+              <div className="relative">
+                <div
+                  onClick={() => setCoDriverDropdownOpen(!coDriverDropdownOpen)}
+                  className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                  style={{
+                    borderColor: coDriverDropdownOpen ? FLEET_COLORS.primary : undefined,
+                    boxShadow: coDriverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
+                  }}
+                >
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${coDriverDropdownOpen ? 'rotate-180' : ''}`} />
+                  <input
+                    type="text"
+                    value={selectedCoDriver ? (selectedCoDriver.name || `${selectedCoDriver.firstName || ''} ${selectedCoDriver.lastName || ''}`.trim()) : coDriverSearch}
+                    onChange={(e) => {
+                      setCoDriverSearch(e.target.value);
+                      setCoDriverDropdownOpen(true);
+                    }}
+                    onFocus={() => setCoDriverDropdownOpen(true)}
+                    placeholder="Select co-driver"
+                    className="flex-1 outline-none text-sm min-w-0"
+                    readOnly={!!selectedCoDriver}
+                  />
+                  {selectedCoDriver && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCoDriver(null);
+                        setCoDriverSearch("");
+                      }}
+                      className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                    >
+                      <X className="w-4 h-4 text-gray-400" />
+                    </button>
+                  )}
                 </div>
-              )}
+                {coDriverDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                    <div className="p-2 border-b border-gray-200">
+                      <div className="relative">
+                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          value={coDriverSearch}
+                          onChange={(e) => setCoDriverSearch(e.target.value)}
+                          placeholder="Search drivers..."
+                          className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+                          onFocus={focusHandlers.onFocus}
+                          onBlur={focusHandlers.onBlur}
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                    <div className="overflow-y-auto max-h-48">
+                      <div
+                        onClick={() => {
+                          setSelectedCoDriver(null);
+                          setCoDriverSearch("");
+                          setCoDriverDropdownOpen(false);
+                        }}
+                        className={`px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm text-gray-600 ${selectedCoDriver === null ? 'bg-gray-50' : ''
+                          }`}
+                      >
+                        No Co-Driver
+                      </div>
+                      {filteredCoDrivers.length > 0 ? (
+                        filteredCoDrivers.map((driver) => (
+                          <div
+                            key={driver._id}
+                            onClick={() => {
+                              setSelectedCoDriver(driver);
+                              setCoDriverSearch("");
+                              setCoDriverDropdownOpen(false);
+                            }}
+                            className={`px-3 py-2 cursor-pointer text-sm transition-colors border-b border-gray-50 last:border-0 ${selectedCoDriver?._id === driver._id ? '' : ''
+                              }`}
+                            style={{
+                              backgroundColor: selectedCoDriver?._id === driver._id ? `${FLEET_COLORS.primary}15` : undefined
+                            }}
+                            onMouseEnter={(e) => {
+                              if (selectedCoDriver?._id !== driver._id) {
+                                e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (selectedCoDriver?._id !== driver._id) {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                              }
+                            }}
+                          >
+                            <div className="flex justify-between items-start gap-2">
+                              <div>
+                                <div className="font-medium" style={{ color: FLEET_COLORS.dark }}>
+                                  {driver.name || `${driver.firstName || ''} ${driver.lastName || ''}`.trim() || 'Unnamed Driver'}
+                                </div>
+                                <div className="text-xs text-gray-600 mt-0.5">
+                                  ID: {driver.internalId || driver.empId || 'N/A'}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs text-gray-500">
+                                  {driver.phone || 'No Phone'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-gray-500">No available drivers found</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -1295,7 +1486,6 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         onChange={(e) => setTruckSearch(e.target.value)}
                         placeholder="Search trucks..."
                         className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
-
                         onFocus={focusHandlers.onFocus}
                         onBlur={focusHandlers.onBlur}
                         autoFocus
@@ -1312,7 +1502,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             setTruckSearch("");
                             setTruckDropdownOpen(false);
                           }}
-                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${selectedTruck?._id === truck._id ? '' : ''
+                          className={`px-3 py-2 cursor-pointer text-sm transition-colors border-b border-gray-50 last:border-0 ${selectedTruck?._id === truck._id ? '' : ''
                             }`}
                           style={{
                             backgroundColor: selectedTruck?._id === truck._id ? `${FLEET_COLORS.primary}15` : undefined
@@ -1328,18 +1518,25 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             }
                           }}
                         >
-                          <div className="font-medium" style={{ color: FLEET_COLORS.primary }}>
-                            {truck.unitNo || truck.licensePlate || truck.plateNumber || truck.internalId || 'Unknown'}
-                          </div>
-                          {(truck.makeModel || truck.make || truck.model) && (
-                            <div className="text-xs text-gray-600">
-                              {truck.makeModel || `${truck.make || ''} ${truck.model || ''}`}
+                          <div className="flex justify-between items-start gap-2">
+                            <div>
+                              <div className="font-medium" style={{ color: FLEET_COLORS.dark }}>
+                                {truck.unitNo || truck.licensePlate || 'Unknown Unit'}
+                              </div>
+                              <div className="text-xs text-gray-600 mt-0.5">
+                                ID: {truck.internalId || 'N/A'} • {truck.licensePlate || 'No Plate'}
+                              </div>
                             </div>
-                          )}
+                            <div className="text-right">
+                              <div className="text-xs font-medium text-gray-700">
+                                {truck.makeModel || `${truck.make || ''} ${truck.model || ''}`.trim() || 'No Model'}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       ))
                     ) : (
-                      <div className="px-3 py-2 text-sm text-gray-500">No trucks found</div>
+                      <div className="px-3 py-2 text-sm text-gray-500">No available trucks found</div>
                     )}
                   </div>
                 </div>
@@ -1406,7 +1603,6 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         onChange={(e) => setTrailerSearch(e.target.value)}
                         placeholder="Search trailers..."
                         className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
-
                         onFocus={focusHandlers.onFocus}
                         onBlur={focusHandlers.onBlur}
                         autoFocus
@@ -1434,7 +1630,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             setTrailerSearch("");
                             setTrailerDropdownOpen(false);
                           }}
-                          className={`px-3 py-2 cursor-pointer text-sm transition-colors ${selectedTrailer?._id === trailer._id ? '' : ''
+                          className={`px-3 py-2 cursor-pointer text-sm transition-colors border-b border-gray-50 last:border-0 ${selectedTrailer?._id === trailer._id ? '' : ''
                             }`}
                           style={{
                             backgroundColor: selectedTrailer?._id === trailer._id ? `${FLEET_COLORS.primary}15` : undefined
@@ -1450,18 +1646,25 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                             }
                           }}
                         >
-                          <div className="font-medium" style={{ color: FLEET_COLORS.primary }}>
-                            {trailer.unitNo || trailer.licensePlate || trailer.plateNumber || trailer.trailerNumber || 'Unknown'}
-                          </div>
-                          {(trailer.makeModel || trailer.trailerType) && (
-                            <div className="text-xs text-gray-600">
-                              {trailer.makeModel || trailer.trailerType}
+                          <div className="flex justify-between items-start gap-2">
+                            <div>
+                              <div className="font-medium" style={{ color: FLEET_COLORS.dark }}>
+                                {trailer.unitNo || trailer.licensePlate || 'Unknown Trailer'}
+                              </div>
+                              <div className="text-xs text-gray-600 mt-0.5">
+                                ID: {trailer.internalId || 'N/A'} • {trailer.trailerType || 'Unknown Type'}
+                              </div>
                             </div>
-                          )}
+                            <div className="text-right">
+                              <div className="text-xs font-medium text-gray-700">
+                                {trailer.capacity ? `${trailer.capacity}` : 'N/A'}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       ))
                     ) : (
-                      <div className="px-3 py-2 text-sm text-gray-500">No trailers found</div>
+                      <div className="px-3 py-2 text-sm text-gray-500">No available trailers found</div>
                     )}
                   </div>
                 </div>
