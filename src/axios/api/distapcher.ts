@@ -452,6 +452,7 @@ export const listDriver = async (params?: { page?: number; limit?: number; searc
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.search) queryParams.append('search', params.search);
     if (params?.status) queryParams.append('status', params.status);
+  if ((params as any)?.assignment) queryParams.append('assignment', (params as any).assignment);
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
     

@@ -947,7 +947,10 @@ const DriverManagement = () => {
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
           onClick={() => setShowSidebar(false)}
         >
-          <div className="fixed right-0 top-0 h-full  w-156 bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200">
+          <div
+            className="fixed right-0 top-0 h-full  w-156 bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Sidebar Header */}
             <div
               className="px-6 py-4 flex justify-between items-center"

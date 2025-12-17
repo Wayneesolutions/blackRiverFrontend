@@ -17,13 +17,20 @@ interface Driver {
 
 const DriversTable: React.FC = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [assignedCount, setAssignedCount] = useState<number | null>(null);
+  const [unassignedCount, setUnassignedCount] = useState<number | null>(null);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [assignmentFilter, setAssignmentFilter] = useState<'assigned'|'unassigned'|'all'>('all');
 
   useEffect(() => {
     const fetchDrivers = async () => {
       try {
-        const res = await listDriver();
+        const res = await listDriver({ page: 1, limit: 100, assignment: assignmentFilter });
         if (res.success) {
           setDrivers(res.data); // adjust if API response structure is different
+          setAssignedCount(res.assignedDrivers ?? null);
+          setUnassignedCount(res.unassignedDrivers ?? null);
+          setTotalCount(res.count ?? null);
         }
       } catch (err) {
         console.error("Error fetching drivers:", err);
@@ -31,10 +38,27 @@ const DriversTable: React.FC = () => {
     };
 
     fetchDrivers();
-  }, []);
+  }, [assignmentFilter]);
 
   return (
     <div className="bg-white bg-opacity-95 backdrop-blur-lg rounded-xl border border-white border-opacity-50 shadow-xl overflow-hidden">
+      <div className="p-4 flex items-center gap-3">
+        <button
+          onClick={() => setAssignmentFilter('assigned')}
+          className={`px-3 py-2 rounded ${assignmentFilter === 'assigned' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
+          Assigned ({assignedCount ?? '-'})
+        </button>
+        <button
+          onClick={() => setAssignmentFilter('unassigned')}
+          className={`px-3 py-2 rounded ${assignmentFilter === 'unassigned' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
+          Unassigned ({unassignedCount ?? '-'})
+        </button>
+        <button
+          onClick={() => setAssignmentFilter('all')}
+          className={`px-3 py-2 rounded ${assignmentFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
+          Total ({totalCount ?? '-'})
+        </button>
+      </div>
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="bg-gray-50 bg-opacity-80 backdrop-blur-sm text-left font-semibold text-gray-700">
