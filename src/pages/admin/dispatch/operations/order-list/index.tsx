@@ -759,6 +759,9 @@ const OrderList = () => {
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Truck#/Trailer#
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -859,9 +862,7 @@ const OrderList = () => {
                       <div className="text-sm font-medium text-gray-900">
                         {order.currency} {order.totalAmount}
                       </div>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`} style={getStatusStyle(order.status)}>
-                        {order.status}
-                      </span>
+
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {order.driver || "-"}
@@ -875,6 +876,11 @@ const OrderList = () => {
                       ) : (
                         "-"
                       )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className={`inline-flex font-semibold rounded-full px-2 py-1 text-xs ${getStatusColor(order.status)}`} style={getStatusStyle(order.status)}>
+                        {order.status}
+                      </div>
                     </td>
                   </tr>
                 ))

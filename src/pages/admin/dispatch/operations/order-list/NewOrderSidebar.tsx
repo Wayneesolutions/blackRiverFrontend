@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { X, Plus, ChevronDown, ChevronUp, Search, Pencil, Upload, FileText, ArrowLeft, ArrowRight } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
-import { listPlace } from "../../../../../axios/api/dispatcher.places";
 import { listCustomer, createOrder, updateOrder, autoExtractOrderData, getOrderSuggestions } from "../../../../../axios/api/distapcher";
 
 // Color constants
@@ -53,23 +52,6 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
     );
 };
 
-interface Place {
-    _id: string;
-    name?: string;
-    city?: string;
-    state?: string;
-    phone?: string;
-    currentLocation?: {
-        address?: string;
-        latitude?: string | number;
-        longitude?: string | number;
-    };
-    country?: string;
-    address?: string; // Optional top-level address
-    latitude?: string | number;
-    longitude?: string | number;
-}
-
 interface Customer {
     _id?: string;
     id?: string | number;
@@ -77,6 +59,17 @@ interface Customer {
     email?: string;
     phone?: string;
     address?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    customerDetails?: {
+        address?: string;
+        unit?: string;
+        zipCode?: string;
+        city?: string;
+        state?: string;
+        country?: string;
+    };
 }
 
 interface NewOrderSidebarProps {
@@ -114,17 +107,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [receiverCustomerSearch, setReceiverCustomerSearch] = useState("");
     const [receiverCustomerDropdownOpen, setReceiverCustomerDropdownOpen] = useState(false);
 
-    // Pickup location states
-    const [pickupPlaces, setPickupPlaces] = useState<Place[]>([]);
-    const [selectedPickupPlace, setSelectedPickupPlace] = useState<Place | null>(null);
-    const [pickupSearch, setPickupSearch] = useState("");
-    const [pickupDropdownOpen, setPickupDropdownOpen] = useState(false);
+    // Pickup location states (now using customer address - read-only, single field)
+    const [pickupLocationAddress, setPickupLocationAddress] = useState('');
 
-    // Delivery location states
-    const [deliveryPlaces, setDeliveryPlaces] = useState<Place[]>([]);
-    const [selectedDeliveryPlace, setSelectedDeliveryPlace] = useState<Place | null>(null);
-    const [deliverySearch, setDeliverySearch] = useState("");
-    const [deliveryDropdownOpen, setDeliveryDropdownOpen] = useState(false);
+    // Delivery location states (now using customer address - read-only, single field)
+    const [deliveryLocationAddress, setDeliveryLocationAddress] = useState('');
     const [customerOrderNo, setCustomerOrderNo] = useState("");
     const [loadType, setLoadType] = useState("FTL");
     const [freightOn, setFreightOn] = useState("Order");
@@ -195,12 +182,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [shipperName, setShipperName] = useState("");
     const [shipperPhone, setShipperPhone] = useState("");
     const [shipperEmail, setShipperEmail] = useState("");
-    const [shipperAddressType, setShipperAddressType] = useState<"saved" | "manual">("saved");
-    const [shipperSavedAddresses, setShipperSavedAddresses] = useState<Place[]>([]);
-    const [selectedShipperAddress, setSelectedShipperAddress] = useState<Place | null>(null);
-    const [shipperManualAddress, setShipperManualAddress] = useState("");
-    const [shipperAddressSearch, setShipperAddressSearch] = useState("");
-    const [shipperAddressDropdownOpen, setShipperAddressDropdownOpen] = useState(false);
+    const [shipperAddress, setShipperAddress] = useState("");
     const [pickupAppointmentType, setPickupAppointmentType] = useState("FCFS"); // FCFS / Window / Strict Time
     const [pickupAppointmentDate, setPickupAppointmentDate] = useState(new Date().toISOString().split('T')[0]);
     const [pickupAppointmentTime, setPickupAppointmentTime] = useState("12:00");
@@ -243,26 +225,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [showShipperNameSuggestions, setShowShipperNameSuggestions] = useState(false);
     const [showReceiverNameSuggestions, setShowReceiverNameSuggestions] = useState(false);
 
-    const shipperAddressDropdownRef = useRef<HTMLDivElement>(null);
 
-    // Fetch places and customers on component mount
+    // Fetch customers on component mount
     useEffect(() => {
-        fetchPlaces();
         fetchCustomers();
     }, []);
-
-    // Fetch shipper saved addresses (using all places as saved addresses)
-    useEffect(() => {
-        if (shipperAddressType === "saved") {
-            // Combine pickup and delivery places for shipper addresses
-            const allPlaces = [...pickupPlaces, ...deliveryPlaces];
-            // Remove duplicates based on _id
-            const uniquePlaces = allPlaces.filter((place, index, self) => 
-                index === self.findIndex(p => p._id === place._id)
-            );
-            setShipperSavedAddresses(uniquePlaces);
-        }
-    }, [shipperAddressType, pickupPlaces, deliveryPlaces]);
 
     // Populate form fields when editing an order
     useEffect(() => {
@@ -338,15 +305,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
             // Pickup location
             if (order.pickupLocation) {
-                const pickupPlaceId = order.pickupLocation.placeId;
-                if (pickupPlaceId) {
-                    const placeId = typeof pickupPlaceId === 'string' ? pickupPlaceId : pickupPlaceId._id;
-                    const foundPickupPlace = pickupPlaces.find(p => p._id === placeId);
-                    if (foundPickupPlace) {
-                        setSelectedPickupPlace(foundPickupPlace);
-                        setPickupSearch(foundPickupPlace.currentLocation?.address || foundPickupPlace.name || '');
-                    }
-                }
+                const pickupAddr = order.pickupLocation.address || order.pickupLocation.place || '';
+                // Combine all address components into single string
+                const parts = [
+                    pickupAddr,
+                    order.pickupLocation.city || '',
+                    order.pickupLocation.state || '',
+                    order.pickupLocation.country || '',
+                    order.pickupLocation.zipCode || ''
+                ].filter(Boolean);
+                setPickupLocationAddress(parts.join(' '));
             }
 
             // Pickup details
@@ -361,15 +329,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
             // Delivery location
             if (order.deliveryLocation) {
-                const deliveryPlaceId = order.deliveryLocation.placeId;
-                if (deliveryPlaceId) {
-                    const placeId = typeof deliveryPlaceId === 'string' ? deliveryPlaceId : deliveryPlaceId._id;
-                    const foundDeliveryPlace = deliveryPlaces.find(p => p._id === placeId);
-                    if (foundDeliveryPlace) {
-                        setSelectedDeliveryPlace(foundDeliveryPlace);
-                        setDeliverySearch(foundDeliveryPlace.currentLocation?.address || foundDeliveryPlace.name || '');
-                    }
-                }
+                const deliveryAddr = order.deliveryLocation.address || order.deliveryLocation.place || '';
+                // Combine all address components into single string
+                const parts = [
+                    deliveryAddr,
+                    order.deliveryLocation.city || '',
+                    order.deliveryLocation.state || '',
+                    order.deliveryLocation.country || '',
+                    order.deliveryLocation.zipCode || ''
+                ].filter(Boolean);
+                setDeliveryLocationAddress(parts.join(' '));
             }
 
             // Delivery details
@@ -387,19 +356,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 setShipperName(order.shipper.name || '');
                 setShipperPhone(order.shipper.phone || '');
                 setShipperEmail(order.shipper.email || '');
-                if (order.shipper.addressType === 'manual') {
-                    setShipperAddressType('manual');
-                    setShipperManualAddress(order.shipper.address || '');
-                } else {
-                    setShipperAddressType('saved');
-                    // Try to find matching address in places
-                    const foundShipperPlace = pickupPlaces.find(p =>
-                        p.currentLocation?.address === order.shipper.address ||
-                        `${p.name || ''}, ${p.city || ''}, ${p.state || ''}` === order.shipper.address
-                    );
-                    if (foundShipperPlace) {
-                        setSelectedShipperAddress(foundShipperPlace);
-                    }
+                // Set shipper address from order data
+                if (order.shipper.address) {
+                    setShipperAddress(order.shipper.address);
+                    setPickupLocation({
+                        address: order.shipper.address || '',
+                        city: order.shipper.city || '',
+                        state: order.shipper.state || '',
+                        country: order.shipper.country || '',
+                        zipCode: order.shipper.zipCode || ''
+                    });
                 }
             }
 
@@ -481,15 +447,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setCommercialValue("");
             setCountryOfOrigin("");
 
-            setSelectedPickupPlace(null);
-            setPickupSearch('');
+            setPickupLocationAddress('');
             setPickupDate(new Date().toISOString().split('T')[0]);
             setPickupTime('12:00');
             setPickupAppointment('No');
             setPickupRefNo('');
             setPickupNote('');
-            setSelectedDeliveryPlace(null);
-            setDeliverySearch('');
+            setDeliveryLocationAddress('');
             setDeliveryDate(new Date().toISOString().split('T')[0]);
             setDeliveryTime('12:00');
             setDeliveryAppointment('No');
@@ -502,9 +466,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setShipperName('');
             setShipperPhone('');
             setShipperEmail('');
-            setShipperAddressType('saved');
-            setSelectedShipperAddress(null);
-            setShipperManualAddress('');
+            setShipperAddress('');
             setPickupAppointmentType('FCFS');
             setPickupAppointmentDate(new Date().toISOString().split('T')[0]);
             setPickupAppointmentTime('12:00');
@@ -526,35 +488,38 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setCustomerNotes('');
             setCurrentStep(1);
         }
-    }, [order, customers, pickupPlaces, deliveryPlaces]);
+    }, [order, customers]);
 
-    // Helper to determine country
-    const getCountryFromPlace = (place: Place | null): string => {
-        if (!place) return '';
-        if (place.country) return place.country;
+    // Helper function to get customer address
+    const getCustomerAddress = (customer: Customer | null): { address: string; city: string; state: string; country: string; zipCode: string } => {
+        if (!customer) return { address: '', city: '', state: '', country: '', zipCode: '' };
+        
+        return {
+            address: customer.customerDetails?.address || customer.address || '',
+            city: customer.customerDetails?.city || customer.city || '',
+            state: customer.customerDetails?.state || customer.state || '',
+            country: customer.customerDetails?.country || customer.country || '',
+            zipCode: customer.customerDetails?.zipCode || ''
+        };
+    };
 
-        // Basic inference from address or state
-        const address = (place.currentLocation?.address || place.address || '').toLowerCase();
-        const cityState = (place.state || '').toUpperCase();
-
-        if (address.includes('usa') || address.includes('united states')) return 'USA';
-        if (address.includes('canada')) return 'Canada';
-
-        // Check state if available
-        const US_STATES = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
-        const CA_PROVINCES = ['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'];
-
-        if (US_STATES.includes(cityState)) return 'USA';
-        if (CA_PROVINCES.includes(cityState)) return 'Canada';
-
-        return '';
+    // Format full address as single string
+    const formatFullAddress = (customer: Customer | null): string => {
+        if (!customer) return '';
+        const addr = getCustomerAddress(customer);
+        const parts = [
+            addr.address,
+            addr.city,
+            addr.state,
+            addr.country,
+            addr.zipCode
+        ].filter(Boolean);
+        return parts.join(' ');
     };
 
     // Effect to determine Border Requirement
-    // Note: Border requirement logic is simplified since we removed delivery location dropdown
-    // Users can manually set border requirements if needed
     useEffect(() => {
-        const shipperCountry = selectedShipperAddress?.country || getCountryFromPlace(selectedShipperAddress);
+        const shipperCountry = selectedShipperCustomer?.customerDetails?.country || selectedShipperCustomer?.country || '';
 
         // Auto-fill some fields if border is required and fields are empty
         if (borderRequired) {
@@ -562,20 +527,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             if (!commercialValue && valueOfGoods) setCommercialValue(valueOfGoods);
         }
 
-    }, [selectedShipperAddress, commodity, valueOfGoods, borderRequired]);
-
-
-    const fetchPlaces = async () => {
-        try {
-            const response = await listPlace();
-            if (response?.success && response?.data) {
-                setPickupPlaces(response.data);
-                setDeliveryPlaces(response.data);
-            }
-        } catch (error) {
-            console.error("Error fetching places:", error);
-        }
-    };
+    }, [selectedShipperCustomer, commodity, valueOfGoods, borderRequired]);
 
     const fetchCustomers = async () => {
         try {
@@ -604,8 +556,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const receiverCustomerDropdownRef = useRef<HTMLDivElement>(null);
     const equipmentDropdownRef = useRef<HTMLDivElement>(null);
     const packagesDropdownRef = useRef<HTMLDivElement>(null);
-    const pickupDropdownRef = useRef<HTMLDivElement>(null);
-    const deliveryDropdownRef = useRef<HTMLDivElement>(null);
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -626,15 +576,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             if (packagesDropdownRef.current && target && !packagesDropdownRef.current.contains(target)) {
                 setNoOfPackagesDropdownOpen(false);
             }
-            if (pickupDropdownRef.current && target && !pickupDropdownRef.current.contains(target)) {
-                setPickupDropdownOpen(false);
-            }
-            if (deliveryDropdownRef.current && target && !deliveryDropdownRef.current.contains(target)) {
-                setDeliveryDropdownOpen(false);
-            }
-            if (shipperAddressDropdownRef.current && target && !shipperAddressDropdownRef.current.contains(target)) {
-                setShipperAddressDropdownOpen(false);
-            }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -645,109 +586,65 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         (customer.address || '').toLowerCase().includes(customerSearch.toLowerCase())
     );
 
-    // Combined filtered lists for shipper (customers + places)
+    // Filtered customers for shipper
     const filteredShipperOptions = useMemo(() => {
         const searchTerm = shipperCustomerSearch.toLowerCase();
-        const filteredCustomers = customers.filter(customer =>
+        return customers.filter(customer =>
             (customer.name || '').toLowerCase().includes(searchTerm) ||
-            (customer.address || '').toLowerCase().includes(searchTerm) ||
-            (customer.email || '').toLowerCase().includes(searchTerm)
+            (customer.customerDetails?.address || customer.address || '').toLowerCase().includes(searchTerm) ||
+            (customer.email || '').toLowerCase().includes(searchTerm) ||
+            (customer.customerDetails?.city || customer.city || '').toLowerCase().includes(searchTerm)
         );
-        const filteredPlaces = pickupPlaces.filter(place =>
-            (place.name || '').toLowerCase().includes(searchTerm) ||
-            (place.currentLocation?.address || '').toLowerCase().includes(searchTerm) ||
-            (place.city || '').toLowerCase().includes(searchTerm)
-        );
-        return { customers: filteredCustomers, places: filteredPlaces };
-    }, [customers, pickupPlaces, shipperCustomerSearch]);
+    }, [customers, shipperCustomerSearch]);
 
-    // Combined filtered lists for receiver (customers + places)
+    // Filtered customers for receiver
     const filteredReceiverOptions = useMemo(() => {
         const searchTerm = receiverCustomerSearch.toLowerCase();
-        const filteredCustomers = customers.filter(customer =>
+        return customers.filter(customer =>
             (customer.name || '').toLowerCase().includes(searchTerm) ||
-            (customer.address || '').toLowerCase().includes(searchTerm) ||
-            (customer.email || '').toLowerCase().includes(searchTerm)
+            (customer.customerDetails?.address || customer.address || '').toLowerCase().includes(searchTerm) ||
+            (customer.email || '').toLowerCase().includes(searchTerm) ||
+            (customer.customerDetails?.city || customer.city || '').toLowerCase().includes(searchTerm)
         );
-        const filteredPlaces = deliveryPlaces.filter(place =>
-            (place.name || '').toLowerCase().includes(searchTerm) ||
-            (place.currentLocation?.address || '').toLowerCase().includes(searchTerm) ||
-            (place.city || '').toLowerCase().includes(searchTerm)
-        );
-        return { customers: filteredCustomers, places: filteredPlaces };
-    }, [customers, deliveryPlaces, receiverCustomerSearch]);
+    }, [customers, receiverCustomerSearch]);
 
-    // Combined handler for shipper (customer or place)
-    const handleShipperSelect = (item: Customer | Place, type: 'customer' | 'place') => {
-        if (type === 'customer') {
-            const customer = item as Customer;
-            setSelectedShipperCustomer(customer);
-            setSelectedShipperAddress(null);
-            setShipperCustomerSearch("");
-            setShipperCustomerDropdownOpen(false);
-            // Auto-fill shipper fields from customer
-            if (customer.name) setShipperName(customer.name);
-            if (customer.phone) setShipperPhone(customer.phone);
-            if (customer.email) setShipperEmail(customer.email);
-        } else {
-            const place = item as Place;
-            setSelectedShipperAddress(place);
-            setSelectedShipperCustomer(null);
-            setShipperAddressSearch("");
-            setShipperAddressDropdownOpen(false);
-            // Auto-fill shipper fields from place
-            if (place.name) setShipperName(place.name);
-            if (place.phone) setShipperPhone(place.phone);
-            // Use place name as address identifier
-            if (place.currentLocation?.address) {
-                setShipperManualAddress(place.currentLocation.address);
-            }
-        }
+    // Handler for shipper customer selection
+    const handleShipperSelect = (customer: Customer) => {
+        setSelectedShipperCustomer(customer);
+        setShipperCustomerSearch("");
+        setShipperCustomerDropdownOpen(false);
+        
+        // Auto-fill shipper fields from customer
+        if (customer.name) setShipperName(customer.name);
+        if (customer.phone) setShipperPhone(customer.phone);
+        if (customer.email) setShipperEmail(customer.email);
+        
+        // Auto-fill pickup location address (full address as single string)
+        const fullAddress = formatFullAddress(customer);
+        setPickupLocationAddress(fullAddress);
+        setShipperAddress(fullAddress);
     };
 
-    // Combined handler for receiver (customer or place)
-    const handleReceiverSelect = (item: Customer | Place, type: 'customer' | 'place') => {
-        if (type === 'customer') {
-            const customer = item as Customer;
-            setSelectedReceiverCustomer(customer);
-            setSelectedDeliveryPlace(null);
-            setReceiverCustomerSearch("");
-            setReceiverCustomerDropdownOpen(false);
-            // Auto-fill receiver fields from customer
-            if (customer.name) setReceiverName(customer.name);
-            if (customer.phone) setReceiverPhone(customer.phone);
-        } else {
-            const place = item as Place;
-            setSelectedDeliveryPlace(place);
-            setSelectedReceiverCustomer(null);
-            setDeliverySearch("");
-            setDeliveryDropdownOpen(false);
-            // Auto-fill receiver fields from place
-            if (place.name) setReceiverName(place.name);
-            if (place.phone) setReceiverPhone(place.phone);
-            if (place.currentLocation?.address) {
-                setReceiverAddress(place.currentLocation.address);
-            }
-        }
+    // Handler for receiver customer selection
+    const handleReceiverSelect = (customer: Customer) => {
+        setSelectedReceiverCustomer(customer);
+        setReceiverCustomerSearch("");
+        setReceiverCustomerDropdownOpen(false);
+        
+        // Auto-fill receiver fields from customer
+        if (customer.name) setReceiverName(customer.name);
+        if (customer.phone) setReceiverPhone(customer.phone);
+        
+        // Auto-fill delivery location address (full address as single string)
+        const fullAddress = formatFullAddress(customer);
+        setDeliveryLocationAddress(fullAddress);
+        setReceiverAddress(fullAddress);
     };
 
     const filteredPackages = packageTypes.filter(pkg =>
         pkg.toLowerCase().includes(noOfPackagesSearch.toLowerCase())
     );
 
-    const filteredPickupPlaces = pickupPlaces.filter(place =>
-        !pickupSearch ||
-        (place.name || '').toLowerCase().includes(pickupSearch.toLowerCase()) ||
-        (place.currentLocation?.address || '').toLowerCase().includes(pickupSearch.toLowerCase()) ||
-        (place.city || '').toLowerCase().includes(pickupSearch.toLowerCase())
-    );
-
-    const filteredDeliveryPlaces = deliveryPlaces.filter(place =>
-        !deliverySearch ||
-        (place.name || '').toLowerCase().includes(deliverySearch.toLowerCase()) ||
-        (place.currentLocation?.address || '').toLowerCase().includes(deliverySearch.toLowerCase()) ||
-        (place.city || '').toLowerCase().includes(deliverySearch.toLowerCase())
-    );
 
     const handleEquipmentToggle = (equipment: string) => {
         setSelectedEquipment(prev =>
@@ -971,8 +868,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 if (!cargoDescription) { addNotification('error', "Cargo Description is required"); return false; }
             }
         } else if (step === 2) {
-            if (!selectedShipperAddress) {
-                addNotification('error', "Please select a shipper address");
+            if (!selectedShipperCustomer) {
+                addNotification('error', "Please select a shipper customer");
                 return false;
             }
             if (!shipperName) {
@@ -981,6 +878,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             }
             if (!shipperPhone) {
                 addNotification('error', "Please enter shipper phone");
+                return false;
+            }
+            if (!pickupLocationAddress) {
+                addNotification('error', "Please select a shipper customer to set pickup location");
                 return false;
             }
         } else if (step === 3) {
@@ -1012,8 +913,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             addNotification('error', "Please select a shipper or receiver customer");
             return;
         }
-        if (!selectedShipperAddress) {
-            addNotification('error', "Please select a shipper address");
+        if (!selectedShipperCustomer) {
+            addNotification('error', "Please select a shipper customer");
+            return;
+        }
+        if (!pickupLocationAddress) {
+            addNotification('error', "Please select a shipper customer to set pickup location");
             return;
         }
         if (!customerOrderNo) {
@@ -1051,10 +956,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 orderNotes: orderNotes || '',
                 customer: orderCustomer._id || orderCustomer.id,
                 pickupLocation: {
-                    placeId: selectedShipperAddress._id,
-                    place: selectedShipperAddress.currentLocation?.address || `${selectedShipperAddress.name || ''}, ${selectedShipperAddress.city || ''}, ${selectedShipperAddress.state || ''}`,
-                    latitude: selectedShipperAddress.currentLocation?.latitude?.toString() || '',
-                    longitude: selectedShipperAddress.currentLocation?.longitude?.toString() || ''
+                    address: pickupLocationAddress || '',
+                    place: pickupLocationAddress || ''
                 },
                 pickupDate: pickupDateTime,
                 pickupTime: pickupTime || '',
@@ -1062,10 +965,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 pickupRefNo: pickupRefNo || '',
                 pickupNote: pickupNote || '',
                 deliveryLocation: {
-                    placeId: '',
-                    place: receiverAddress || '',
-                    latitude: '',
-                    longitude: ''
+                    address: deliveryLocationAddress || receiverAddress || '',
+                    place: deliveryLocationAddress || receiverAddress || ''
                 },
                 deliveryDate: deliveryDateTime,
                 deliveryTime: deliveryTime || '',
@@ -1118,8 +1019,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     name: shipperName,
                     phone: shipperPhone,
                     email: shipperEmail,
-                    address: selectedShipperAddress?.currentLocation?.address || `${selectedShipperAddress?.name || ''}, ${selectedShipperAddress?.city || ''}, ${selectedShipperAddress?.state || ''}`,
-                    addressType: 'saved'
+                    address: pickupLocationAddress || shipperAddress || ''
                 },
                 pickupAppointmentDetails: {
                     type: pickupAppointmentType,
@@ -1131,7 +1031,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 receiver: {
                     name: receiverName,
                     phone: receiverPhone,
-                    address: receiverAddress || ''
+                    address: deliveryLocationAddress || receiverAddress || ''
                 },
                 deliveryAppointmentDetails: {
                     type: deliveryAppointmentType,
@@ -1186,13 +1086,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         }
     };
 
-    // Filtered shipper addresses
-    const filteredShipperAddresses = shipperSavedAddresses.filter(place =>
-        !shipperAddressSearch ||
-        (place.name || '').toLowerCase().includes(shipperAddressSearch.toLowerCase()) ||
-        (place.currentLocation?.address || '').toLowerCase().includes(shipperAddressSearch.toLowerCase()) ||
-        (place.city || '').toLowerCase().includes(shipperAddressSearch.toLowerCase())
-    );
 
     // Calculate mileage (auto-calc)
     // Note: Distance calculation is disabled since we removed delivery location dropdown
@@ -1887,7 +1780,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                     <div className="bg-white rounded-lg border border-gray-200 p-4">
                                         <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Contact Information</h4>
                                         <div className="space-y-4">
-                                            {/* Select Shipper (Customers + Places Combined) */}
+                                            {/* Select Shipper (Customers Only) */}
                                             <div className="relative" ref={shipperCustomerDropdownRef}>
                                                 <label className="block text-xs font-medium text-gray-700 mb-1">Select Shipper *</label>
                                                 <div className="relative">
@@ -1900,9 +1793,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={
                                                                 selectedShipperCustomer 
-                                                                    ? `${selectedShipperCustomer.name || ''} | ${selectedShipperCustomer.address || selectedShipperCustomer.email || ''}`
-                                                                    : selectedShipperAddress
-                                                                    ? `${selectedShipperAddress.name || ''} | ${selectedShipperAddress.currentLocation?.address || ''}`
+                                                                    ? `${selectedShipperCustomer.name || ''} | ${formatFullAddress(selectedShipperCustomer) || selectedShipperCustomer.email || ''}`
                                                                     : shipperCustomerSearch
                                                             }
                                                             onChange={(e) => {
@@ -1910,21 +1801,21 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 setShipperCustomerDropdownOpen(true);
                                                             }}
                                                             onFocus={() => setShipperCustomerDropdownOpen(true)}
-                                                            placeholder="Select shipper (customer or place)"
+                                                            placeholder="Select shipper customer"
                                                             className="flex-1 outline-none text-sm min-w-0"
-                                                            readOnly={!!selectedShipperCustomer || !!selectedShipperAddress}
+                                                            readOnly={!!selectedShipperCustomer}
                                                         />
-                                                        {(selectedShipperCustomer || selectedShipperAddress) && (
+                                                        {selectedShipperCustomer && (
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     setSelectedShipperCustomer(null);
-                                                                    setSelectedShipperAddress(null);
                                                                     setShipperCustomerSearch("");
                                                                     setShipperName("");
                                                                     setShipperPhone("");
                                                                     setShipperEmail("");
-                                                                    setShipperManualAddress("");
+                                                                    setShipperAddress("");
+                                                                    setPickupLocationAddress('');
                                                                 }}
                                                                 className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                                             >
@@ -1943,59 +1834,38 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         type="text"
                                                                         value={shipperCustomerSearch}
                                                                         onChange={(e) => setShipperCustomerSearch(e.target.value)}
-                                                                        placeholder="Search customers or places..."
+                                                                        placeholder="Search customers..."
                                                                         className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
                                                                         autoFocus
                                                                     />
                                                                 </div>
                                                             </div>
                                                             <div className="overflow-y-auto max-h-48">
-                                                                {filteredShipperOptions.customers.length > 0 || filteredShipperOptions.places.length > 0 ? (
+                                                                {filteredShipperOptions.length > 0 ? (
                                                                     <>
-                                                                        {filteredShipperOptions.customers.length > 0 && (
-                                                                            <>
-                                                                                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
-                                                                                    Customers
-                                                                                </div>
-                                                                                {filteredShipperOptions.customers.map((customer) => (
-                                                                                    <div
-                                                                                        key={`customer-${customer._id || customer.id}`}
-                                                                                        onClick={() => handleShipperSelect(customer, 'customer')}
-                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
-                                                                                            (selectedShipperCustomer?._id || selectedShipperCustomer?.id) === (customer._id || customer.id) ? 'bg-blue-50' : ''
-                                                                                        }`}
-                                                                                    >
-                                                                                        <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
-                                                                                        <div className="text-xs text-gray-600">{customer.address || customer.email || customer.phone || ''}</div>
+                                                                        <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
+                                                                            Customers
+                                                                        </div>
+                                                                        {filteredShipperOptions.map((customer) => {
+                                                                            const fullAddr = formatFullAddress(customer);
+                                                                            return (
+                                                                                <div
+                                                                                    key={`customer-${customer._id || customer.id}`}
+                                                                                    onClick={() => handleShipperSelect(customer)}
+                                                                                    className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
+                                                                                        (selectedShipperCustomer?._id || selectedShipperCustomer?.id) === (customer._id || customer.id) ? 'bg-blue-50' : ''
+                                                                                    }`}
+                                                                                >
+                                                                                    <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
+                                                                                    <div className="text-xs text-gray-600">
+                                                                                        {fullAddr || customer.email || customer.phone || ''}
                                                                                     </div>
-                                                                                ))}
-                                                                            </>
-                                                                        )}
-                                                                        {filteredShipperOptions.places.length > 0 && (
-                                                                            <>
-                                                                                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
-                                                                                    Places
                                                                                 </div>
-                                                                                {filteredShipperOptions.places.map((place) => (
-                                                                                    <div
-                                                                                        key={`place-${place._id}`}
-                                                                                        onClick={() => handleShipperSelect(place, 'place')}
-                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
-                                                                                            selectedShipperAddress?._id === place._id ? 'bg-blue-50' : ''
-                                                                                        }`}
-                                                                                    >
-                                                                                        <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{place.name || 'Unnamed Place'}</div>
-                                                                                        <div className="text-xs text-gray-600">{place.currentLocation?.address || place.address || ''}</div>
-                                                                                        {(place.city || place.state) && (
-                                                                                            <div className="text-xs text-gray-500">{[place.city, place.state].filter(Boolean).join(', ')}</div>
-                                                                                        )}
-                                                                                    </div>
-                                                                                ))}
-                                                                            </>
-                                                                        )}
+                                                                            );
+                                                                        })}
                                                                     </>
                                                                 ) : (
-                                                                    <div className="px-3 py-2 text-sm text-gray-500">No customers or places found</div>
+                                                                    <div className="px-3 py-2 text-sm text-gray-500">No customers found</div>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -2038,6 +1908,20 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     placeholder="Auto-filled from selection"
                                                 />
                                             </div>
+
+                                            {/* Pickup Location Address (Read-only, auto-populated from customer) */}
+                                            {selectedShipperCustomer && (
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Pickup Location Address *</label>
+                                                    <input
+                                                        type="text"
+                                                        value={pickupLocationAddress}
+                                                        readOnly
+                                                        className="w-full p-2.5 border border-gray-300 rounded-md bg-gray-50 text-sm cursor-not-allowed"
+                                                        placeholder="Auto-filled from customer"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Pickup Appointment (Merged) */}
@@ -2191,7 +2075,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                     <div className="bg-white rounded-lg border border-gray-200 p-4">
                                         <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Contact Information</h4>
                                         <div className="space-y-4">
-                                            {/* Select Receiver (Customers + Places Combined) */}
+                                            {/* Select Receiver (Customers Only) */}
                                             <div className="relative" ref={receiverCustomerDropdownRef}>
                                                 <label className="block text-xs font-medium text-gray-700 mb-1">Select Receiver *</label>
                                                 <div className="relative">
@@ -2204,9 +2088,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={
                                                                 selectedReceiverCustomer 
-                                                                    ? `${selectedReceiverCustomer.name || ''} | ${selectedReceiverCustomer.address || selectedReceiverCustomer.email || ''}`
-                                                                    : selectedDeliveryPlace
-                                                                    ? `${selectedDeliveryPlace.name || ''} | ${selectedDeliveryPlace.currentLocation?.address || ''}`
+                                                                    ? `${selectedReceiverCustomer.name || ''} | ${formatFullAddress(selectedReceiverCustomer) || selectedReceiverCustomer.email || ''}`
                                                                     : receiverCustomerSearch
                                                             }
                                                             onChange={(e) => {
@@ -2214,20 +2096,20 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 setReceiverCustomerDropdownOpen(true);
                                                             }}
                                                             onFocus={() => setReceiverCustomerDropdownOpen(true)}
-                                                            placeholder="Select receiver (customer or place)"
+                                                            placeholder="Select receiver customer"
                                                             className="flex-1 outline-none text-sm min-w-0"
-                                                            readOnly={!!selectedReceiverCustomer || !!selectedDeliveryPlace}
+                                                            readOnly={!!selectedReceiverCustomer}
                                                         />
-                                                        {(selectedReceiverCustomer || selectedDeliveryPlace) && (
+                                                        {selectedReceiverCustomer && (
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     setSelectedReceiverCustomer(null);
-                                                                    setSelectedDeliveryPlace(null);
                                                                     setReceiverCustomerSearch("");
                                                                     setReceiverName("");
                                                                     setReceiverPhone("");
                                                                     setReceiverAddress("");
+                                                                    setDeliveryLocationAddress('');
                                                                 }}
                                                                 className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                                             >
@@ -2246,59 +2128,38 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         type="text"
                                                                         value={receiverCustomerSearch}
                                                                         onChange={(e) => setReceiverCustomerSearch(e.target.value)}
-                                                                        placeholder="Search customers or places..."
+                                                                        placeholder="Search customers..."
                                                                         className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
                                                                         autoFocus
                                                                     />
                                                                 </div>
                                                             </div>
                                                             <div className="overflow-y-auto max-h-48">
-                                                                {filteredReceiverOptions.customers.length > 0 || filteredReceiverOptions.places.length > 0 ? (
+                                                                {filteredReceiverOptions.length > 0 ? (
                                                                     <>
-                                                                        {filteredReceiverOptions.customers.length > 0 && (
-                                                                            <>
-                                                                                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
-                                                                                    Customers
-                                                                                </div>
-                                                                                {filteredReceiverOptions.customers.map((customer) => (
-                                                                                    <div
-                                                                                        key={`customer-${customer._id || customer.id}`}
-                                                                                        onClick={() => handleReceiverSelect(customer, 'customer')}
-                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
-                                                                                            (selectedReceiverCustomer?._id || selectedReceiverCustomer?.id) === (customer._id || customer.id) ? 'bg-green-50' : ''
-                                                                                        }`}
-                                                                                    >
-                                                                                        <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
-                                                                                        <div className="text-xs text-gray-600">{customer.address || customer.email || customer.phone || ''}</div>
+                                                                        <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
+                                                                            Customers
+                                                                        </div>
+                                                                        {filteredReceiverOptions.map((customer) => {
+                                                                            const fullAddr = formatFullAddress(customer);
+                                                                            return (
+                                                                                <div
+                                                                                    key={`customer-${customer._id || customer.id}`}
+                                                                                    onClick={() => handleReceiverSelect(customer)}
+                                                                                    className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
+                                                                                        (selectedReceiverCustomer?._id || selectedReceiverCustomer?.id) === (customer._id || customer.id) ? 'bg-blue-50' : ''
+                                                                                    }`}
+                                                                                >
+                                                                                    <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
+                                                                                    <div className="text-xs text-gray-600">
+                                                                                        {fullAddr || customer.email || customer.phone || ''}
                                                                                     </div>
-                                                                                ))}
-                                                                            </>
-                                                                        )}
-                                                                        {filteredReceiverOptions.places.length > 0 && (
-                                                                            <>
-                                                                                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
-                                                                                    Places
                                                                                 </div>
-                                                                                {filteredReceiverOptions.places.map((place) => (
-                                                                                    <div
-                                                                                        key={`place-${place._id}`}
-                                                                                        onClick={() => handleReceiverSelect(place, 'place')}
-                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
-                                                                                            selectedDeliveryPlace?._id === place._id ? 'bg-green-50' : ''
-                                                                                        }`}
-                                                                                    >
-                                                                                        <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{place.name || 'Unnamed Place'}</div>
-                                                                                        <div className="text-xs text-gray-600">{place.currentLocation?.address || place.address || ''}</div>
-                                                                                        {(place.city || place.state) && (
-                                                                                            <div className="text-xs text-gray-500">{[place.city, place.state].filter(Boolean).join(', ')}</div>
-                                                                                        )}
-                                                                                    </div>
-                                                                                ))}
-                                                                            </>
-                                                                        )}
+                                                                            );
+                                                                        })}
                                                                     </>
                                                                 ) : (
-                                                                    <div className="px-3 py-2 text-sm text-gray-500">No customers or places found</div>
+                                                                    <div className="px-3 py-2 text-sm text-gray-500">No customers found</div>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -2329,6 +2190,20 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     placeholder="Auto-filled from selection"
                                                 />
                                             </div>
+
+                                            {/* Delivery Location Address (Read-only, auto-populated from customer) */}
+                                            {selectedReceiverCustomer && (
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Delivery Location Address *</label>
+                                                    <input
+                                                        type="text"
+                                                        value={deliveryLocationAddress}
+                                                        readOnly
+                                                        className="w-full p-2.5 border border-gray-300 rounded-md bg-gray-50 text-sm cursor-not-allowed"
+                                                        placeholder="Auto-filled from customer"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     {/* Delivery Details & Appointment (Merged) */}
@@ -2749,7 +2624,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Phone:</span> <span className="text-gray-800">{shipperPhone || 'N/A'}</span></div>
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Email:</span> <span className="text-gray-800">{shipperEmail || 'N/A'}</span></div>
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Address:</span> <span className="text-gray-800">{
-                                                selectedShipperAddress?.currentLocation?.address || `${selectedShipperAddress?.name || ''}, ${selectedShipperAddress?.city || ''}, ${selectedShipperAddress?.state || ''}` || 'N/A'
+                                                pickupLocationAddress || shipperAddress || 'N/A'
                                             }</span></div>
                                             <div className="mt-4 pt-4 border-t border-gray-200">
                                                 <div className="font-semibold mb-3 text-gray-800">Pickup Appointment:</div>
@@ -2774,7 +2649,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Name:</span> <span className="text-gray-800">{receiverName || 'N/A'}</span></div>
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Phone:</span> <span className="text-gray-800">{receiverPhone || 'N/A'}</span></div>
                                             <div className="flex gap-2"><span className="font-semibold text-gray-700 min-w-[80px]">Address:</span> <span className="text-gray-800">{
-                                                receiverAddress || 'N/A'
+                                                deliveryLocationAddress || receiverAddress || 'N/A'
                                             }</span></div>
                                             <div className="mt-4 pt-4 border-t border-gray-200">
                                                 <div className="font-semibold mb-3 text-gray-800">Delivery Appointment:</div>
