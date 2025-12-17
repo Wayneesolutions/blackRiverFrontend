@@ -39,6 +39,30 @@ interface Customer {
   country: string;
   role: string;
   createdAt: string;
+  state?: string;
+  city?: string;
+  customerDetails?: {
+    customerId?: string;
+    emailPrimary?: string;
+    emailSecondary?: string;
+    trackingEmail?: string;
+    taxId?: string;
+    assignedSalesperson?: string;
+    phonePrimary?: string;
+    phoneSecondary?: string;
+    contact?: string;
+    address?: string;
+    unit?: string;
+    zipCode?: string;
+    creditLimit?: string;
+    creditTerm?: string;
+    invoiceNet?: string;
+    defaultQuickPayDiscount?: string;
+    useFactoringCompany?: boolean;
+    csaFastApproved?: boolean;
+    softBlock?: boolean;
+    hardBlock?: boolean;
+  };
 }
 
 interface Place {
@@ -151,6 +175,10 @@ const Index = () => {
 
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const notificationIdRef = useRef(0);
+
+  // Edit customer sidebar state
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [isEditCustomerSidebarOpen, setIsEditCustomerSidebarOpen] = useState(false);
 
   // Handle different userInfo structures (userData.company or direct company)
   const userRole = userInfo?.role || userInfo?.userData?.role;
@@ -348,9 +376,17 @@ const Index = () => {
 
   // Open edit modal
   const handleEdit = useCallback((item: Contact | Customer | Place) => {
+    // For customers, open the full customer sidebar UI (same as create)
+    if (activeTab === "customers" && 'internalId' in item) {
+      setEditingCustomer(item as Customer);
+      setIsEditCustomerSidebarOpen(true);
+      return;
+    }
+
+    // For contacts and places, use the simple modal
     setEditItem(item);
     if ('internalId' in item) {
-      // Contact or Customer
+      // Contact
       setEditForm({
         internalId: item.internalId || "",
         name: item.name,
@@ -368,24 +404,25 @@ const Index = () => {
       });
     } else {
       // Place
+      const place = item as Place;
       setEditForm({
         internalId: "",
-        name: item.name || "",
+        name: place.name || "",
         email: "",
-        phone: item.phone || "",
-        country: item.country || "",
-        street1: item.street1 || "",
-        street2: item.street2 || "",
-        neighbourHood: item.neighbourHood || "",
-        building: item.building || "",
-        city: item.city || "",
-        state: item.state || "",
-        postalCode: item.postalCode || "",
-        securityAccessCodepostalCode: item.securityAccessCodepostalCode || "",
+        phone: place.phone || "",
+        country: place.country || "",
+        street1: place.street1 || "",
+        street2: place.street2 || "",
+        neighbourHood: place.neighbourHood || "",
+        building: place.building || "",
+        city: place.city || "",
+        state: place.state || "",
+        postalCode: place.postalCode || "",
+        securityAccessCodepostalCode: place.securityAccessCodepostalCode || "",
       });
     }
     setIsEditModalOpen(true);
-  }, []);
+  }, [activeTab]);
 
   // Input change in edit modal
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -497,6 +534,12 @@ const Index = () => {
 
   const handleSidebarClose = () => {
     setIsSidebarOpen(false);
+    fetchAllData();
+  };
+
+  const handleEditCustomerClose = () => {
+    setIsEditCustomerSidebarOpen(false);
+    setEditingCustomer(null);
     fetchAllData();
   };
 
@@ -757,7 +800,25 @@ const Index = () => {
       {activeTab === "contacts" ? (
         <NewContactSidebar isOpen={isSidebarOpen && canCreate} onClose={handleSidebarClose} />
       ) : activeTab === "customers" ? (
-        <NewCustomerSidebar isOpen={isSidebarOpen && canCreate} onClose={handleSidebarClose} />
+        <>
+          {/* Create Customer Sidebar */}
+          <NewCustomerSidebar
+            isOpen={isSidebarOpen && canCreate}
+            onClose={handleSidebarClose}
+            mode="create"
+            onSaved={fetchAllData}
+          />
+          {/* Edit Customer Sidebar */}
+          {editingCustomer && (
+            <NewCustomerSidebar
+              isOpen={isEditCustomerSidebarOpen}
+              onClose={handleEditCustomerClose}
+              mode="edit"
+              customer={editingCustomer}
+              onSaved={fetchAllData}
+            />
+          )}
+        </>
       ) : (
         <NewPlacesSidebar isOpen={isSidebarOpen && canCreate} onClose={handleSidebarClose} />
       )}

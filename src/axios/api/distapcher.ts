@@ -30,10 +30,11 @@ export const deleteCustomer = async (id:string) =>{
   }
 }
 
-export const updateCustomer = async (id:string, data: any) =>{
-    try {
-    const res: AxiosResponse = await apiClient.post(`dispatcher/customer/${id}`,data);
-    console.log('==res ', res)
+export const updateCustomer = async (id: string, data: any) => {
+  try {
+    // Backend expects PUT /dispatcher/customer/:id
+    const res: AxiosResponse = await apiClient.put(`dispatcher/customer/${id}`, data);
+    console.log('==updateCustomer res ', res);
     return res.data;
   } catch (error) {
     return (error as Error).response?.data;

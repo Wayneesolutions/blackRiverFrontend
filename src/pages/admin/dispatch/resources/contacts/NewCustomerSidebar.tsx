@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import type { FC } from "react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
-import { createtCustomer } from '../../../../../axios/api/distapcher';
+import { createtCustomer, updateCustomer } from '../../../../../axios/api/distapcher';
 
 interface ToastNotification {
   id: number;
@@ -44,12 +44,54 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
   );
 };
 
+interface CustomerDetails {
+  _id?: string;
+  internalId?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  customerDetails?: {
+    customerId?: string;
+    emailPrimary?: string;
+    emailSecondary?: string;
+    trackingEmail?: string;
+    taxId?: string;
+    assignedSalesperson?: string;
+    phonePrimary?: string;
+    phoneSecondary?: string;
+    contact?: string;
+    address?: string;
+    unit?: string;
+    zipCode?: string;
+    creditLimit?: string;
+    creditTerm?: string;
+    invoiceNet?: string;
+    defaultQuickPayDiscount?: string;
+    useFactoringCompany?: boolean;
+    csaFastApproved?: boolean;
+    softBlock?: boolean;
+    hardBlock?: boolean;
+  };
+}
+
 interface NewCustomerSidebarProps {
     isOpen: boolean;
     onClose: () => void;
+    mode?: 'create' | 'edit';
+    customer?: CustomerDetails | null;
+    onSaved?: () => void;
 }
 
-const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) => {
+const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
+  isOpen,
+  onClose,
+  mode = 'create',
+  customer,
+  onSaved
+}) => {
     const [customerData, setCustomerData] = useState({
         // Basic Information
         customerId: '',
@@ -118,6 +160,49 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
         }));
     };
 
+    // Prefill form when editing an existing customer
+    useEffect(() => {
+      if (mode === 'edit' && customer) {
+        const details = customer.customerDetails || {};
+
+        setCustomerData(prev => ({
+          ...prev,
+          customerId: details.customerId || customer.internalId || '',
+          customer: customer.name || '',
+          emailPrimary: details.emailPrimary || customer.email || '',
+          emailSecondary: details.emailSecondary || '',
+          trackingEmail: details.trackingEmail || '',
+          taxId: details.taxId || '',
+          assignedSalesperson: details.assignedSalesperson || '',
+          phonePrimary: details.phonePrimary || customer.phone || '',
+          phoneSecondary: details.phoneSecondary || '',
+          contact: details.contact || '',
+          address: details.address || '',
+          city: customer.city || '',
+          unit: details.unit || '',
+          stateProvince: customer.state || '',
+          country: customer.country || '',
+          zipCode: details.zipCode || '',
+          creditLimit: details.creditLimit || '',
+          creditTerm: details.creditTerm || '',
+          invoiceNet: details.invoiceNet || '',
+          defaultQuickPayDiscount: details.defaultQuickPayDiscount || '',
+          useFactoringCompany: !!details.useFactoringCompany,
+          csaFastApproved: !!details.csaFastApproved,
+          softBlock: !!details.softBlock,
+          hardBlock: !!details.hardBlock,
+          name: customer.name || '',
+          email: customer.email || '',
+          phone: customer.phone || '',
+          internalId: customer.internalId || ''
+        }));
+      } else if (mode === 'create' && !customer && !isOpen) {
+        // When closing create sidebar, ensure form is reset
+        resetForm();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode, customer, isOpen]);
+
     const handleSubmit = async () => {
         try {
             // Validation
@@ -129,7 +214,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
             setIsLoading(true);
 
             // Prepare data for API (using legacy field names for compatibility)
-            const apiData = {
+            const apiData: any = {
                 name: customerData.customer || customerData.name,
                 email: customerData.emailPrimary || customerData.email,
                 phone: customerData.phonePrimary || customerData.phone,
@@ -157,51 +242,34 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({ isOpen, onClose }) =>
                 hardBlock: customerData.hardBlock,
             };
 
-            const customerResponse = await createtCustomer(apiData);
+            let customerResponse;
+            if (mode === 'edit' && customer?._id) {
+              // Update existing customer
+              customerResponse = await updateCustomer(customer._id, apiData);
+            } else {
+              // Create new customer
+              customerResponse = await createtCustomer(apiData);
+            }
 
             if (!customerResponse?.success) {
                 showToast('error', customerResponse?.message || 'Error creating customer. Please try again.');
-                setIsLoading(false);
-                return;
+            setIsLoading(false);
+            return;
             }
 
-            showToast('success', customerResponse.message || 'Customer created successfully!');
+            showToast('success', customerResponse.message || (mode === 'edit' ? 'Customer updated successfully!' : 'Customer created successfully!'));
 
-            // Reset form
-            setCustomerData({
-                customerId: '',
-                customer: '',
-                emailPrimary: '',
-                emailSecondary: '',
-                trackingEmail: '',
-                taxId: '',
-                assignedSalesperson: '',
-                phonePrimary: '',
-                phoneSecondary: '',
-                contact: '',
-                address: '',
-                city: '',
-                unit: '',
-                stateProvince: '',
-                country: '',
-                zipCode: '',
-                creditLimit: '',
-                creditTerm: '',
-                invoiceNet: '',
-                defaultQuickPayDiscount: '',
-                useFactoringCompany: false,
-                csaFastApproved: false,
-                softBlock: false,
-                hardBlock: false,
-                name: '',
-                email: '',
-                phone: '',
-                internalId: ''
-            });
+            if (onSaved) {
+              onSaved();
+            }
+
+            if (mode === 'create') {
+              resetForm();
+            }
             
             setTimeout(() => {
-                onClose();
-            }, 1000);
+              onClose();
+            }, 800);
         } catch (error: any) {
             console.error('Error creating customer:', error);
             showToast('error', error?.message || 'Error creating customer. Please try again.');

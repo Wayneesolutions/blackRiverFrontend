@@ -154,6 +154,15 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [orderSearchTerm, setOrderSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"drivers" | "vehicles" | "trailers" | "trips">("drivers");
+  
+  // Additional dashboard metrics
+  const [unassignedDrivers, setUnassignedDrivers] = useState(0);
+  const [driversOnLeave, setDriversOnLeave] = useState(0);
+  const [truckUtilization, setTruckUtilization] = useState(0);
+  const [trailerUtilization, setTrailerUtilization] = useState(0);
+  const [revenuePerMile, setRevenuePerMile] = useState(0);
+  const [deliveriesToday, setDeliveriesToday] = useState(0);
+  const [pickupsToday, setPickupsToday] = useState(0);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -259,6 +268,21 @@ const Index = () => {
             tomorrow: data.tomorrowTrips ?? 0,
           },
         });
+
+        // Set utilization percentages
+        setTruckUtilization(data.truckUtilization?.percentage ?? 0);
+        setTrailerUtilization(data.trailerUtilization?.percentage ?? 0);
+        
+        // Set revenue per mile
+        setRevenuePerMile(data.revenuePerMile ?? 0);
+
+        // Set today's trips count (for deliveries/pickups)
+        setDeliveriesToday(data.todayTrips ?? 0);
+        setPickupsToday(data.todayTrips ?? 0);
+
+        // Set drivers on leave and unassigned drivers from API response
+        setDriversOnLeave(data.driversOnLeave ?? 0);
+        setUnassignedDrivers(data.unassignedDrivers ?? 0);
       }
 
     } catch (error) {
@@ -270,6 +294,7 @@ const Index = () => {
       }, 100);
     }
   };
+
 
   const fetchDrivers = async (page: number = currentPage, search: string = searchTerm, status: string = statusFilter) => {
     try {
@@ -674,7 +699,7 @@ const Index = () => {
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Truck Utilization</h3>
                   <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-xl font-bold text-gray-900">85%</span>
+                    <span className="text-xl font-bold text-gray-900">{truckUtilization}%</span>
                   </div>
                   <p className="text-xs text-gray-400">Active trucks in use</p>
                 </div>
@@ -690,7 +715,7 @@ const Index = () => {
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Trailer Utilization</h3>
                   <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-xl font-bold text-gray-900">72%</span>
+                    <span className="text-xl font-bold text-gray-900">{trailerUtilization}%</span>
                   </div>
                   <p className="text-xs text-gray-400">Active trailers in use</p>
                 </div>
@@ -706,7 +731,7 @@ const Index = () => {
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Revenue Per Mile</h3>
                   <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-xl font-bold text-gray-900">$2.45</span>
+                    <span className="text-xl font-bold text-gray-900">${revenuePerMile.toFixed(2)}</span>
                   </div>
                   <p className="text-xs text-gray-400">Average revenue per mile</p>
                 </div>
@@ -722,7 +747,7 @@ const Index = () => {
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Deliveries Today</h3>
                   <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-xl font-bold text-gray-900">24</span>
+                    <span className="text-xl font-bold text-gray-900">{deliveriesToday}</span>
                   </div>
                   <p className="text-xs text-gray-400">Scheduled for today</p>
                 </div>
@@ -738,7 +763,7 @@ const Index = () => {
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Pickups Today</h3>
                   <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-xl font-bold text-gray-900">18</span>
+                    <span className="text-xl font-bold text-gray-900">{pickupsToday}</span>
                   </div>
                   <p className="text-xs text-gray-400">Scheduled for today</p>
                 </div>
@@ -754,7 +779,7 @@ const Index = () => {
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Unassigned Drivers</h3>
                   <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-xl font-bold text-gray-900">5</span>
+                    <span className="text-xl font-bold text-gray-900">{unassignedDrivers}</span>
                   </div>
                   <p className="text-xs text-gray-400">Available for assignment</p>
                 </div>
@@ -770,7 +795,7 @@ const Index = () => {
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Drivers on Leave</h3>
                   <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-xl font-bold text-gray-900">3</span>
+                    <span className="text-xl font-bold text-gray-900">{driversOnLeave}</span>
                   </div>
                   <p className="text-xs text-gray-400">Currently on leave</p>
                 </div>
