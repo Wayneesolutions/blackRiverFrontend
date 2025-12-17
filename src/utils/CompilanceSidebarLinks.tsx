@@ -31,7 +31,7 @@ export const CompilanceSidebarLinks: CompilanceSidebarLink[] = [
     {
         key: "monthly-report",
         icon: <FaChartBar />,
-        label: "Monthly Report",
+        label: "Carrier Profile",
     },
     {
         key: "tickets",

@@ -12,7 +12,12 @@ import {
   TrendingDown,
   CheckCircle2,
   CreditCard,
-  AlertCircle
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Building2,
+  Wallet
 } from 'lucide-react';
 
 interface Invoice {
@@ -136,6 +141,56 @@ const Dashboard = () => {
       bgColor: 'bg-purple-100',
       iconColor: 'text-purple-700',
       cardBg: 'bg-gradient-to-br from-purple-50 to-purple-100'
+    },
+    {
+      id: 'paid-invoices',
+      title: 'Paid Invoices',
+      value: '$45,000',
+      subtitle: 'Total paid amount',
+      icon: CheckCircle,
+      bgColor: 'bg-emerald-100',
+      iconColor: 'text-emerald-700',
+      cardBg: 'bg-gradient-to-br from-emerald-50 to-emerald-100'
+    },
+    {
+      id: 'unpaid-overdue',
+      title: 'Unpaid Over Due',
+      value: '$12,500',
+      subtitle: 'Overdue payments',
+      icon: XCircle,
+      bgColor: 'bg-rose-100',
+      iconColor: 'text-rose-700',
+      cardBg: 'bg-gradient-to-br from-rose-50 to-rose-100'
+    },
+    {
+      id: 'paid-employee-unpaid',
+      title: 'Paid Employee Unpaid',
+      value: '$8,200',
+      subtitle: 'Pending employee payments',
+      icon: Clock,
+      bgColor: 'bg-amber-100',
+      iconColor: 'text-amber-700',
+      cardBg: 'bg-gradient-to-br from-amber-50 to-amber-100'
+    },
+    {
+      id: 'paid-driver-unpaid',
+      title: 'Paid Driver Unpaid',
+      value: '$5,800',
+      subtitle: 'Pending driver payments',
+      icon: Wallet,
+      bgColor: 'bg-cyan-100',
+      iconColor: 'text-cyan-700',
+      cardBg: 'bg-gradient-to-br from-cyan-50 to-cyan-100'
+    },
+    {
+      id: 'vendor-payment',
+      title: 'Vendor Payment',
+      value: '$23,400',
+      subtitle: 'Vendor payments',
+      icon: Building2,
+      bgColor: 'bg-violet-100',
+      iconColor: 'text-violet-700',
+      cardBg: 'bg-gradient-to-br from-violet-50 to-violet-100'
     }
   ];
 
@@ -236,19 +291,21 @@ const Dashboard = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 -mt-2 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 -mt-2 mb-4">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <div
                   key={feature.id}
                   onClick={() => {
-                    if (feature.id === 'revenue' || feature.id === 'profit') {
+                    if (feature.id === 'revenue' || feature.id === 'profit' || feature.id === 'paid-invoices' || feature.id === 'unpaid-overdue') {
                       navigate('/admin/accounts/invoice');
-                    } else if (feature.id === 'expenses') {
+                    } else if (feature.id === 'expenses' || feature.id === 'vendor-payment') {
                       navigate('/admin/accounts/expenses');
-                    } else if (feature.id === 'payroll') {
+                    } else if (feature.id === 'payroll' || feature.id === 'paid-employee-unpaid') {
                       navigate('/admin/accounts/payroll');
+                    } else if (feature.id === 'paid-driver-unpaid') {
+                      navigate('/admin/accounts/driverpayroll');
                     }
                   }}
                   className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}

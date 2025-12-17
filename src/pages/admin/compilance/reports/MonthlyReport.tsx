@@ -416,7 +416,7 @@ const MonthlyReport: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-black">Monthly Compliance Report</h1>
+                <h1 className="text-2xl font-bold text-black">Carrier Profile</h1>
                 <div className="flex items-center gap-2 text-black/90">
                   <span className="text-xs">Analytics and insights for CVSA inspections</span>
                 </div>

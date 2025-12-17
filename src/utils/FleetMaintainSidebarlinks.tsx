@@ -18,11 +18,7 @@ export const FleetMaintainSidebarlinks: FleetMaintainSidebarlinks[] = [
         icon: <MdDashboard />,
         label: "Dashboard",
     },
-    {
-        key: "/admin/fleetmaintenance/vehicle-monitor",
-        icon: <FaSatellite />,
-        label: "Vehicle Monitor",
-    },
+
     {
         key: "/admin/fleetmaintenance/fleet-units",
         icon: <FaTruck />,
