@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Truck, Users, Package, Loader2, Search, ChevronLeft, ChevronRight, Filter, X, Route } from "lucide-react";
+import { Truck, Users, Package, Loader2, Search, ChevronLeft, ChevronRight, Filter, X, Route, TrendingUp, Calendar, UserCheck, UserX, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   getDispatcherDashboard,
@@ -152,7 +152,8 @@ const Index = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"drivers" | "vehicles" | "trailers" | "trips" | "orders">("drivers");
+  const [orderSearchTerm, setOrderSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<"drivers" | "vehicles" | "trailers" | "trips">("drivers");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -371,11 +372,12 @@ const Index = () => {
     }
   };
   const fetchOrders = async () => {
-    setLoading(true);
+    // Don't set global loading state to avoid infinite loop with useEffects
     try {
       const response = await listOrder({
         page: currentPage,
         limit: itemsPerPage,
+        status: statusFilter || undefined,
       });
 
       if (response?.success && response?.data) {
@@ -424,19 +426,29 @@ const Index = () => {
         }));
 
         setOrders(formattedOrders);
+        // Set pagination info if available
+        if (response.pagination) {
+          setTotalItems(response.pagination.total || formattedOrders.length);
+          setTotalPages(response.pagination.pages || Math.ceil((response.pagination.total || formattedOrders.length) / itemsPerPage));
+        } else {
+          setTotalItems(formattedOrders.length);
+          setTotalPages(Math.ceil(formattedOrders.length / itemsPerPage));
+        }
       } else {
         setOrders([]);
+        setTotalItems(0);
+        setTotalPages(0);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
       setOrders([]);
-    } finally {
-      setLoading(false);
+      setTotalItems(0);
+      setTotalPages(0);
     }
   };
 
 
-  const handleTabChange = (tab: "drivers" | "vehicles" | "trailers" | "trips" | "orders") => {
+  const handleTabChange = (tab: "drivers" | "vehicles" | "trailers" | "trips") => {
     setActiveTab(tab);
     setSearchTerm("");
     setCurrentPage(1);
@@ -454,18 +466,18 @@ const Index = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, loading]);
+  }, [searchTerm]); // Removed loading from dependencies to prevent infinite loop
 
   useEffect(() => {
     if (loading) return;
     setCurrentPage(1);
     fetchCurrentData();
-  }, [statusFilter, operationStatusFilter, typeFilter, itemsPerPage, loading]);
+  }, [statusFilter, operationStatusFilter, typeFilter, itemsPerPage]); // Removed loading from dependencies to prevent infinite loop
 
   useEffect(() => {
     if (loading) return;
     fetchCurrentData();
-  }, [currentPage, loading]);
+  }, [currentPage]); // Removed loading from dependencies to prevent infinite loop
 
   const fetchTrips = async (page: number = currentPage, search: string = searchTerm, status: string = statusFilter) => {
     try {
@@ -509,16 +521,29 @@ const Index = () => {
       fetchTrailers(currentPage, searchTerm, statusFilter, operationStatusFilter, typeFilter);
     } else if (activeTab === "trips") {
       fetchTrips(currentPage, searchTerm, statusFilter);
-    } else if (activeTab === "orders") {
-      fetchOrders();
     }
-  }, [activeTab, currentPage, searchTerm, statusFilter, operationStatusFilter, typeFilter]);
+    // Always fetch orders regardless of active tab
+    fetchOrders();
+  }, [activeTab, currentPage, searchTerm, statusFilter, operationStatusFilter, typeFilter, itemsPerPage]);
 
   const filteredDrivers = drivers;
   const filteredVehicles = vehicles;
   const filteredTrailers = trailers;
   const filteredTrips = trips;
-  const filteredOrders = orders;
+  const filteredOrders = orders.filter(order => {
+    if (!orderSearchTerm) return true;
+    const search = orderSearchTerm.toLowerCase();
+    return (
+      order.orderNo?.toLowerCase().includes(search) ||
+      order.custOrderNo?.toLowerCase().includes(search) ||
+      order.customerName?.toLowerCase().includes(search) ||
+      order.companyName?.toLowerCase().includes(search) ||
+      order.tripNo?.toLowerCase().includes(search) ||
+      order.driver?.toLowerCase().includes(search) ||
+      order.truckNo?.toLowerCase().includes(search) ||
+      order.trailerNo?.toLowerCase().includes(search)
+    );
+  });
 
   // Build feature cards
   const features: FeatureCard[] = [
@@ -641,6 +666,121 @@ const Index = () => {
             })}
           </div>
 
+          {/* Additional Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            {/* Truck Utilization */}
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">Truck Utilization</h3>
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <span className="text-xl font-bold text-gray-900">85%</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Active trucks in use</p>
+                </div>
+                <div className="bg-blue-50 rounded-lg p-2 shadow-sm">
+                  <Truck className="text-blue-600" size={21} strokeWidth={2} />
+                </div>
+              </div>
+            </div>
+
+            {/* Trailer Utilization */}
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">Trailer Utilization</h3>
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <span className="text-xl font-bold text-gray-900">72%</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Active trailers in use</p>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-2 shadow-sm">
+                  <Package className="text-purple-600" size={21} strokeWidth={2} />
+                </div>
+              </div>
+            </div>
+
+            {/* Revenue Per Mile */}
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">Revenue Per Mile</h3>
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <span className="text-xl font-bold text-gray-900">$2.45</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Average revenue per mile</p>
+                </div>
+                <div className="bg-green-50 rounded-lg p-2 shadow-sm">
+                  <DollarSign className="text-green-600" size={21} strokeWidth={2} />
+                </div>
+              </div>
+            </div>
+
+            {/* Deliveries Today */}
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">Deliveries Today</h3>
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <span className="text-xl font-bold text-gray-900">24</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Scheduled for today</p>
+                </div>
+                <div className="bg-orange-50 rounded-lg p-2 shadow-sm">
+                  <Calendar className="text-orange-600" size={21} strokeWidth={2} />
+                </div>
+              </div>
+            </div>
+
+            {/* Pickups Today */}
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">Pickups Today</h3>
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <span className="text-xl font-bold text-gray-900">18</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Scheduled for today</p>
+                </div>
+                <div className="bg-yellow-50 rounded-lg p-2 shadow-sm">
+                  <TrendingUp className="text-yellow-600" size={21} strokeWidth={2} />
+                </div>
+              </div>
+            </div>
+
+            {/* Unassigned Drivers */}
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">Unassigned Drivers</h3>
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <span className="text-xl font-bold text-gray-900">5</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Available for assignment</p>
+                </div>
+                <div className="bg-red-50 rounded-lg p-2 shadow-sm">
+                  <UserX className="text-red-600" size={21} strokeWidth={2} />
+                </div>
+              </div>
+            </div>
+
+            {/* Drivers on Leave */}
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">Drivers on Leave</h3>
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <span className="text-xl font-bold text-gray-900">3</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Currently on leave</p>
+                </div>
+                <div className="bg-indigo-50 rounded-lg p-2 shadow-sm">
+                  <UserCheck className="text-indigo-600" size={21} strokeWidth={2} />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Tables Section */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
             {/* Tabs */}
@@ -680,17 +820,7 @@ const Index = () => {
                     : "text-gray-600 hover:text-gray-800"
                     }`}
                 >
-
                   Trips
-                </button>
-                <button
-                  onClick={() => handleTabChange("orders")}
-                  className={`px-6 py-3 font-medium text-sm transition-colors ${activeTab === "orders"
-                    ? "text-[#42aeec] border-b-2 border-[#42aeec]"
-                    : "text-gray-600 hover:text-gray-800"
-                    }`}
-                >
-                  Orders
                 </button>
               </div>
             </div>
@@ -1192,134 +1322,231 @@ const Index = () => {
                 </table>
               )}
 
-              {activeTab === "orders" && (
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Order#/Cust. Order#
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Trip#
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Order Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Company Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Customer Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Pickup Date/Location/Ref No
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Delivery Date/Location/Ref No
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Total Amount
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Driver
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Truck#/Trailer#
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredOrders.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                          No Orders found
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredOrders.map((order) => (
-                        <tr key={order.id} className="hover:bg-gray-50">
-
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{order.orderNo}</div>
-                            <div className="text-xs text-gray-500">{order.orderType}</div>
-                            {order.custOrderNo && (
-                              <div className="text-xs text-gray-500">{order.custOrderNo}</div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {order.tripNo || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{order.orderDate}</div>
-                            <div className="text-xs text-gray-500">Total Item: {order.totalItems}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {order.companyName}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {order.customerName}
-                          </td>
-                          <td className="px-6 py-4">
-                            {(() => {
-                              const pickupLoc = extractLocationString(order.pickupLocation);
-                              return pickupLoc ? (
-                                <div className="text-sm">
-                                  <div className="text-gray-900">{pickupLoc}</div>
-                                  {order.pickupRefNo && <div className="text-gray-600">Ref: {order.pickupRefNo}</div>}
-                                  {order.pickupDate && <div className="text-red-600">{order.pickupDate}</div>}
-                                </div>
-                              ) : (
-                                <span className="text-sm text-gray-400">-</span>
-                              );
-                            })()}
-                          </td>
-                          <td className="px-6 py-4">
-                            {(() => {
-                              const deliveryLoc = extractLocationString(order.deliveryLocation);
-                              return deliveryLoc ? (
-                                <div className="text-sm">
-                                  <div className="text-gray-900">{deliveryLoc}</div>
-                                  {order.deliveryRefNo && <div className="text-gray-600">Ref: {order.deliveryRefNo}</div>}
-                                  {order.deliveryDate && <div className="text-red-600">{order.deliveryDate}</div>}
-                                </div>
-                              ) : (
-                                <span className="text-sm text-gray-400">-</span>
-                              );
-                            })()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
-                              {order.currency} {order.totalAmount}
-                            </div>
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                              {order.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {order.driver || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {order.truckNo || order.trailerNo ? (
-                              <div>
-                                {order.truckNo && <div>Truck: {order.truckNo}</div>}
-                                {order.trailerNo && <div>Trailer: {order.trailerNo}</div>}
-                              </div>
-                            ) : (
-                              "-"
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              )}
             </div>
 
 
             {/* Pagination */}
-            {(totalPages > 1 || totalItems > 0) && (
+            {(totalPages > 1 || totalItems > 0) && activeTab !== "orders" && (
+              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-700">
+                    Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} results
+                  </span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value={10}>10 per page</option>
+                    <option value={25}>25 per page</option>
+                    <option value={50}>50 per page</option>
+                    <option value={100}>100 per page</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className={`p-2 border rounded-lg transition-colors ${currentPage === 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                      }`}
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${currentPage === pageNum
+                            ? "bg-blue-600 !text-white"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                            }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className={`p-2 border rounded-lg transition-colors ${currentPage === totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                      }`}
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Orders Table Section - Below Tabs */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mt-4">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Orders</h2>
+            </div>
+
+            {/* Search and Filter Bar for Orders */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search orders..."
+                  value={orderSearchTerm}
+                  onChange={(e) => setOrderSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Orders Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Order#/Cust. Order#
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Trip#
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Order Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Company Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Customer Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Pickup Date/Location/Ref No
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Delivery Date/Location/Ref No
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Total Amount
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Driver
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Truck#/Trailer#
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                        No Orders found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredOrders.map((order) => (
+                      <tr key={order.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{order.orderNo}</div>
+                          <div className="text-xs text-gray-500">{order.orderType}</div>
+                          {order.custOrderNo && (
+                            <div className="text-xs text-gray-500">{order.custOrderNo}</div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {order.tripNo || "-"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{order.orderDate}</div>
+                          <div className="text-xs text-gray-500">Total Item: {order.totalItems}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {order.companyName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {order.customerName}
+                        </td>
+                        <td className="px-6 py-4">
+                          {(() => {
+                            const pickupLoc = extractLocationString(order.pickupLocation);
+                            return pickupLoc ? (
+                              <div className="text-sm">
+                                <div className="text-gray-900">{pickupLoc}</div>
+                                {order.pickupRefNo && <div className="text-gray-600">Ref: {order.pickupRefNo}</div>}
+                                {order.pickupDate && <div className="text-red-600">{order.pickupDate}</div>}
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-400">-</span>
+                            );
+                          })()}
+                        </td>
+                        <td className="px-6 py-4">
+                          {(() => {
+                            const deliveryLoc = extractLocationString(order.deliveryLocation);
+                            return deliveryLoc ? (
+                              <div className="text-sm">
+                                <div className="text-gray-900">{deliveryLoc}</div>
+                                {order.deliveryRefNo && <div className="text-gray-600">Ref: {order.deliveryRefNo}</div>}
+                                {order.deliveryDate && <div className="text-red-600">{order.deliveryDate}</div>}
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-400">-</span>
+                            );
+                          })()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {order.currency} {order.totalAmount}
+                          </div>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {order.driver || "-"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {order.truckNo || order.trailerNo ? (
+                            <div>
+                              {order.truckNo && <div>Truck: {order.truckNo}</div>}
+                              {order.trailerNo && <div>Trailer: {order.trailerNo}</div>}
+                            </div>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Orders Pagination */}
+            {totalPages > 1 && (
               <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <span className="text-sm text-gray-700">
