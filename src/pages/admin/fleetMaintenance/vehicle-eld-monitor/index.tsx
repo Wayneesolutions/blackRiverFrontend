@@ -113,7 +113,7 @@ const VehicleEldMonitor = () => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 mt-8">
+            <div className="w-full mx-auto px-4 mt-8">
 
                 {/* --- OVERVIEW TAB --- */}
                 {activeTab === 'overview' && (

@@ -1151,7 +1151,7 @@ const EmergencyProcedures: React.FC = () => {
 
   return (
     <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>

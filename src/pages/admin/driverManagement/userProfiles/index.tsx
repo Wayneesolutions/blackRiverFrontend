@@ -297,7 +297,7 @@ const UserProfilesPortfolio: React.FC = () => {
 
             }}
         >
-            <div className="max-w-7xl mx-auto">
+            <div className="w-full mx-auto p-2">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">

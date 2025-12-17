@@ -193,7 +193,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
-      <div className="relative max-w-7xl mx-auto">
+      <div className="relative w-full mx-auto p-2">
         {/* Gradient band */}
         <div
           className="absolute inset-x-0 top-0"

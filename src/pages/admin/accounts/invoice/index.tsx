@@ -1906,7 +1906,7 @@ const InvoiceManagement: React.FC = () => {
         <div className="min-h-screen p-6 bg-[#EDF8FF]" >
             <NotificationContainer />
             <DeleteConfirmationModal />
-            <div className="max-w-7xl mx-auto">
+            <div className="w-full mx-auto">
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>

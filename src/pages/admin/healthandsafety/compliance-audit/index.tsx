@@ -118,7 +118,7 @@ const ComplianceAuditPage = () => {
         <div className="min-h-screen bg-[#EDF8FF] font-sans">
             {/* Header */}
 
-            <div className="relative py-6 max-w-7xl mx-auto">
+            <div className="relative py-6 w-full mx-auto">
                 <div className="flex justify-between items-start">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
@@ -141,7 +141,7 @@ const ComplianceAuditPage = () => {
 
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 -mt-12 relative z-20 pb-12">
+            <div className="w-full mx-auto px-4 -mt-12 relative z-20 pb-12">
                 {/* Navigation Tabs */}
                 <div className="bg-white rounded-xl shadow-lg border border-blue-100 p-1 mb-6 flex overflow-x-auto no-scrollbar">
                     {[

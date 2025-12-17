@@ -407,7 +407,7 @@ const MonthlyReport: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
-      <div className="relative max-w-7xl mx-auto">
+      <div className="relative w-full mx-auto p-2">
 
 
         {/* Main content */}
@@ -467,7 +467,7 @@ const MonthlyReport: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 -mt-4">
+      <div className="w-full mx-auto px-4 -mt-4">
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4">

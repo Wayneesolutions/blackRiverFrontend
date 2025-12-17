@@ -938,7 +938,7 @@ const TruckingOperations: React.FC = () => {
         ))}
       </div>
 
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
