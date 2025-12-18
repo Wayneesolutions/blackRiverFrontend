@@ -52,6 +52,20 @@ const Dashboard = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [payrolls, setPayrolls] = useState<Payroll[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalRevenue: 0,
+    totalExpenses: 0,
+    totalPayroll: 0,
+    netProfit: 0,
+    paidInvoices: 0,
+    unpaidOverdue: 0,
+    paidEmployeeUnpaid: 0,
+    paidDriverUnpaid: 0,
+    vendorPayment: 0,
+    invoiceCount: 0,
+    expenseCount: 0,
+    payrollCount: 0
+  });
 
   useEffect(() => {
     fetchDashboardData();
@@ -64,11 +78,13 @@ const Dashboard = () => {
       const { listInvoices } = await import('../../../axios/api/account.invoices');
       const { listExpenses } = await import('../../../axios/api/account.expense');
       const { listPayrolls } = await import('../../../axios/api/account.payroll');
+      const { getAccountsDashboard } = await import('../../../axios/api/account.dashboard');
 
-      const [invoicesRes, expensesRes, payrollsRes] = await Promise.all([
+      const [invoicesRes, expensesRes, payrollsRes, dashboardRes] = await Promise.all([
         listInvoices(),
         listExpenses(),
-        listPayrolls()
+        listPayrolls(),
+        getAccountsDashboard()
       ]);
 
       const invoicesData = invoicesRes?.success ? invoicesRes.data || [] : [];
@@ -78,6 +94,11 @@ const Dashboard = () => {
       setInvoices(invoicesData);
       setExpenses(expensesData);
       setPayrolls(payrollsData);
+
+      // Set dashboard statistics from API
+      if (dashboardRes?.success && dashboardRes.data) {
+        setDashboardStats(dashboardRes.data);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setInvoices([]);
@@ -93,13 +114,14 @@ const Dashboard = () => {
     return Number.isFinite(numeric) ? Number(numeric) : 0;
   };
 
-  const totalRevenue = invoices.reduce((sum, inv) => sum + normalizeAmount(inv.amount), 0);
+  // Use API data if available, otherwise calculate from local data
+  const totalRevenue = dashboardStats.totalRevenue || invoices.reduce((sum, inv) => sum + normalizeAmount(inv.amount), 0);
   const pendingRevenue = invoices
     .filter((inv) => inv.status === 'pending')
     .reduce((sum, inv) => sum + normalizeAmount(inv.amount), 0);
-  const totalExpenses = expenses.reduce((sum, exp) => sum + normalizeAmount(exp.amount), 0);
-  const totalPayroll = payrolls.reduce((sum, payroll) => sum + normalizeAmount(payroll.totalSalary), 0);
-  const netProfit = totalRevenue - totalExpenses - totalPayroll;
+  const totalExpenses = dashboardStats.totalExpenses || expenses.reduce((sum, exp) => sum + normalizeAmount(exp.amount), 0);
+  const totalPayroll = dashboardStats.totalPayroll || payrolls.reduce((sum, payroll) => sum + normalizeAmount(payroll.totalSalary), 0);
+  const netProfit = dashboardStats.netProfit || (totalRevenue - totalExpenses - totalPayroll);
 
   const features = [
     {
@@ -145,7 +167,7 @@ const Dashboard = () => {
     {
       id: 'paid-invoices',
       title: 'Paid Invoices',
-      value: '$45,000',
+      value: `$${dashboardStats.paidInvoices.toLocaleString()}`,
       subtitle: 'Total paid amount',
       icon: CheckCircle,
       bgColor: 'bg-emerald-100',
@@ -155,7 +177,7 @@ const Dashboard = () => {
     {
       id: 'unpaid-overdue',
       title: 'Unpaid Over Due',
-      value: '$12,500',
+      value: `$${dashboardStats.unpaidOverdue.toLocaleString()}`,
       subtitle: 'Overdue payments',
       icon: XCircle,
       bgColor: 'bg-rose-100',
@@ -165,7 +187,7 @@ const Dashboard = () => {
     {
       id: 'paid-employee-unpaid',
       title: 'Paid Employee Unpaid',
-      value: '$8,200',
+      value: `$${dashboardStats.paidEmployeeUnpaid.toLocaleString()}`,
       subtitle: 'Pending employee payments',
       icon: Clock,
       bgColor: 'bg-amber-100',
@@ -175,7 +197,7 @@ const Dashboard = () => {
     {
       id: 'paid-driver-unpaid',
       title: 'Paid Driver Unpaid',
-      value: '$5,800',
+      value: `$${dashboardStats.paidDriverUnpaid.toLocaleString()}`,
       subtitle: 'Pending driver payments',
       icon: Wallet,
       bgColor: 'bg-cyan-100',
@@ -185,7 +207,7 @@ const Dashboard = () => {
     {
       id: 'vendor-payment',
       title: 'Vendor Payment',
-      value: '$23,400',
+      value: `$${dashboardStats.vendorPayment.toLocaleString()}`,
       subtitle: 'Vendor payments',
       icon: Building2,
       bgColor: 'bg-violet-100',

@@ -62,6 +62,18 @@ export interface Trip {
     eta: string;
     currentLat: number | null;
     currentLng: number | null;
+    route?: {
+        waypoints: Array<{
+            place: string;
+            latitude: number | null;
+            longitude: number | null;
+            type: string;
+            orderId: string | null;
+        }>;
+        summary: string;
+        totalDistance: number;
+        estimatedDuration: number;
+    };
 }
 
 export interface Truck {

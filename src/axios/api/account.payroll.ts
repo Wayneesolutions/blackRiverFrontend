@@ -151,20 +151,39 @@ export const generateAIDriverPayroll = async (data: {
     }
 };
 
-// Bulk AI-powered Driver Payroll Generation (processes all drivers automatically)
-export const bulkGenerateAIDriverPayrolls = async (data: {
+// Bulk AI-powered Driver Payroll Analysis (returns suggestions for review)
+export const bulkAnalyzeAIDriverPayrolls = async (data: {
     startDate: string;
     endDate: string;
     payDate?: string;
 }) => {
     try {
-        const res: AxiosResponse = await apiClient.post(`hr/driver-payroll/bulk-generate-ai`, data);
+        const res: AxiosResponse = await apiClient.post(`hr/driver-payroll/bulk-analyze-ai`, data);
         return res.data;
     } catch (error: any) {
         const err = error as Error;
         return err.response?.data;
     }
 };
+
+// Bulk Create Driver Payrolls from AI suggestions (after user review)
+export const bulkCreateDriverPayrolls = async (data: {
+    payrolls: any[];
+    startDate: string;
+    endDate: string;
+    payDate?: string;
+}) => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`hr/driver-payroll/bulk-create`, data);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Keep old function for backward compatibility
+export const bulkGenerateAIDriverPayrolls = bulkAnalyzeAIDriverPayrolls;
 
 // Bulk AI-powered payroll generation for ALL employees
 export const bulkAIGenerateAllPayrolls = async (data: {

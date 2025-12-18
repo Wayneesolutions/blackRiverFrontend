@@ -491,15 +491,30 @@ const Index = () => {
 
                                                 {/* Trip Details */}
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-0.5">
-                                                        <span className="font-semibold text-gray-900 text-xs" style={{ fontSize: '0.75rem' }}>
-                                                            {trip.origin}
-                                                        </span>
-                                                        <span className="text-gray-400 text-xs" style={{ fontSize: '0.75rem' }}>→</span>
-                                                        <span className="font-semibold text-gray-900 text-xs" style={{ fontSize: '0.75rem' }}>
-                                                            {trip.destination}
-                                                        </span>
+                                                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                                        {trip.route?.summary ? (
+                                                            // Show route summary if available (new format)
+                                                            <span className="font-semibold text-gray-900 text-xs" style={{ fontSize: '0.75rem' }}>
+                                                                {trip.route.summary}
+                                                            </span>
+                                                        ) : (
+                                                            // Fallback to origin → destination (old format)
+                                                            <>
+                                                                <span className="font-semibold text-gray-900 text-xs" style={{ fontSize: '0.75rem' }}>
+                                                                    {trip.origin}
+                                                                </span>
+                                                                <span className="text-gray-400 text-xs" style={{ fontSize: '0.75rem' }}>→</span>
+                                                                <span className="font-semibold text-gray-900 text-xs" style={{ fontSize: '0.75rem' }}>
+                                                                    {trip.destination}
+                                                                </span>
+                                                            </>
+                                                        )}
                                                     </div>
+                                                    {trip.route?.waypoints && trip.route.waypoints.length > 2 && (
+                                                        <div className="text-[10px] text-gray-400 mb-0.5" style={{ fontSize: '0.625rem' }}>
+                                                            {trip.route.waypoints.length} stops
+                                                        </div>
+                                                    )}
                                                     <div className="flex items-center gap-2.5 text-[10px] text-gray-500" style={{ fontSize: '0.625rem' }}>
                                                         <span className="flex items-center gap-1">
                                                             <Users size={11} />
@@ -509,6 +524,12 @@ const Index = () => {
                                                             <span className="flex items-center gap-1">
                                                                 <TruckIcon size={11} />
                                                                 {trip.truck}
+                                                            </span>
+                                                        )}
+                                                        {trip.route?.totalDistance && trip.route.totalDistance > 0 && (
+                                                            <span className="flex items-center gap-1">
+                                                                <Navigation size={11} />
+                                                                {Math.round(trip.route.totalDistance)} mi
                                                             </span>
                                                         )}
                                                         <span className="flex items-center gap-1">

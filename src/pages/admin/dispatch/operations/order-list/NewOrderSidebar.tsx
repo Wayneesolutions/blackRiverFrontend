@@ -212,10 +212,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [loadSecurementFiles, setLoadSecurementFiles] = useState([]);
 
 
-    const [podFile, setPodFile] = useState(null);
-    const [stampedManifestFile, setStampedManifestFile] = useState(null);
-    const [loadConfirmationFile, setLoadConfirmationFile] = useState(null);
-    const [printedManifestFile, setPrintedManifestFile] = useState(null);
+    const [podFile, setPodFile] = useState<File | null>(null);
+    const [stampedManifestFile, setStampedManifestFile] = useState<File | null>(null);
+    const [loadConfirmationFile, setLoadConfirmationFile] = useState<File | null>(null);
+    const [printedManifestFile, setPrintedManifestFile] = useState<File | null>(null);
 
     // Suggestions states
     const [commoditySuggestions, setCommoditySuggestions] = useState<string[]>([]);
@@ -359,13 +359,17 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 // Set shipper address from order data
                 if (order.shipper.address) {
                     setShipperAddress(order.shipper.address);
-                    setPickupLocation({
-                        address: order.shipper.address || '',
-                        city: order.shipper.city || '',
-                        state: order.shipper.state || '',
-                        country: order.shipper.country || '',
-                        zipCode: order.shipper.zipCode || ''
-                    });
+                    // Update pickup location address if shipper address is provided
+                    const shipperAddrParts = [
+                        order.shipper.address || '',
+                        order.shipper.city || '',
+                        order.shipper.state || '',
+                        order.shipper.country || '',
+                        order.shipper.zipCode || ''
+                    ].filter(Boolean);
+                    if (shipperAddrParts.length > 0) {
+                        setPickupLocationAddress(shipperAddrParts.join(' '));
+                    }
                 }
             }
 
@@ -659,23 +663,35 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     };
 
     // File handling functions
-    const handleFileUpload = (file: File, type: 'bol' | 'customs' | 'rate') => {
+    const handleFileUpload = (file: File, type: 'bol' | 'customs' | 'rate' | 'pod' | 'stampedManifest' | 'loadSecurement') => {
         if (type === 'bol') {
             setBolFile(file);
         } else if (type === 'customs') {
             setCustomsHazmatFiles(prev => [...prev, file]);
         } else if (type === 'rate') {
             setRateConfirmationFile(file);
+        } else if (type === 'pod') {
+            setPodFile(file);
+        } else if (type === 'stampedManifest') {
+            setStampedManifestFile(file);
+        } else if (type === 'loadSecurement') {
+            setLoadSecurementFiles(prev => [...prev, file]);
         }
     };
 
-    const removeFile = (type: 'bol' | 'customs' | 'rate', index?: number) => {
+    const removeFile = (type: 'bol' | 'customs' | 'rate' | 'pod' | 'stampedManifest' | 'loadSecurement', index?: number) => {
         if (type === 'bol') {
             setBolFile(null);
         } else if (type === 'customs' && index !== undefined) {
             setCustomsHazmatFiles(prev => prev.filter((_, i) => i !== index));
         } else if (type === 'rate') {
             setRateConfirmationFile(null);
+        } else if (type === 'pod') {
+            setPodFile(null);
+        } else if (type === 'stampedManifest') {
+            setStampedManifestFile(null);
+        } else if (type === 'loadSecurement' && index !== undefined) {
+            setLoadSecurementFiles(prev => prev.filter((_, i) => i !== index));
         }
     };
 
@@ -956,8 +972,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 orderNotes: orderNotes || '',
                 customer: orderCustomer._id || orderCustomer.id,
                 pickupLocation: {
-                    address: pickupLocationAddress || '',
-                    place: pickupLocationAddress || ''
+                    place: pickupLocationAddress || '',
+                    latitude: '',
+                    longitude: ''
                 },
                 pickupDate: pickupDateTime,
                 pickupTime: pickupTime || '',
@@ -965,8 +982,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 pickupRefNo: pickupRefNo || '',
                 pickupNote: pickupNote || '',
                 deliveryLocation: {
-                    address: deliveryLocationAddress || receiverAddress || '',
-                    place: deliveryLocationAddress || receiverAddress || ''
+                    place: deliveryLocationAddress || receiverAddress || '',
+                    latitude: '',
+                    longitude: ''
                 },
                 deliveryDate: deliveryDateTime,
                 deliveryTime: deliveryTime || '',
@@ -2387,10 +2405,15 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <Upload className="w-8 h-8 text-gray-400 mb-2" />
                                                     <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
                                                     <input
+                                                        key={podFile ? 'pod-reset' : 'pod-input'}
                                                         type="file"
                                                         className="hidden"
                                                         accept=".pdf,.jpg,.jpeg,.png"
-                                                        onChange={(e) => e.target.files && handleFileUpload(e.target.files[0], 'pod')}
+                                                        onChange={(e) => {
+                                                            if (e.target.files && e.target.files[0]) {
+                                                                handleFileUpload(e.target.files[0], 'pod');
+                                                            }
+                                                        }}
                                                     />
                                                 </label>
                                             )}
@@ -2418,12 +2441,15 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <Upload className="w-8 h-8 text-gray-400 mb-2" />
                                                     <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
                                                     <input
+                                                        key={stampedManifestFile ? 'stamped-reset' : 'stamped-input'}
                                                         type="file"
                                                         className="hidden"
                                                         accept=".pdf,.jpg,.jpeg,.png"
-                                                        onChange={(e) =>
-                                                            e.target.files && handleFileUpload(e.target.files[0], 'stampedManifest')
-                                                        }
+                                                        onChange={(e) => {
+                                                            if (e.target.files && e.target.files[0]) {
+                                                                handleFileUpload(e.target.files[0], 'stampedManifest');
+                                                            }
+                                                        }}
                                                     />
                                                 </label>
                                             )}

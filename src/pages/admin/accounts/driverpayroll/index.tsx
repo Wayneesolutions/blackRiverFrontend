@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Truck } from 'lucide-react';
-import { createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips, generateAIDriverPayroll, bulkGenerateAIDriverPayrolls } from '../../../../axios/api/account.payroll';
+import { createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips, generateAIDriverPayroll, bulkAnalyzeAIDriverPayrolls, bulkCreateDriverPayrolls } from '../../../../axios/api/account.payroll';
 import * as driverApi from '../../../../axios/api/driver';
 
 // Type definitions
@@ -63,6 +63,17 @@ interface Trip {
   };
   status?: string;
   selected?: boolean;
+  driverRole?: 'driver' | 'coDriver' | 'unknown';
+  driverDetails?: {
+    _id: string;
+    name: string;
+    phone?: string;
+  } | null;
+  coDriverDetails?: {
+    _id: string;
+    name: string;
+    phone?: string;
+  } | null;
   route?: {
     totalDistance?: number;
     waypoints?: Array<{
@@ -195,7 +206,9 @@ const DriverPayrollManagement = () => {
   const [loadingBulkAI, setLoadingBulkAI] = useState<boolean>(false);
   const [notification, setNotification] = useState<Notification | null>(null);
   const [showBulkGenerateModal, setShowBulkGenerateModal] = useState<boolean>(false);
+  const [showBulkSuggestionsModal, setShowBulkSuggestionsModal] = useState<boolean>(false);
   const [bulkGenerateResult, setBulkGenerateResult] = useState<any>(null);
+  const [bulkPayrollSuggestions, setBulkPayrollSuggestions] = useState<any[]>([]);
   const [bulkDateRange, setBulkDateRange] = useState<{
     startDate: string;
     endDate: string;
@@ -497,7 +510,37 @@ const DriverPayrollManagement = () => {
       return sum + miles;
     }, 0);
     const totalEarnings = selectedTrips.reduce((sum, trip) => {
-      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+      // Parse earnings - handle both string and number types
+      let earnings = 0;
+      if (trip.earnings !== undefined && trip.earnings !== null) {
+        if (typeof trip.earnings === 'string') {
+          earnings = parseFloat(trip.earnings) || 0;
+        } else if (typeof trip.earnings === 'number') {
+          earnings = trip.earnings;
+        }
+      }
+      
+      // If earnings is still 0, try to calculate from miles and rate
+      if (earnings === 0 && trip.distanceInMiles) {
+        const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+        const rate = trip.baseRate || driverPayrollSummary?.baseRate || driverPayrollSummary?.ratePerMile || selectedDriver?.details?.salaryPerMile || 0;
+        if (miles > 0 && rate > 0) {
+          let calculatedEarnings = miles * rate;
+          
+          // Add snow premium if applicable
+          if (trip.weatherConditions?.snow && trip.snowRate) {
+            calculatedEarnings += miles * trip.snowRate;
+          }
+          
+          // Add high temp premium if applicable
+          if (trip.weatherConditions?.highTemperature && trip.highTempRate) {
+            calculatedEarnings += miles * trip.highTempRate;
+          }
+          
+          earnings = calculatedEarnings;
+        }
+      }
+      
       return sum + earnings;
     }, 0);
 
@@ -515,31 +558,96 @@ const DriverPayrollManagement = () => {
     }
 
     setLoadingBulkAI(true);
-    setBulkGenerateResult(null);
+    setBulkPayrollSuggestions([]);
 
     try {
-      const response = await bulkGenerateAIDriverPayrolls({
+      const response = await bulkAnalyzeAIDriverPayrolls({
+        startDate: bulkDateRange.startDate,
+        endDate: bulkDateRange.endDate,
+        payDate: bulkDateRange.payDate || new Date().toISOString().split('T')[0]
+      });
+
+      if (response?.success && response?.data?.suggestions) {
+        setBulkPayrollSuggestions(response.data.suggestions);
+        setBulkGenerateResult(response.data);
+        setShowBulkGenerateModal(false);
+        setShowBulkSuggestionsModal(true);
+        showNotification('success', response.message || 'AI analysis completed! Review and edit the suggestions before creating.');
+      } else {
+        showNotification('error', response?.message || 'Failed to analyze payrolls');
+        setBulkGenerateResult(response?.data || null);
+      }
+    } catch (error: any) {
+      console.error('Error bulk analyzing payrolls:', error);
+      showNotification('error', error?.response?.data?.message || error?.message || 'Error bulk analyzing payrolls');
+    } finally {
+      setLoadingBulkAI(false);
+    }
+  };
+
+  const handleBulkCreatePayrolls = async () => {
+    if (!bulkPayrollSuggestions || bulkPayrollSuggestions.length === 0) {
+      showNotification('error', 'No payroll suggestions to create');
+      return;
+    }
+
+    setLoadingBulkAI(true);
+
+    try {
+      const response = await bulkCreateDriverPayrolls({
+        payrolls: bulkPayrollSuggestions,
         startDate: bulkDateRange.startDate,
         endDate: bulkDateRange.endDate,
         payDate: bulkDateRange.payDate || new Date().toISOString().split('T')[0]
       });
 
       if (response?.success) {
-        setBulkGenerateResult(response.data);
-        showNotification('success', response.message || 'Bulk payroll generation completed successfully!');
-        // Refresh payroll list
+        showNotification('success', response.message || 'All payrolls created successfully!');
+        setShowBulkSuggestionsModal(false);
+        setBulkPayrollSuggestions([]);
+        setBulkGenerateResult(null);
         fetchPayrolls();
-        setShowBulkGenerateModal(false);
       } else {
-        showNotification('error', response?.message || 'Failed to generate bulk payrolls');
-        setBulkGenerateResult(response?.data || null);
+        showNotification('error', response?.message || 'Failed to create payrolls');
+        if (response?.data) {
+          setBulkGenerateResult(response.data);
+        }
       }
     } catch (error: any) {
-      console.error('Error bulk generating payrolls:', error);
-      showNotification('error', error?.response?.data?.message || error?.message || 'Error bulk generating payrolls');
+      console.error('Error bulk creating payrolls:', error);
+      showNotification('error', error?.response?.data?.message || error?.message || 'Error bulk creating payrolls');
     } finally {
       setLoadingBulkAI(false);
     }
+  };
+
+  const updateBulkSuggestion = (index: number, field: string, value: any) => {
+    setBulkPayrollSuggestions(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      // Recalculate totalSalary when relevant fields change
+      if (['baseSalary', 'bonus', 'deductions', 'country', 'federalIncomeTaxCA', 'provincialIncomeTaxCA', 'cpp', 'ei', 'provincialHealthTaxCA', 'federalIncomeTaxUS', 'stateIncomeTaxUS', 'socialSecurityTax', 'medicareTax', 'stateDisabilityInsurance', 'localTax'].includes(field)) {
+        const grossSalary = parseFloat(updated[index].baseSalary || 0) + parseFloat(updated[index].bonus || 0);
+        const deductions = parseFloat(updated[index].deductions || 0);
+        let totalTaxes = 0;
+        if (updated[index].country === 'Canada') {
+          totalTaxes = parseFloat(updated[index].federalIncomeTaxCA || 0) +
+            parseFloat(updated[index].provincialIncomeTaxCA || 0) +
+            parseFloat(updated[index].cpp || 0) +
+            parseFloat(updated[index].ei || 0) +
+            parseFloat(updated[index].provincialHealthTaxCA || 0);
+        } else {
+          totalTaxes = parseFloat(updated[index].federalIncomeTaxUS || 0) +
+            parseFloat(updated[index].stateIncomeTaxUS || 0) +
+            parseFloat(updated[index].socialSecurityTax || 0) +
+            parseFloat(updated[index].medicareTax || 0) +
+            parseFloat(updated[index].stateDisabilityInsurance || 0) +
+            parseFloat(updated[index].localTax || 0);
+        }
+        updated[index].totalSalary = Math.round((grossSalary - deductions - totalTaxes) * 100) / 100;
+      }
+      return updated;
+    });
   };
 
   const handleAICalculation = async () => {
@@ -569,29 +677,16 @@ const DriverPayrollManagement = () => {
           reasoning: analysis.reasoning || ''
         });
 
-        // Update form fields with AI recommendations including tax suggestions
+        // Update form fields with AI recommendations (bonus and deductions only, NOT taxes)
+        // User will manually enter tax information
         setFormData(prev => ({
           ...prev,
           bonus: (analysis.recommendedBonus || 0).toString(),
-          deductions: (analysis.recommendedDeductions || 0).toString(),
-          // Update tax fields if suggestions are provided
-          ...(analysis.suggestedTaxes && {
-            country: analysis.suggestedTaxes.country || prev.country,
-            federalIncomeTaxCA: (analysis.suggestedTaxes.federalIncomeTaxCA || 0).toString(),
-            provincialIncomeTaxCA: (analysis.suggestedTaxes.provincialIncomeTaxCA || 0).toString(),
-            cpp: (analysis.suggestedTaxes.cpp || 0).toString(),
-            ei: (analysis.suggestedTaxes.ei || 0).toString(),
-            provincialHealthTaxCA: (analysis.suggestedTaxes.provincialHealthTaxCA || 0).toString(),
-            federalIncomeTaxUS: (analysis.suggestedTaxes.federalIncomeTaxUS || 0).toString(),
-            stateIncomeTaxUS: (analysis.suggestedTaxes.stateIncomeTaxUS || 0).toString(),
-            socialSecurityTax: (analysis.suggestedTaxes.socialSecurityTax || 0).toString(),
-            medicareTax: (analysis.suggestedTaxes.medicareTax || 0).toString(),
-            stateDisabilityInsurance: (analysis.suggestedTaxes.stateDisabilityInsurance || 0).toString(),
-            localTax: (analysis.suggestedTaxes.localTax || 0).toString()
-          })
+          deductions: (analysis.recommendedDeductions || 0).toString()
+          // Note: Taxes are NOT auto-populated - user must enter them manually
         }));
 
-        showNotification('success', 'AI payroll analysis completed successfully!');
+        showNotification('success', 'AI payroll analysis completed successfully! You can now review and enter tax information.');
       } else {
         showNotification('error', response?.message || 'Failed to generate AI analysis');
       }
@@ -619,11 +714,62 @@ const DriverPayrollManagement = () => {
 
     try {
       const selectedTotals = getSelectedTripsTotals();
+      
+      console.log('📊 Creating payroll with:', {
+        selectedTripsCount: selectedTrips.length,
+        totalMiles: selectedTotals.totalMiles,
+        totalEarnings: selectedTotals.totalEarnings,
+        summaryTotalEarnings: driverPayrollSummary?.totalEarnings,
+        summaryTotalTrips: driverPayrollSummary?.totalTrips,
+        ratePerMile: driverPayrollSummary?.ratePerMile || driverPayrollSummary?.baseRate,
+        tripsWithEarnings: selectedTrips.filter(t => {
+          const earnings = typeof t.earnings === 'string' ? parseFloat(t.earnings) : (typeof t.earnings === 'number' ? t.earnings : 0);
+          return earnings > 0;
+        }).length
+      });
+      
+      // Ensure we have earnings - use summary if trips don't have earnings
+      let baseSalary = selectedTotals.totalEarnings;
+      if (baseSalary === 0 && driverPayrollSummary?.totalEarnings) {
+        // If selected trips don't have earnings, use the summary total (for all trips in date range)
+        // But only if the selected trips count matches the summary count
+        if (selectedTotals.count === driverPayrollSummary.totalTrips) {
+          baseSalary = driverPayrollSummary.totalEarnings;
+          console.log('✅ Using summary totalEarnings:', baseSalary);
+        } else {
+          // Recalculate based on selected trips using summary rate
+          const rate = driverPayrollSummary.baseRate || driverPayrollSummary.ratePerMile || selectedDriver?.details?.salaryPerMile || 0;
+          if (rate > 0 && selectedTotals.totalMiles > 0) {
+            baseSalary = selectedTotals.totalMiles * rate;
+            console.log('✅ Calculated baseSalary from miles and rate:', baseSalary);
+          }
+        }
+      }
+      
+      // Final fallback: if still 0, calculate from miles and rate
+      if (baseSalary === 0 && selectedTotals.totalMiles > 0) {
+        const rate = driverPayrollSummary?.baseRate || driverPayrollSummary?.ratePerMile || selectedDriver?.details?.salaryPerMile || 0;
+        if (rate > 0) {
+          baseSalary = selectedTotals.totalMiles * rate;
+          console.log('✅ Final fallback: Calculated baseSalary from miles and rate:', baseSalary);
+        }
+      }
+      
+      if (baseSalary === 0) {
+        console.warn('⚠️ Warning: baseSalary is still 0!', {
+          selectedTrips: selectedTrips.map(t => ({
+            id: t._id,
+            earnings: t.earnings,
+            distanceInMiles: t.distanceInMiles,
+            baseRate: t.baseRate
+          }))
+        });
+      }
 
       // Create payload for driver payroll
       const payload: any = {
         userId: formData.userId,
-        baseSalary: selectedTotals.totalEarnings,
+        baseSalary: baseSalary,
         bonus: parseFloat(formData.bonus) || 0,
         deductions: parseFloat(formData.deductions) || 0,
         payDate: formData.payDate,
@@ -653,6 +799,7 @@ const DriverPayrollManagement = () => {
       if (response?.success) {
         showNotification('success', response.message || 'Driver payroll created successfully!');
         setShowCreateModal(false);
+        setAiAnalysis(null); // Clear AI analysis after successful creation
         resetForm();
         fetchPayrolls();
       } else {
@@ -1053,6 +1200,7 @@ const DriverPayrollManagement = () => {
                   onClick={() => {
                     setShowCreateModal(false);
                     setShowEditModal(false);
+                    setAiAnalysis(null); // Clear AI analysis when modal is closed
                     resetForm();
                   }}
                   className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg"
@@ -1209,6 +1357,7 @@ const DriverPayrollManagement = () => {
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Select</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trip #</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Completed</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Truck</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Miles</th>
@@ -1273,6 +1422,27 @@ const DriverPayrollManagement = () => {
                                       </span>
                                     </div>
                                   </td>
+                                  <td className="px-3 py-2 text-sm">
+                                    {trip.driverRole === 'coDriver' ? (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        Co-Driver
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Driver
+                                      </span>
+                                    )}
+                                    {trip.coDriverDetails && trip.driverRole === 'driver' && (
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        Co: {trip.coDriverDetails.name}
+                                      </div>
+                                    )}
+                                    {trip.driverDetails && trip.driverRole === 'coDriver' && (
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        Driver: {trip.driverDetails.name}
+                                      </div>
+                                    )}
+                                  </td>
                                   <td className="px-3 py-2 text-sm text-gray-600">
                                     {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : '-'}
                                   </td>
@@ -1301,7 +1471,7 @@ const DriverPayrollManagement = () => {
                             </tbody>
                             <tfoot className="bg-green-50 sticky bottom-0">
                               <tr>
-                                <td colSpan={5} className="px-3 py-3 text-sm font-medium text-gray-900 text-right">
+                                <td colSpan={6} className="px-3 py-3 text-sm font-medium text-gray-900 text-right">
                                   Selected Totals:
                                 </td>
                                 <td className="px-3 py-3 text-sm font-bold text-gray-900">
@@ -1804,6 +1974,7 @@ const DriverPayrollManagement = () => {
                     onClick={() => {
                       setShowCreateModal(false);
                       setShowEditModal(false);
+                      setAiAnalysis(null); // Clear AI analysis when modal is closed
                       resetForm();
                     }}
                     className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium flex items-center gap-2"
@@ -1897,6 +2068,7 @@ const DriverPayrollManagement = () => {
                           <tr>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trip #</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Completed</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Miles</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Earnings</th>
@@ -1950,6 +2122,17 @@ const DriverPayrollManagement = () => {
                                     })()}
                                   </span>
                                 </div>
+                              </td>
+                              <td className="px-3 py-2 text-sm">
+                                {trip.driverRole === 'coDriver' ? (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    Co-Driver
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Driver
+                                  </span>
+                                )}
                               </td>
                               <td className="px-3 py-2 text-sm text-gray-600">
                                 {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : '-'}
@@ -2372,11 +2555,252 @@ const DriverPayrollManagement = () => {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        Generate All Payrolls
+                        Analyze All Drivers
                       </>
                     )}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk AI Payroll Suggestions Modal */}
+        {showBulkSuggestionsModal && bulkPayrollSuggestions.length > 0 && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Review AI Payroll Suggestions
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {bulkPayrollSuggestions.length} drivers found. Review and edit before creating payrolls.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowBulkSuggestionsModal(false);
+                    setBulkPayrollSuggestions([]);
+                    setBulkGenerateResult(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-4 max-h-[calc(90vh-200px)] overflow-y-auto">
+                {bulkPayrollSuggestions.map((suggestion: any, index: number) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">{suggestion.driverName}</h3>
+                        <p className="text-sm text-gray-600">{suggestion.driverEmail || ''} • {suggestion.totalTrips} trips • {suggestion.totalMiles?.toFixed(0) || 0} miles</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-gray-600">Total Salary</div>
+                        <div className="text-xl font-bold text-green-600">${(suggestion.totalSalary || 0).toFixed(2)}</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Base Salary ($)</label>
+                        <input
+                          type="number"
+                          value={suggestion.baseSalary || 0}
+                          onChange={(e) => updateBulkSuggestion(index, 'baseSalary', e.target.value)}
+                          step="0.01"
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Bonus ($)</label>
+                        <input
+                          type="number"
+                          value={suggestion.bonus || 0}
+                          onChange={(e) => updateBulkSuggestion(index, 'bonus', e.target.value)}
+                          step="0.01"
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Deductions ($)</label>
+                        <input
+                          type="number"
+                          value={suggestion.deductions || 0}
+                          onChange={(e) => updateBulkSuggestion(index, 'deductions', e.target.value)}
+                          step="0.01"
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Country</label>
+                      <select
+                        value={suggestion.country || 'USA'}
+                        onChange={(e) => updateBulkSuggestion(index, 'country', e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="USA">United States</option>
+                        <option value="Canada">Canada</option>
+                      </select>
+                    </div>
+
+                    {suggestion.country === 'Canada' ? (
+                      <div className="grid grid-cols-5 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Federal Tax ($)</label>
+                          <input
+                            type="number"
+                            value={suggestion.federalIncomeTaxCA || 0}
+                            onChange={(e) => updateBulkSuggestion(index, 'federalIncomeTaxCA', e.target.value)}
+                            step="0.01"
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Provincial Tax ($)</label>
+                          <input
+                            type="number"
+                            value={suggestion.provincialIncomeTaxCA || 0}
+                            onChange={(e) => updateBulkSuggestion(index, 'provincialIncomeTaxCA', e.target.value)}
+                            step="0.01"
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">CPP ($)</label>
+                          <input
+                            type="number"
+                            value={suggestion.cpp || 0}
+                            onChange={(e) => updateBulkSuggestion(index, 'cpp', e.target.value)}
+                            step="0.01"
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">EI ($)</label>
+                          <input
+                            type="number"
+                            value={suggestion.ei || 0}
+                            onChange={(e) => updateBulkSuggestion(index, 'ei', e.target.value)}
+                            step="0.01"
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Health Tax ($)</label>
+                          <input
+                            type="number"
+                            value={suggestion.provincialHealthTaxCA || 0}
+                            onChange={(e) => updateBulkSuggestion(index, 'provincialHealthTaxCA', e.target.value)}
+                            step="0.01"
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-6 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Federal Tax ($)</label>
+                          <input
+                            type="number"
+                            value={suggestion.federalIncomeTaxUS || 0}
+                            onChange={(e) => updateBulkSuggestion(index, 'federalIncomeTaxUS', e.target.value)}
+                            step="0.01"
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">State Tax ($)</label>
+                          <input
+                            type="number"
+                            value={suggestion.stateIncomeTaxUS || 0}
+                            onChange={(e) => updateBulkSuggestion(index, 'stateIncomeTaxUS', e.target.value)}
+                            step="0.01"
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Social Security ($)</label>
+                          <input
+                            type="number"
+                            value={suggestion.socialSecurityTax || 0}
+                            onChange={(e) => updateBulkSuggestion(index, 'socialSecurityTax', e.target.value)}
+                            step="0.01"
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Medicare ($)</label>
+                          <input
+                            type="number"
+                            value={suggestion.medicareTax || 0}
+                            onChange={(e) => updateBulkSuggestion(index, 'medicareTax', e.target.value)}
+                            step="0.01"
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">SDI ($)</label>
+                          <input
+                            type="number"
+                            value={suggestion.stateDisabilityInsurance || 0}
+                            onChange={(e) => updateBulkSuggestion(index, 'stateDisabilityInsurance', e.target.value)}
+                            step="0.01"
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Local Tax ($)</label>
+                          <input
+                            type="number"
+                            value={suggestion.localTax || 0}
+                            onChange={(e) => updateBulkSuggestion(index, 'localTax', e.target.value)}
+                            step="0.01"
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 mt-6 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowBulkSuggestionsModal(false);
+                    setBulkPayrollSuggestions([]);
+                    setBulkGenerateResult(null);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkCreatePayrolls}
+                  disabled={loadingBulkAI}
+                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {loadingBulkAI ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={18} />
+                      Create All Payrolls ({bulkPayrollSuggestions.length})
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
