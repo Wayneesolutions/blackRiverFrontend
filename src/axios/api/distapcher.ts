@@ -787,12 +787,15 @@ export const completeTrip = async (id: string) => {
   }
 };
 
-export const uploadTripDocument = async (tripId: string, file: File, description?: string) => {
+export const uploadTripDocument = async (tripId: string, file: File, description?: string, documentType?: string) => {
   try {
     const formData = new FormData();
     formData.append('document', file);
     if (description) {
       formData.append('description', description);
+    }
+    if (documentType) {
+      formData.append('documentType', documentType);
     }
     const res: AxiosResponse = await apiClient.post(`dispatcher/trip/${tripId}/documents`, formData, {
       headers: {
