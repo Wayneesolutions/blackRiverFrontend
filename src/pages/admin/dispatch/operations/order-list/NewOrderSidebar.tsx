@@ -209,13 +209,24 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [showAutoEntryModal, setShowAutoEntryModal] = useState(false);
     const [autoEntryFile, setAutoEntryFile] = useState<File | null>(null);
     const [autoEntryLoading, setAutoEntryLoading] = useState(false);
-    const [loadSecurementFiles, setLoadSecurementFiles] = useState([]);
+    const [loadSecurementFiles, setLoadSecurementFiles] = useState<File[]>([]);
 
 
     const [podFile, setPodFile] = useState<File | null>(null);
     const [stampedManifestFile, setStampedManifestFile] = useState<File | null>(null);
     const [loadConfirmationFile, setLoadConfirmationFile] = useState<File | null>(null);
     const [printedManifestFile, setPrintedManifestFile] = useState<File | null>(null);
+    
+    // Existing document URLs (from database when editing)
+    const [existingDocuments, setExistingDocuments] = useState<{
+        bol?: string | null;
+        pod?: string | null;
+        customsHazmat?: string[];
+        rateConfirmation?: string | null;
+        stampedManifest?: string | null;
+        loadSecurement?: string[];
+        printedManifest?: string | null;
+    }>({});
 
     // Suggestions states
     const [commoditySuggestions, setCommoditySuggestions] = useState<string[]>([]);
@@ -371,6 +382,28 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         setPickupLocationAddress(shipperAddrParts.join(' '));
                     }
                 }
+                
+                // Try to find matching customer for shipper
+                // Match by name, phone, or email
+                if (order.shipper.name || order.shipper.phone || order.shipper.email) {
+                    const matchingShipperCustomer = customers.find(customer => {
+                        const nameMatch = order.shipper.name && customer.name && 
+                            customer.name.toLowerCase().trim() === order.shipper.name.toLowerCase().trim();
+                        const phoneMatch = order.shipper.phone && customer.phone && 
+                            customer.phone.replace(/\D/g, '') === order.shipper.phone.replace(/\D/g, '');
+                        const emailMatch = order.shipper.email && customer.email && 
+                            customer.email.toLowerCase().trim() === order.shipper.email.toLowerCase().trim();
+                        return nameMatch || phoneMatch || emailMatch;
+                    });
+                    
+                    if (matchingShipperCustomer) {
+                        setSelectedShipperCustomer(matchingShipperCustomer);
+                        setShipperCustomerSearch(matchingShipperCustomer.name || '');
+                    } else {
+                        // If no match found, still show the shipper name in search field
+                        setShipperCustomerSearch(order.shipper.name || '');
+                    }
+                }
             }
 
             // Pickup Appointment Details
@@ -390,6 +423,28 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 setReceiverName(order.receiver.name || '');
                 setReceiverPhone(order.receiver.phone || '');
                 setReceiverAddress(order.receiver.address || '');
+                
+                // Try to find matching customer for receiver
+                // Match by name, phone, or email
+                if (order.receiver.name || order.receiver.phone || order.receiver.email) {
+                    const matchingReceiverCustomer = customers.find(customer => {
+                        const nameMatch = order.receiver.name && customer.name && 
+                            customer.name.toLowerCase().trim() === order.receiver.name.toLowerCase().trim();
+                        const phoneMatch = order.receiver.phone && customer.phone && 
+                            customer.phone.replace(/\D/g, '') === order.receiver.phone.replace(/\D/g, '');
+                        const emailMatch = order.receiver.email && customer.email && 
+                            customer.email.toLowerCase().trim() === order.receiver.email.toLowerCase().trim();
+                        return nameMatch || phoneMatch || emailMatch;
+                    });
+                    
+                    if (matchingReceiverCustomer) {
+                        setSelectedReceiverCustomer(matchingReceiverCustomer);
+                        setReceiverCustomerSearch(matchingReceiverCustomer.name || '');
+                    } else {
+                        // If no match found, still show the receiver name in search field
+                        setReceiverCustomerSearch(order.receiver.name || '');
+                    }
+                }
             }
 
             // Delivery Appointment Details
@@ -406,6 +461,21 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             // Documents and Notes
             setInternalNotes(order.internalNotes || '');
             setCustomerNotes(order.customerNotes || '');
+            
+            // Existing documents (URLs from database)
+            if (order.documents) {
+                setExistingDocuments({
+                    bol: order.documents.bol || null,
+                    pod: order.documents.pod || null,
+                    customsHazmat: Array.isArray(order.documents.customsHazmat) ? order.documents.customsHazmat : [],
+                    rateConfirmation: order.documents.rateConfirmation || null,
+                    stampedManifest: order.documents.stampedManifest || null,
+                    loadSecurement: Array.isArray(order.documents.loadSecurement) ? order.documents.loadSecurement : [],
+                    printedManifest: order.documents.printedManifest || null
+                });
+            } else {
+                setExistingDocuments({});
+            }
         } else {
             // Reset all fields when creating new order
             setSelectedCustomer(null);
@@ -488,6 +558,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setBolFile(null);
             setCustomsHazmatFiles([]);
             setRateConfirmationFile(null);
+            setPodFile(null);
+            setStampedManifestFile(null);
+            setLoadSecurementFiles([]);
+            setExistingDocuments({});
             setInternalNotes('');
             setCustomerNotes('');
             setCurrentStep(1);
@@ -1154,16 +1228,89 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     };
 
 
-    // Calculate mileage (auto-calc)
-    // Note: Distance calculation is disabled since we removed delivery location dropdown
-    // This function returns 0 as we no longer have delivery location coordinates
-    const calculateMileage = () => {
-        // Distance calculation requires both pickup and delivery locations with coordinates
-        // Since we removed delivery location dropdown, we can't calculate distance automatically
-        return 0;
+    // Calculate distance between shipper and receiver addresses
+    const [calculatingDistance, setCalculatingDistance] = useState(false);
+    const [calculatedDistance, setCalculatedDistance] = useState<number | null>(null);
+
+    // Haversine formula to calculate distance between two coordinates
+    const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+        const R = 6371; // Earth's radius in kilometers
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // Distance in kilometers
     };
 
-    const calculatedMileage = calculateMileage();
+    const calculateDistance = async () => {
+        const originAddress = pickupLocationAddress || shipperAddress;
+        const destinationAddress = deliveryLocationAddress || receiverAddress;
+
+        if (!originAddress || !destinationAddress) {
+            addNotification('warning', 'Please select both shipper and receiver addresses to calculate distance');
+            return null;
+        }
+
+        setCalculatingDistance(true);
+        try {
+            // Use OpenCage Geocoding API to get coordinates
+            const OPENCAGE_API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY || '9854722a0d444bbf96fa61cec79790b6';
+            
+            // Geocode origin
+            const originUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(originAddress)}&key=${OPENCAGE_API_KEY}`;
+            const originRes = await fetch(originUrl);
+            const originData = await originRes.json();
+            
+            if (originData.status?.code !== 200 || !originData.results || originData.results.length === 0) {
+                throw new Error(`Could not geocode origin address: ${originData.status?.message || 'Unknown error'}`);
+            }
+            const origin = originData.results[0].geometry;
+            const originLat = parseFloat(origin.lat);
+            const originLng = parseFloat(origin.lng);
+
+            // Geocode destination
+            const destUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(destinationAddress)}&key=${OPENCAGE_API_KEY}`;
+            const destRes = await fetch(destUrl);
+            const destData = await destRes.json();
+            
+            if (destData.status?.code !== 200 || !destData.results || destData.results.length === 0) {
+                throw new Error(`Could not geocode destination address: ${destData.status?.message || 'Unknown error'}`);
+            }
+            const destination = destData.results[0].geometry;
+            const destLat = parseFloat(destination.lat);
+            const destLng = parseFloat(destination.lng);
+
+            // Calculate distance using Haversine formula (straight-line distance)
+            const distanceInKm = haversineDistance(originLat, originLng, destLat, destLng);
+            const distanceInMiles = distanceInKm * 0.621371;
+            
+            setCalculatedDistance(distanceInMiles);
+            setDistance(distanceInMiles.toFixed(2));
+            addNotification('success', `Distance calculated: ${distanceInMiles.toFixed(2)} miles (${distanceInKm.toFixed(2)} km)`);
+            return distanceInMiles;
+        } catch (error: any) {
+            console.error('Error calculating distance:', error);
+            addNotification('error', `Failed to calculate distance: ${error.message || 'Unknown error'}`);
+            return null;
+        } finally {
+            setCalculatingDistance(false);
+        }
+    };
+
+    // Auto-calculate distance when both addresses are available
+    useEffect(() => {
+        const originAddress = pickupLocationAddress || shipperAddress;
+        const destinationAddress = deliveryLocationAddress || receiverAddress;
+        
+        // Only auto-calculate if we're on the review step and both addresses are available
+        if (currentStep === 6 && originAddress && destinationAddress && !calculatedDistance && !calculatingDistance) {
+            calculateDistance();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentStep, pickupLocationAddress, shipperAddress, deliveryLocationAddress, receiverAddress]);
 
     const stepNames = ["Details", "Shipper", "Receiver", "Documents", "Upload Load Securement Pictures", "Review"];
 
@@ -1793,36 +1940,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                         )}
 
-                                        {/* Distance and Additional Info */}
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4 pt-4 border-t border-gray-200">
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Distance</label>
-                                                <div className="flex gap-2">
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Distance"
-                                                        value={distance || (typeof calculatedMileage === 'number' && calculatedMileage > 0 ? calculatedMileage.toString() : '')}
-                                                        onChange={(e) => setDistance(e.target.value)}
-                                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
-                                                    />
-                                                    <button
-                                                        onClick={() => {
-                                                            const mileage = calculateMileage();
-                                                            if (typeof mileage === 'number' && mileage > 0) {
-                                                                setDistance(mileage.toString());
-                                                                addNotification('success', `Distance calculated: ${mileage} miles`);
-                                                            } else {
-                                                                addNotification('warning', 'Please select both pickup and delivery locations to calculate distance');
-                                                            }
-                                                        }}
-                                                        className="px-4 py-2 !text-white rounded text-sm font-medium hover:opacity-90 transition-opacity flex-shrink-0 shadow-md"
-                                                        style={{ background: PRIMARY_GRADIENT }}
-                                                    >
-                                                        Calculate
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2443,6 +2560,22 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 </button>
                                             </div>
                                         )}
+                                        {!bolFile && existingDocuments.bol && (
+                                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FaFileAlt className="w-4 h-4 text-blue-600" />
+                                                    <a
+                                                        href={existingDocuments.bol}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-sm text-blue-700 font-medium hover:underline"
+                                                    >
+                                                        View Existing BOL
+                                                    </a>
+                                                </div>
+                                                <span className="text-xs text-gray-500">Existing document</span>
+                                            </div>
+                                        )}
                                     </div>
                                     {/* Upload Proof of Delivery */}
                                     <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
@@ -2492,6 +2625,22 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 </button>
                                             </div>
                                         )}
+                                        {!podFile && existingDocuments.pod && (
+                                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FaFileAlt className="w-4 h-4 text-blue-600" />
+                                                    <a
+                                                        href={existingDocuments.pod}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-sm text-blue-700 font-medium hover:underline"
+                                                    >
+                                                        View Existing POD
+                                                    </a>
+                                                </div>
+                                                <span className="text-xs text-gray-500">Existing document</span>
+                                            </div>
+                                        )}
                                     </div>
                                     {/* Upload Stamped Manifest */}
                                     <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
@@ -2538,6 +2687,22 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 <button onClick={() => removeFile('stampedManifest')} className="text-gray-800 hover:text-gray-900 transition-colors">
                                                     <X className="w-4 h-4" />
                                                 </button>
+                                            </div>
+                                        )}
+                                        {!stampedManifestFile && existingDocuments.stampedManifest && (
+                                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FaFileAlt className="w-4 h-4 text-blue-600" />
+                                                    <a
+                                                        href={existingDocuments.stampedManifest}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-sm text-blue-700 font-medium hover:underline"
+                                                    >
+                                                        View Existing Stamped Manifest
+                                                    </a>
+                                                </div>
+                                                <span className="text-xs text-gray-500">Existing document</span>
                                             </div>
                                         )}
                                     </div>
@@ -2597,6 +2762,26 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 ))}
                                             </div>
                                         )}
+                                        {customsHazmatFiles.length === 0 && existingDocuments.customsHazmat && existingDocuments.customsHazmat.length > 0 && (
+                                            <div className="mt-3 space-y-2">
+                                                {existingDocuments.customsHazmat.map((url, index) => (
+                                                    <div key={index} className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <FaFileAlt className="w-4 h-4 text-blue-600" />
+                                                            <a
+                                                                href={url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-sm text-blue-700 font-medium hover:underline"
+                                                            >
+                                                                View Existing Customs/Hazmat {index + 1}
+                                                            </a>
+                                                        </div>
+                                                        <span className="text-xs text-gray-500">Existing document</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Upload Rate Confirmation */}
@@ -2647,6 +2832,22 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 >
                                                     <X className="w-4 h-4" />
                                                 </button>
+                                            </div>
+                                        )}
+                                        {!rateConfirmationFile && existingDocuments.rateConfirmation && (
+                                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FaFileAlt className="w-4 h-4 text-blue-600" />
+                                                    <a
+                                                        href={existingDocuments.rateConfirmation}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-sm text-blue-700 font-medium hover:underline"
+                                                    >
+                                                        View Existing Rate Confirmation
+                                                    </a>
+                                                </div>
+                                                <span className="text-xs text-gray-500">Existing document</span>
                                             </div>
                                         )}
                                     </div>
@@ -2746,6 +2947,26 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 ))}
                                             </div>
                                         )}
+                                        {loadSecurementFiles.length === 0 && existingDocuments.loadSecurement && existingDocuments.loadSecurement.length > 0 && (
+                                            <div className="mt-3 space-y-2">
+                                                {existingDocuments.loadSecurement.map((url, index) => (
+                                                    <div key={index} className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <FaFileAlt className="w-4 h-4 text-blue-600" />
+                                                            <a
+                                                                href={url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-sm text-blue-700 font-medium hover:underline"
+                                                            >
+                                                                View Existing Load Securement {index + 1}
+                                                            </a>
+                                                        </div>
+                                                        <span className="text-xs text-gray-500">Existing document</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -2824,7 +3045,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             <div><span className="font-medium">Temperature:</span> {temperature ? `${temperature}° ${temperatureUnit}` : 'N/A'}</div>
                                             <div><span className="font-medium">Weight:</span> {weight ? `${weight} ${weightUnit}` : 'N/A'}</div>
                                             <div><span className="font-medium">Packages:</span> {noOfPackages ? `${noOfPackages} ${noOfPackagesType}` : 'N/A'}</div>
-                                            <div><span className="font-medium">Mileage:</span> {calculatedMileage ? `${calculatedMileage} miles` : (distance || 'N/A')}</div>
+                                            <div><span className="font-medium">Mileage:</span> {calculatedDistance ? `${calculatedDistance.toFixed(2)} miles` : (distance || 'N/A')}</div>
                                             <div><span className="font-medium">Value:</span> {valueOfGoods ? `${valueOfGoods} ${valueOfGoodsCurrency}` : 'N/A'}</div>
                                         </div>
                                     </div>
@@ -2853,7 +3074,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                     {/* Instructions */}
                                     <div className="bg-white border-2 border-amber-100 rounded-lg p-5 shadow-sm">
                                         <h4 className="text-sm font-semibold text-amber-700 mb-4 flex items-center gap-2">
-                                            <span className="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs">5</span>
+                                            <span className="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs">6</span>
                                             All Instructions & Notes
                                         </h4>
                                         <div className="space-y-3 text-sm">

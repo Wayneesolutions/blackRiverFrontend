@@ -55,6 +55,7 @@ interface Trip {
   _id?: string;
   tripNumber?: string;
   driver?: any;
+  coDriver?: any;
   truck?: any;
   trailer?: any;
   orders?: any[];
@@ -72,6 +73,7 @@ interface Trip {
     uploadedBy?: any;
     uploadedAt?: string;
     description?: string;
+    type?: string;
   }>;
   borderCompliance?: {
     required: boolean;
@@ -241,11 +243,11 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     if (trip) {
       setDocuments(trip.documents || []);
       setPendingFiles([]); // Clear pending files when editing existing trip
-      setDocuments(trip.documents || []);
-      setPendingFiles([]); // Clear pending files when editing existing trip
 
       // Populate Border Compliance
       if (trip.borderCompliance) {
+        setBorderRequired(trip.borderCompliance.required || false);
+        setBorderType(trip.borderCompliance.type || '');
         setManifestStatus(trip.borderCompliance.status || 'Not Filed');
         setBorderProvider(trip.borderCompliance.provider || 'Descartes');
         setLastUpdated(trip.borderCompliance.lastUpdated || '');
@@ -255,7 +257,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         setRejectionReason(trip.borderCompliance.rejectionReason || '');
         setBrokerConfirmation(trip.borderCompliance.brokerConfirmation || false);
       } else {
+        setBorderRequired(false);
+        setBorderType('');
         setManifestStatus('Not Filed');
+        setBorderProvider('Descartes');
         setLastUpdated('');
         setPapsNumber('');
         setParsNumber('');
@@ -305,16 +310,40 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             trailers.find(
               (trailer) =>
                 trailer._id === trailerId ||
+                trailer._id?.toString() === trailerId?.toString() ||
                 (trailer.unitNo && trailer.unitNo === trip.trailer.unitNo) ||
-                (trailer.licensePlate && trailer.licensePlate === trip.trailer.licensePlate)
+                (trailer.licensePlate && trailer.licensePlate === trip.trailer.licensePlate) ||
+                (trailer.plateNumber && trailer.plateNumber === trip.trailer.plateNumber) ||
+                (trailer.internalId && trailer.internalId === trip.trailer.internalId)
             ) || null;
-          setSelectedTrailer(matchedTrailer || trip.trailer);
+          // If we found a match, use it; otherwise use the trip.trailer object directly
+          if (matchedTrailer) {
+            setSelectedTrailer(matchedTrailer);
+            setTrailerSearch(matchedTrailer.unitNo || matchedTrailer.licensePlate || matchedTrailer.plateNumber || matchedTrailer.trailerNumber || matchedTrailer.internalId || '');
+          } else {
+            // Use the trailer object from trip if it's not in the trailers list
+            setSelectedTrailer(trip.trailer);
+            setTrailerSearch(trip.trailer.unitNo || trip.trailer.licensePlate || trip.trailer.plateNumber || trip.trailer.trailerNumber || trip.trailer.internalId || '');
+          }
         } else {
-          const matchedTrailer = trailers.find((trailer) => trailer._id === trip.trailer);
-          setSelectedTrailer(matchedTrailer || null);
+          // trip.trailer is just an ID string
+          const matchedTrailer = trailers.find((trailer) => 
+            trailer._id === trip.trailer || 
+            trailer._id?.toString() === trip.trailer?.toString()
+          );
+          if (matchedTrailer) {
+            setSelectedTrailer(matchedTrailer);
+            setTrailerSearch(matchedTrailer.unitNo || matchedTrailer.licensePlate || matchedTrailer.plateNumber || matchedTrailer.trailerNumber || matchedTrailer.internalId || '');
+          } else if (trailers.length > 0) {
+            // Trailers are loaded but no match found - trailer might have been deleted
+            setSelectedTrailer(null);
+            setTrailerSearch('');
+          }
+          // If trailers.length === 0, trailers haven't loaded yet, so don't clear the selection
         }
       } else {
         setSelectedTrailer(null);
+        setTrailerSearch('');
       }
       if (trip.orders && Array.isArray(trip.orders)) {
         const orderIds = trip.orders.map((o: any) => o._id || o);
@@ -663,25 +692,27 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         driver: selectedDriver._id || selectedDriver,
         coDriver: selectedCoDriver ? (selectedCoDriver._id || selectedCoDriver) : null,
         truck: selectedTruck._id || selectedTruck,
-        trailer: selectedTrailer?._id || selectedTrailer || null,
+        trailer: selectedTrailer ? (selectedTrailer._id || selectedTrailer.id || selectedTrailer) : null,
         orders: selectedOrders,
         plannedStartDate,
         plannedEndDate: plannedEndDate || null,
         status: trip?._id ? status : 'planned', // Always create new trips with 'planned' status
         notes,
-        // Add Border Compliance Data
-        borderCompliance: borderRequired ? {
-          required: true,
-          type: borderType,
-          provider: borderProvider,
-          status: manifestStatus,
-          lastUpdated: lastUpdated,
-          papsNumber: papsNumber,
-          parsNumber: parsNumber,
-          acceptanceTime: acceptanceTime,
-          rejectionReason: rejectionReason,
-          brokerConfirmation: brokerConfirmation
-        } : null
+        // Add Border Compliance Data - only send if borderRequired is true and borderType is set
+        ...(borderRequired && borderType ? {
+          borderCompliance: {
+            required: true,
+            type: borderType,
+            provider: borderProvider,
+            status: manifestStatus,
+            lastUpdated: lastUpdated || undefined,
+            papsNumber: papsNumber || undefined,
+            parsNumber: parsNumber || undefined,
+            acceptanceTime: acceptanceTime || undefined,
+            rejectionReason: rejectionReason || undefined,
+            brokerConfirmation: brokerConfirmation
+          }
+        } : {})
       };
 
 
@@ -706,9 +737,36 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           }, 300);
         }
 
-        // If trip was updated, refresh documents from response
-        if (trip?._id && response?.data?.documents) {
-          setDocuments(response.data.documents || []);
+        // If trip was updated, refresh data from response including trailer
+        if (trip?._id && response?.data) {
+          if (response.data.documents) {
+            setDocuments(response.data.documents || []);
+          }
+          // Update trailer if it's in the response
+          if (response.data.trailer) {
+            if (typeof response.data.trailer === 'object') {
+              const trailerId = response.data.trailer._id || response.data.trailer.id;
+              const matchedTrailer = trailers.find(
+                (trailer) =>
+                  trailer._id === trailerId ||
+                  trailer._id?.toString() === trailerId?.toString() ||
+                  (trailer.unitNo && trailer.unitNo === response.data.trailer.unitNo) ||
+                  (trailer.licensePlate && trailer.licensePlate === response.data.trailer.licensePlate)
+              );
+              if (matchedTrailer) {
+                setSelectedTrailer(matchedTrailer);
+                setTrailerSearch(matchedTrailer.unitNo || matchedTrailer.licensePlate || matchedTrailer.plateNumber || matchedTrailer.trailerNumber || matchedTrailer.internalId || '');
+              } else {
+                // Use the trailer from response if not in trailers list
+                setSelectedTrailer(response.data.trailer);
+                setTrailerSearch(response.data.trailer.unitNo || response.data.trailer.licensePlate || response.data.trailer.plateNumber || response.data.trailer.trailerNumber || response.data.trailer.internalId || '');
+              }
+            }
+          } else if (response.data.trailer === null) {
+            // Trailer was removed
+            setSelectedTrailer(null);
+            setTrailerSearch('');
+          }
         }
 
         setTimeout(() => {
@@ -1629,8 +1687,8 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 onClick={() => setTrailerDropdownOpen(!trailerDropdownOpen)}
                 className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
                 style={{
-                  borderColor: driverDropdownOpen ? FLEET_COLORS.primary : undefined,
-                  boxShadow: driverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
+                  borderColor: trailerDropdownOpen ? FLEET_COLORS.primary : undefined,
+                  boxShadow: trailerDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
                 }}
               >
                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${trailerDropdownOpen ? 'rotate-180' : ''}`} />
@@ -1638,11 +1696,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                   type="text"
                   value={
                     selectedTrailer
-                      ? selectedTrailer.unitNo ||
-                      selectedTrailer.licensePlate ||
-                      selectedTrailer.plateNumber ||
-                      selectedTrailer.trailerNumber ||
-                      ''
+                      ? `${selectedTrailer.unitNo || selectedTrailer.licensePlate || selectedTrailer.plateNumber || selectedTrailer.trailerNumber || selectedTrailer.internalId || ''}${selectedTrailer.trailerType ? ` - ${selectedTrailer.trailerType}` : ''}`
                       : trailerSearch
                   }
                   onChange={(e) => {
