@@ -962,7 +962,34 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 ? new Date(`${deliveryDate}T${deliveryTime}`).toISOString()
                 : deliveryDate ? new Date(deliveryDate).toISOString() : null;
 
-            // Build order data
+            // Create FormData for file uploads
+            const formData = new FormData();
+
+            // Append files
+            if (bolFile) {
+                formData.append('bol', bolFile);
+            }
+            if (podFile) {
+                formData.append('pod', podFile);
+            }
+            if (stampedManifestFile) {
+                formData.append('stampedManifest', stampedManifestFile);
+            }
+            if (rateConfirmationFile) {
+                formData.append('rateConfirmation', rateConfirmationFile);
+            }
+            if (customsHazmatFiles && customsHazmatFiles.length > 0) {
+                customsHazmatFiles.forEach((file) => {
+                    formData.append('customsHazmat', file);
+                });
+            }
+            if (loadSecurementFiles && loadSecurementFiles.length > 0) {
+                loadSecurementFiles.forEach((file) => {
+                    formData.append('loadSecurement', file);
+                });
+            }
+
+            // Build order data as JSON string for FormData
             const orderData = {
                 customerOrderNo: customerOrderNo,
                 tripNo: '',
@@ -1057,19 +1084,41 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     time: deliveryAppointmentTime,
                     unloadingInstructions: deliveryUnloadingInstructions
                 },
-                documents: {
-                    bol: bolFile?.name || null,
-                    customsHazmat: customsHazmatFiles.map(f => f.name),
-                    rateConfirmation: rateConfirmationFile?.name || null
-                },
+                // Don't include documents object - files are sent separately via FormData
                 internalNotes: internalNotes,
                 customerNotes: customerNotes
             };
 
+            // Append all order data fields to FormData
+            // Note: FormData automatically handles strings, numbers, and booleans
+            // For nested objects and arrays, we need to stringify them
+            Object.keys(orderData).forEach((key) => {
+                const value = orderData[key as keyof typeof orderData];
+                if (value !== null && value !== undefined) {
+                    if (key === 'pickupLocation' || key === 'deliveryLocation' || 
+                        key === 'shipper' || key === 'receiver' || 
+                        key === 'pickupAppointmentDetails' || key === 'deliveryAppointmentDetails' ||
+                        key === 'borderInfo' || key === 'weatherConditions' || 
+                        key === 'dimensions' || key === 'additionalInfo') {
+                        // Stringify nested objects
+                        formData.append(key, JSON.stringify(value));
+                    } else if (Array.isArray(value)) {
+                        // Stringify arrays (like equipment)
+                        formData.append(key, JSON.stringify(value));
+                    } else if (value instanceof Date) {
+                        // Convert Date to ISO string
+                        formData.append(key, value.toISOString());
+                    } else {
+                        // Primitive values (string, number, boolean)
+                        formData.append(key, String(value));
+                    }
+                }
+            });
+
             let response;
             if (order && order._id) {
                 // Update existing order
-                response = await updateOrder(order._id, orderData);
+                response = await updateOrder(order._id, formData);
                 if (response?.success) {
                     addNotification('success', "Order updated successfully!");
                     if (onSave) {
@@ -1083,7 +1132,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 }
             } else {
                 // Create new order
-                response = await createOrder(orderData);
+                response = await createOrder(formData);
                 if (response?.success) {
                     addNotification('success', "Order created successfully!");
                     if (onSave) {
@@ -2412,25 +2461,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <FaCheck /> Uploaded
                                                 </span>
                                             ) : (
-<<<<<<< HEAD
-                                                <label className="flex flex-col items-center cursor-pointer">
-                                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                                    <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
-                                                    <input
-                                                        key={podFile ? 'pod-reset' : 'pod-input'}
-                                                        type="file"
-                                                        className="hidden"
-                                                        accept=".pdf,.jpg,.jpeg,.png"
-                                                        onChange={(e) => {
-                                                            if (e.target.files && e.target.files[0]) {
-                                                                handleFileUpload(e.target.files[0], 'pod');
-                                                            }
-                                                        }}
-                                                    />
-                                                </label>
-=======
                                                 <span className="text-gray-500 text-sm font-medium">Optional</span>
->>>>>>> 8f8b59552279449cf1a1be882928ec7bf9eeeef3
                                             )}
                                         </div>
                                         <label className="block">
@@ -2439,6 +2470,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 <span className="text-purple-600 font-medium">Choose File</span>
                                             </div>
                                             <input
+                                                key={podFile ? 'pod-reset' : 'pod-input'}
                                                 type="file"
                                                 className="hidden"
                                                 accept=".pdf,.jpg,.jpeg,.png"

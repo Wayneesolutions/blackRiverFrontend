@@ -620,9 +620,13 @@ export const getRouteAnalysis = async () => {
 }
 
 // Order management APIs
-export const createOrder = async (data: any) => {
+export const createOrder = async (data: FormData | any) => {
   try {
-    const res: AxiosResponse = await apiClient.post(`dispatcher/order`, data);
+    const res: AxiosResponse = await apiClient.post(`dispatcher/order`, data, {
+      headers: {
+        'Content-Type': data instanceof FormData ? 'multipart/form-data' : 'application/json'
+      }
+    });
     console.log('==res ', res);
     return res.data;
   } catch (error) {
@@ -675,9 +679,13 @@ export const getOrderById = async (id: string) => {
   }
 }
 
-export const updateOrder = async (id: string, data: any) => {
+export const updateOrder = async (id: string, data: FormData | any) => {
   try {
-    const res: AxiosResponse = await apiClient.put(`dispatcher/order/${id}`, data);
+    const res: AxiosResponse = await apiClient.put(`dispatcher/order/${id}`, data, {
+      headers: {
+        'Content-Type': data instanceof FormData ? 'multipart/form-data' : 'application/json'
+      }
+    });
     console.log('==res ', res);
     return res.data;
   } catch (error) {

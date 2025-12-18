@@ -431,8 +431,28 @@ const VehicleEldMonitor = () => {
                                                 <Truck size={16} className="text-gray-400 group-hover:text-blue-500" />
                                                 {v.id}
                                             </td>
-                                            <td className="px-6 py-4 text-gray-600 group-hover:text-blue-600 transition-colors">
-                                                {v.driver === 'Unassigned' ? <span className="text-gray-400 italic">Unassigned</span> : v.driver}
+                                            <td className="px-6 py-4">
+                                                {v.driver === 'Unassigned' ? (
+                                                    <span className="text-gray-400 italic">Unassigned</span>
+                                                ) : (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-gray-900 font-medium group-hover:text-blue-600 transition-colors">
+                                                            {v.driver}
+                                                            {v.isCoDriver && (
+                                                                <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">Co-Driver</span>
+                                                            )}
+                                                        </span>
+                                                        {v.driverEmail && (
+                                                            <span className="text-xs text-gray-500 mt-0.5">{v.driverEmail}</span>
+                                                        )}
+                                                        {v.driverPhone && (
+                                                            <span className="text-xs text-gray-500">{v.driverPhone}</span>
+                                                        )}
+                                                        {v.tripNumber && (
+                                                            <span className="text-xs text-gray-400 mt-1">Trip: {v.tripNumber}</span>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide
