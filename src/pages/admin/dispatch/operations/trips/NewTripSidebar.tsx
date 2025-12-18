@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { X, ChevronDown, Search, Download, Check, Upload } from "lucide-react";
-import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
+import { FaCheckCircle, FaExclamationCircle, FaTimes, FaFileAlt, FaUpload as FaUploadIcon, FaCheck as FaCheckIcon } from "react-icons/fa";
 import { listDriver, createTrip, updateTrip, uploadTripDocument, deleteTripDocument, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
 import { listOrder } from "../../../../../axios/api/distapcher";
 import { File, Trash2 } from "lucide-react";
@@ -145,10 +145,17 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     uploadedBy?: any;
     uploadedAt?: string;
     description?: string;
+    type?: string;
   }>>(trip?.documents || []);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]); // Files selected before trip creation
   const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [uploadingDocType, setUploadingDocType] = useState<string | null>(null); // Track which document type is uploading
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Individual document file states (for UI display before upload)
+  const [bolFile, setBolFile] = useState<File | null>(null);
+  const [podFile, setPodFile] = useState<File | null>(null);
+  const [stampedManifestFile, setStampedManifestFile] = useState<File | null>(null);
 
   // Border Compliance State
   const [borderRequired, setBorderRequired] = useState(false);
@@ -755,6 +762,39 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     });
   };
 
+  // Handler for specific document type uploads
+  const handleDocumentTypeUpload = async (file: File, documentType: 'bol' | 'pod' | 'stamped_manifest') => {
+    if (!trip?._id) {
+      // Trip doesn't exist yet - store file for later upload
+      if (documentType === 'bol') setBolFile(file);
+      else if (documentType === 'pod') setPodFile(file);
+      else if (documentType === 'stamped_manifest') setStampedManifestFile(file);
+      addNotification('success', 'File selected. It will be uploaded after trip creation.');
+      return;
+    }
+
+    const tripId = trip._id;
+    setUploadingDocType(documentType);
+    try {
+      const response = await uploadTripDocument(tripId, file, '', documentType);
+      if (response?.success && response?.data) {
+        setDocuments(prev => [...prev, response.data]);
+        addNotification('success', 'Document uploaded successfully');
+        // Clear file state
+        if (documentType === 'bol') setBolFile(null);
+        else if (documentType === 'pod') setPodFile(null);
+        else if (documentType === 'stamped_manifest') setStampedManifestFile(null);
+      } else {
+        addNotification('error', response?.message || 'Failed to upload document');
+      }
+    } catch (error: any) {
+      console.error("Error uploading document:", error);
+      addNotification('error', error?.response?.data?.message || 'An error occurred while uploading the document');
+    } finally {
+      setUploadingDocType(null);
+    }
+  };
+
   const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -810,11 +850,23 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
   // Upload pending files after trip creation
   const uploadPendingFiles = async (tripId: string) => {
-    if (pendingFiles.length === 0) return;
+    const filesToUpload: Array<{ file: File; type?: string }> = [];
+    
+    // Add generic pending files
+    pendingFiles.forEach(file => filesToUpload.push({ file }));
+    
+    // Add document type files
+    if (bolFile) filesToUpload.push({ file: bolFile, type: 'bol' });
+    if (podFile) filesToUpload.push({ file: podFile, type: 'pod' });
+    if (stampedManifestFile) filesToUpload.push({ file: stampedManifestFile, type: 'stamped_manifest' });
+    
+    if (filesToUpload.length === 0) return;
 
     setUploadingDocument(true);
     try {
-      const uploadPromises = pendingFiles.map(file => uploadTripDocument(tripId, file));
+      const uploadPromises = filesToUpload.map(({ file, type }) => 
+        uploadTripDocument(tripId, file, '', type)
+      );
       const results = await Promise.allSettled(uploadPromises);
 
       let successCount = 0;
@@ -838,6 +890,9 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
       // Clear pending files after upload
       setPendingFiles([]);
+      setBolFile(null);
+      setPodFile(null);
+      setStampedManifestFile(null);
     } catch (error: any) {
       console.error("Error uploading pending documents:", error);
       addNotification('error', 'Some documents failed to upload. You can upload them manually.');
@@ -849,6 +904,26 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   // Remove pending file
   const removePendingFile = (index: number) => {
     setPendingFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Helper to check if a document type exists
+  const hasDocumentType = (type: string) => {
+    return documents.some(doc => doc.type === type);
+  };
+
+  // Helper to get file state for a document type
+  const getDocumentFileState = (type: 'bol' | 'pod' | 'stamped_manifest') => {
+    if (type === 'bol') return bolFile;
+    if (type === 'pod') return podFile;
+    if (type === 'stamped_manifest') return stampedManifestFile;
+    return null;
+  };
+
+  // Helper to remove document file
+  const removeDocumentFile = (type: 'bol' | 'pod' | 'stamped_manifest') => {
+    if (type === 'bol') setBolFile(null);
+    else if (type === 'pod') setPodFile(null);
+    else if (type === 'stamped_manifest') setStampedManifestFile(null);
   };
 
   const handleDeleteDocument = async (documentId: string) => {
@@ -1850,50 +1925,227 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
           {/* Documents */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Documents               {pendingFiles.length > 0 && !trip?._id && (
-                <span style={{ color: FLEET_COLORS.primary }}>({pendingFiles.length} pending)</span>
-              )}
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Documents
             </label>
-            <div className="space-y-3">
-              {/* Upload Button */}
-              <div className="flex items-center gap-3">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleDocumentUpload}
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,image/*"
-                  multiple
-                  className="hidden"
-                  disabled={uploadingDocument}
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingDocument || loading}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    color: FLEET_COLORS.primary,
-                    backgroundColor: `${FLEET_COLORS.primary}15`,
-                    border: `1px solid ${FLEET_COLORS.light}`
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!uploadingDocument && !loading) {
-                      e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}25`;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!uploadingDocument && !loading) {
-                      e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
-                    }
-                  }}
-                >
-                  <Upload className="w-4 h-4" />
-                  {uploadingDocument ? 'Uploading...' : 'Upload Document(s)'}
-                </button>
-                <span className="text-xs text-gray-500">
-                  PDF, DOC, XLS, TXT, ZIP, Images (Max 20MB each)
-                </span>
+            <div className="space-y-4">
+              {/* Upload BOL */}
+              <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${hasDocumentType('bol') || bolFile ? 'bg-green-100' : 'bg-blue-100'}`}>
+                      <FaFileAlt className={`${hasDocumentType('bol') || bolFile ? 'text-green-600' : 'text-blue-600'}`} size={24} />
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-gray-800">Bill of Lading (BOL)</h5>
+                      <p className="text-sm text-gray-500">Required document for shipment</p>
+                    </div>
+                  </div>
+                  {hasDocumentType('bol') || bolFile ? (
+                    <span className="flex items-center gap-2 text-green-600 font-medium">
+                      <FaCheckIcon /> Uploaded
+                    </span>
+                  ) : (
+                    <span className="text-gray-500 text-sm font-medium">Optional</span>
+                  )}
+                </div>
+                <label className="block">
+                  <div className={`flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg cursor-pointer transition-colors ${(uploadingDocType === 'bol' || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <FaUploadIcon className="text-blue-600" />
+                    <span className="text-blue-600 font-medium">{uploadingDocType === 'bol' ? 'Uploading...' : 'Choose File'}</span>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleDocumentTypeUpload(e.target.files[0], 'bol');
+                      }
+                    }}
+                    disabled={uploadingDocType === 'bol' || loading}
+                  />
+                </label>
+                {bolFile && !hasDocumentType('bol') && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FaFileAlt className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-green-700 font-medium">{bolFile.name}</span>
+                    </div>
+                    <button
+                      onClick={() => removeDocumentFile('bol')}
+                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                      disabled={uploadingDocType === 'bol'}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+                {hasDocumentType('bol') && !bolFile && trip?._id && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FaFileAlt className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-green-700 font-medium">
+                        {documents.find(d => d.type === 'bol')?.fileName || 'Document'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const bolDoc = documents.find(d => d.type === 'bol');
+                        if (bolDoc?._id) handleDeleteDocument(bolDoc._id);
+                      }}
+                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload POD */}
+              <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${hasDocumentType('pod') || podFile ? 'bg-green-100' : 'bg-purple-100'}`}>
+                      <FaFileAlt className={`${hasDocumentType('pod') || podFile ? 'text-green-600' : 'text-purple-600'}`} size={24} />
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-gray-800">Proof of Delivery (POD)</h5>
+                      <p className="text-sm text-gray-500">Delivery confirmation document</p>
+                    </div>
+                  </div>
+                  {hasDocumentType('pod') || podFile ? (
+                    <span className="flex items-center gap-2 text-green-600 font-medium">
+                      <FaCheckIcon /> Uploaded
+                    </span>
+                  ) : (
+                    <span className="text-gray-500 text-sm font-medium">Optional</span>
+                  )}
+                </div>
+                <label className="block">
+                  <div className={`flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 rounded-lg cursor-pointer transition-colors ${(uploadingDocType === 'pod' || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <FaUploadIcon className="text-purple-600" />
+                    <span className="text-purple-600 font-medium">{uploadingDocType === 'pod' ? 'Uploading...' : 'Choose File'}</span>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleDocumentTypeUpload(e.target.files[0], 'pod');
+                      }
+                    }}
+                    disabled={uploadingDocType === 'pod' || loading}
+                  />
+                </label>
+                {podFile && !hasDocumentType('pod') && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FaFileAlt className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-green-700 font-medium">{podFile.name}</span>
+                    </div>
+                    <button
+                      onClick={() => removeDocumentFile('pod')}
+                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                      disabled={uploadingDocType === 'pod'}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+                {hasDocumentType('pod') && !podFile && trip?._id && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FaFileAlt className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-green-700 font-medium">
+                        {documents.find(d => d.type === 'pod')?.fileName || 'Document'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const podDoc = documents.find(d => d.type === 'pod');
+                        if (podDoc?._id) handleDeleteDocument(podDoc._id);
+                      }}
+                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload Stamped Manifest */}
+              <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${hasDocumentType('stamped_manifest') || stampedManifestFile ? 'bg-green-100' : 'bg-green-100'}`}>
+                      <FaFileAlt className={`${hasDocumentType('stamped_manifest') || stampedManifestFile ? 'text-green-600' : 'text-green-600'}`} size={24} />
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-gray-800">Stamped Manifest</h5>
+                      <p className="text-sm text-gray-500">Stamped manifest document</p>
+                    </div>
+                  </div>
+                  {hasDocumentType('stamped_manifest') || stampedManifestFile ? (
+                    <span className="flex items-center gap-2 text-green-600 font-medium">
+                      <FaCheckIcon /> Uploaded
+                    </span>
+                  ) : (
+                    <span className="text-gray-500 text-sm font-medium">Optional</span>
+                  )}
+                </div>
+                <label className="block">
+                  <div className={`flex items-center gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 rounded-lg cursor-pointer transition-colors ${(uploadingDocType === 'stamped_manifest' || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <FaUploadIcon className="text-green-600" />
+                    <span className="text-green-600 font-medium">{uploadingDocType === 'stamped_manifest' ? 'Uploading...' : 'Choose File'}</span>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleDocumentTypeUpload(e.target.files[0], 'stamped_manifest');
+                      }
+                    }}
+                    disabled={uploadingDocType === 'stamped_manifest' || loading}
+                  />
+                </label>
+                {stampedManifestFile && !hasDocumentType('stamped_manifest') && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FaFileAlt className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-green-700 font-medium">{stampedManifestFile.name}</span>
+                    </div>
+                    <button
+                      onClick={() => removeDocumentFile('stamped_manifest')}
+                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                      disabled={uploadingDocType === 'stamped_manifest'}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+                {hasDocumentType('stamped_manifest') && !stampedManifestFile && trip?._id && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FaFileAlt className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-green-700 font-medium">
+                        {documents.find(d => d.type === 'stamped_manifest')?.fileName || 'Document'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const manifestDoc = documents.find(d => d.type === 'stamped_manifest');
+                        if (manifestDoc?._id) handleDeleteDocument(manifestDoc._id);
+                      }}
+                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Pending Files (before trip creation) */}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { X, Plus, ChevronDown, ChevronUp, Search, Pencil, Upload, FileText, ArrowLeft, ArrowRight } from "lucide-react";
-import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
+import { FaCheckCircle, FaExclamationCircle, FaTimes, FaFileAlt, FaUpload, FaCheck } from "react-icons/fa";
 import { listCustomer, createOrder, updateOrder, autoExtractOrderData, getOrderSuggestions } from "../../../../../axios/api/distapcher";
 
 // Color constants
@@ -2345,62 +2345,74 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 </div>
                                 <div className="px-5 pt-5 pb-0 space-y-6">
                                     {/* Upload BOL */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                        <label className="block text-sm font-semibold text-gray-800 mb-3">Upload BOL (optional)</label>
-                                        <div
-                                            className="border-2 border-dashed border-gray-300 rounded-lg p-6 transition-colors cursor-pointer"
-                                            onMouseEnter={(e) => e.currentTarget.style.borderColor = PRIMARY_COLOR}
-                                            onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
-                                        >
-                                            {bolFile ? (
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <FileText className="w-5 h-5 " />
-                                                        <span className="text-sm text-gray-700">{bolFile.name}</span>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => removeFile('bol')}
-                                                        className="text-red-500 hover:text-red-700"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
+                                    <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${bolFile ? 'bg-green-100' : 'bg-blue-100'}`}>
+                                                    <FaFileAlt className={`${bolFile ? 'text-green-600' : 'text-blue-600'}`} size={24} />
                                                 </div>
+                                                <div>
+                                                    <h5 className="font-semibold text-gray-800">Bill of Lading (BOL)</h5>
+                                                    <p className="text-sm text-gray-500">Optional document for shipment</p>
+                                                </div>
+                                            </div>
+                                            {bolFile ? (
+                                                <span className="flex items-center gap-2 text-green-600 font-medium">
+                                                    <FaCheck /> Uploaded
+                                                </span>
                                             ) : (
-                                                <label className="flex flex-col items-center cursor-pointer">
-                                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                                    <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
-                                                    <input
-                                                        type="file"
-                                                        className="hidden"
-                                                        onChange={(e) => {
-                                                            if (e.target.files && e.target.files[0]) {
-                                                                handleFileUpload(e.target.files[0], 'bol');
-                                                            }
-                                                        }}
-                                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                                    />
-                                                </label>
+                                                <span className="text-gray-500 text-sm font-medium">Optional</span>
                                             )}
                                         </div>
+                                        <label className="block">
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg cursor-pointer transition-colors">
+                                                <FaUpload className="text-blue-600" />
+                                                <span className="text-blue-600 font-medium">Choose File</span>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        handleFileUpload(e.target.files[0], 'bol');
+                                                    }
+                                                }}
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            />
+                                        </label>
+                                        {bolFile && (
+                                            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FaFileAlt className="w-4 h-4 text-green-600" />
+                                                    <span className="text-sm text-green-700 font-medium">{bolFile.name}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeFile('bol')}
+                                                    className="text-gray-800 hover:text-gray-900 transition-colors"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                     {/* Upload Proof of Delivery */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                        <label className="block text-sm font-semibold text-gray-800 mb-3">
-                                            Upload Proof of Delivery (POD)
-                                        </label>
-
-                                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                                            {podFile ? (
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <FileText className="w-5 h-5" />
-                                                        <span className="text-sm">{podFile.name}</span>
-                                                    </div>
-                                                    <button onClick={() => setPodFile(null)} className="text-red-500">
-                                                        <X className="w-4 h-4" />
-                                                    </button>
+                                    <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${podFile ? 'bg-green-100' : 'bg-purple-100'}`}>
+                                                    <FaFileAlt className={`${podFile ? 'text-green-600' : 'text-purple-600'}`} size={24} />
                                                 </div>
+                                                <div>
+                                                    <h5 className="font-semibold text-gray-800">Proof of Delivery (POD)</h5>
+                                                    <p className="text-sm text-gray-500">Delivery confirmation document</p>
+                                                </div>
+                                            </div>
+                                            {podFile ? (
+                                                <span className="flex items-center gap-2 text-green-600 font-medium">
+                                                    <FaCheck /> Uploaded
+                                                </span>
                                             ) : (
+<<<<<<< HEAD
                                                 <label className="flex flex-col items-center cursor-pointer">
                                                     <Upload className="w-8 h-8 text-gray-400 mb-2" />
                                                     <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
@@ -2416,128 +2428,195 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         }}
                                                     />
                                                 </label>
+=======
+                                                <span className="text-gray-500 text-sm font-medium">Optional</span>
+>>>>>>> 8f8b59552279449cf1a1be882928ec7bf9eeeef3
                                             )}
                                         </div>
+                                        <label className="block">
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 rounded-lg cursor-pointer transition-colors">
+                                                <FaUpload className="text-purple-600" />
+                                                <span className="text-purple-600 font-medium">Choose File</span>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept=".pdf,.jpg,.jpeg,.png"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        handleFileUpload(e.target.files[0], 'pod');
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                        {podFile && (
+                                            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FaFileAlt className="w-4 h-4 text-green-600" />
+                                                    <span className="text-sm text-green-700 font-medium">{podFile.name}</span>
+                                                </div>
+                                                <button onClick={() => removeFile('pod')} className="text-gray-800 hover:text-gray-900 transition-colors">
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                     {/* Upload Stamped Manifest */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                        <label className="block text-sm font-semibold text-gray-800 mb-3">
-                                            Upload Stamped Manifest
-                                        </label>
-
-                                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                                            {stampedManifestFile ? (
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <FileText className="w-5 h-5" />
-                                                        <span className="text-sm">{stampedManifestFile.name}</span>
-                                                    </div>
-                                                    <button onClick={() => setStampedManifestFile(null)} className="text-red-500">
-                                                        <X className="w-4 h-4" />
-                                                    </button>
+                                    <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${stampedManifestFile ? 'bg-green-100' : 'bg-green-100'}`}>
+                                                    <FaFileAlt className={`${stampedManifestFile ? 'text-green-600' : 'text-green-600'}`} size={24} />
                                                 </div>
+                                                <div>
+                                                    <h5 className="font-semibold text-gray-800">Stamped Manifest</h5>
+                                                    <p className="text-sm text-gray-500">Stamped manifest document</p>
+                                                </div>
+                                            </div>
+                                            {stampedManifestFile ? (
+                                                <span className="flex items-center gap-2 text-green-600 font-medium">
+                                                    <FaCheck /> Uploaded
+                                                </span>
                                             ) : (
-                                                <label className="flex flex-col items-center cursor-pointer">
-                                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                                    <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
-                                                    <input
-                                                        key={stampedManifestFile ? 'stamped-reset' : 'stamped-input'}
-                                                        type="file"
-                                                        className="hidden"
-                                                        accept=".pdf,.jpg,.jpeg,.png"
-                                                        onChange={(e) => {
-                                                            if (e.target.files && e.target.files[0]) {
-                                                                handleFileUpload(e.target.files[0], 'stampedManifest');
-                                                            }
-                                                        }}
-                                                    />
-                                                </label>
+<span className="text-gray-500 text-sm font-medium">Optional</span>
                                             )}
                                         </div>
+                                        <label className="block">
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 rounded-lg cursor-pointer transition-colors">
+                                                <FaUpload className="text-green-600" />
+                                                <span className="text-green-600 font-medium">Choose File</span>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept=".pdf,.jpg,.jpeg,.png"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        handleFileUpload(e.target.files[0], 'stampedManifest');
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                        {stampedManifestFile && (
+                                            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FaFileAlt className="w-4 h-4 text-green-600" />
+                                                    <span className="text-sm text-green-700 font-medium">{stampedManifestFile.name}</span>
+                                                </div>
+                                                <button onClick={() => removeFile('stampedManifest')} className="text-gray-800 hover:text-gray-900 transition-colors">
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Upload Customs / HAZMAT docs */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                        <label className="block text-sm font-semibold text-gray-800 mb-3">Upload Customs / HAZMAT docs</label>
-                                        <div
-                                            className="border-2 border-dashed border-gray-300 rounded-lg p-6 transition-colors cursor-pointer"
-                                            onMouseEnter={(e) => e.currentTarget.style.borderColor = PRIMARY_COLOR}
-                                            onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
-                                        >
-                                            {customsHazmatFiles.length > 0 ? (
-                                                <div className="space-y-2">
-                                                    {customsHazmatFiles.map((file, index) => (
-                                                        <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                                            <div className="flex items-center gap-2">
-                                                                <FileText className="w-4 h-4 " />
-                                                                <span className="text-sm text-gray-700">{file.name}</span>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => removeFile('customs', index)}
-                                                                className="text-red-500 hover:text-red-700"
-                                                            >
-                                                                <X className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
+                                    <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${customsHazmatFiles.length > 0 ? 'bg-green-100' : 'bg-orange-100'}`}>
+                                                    <FaFileAlt className={`${customsHazmatFiles.length > 0 ? 'text-green-600' : 'text-orange-600'}`} size={24} />
                                                 </div>
-                                            ) : null}
-                                            <label className="flex items-center gap-2 cursor-pointer mt-2">
-                                                <Plus className="w-5 h-5 " />
-                                                <span className="text-sm ">Add file</span>
-                                                <input
-                                                    type="file"
-                                                    className="hidden"
-                                                    onChange={(e) => {
-                                                        if (e.target.files && e.target.files[0]) {
-                                                            handleFileUpload(e.target.files[0], 'customs');
-                                                        }
-                                                    }}
-                                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                                    multiple
-                                                />
-                                            </label>
+                                                <div>
+                                                    <h5 className="font-semibold text-gray-800">Upload Customs / HAZMAT docs</h5>
+                                                    <p className="text-sm text-gray-500">Customs and HAZMAT documentation</p>
+                                                </div>
+                                            </div>
+                                            {customsHazmatFiles.length > 0 ? (
+                                                <span className="flex items-center gap-2 text-green-600 font-medium">
+                                                    <FaCheck /> Uploaded
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-500 text-sm font-medium">Optional</span>
+                                            )}
                                         </div>
+                                        <label className="block">
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-100 rounded-lg cursor-pointer transition-colors">
+                                                <FaUpload className="text-orange-600" />
+                                                <span className="text-orange-600 font-medium">Choose File</span>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        handleFileUpload(e.target.files[0], 'customs');
+                                                    }
+                                                }}
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                multiple
+                                            />
+                                        </label>
+                                        {customsHazmatFiles.length > 0 && (
+                                            <div className="mt-3 space-y-2">
+                                                {customsHazmatFiles.map((file, index) => (
+                                                    <div key={index} className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <FaFileAlt className="w-4 h-4 text-green-600" />
+                                                            <span className="text-sm text-green-700 font-medium">{file.name}</span>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => removeFile('customs', index)}
+                                                            className="text-gray-800 hover:text-gray-900 transition-colors"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Upload Rate Confirmation */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                        <label className="block text-sm font-semibold text-gray-800 mb-3">Upload Rate Confirmation (for internal use)</label>
-                                        <div
-                                            className="border-2 border-dashed border-gray-300 rounded-lg p-6 transition-colors cursor-pointer"
-                                            onMouseEnter={(e) => e.currentTarget.style.borderColor = PRIMARY_COLOR}
-                                            onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
-                                        >
-                                            {rateConfirmationFile ? (
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <FileText className="w-5 h-5 " />
-                                                        <span className="text-sm text-gray-700">{rateConfirmationFile.name}</span>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => removeFile('rate')}
-                                                        className="text-red-500 hover:text-red-700"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
+                                    <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${rateConfirmationFile ? 'bg-green-100' : 'bg-indigo-100'}`}>
+                                                    <FaFileAlt className={`${rateConfirmationFile ? 'text-green-600' : 'text-indigo-600'}`} size={24} />
                                                 </div>
+                                                <div>
+                                                    <h5 className="font-semibold text-gray-800">Upload Rate Confirmation (for internal use)</h5>
+                                                    <p className="text-sm text-gray-500">Internal rate confirmation document</p>
+                                                </div>
+                                            </div>
+                                            {rateConfirmationFile ? (
+                                                <span className="flex items-center gap-2 text-green-600 font-medium">
+                                                    <FaCheck /> Uploaded
+                                                </span>
                                             ) : (
-                                                <label className="flex flex-col items-center cursor-pointer">
-                                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                                    <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
-                                                    <input
-                                                        type="file"
-                                                        className="hidden"
-                                                        onChange={(e) => {
-                                                            if (e.target.files && e.target.files[0]) {
-                                                                handleFileUpload(e.target.files[0], 'rate');
-                                                            }
-                                                        }}
-                                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                                    />
-                                                </label>
+                                                <span className="text-gray-500 text-sm font-medium">Optional</span>
                                             )}
                                         </div>
+                                        <label className="block">
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg cursor-pointer transition-colors">
+                                                <FaUpload className="text-indigo-600" />
+                                                <span className="text-indigo-600 font-medium">Choose File</span>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        handleFileUpload(e.target.files[0], 'rate');
+                                                    }
+                                                }}
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            />
+                                        </label>
+                                        {rateConfirmationFile && (
+                                            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FaFileAlt className="w-4 h-4 text-green-600" />
+                                                    <span className="text-sm text-green-700 font-medium">{rateConfirmationFile.name}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeFile('rate')}
+                                                    className="text-gray-800 hover:text-gray-900 transition-colors"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Internal Notes */}
@@ -2570,61 +2649,74 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     }
                     {
                         currentStep === 5 && (
-
-                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                                    Upload Load Securement Pictures
-                                </label>
-
-                                <div
-                                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 transition-colors cursor-pointer"
-                                    onMouseEnter={(e) => e.currentTarget.style.borderColor = PRIMARY_COLOR}
-                                    onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
-                                >
-                                    {loadSecurementFiles.length > 0 && (
-                                        <div className="space-y-2 mb-3">
-                                            {loadSecurementFiles.map((file, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center justify-between bg-gray-50 p-2 rounded"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <FileText className="w-4 h-4" />
-                                                        <span className="text-sm text-gray-700">{file.name}</span>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => removeFile('loadSecurement', index)}
-                                                        className="text-red-500 hover:text-red-700"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
+                            <div className="border-b border-gray-200">
+                                <div className="p-5 bg-gradient-to-r from-teal-50 to-gray-50 border-b border-gray-200">
+                                    <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                                        <span className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center text-sm font-bold">5</span>
+                                        Upload Load Securement Pictures
+                                    </h3>
+                                    <p className="text-xs text-gray-600 mt-1 ml-10">Upload pictures of load securement</p>
+                                </div>
+                                <div className="px-5 pt-5 pb-0 space-y-6">
+                                    <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-teal-300 transition-colors">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${loadSecurementFiles.length > 0 ? 'bg-green-100' : 'bg-teal-100'}`}>
+                                                    <FaFileAlt className={`${loadSecurementFiles.length > 0 ? 'text-green-600' : 'text-teal-600'}`} size={24} />
                                                 </div>
-                                            ))}
+                                                <div>
+                                                    <h5 className="font-semibold text-gray-800">Upload Load Securement Pictures</h5>
+                                                    <p className="text-sm text-gray-500">Pictures of load securement</p>
+                                                </div>
+                                            </div>
+                                            {loadSecurementFiles.length > 0 ? (
+                                                <span className="flex items-center gap-2 text-green-600 font-medium">
+                                                    <FaCheck /> Uploaded
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-500 text-sm font-medium">Optional</span>
+                                            )}
                                         </div>
-                                    )}
-
-                                    <label className="flex flex-col items-center cursor-pointer">
-                                        <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                        <span className="text-sm text-gray-600">
-                                            Click to upload or drag and drop
-                                        </span>
-                                        <input
-                                            type="file"
-                                            className="hidden"
-                                            multiple
-                                            accept=".jpg,.jpeg,.png"
-                                            onChange={(e) => {
-                                                if (e.target.files) {
-                                                    Array.from(e.target.files).forEach((file) =>
-                                                        handleFileUpload(file, 'loadSecurement')
-                                                    );
-                                                }
-                                            }}
-                                        />
-                                    </label>
+                                        <label className="block">
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-teal-50 hover:bg-teal-100 rounded-lg cursor-pointer transition-colors">
+                                                <FaUpload className="text-teal-600" />
+                                                <span className="text-teal-600 font-medium">Choose File</span>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                multiple
+                                                accept=".jpg,.jpeg,.png"
+                                                onChange={(e) => {
+                                                    if (e.target.files) {
+                                                        Array.from(e.target.files).forEach((file) =>
+                                                            handleFileUpload(file, 'loadSecurement')
+                                                        );
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                        {loadSecurementFiles.length > 0 && (
+                                            <div className="mt-3 space-y-2">
+                                                {loadSecurementFiles.map((file, index) => (
+                                                    <div key={index} className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <FaFileAlt className="w-4 h-4 text-green-600" />
+                                                            <span className="text-sm text-green-700 font-medium">{file.name}</span>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => removeFile('loadSecurement', index)}
+                                                            className="text-gray-800 hover:text-gray-900 transition-colors"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-
                         )
                     }
                     {/* Step 5: Review Page */}
