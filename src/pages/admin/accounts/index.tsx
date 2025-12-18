@@ -17,7 +17,10 @@ import {
   XCircle,
   Clock,
   Building2,
-  Wallet
+  Wallet,
+  UserCheck,
+  UserX,
+  Truck
 } from 'lucide-react';
 
 interface Invoice {
@@ -59,8 +62,10 @@ const Dashboard = () => {
     netProfit: 0,
     paidInvoices: 0,
     unpaidOverdue: 0,
-    paidEmployeeUnpaid: 0,
-    paidDriverUnpaid: 0,
+    employeePaid: 0,
+    employeeUnpaid: 0,
+    driverPaid: 0,
+    driverUnpaid: 0,
     vendorPayment: 0,
     invoiceCount: 0,
     expenseCount: 0,
@@ -97,7 +102,15 @@ const Dashboard = () => {
 
       // Set dashboard statistics from API
       if (dashboardRes?.success && dashboardRes.data) {
-        setDashboardStats(dashboardRes.data);
+        const apiData = dashboardRes.data;
+        // Map old field names to new ones for backward compatibility
+        setDashboardStats({
+          ...apiData,
+          employeePaid: apiData.employeePaid ?? 0,
+          employeeUnpaid: apiData.employeeUnpaid ?? apiData.paidEmployeeUnpaid ?? 0,
+          driverPaid: apiData.driverPaid ?? 0,
+          driverUnpaid: apiData.driverUnpaid ?? apiData.paidDriverUnpaid ?? 0,
+        });
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -185,21 +198,41 @@ const Dashboard = () => {
       cardBg: 'bg-gradient-to-br from-rose-50 to-rose-100'
     },
     {
-      id: 'paid-employee-unpaid',
-      title: 'Paid Employee Unpaid',
-      value: `$${dashboardStats.paidEmployeeUnpaid.toLocaleString()}`,
+      id: 'employee-paid',
+      title: 'Employee Paid',
+      value: `$${dashboardStats.employeePaid.toLocaleString()}`,
+      subtitle: 'Total paid to employees',
+      icon: UserCheck,
+      bgColor: 'bg-emerald-100',
+      iconColor: 'text-emerald-700',
+      cardBg: 'bg-gradient-to-br from-emerald-50 to-emerald-100'
+    },
+    {
+      id: 'employee-unpaid',
+      title: 'Employee Unpaid',
+      value: `$${dashboardStats.employeeUnpaid.toLocaleString()}`,
       subtitle: 'Pending employee payments',
-      icon: Clock,
+      icon: UserX,
       bgColor: 'bg-amber-100',
       iconColor: 'text-amber-700',
       cardBg: 'bg-gradient-to-br from-amber-50 to-amber-100'
     },
     {
-      id: 'paid-driver-unpaid',
-      title: 'Paid Driver Unpaid',
-      value: `$${dashboardStats.paidDriverUnpaid.toLocaleString()}`,
+      id: 'driver-paid',
+      title: 'Driver Paid',
+      value: `$${dashboardStats.driverPaid.toLocaleString()}`,
+      subtitle: 'Total paid to drivers',
+      icon: Truck,
+      bgColor: 'bg-blue-100',
+      iconColor: 'text-blue-700',
+      cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100'
+    },
+    {
+      id: 'driver-unpaid',
+      title: 'Driver Unpaid',
+      value: `$${dashboardStats.driverUnpaid.toLocaleString()}`,
       subtitle: 'Pending driver payments',
-      icon: Wallet,
+      icon: Clock,
       bgColor: 'bg-cyan-100',
       iconColor: 'text-cyan-700',
       cardBg: 'bg-gradient-to-br from-cyan-50 to-cyan-100'
@@ -324,9 +357,9 @@ const Dashboard = () => {
                       navigate('/admin/accounts/invoice');
                     } else if (feature.id === 'expenses' || feature.id === 'vendor-payment') {
                       navigate('/admin/accounts/expenses');
-                    } else if (feature.id === 'payroll' || feature.id === 'paid-employee-unpaid') {
+                    } else if (feature.id === 'payroll' || feature.id === 'employee-paid' || feature.id === 'employee-unpaid') {
                       navigate('/admin/accounts/payroll');
-                    } else if (feature.id === 'paid-driver-unpaid') {
+                    } else if (feature.id === 'driver-paid' || feature.id === 'driver-unpaid') {
                       navigate('/admin/accounts/driverpayroll');
                     }
                   }}
