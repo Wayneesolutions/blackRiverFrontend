@@ -328,7 +328,7 @@ const Index = () => {
   }, [fetchAllData]);
 
   // Delete item
-  const openDeleteModal = useCallback((item: Contact | Customer, type: "contact" | "customer") => {
+  const openDeleteModal = useCallback((item: Contact | Customer | Place, type: "contact" | "customer" | "place") => {
     setDeleteTarget({ item, type });
     setDeleteModalOpen(true);
   }, []);

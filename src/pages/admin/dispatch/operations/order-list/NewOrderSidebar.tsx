@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { X, Plus, ChevronDown, ChevronUp, Search, Pencil, Upload, FileText, ArrowLeft, ArrowRight } from "lucide-react";
+import { X, ChevronDown, ChevronUp, Search, FileText, ArrowLeft, ArrowRight } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaFileAlt, FaUpload, FaCheck } from "react-icons/fa";
 import { listCustomer, createOrder, updateOrder, getOrderSuggestions } from "../../../../../axios/api/distapcher";
 
@@ -94,8 +94,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     // Form states
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-    const [customerSearch, setCustomerSearch] = useState("");
-    const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
+    const [, setCustomerSearch] = useState("");
+    const [, setCustomerDropdownOpen] = useState(false);
     const [customers, setCustomers] = useState<Customer[]>([]);
 
     // Shipper customer states
@@ -211,8 +211,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     const [podFile, setPodFile] = useState<File | null>(null);
     const [stampedManifestFile, setStampedManifestFile] = useState<File | null>(null);
-    const [loadConfirmationFile, setLoadConfirmationFile] = useState<File | null>(null);
-    const [printedManifestFile, setPrintedManifestFile] = useState<File | null>(null);
     
     // Existing document URLs (from database when editing)
     const [existingDocuments, setExistingDocuments] = useState<{
@@ -227,11 +225,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     // Suggestions states
     const [commoditySuggestions, setCommoditySuggestions] = useState<string[]>([]);
-    const [shipperNameSuggestions, setShipperNameSuggestions] = useState<string[]>([]);
-    const [receiverNameSuggestions, setReceiverNameSuggestions] = useState<string[]>([]);
+
     const [showCommoditySuggestions, setShowCommoditySuggestions] = useState(false);
-    const [showShipperNameSuggestions, setShowShipperNameSuggestions] = useState(false);
-    const [showReceiverNameSuggestions, setShowReceiverNameSuggestions] = useState(false);
 
 
     // Fetch customers on component mount
@@ -594,7 +589,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     // Effect to determine Border Requirement
     useEffect(() => {
-        const shipperCountry = selectedShipperCustomer?.customerDetails?.country || selectedShipperCustomer?.country || '';
 
         // Auto-fill some fields if border is required and fields are empty
         if (borderRequired) {
@@ -656,11 +650,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const filteredCustomers = customers.filter(customer =>
-        (customer.name || '').toLowerCase().includes(customerSearch.toLowerCase()) ||
-        (customer.address || '').toLowerCase().includes(customerSearch.toLowerCase())
-    );
-
+ 
     // Filtered customers for shipper
     const filteredShipperOptions = useMemo(() => {
         const searchTerm = shipperCustomerSearch.toLowerCase();
@@ -729,9 +719,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         );
     };
 
-    const handleAdditionalInfoToggle = (key: keyof typeof additionalInfo) => {
-        setAdditionalInfo(prev => ({ ...prev, [key]: !prev[key] }));
-    };
+
 
     // File handling functions
     const handleFileUpload = (file: File, type: 'bol' | 'customs' | 'rate' | 'pod' | 'stampedManifest' | 'loadSecurement') => {
@@ -771,8 +759,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const fetchSuggestions = async (field: string, value: string) => {
         if (!value || value.trim().length < 2) {
             if (field === 'commodity') setCommoditySuggestions([]);
-            if (field === 'shipperName') setShipperNameSuggestions([]);
-            if (field === 'receiverName') setReceiverNameSuggestions([]);
+      
             return;
         }
 
@@ -785,13 +772,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 if (field === 'commodity') {
                     setCommoditySuggestions(response.data);
                     setShowCommoditySuggestions(true);
-                } else if (field === 'shipperName') {
-                    setShipperNameSuggestions(response.data);
-                    setShowShipperNameSuggestions(true);
-                } else if (field === 'receiverName') {
-                    setReceiverNameSuggestions(response.data);
-                    setShowReceiverNameSuggestions(true);
-                }
+                } 
             }
         } catch (error) {
             console.error('Error fetching suggestions:', error);

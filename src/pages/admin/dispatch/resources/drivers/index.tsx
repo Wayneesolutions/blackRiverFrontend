@@ -204,10 +204,6 @@ const DriversTable = () => {
         });
     }, [drivers, searchQuery]);
 
-    // Calculate open miles total
-    const totalOpenMiles = useMemo(() => {
-        return Object.values(driverMiles).reduce((acc, curr) => acc + (curr.openMiles || 0), 0);
-    }, [driverMiles]);
 
 
     const getStatusBadge = (status?: string) => {
@@ -227,12 +223,6 @@ const DriversTable = () => {
         );
     };
 
-    const getCompanyDisplay = (company?: string | { companyName?: string; _id?: string }) => {
-        if (!company) return '-';
-        if (typeof company === 'string') return company; // likely an ID if backend sends ID
-        // If backend sends object, try to use name, or fallback to ID, or '-'
-        return company.companyName || company._id || '-';
-    };
 
     if (loading && drivers.length === 0) {
         return (
@@ -601,7 +591,6 @@ const DriversTable = () => {
     );
 };
 
-const normalizeAddress = (value: string) => value?.replace(/\s+/g, ' ').trim() || '';
 
 const truncateText = (value: string, max: number = 40) => {
     if (!value) return "";

@@ -91,8 +91,6 @@ const UnifiedSchedulingPage = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Scheduling specific states - only show scheduled trips
-  const [activeTab] = useState<"scheduled">("scheduled");
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedTime, setSelectedTime] = useState(DEFAULT_SCHEDULE_TIME);
   const [draggedTrip, setDraggedTrip] = useState<Trip | null>(null);
@@ -244,8 +242,7 @@ const UnifiedSchedulingPage = () => {
     return Array.from(driverMap.values());
   }, [trips]);
 
-  // Only show scheduled trips
-  const currentTrips = scheduledTrips;
+  
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
@@ -273,16 +270,7 @@ const UnifiedSchedulingPage = () => {
     setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1));
   };
 
-  // Schedule/Unschedule functions
-  const formatTimeFromDate = (date: Date | string | null) => {
-    if (!date) {
-      return DEFAULT_SCHEDULE_TIME;
-    }
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    const hours = String(dateObj.getHours()).padStart(2, "0");
-    const minutes = String(dateObj.getMinutes()).padStart(2, "0");
-    return `${hours}:${minutes}`;
-  };
+
 
   const combineDateAndTime = (date: Date, time: string) => {
     const [hours = "09", minutes = "00"] = time?.split(":") ?? [];
@@ -303,9 +291,7 @@ const UnifiedSchedulingPage = () => {
     }
   };
 
-
-  const handleDragStart = (trip: Trip) => setDraggedTrip(trip);
-  const handleDragEnd = () => setDraggedTrip(null);
+ 
 
   const handleDrop = (date: Date) => {
     if (draggedTrip) {

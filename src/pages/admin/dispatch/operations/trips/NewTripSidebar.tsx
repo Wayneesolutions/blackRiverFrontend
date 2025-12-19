@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { X, ChevronDown, Search, Download, Check, Upload } from "lucide-react";
+import { X, ChevronDown, Search, Download, Check } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaFileAlt, FaUpload as FaUploadIcon, FaCheck as FaCheckIcon } from "react-icons/fa";
 import { listDriver, createTrip, updateTrip, uploadTripDocument, deleteTripDocument, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
 import { listOrder } from "../../../../../axios/api/distapcher";
@@ -151,9 +151,8 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     type?: string;
   }>>(trip?.documents || []);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]); // Files selected before trip creation
-  const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [_uploadingDocument, setUploadingDocument] = useState(false);
   const [uploadingDocType, setUploadingDocType] = useState<string | null>(null); // Track which document type is uploading
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Individual document file states (for UI display before upload)
   const [bolFile, setBolFile] = useState<File | null>(null);
@@ -172,33 +171,6 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   const [rejectionReason, setRejectionReason] = useState('');
   const [brokerConfirmation, setBrokerConfirmation] = useState(false);
   const [isFiling, setIsFiling] = useState(false);
-
-
-  const trailerKeywords = useMemo(
-    () => ['trailer', 'dry van', 'reefer', 'flatbed', 'step deck', 'lowboy', 'tank', 'dump'],
-    []
-  );
-
-  const isTrailerUnit = useCallback(
-    (unit: any) => {
-      const type = (unit?.unitType || '').toLowerCase();
-      // If it's explicitly "Trailer" or has trailerType
-      if (type === 'trailer') return true;
-      if (unit?.trailerType) return true;
-
-      // If no unit type, check source
-      if (!type) {
-        return unit?.source === 'trailer';
-      }
-
-      // If it is explicitly Truck, it is not a trailer
-      if (type === 'truck' || type.includes('truck') || type === 'bus/van') return false;
-
-      // Otherwise check against trailer keywords
-      return trailerKeywords.some((keyword) => type.includes(keyword));
-    },
-    [trailerKeywords]
-  );
 
   const normalizeFleetUnit = useCallback(
     (unit: any) => ({
@@ -1053,86 +1025,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     }
   };
 
-  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
 
-    // Convert FileList to Array
-    const filesArray = Array.from(files);
-
-    // If trip exists, upload immediately
-    if (trip?._id) {
-      const tripId = trip._id;
-      setUploadingDocument(true);
-      try {
-        // Upload all files
-        const uploadPromises = filesArray.map(file => uploadTripDocument(tripId, file));
-        const results = await Promise.allSettled(uploadPromises);
-
-        let successCount = 0;
-        let failCount = 0;
-
-        results.forEach((result) => {
-          if (result.status === 'fulfilled') {
-            const response = result.value;
-            if (response?.success && response?.data) {
-              setDocuments(prev => [...prev, response.data]);
-              
-              // Check for validation results
-              if (response?.validation) {
-                const validation = response.validation;
-                setValidationResults(validation); // Store latest validation results
-                
-                if (validation.errors && validation.errors.length > 0) {
-                  const errorMessages = validation.errors.map((e: any) => 
-                    `${e.document || 'Document'}: ${e.message}`
-                  ).join('; ');
-                  addNotification('error', `Document validation failed: ${errorMessages}`);
-                } else if (validation.warnings && validation.warnings.length > 0) {
-                  const warningMessages = validation.warnings.map((w: any) => 
-                    `${w.document || 'Document'}: ${w.message}`
-                  ).join('; ');
-                  addNotification('warning', `Document validation warnings: ${warningMessages}`);
-                }
-              }
-              
-              successCount++;
-            } else {
-              failCount++;
-              // Check if it's a validation error
-              if (response?.validation && !response.validation.valid) {
-                setValidationResults(response.validation);
-              }
-            }
-          } else {
-            failCount++;
-          }
-        });
-
-        if (successCount > 0) {
-          addNotification('success', `${successCount} document(s) uploaded successfully`);
-        }
-        if (failCount > 0) {
-          addNotification('error', `${failCount} document(s) failed to upload`);
-        }
-      } catch (error: any) {
-        console.error("Error uploading documents:", error);
-        addNotification('error', error?.response?.data?.message || 'An error occurred while uploading documents');
-      } finally {
-        setUploadingDocument(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      }
-    } else {
-      // Trip doesn't exist yet - add to pending files
-      setPendingFiles(prev => [...prev, ...filesArray]);
-      addNotification('success', `${filesArray.length} file(s) selected. They will be uploaded after trip creation.`);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
 
   // Upload pending files after trip creation
   const uploadPendingFiles = async (tripId: string) => {
@@ -1225,13 +1118,6 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     return documents.some(doc => doc.type === type);
   };
 
-  // Helper to get file state for a document type
-  const getDocumentFileState = (type: 'bol' | 'pod' | 'stamped_manifest') => {
-    if (type === 'bol') return bolFile;
-    if (type === 'pod') return podFile;
-    if (type === 'stamped_manifest') return stampedManifestFile;
-    return null;
-  };
 
   // Helper to remove document file
   const removeDocumentFile = (type: 'bol' | 'pod' | 'stamped_manifest') => {

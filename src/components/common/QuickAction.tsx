@@ -1,5 +1,5 @@
 // hooks/useQuickActions.ts
-import { Search, X, Home, Users, Settings, LogOut, FileText, Truck, AlertCircle, Shield, Briefcase, LayoutDashboard, AlertOctagon, FileCheck, Package, DollarSign, UserCheck, ShieldCheck, Wrench, Plus, User } from "lucide-react";
+import { Users, Settings, FileText, Truck, AlertCircle,  Briefcase, LayoutDashboard, AlertOctagon, FileCheck, Package, DollarSign, UserCheck, ShieldCheck, Wrench, Plus, User } from "lucide-react";
 
 export interface QuickActionOption {
     id: string;

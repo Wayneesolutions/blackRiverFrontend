@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import OrderList from "./order-list";
 import TripsComponent from "./trips";
 

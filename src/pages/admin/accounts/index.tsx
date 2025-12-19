@@ -17,7 +17,6 @@ import {
   XCircle,
   Clock,
   Building2,
-  Wallet,
   UserCheck,
   UserX,
   Truck

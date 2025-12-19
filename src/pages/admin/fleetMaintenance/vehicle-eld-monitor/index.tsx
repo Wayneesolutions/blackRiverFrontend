@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import {
     Truck,
     MapPin,
     Activity,
     Clock,
     Wifi,
-    WifiOff,
     AlertTriangle,
     Wrench,
     Navigation,
     Search,
-    Filter,
+
     RefreshCw,
     Zap,
-    Thermometer
+
 } from 'lucide-react';
 import {
     BarChart,
@@ -271,7 +270,7 @@ const VehicleEldMonitor = () => {
                             </div>
 
                             {/* Mock Data Points */}
-                            {VEHICLES.filter(v => v.status !== 'offline').map((v, i) => (
+                            {VEHICLES.filter(v => v.status !== 'offline').map((v, _i) => (
                                 <div
                                     key={v.id}
                                     className="absolute group cursor-pointer transition-all duration-1000 ease-in-out"

@@ -153,7 +153,7 @@ const Index = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [orderSearchTerm, setOrderSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"drivers" | "vehicles" | "trailers" | "trips">("drivers");
+  const [activeTab, setActiveTab] = useState<"drivers" | "vehicles" | "trailers" | "trips" | "orders">("drivers");
   
   // Additional dashboard metrics
   const [unassignedDrivers, setUnassignedDrivers] = useState(0);

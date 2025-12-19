@@ -2,12 +2,10 @@ import {
   MdDashboard,
   MdEventNote,
   MdContacts,
-  MdOutlineMap,
 } from "react-icons/md";
 import {
   FaTruck,
   FaUserTie,
-  FaList,
   FaLayerGroup,
   FaRoute,
 } from "react-icons/fa";
