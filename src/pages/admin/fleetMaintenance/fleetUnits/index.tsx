@@ -58,6 +58,8 @@ interface FleetUnitFormData {
   address: string;
   lastDate: string;
   reason: string;
+  serviceIntervalDays: string;
+  serviceIntervalMileage: string;
 }
 
 const defaultSummary: FleetUnitSummary = {
@@ -105,7 +107,9 @@ const FleetUnits: React.FC = () => {
     operationStatus: 'available',
     address: '',
     lastDate: '',
-    reason: ''
+    reason: '',
+    serviceIntervalDays: '',
+    serviceIntervalMileage: ''
   });
 
   const resetForm = () => {
@@ -126,7 +130,9 @@ const FleetUnits: React.FC = () => {
       operationStatus: 'available',
       address: '',
       lastDate: '',
-      reason: ''
+      reason: '',
+      serviceIntervalDays: '',
+      serviceIntervalMileage: ''
     });
     setFormError(null);
   };
@@ -195,7 +201,9 @@ const FleetUnits: React.FC = () => {
       operationStatus: unit.operationStatus || 'available',
       address: unit.currentLocation?.address || '',
       lastDate: unit.lastDate ? unit.lastDate.slice(0, 10) : '',
-      reason: unit.reason || ''
+      reason: unit.reason || '',
+      serviceIntervalDays: (unit as any).serviceIntervalDays?.toString() || '',
+      serviceIntervalMileage: (unit as any).serviceIntervalMileage?.toString() || ''
     });
     setFormError(null);
     setShowEditModal(true);
@@ -238,7 +246,9 @@ const FleetUnits: React.FC = () => {
       operationStatus: formData.unitType !== 'Truck' ? formData.operationStatus : undefined,
       address: formData.address.trim() || undefined,
       lastDate: formData.status === 'Inactive' ? formData.lastDate || undefined : undefined,
-      reason: formData.status === 'Inactive' ? formData.reason || undefined : undefined
+      reason: formData.status === 'Inactive' ? formData.reason || undefined : undefined,
+      serviceIntervalDays: formData.serviceIntervalDays ? Number(formData.serviceIntervalDays) : undefined,
+      serviceIntervalMileage: formData.serviceIntervalMileage ? Number(formData.serviceIntervalMileage) : undefined
     };
 
     setSaving(true);
@@ -312,6 +322,31 @@ const FleetUnits: React.FC = () => {
     'Dump Trailer'
   ];
   const operationStatuses = ['available', 'in-transit', 'maintenance', 'idle'];
+
+  // Helper function to format days display
+  const formatDaysDisplay = (days: number): string => {
+    if (!days || days <= 0) return '';
+    if (days < 30) {
+      return `${days} ${days === 1 ? 'day' : 'days'}`;
+    } else if (days < 365) {
+      const months = Math.floor(days / 30);
+      const remainingDays = days % 30;
+      if (remainingDays === 0) {
+        return `${months} ${months === 1 ? 'month' : 'months'}`;
+      }
+      return `${months} ${months === 1 ? 'month' : 'months'} ${remainingDays} ${remainingDays === 1 ? 'day' : 'days'}`;
+    } else {
+      const years = Math.floor(days / 365);
+      const remainingDays = days % 365;
+      const months = Math.floor(remainingDays / 30);
+      if (months === 0 && remainingDays === 0) {
+        return `${years} ${years === 1 ? 'year' : 'years'}`;
+      } else if (remainingDays === 0) {
+        return `${years} ${years === 1 ? 'year' : 'years'} ${months} ${months === 1 ? 'month' : 'months'}`;
+      }
+      return `${years} ${years === 1 ? 'year' : 'years'} ${months} ${months === 1 ? 'month' : 'months'} ${remainingDays} ${remainingDays === 1 ? 'day' : 'days'}`;
+    }
+  };
 
   const activeCount = summary.activeUnits;
   const trucksCount = summary.trucks;
@@ -854,6 +889,43 @@ const FleetUnits: React.FC = () => {
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="0"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Service Interval (Days)
+                      {formData.serviceIntervalDays && (
+                        <span className="ml-2 text-xs font-normal text-gray-500">
+                          ({formatDaysDisplay(Number(formData.serviceIntervalDays))})
+                        </span>
+                      )}
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.serviceIntervalDays}
+                      onChange={(e) => setFormData({ ...formData, serviceIntervalDays: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      placeholder="e.g., 90"
+                      min="0"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Service due after X days</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Service Interval (Mileage)</label>
+                    <input
+                      type="number"
+                      value={formData.serviceIntervalMileage}
+                      onChange={(e) => setFormData({ ...formData, serviceIntervalMileage: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      placeholder="e.g., 2000"
+                      min="0"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Service due after X kilometers</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>

@@ -44,6 +44,8 @@ export interface FleetUnitDto {
   safetyPaperNumber?: string;
   lastInspectionShop?: string;
   lastInspectionInvoice?: string;
+  serviceIntervalDays?: number;
+  serviceIntervalMileage?: number;
   createdAt: string;
   updatedAt: string;
   referenceType?: "vehicle" | "trailer" | "custom";
@@ -108,6 +110,8 @@ export interface FleetUnitPayload {
   safetyPaperNumber?: string;
   lastInspectionShop?: string;
   lastInspectionInvoice?: string;
+  serviceIntervalDays?: number;
+  serviceIntervalMileage?: number;
 }
 
 export const listFleetUnits = async (params?: {
