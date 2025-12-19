@@ -92,6 +92,7 @@ interface Trip {
 const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose: () => void; onSave: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [validationResults, setValidationResults] = useState<any>(null);
 
   const focusHandlers = getFocusStyles();
   const primaryButtonStyle: React.CSSProperties = {
@@ -243,6 +244,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
     if (trip) {
       setDocuments(trip.documents || []);
       setPendingFiles([]); // Clear pending files when editing existing trip
+      setValidationResults(null); // Clear old validation results when editing
 
       // Populate Border Compliance
       if (trip.borderCompliance) {
@@ -716,15 +718,91 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       };
 
 
+      // Collect files to send during trip creation
+      const filesToSend: { documents?: File[], loadSecurementPictures?: File[] } = {};
+      const documentTypes: string[] = [];
+      
+      // Add pending files
+      if (pendingFiles.length > 0) {
+        filesToSend.documents = [...pendingFiles];
+        // Default document type for pending files
+        pendingFiles.forEach(() => documentTypes.push('other'));
+      }
+      
+      // Add typed document files
+      if (bolFile) {
+        if (!filesToSend.documents) filesToSend.documents = [];
+        filesToSend.documents.push(bolFile);
+        documentTypes.push('bol');
+      }
+      if (podFile) {
+        if (!filesToSend.documents) filesToSend.documents = [];
+        filesToSend.documents.push(podFile);
+        documentTypes.push('pod');
+      }
+      if (stampedManifestFile) {
+        if (!filesToSend.documents) filesToSend.documents = [];
+        filesToSend.documents.push(stampedManifestFile);
+        documentTypes.push('stamped_manifest');
+      }
+      
+      // Add documentTypes to tripData if we have files (using type assertion since it's only for FormData)
+      if (filesToSend.documents && filesToSend.documents.length > 0) {
+        (tripData as any).documentTypes = documentTypes;
+      }
+
       let response;
       if (trip?._id) {
         response = await updateTrip(trip._id, tripData);
       } else {
-        response = await createTrip(tripData);
+        // Send files during creation if available
+        response = await createTrip(tripData, filesToSend.documents || filesToSend.loadSecurementPictures ? filesToSend : undefined);
       }
 
+      console.log('📥 Trip save response:', {
+        success: response?.success,
+        hasValidation: !!response?.validation,
+        validationValid: response?.validation?.valid,
+        errorsCount: response?.validation?.errors?.length || 0,
+        message: response?.message
+      });
+
       if (response?.success) {
-        addNotification('success', trip?._id ? 'Trip updated successfully' : 'Trip created successfully');
+        let message = trip?._id ? 'Trip updated successfully' : 'Trip created successfully';
+        
+        // Check for validation results
+        if (response?.validation) {
+          const validation = response.validation;
+          setValidationResults(validation); // Store validation results for display
+          
+          if (validation.errors && validation.errors.length > 0) {
+            const errorMessages = validation.errors.map((e: any) => 
+              `${e.document || 'Document'}: ${e.message}`
+            ).join('; ');
+            addNotification('error', `Trip ${trip?._id ? 'updated' : 'created'} but document validation failed: ${errorMessages}`);
+            message += ` (${validation.errors.length} document error(s))`;
+          } else if (validation.warnings && validation.warnings.length > 0) {
+            // Show warnings in toast - show summary
+            const warningCount = validation.warnings.length;
+            const uniqueDocs = [...new Set(validation.warnings.map((w: any) => w.document || 'Document'))];
+            const warningSummary = uniqueDocs.length > 2 
+              ? `${uniqueDocs.slice(0, 2).join(', ')} and ${uniqueDocs.length - 2} more document(s)`
+              : uniqueDocs.join(', ');
+            
+            // Show warning notification BEFORE success
+            addNotification('warning', `⚠️ ${warningCount} document warning(s): ${warningSummary}. See sidebar for details.`);
+            message += ` (${warningCount} warning(s))`;
+          }
+          if (validation.missing && validation.missing.length > 0) {
+            const missingDocs = validation.missing.map((m: any) => m.type).join(', ');
+            addNotification('warning', `Missing required documents: ${missingDocs}`);
+          }
+        } else {
+          setValidationResults(null); // Clear validation results if none
+        }
+        
+        // Show success notification (warnings/errors are shown separately above)
+        addNotification('success', message);
 
         // If trip was just created and we have pending files, upload them
         if (!trip?._id && response?.data?._id && pendingFiles.length > 0) {
@@ -773,11 +851,102 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           onSave();
         }, 500);
       } else {
-        addNotification('error', response?.message || 'Failed to save trip');
+        console.log('❌ Trip save failed - response:', response);
+        console.log('❌ Validation data:', response?.validation);
+        
+        // Check if it's a validation error
+        if (response?.validation && !response.validation.valid) {
+          setValidationResults(response.validation);
+          
+          // Show detailed validation errors in toast
+          if (response.validation.errors && response.validation.errors.length > 0) {
+            const errorCount = response.validation.errors.length;
+            
+            // Show each error clearly - show immediately for first error
+            response.validation.errors.forEach((err: any, index: number) => {
+              const docName = err.document || 'Document';
+              const docType = err.type || 'document';
+              const mainIssue = err.issues && err.issues.length > 0 
+                ? err.issues[0] 
+                : err.message;
+              
+              // Show each error in a separate notification for clarity
+              if (index === 0) {
+                // First error shows immediately
+                addNotification('error', `❌ ${docName} (${docType}): ${mainIssue}`);
+              } else {
+                // Subsequent errors show with delay
+                setTimeout(() => {
+                  addNotification('error', `❌ ${docName} (${docType}): ${mainIssue}`);
+                }, index * 400);
+              }
+            });
+            
+            // Show summary notification after all individual errors
+            setTimeout(() => {
+              addNotification('error', `⚠️ Trip creation blocked: ${errorCount} document validation error(s). Please upload correct documents and try again.`);
+            }, response.validation.errors.length * 400 + 300);
+          } else {
+            // Fallback if no specific errors
+            addNotification('error', response?.message || response?.details || "Document validation failed");
+          }
+        } else {
+          // Non-validation error - show message or details
+          const errorMsg = response?.message || response?.details || 'Failed to save trip';
+          console.log('❌ Non-validation error:', errorMsg);
+          addNotification('error', errorMsg);
+        }
       }
     } catch (error: any) {
       console.error("Error saving trip:", error);
-      addNotification('error', error?.response?.data?.message || 'An error occurred while saving the trip');
+      console.log('❌ Error object:', {
+        hasResponse: !!error?.response,
+        hasData: !!error?.response?.data,
+        hasValidation: !!error?.response?.data?.validation,
+        message: error?.response?.data?.message,
+        details: error?.response?.data?.details
+      });
+      
+      // Check if error response contains validation data
+      if (error?.response?.data?.validation && !error.response.data.validation.valid) {
+        const validation = error.response.data.validation;
+        setValidationResults(validation);
+        
+        if (validation.errors && validation.errors.length > 0) {
+          const errorCount = validation.errors.length;
+          
+          // Show each error clearly
+          validation.errors.forEach((err: any, index: number) => {
+            const docName = err.document || 'Document';
+            const docType = err.type || 'document';
+            const mainIssue = err.issues && err.issues.length > 0 
+              ? err.issues[0] 
+              : err.message;
+            
+            // Show each error in a separate notification for clarity
+            if (index === 0) {
+              // First error shows immediately
+              addNotification('error', `❌ ${docName} (${docType}): ${mainIssue}`);
+            } else {
+              // Subsequent errors show with delay
+              setTimeout(() => {
+                addNotification('error', `❌ ${docName} (${docType}): ${mainIssue}`);
+              }, index * 400);
+            }
+          });
+          
+          // Show summary notification after all individual errors
+          setTimeout(() => {
+            addNotification('error', `⚠️ Trip creation blocked: ${errorCount} document validation error(s). Please upload correct documents and try again.`);
+          }, validation.errors.length * 400 + 300);
+        } else {
+          addNotification('error', error?.response?.data?.message || error?.response?.data?.details || 'An error occurred while saving the trip');
+        }
+      } else {
+        // Non-validation error
+        const errorMsg = error?.response?.data?.message || error?.response?.data?.details || error?.message || 'An error occurred while saving the trip';
+        addNotification('error', errorMsg);
+      }
     } finally {
       setLoading(false);
     }
@@ -837,13 +1006,44 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       const response = await uploadTripDocument(tripId, file, '', documentType);
       if (response?.success && response?.data) {
         setDocuments(prev => [...prev, response.data]);
-        addNotification('success', 'Document uploaded successfully');
+        
+        // Check for validation results
+        if (response?.validation) {
+          const validation = response.validation;
+          setValidationResults(validation); // Store validation results for display
+          
+          if (validation.errors && validation.errors.length > 0) {
+            const errorMessages = validation.errors.map((e: any) => 
+              `${e.document || 'Document'}: ${e.message}`
+            ).join('; ');
+            addNotification('error', `Document uploaded but validation failed: ${errorMessages}`);
+          } else if (validation.warnings && validation.warnings.length > 0) {
+            const warningMessages = validation.warnings.map((w: any) => 
+              `${w.document || 'Document'}: ${w.message}`
+            ).join('; ');
+            addNotification('warning', `Document uploaded with warnings: ${warningMessages}`);
+          } else {
+            addNotification('success', 'Document uploaded and validated successfully');
+          }
+        } else {
+          addNotification('success', 'Document uploaded successfully');
+        }
+        
         // Clear file state
         if (documentType === 'bol') setBolFile(null);
         else if (documentType === 'pod') setPodFile(null);
         else if (documentType === 'stamped_manifest') setStampedManifestFile(null);
       } else {
-        addNotification('error', response?.message || 'Failed to upload document');
+        // Check if it's a validation error
+        if (response?.validation && !response.validation.valid) {
+          const errorMessages = response.validation.errors?.map((e: any) => 
+            `${e.document || 'Document'}: ${e.message}`
+          ).join('; ') || response?.message || "Document validation failed";
+          addNotification('error', errorMessages);
+          setValidationResults(response.validation);
+        } else {
+          addNotification('error', response?.message || 'Failed to upload document');
+        }
       }
     } catch (error: any) {
       console.error("Error uploading document:", error);
@@ -873,9 +1073,37 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         let failCount = 0;
 
         results.forEach((result) => {
-          if (result.status === 'fulfilled' && result.value?.success && result.value?.data) {
-            setDocuments(prev => [...prev, result.value.data]);
-            successCount++;
+          if (result.status === 'fulfilled') {
+            const response = result.value;
+            if (response?.success && response?.data) {
+              setDocuments(prev => [...prev, response.data]);
+              
+              // Check for validation results
+              if (response?.validation) {
+                const validation = response.validation;
+                setValidationResults(validation); // Store latest validation results
+                
+                if (validation.errors && validation.errors.length > 0) {
+                  const errorMessages = validation.errors.map((e: any) => 
+                    `${e.document || 'Document'}: ${e.message}`
+                  ).join('; ');
+                  addNotification('error', `Document validation failed: ${errorMessages}`);
+                } else if (validation.warnings && validation.warnings.length > 0) {
+                  const warningMessages = validation.warnings.map((w: any) => 
+                    `${w.document || 'Document'}: ${w.message}`
+                  ).join('; ');
+                  addNotification('warning', `Document validation warnings: ${warningMessages}`);
+                }
+              }
+              
+              successCount++;
+            } else {
+              failCount++;
+              // Check if it's a validation error
+              if (response?.validation && !response.validation.valid) {
+                setValidationResults(response.validation);
+              }
+            }
           } else {
             failCount++;
           }
@@ -931,9 +1159,37 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       let failCount = 0;
 
       results.forEach((result) => {
-        if (result.status === 'fulfilled' && result.value?.success && result.value?.data) {
-          setDocuments(prev => [...prev, result.value.data]);
-          successCount++;
+        if (result.status === 'fulfilled') {
+          const response = result.value;
+          if (response?.success && response?.data) {
+            setDocuments(prev => [...prev, response.data]);
+            
+            // Check for validation results
+            if (response?.validation) {
+              const validation = response.validation;
+              setValidationResults(validation); // Store latest validation results
+              
+              if (validation.errors && validation.errors.length > 0) {
+                const errorMessages = validation.errors.map((e: any) => 
+                  `${e.document || 'Document'}: ${e.message}`
+                ).join('; ');
+                addNotification('error', `Document validation failed: ${errorMessages}`);
+              } else if (validation.warnings && validation.warnings.length > 0) {
+                const warningMessages = validation.warnings.map((w: any) => 
+                  `${w.document || 'Document'}: ${w.message}`
+                ).join('; ');
+                addNotification('warning', `Document validation warnings: ${warningMessages}`);
+              }
+            }
+            
+            successCount++;
+          } else {
+            failCount++;
+            // Check if it's a validation error
+            if (response?.validation && !response.validation.valid) {
+              setValidationResults(response.validation);
+            }
+          }
         } else {
           failCount++;
         }
@@ -2321,6 +2577,20 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         </div>
       </div>
 
+      {/* Validation Results Display */}
+      {validationResults && (
+        <div className="px-6 pb-4">
+          <ValidationDisplay validationResults={validationResults} />
+          {/* Clear validation results button */}
+          <button
+            onClick={() => setValidationResults(null)}
+            className="mt-3 text-sm text-gray-600 hover:text-gray-800 underline flex items-center gap-1"
+          >
+            <span>Dismiss validation results</span>
+          </button>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
         <button
@@ -2349,6 +2619,108 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           />
         ))}
       </div>
+    </div>
+  );
+};
+
+// Validation Display Component
+const ValidationDisplay = ({ validationResults }: { validationResults: any }) => {
+  if (!validationResults) return null;
+
+  const { valid, errors, warnings, missing, documentDetails } = validationResults;
+
+  const hasIssues = errors?.length > 0 || warnings?.length > 0 || missing?.length > 0;
+
+  if (!hasIssues) {
+    return (
+      <div className="bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg flex items-center gap-3">
+        <FaCheckCircle size={20} />
+        <p className="font-medium">All documents validated successfully!</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+        <FaExclamationCircle className={valid ? "text-yellow-500" : "text-red-500"} />
+        Document Validation Summary
+      </h3>
+
+      {!valid && errors?.length > 0 && (
+        <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg">
+          <p className="font-medium mb-2">Critical Errors Found:</p>
+          <ul className="list-disc list-inside space-y-1">
+            {errors.map((err: any, i: number) => (
+              <li key={`err-${i}`}>
+                <strong>{err.document || err.type || 'Document'}:</strong> {err.message}
+                {err.issues && err.issues.length > 0 && (
+                  <ul className="list-disc list-inside ml-4 text-sm text-red-700">
+                    {err.issues.map((issue: string, j: number) => (
+                      <li key={`err-issue-${i}-${j}`}>{issue}</li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {warnings?.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-lg">
+          <p className="font-medium mb-2">Warnings:</p>
+          <ul className="list-disc list-inside space-y-1">
+            {warnings.map((warn: any, i: number) => (
+              <li key={`warn-${i}`}>
+                <strong>{warn.document || warn.type || 'Document'}:</strong> {warn.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {missing?.length > 0 && (
+        <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg">
+          <p className="font-medium mb-2">Missing Required Documents:</p>
+          <ul className="list-disc list-inside space-y-1">
+            {missing.map((m: any, i: number) => (
+              <li key={`missing-${i}`}>
+                <strong>{m.type}:</strong> {m.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {documentDetails?.length > 0 && (
+        <div className="space-y-3">
+          <p className="font-medium text-gray-700">Document Details:</p>
+          {documentDetails.map((doc: any, i: number) => (
+            <div key={`doc-detail-${i}`} className="border border-gray-200 rounded-lg p-3 bg-white">
+              <div className="flex items-center gap-2 mb-1">
+                {doc.status === 'valid' && <FaCheckCircle className="text-green-500" size={16} />}
+                {doc.status === 'error' && <FaExclamationCircle className="text-red-500" size={16} />}
+                {doc.status === 'warning' && <FaExclamationCircle className="text-yellow-500" size={16} />}
+                <p className="font-semibold text-gray-800">{doc.document} ({doc.type})</p>
+                {doc.actualType && doc.actualType !== doc.type && (
+                  <span className="text-xs text-red-600 font-medium">(Detected as: {doc.actualType})</span>
+                )}
+              </div>
+              {doc.status !== 'valid' && doc.issues && doc.issues.length > 0 && (
+                <ul className="list-disc list-inside ml-4 text-sm text-gray-600">
+                  {doc.issues.map((issue: string, j: number) => (
+                    <li key={`doc-issue-${i}-${j}`}>{issue}</li>
+                  ))}
+                </ul>
+              )}
+              {doc.expirationDate && (
+                <p className="text-sm text-gray-600 mt-1">Expires: {new Date(doc.expirationDate).toLocaleDateString()}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

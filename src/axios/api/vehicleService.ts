@@ -186,3 +186,16 @@ export const getVehicleServiceById = async (id: string) => {
     return (error as Error).response?.data;
   }
 };
+
+// ✅ GET INCOMING MAINTENANCE COUNT
+export const getIncomingMaintenanceCount = async () => {
+  try {
+    console.log('🚀 FRONTEND: Getting incoming maintenance count');
+    const res: AxiosResponse = await apiClient.get('admin/vehicle-service/incoming-maintenance');
+    console.log('✅ FRONTEND: Incoming maintenance count response:', res.data);
+    return res.data;
+  } catch (error) {
+    console.log('❌ FRONTEND: Get incoming maintenance count error:', error);
+    return (error as Error).response?.data;
+  }
+};

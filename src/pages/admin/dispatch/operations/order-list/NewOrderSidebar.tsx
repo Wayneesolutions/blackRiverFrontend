@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { X, Plus, ChevronDown, ChevronUp, Search, Pencil, Upload, FileText, ArrowLeft, ArrowRight } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaFileAlt, FaUpload, FaCheck } from "react-icons/fa";
-import { listCustomer, createOrder, updateOrder, autoExtractOrderData, getOrderSuggestions } from "../../../../../axios/api/distapcher";
+import { listCustomer, createOrder, updateOrder, getOrderSuggestions } from "../../../../../axios/api/distapcher";
 
 // Color constants
 const PRIMARY_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
@@ -81,6 +81,7 @@ interface NewOrderSidebarProps {
 const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [loading, setLoading] = useState(false);
     const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+    const [validationResults, setValidationResults] = useState<any>(null);
 
     const addNotification = useCallback((type: NotificationType, message: string) => {
         const id = Date.now();
@@ -205,10 +206,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [internalNotes, setInternalNotes] = useState("");
     const [customerNotes, setCustomerNotes] = useState("");
 
-    // Auto-entry states
-    const [showAutoEntryModal, setShowAutoEntryModal] = useState(false);
-    const [autoEntryFile, setAutoEntryFile] = useState<File | null>(null);
-    const [autoEntryLoading, setAutoEntryLoading] = useState(false);
     const [loadSecurementFiles, setLoadSecurementFiles] = useState<File[]>([]);
 
 
@@ -769,32 +766,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         }
     };
 
-    // Auto-entry functions
-    const handleAutoExtract = async () => {
-        if (!autoEntryFile) {
-            addNotification('error', 'Please upload a document');
-            return;
-        }
-
-        setAutoEntryLoading(true);
-        try {
-            const response = await autoExtractOrderData(autoEntryFile);
-
-            if (response?.success && response?.data) {
-                populateFormFromExtractedData(response.data);
-                addNotification('success', 'Order data extracted and populated successfully!');
-                setShowAutoEntryModal(false);
-                setAutoEntryFile(null);
-            } else {
-                addNotification('error', response?.message || 'Failed to extract order data');
-            }
-        } catch (error: any) {
-            console.error('Auto-extract error:', error);
-            addNotification('error', error?.message || 'Failed to extract order data');
-        } finally {
-            setAutoEntryLoading(false);
-        }
-    };
 
     // Get suggestions as user types
     const fetchSuggestions = async (field: string, value: string) => {
@@ -844,86 +815,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         debounce((field: string, value: string) => fetchSuggestions(field, value), 300),
         [selectedCustomer]
     );
-
-    const populateFormFromExtractedData = (data: any) => {
-        // Basic order information
-        if (data.customerOrderNo) setCustomerOrderNo(data.customerOrderNo);
-        if (data.orderType) setLoadType(data.orderType);
-        if (data.freightOn) setFreightOn(data.freightOn);
-        if (data.salesman) setSelectedSalesman(data.salesman);
-        if (data.orderNotes) setOrderNotes(data.orderNotes);
-
-        // Pickup details (NO location auto-population)
-        if (data.pickupDate) setPickupDate(data.pickupDate);
-        if (data.pickupTime) setPickupTime(data.pickupTime);
-        if (data.pickupAppointment !== null && data.pickupAppointment !== undefined) {
-            setPickupAppointment(data.pickupAppointment ? "Yes" : "No");
-        }
-        if (data.pickupNote) setPickupNote(data.pickupNote);
-
-        // Delivery details (NO location auto-population)
-        if (data.deliveryDate) setDeliveryDate(data.deliveryDate);
-        if (data.deliveryTime) setDeliveryTime(data.deliveryTime);
-        if (data.deliveryAppointment !== null && data.deliveryAppointment !== undefined) {
-            setDeliveryAppointment(data.deliveryAppointment ? "Yes" : "No");
-        }
-        if (data.deliveryNote) setDeliveryNote(data.deliveryNote);
-
-        // Shipment details
-        if (data.commodity) setCommodity(data.commodity);
-        if (data.valueOfGoods) setValueOfGoods(data.valueOfGoods.toString());
-        if (data.valueOfGoodsCurrency) setValueOfGoodsCurrency(data.valueOfGoodsCurrency);
-        if (data.equipment && Array.isArray(data.equipment)) {
-            setSelectedEquipment(data.equipment);
-        }
-        if (data.noOfPackages) setNoOfPackages(data.noOfPackages.toString());
-        if (data.noOfPackagesType) setNoOfPackagesType(data.noOfPackagesType);
-        if (data.weight) setWeight(data.weight.toString());
-        if (data.weightUnit) setWeightUnit(data.weightUnit);
-        if (data.temperature !== null && data.temperature !== undefined) {
-            setTemperature(data.temperature.toString());
-        }
-        if (data.temperatureUnit) setTemperatureUnit(data.temperatureUnit);
-        if (data.dimensions) {
-            if (data.dimensions.length) setDimensionL(data.dimensions.length.toString());
-            if (data.dimensions.width) setDimensionB(data.dimensions.width.toString());
-            if (data.dimensions.height) setDimensionH(data.dimensions.height.toString());
-            if (data.dimensions.unit) setDimensionUnit(data.dimensions.unit);
-        }
-        if (data.distance) setDistance(data.distance.toString());
-
-        // Additional info
-        if (data.additionalInfo) {
-            setAdditionalInfo(prev => ({
-                ...prev,
-                CSA: data.additionalInfo.CSA ?? prev.CSA,
-                CTPAT: data.additionalInfo.CTPAT ?? prev.CTPAT,
-                PIP: data.additionalInfo.PIP ?? prev.PIP,
-                HAZMAT: data.additionalInfo.HAZMAT ?? prev.HAZMAT,
-                TARP: data.additionalInfo.TARP ?? prev.TARP,
-                OverDimension: data.additionalInfo.OverDimension ?? prev.OverDimension
-            }));
-        }
-
-        // Shipper information (NO address auto-population)
-        if (data.shipperName) setShipperName(data.shipperName);
-        if (data.shipperPhone) setShipperPhone(data.shipperPhone);
-        if (data.shipperEmail) setShipperEmail(data.shipperEmail);
-        if (data.pickupAppointmentType) setPickupAppointmentType(data.pickupAppointmentType);
-        if (data.pickupAppointmentDate) setPickupAppointmentDate(data.pickupAppointmentDate);
-        if (data.pickupAppointmentTime) setPickupAppointmentTime(data.pickupAppointmentTime);
-        if (data.pickupSpecialInstructions) setPickupSpecialInstructions(data.pickupSpecialInstructions);
-        if (data.pickupGatePass) setPickupGatePass(data.pickupGatePass);
-
-        // Receiver information
-        if (data.receiverName) setReceiverName(data.receiverName);
-        if (data.receiverPhone) setReceiverPhone(data.receiverPhone);
-        if (data.receiverAddress) setReceiverAddress(data.receiverAddress);
-        if (data.deliveryAppointmentType) setDeliveryAppointmentType(data.deliveryAppointmentType);
-        if (data.deliveryAppointmentDate) setDeliveryAppointmentDate(data.deliveryAppointmentDate);
-        if (data.deliveryAppointmentTime) setDeliveryAppointmentTime(data.deliveryAppointmentTime);
-        if (data.deliveryUnloadingInstructions) setDeliveryUnloadingInstructions(data.deliveryUnloadingInstructions);
-    };
 
     // Step navigation
     const nextStep = () => {
@@ -1194,7 +1085,34 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 // Update existing order
                 response = await updateOrder(order._id, formData);
                 if (response?.success) {
-                    addNotification('success', "Order updated successfully!");
+                    let message = "Order updated successfully!";
+                    
+                    // Check for validation results
+                    if (response?.validation) {
+                        const validation = response.validation;
+                        setValidationResults(validation); // Store validation results for display
+                        
+                        if (validation.errors && validation.errors.length > 0) {
+                            const errorMessages = validation.errors.map((e: any) => 
+                                `${e.document || 'Document'}: ${e.message}`
+                            ).join('; ');
+                            addNotification('error', `Order updated but document validation failed: ${errorMessages}`);
+                        } else if (validation.warnings && validation.warnings.length > 0) {
+                            const warningMessages = validation.warnings.map((w: any) => 
+                                `${w.document || 'Document'}: ${w.message}`
+                            ).join('; ');
+                            addNotification('warning', `Order updated with warnings: ${warningMessages}`);
+                            message += ` (${validation.warnings.length} document warning(s))`;
+                        }
+                        if (validation.missing && validation.missing.length > 0) {
+                            const missingDocs = validation.missing.map((m: any) => m.type).join(', ');
+                            addNotification('warning', `Missing required documents: ${missingDocs}`);
+                        }
+                    } else {
+                        setValidationResults(null); // Clear validation results if none
+                    }
+                    
+                    addNotification('success', message);
                     if (onSave) {
                         onSave();
                     }
@@ -1202,13 +1120,49 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         onClose();
                     }
                 } else {
-                    addNotification('error', response?.message || "Failed to update order");
+                    // Check if it's a validation error
+                    if (response?.validation && !response.validation.valid) {
+                        const errorMessages = response.validation.errors?.map((e: any) => 
+                            `${e.document || 'Document'}: ${e.message}`
+                        ).join('; ') || response?.message || "Document validation failed";
+                        addNotification('error', errorMessages);
+                    } else {
+                        addNotification('error', response?.message || "Failed to update order");
+                    }
                 }
             } else {
                 // Create new order
                 response = await createOrder(formData);
                 if (response?.success) {
-                    addNotification('success', "Order created successfully!");
+                    let message = "Order created successfully!";
+                    
+                    // Check for validation results
+                    if (response?.validation) {
+                        const validation = response.validation;
+                        setValidationResults(validation); // Store validation results for display
+                        
+                        if (validation.errors && validation.errors.length > 0) {
+                            // Validation errors should have blocked creation, but show them if present
+                            const errorMessages = validation.errors.map((e: any) => 
+                                `${e.document || 'Document'}: ${e.message}`
+                            ).join('; ');
+                            addNotification('error', `Order created but document validation failed: ${errorMessages}`);
+                        } else if (validation.warnings && validation.warnings.length > 0) {
+                            const warningMessages = validation.warnings.map((w: any) => 
+                                `${w.document || 'Document'}: ${w.message}`
+                            ).join('; ');
+                            addNotification('warning', `Order created with warnings: ${warningMessages}`);
+                            message += ` (${validation.warnings.length} document warning(s))`;
+                        }
+                        if (validation.missing && validation.missing.length > 0) {
+                            const missingDocs = validation.missing.map((m: any) => m.type).join(', ');
+                            addNotification('warning', `Missing required documents: ${missingDocs}`);
+                        }
+                    } else {
+                        setValidationResults(null); // Clear validation results if none
+                    }
+                    
+                    addNotification('success', message);
                     if (onSave) {
                         onSave();
                     }
@@ -1216,7 +1170,15 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         onClose();
                     }
                 } else {
-                    addNotification('error', response?.message || "Failed to create order");
+                    // Check if it's a validation error
+                    if (response?.validation && !response.validation.valid) {
+                        const errorMessages = response.validation.errors?.map((e: any) => 
+                            `${e.document || 'Document'}: ${e.message}`
+                        ).join('; ') || response?.message || "Document validation failed";
+                        addNotification('error', errorMessages);
+                    } else {
+                        addNotification('error', response?.message || "Failed to create order");
+                    }
                 }
             }
         } catch (error) {
@@ -1321,19 +1283,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 <div className="flex-1">
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="text-xl font-bold text-gray-800">{order ? 'Edit Order' : 'Create New Order'}</h2>
-                        {!order && (
-                            <button
-                                onClick={() => setShowAutoEntryModal(true)}
-                                style={{
-                                    background: 'linear-gradient(to right, #016ab2, #063f6f)',
-                                }}
-                                className="px-3 py-1.5 !text-white text-sm font-medium rounded flex items-center gap-2 hover:opacity-90 transition"
-                            >
-                                <Upload className="w-4 h-4" />
-                                AI Auto-Entry
-                            </button>
-
-                        )}
                     </div>
                     {/* Step Indicator */}
                     <div className="flex items-center gap-1 flex-wrap">
@@ -3113,6 +3062,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     }
                 </div >
             </div >
+            
+            {/* Validation Results Display */}
+            {validationResults && (
+                <div className="px-5 pb-4">
+                    <ValidationDisplay validationResults={validationResults} />
+                </div>
+            )}
+            
             {/* Fixed Footer */}
             < div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 shadow-lg" >
                 <div className="flex gap-3 justify-between">
@@ -3169,104 +3126,109 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 }
             </div >
 
-            {/* Auto-Entry Modal */}
-            {
-                showAutoEntryModal && (
-                    <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-[10002] p-4">
-                        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-gray-800">AI Auto-Entry from Document</h3>
-                                <button
-                                    onClick={() => {
-                                        setShowAutoEntryModal(false);
-                                        setAutoEntryFile(null);
-                                    }}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <div className="p-6 space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Upload Rate Confirmation or Order Document (PDF or Text)
-                                    </label>
-                                    <p className="text-xs text-gray-500 mb-3">
-                                        Upload a document to automatically extract and populate order fields. Note: Pickup/Delivery locations, Customer, and Shipper Address will not be auto-populated.
-                                    </p>
-                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                                        {autoEntryFile ? (
-                                            <div className="space-y-2">
-                                                <FileText className="w-12 h-12 text-green-500 mx-auto" />
-                                                <p className="text-sm font-medium text-gray-700">{autoEntryFile.name}</p>
-                                                <button
-                                                    onClick={() => setAutoEntryFile(null)}
-                                                    className="text-sm text-red-600 hover:text-red-700"
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <label className="cursor-pointer">
-                                                <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                                                <p className="text-sm text-gray-600 mb-1">
-                                                    Click to upload or drag and drop
-                                                </p>
-                                                <p className="text-xs text-gray-500">
-                                                    PDF, TXT files up to 20MB
-                                                </p>
-                                                <input
-                                                    type="file"
-                                                    accept=".pdf,.txt"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) {
-                                                            setAutoEntryFile(file);
-                                                        }
-                                                    }}
-                                                    className="hidden"
-                                                />
-                                            </label>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div className="flex gap-3 pt-4 border-t border-gray-200">
-                                    <button
-                                        onClick={() => {
-                                            setShowAutoEntryModal(false);
-                                            setAutoEntryFile(null);
-                                        }}
-                                        className="flex-1 px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleAutoExtract}
-                                        disabled={autoEntryLoading || !autoEntryFile}
-                                        className="flex-1 px-4 py-2 bg-purple-600 text-white rounded text-sm font-medium hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                        {autoEntryLoading ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                Extracting...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Upload className="w-4 h-4" />
-                                                Extract & Populate
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
         </div >
+    );
+};
+
+// Validation Display Component
+const ValidationDisplay = ({ validationResults }: { validationResults: any }) => {
+    if (!validationResults) return null;
+
+    const { valid, errors, warnings, missing, documentDetails } = validationResults;
+
+    const hasIssues = errors?.length > 0 || warnings?.length > 0 || missing?.length > 0;
+
+    if (!hasIssues) {
+        return (
+            <div className="bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg flex items-center gap-3">
+                <FaCheckCircle size={20} />
+                <p className="font-medium">All documents validated successfully!</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <FaExclamationCircle className={valid ? "text-yellow-500" : "text-red-500"} />
+                Document Validation Summary
+            </h3>
+
+            {!valid && errors?.length > 0 && (
+                <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg">
+                    <p className="font-medium mb-2">Critical Errors Found:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                        {errors.map((err: any, i: number) => (
+                            <li key={`err-${i}`}>
+                                <strong>{err.document || err.type || 'Document'}:</strong> {err.message}
+                                {err.issues && err.issues.length > 0 && (
+                                    <ul className="list-disc list-inside ml-4 text-sm text-red-700">
+                                        {err.issues.map((issue: string, j: number) => (
+                                            <li key={`err-issue-${i}-${j}`}>{issue}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            {warnings?.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-lg">
+                    <p className="font-medium mb-2">Warnings:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                        {warnings.map((warn: any, i: number) => (
+                            <li key={`warn-${i}`}>
+                                <strong>{warn.document || warn.type || 'Document'}:</strong> {warn.message}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            {missing?.length > 0 && (
+                <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg">
+                    <p className="font-medium mb-2">Missing Required Documents:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                        {missing.map((m: any, i: number) => (
+                            <li key={`missing-${i}`}>
+                                <strong>{m.type}:</strong> {m.message}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            {documentDetails?.length > 0 && (
+                <div className="space-y-3">
+                    <p className="font-medium text-gray-700">Document Details:</p>
+                    {documentDetails.map((doc: any, i: number) => (
+                        <div key={`doc-detail-${i}`} className="border border-gray-200 rounded-lg p-3 bg-white">
+                            <div className="flex items-center gap-2 mb-1">
+                                {doc.status === 'valid' && <FaCheckCircle className="text-green-500" size={16} />}
+                                {doc.status === 'error' && <FaExclamationCircle className="text-red-500" size={16} />}
+                                {doc.status === 'warning' && <FaExclamationCircle className="text-yellow-500" size={16} />}
+                                <p className="font-semibold text-gray-800">{doc.document} ({doc.type})</p>
+                                {doc.actualType && doc.actualType !== doc.type && (
+                                    <span className="text-xs text-red-600 font-medium">(Detected as: {doc.actualType})</span>
+                                )}
+                            </div>
+                            {doc.status !== 'valid' && doc.issues && doc.issues.length > 0 && (
+                                <ul className="list-disc list-inside ml-4 text-sm text-gray-600">
+                                    {doc.issues.map((issue: string, j: number) => (
+                                        <li key={`doc-issue-${i}-${j}`}>{issue}</li>
+                                    ))}
+                                </ul>
+                            )}
+                            {doc.expirationDate && (
+                                <p className="text-sm text-gray-600 mt-1">Expires: {new Date(doc.expirationDate).toLocaleDateString()}</p>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
     );
 };
 

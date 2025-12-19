@@ -69,7 +69,11 @@ const Dashboard = () => {
     vendorPayment: 0,
     invoiceCount: 0,
     expenseCount: 0,
-    payrollCount: 0
+    payrollCount: 0,
+    employeePaidCount: 0,
+    employeeUnpaidCount: 0,
+    driverPaidCount: 0,
+    driverUnpaidCount: 0
   });
 
   useEffect(() => {
@@ -103,13 +107,25 @@ const Dashboard = () => {
       // Set dashboard statistics from API
       if (dashboardRes?.success && dashboardRes.data) {
         const apiData = dashboardRes.data;
-        // Map old field names to new ones for backward compatibility
         setDashboardStats({
-          ...apiData,
+          totalRevenue: apiData.totalRevenue ?? 0,
+          totalExpenses: apiData.totalExpenses ?? 0,
+          totalPayroll: apiData.totalPayroll ?? 0,
+          netProfit: apiData.netProfit ?? 0,
+          paidInvoices: apiData.paidInvoices ?? 0,
+          unpaidOverdue: apiData.unpaidOverdue ?? 0,
           employeePaid: apiData.employeePaid ?? 0,
-          employeeUnpaid: apiData.employeeUnpaid ?? apiData.paidEmployeeUnpaid ?? 0,
+          employeeUnpaid: apiData.employeeUnpaid ?? 0,
           driverPaid: apiData.driverPaid ?? 0,
-          driverUnpaid: apiData.driverUnpaid ?? apiData.paidDriverUnpaid ?? 0,
+          driverUnpaid: apiData.driverUnpaid ?? 0,
+          vendorPayment: apiData.vendorPayment ?? 0,
+          invoiceCount: apiData.invoiceCount ?? invoicesData.length,
+          expenseCount: apiData.expenseCount ?? expensesData.length,
+          payrollCount: apiData.payrollCount ?? apiData.employeePayrollCount ?? 0,
+          employeePaidCount: apiData.employeePaidCount ?? 0,
+          employeeUnpaidCount: apiData.employeeUnpaidCount ?? 0,
+          driverPaidCount: apiData.driverPaidCount ?? 0,
+          driverUnpaidCount: apiData.driverUnpaidCount ?? 0,
         });
       }
     } catch (error) {
@@ -141,7 +157,7 @@ const Dashboard = () => {
       id: 'revenue',
       title: 'Total Revenue',
       value: `$${totalRevenue.toLocaleString()}`,
-      subtitle: `${invoices.length} invoices`,
+      subtitle: `${dashboardStats.invoiceCount} invoices`,
       icon: DollarSign,
       bgColor: 'bg-green-100',
       iconColor: 'text-green-700',
@@ -151,7 +167,7 @@ const Dashboard = () => {
       id: 'expenses',
       title: 'Total Expenses',
       value: `$${totalExpenses.toLocaleString()}`,
-      subtitle: `${expenses.length} transactions`,
+      subtitle: `${dashboardStats.expenseCount} transactions`,
       icon: TrendingDown,
       bgColor: 'bg-red-100',
       iconColor: 'text-red-700',
@@ -161,7 +177,7 @@ const Dashboard = () => {
       id: 'payroll',
       title: 'Total Payroll',
       value: `$${totalPayroll.toLocaleString()}`,
-      subtitle: `${payrolls.length} employees`,
+      subtitle: `${dashboardStats.payrollCount} employees`,
       icon: Users,
       bgColor: 'bg-blue-100',
       iconColor: 'text-blue-700',
@@ -200,8 +216,8 @@ const Dashboard = () => {
     {
       id: 'employee-paid',
       title: 'Employee Paid',
-      value: `$${dashboardStats.employeePaid.toLocaleString()}`,
-      subtitle: 'Total paid to employees',
+      value: `${dashboardStats.employeePaidCount}`,
+      subtitle: 'employees',
       icon: UserCheck,
       bgColor: 'bg-emerald-100',
       iconColor: 'text-emerald-700',
@@ -210,8 +226,8 @@ const Dashboard = () => {
     {
       id: 'employee-unpaid',
       title: 'Employee Unpaid',
-      value: `$${dashboardStats.employeeUnpaid.toLocaleString()}`,
-      subtitle: 'Pending employee payments',
+      value: `${dashboardStats.employeeUnpaidCount}`,
+      subtitle: 'employees',
       icon: UserX,
       bgColor: 'bg-amber-100',
       iconColor: 'text-amber-700',
@@ -220,8 +236,8 @@ const Dashboard = () => {
     {
       id: 'driver-paid',
       title: 'Driver Paid',
-      value: `$${dashboardStats.driverPaid.toLocaleString()}`,
-      subtitle: 'Total paid to drivers',
+      value: `${dashboardStats.driverPaidCount}`,
+      subtitle: 'drivers',
       icon: Truck,
       bgColor: 'bg-blue-100',
       iconColor: 'text-blue-700',
@@ -230,8 +246,8 @@ const Dashboard = () => {
     {
       id: 'driver-unpaid',
       title: 'Driver Unpaid',
-      value: `$${dashboardStats.driverUnpaid.toLocaleString()}`,
-      subtitle: 'Pending driver payments',
+      value: `${dashboardStats.driverUnpaidCount}`,
+      subtitle: 'drivers',
       icon: Clock,
       bgColor: 'bg-cyan-100',
       iconColor: 'text-cyan-700',

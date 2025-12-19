@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { FaUser, FaSignOutAlt, FaBars, FaChevronDown } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight } from "lucide-react";
+import { Search, X, LogOut, AlertCircle, ArrowRight, Bell } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
+import { getIncomingMaintenanceCount } from "../../axios/api/vehicleService";
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -14,6 +15,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const [incomingMaintenanceCount, setIncomingMaintenanceCount] = useState(0);
 
     const dropdownRef = useRef<HTMLDivElement>(null);
     const searchRef = useRef<HTMLDivElement>(null);
@@ -71,6 +73,39 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     useEffect(() => {
         setSelectedIndex(0);
     }, [searchQuery]);
+
+    // Fetch incoming maintenance count on mount and every 5 minutes
+    useEffect(() => {
+        const fetchIncomingMaintenance = async () => {
+            try {
+                console.log('🔔 [Header] Fetching incoming maintenance count...');
+                const response = await getIncomingMaintenanceCount();
+                console.log('🔔 [Header] Full API Response:', JSON.stringify(response, null, 2));
+                
+                if (response?.success !== false) {
+                    // Check multiple possible response formats
+                    const count = response?.incomingMaintenance ?? response?.count ?? response?.data?.incomingMaintenance ?? response?.data?.count ?? 0;
+                    console.log('🔔 [Header] Extracted count:', count, 'from response keys:', Object.keys(response || {}));
+                    setIncomingMaintenanceCount(Number(count) || 0);
+                } else {
+                    console.warn('🔔 [Header] API response not successful:', response);
+                    setIncomingMaintenanceCount(0);
+                }
+            } catch (error: any) {
+                console.error('🔔 [Header] Error fetching incoming maintenance count:', error);
+                console.error('🔔 [Header] Error details:', error?.response?.data || error?.message);
+                setIncomingMaintenanceCount(0);
+            }
+        };
+
+        // Fetch immediately
+        fetchIncomingMaintenance();
+
+        // Set up interval to fetch every 5 minutes
+        const interval = setInterval(fetchIncomingMaintenance, 5 * 60 * 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const handleLogoutClick = () => {
         setIsDropdownOpen(false);
@@ -160,8 +195,26 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                 </div>
 
 
-                {/* RIGHT: Search + Profile Dropdown */}
+                {/* RIGHT: Search + Notification + Profile Dropdown */}
                 <div className="flex items-center gap-4">
+                    {/* Incoming Maintenance Notification - Always show, even if 0 */}
+                    <button
+                        onClick={() => {
+                            const basePath = isFleetMaintenanceManager ? '/fleetmaintenance' : '/admin/fleetmaintenance';
+                            navigate(`${basePath}/scheduled-services-log?filter=incoming`);
+                        }}
+                        className="relative p-2 rounded-lg hover:bg-white/20 transition-colors !text-white z-10"
+                        title={incomingMaintenanceCount > 0 
+                            ? `${incomingMaintenanceCount} incoming maintenance service(s) due within 30 days`
+                            : 'No incoming maintenance services'
+                        }
+                    >
+                        <Bell size={20} className="relative z-0" />
+                        <span className={`absolute -top-0.5 -right-0.5 text-white text-xs font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center border-2 border-white shadow-lg z-10 ${incomingMaintenanceCount > 0 ? 'bg-red-500' : 'bg-gray-500'}`}>
+                            {incomingMaintenanceCount > 99 ? '99+' : incomingMaintenanceCount}
+                        </span>
+                    </button>
+
                     {/* Search Button */}
                     <button
                         onClick={() => setIsSearchOpen(true)}

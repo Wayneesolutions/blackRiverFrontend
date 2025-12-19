@@ -165,11 +165,6 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
     const formatTripOption = (trip: Trip): string => {
         const tripNumber = trip.tripNumber || 'N/A';
         
-        // Get total miles (convert from km to miles)
-        const totalMiles = trip.route?.totalDistance 
-            ? Math.round(trip.route.totalDistance * 0.621371) 
-            : 0;
-        
         // Get pickup and dropoff locations
         let pickup = 'N/A';
         let dropoff = 'N/A';
@@ -198,7 +193,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
             }
         }
         
-        return `${tripNumber} - ${totalMiles} miles (${pickup} → ${dropoff})`;
+        return `${tripNumber} (${pickup} → ${dropoff})`;
     };
 
     const handleInputChange = (e: any) => {
@@ -306,13 +301,51 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             onChange={(e) => {
                                                 const tripId = e.target.value;
                                                 const selectedTrip = trips.find(t => t._id === tripId);
+                                                
+                                                // Auto-populate driver from trip
+                                                let driverId = '';
+                                                if (selectedTrip?.driver?._id) {
+                                                    driverId = selectedTrip.driver._id;
+                                                }
+                                                
+                                                // Auto-populate vehicle from trip
+                                                // Try to find matching unit by truck ID, plate number, or unitNo
+                                                let vehicleId = '';
+                                                if (selectedTrip?.truck) {
+                                                    const truck = selectedTrip.truck;
+                                                    // Try to find unit by truck _id first
+                                                    const unitById = units.find(u => u.id === truck._id);
+                                                    if (unitById) {
+                                                        vehicleId = unitById.id;
+                                                    } else {
+                                                        // Try to find by plate number or unitNo
+                                                        const unitByPlate = units.find(u => 
+                                                            u.licensePlate === truck.plateNumber || 
+                                                            u.licensePlate === truck.licensePlate ||
+                                                            u.unitNo === truck.unitNo ||
+                                                            u.unitNo === truck.plateNumber
+                                                        );
+                                                        if (unitByPlate) {
+                                                            vehicleId = unitByPlate.id;
+                                                        }
+                                                    }
+                                                }
+                                                
                                                 setFormData(prev => ({
                                                     ...prev,
                                                     trip: tripId,
-                                                    // Auto-populate driver and vehicle from trip if available
-                                                    driver: selectedTrip?.driver?._id || prev.driver,
-                                                    vehicle: selectedTrip?.truck?._id || prev.vehicle
+                                                    driver: driverId || prev.driver,
+                                                    vehicle: vehicleId || prev.vehicle
                                                 }));
+                                                
+                                                console.log('🚗 Trip selected:', {
+                                                    tripId,
+                                                    tripDriver: selectedTrip?.driver,
+                                                    tripTruck: selectedTrip?.truck,
+                                                    autoFilledDriver: driverId,
+                                                    autoFilledVehicle: vehicleId,
+                                                    availableUnits: units.length
+                                                });
                                             }}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                                             style={focusRingStyle}
@@ -336,20 +369,20 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Driver</label>
-                                        {formData.trip && selectedTrip?.driver ? (
-                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
-                                                <div className="font-semibold">{selectedTrip.driver.name}</div>
+                                        {formData.trip && selectedTrip?.driver && formData.driver ? (
+                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-blue-50 text-gray-700 border-blue-200">
+                                                <div className="font-semibold text-blue-900">{selectedTrip.driver.name}</div>
+                                                <div className="text-xs text-blue-600 mt-1">Auto-filled from trip</div>
                                             </div>
                                         ) : (
                                             <select
                                                 name="driver"
                                                 value={formData.driver}
                                                 onChange={handleInputChange}
-                                                disabled={!formData.trip}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                                                 style={focusRingStyle}
                                             >
-                                                <option value="">{formData.trip ? 'Select Driver' : 'Select Trip First'}</option>
+                                                <option value="">Select Driver</option>
                                                 {loadingDrivers ? (
                                                     <option>Loading drivers...</option>
                                                 ) : (
@@ -365,25 +398,25 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle</label>
-                                        {formData.trip && selectedTrip?.truck ? (
-                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
-                                                <div className="font-semibold">
+                                        {formData.trip && selectedTrip?.truck && formData.vehicle ? (
+                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-blue-50 text-gray-700 border-blue-200">
+                                                <div className="font-semibold text-blue-900">
                                                     {selectedTrip.truck.unitNo || selectedTrip.truck.plateNumber || selectedTrip.truck.licensePlate || 'N/A'}
                                                 </div>
                                                 {selectedTrip.truck.makeModel && (
-                                                    <div className="text-xs text-gray-500 mt-1">{selectedTrip.truck.makeModel}</div>
+                                                    <div className="text-xs text-gray-600 mt-1">{selectedTrip.truck.makeModel}</div>
                                                 )}
+                                                <div className="text-xs text-blue-600 mt-1">Auto-filled from trip</div>
                                             </div>
                                         ) : (
                                             <select
                                                 name="vehicle"
                                                 value={formData.vehicle}
                                                 onChange={handleInputChange}
-                                                disabled={!formData.trip}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                                                 style={focusRingStyle}
                                             >
-                                                <option value="">{formData.trip ? 'Select Unit' : 'Select Trip First'}</option>
+                                                <option value="">Select Unit</option>
                                                 {unitsLoading ? (
                                                     <option>Loading units...</option>
                                                 ) : (

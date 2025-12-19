@@ -446,14 +446,14 @@ export const deleteLoad = async (id: string) => {
 }
 
 
-export const listDriver = async (params?: { page?: number; limit?: number; search?: string; status?: string; sortBy?: string; sortOrder?: string }) => {
+export const listDriver = async (params?: { page?: number; limit?: number; search?: string; status?: string; sortBy?: string; sortOrder?: string; assignment?: 'assigned' | 'unassigned' | 'all' }) => {
     try {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.search) queryParams.append('search', params.search);
     if (params?.status) queryParams.append('status', params.status);
-  if ((params as any)?.assignment) queryParams.append('assignment', (params as any).assignment);
+    if (params?.assignment) queryParams.append('assignment', params.assignment);
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
     
@@ -706,13 +706,73 @@ export const deleteOrder = async (id: string) => {
 }
 
 // Trip Management APIs
-export const createTrip = async (tripData: any) => {
+export const createTrip = async (tripData: any, files?: { documents?: File[], loadSecurementPictures?: File[] }) => {
   try {
-    const res: AxiosResponse = await apiClient.post(`dispatcher/trip`, tripData);
-    return res.data;
+    // If files are provided, use FormData; otherwise use JSON
+    if (files && (files.documents?.length || files.loadSecurementPictures?.length)) {
+      const formData = new FormData();
+      
+      // Append all trip data fields
+      Object.keys(tripData).forEach(key => {
+        const value = tripData[key];
+        if (value !== null && value !== undefined) {
+          if (Array.isArray(value)) {
+            // Handle arrays (like orders)
+            value.forEach((item, index) => {
+              if (typeof item === 'object' && item !== null) {
+                // For objects, stringify them
+                formData.append(`${key}[${index}]`, JSON.stringify(item));
+              } else {
+                formData.append(`${key}[${index}]`, String(item));
+              }
+            });
+          } else if (typeof value === 'object' && value !== null) {
+            // Stringify objects
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, String(value));
+          }
+        }
+      });
+      
+      // Append document files
+      if (files.documents) {
+        files.documents.forEach((file, index) => {
+          formData.append('documents', file);
+          // If documentType is provided in tripData, append it
+          if (tripData.documentTypes && tripData.documentTypes[index]) {
+            formData.append(`documentType`, tripData.documentTypes[index]);
+          }
+        });
+        // Remove documentTypes from tripData before stringifying (it's only for FormData)
+        delete tripData.documentTypes;
+      }
+      
+      // Append load securement pictures
+      if (files.loadSecurementPictures) {
+        files.loadSecurementPictures.forEach(file => {
+          formData.append('loadSecurementPictures', file);
+        });
+      }
+      
+      const res: AxiosResponse = await apiClient.post(`dispatcher/trip`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return res.data;
+    } else {
+      // No files, send as JSON
+      const res: AxiosResponse = await apiClient.post(`dispatcher/trip`, tripData);
+      return res.data;
+    }
   } catch (error: any) {
     console.error('createTrip API error:', error);
-    throw error?.response?.data || error;
+    // Return error response data instead of throwing, so validation errors can be handled
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+    throw error;
   }
 };
 
@@ -850,22 +910,7 @@ export const createBulkOrders = async (orders: any[]) => {
   }
 }
 
-export const autoExtractOrderData = async (document: File) => {
-  try {
-    const formData = new FormData();
-    formData.append('document', document);
-    
-    const res: AxiosResponse = await apiClient.post(`dispatcher/order/auto-extract`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    return res.data;
-  } catch (error: any) {
-    console.error('autoExtractOrderData API error:', error);
-    return error?.response?.data || { success: false, message: error?.message || 'Failed to extract order data' };
-  }
-}
+// Note: autoExtractOrderData has been removed - document validation is now integrated into createOrder and updateOrder
 
 export const getOrderSuggestions = async (field: string, value: string, customerId?: string) => {
   try {

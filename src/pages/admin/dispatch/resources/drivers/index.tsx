@@ -362,6 +362,9 @@ const DriversTable = () => {
                                             Current Assignment
                                         </th>
                                         <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Route
+                                        </th>
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Miles / Loads
                                         </th>
                                         <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -512,6 +515,26 @@ const DriversTable = () => {
                                                         );
                                                     })()}
                                                 </td>
+                                                <td className="px-6 py-4">
+                                                    {(() => {
+                                                        const activeTrip = driver.activeTrip;
+                                                        if (!activeTrip || !activeTrip.route) {
+                                                            return <span className="text-xs text-gray-400">No route</span>;
+                                                        }
+                                                        return (
+                                                            <div className="max-w-xs">
+                                                                <div className="text-sm font-medium text-gray-900 truncate" title={activeTrip.route}>
+                                                                    {activeTrip.route}
+                                                                </div>
+                                                                {activeTrip.tripNumber && (
+                                                                    <div className="text-xs text-gray-500 mt-1">
+                                                                        Trip #{activeTrip.tripNumber}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     {(() => {
                                                         const milesInsight = driverMiles[driver._id];
@@ -553,7 +576,7 @@ const DriversTable = () => {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                                            <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
                                                 <div className="flex flex-col items-center space-y-3">
                                                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
                                                         <User className="w-8 h-8 text-gray-300" />

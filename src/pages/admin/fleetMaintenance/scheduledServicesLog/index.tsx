@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import ExcelJS from 'exceljs';
 import { Plus, Edit, Trash2, Search, Download, AlertCircle, Clock } from 'lucide-react';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
+import { useLocation } from 'react-router-dom';
 import {
   listVehicleServices,
   createVehicleService,
@@ -71,6 +72,9 @@ interface UnitOption {
   makeModel?: string;
   referenceType?: string;
   referenceId?: string;
+  currentOdometer?: number;
+  serviceIntervalDays?: number;
+  serviceIntervalMileage?: number;
 }
 
 const getServiceTypeLabel = (value: string) => {
@@ -95,11 +99,14 @@ interface ServiceFormState {
   odometer: string;
   invoiceNo: string;
   notes: string;
+  status: string;
 }
 
 const ScheduledServicesLog: React.FC = () => {
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterServiceType, setFilterServiceType] = useState<ServiceTypeFilter>('all');
+  const [filterIncoming, setFilterIncoming] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -119,8 +126,21 @@ const ScheduledServicesLog: React.FC = () => {
     serviceType: SERVICE_TYPE_OPTIONS[0].value,
     odometer: '',
     invoiceNo: '',
-    notes: ''
+    notes: '',
+    status: 'pending'
   });
+
+  // Check URL query parameter for incoming maintenance filter
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const shouldFilter = searchParams.get('filter') === 'incoming';
+    console.log('🔍 [ScheduledServicesLog] URL filter check:', { 
+      search: location.search, 
+      filterParam: searchParams.get('filter'),
+      shouldFilter 
+    });
+    setFilterIncoming(shouldFilter);
+  }, [location.search]);
 
   const mapApiService = useCallback((service: VehicleServiceResponse): ScheduledService => {
     const unitNo =
@@ -159,7 +179,10 @@ const ScheduledServicesLog: React.FC = () => {
             unitType: unit.unitType,
             makeModel: unit.makeModel,
             referenceType: unit.referenceType,
-            referenceId: unit.referenceId
+            referenceId: unit.referenceId,
+            currentOdometer: unit.currentOdometer,
+            serviceIntervalDays: unit.serviceIntervalDays,
+            serviceIntervalMileage: unit.serviceIntervalMileage
           })) || [];
         setUnits(unitOptions);
       }
@@ -201,17 +224,120 @@ const ScheduledServicesLog: React.FC = () => {
     fetchServices();
   }, [fetchServices]);
 
+  // Helper function to check if a service is incoming maintenance
+  // This must match the logic in summaryStats exactly
+  const isIncomingService = useCallback((service: ScheduledService, fleetUnitsMap: Map<string, UnitOption>): boolean => {
+    if (service.status === 'completed') return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let isIncoming = false;
+
+    // Check if service has a due date within 30 days
+    if (service.dueDate) {
+      const dueDate = new Date(service.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+      const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysUntilDue >= 0 && daysUntilDue <= 30) {
+        isIncoming = true;
+      }
+      // Also check if overdue by date
+      if (daysUntilDue < 0) {
+        isIncoming = true;
+      }
+    }
+
+    // Check if service is due based on mileage (within 7,500 km)
+    // Use service odometer, or try to get from fleet unit
+    const fleetUnit = service.unitNo ? fleetUnitsMap.get(service.unitNo) : null;
+    const serviceOdometer = service.odometer ?? (fleetUnit?.currentOdometer ?? null);
+    
+    if (service.dueMileage && serviceOdometer !== null && serviceOdometer !== undefined) {
+      const remainingKm = service.dueMileage - serviceOdometer;
+      if (remainingKm >= 0 && remainingKm <= 7500) {
+        isIncoming = true;
+      }
+      // Also check if overdue by mileage
+      if (remainingKm < 0) {
+        isIncoming = true;
+      }
+    }
+
+    // Check using fleet unit service intervals if available
+    if (fleetUnit) {
+      // Check mileage interval from fleet unit
+      if (fleetUnit.serviceIntervalMileage && fleetUnit.currentOdometer !== undefined && fleetUnit.currentOdometer !== null) {
+        // Calculate next service mileage based on interval
+        const lastServiceMileage = service.dueMileage 
+          ? service.dueMileage - fleetUnit.serviceIntervalMileage 
+          : fleetUnit.currentOdometer;
+        const nextServiceMileage = lastServiceMileage + fleetUnit.serviceIntervalMileage;
+        const remainingKm = nextServiceMileage - fleetUnit.currentOdometer;
+        
+        if (remainingKm >= 0 && remainingKm <= 7500) {
+          isIncoming = true;
+        }
+        if (remainingKm < 0) {
+          isIncoming = true; // Overdue
+        }
+      }
+
+      // Check days interval from fleet unit
+      if (fleetUnit.serviceIntervalDays && service.serviceDate) {
+        const lastServiceDate = new Date(service.serviceDate);
+        const nextServiceDate = new Date(lastServiceDate);
+        nextServiceDate.setDate(nextServiceDate.getDate() + fleetUnit.serviceIntervalDays);
+        const daysUntilDue = Math.ceil((nextServiceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysUntilDue >= 0 && daysUntilDue <= 30) {
+          isIncoming = true;
+        }
+        if (daysUntilDue < 0) {
+          isIncoming = true; // Overdue
+        }
+      }
+    }
+
+    // Include all pending and in-progress services as incoming maintenance if not already marked
+    if (!isIncoming && (service.status === 'pending' || service.status === 'in-progress')) {
+      isIncoming = true;
+    }
+
+    return isIncoming;
+  }, []);
+
   const filteredServices = useMemo(() => {
-    return services.filter((service) => {
+    // Create a map of fleet units by unitNo for quick lookup
+    const fleetUnitsMap = new Map(
+      units.map(unit => [unit.unitNo, unit])
+    );
+
+    const filtered = services.filter((service) => {
       const matchesSearch =
         !searchTerm ||
         service.unitNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (service.makeModel || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (service.invoiceNo || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = filterServiceType === 'all' || service.serviceType === filterServiceType;
-      return matchesSearch && matchesType;
+      
+      // Apply incoming filter if active
+      let matchesIncoming = true;
+      if (filterIncoming) {
+        matchesIncoming = isIncomingService(service, fleetUnitsMap);
+      }
+      
+      return matchesSearch && matchesType && matchesIncoming;
     });
-  }, [services, searchTerm, filterServiceType]);
+
+    console.log('🔍 [ScheduledServicesLog] Filtered services:', {
+      totalServices: services.length,
+      filterIncoming,
+      filteredCount: filtered.length,
+      unitsCount: units.length
+    });
+
+    return filtered;
+  }, [services, searchTerm, filterServiceType, filterIncoming, units, isIncomingService]);
 
   // Calculate summary statistics
   const summaryStats = useMemo(() => {
@@ -221,9 +347,17 @@ const ScheduledServicesLog: React.FC = () => {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     thirtyDaysAgo.setHours(0, 0, 0, 0);
 
+    // Create a map of fleet units by unitNo for quick lookup
+    const fleetUnitsMap = new Map(
+      units.map(unit => [unit.unitNo, unit])
+    );
+
     // Calculate incoming maintenance (services due within next 7,500 km or 30 days)
+    // Also considers fleet unit service intervals (days and mileage)
     const incomingServices = services.filter((service) => {
       if (service.status === 'completed') return false;
+
+      let isIncoming = false;
 
       // Check if service has a due date within 30 days
       if (service.dueDate) {
@@ -231,20 +365,66 @@ const ScheduledServicesLog: React.FC = () => {
         dueDate.setHours(0, 0, 0, 0);
         const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         if (daysUntilDue >= 0 && daysUntilDue <= 30) {
-          return true;
+          isIncoming = true;
+        }
+        // Also check if overdue
+        if (daysUntilDue < 0) {
+          isIncoming = true; // Overdue is also incoming
         }
       }
 
       // Check if service is due based on mileage (within 7,500 km)
-      if (service.dueMileage && service.odometer !== undefined) {
-        const remainingKm = service.dueMileage - service.odometer;
+      // Use service odometer, or try to get from fleet unit
+      const fleetUnit = service.unitNo ? fleetUnitsMap.get(service.unitNo) : null;
+      const serviceOdometer = service.odometer ?? (fleetUnit?.currentOdometer ?? null);
+      
+      if (service.dueMileage && serviceOdometer !== null && serviceOdometer !== undefined) {
+        const remainingKm = service.dueMileage - serviceOdometer;
         if (remainingKm >= 0 && remainingKm <= 7500) {
-          return true;
+          isIncoming = true;
+        }
+        // Also check if overdue by mileage
+        if (remainingKm < 0) {
+          isIncoming = true;
         }
       }
 
-      // Include all pending and in-progress services as incoming maintenance
-      return service.status === 'pending' || service.status === 'in-progress';
+      // Check using fleet unit service intervals if available
+      if (fleetUnit) {
+        // Check mileage interval from fleet unit
+        if (fleetUnit.serviceIntervalMileage && fleetUnit.currentOdometer !== undefined && fleetUnit.currentOdometer !== null) {
+          // Calculate next service mileage based on interval
+          const lastServiceMileage = service.dueMileage 
+            ? service.dueMileage - fleetUnit.serviceIntervalMileage 
+            : fleetUnit.currentOdometer;
+          const nextServiceMileage = lastServiceMileage + fleetUnit.serviceIntervalMileage;
+          const remainingKm = nextServiceMileage - fleetUnit.currentOdometer;
+          
+          if (remainingKm >= 0 && remainingKm <= 7500) {
+            isIncoming = true;
+          }
+          if (remainingKm < 0) {
+            isIncoming = true; // Overdue
+          }
+        }
+
+        // Check days interval from fleet unit
+        if (fleetUnit.serviceIntervalDays && service.serviceDate) {
+          const lastServiceDate = new Date(service.serviceDate);
+          const nextServiceDate = new Date(lastServiceDate);
+          nextServiceDate.setDate(nextServiceDate.getDate() + fleetUnit.serviceIntervalDays);
+          const daysUntilDue = Math.ceil((nextServiceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (daysUntilDue >= 0 && daysUntilDue <= 30) {
+            isIncoming = true;
+          }
+          if (daysUntilDue < 0) {
+            isIncoming = true; // Overdue
+          }
+        }
+      }
+
+      return isIncoming;
     });
 
     const incomingMaintenance = incomingServices.length;
@@ -381,7 +561,8 @@ const ScheduledServicesLog: React.FC = () => {
       serviceType: SERVICE_TYPE_OPTIONS[0].value,
       odometer: '',
       invoiceNo: '',
-      notes: ''
+      notes: '',
+      status: 'pending'
     });
     setShowAddModal(true);
   };
@@ -397,7 +578,8 @@ const ScheduledServicesLog: React.FC = () => {
       serviceType: service.serviceType,
       odometer: service.odometer?.toString() || '',
       invoiceNo: service.invoiceNo || '',
-      notes: service.notes || ''
+      notes: service.notes || '',
+      status: service.status || 'pending'
     });
     setShowEditModal(true);
   };
@@ -432,7 +614,7 @@ const ScheduledServicesLog: React.FC = () => {
       dueMileage: formData.odometer ? Number(formData.odometer) : 0,
       assignedMechanic: 'Fleet Team',
       description: formData.notes,
-      status: 'completed',
+      status: (formData.status as 'pending' | 'in-progress' | 'completed') || 'pending',
       serviceDate: formData.serviceDate,
       odometer: formData.odometer ? Number(formData.odometer) : undefined,
       invoiceNumber: formData.invoiceNo || undefined,
@@ -626,7 +808,24 @@ const ScheduledServicesLog: React.FC = () => {
                   onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                 />
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {filterIncoming && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-100 border border-orange-300 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm font-medium text-orange-800">Incoming Maintenance</span>
+                    <button
+                      onClick={() => {
+                        setFilterIncoming(false);
+                        // Remove query parameter from URL
+                        window.history.replaceState({}, '', location.pathname);
+                      }}
+                      className="ml-1 text-orange-600 hover:text-orange-800"
+                      title="Clear filter"
+                    >
+                      <FaTimes className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
                 <label className="text-sm font-medium text-gray-700">Service Type:</label>
                 <select
                   value={filterServiceType}
@@ -672,8 +871,32 @@ const ScheduledServicesLog: React.FC = () => {
                     </tr>
                   ) : filteredServices.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
-                        No services found
+                      <td colSpan={10} className="px-6 py-12 text-center">
+                        {filterIncoming ? (
+                          <div className="flex flex-col items-center gap-3">
+                            <AlertCircle className="w-10 h-10 text-orange-500" />
+                            <div>
+                              <p className="text-lg font-semibold text-gray-900 mb-1">No incoming maintenance services found</p>
+                              <p className="text-sm text-gray-500">
+                                {services.length > 0 
+                                  ? `There are ${services.length} total service${services.length !== 1 ? 's' : ''}, but none match the incoming maintenance criteria (due within 30 days or 7,500 km).`
+                                  : 'No services have been created yet.'
+                                }
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setFilterIncoming(false);
+                                window.history.replaceState({}, '', location.pathname);
+                              }}
+                              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                            >
+                              Show All Services
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-gray-500">No services found</p>
+                        )}
                       </td>
                     </tr>
                   ) : (
@@ -841,6 +1064,21 @@ const ScheduledServicesLog: React.FC = () => {
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                           placeholder="INV-2024-001 (optional)"
                         />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                        <select
+                          value={formData.status}
+                          onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                          onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="in-progress">In Progress</option>
+                          <option value="completed">Completed</option>
+                        </select>
                       </div>
                     </div>
                     <div>

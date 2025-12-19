@@ -10,7 +10,6 @@ import {
   X,
   Phone,
   MapPin,
-  Trash2
 } from 'lucide-react';
 import { listTrip, updateTrip } from '../../../../axios/api/distapcher';
 
@@ -92,8 +91,8 @@ const UnifiedSchedulingPage = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Scheduling specific states
-  const [activeTab, setActiveTab] = useState<"unscheduled" | "scheduled">("unscheduled");
+  // Scheduling specific states - only show scheduled trips
+  const [activeTab] = useState<"scheduled">("scheduled");
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedTime, setSelectedTime] = useState(DEFAULT_SCHEDULE_TIME);
   const [draggedTrip, setDraggedTrip] = useState<Trip | null>(null);
@@ -221,7 +220,6 @@ const UnifiedSchedulingPage = () => {
   }, [fetchTrips]);
 
   const scheduledTrips = trips.filter((trip) => trip.scheduledDate || trip.plannedStartDate);
-  const unscheduledTrips = trips.filter((trip) => !trip.scheduledDate && !trip.plannedStartDate);
 
   // Filter trips based on selected filters
   const filteredTrips = useMemo(() => {
@@ -246,7 +244,8 @@ const UnifiedSchedulingPage = () => {
     return Array.from(driverMap.values());
   }, [trips]);
 
-  const currentTrips = activeTab === "scheduled" ? scheduledTrips : unscheduledTrips;
+  // Only show scheduled trips
+  const currentTrips = scheduledTrips;
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
@@ -304,15 +303,6 @@ const UnifiedSchedulingPage = () => {
     }
   };
 
-  const unscheduleTrip = async (trip: Trip) => {
-    if (!trip._id) return;
-    try {
-      await updateTrip(trip._id, { plannedStartDate: null });
-      await fetchTrips({ suppressLoading: true });
-    } catch (error) {
-      console.error("Error unscheduling trip:", error);
-    }
-  };
 
   const handleDragStart = (trip: Trip) => setDraggedTrip(trip);
   const handleDragEnd = () => setDraggedTrip(null);
@@ -446,10 +436,6 @@ const UnifiedSchedulingPage = () => {
                   <span><strong>{scheduledTrips.length}</strong> Scheduled</span>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span><strong>{unscheduledTrips.length}</strong> Unscheduled</span>
-                </div>
-                <div className="flex items-center space-x-1">
                   <Truck className="w-3.5 h-3.5" />
                   <span><strong>{trips.length}</strong> Total</span>
                 </div>
@@ -465,14 +451,10 @@ const UnifiedSchedulingPage = () => {
           </div>
 
           {/* Quick Info Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-md p-3 border border-blue-200">
               <div className="text-xl font-bold text-blue-700">{scheduledTrips.length}</div>
               <div className="text-xs text-blue-600">Scheduled Trips</div>
-            </div>
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-md p-3 border border-orange-200">
-              <div className="text-xl font-bold text-orange-700">{unscheduledTrips.length}</div>
-              <div className="text-xs text-orange-600">Pending Scheduling</div>
             </div>
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-md p-3 border border-green-200">
               <div className="text-xl font-bold text-green-700">{trips.filter(t => t.status === 'completed').length}</div>
@@ -547,130 +529,60 @@ const UnifiedSchedulingPage = () => {
 
       <div className="w-full mx-auto p-5">
         <div className="flex flex-col gap-5">
-          {/* Trip Management - Top Section */}
+          {/* Scheduled Trips List - Collapsible Sidebar */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-3.5 border-b border-gray-200 bg-gray-50">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2.5">Trip Management</h3>
-              <div className="flex">
-                <button
-                  onClick={() => setActiveTab("unscheduled")}
-                  className={`flex-1 px-3.5 py-1.5 text-sm font-medium border-b-2 transition-colors
-                    ${activeTab === "unscheduled"
-                      ? "border-blue-500 text-blue-600 bg-blue-50"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                    }`}
-                >
-                  Unscheduled ({unscheduledTrips.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab("scheduled")}
-                  className={`flex-1 px-3.5 py-1.5 text-sm font-medium border-b-2 transition-colors
-                    ${activeTab === "scheduled"
-                      ? "border-blue-500 text-blue-600 bg-blue-50"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                    }`}
-                >
-                  Scheduled ({scheduledTrips.length})
-                </button>
-              </div>
+              <h3 className="text-sm font-semibold text-gray-700">Scheduled Trips ({scheduledTrips.length})</h3>
             </div>
 
-            <div className="p-3.5 max-h-[280px] overflow-y-auto">
+            <div className="p-3.5 max-h-[200px] overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-                {currentTrips.length > 0 ? (
-                  currentTrips.map((trip) => (
+                {scheduledTrips.length > 0 ? (
+                  scheduledTrips.map((trip) => (
                     <div
                       key={trip._id || trip.id}
-                      draggable={activeTab === "unscheduled"}
-                      onDragStart={() => handleDragStart(trip)}
-                      onDragEnd={handleDragEnd}
-                      className={`p-2.5 rounded-md border cursor-pointer transition-all hover:shadow-md
-                        ${activeTab === "scheduled"
-                          ? "bg-green-50 border-green-200"
-                          : "bg-gray-50 border-gray-200"
-                        }
-                        ${draggedTrip?._id === trip._id ? "opacity-50" : ""}
-                      `}
+                      className="p-2.5 rounded-md border bg-green-50 border-green-200 cursor-pointer transition-all hover:shadow-md"
                       onClick={() => {
-                        if (activeTab === "unscheduled") {
-                          setSelectedTrip(trip);
-                          const baseDate = trip.scheduledDate
-                            ? (typeof trip.scheduledDate === 'string' ? new Date(trip.scheduledDate) : trip.scheduledDate)
-                            : new Date();
-                          setCurrentDate(baseDate);
-                          setSelectedTime(formatTimeFromDate(trip.plannedStartDate));
-                          setShowScheduleModal(true);
-                        } else {
-                          setSelectedTrip(trip);
-                        }
+                        setSelectedTrip(trip);
                       }}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">
-                            {getTripIdentifier(trip)}
-                          </div>
-                          <div className="text-sm text-gray-600 flex items-center mt-1">
-                            <User className="w-3 h-3 mr-1 flex-shrink-0" />
-                            <span className="truncate">{trip.driverName || trip.driver?.name || 'No driver'}</span>
-                          </div>
-                          {getCustomerName(trip) !== "No customer" && (
-                            <div className="text-xs text-gray-500 mt-1 truncate">
-                              {getCustomerName(trip)}
-                            </div>
-                          )}
-                          <div className="text-xs text-gray-500 mt-2 flex items-center">
-                            <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
-                            <span className="capitalize">{trip.status}</span>
-                          </div>
-                          {trip.scheduledDate && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {typeof trip.scheduledDate === 'string'
-                                ? new Date(trip.scheduledDate).toLocaleDateString("en-GB")
-                                : trip.scheduledDate.toLocaleDateString("en-GB")
-                              }
-                            </div>
-                          )}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-900 truncate">
+                          {getTripIdentifier(trip)}
                         </div>
-                        <div className="flex flex-col space-y-1 ml-2">
-                          {activeTab === "scheduled" && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                unscheduleTrip(trip);
-                              }}
-                              className="p-1 text-red-600 hover:bg-red-100 rounded"
-                              title="Unschedule"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          )}
-                          {activeTab === "unscheduled" && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedTrip(trip);
-                                const baseDate = trip.scheduledDate
-                                  ? (typeof trip.scheduledDate === 'string' ? new Date(trip.scheduledDate) : trip.scheduledDate)
-                                  : new Date();
-                                setCurrentDate(baseDate);
-                                setSelectedTime(formatTimeFromDate(trip.plannedStartDate));
-                                setShowScheduleModal(true);
-                              }}
-                              className="p-1 text-blue-600 hover:bg-blue-100 rounded"
-                              title="Schedule"
-                            >
-                              <Calendar className="w-3 h-3" />
-                            </button>
-                          )}
+                        <div className="text-sm text-gray-600 flex items-center mt-1">
+                          <User className="w-3 h-3 mr-1 flex-shrink-0" />
+                          <span className="truncate">{trip.driverName || trip.driver?.name || 'No driver'}</span>
                         </div>
+                        {getCustomerName(trip) !== "No customer" && (
+                          <div className="text-xs text-gray-500 mt-1 truncate">
+                            {getCustomerName(trip)}
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-500 mt-2 flex items-center">
+                          <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
+                          <span className="capitalize">{trip.status}</span>
+                        </div>
+                        {trip.scheduledDate && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {typeof trip.scheduledDate === 'string'
+                              ? new Date(trip.scheduledDate).toLocaleDateString("en-GB")
+                              : trip.scheduledDate.toLocaleDateString("en-GB")
+                            }
+                          </div>
+                        )}
+                        {trip.plannedStartDate && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {formatTime(trip.plannedStartDate)}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="col-span-full text-center py-7">
                     <Truck className="mx-auto mb-2.5 text-gray-300" size={30} />
-                    <p className="text-gray-500 text-sm">No {activeTab} trips found</p>
+                    <p className="text-gray-500 text-sm">No scheduled trips found</p>
                     {emptyStateMessage && (
                       <p className="text-xs text-gray-400 mt-1">{emptyStateMessage}</p>
                     )}
@@ -816,7 +728,7 @@ const UnifiedSchedulingPage = () => {
                     </div>
                   </div>
                   <div className="mt-1.5 text-xs text-gray-500">
-                    💡 Drag unscheduled trips from above to calendar dates to schedule them
+                    💡 Click on calendar dates to view scheduled trips
                   </div>
                 </div>
               </>
@@ -1135,30 +1047,12 @@ const UnifiedSchedulingPage = () => {
                 )}
 
                 <div className="flex justify-end space-x-3 pt-4 border-t">
-                  {!selectedTrip.plannedStartDate && (
-                    <button
-                      onClick={() => {
-                        setShowScheduleModal(true);
-                      }}
-                      className="px-4 py-2 text-sm font-medium text-white rounded-md"
-                      style={{
-                        background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
-                      }}
-                    >
-                      Schedule This Trip
-                    </button>
-                  )}
-                  {selectedTrip.plannedStartDate && (
-                    <button
-                      onClick={() => {
-                        unscheduleTrip(selectedTrip);
-                        setSelectedTrip(null);
-                      }}
-                      className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100"
-                    >
-                      Unschedule
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setSelectedTrip(null)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </div>

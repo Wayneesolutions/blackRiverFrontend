@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DollarSign,
   TrendingUp,
@@ -15,6 +15,7 @@ import {
   ArrowDownRight,
   Filter
 } from 'lucide-react';
+import { getFinanceReport } from '../../../../axios/api/account.financeReport';
 import {
   BarChart,
   Bar,
@@ -73,9 +74,51 @@ interface TimeBasedReport {
 const FinanceReport = () => {
   const [activeView, setActiveView] = useState<ViewType>('overview');
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('monthly');
+  const [loading, setLoading] = useState(true);
+  const [overview, setOverview] = useState({
+    totalRevenue: 0,
+    totalExpenses: 0,
+    totalPayroll: 0,
+    netProfit: 0,
+    totalTrips: 0,
+    activeTrucks: 0
+  });
+  const [truckFinancialData, setTruckFinancialData] = useState<TruckFinancialData[]>([]);
+  const [tripFinancialData, setTripFinancialData] = useState<TripFinancialData[]>([]);
+  const [timeBasedData, setTimeBasedData] = useState<TimeBasedReport[]>([]);
 
-  // Static Truck-wise Financial Data
-  const truckFinancialData: TruckFinancialData[] = [
+  // Fetch finance report data
+  useEffect(() => {
+    fetchFinanceReport();
+  }, [timePeriod]);
+
+  const fetchFinanceReport = async () => {
+    setLoading(true);
+    try {
+      const response = await getFinanceReport({ period: timePeriod });
+      console.log('📊 [Finance Report Frontend] API Response:', {
+        success: response?.success,
+        hasData: !!response?.data,
+        timeBasedCount: response?.data?.timeBased?.length || 0,
+        timeBased: response?.data?.timeBased
+      });
+      
+      if (response?.success && response?.data) {
+        setOverview(response.data.overview || overview);
+        setTruckFinancialData(response.data.truckWise || []);
+        setTripFinancialData(response.data.tripWise || []);
+        // Always set timeBasedData, even if empty array, to avoid using static fallback
+        setTimeBasedData(response.data.timeBased || []);
+      }
+    } catch (error) {
+      console.error('Error fetching finance report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Static Truck-wise Financial Data (fallback)
+  const staticTruckFinancialData: TruckFinancialData[] = [
     {
       id: '1',
       truckNumber: 'TRK-001',
@@ -138,8 +181,8 @@ const FinanceReport = () => {
     }
   ];
 
-  // Static Trip-wise Financial Data
-  const tripFinancialData: TripFinancialData[] = [
+  // Static Trip-wise Financial Data (fallback)
+  const staticTripFinancialData: TripFinancialData[] = [
     {
       id: '1',
       tripNumber: 'TRP-2024-001',
@@ -220,8 +263,8 @@ const FinanceReport = () => {
     }
   ];
 
-  // Static Monthly Reports
-  const monthlyReports: TimeBasedReport[] = [
+  // Static Monthly Reports (fallback)
+  const staticMonthlyReports: TimeBasedReport[] = [
     {
       period: 'January 2024',
       revenue: 625000,
@@ -290,8 +333,8 @@ const FinanceReport = () => {
     }
   ];
 
-  // Static Quarterly Reports
-  const quarterlyReports: TimeBasedReport[] = [
+  // Static Quarterly Reports (fallback)
+  const staticQuarterlyReports: TimeBasedReport[] = [
     {
       period: 'Q1 2024',
       revenue: 1855000,
@@ -338,8 +381,8 @@ const FinanceReport = () => {
     }
   ];
 
-  // Static Half-Yearly Reports
-  const halfYearlyReports: TimeBasedReport[] = [
+  // Static Half-Yearly Reports (fallback)
+  const staticHalfYearlyReports: TimeBasedReport[] = [
     {
       period: 'H1 2024',
       revenue: 3795000,
@@ -386,8 +429,8 @@ const FinanceReport = () => {
     }
   ];
 
-  // Static Yearly Reports
-  const yearlyReports: TimeBasedReport[] = [
+  // Static Yearly Reports (fallback)
+  const staticYearlyReports: TimeBasedReport[] = [
     {
       period: '2024',
       revenue: 7945000,
@@ -441,25 +484,32 @@ const FinanceReport = () => {
     return styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
-  // Calculate totals
-  const totalRevenue = truckFinancialData.reduce((sum, truck) => sum + truck.revenue, 0);
-  const totalExpenses = truckFinancialData.reduce((sum, truck) => sum + truck.expenses, 0);
-  const totalPayroll = truckFinancialData.reduce((sum, truck) => sum + truck.payroll, 0);
-  const totalNetProfit = truckFinancialData.reduce((sum, truck) => sum + truck.netProfit, 0);
-  const totalTrips = truckFinancialData.reduce((sum, truck) => sum + truck.trips, 0);
+  // Calculate totals from actual data
+  const totalRevenue = overview.totalRevenue || truckFinancialData.reduce((sum, truck) => sum + truck.revenue, 0);
+  const totalExpenses = overview.totalExpenses || truckFinancialData.reduce((sum, truck) => sum + truck.expenses, 0);
+  const totalPayroll = overview.totalPayroll || truckFinancialData.reduce((sum, truck) => sum + truck.payroll, 0);
+  const totalNetProfit = overview.netProfit || truckFinancialData.reduce((sum, truck) => sum + truck.netProfit, 0);
+  const totalTrips = overview.totalTrips || truckFinancialData.reduce((sum, truck) => sum + truck.trips, 0);
 
   const getCurrentReports = () => {
+    // Always use backend data if available (even if empty)
+    // Only use static data if we haven't loaded yet (timeBasedData is still initial empty state)
+    // Check if we've attempted to fetch (loading state or data exists)
+    if (timeBasedData.length > 0 || (!loading && timeBasedData.length === 0)) {
+      return timeBasedData;
+    }
+    // Only use static fallback during initial load
     switch (timePeriod) {
       case 'monthly':
-        return monthlyReports;
+        return staticMonthlyReports;
       case 'quarterly':
-        return quarterlyReports;
+        return staticQuarterlyReports;
       case 'half-yearly':
-        return halfYearlyReports;
+        return staticHalfYearlyReports;
       case 'yearly':
-        return yearlyReports;
+        return staticYearlyReports;
       default:
-        return monthlyReports;
+        return staticMonthlyReports;
     }
   };
 
@@ -516,7 +566,7 @@ const FinanceReport = () => {
     },
     {
       title: 'Active Trucks',
-      value: truckFinancialData.length.toString(),
+      value: (overview.activeTrucks || truckFinancialData.length).toString(),
       subtitle: 'Fleet size',
       icon: Truck,
       bgColor: 'bg-orange-100',
@@ -572,8 +622,13 @@ const FinanceReport = () => {
             </div>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="p-8 text-center text-gray-500">Loading finance report data...</div>
+          )}
+
           {/* Overview View */}
-          {activeView === 'overview' && (
+          {!loading && activeView === 'overview' && (
             <div className="space-y-4">
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -775,7 +830,7 @@ const FinanceReport = () => {
           )}
 
           {/* Truck-wise View */}
-          {activeView === 'trucks' && (
+          {!loading && activeView === 'trucks' && (
             <div className="space-y-4">
               {/* Truck-wise Comparison Chart */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
@@ -906,7 +961,7 @@ const FinanceReport = () => {
           )}
 
           {/* Trip-wise View */}
-          {activeView === 'trips' && (
+          {!loading && activeView === 'trips' && (
             <div className="space-y-4">
               {/* Trip-wise Comparison Chart */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
@@ -1051,7 +1106,7 @@ const FinanceReport = () => {
           )}
 
           {/* Time-based Reports View */}
-          {activeView === 'time-based' && (
+          {!loading && activeView === 'time-based' && (
             <div className="space-y-4">
               {/* Period Selector */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
@@ -1212,7 +1267,7 @@ const FinanceReport = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {getCurrentReports().map((report, index) => {
-                        const profitMargin = (report.netProfit / report.revenue) * 100;
+                        const profitMargin = report.revenue > 0 ? (report.netProfit / report.revenue) * 100 : 0;
                         return (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="px-4 py-3 text-sm font-medium text-gray-900">{report.period}</td>
@@ -1256,11 +1311,11 @@ const FinanceReport = () => {
                           {formatCurrency(getCurrentReports().reduce((sum, r) => sum + r.netProfit, 0))}
                         </td>
                         <td className="px-4 py-3 text-sm text-center text-gray-700">
-                          {(
-                            (getCurrentReports().reduce((sum, r) => sum + r.netProfit, 0) /
-                              getCurrentReports().reduce((sum, r) => sum + r.revenue, 0)) *
-                            100
-                          ).toFixed(1)}
+                          {(() => {
+                            const totalRevenue = getCurrentReports().reduce((sum, r) => sum + r.revenue, 0);
+                            const totalProfit = getCurrentReports().reduce((sum, r) => sum + r.netProfit, 0);
+                            return totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0';
+                          })()}
                           %
                         </td>
                         <td className="px-4 py-3 text-sm text-center text-gray-700">
@@ -1284,7 +1339,9 @@ const FinanceReport = () => {
                   <div className="text-sm text-gray-600 mb-1">Average Revenue</div>
                   <div className="text-2xl font-bold text-green-600">
                     {formatCurrency(
-                      getCurrentReports().reduce((sum, r) => sum + r.revenue, 0) / getCurrentReports().length
+                      getCurrentReports().length > 0
+                        ? getCurrentReports().reduce((sum, r) => sum + r.revenue, 0) / getCurrentReports().length
+                        : 0
                     )}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
@@ -1295,7 +1352,9 @@ const FinanceReport = () => {
                   <div className="text-sm text-gray-600 mb-1">Average Expenses</div>
                   <div className="text-2xl font-bold text-red-600">
                     {formatCurrency(
-                      getCurrentReports().reduce((sum, r) => sum + r.expenses, 0) / getCurrentReports().length
+                      getCurrentReports().length > 0
+                        ? getCurrentReports().reduce((sum, r) => sum + r.expenses, 0) / getCurrentReports().length
+                        : 0
                     )}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
@@ -1306,7 +1365,9 @@ const FinanceReport = () => {
                   <div className="text-sm text-gray-600 mb-1">Average Profit</div>
                   <div className="text-2xl font-bold text-purple-600">
                     {formatCurrency(
-                      getCurrentReports().reduce((sum, r) => sum + r.netProfit, 0) / getCurrentReports().length
+                      getCurrentReports().length > 0
+                        ? getCurrentReports().reduce((sum, r) => sum + r.netProfit, 0) / getCurrentReports().length
+                        : 0
                     )}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
@@ -1316,11 +1377,11 @@ const FinanceReport = () => {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
                   <div className="text-sm text-gray-600 mb-1">Profit Margin</div>
                   <div className="text-2xl font-bold text-blue-600">
-                    {(
-                      (getCurrentReports().reduce((sum, r) => sum + r.netProfit, 0) /
-                        getCurrentReports().reduce((sum, r) => sum + r.revenue, 0)) *
-                      100
-                    ).toFixed(1)}
+                    {(() => {
+                      const totalRevenue = getCurrentReports().reduce((sum, r) => sum + r.revenue, 0);
+                      const totalProfit = getCurrentReports().reduce((sum, r) => sum + r.netProfit, 0);
+                      return totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0';
+                    })()}
                     %
                   </div>
                   <div className="text-xs text-gray-500 mt-1">Overall margin</div>
