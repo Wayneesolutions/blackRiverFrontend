@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { X } from 'lucide-react';
 import type { CSSProperties, FC } from "react";
 import { useDrivers } from '../../../../../customHooks/useDrivers';
 import { createFuelReport } from '../../../../../axios/api/dispatcher.places';
+import { listTrip } from '../../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../../fleetMaintenance/colorUtils';
 
 interface FleetUnitOption {
@@ -21,11 +22,45 @@ interface NewFuelReportSidebarProps {
     currentUser: any;
 }
 
+interface Trip {
+    _id: string;
+    tripNumber: string;
+    driver?: { _id: string; name: string };
+    truck?: { _id: string; unitNo?: string; licensePlate?: string; makeModel?: string; plateNumber?: string };
+    trailer?: { _id: string; plateNumber?: string; licensePlate?: string; trailerNumber?: string; unitNo?: string; makeModel?: string; type?: string; capacity?: string };
+    status?: string;
+    plannedStartDate?: string;
+    route?: {
+        totalDistance?: number; // in km
+    };
+    orders?: Array<{
+        pickupLocation?: {
+            place?: string;
+            placeId?: string | {
+                name?: string;
+                currentLocation?: {
+                    address?: string;
+                };
+            };
+        };
+        deliveryLocation?: {
+            place?: string;
+            placeId?: string | {
+                name?: string;
+                currentLocation?: {
+                    address?: string;
+                };
+            };
+        };
+    }>;
+}
+
 const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, units, unitsLoading, currentUser }) => {
     const [formData, setFormData] = useState({
         reporter: '',
         driver: '',
         vehicle: '',
+        trip: '',
         odometer: '',
         cost: '',
         volume: '',
@@ -36,6 +71,8 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
 
     const [openDetails, setOpenDetails] = useState(true);
     const [loadingSubmit, setLoadingSubmit] = useState(false);
+    const [trips, setTrips] = useState<Trip[]>([]);
+    const [tripsLoading, setTripsLoading] = useState(false);
 
     const { drivers, loading: loadingDrivers } = useDrivers();
     const focusRingStyle = useMemo(
@@ -64,12 +101,52 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
         [units, formData.vehicle]
     );
 
+    const fetchTrips = useCallback(async () => {
+        console.log('🔄 fetchTrips function called');
+        setTripsLoading(true);
+        try {
+            console.log('📡 Calling listTrip API with params: { page: 1, limit: 100 }');
+            const response = await listTrip({ page: 1, limit: 100 });
+            console.log('✅ listTrip API response:', response);
+            if (response?.success && response?.data) {
+                const tripsData = Array.isArray(response.data) ? response.data : [];
+                console.log(`✅ Trips data received: ${tripsData.length} trips`);
+                setTrips(tripsData);
+            } else {
+                console.warn('⚠️ No trips in response or response not successful:', response);
+                setTrips([]);
+            }
+        } catch (error) {
+            console.error('❌ Error fetching trips:', error);
+            setTrips([]);
+        } finally {
+            setTripsLoading(false);
+        }
+    }, []);
+
+    // Fetch trips when sidebar opens
+    useEffect(() => {
+        console.log('🔍 useEffect triggered, isOpen:', isOpen);
+        if (isOpen) {
+            console.log('✅ Sidebar is open, calling fetchTrips...');
+            // Call fetchTrips immediately
+            fetchTrips().catch(err => {
+                console.error('Failed to fetch trips in useEffect:', err);
+            });
+        } else {
+            // Reset trips when sidebar closes
+            console.log('🚪 Sidebar closed, resetting trips');
+            setTrips([]);
+        }
+    }, [isOpen, fetchTrips]);
+
     useEffect(() => {
         if (isOpen) {
             setFormData({
                 reporter: reporterId,
                 driver: '',
                 vehicle: '',
+                trip: '',
                 odometer: '',
                 cost: '',
                 volume: '',
@@ -79,6 +156,50 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
             });
         }
     }, [isOpen, reporterId]);
+
+    const selectedTrip = useMemo(
+        () => trips.find((trip) => trip._id === formData.trip),
+        [trips, formData.trip]
+    );
+
+    const formatTripOption = (trip: Trip): string => {
+        const tripNumber = trip.tripNumber || 'N/A';
+        
+        // Get total miles (convert from km to miles)
+        const totalMiles = trip.route?.totalDistance 
+            ? Math.round(trip.route.totalDistance * 0.621371) 
+            : 0;
+        
+        // Get pickup and dropoff locations
+        let pickup = 'N/A';
+        let dropoff = 'N/A';
+        
+        if (trip.orders && trip.orders.length > 0) {
+            const firstOrder = trip.orders[0];
+            // Handle pickup location - check place field or placeId object
+            if (firstOrder.pickupLocation) {
+                if (firstOrder.pickupLocation.place) {
+                    pickup = firstOrder.pickupLocation.place;
+                } else if (firstOrder.pickupLocation.placeId && typeof firstOrder.pickupLocation.placeId === 'object') {
+                    const place = firstOrder.pickupLocation.placeId as any;
+                    pickup = place.name || place.currentLocation?.address || 'N/A';
+                }
+            }
+            
+            // Get last delivery location
+            const lastOrder = trip.orders[trip.orders.length - 1];
+            if (lastOrder.deliveryLocation) {
+                if (lastOrder.deliveryLocation.place) {
+                    dropoff = lastOrder.deliveryLocation.place;
+                } else if (lastOrder.deliveryLocation.placeId && typeof lastOrder.deliveryLocation.placeId === 'object') {
+                    const place = lastOrder.deliveryLocation.placeId as any;
+                    dropoff = place.name || place.currentLocation?.address || 'N/A';
+                }
+            }
+        }
+        
+        return `${tripNumber} - ${totalMiles} miles (${pickup} → ${dropoff})`;
+    };
 
     const handleInputChange = (e: any) => {
         const { name, value } = e.target;
@@ -106,6 +227,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                 reporter: reporterId || formData.reporter,
                 driver: formData.driver,
                 vehicle: formData.vehicle, // This should be the FleetUnit _id or prefixed ID
+                trip: formData.trip || null,
                 odometer: formData.odometer || null,
                 cost: formData.cost || null,
                 volume: formData.volume || null,
@@ -177,23 +299,35 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Driver</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Trip</label>
                                         <select
-                                            name="driver"
-                                            value={formData.driver}
-                                            onChange={handleInputChange}
+                                            name="trip"
+                                            value={formData.trip}
+                                            onChange={(e) => {
+                                                const tripId = e.target.value;
+                                                const selectedTrip = trips.find(t => t._id === tripId);
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    trip: tripId,
+                                                    // Auto-populate driver and vehicle from trip if available
+                                                    driver: selectedTrip?.driver?._id || prev.driver,
+                                                    vehicle: selectedTrip?.truck?._id || prev.vehicle
+                                                }));
+                                            }}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                                             style={focusRingStyle}
                                         >
-                                            <option value="">Select Driver</option>
-                                            {loadingDrivers ? (
-                                                <option>Loading drivers...</option>
-                                            ) : (
-                                                drivers?.map(driver => (
-                                                    <option key={driver._id} value={driver._id}>
-                                                        {driver.name}
+                                            <option value="">Select Trip</option>
+                                            {tripsLoading ? (
+                                                <option disabled>Loading trips...</option>
+                                            ) : trips && trips.length > 0 ? (
+                                                trips.map(trip => (
+                                                    <option key={trip._id} value={trip._id}>
+                                                        {formatTripOption(trip)}
                                                     </option>
                                                 ))
+                                            ) : (
+                                                <option disabled>No trips available</option>
                                             )}
                                         </select>
                                     </div>
@@ -201,26 +335,67 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Driver</label>
+                                        {formData.trip && selectedTrip?.driver ? (
+                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
+                                                <div className="font-semibold">{selectedTrip.driver.name}</div>
+                                            </div>
+                                        ) : (
+                                            <select
+                                                name="driver"
+                                                value={formData.driver}
+                                                onChange={handleInputChange}
+                                                disabled={!formData.trip}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
+                                                style={focusRingStyle}
+                                            >
+                                                <option value="">{formData.trip ? 'Select Driver' : 'Select Trip First'}</option>
+                                                {loadingDrivers ? (
+                                                    <option>Loading drivers...</option>
+                                                ) : (
+                                                    drivers?.map(driver => (
+                                                        <option key={driver._id} value={driver._id}>
+                                                            {driver.name}
+                                                        </option>
+                                                    ))
+                                                )}
+                                            </select>
+                                        )}
+                                    </div>
+
+                                    <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle</label>
-                                        <select
-                                            name="vehicle"
-                                            value={formData.vehicle}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                                            style={focusRingStyle}
-                                        >
-                                            <option value="">Select Unit</option>
-                                            {unitsLoading ? (
-                                                <option>Loading units...</option>
-                                            ) : (
-                                                units?.map(unit => (
-                                                    <option key={unit.id} value={unit.id}>
-                                                        {formatUnitLabel(unit)}
-                                                    </option>
-                                                ))
-                                            )}
-                                        </select>
-                                        {selectedUnit && (
+                                        {formData.trip && selectedTrip?.truck ? (
+                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
+                                                <div className="font-semibold">
+                                                    {selectedTrip.truck.unitNo || selectedTrip.truck.plateNumber || selectedTrip.truck.licensePlate || 'N/A'}
+                                                </div>
+                                                {selectedTrip.truck.makeModel && (
+                                                    <div className="text-xs text-gray-500 mt-1">{selectedTrip.truck.makeModel}</div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <select
+                                                name="vehicle"
+                                                value={formData.vehicle}
+                                                onChange={handleInputChange}
+                                                disabled={!formData.trip}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
+                                                style={focusRingStyle}
+                                            >
+                                                <option value="">{formData.trip ? 'Select Unit' : 'Select Trip First'}</option>
+                                                {unitsLoading ? (
+                                                    <option>Loading units...</option>
+                                                ) : (
+                                                    units?.map(unit => (
+                                                        <option key={unit.id} value={unit.id}>
+                                                            {formatUnitLabel(unit)}
+                                                        </option>
+                                                    ))
+                                                )}
+                                            </select>
+                                        )}
+                                        {selectedUnit && !formData.trip && (
                                             <div className="mt-2 text-xs text-gray-600 bg-blue-50/60 border border-blue-100 rounded-lg px-3 py-2 space-y-1">
                                                 <div className="font-semibold text-gray-800">{selectedUnit.unitNo}</div>
                                                 {selectedUnit.makeModel && (
@@ -243,14 +418,75 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             </div>
                                         )}
                                     </div>
+                                </div>
 
+                                {/* Trip Details Section - Show when trip is selected */}
+                                {formData.trip && selectedTrip && (
+                                    <div className="bg-blue-50/60 border border-blue-200 rounded-lg p-4 space-y-3">
+                                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Trip Details</h4>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Driver Details */}
+                                            {selectedTrip.driver && (
+                                                <div className="bg-white border border-gray-200 rounded-lg px-3 py-2">
+                                                    <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase mb-1">Driver</p>
+                                                    <p className="text-gray-900 font-semibold">{selectedTrip.driver.name}</p>
+                                                </div>
+                                            )}
+
+                                            {/* Truck Details */}
+                                            {selectedTrip.truck && (
+                                                <div className="bg-white border border-gray-200 rounded-lg px-3 py-2">
+                                                    <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase mb-1">Truck</p>
+                                                    <p className="text-gray-900 font-semibold">
+                                                        {selectedTrip.truck.unitNo || selectedTrip.truck.plateNumber || selectedTrip.truck.licensePlate || 'N/A'}
+                                                    </p>
+                                                    {selectedTrip.truck.makeModel && (
+                                                        <p className="text-xs text-gray-600 mt-1">{selectedTrip.truck.makeModel}</p>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Trailer Details */}
+                                            {selectedTrip.trailer && (
+                                                <div className="bg-white border border-gray-200 rounded-lg px-3 py-2">
+                                                    <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase mb-1">Trailer</p>
+                                                    <p className="text-gray-900 font-semibold">
+                                                        {selectedTrip.trailer.trailerNumber || selectedTrip.trailer.unitNo || selectedTrip.trailer.plateNumber || selectedTrip.trailer.licensePlate || 'N/A'}
+                                                    </p>
+                                                    {selectedTrip.trailer.type && (
+                                                        <p className="text-xs text-gray-600 mt-1">Type: {selectedTrip.trailer.type}</p>
+                                                    )}
+                                                    {selectedTrip.trailer.capacity && (
+                                                        <p className="text-xs text-gray-600">Capacity: {selectedTrip.trailer.capacity}</p>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Miles Covered */}
+                                            {selectedTrip.route?.totalDistance !== undefined && (
+                                                <div className="bg-white border border-gray-200 rounded-lg px-3 py-2">
+                                                    <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase mb-1">Distance</p>
+                                                    <p className="text-gray-900 font-semibold">
+                                                        {Math.round(selectedTrip.route.totalDistance * 0.621371).toLocaleString()} miles
+                                                    </p>
+                                                    <p className="text-xs text-gray-600 mt-1">
+                                                        ({selectedTrip.route.totalDistance.toLocaleString()} km)
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                                         <select
                                             name="status"
                                             value={formData.status}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus;border-transparent"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                                             style={focusRingStyle}
                                         >
                                             <option value="pending">Pending</option>
