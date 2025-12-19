@@ -26,6 +26,11 @@ export const AccountSidebarlinks: AccountSidebarlinks[] = [
         icon: <MdDashboard />,
         label: "Dashboard",
     },
+    {
+        key: "/admin/accounts/finance-report",
+        icon: <FaFileInvoiceDollar />,
+        label: "Finance Report",
+    },
 
     {
         key: "/admin/accounts/settlements",

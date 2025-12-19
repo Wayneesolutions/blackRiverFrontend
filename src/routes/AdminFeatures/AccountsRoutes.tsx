@@ -19,6 +19,7 @@ const ReceiptsNotes = lazy(() => import("../../pages/admin/accounts/receipts-not
 const TaxSetup = lazy(() => import("../../pages/admin/accounts/tax-setup/index"));
 const CashFlowInsights = lazy(() => import("../../pages/admin/accounts/cash-flow-insights/index"));
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"));
+const FinanceReport = lazy(() => import("../../pages/admin/accounts/finance-report/index"));
 
 function AccountsRoutes() {
     return (
@@ -44,6 +45,7 @@ function AccountsRoutes() {
                     <Route path="/receipts-notes" element={<ReceiptsNotes />} />
                     <Route path="/cash-flow-insights" element={<CashFlowInsights />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/finance-report" element={<FinanceReport />} />
                 </Route>
             </Routes>
         </Suspense>

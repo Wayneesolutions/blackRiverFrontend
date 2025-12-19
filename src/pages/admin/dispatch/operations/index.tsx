@@ -694,7 +694,10 @@ const Index = () => {
           {/* Additional Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
             {/* Truck Utilization */}
-            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <div 
+              onClick={() => navigate(`${basePath}/fleets`)}
+              className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+            >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Truck Utilization</h3>
@@ -710,7 +713,10 @@ const Index = () => {
             </div>
 
             {/* Trailer Utilization */}
-            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <div 
+              onClick={() => navigate(`${basePath}/fleets`)}
+              className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+            >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Trailer Utilization</h3>
@@ -726,7 +732,10 @@ const Index = () => {
             </div>
 
             {/* Revenue Per Mile */}
-            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <div 
+              onClick={() => navigate(`${basePath}/trips`)}
+              className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+            >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Revenue Per Mile</h3>
@@ -742,7 +751,10 @@ const Index = () => {
             </div>
 
             {/* Deliveries Today */}
-            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <div 
+              onClick={() => navigate(`${basePath}/trips`)}
+              className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+            >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Deliveries Today</h3>
@@ -758,7 +770,10 @@ const Index = () => {
             </div>
 
             {/* Pickups Today */}
-            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <div 
+              onClick={() => navigate(`${basePath}/trips`)}
+              className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+            >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Pickups Today</h3>
@@ -774,7 +789,10 @@ const Index = () => {
             </div>
 
             {/* Unassigned Drivers */}
-            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <div 
+              onClick={() => navigate(`${basePath}/drivers`)}
+              className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+            >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Unassigned Drivers</h3>
@@ -790,7 +808,10 @@ const Index = () => {
             </div>
 
             {/* Drivers on Leave */}
-            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <div 
+              onClick={() => navigate(`${basePath}/drivers`)}
+              className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+            >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Drivers on Leave</h3>
