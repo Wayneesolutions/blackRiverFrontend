@@ -75,6 +75,7 @@ const FinanceReport = () => {
   const [activeView, setActiveView] = useState<ViewType>('overview');
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('monthly');
   const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false); // Track if we've loaded data from backend
   const [overview, setOverview] = useState({
     totalRevenue: 0,
     totalExpenses: 0,
@@ -87,31 +88,91 @@ const FinanceReport = () => {
   const [tripFinancialData, setTripFinancialData] = useState<TripFinancialData[]>([]);
   const [timeBasedData, setTimeBasedData] = useState<TimeBasedReport[]>([]);
 
-  // Fetch finance report data
+  // Fetch finance report data on initial mount
   useEffect(() => {
+    console.log('📊 [useEffect] Initial mount - fetching finance report data');
     fetchFinanceReport();
+  }, []); // Empty dependency array - only run on mount
+
+  // Fetch finance report data when timePeriod changes
+  useEffect(() => {
+    if (dataLoaded) { // Only refetch if we've already loaded data once
+      console.log('📊 [useEffect] Period changed - fetching data for period:', timePeriod);
+      fetchFinanceReport();
+    }
   }, [timePeriod]);
+
+  // Also fetch when switching to time-based view
+  useEffect(() => {
+    if (activeView === 'time-based' && dataLoaded) {
+      console.log('📊 [useEffect] Switched to time-based view, fetching data');
+      fetchFinanceReport();
+    }
+  }, [activeView]);
 
   const fetchFinanceReport = async () => {
     setLoading(true);
     try {
+      console.log('📊 [Finance Report Frontend] Calling API with period:', timePeriod);
       const response = await getFinanceReport({ period: timePeriod });
+      
       console.log('📊 [Finance Report Frontend] API Response:', {
         success: response?.success,
         hasData: !!response?.data,
+        hasOverview: !!response?.data?.overview,
+        overview: response?.data?.overview,
+        truckWiseCount: response?.data?.truckWise?.length || 0,
+        tripWiseCount: response?.data?.tripWise?.length || 0,
         timeBasedCount: response?.data?.timeBased?.length || 0,
-        timeBased: response?.data?.timeBased
+        fullResponse: response
       });
       
       if (response?.success && response?.data) {
-        setOverview(response.data.overview || overview);
+        console.log('📊 [Finance Report Frontend] Full response data:', {
+          overview: response.data.overview,
+          truckWiseCount: response.data.truckWise?.length || 0,
+          tripWiseCount: response.data.tripWise?.length || 0,
+          timeBasedCount: response.data.timeBased?.length || 0
+        });
+        
+        // Set overview data - ensure we use the backend data even if it's 0
+        if (response.data.overview) {
+          const overviewData = {
+            totalRevenue: Number(response.data.overview.totalRevenue) || 0,
+            totalExpenses: Number(response.data.overview.totalExpenses) || 0,
+            totalPayroll: Number(response.data.overview.totalPayroll) || 0,
+            netProfit: Number(response.data.overview.netProfit) || 0,
+            totalTrips: Number(response.data.overview.totalTrips) || 0,
+            activeTrucks: Number(response.data.overview.activeTrucks) || 0
+          };
+          console.log('📊 [Finance Report Frontend] Setting overview:', overviewData);
+          setOverview(overviewData);
+        } else {
+          console.warn('📊 [Finance Report Frontend] No overview data in response');
+        }
+        
         setTruckFinancialData(response.data.truckWise || []);
         setTripFinancialData(response.data.tripWise || []);
         // Always set timeBasedData, even if empty array, to avoid using static fallback
         setTimeBasedData(response.data.timeBased || []);
+        setDataLoaded(true); // Mark that we've loaded data from backend
+      } else {
+        console.error('📊 [Finance Report Frontend] API response not successful:', {
+          success: response?.success,
+          message: response?.message,
+          data: response?.data
+        });
+        setDataLoaded(true); // Mark as loaded even on error to avoid static fallback
       }
-    } catch (error) {
-      console.error('Error fetching finance report:', error);
+    } catch (error: any) {
+      console.error('📊 [Finance Report Frontend] Error fetching finance report:', {
+        error,
+        message: error?.message,
+        response: error?.response,
+        status: error?.response?.status,
+        data: error?.response?.data
+      });
+      setDataLoaded(true); // Mark as loaded even on error to avoid static fallback
     } finally {
       setLoading(false);
     }
@@ -485,20 +546,40 @@ const FinanceReport = () => {
   };
 
   // Calculate totals from actual data
-  const totalRevenue = overview.totalRevenue || truckFinancialData.reduce((sum, truck) => sum + truck.revenue, 0);
-  const totalExpenses = overview.totalExpenses || truckFinancialData.reduce((sum, truck) => sum + truck.expenses, 0);
-  const totalPayroll = overview.totalPayroll || truckFinancialData.reduce((sum, truck) => sum + truck.payroll, 0);
-  const totalNetProfit = overview.netProfit || truckFinancialData.reduce((sum, truck) => sum + truck.netProfit, 0);
-  const totalTrips = overview.totalTrips || truckFinancialData.reduce((sum, truck) => sum + truck.trips, 0);
+  // Prioritize overview data from backend, but fallback to truck-wise calculation if overview is 0
+  const totalRevenue = overview.totalRevenue > 0 
+    ? overview.totalRevenue 
+    : truckFinancialData.reduce((sum, truck) => sum + (Number(truck.revenue) || 0), 0);
+  const totalExpenses = overview.totalExpenses > 0 
+    ? overview.totalExpenses 
+    : truckFinancialData.reduce((sum, truck) => sum + (Number(truck.expenses) || 0), 0);
+  const totalPayroll = overview.totalPayroll > 0 
+    ? overview.totalPayroll 
+    : truckFinancialData.reduce((sum, truck) => sum + (Number(truck.payroll) || 0), 0);
+  const totalNetProfit = overview.netProfit !== 0 
+    ? overview.netProfit 
+    : truckFinancialData.reduce((sum, truck) => sum + (Number(truck.netProfit) || 0), 0);
+  const totalTrips = overview.totalTrips > 0 
+    ? overview.totalTrips 
+    : truckFinancialData.reduce((sum, truck) => sum + (Number(truck.trips) || 0), 0);
+  
+  console.log('📊 [Finance Report Frontend] Calculated totals:', {
+    totalRevenue,
+    totalExpenses,
+    totalPayroll,
+    totalNetProfit,
+    totalTrips,
+    overview,
+    truckDataCount: truckFinancialData.length
+  });
 
   const getCurrentReports = () => {
-    // Always use backend data if available (even if empty)
-    // Only use static data if we haven't loaded yet (timeBasedData is still initial empty state)
-    // Check if we've attempted to fetch (loading state or data exists)
-    if (timeBasedData.length > 0 || (!loading && timeBasedData.length === 0)) {
-      return timeBasedData;
+    // Always use backend data if we've loaded it (even if empty array)
+    // Only use static data during initial load before backend data is fetched
+    if (dataLoaded) {
+      return timeBasedData; // Use backend data (even if empty)
     }
-    // Only use static fallback during initial load
+    // Only use static fallback during initial load before data is fetched
     switch (timePeriod) {
       case 'monthly':
         return staticMonthlyReports;
@@ -673,22 +754,22 @@ const FinanceReport = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                   <div className="p-4 bg-green-50 rounded-lg border border-green-100">
                     <div className="text-sm text-gray-600 mb-1">Accounts Revenue</div>
-                    <div className="text-2xl font-bold text-green-600">{formatCurrency(625000)}</div>
+                    <div className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</div>
                     <div className="text-xs text-gray-500 mt-1">From invoices</div>
                   </div>
                   <div className="p-4 bg-red-50 rounded-lg border border-red-100">
                     <div className="text-sm text-gray-600 mb-1">Total Expenses</div>
-                    <div className="text-2xl font-bold text-red-600">{formatCurrency(225000)}</div>
+                    <div className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
                     <div className="text-xs text-gray-500 mt-1">Operating costs</div>
                   </div>
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
                     <div className="text-sm text-gray-600 mb-1">Payroll Costs</div>
-                    <div className="text-2xl font-bold text-blue-600">{formatCurrency(91500)}</div>
+                    <div className="text-2xl font-bold text-blue-600">{formatCurrency(totalPayroll)}</div>
                     <div className="text-xs text-gray-500 mt-1">Employee & driver</div>
                   </div>
                   <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
                     <div className="text-sm text-gray-600 mb-1">Net Profit</div>
-                    <div className="text-2xl font-bold text-purple-600">{formatCurrency(308500)}</div>
+                    <div className="text-2xl font-bold text-purple-600">{formatCurrency(totalNetProfit)}</div>
                     <div className="text-xs text-gray-500 mt-1">After all costs</div>
                   </div>
                 </div>
@@ -973,10 +1054,10 @@ const FinanceReport = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={tripFinancialData.map(trip => ({
-                        name: trip.tripNumber.split('-')[2],
-                        Revenue: trip.revenue,
-                        Expenses: trip.expenses + trip.driverPay,
-                        'Net Profit': trip.netProfit
+                        name: trip.tripNumber?.split('-')[2] || trip.tripNumber || 'Trip',
+                        Revenue: Number(trip.revenue) || 0,
+                        Expenses: (Number(trip.expenses) || 0) + (Number(trip.driverPay) || 0),
+                        'Net Profit': Number(trip.netProfit) || 0
                       }))}
                       margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                     >
@@ -1038,37 +1119,55 @@ const FinanceReport = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {tripFinancialData.map((trip) => {
-                        const profitMargin = (trip.netProfit / trip.revenue) * 100;
+                        // Ensure all values are numbers, defaulting to 0 if undefined/null
+                        const revenue = Number(trip.revenue) || 0;
+                        const expenses = Number(trip.expenses) || 0;
+                        const driverPay = Number(trip.driverPay) || 0;
+                        const netProfit = Number(trip.netProfit) || 0;
+                        
+                        // Calculate profit margin safely
+                        const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+                        
+                        // Format date safely
+                        let formattedDate = 'N/A';
+                        try {
+                          if (trip.date) {
+                            formattedDate = new Date(trip.date).toLocaleDateString();
+                          }
+                        } catch (e) {
+                          formattedDate = 'N/A';
+                        }
+                        
                         return (
                           <tr key={trip.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 text-sm font-medium text-gray-900">{trip.tripNumber}</td>
-                            <td className="px-4 py-3 text-sm text-gray-700">{trip.truckNumber}</td>
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900">{trip.tripNumber || 'N/A'}</td>
+                            <td className="px-4 py-3 text-sm text-gray-700">{trip.truckNumber || 'N/A'}</td>
                             <td className="px-4 py-3 text-sm text-gray-700">
                               <div className="flex items-center gap-1">
-                                <span>{trip.origin}</span>
+                                <span>{trip.origin || 'N/A'}</span>
                                 <ArrowUpRight size={12} className="text-gray-400" />
-                                <span>{trip.destination}</span>
+                                <span>{trip.destination || 'N/A'}</span>
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">{new Date(trip.date).toLocaleDateString()}</td>
-                            <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">{formatCurrency(trip.revenue)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-red-600">{formatCurrency(trip.expenses)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-blue-600">{formatCurrency(trip.driverPay)}</td>
-                            <td className="px-4 py-3 text-sm text-right font-bold text-gray-900">{formatCurrency(trip.netProfit)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-700">{formattedDate}</td>
+                            <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">{formatCurrency(revenue)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-red-600">{formatCurrency(expenses)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-blue-600">{formatCurrency(driverPay)}</td>
+                            <td className="px-4 py-3 text-sm text-right font-bold text-gray-900">{formatCurrency(netProfit)}</td>
                             <td className="px-4 py-3 text-sm text-center">
                               <div className="flex flex-col items-center gap-1">
-                                <span className="text-xs font-medium text-gray-700">{profitMargin.toFixed(1)}%</span>
+                                <span className="text-xs font-medium text-gray-700">{isNaN(profitMargin) ? '0.0' : profitMargin.toFixed(1)}%</span>
                                 <div className="w-16 bg-gray-200 rounded-full h-1.5">
                                   <div
                                     className={`h-1.5 rounded-full ${profitMargin > 40 ? 'bg-green-500' : profitMargin > 25 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                    style={{ width: `${Math.min(profitMargin, 100)}%` }}
+                                    style={{ width: `${Math.min(Math.max(profitMargin, 0), 100)}%` }}
                                   ></div>
                                 </div>
                               </div>
                             </td>
                             <td className="px-4 py-3 text-sm text-center">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(trip.status)}`}>
-                                {trip.status.replace('-', ' ')}
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(trip.status || 'planned')}`}>
+                                {(trip.status || 'planned').replace('-', ' ')}
                               </span>
                             </td>
                           </tr>
@@ -1077,23 +1176,23 @@ const FinanceReport = () => {
                       <tr className="bg-gray-50 font-bold">
                         <td colSpan={4} className="px-4 py-3 text-sm text-gray-900">Total</td>
                         <td className="px-4 py-3 text-sm text-right text-green-600">
-                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + t.revenue, 0))}
+                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.revenue) || 0), 0))}
                         </td>
                         <td className="px-4 py-3 text-sm text-right text-red-600">
-                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + t.expenses, 0))}
+                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.expenses) || 0), 0))}
                         </td>
                         <td className="px-4 py-3 text-sm text-right text-blue-600">
-                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + t.driverPay, 0))}
+                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.driverPay) || 0), 0))}
                         </td>
                         <td className="px-4 py-3 text-sm text-right text-gray-900">
-                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + t.netProfit, 0))}
+                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.netProfit) || 0), 0))}
                         </td>
                         <td className="px-4 py-3 text-sm text-center text-gray-700">
-                          {(
-                            (tripFinancialData.reduce((sum, t) => sum + t.netProfit, 0) /
-                              tripFinancialData.reduce((sum, t) => sum + t.revenue, 0)) *
-                            100
-                          ).toFixed(1)}
+                          {(() => {
+                            const totalRevenue = tripFinancialData.reduce((sum, t) => sum + (Number(t.revenue) || 0), 0);
+                            const totalProfit = tripFinancialData.reduce((sum, t) => sum + (Number(t.netProfit) || 0), 0);
+                            return totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0';
+                          })()}
                           %
                         </td>
                         <td className="px-4 py-3"></td>
@@ -1106,7 +1205,7 @@ const FinanceReport = () => {
           )}
 
           {/* Time-based Reports View */}
-          {!loading && activeView === 'time-based' && (
+          {activeView === 'time-based' && (
             <div className="space-y-4">
               {/* Period Selector */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
@@ -1116,12 +1215,16 @@ const FinanceReport = () => {
                     {(['monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => (
                       <button
                         key={period}
-                        onClick={() => setTimePeriod(period)}
+                        onClick={() => {
+                          console.log('📊 [Time Period] Changing period to:', period);
+                          setTimePeriod(period);
+                        }}
+                        disabled={loading}
                         className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                           timePeriod === period
                             ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] text-white shadow-md'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                       >
                         {period === 'half-yearly' ? 'Half Yearly' : period.charAt(0).toUpperCase() + period.slice(1)}
                       </button>
@@ -1130,6 +1233,27 @@ const FinanceReport = () => {
                 </div>
               </div>
 
+              {/* Loading State */}
+              {loading && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8 text-center text-gray-500">
+                  Loading time-based reports for {timePeriod}...
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!loading && getCurrentReports().length === 0 && dataLoaded && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8 text-center">
+                  <Calendar size={48} className="mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Data Available</h3>
+                  <p className="text-gray-600 mb-4">No financial data found for the selected period ({timePeriod}).</p>
+                  <p className="text-sm text-gray-500">Try selecting a different period or check if you have invoices, expenses, or payroll records.</p>
+                </div>
+              )}
+
+              {/* Charts and Summary - Only show when not loading and have data */}
+              {!loading && getCurrentReports().length > 0 && (
+                <>
+
               {/* Time-based Comparison Chart */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -1137,16 +1261,17 @@ const FinanceReport = () => {
                   {timePeriod === 'half-yearly' ? 'Half Yearly' : timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)} Revenue vs Expenses vs Net Profit Trend
                 </h2>
                 <div className="h-96 mb-6">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={getCurrentReports().map(report => ({
-                        period: report.period,
-                        Revenue: report.revenue,
-                        Expenses: report.expenses + report.payroll,
-                        'Net Profit': report.netProfit
-                      }))}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                    >
+                  {getCurrentReports().length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={getCurrentReports().map(report => ({
+                          period: report.period,
+                          Revenue: Number(report.revenue) || 0,
+                          Expenses: (Number(report.expenses) || 0) + (Number(report.payroll) || 0),
+                          'Net Profit': Number(report.netProfit) || 0
+                        }))}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                      >
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis
                         dataKey="period"
@@ -1192,8 +1317,13 @@ const FinanceReport = () => {
                         dot={{ fill: '#8b5cf6', r: 5 }}
                         activeDot={{ r: 7 }}
                       />
-                    </LineChart>
-                  </ResponsiveContainer>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-500">
+                      No data available for chart
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1204,16 +1334,17 @@ const FinanceReport = () => {
                   {timePeriod === 'half-yearly' ? 'Half Yearly' : timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)} Comparison
                 </h2>
                 <div className="h-96 mb-6">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={getCurrentReports().map(report => ({
-                        period: report.period,
-                        Revenue: report.revenue,
-                        Expenses: report.expenses + report.payroll,
-                        'Net Profit': report.netProfit
-                      }))}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                    >
+                  {getCurrentReports().length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={getCurrentReports().map(report => ({
+                          period: report.period,
+                          Revenue: Number(report.revenue) || 0,
+                          Expenses: (Number(report.expenses) || 0) + (Number(report.payroll) || 0),
+                          'Net Profit': Number(report.netProfit) || 0
+                        }))}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                      >
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis
                         dataKey="period"
@@ -1239,97 +1370,12 @@ const FinanceReport = () => {
                       <Bar dataKey="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="Net Profit" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                     </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Time-based Reports Table */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Calendar size={20} className="text-[#42aeec]" />
-                  {timePeriod === 'half-yearly' ? 'Half Yearly' : timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)} Financial Reports
-                </h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Period</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Revenue</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Expenses</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Payroll</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Invoices</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Net Profit</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Profit Margin</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Invoice Count</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Expense Count</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Payroll Count</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {getCurrentReports().map((report, index) => {
-                        const profitMargin = report.revenue > 0 ? (report.netProfit / report.revenue) * 100 : 0;
-                        return (
-                          <tr key={index} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 text-sm font-medium text-gray-900">{report.period}</td>
-                            <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">{formatCurrency(report.revenue)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-red-600">{formatCurrency(report.expenses)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-blue-600">{formatCurrency(report.payroll)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-purple-600">{formatCurrency(report.invoices)}</td>
-                            <td className="px-4 py-3 text-sm text-right font-bold text-gray-900">{formatCurrency(report.netProfit)}</td>
-                            <td className="px-4 py-3 text-sm text-center">
-                              <div className="flex flex-col items-center gap-1">
-                                <span className="text-xs font-medium text-gray-700">{profitMargin.toFixed(1)}%</span>
-                                <div className="w-20 bg-gray-200 rounded-full h-1.5">
-                                  <div
-                                    className={`h-1.5 rounded-full ${profitMargin > 50 ? 'bg-green-500' : profitMargin > 30 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                    style={{ width: `${Math.min(profitMargin, 100)}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-center text-gray-700">{report.invoiceCount}</td>
-                            <td className="px-4 py-3 text-sm text-center text-gray-700">{report.expenseCount}</td>
-                            <td className="px-4 py-3 text-sm text-center text-gray-700">{report.payrollCount}</td>
-                          </tr>
-                        );
-                      })}
-                      <tr className="bg-gray-50 font-bold">
-                        <td className="px-4 py-3 text-sm text-gray-900">Total</td>
-                        <td className="px-4 py-3 text-sm text-right text-green-600">
-                          {formatCurrency(getCurrentReports().reduce((sum, r) => sum + r.revenue, 0))}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right text-red-600">
-                          {formatCurrency(getCurrentReports().reduce((sum, r) => sum + r.expenses, 0))}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right text-blue-600">
-                          {formatCurrency(getCurrentReports().reduce((sum, r) => sum + r.payroll, 0))}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right text-purple-600">
-                          {formatCurrency(getCurrentReports().reduce((sum, r) => sum + r.invoices, 0))}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right text-gray-900">
-                          {formatCurrency(getCurrentReports().reduce((sum, r) => sum + r.netProfit, 0))}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-700">
-                          {(() => {
-                            const totalRevenue = getCurrentReports().reduce((sum, r) => sum + r.revenue, 0);
-                            const totalProfit = getCurrentReports().reduce((sum, r) => sum + r.netProfit, 0);
-                            return totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0';
-                          })()}
-                          %
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-700">
-                          {getCurrentReports().reduce((sum, r) => sum + r.invoiceCount, 0)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-700">
-                          {getCurrentReports().reduce((sum, r) => sum + r.expenseCount, 0)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-700">
-                          {getCurrentReports().reduce((sum, r) => sum + r.payrollCount, 0)}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-500">
+                      No data available for chart
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1340,7 +1386,7 @@ const FinanceReport = () => {
                   <div className="text-2xl font-bold text-green-600">
                     {formatCurrency(
                       getCurrentReports().length > 0
-                        ? getCurrentReports().reduce((sum, r) => sum + r.revenue, 0) / getCurrentReports().length
+                        ? getCurrentReports().reduce((sum, r) => sum + (Number(r.revenue) || 0), 0) / getCurrentReports().length
                         : 0
                     )}
                   </div>
@@ -1353,7 +1399,7 @@ const FinanceReport = () => {
                   <div className="text-2xl font-bold text-red-600">
                     {formatCurrency(
                       getCurrentReports().length > 0
-                        ? getCurrentReports().reduce((sum, r) => sum + r.expenses, 0) / getCurrentReports().length
+                        ? getCurrentReports().reduce((sum, r) => sum + (Number(r.expenses) || 0), 0) / getCurrentReports().length
                         : 0
                     )}
                   </div>
@@ -1366,7 +1412,7 @@ const FinanceReport = () => {
                   <div className="text-2xl font-bold text-purple-600">
                     {formatCurrency(
                       getCurrentReports().length > 0
-                        ? getCurrentReports().reduce((sum, r) => sum + r.netProfit, 0) / getCurrentReports().length
+                        ? getCurrentReports().reduce((sum, r) => sum + (Number(r.netProfit) || 0), 0) / getCurrentReports().length
                         : 0
                     )}
                   </div>
@@ -1378,8 +1424,8 @@ const FinanceReport = () => {
                   <div className="text-sm text-gray-600 mb-1">Profit Margin</div>
                   <div className="text-2xl font-bold text-blue-600">
                     {(() => {
-                      const totalRevenue = getCurrentReports().reduce((sum, r) => sum + r.revenue, 0);
-                      const totalProfit = getCurrentReports().reduce((sum, r) => sum + r.netProfit, 0);
+                      const totalRevenue = getCurrentReports().reduce((sum, r) => sum + (Number(r.revenue) || 0), 0);
+                      const totalProfit = getCurrentReports().reduce((sum, r) => sum + (Number(r.netProfit) || 0), 0);
                       return totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0';
                     })()}
                     %
@@ -1387,6 +1433,8 @@ const FinanceReport = () => {
                   <div className="text-xs text-gray-500 mt-1">Overall margin</div>
                 </div>
               </div>
+                </>
+              )}
             </div>
           )}
         </div>
