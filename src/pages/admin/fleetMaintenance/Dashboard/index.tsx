@@ -304,7 +304,7 @@ const ComplianceDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-gray-800 flex items-center">
                   <AlertTriangle className="h-5 w-5 mr-2 text-red-600" />
-                  Safety Fleet Monitor
+                 Regulatory & Safety
                 </h3>
                 <span className="text-sm text-gray-500">View All →</span>
               </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AlertTriangle, X, ExternalLink } from 'lucide-react';
 
 interface ExpiringDocumentsToastProps {
@@ -8,23 +8,50 @@ interface ExpiringDocumentsToastProps {
   count: number;
 }
 
+const ONE_HOUR = 60 * 60 * 1000; // 3600000 ms
+const AUTO_CLOSE_TIME = 5000;   // 5 seconds
+
 const ExpiringDocumentsToast: React.FC<ExpiringDocumentsToastProps> = ({
   isOpen,
   onClose,
   onViewDocuments,
   count
 }) => {
-  // Auto-close after 8 seconds
-  useEffect(() => {
-    if (isOpen) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 8000);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, onClose]);
+  const [visible, setVisible] = useState(false);
 
-  if (!isOpen || count === 0) {
+  // 🔁 Show toast every 1 hour
+  useEffect(() => {
+    if (count === 0) return;
+
+    // Show first time after 1 hour
+    const initialTimer = setTimeout(() => {
+      setVisible(true);
+    }, ONE_HOUR);
+
+    // Show again every 1 hour
+    const interval = setInterval(() => {
+      setVisible(true);
+    }, ONE_HOUR);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, [count]);
+
+  // ⏱ Auto-close after 5 seconds
+  useEffect(() => {
+    if (visible) {
+      const closeTimer = setTimeout(() => {
+        setVisible(false);
+        onClose();
+      }, AUTO_CLOSE_TIME);
+
+      return () => clearTimeout(closeTimer);
+    }
+  }, [visible, onClose]);
+
+  if (!visible || !isOpen || count === 0) {
     return null;
   }
 
@@ -42,12 +69,17 @@ const ExpiringDocumentsToast: React.FC<ExpiringDocumentsToastProps> = ({
                   Documents Expiring Soon
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {count} document{count !== 1 ? 's' : ''} {count === 1 ? 'is' : 'are'} expiring within 30 days
+                  {count} document{count !== 1 ? 's' : ''}{' '}
+                  {count === 1 ? 'is' : 'are'} expiring within 30 days
                 </p>
               </div>
             </div>
+
             <button
-              onClick={onClose}
+              onClick={() => {
+                setVisible(false);
+                onClose();
+              }}
               className="p-1 hover:bg-gray-100 rounded transition-colors ml-2"
             >
               <X className="w-4 h-4 text-gray-500" />
@@ -59,13 +91,17 @@ const ExpiringDocumentsToast: React.FC<ExpiringDocumentsToastProps> = ({
               <button
                 onClick={() => {
                   onViewDocuments();
+                  setVisible(false);
                   onClose();
                 }}
-                className="flex items-center gap-1 px-3 py-1.5  text-white text-xs font-medium rounded  transition-colors"
-                style={{ color: 'white', background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                className="flex items-center gap-1 px-3 py-1.5 text-white text-xs font-medium rounded transition-colors"
+                style={{
+                  background:
+                    'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                }}
               >
-                <ExternalLink className="w-3 h-3 text-white" style={{ color: 'white', stroke: 'white' }} />
-                <span className="text-white" style={{ color: 'white' }}>View Documents</span>
+                <ExternalLink className="w-3 h-3 text-white" />
+                <span className="text-white">View Documents</span>
               </button>
             </div>
           )}
@@ -76,32 +112,3 @@ const ExpiringDocumentsToast: React.FC<ExpiringDocumentsToastProps> = ({
 };
 
 export default ExpiringDocumentsToast;
-
-// Add CSS animation styles
-const styles = `
-  @keyframes slide-in {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  .animate-slide-in {
-    animation: slide-in 0.3s ease-out;
-  }
-`;
-
-// Inject styles into the document
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = styles;
-  if (!document.head.querySelector('style[data-expiring-toast]')) {
-    styleSheet.setAttribute('data-expiring-toast', 'true');
-    document.head.appendChild(styleSheet);
-  }
-}
-

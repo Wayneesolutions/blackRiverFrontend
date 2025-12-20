@@ -29,7 +29,7 @@ import {
   Legend
 } from 'recharts';
 
-type TimePeriod = 'monthly' | 'quarterly' | 'half-yearly' | 'yearly';
+type TimePeriod = '2weeks' | '1month' | 'monthly' | 'quarterly' | 'half-yearly' | 'yearly';
 type ViewType = 'overview' | 'trucks' | 'trips' | 'time-based';
 
 interface TruckFinancialData {
@@ -57,6 +57,9 @@ interface TripFinancialData {
   netProfit: number;
   date: string;
   status: 'completed' | 'in-progress' | 'pending';
+  totalMiles?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 interface TimeBasedReport {
@@ -772,33 +775,159 @@ const FinanceReport = () => {
           {/* Truck-wise View */}
           {!loading && activeView === 'trucks' && (
             <div className="space-y-4">
-              {/* Truck-wise Comparison Chart */}
+              {/* Period Selector for Truck-wise */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+                <div className="flex items-center gap-4">
+                  <label className="text-sm font-medium text-gray-700">Group by Period:</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {(['2weeks', '1month', 'monthly'] as TimePeriod[]).map((period) => {
+                      const getPeriodLabel = (p: TimePeriod) => {
+                        switch (p) {
+                          case '2weeks': return '2 Weeks';
+                          case '1month': return '1 Month';
+                          default: return p.charAt(0).toUpperCase() + p.slice(1);
+                        }
+                      };
+                      return (
+                        <button
+                          key={period}
+                          onClick={() => {
+                            console.log('📊 [Truck Period] Changing period to:', period);
+                            setTimePeriod(period);
+                          }}
+                          disabled={loading}
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                            timePeriod === period
+                              ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                          {getPeriodLabel(period)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Truck-wise Comparison Chart - Grouped by Time Period */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <BarChart3 size={20} className="text-[#42aeec]" />
-                  Truck-wise Revenue vs Expenses vs Net Profit
+                  Truck-wise Revenue vs Expenses vs Net Profit (Grouped by {(() => {
+                    switch (timePeriod) {
+                      case '2weeks': return '2 Weeks';
+                      case '1month': return '1 Month';
+                      default: return 'Month';
+                    }
+                  })()})
                 </h2>
                 <div className="h-96 mb-6">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={truckFinancialData.map(truck => ({
-                        name: truck.truckNumber,
-                        Revenue: truck.revenue,
-                        Expenses: truck.expenses + truck.payroll,
-                        'Net Profit': truck.netProfit
-                      }))}
+                      data={(() => {
+                        // Group truck trips by time period using trip data
+                        const periodMap = new Map<string, {
+                          period: string;
+                          Revenue: number;
+                          Expenses: number;
+                          'Net Profit': number;
+                          truckCount: number;
+                        }>();
+
+                        // Use trip data to group by time period (trips are linked to trucks)
+                        // First pass: collect all trips and group by period
+                        const periodTruckMap = new Map<string, Set<string>>();
+                        
+                        tripFinancialData.forEach(trip => {
+                          let periodKey = '';
+                          let periodLabel = '';
+                          
+                          try {
+                            if (trip.date) {
+                              const date = new Date(trip.date);
+                              
+                              if (timePeriod === '2weeks') {
+                                // Group by 2-week periods
+                                const year = date.getFullYear();
+                                const weekNumber = Math.floor((date.getTime() - new Date(year, 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                const twoWeekPeriod = Math.floor(weekNumber / 2) + 1;
+                                periodKey = `${year}-W${twoWeekPeriod}`;
+                                periodLabel = `Week ${(twoWeekPeriod - 1) * 2 + 1}-${twoWeekPeriod * 2}, ${year}`;
+                              } else if (timePeriod === '1month') {
+                                // Group by month
+                                const year = date.getFullYear();
+                                const month = date.getMonth() + 1;
+                                periodKey = `${year}-${month.toString().padStart(2, '0')}`;
+                                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                periodLabel = `${monthNames[month - 1]} ${year}`;
+                              } else {
+                                // Monthly (same as 1month for now)
+                                const year = date.getFullYear();
+                                const month = date.getMonth() + 1;
+                                periodKey = `${year}-${month.toString().padStart(2, '0')}`;
+                                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                periodLabel = `${monthNames[month - 1]} ${year}`;
+                              }
+                            } else {
+                              periodKey = 'Unknown';
+                              periodLabel = 'Unknown';
+                            }
+                          } catch (e) {
+                            periodKey = 'Unknown';
+                            periodLabel = 'Unknown';
+                          }
+
+                          if (!periodMap.has(periodKey)) {
+                            periodMap.set(periodKey, {
+                              period: periodLabel,
+                              Revenue: 0,
+                              Expenses: 0,
+                              'Net Profit': 0,
+                              truckCount: 0
+                            });
+                            periodTruckMap.set(periodKey, new Set());
+                          }
+
+                          const periodData = periodMap.get(periodKey)!;
+                          periodData.Revenue += Number(trip.revenue) || 0;
+                          periodData.Expenses += (Number(trip.expenses) || 0) + (Number(trip.driverPay) || 0);
+                          periodData['Net Profit'] += Number(trip.netProfit) || 0;
+                          
+                          // Track unique trucks per period
+                          if (trip.truckNumber) {
+                            const truckSet = periodTruckMap.get(periodKey)!;
+                            truckSet.add(trip.truckNumber);
+                          }
+                        });
+
+                        // Update truck counts
+                        periodTruckMap.forEach((truckSet, periodKey) => {
+                          const periodData = periodMap.get(periodKey);
+                          if (periodData) {
+                            periodData.truckCount = truckSet.size;
+                          }
+                        });
+
+                        // Convert to array and sort by period
+                        return Array.from(periodMap.values()).sort((a, b) => {
+                          return a.period.localeCompare(b.period);
+                        });
+                      })()}
                       margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis
-                        dataKey="name"
+                        dataKey="period"
                         stroke="#6b7280"
                         style={{ fontSize: '11px' }}
-                        angle={-45}
-                        textAnchor="end"
-                        height={80}
+                        height={60}
                       />
-                      <YAxis stroke="#6b7280" style={{ fontSize: '11px' }} />
+                      <YAxis 
+                        stroke="#6b7280" 
+                        style={{ fontSize: '11px' }}
+                        tickFormatter={(value) => `$${value.toLocaleString()}`}
+                      />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: '#fff',
@@ -808,11 +937,21 @@ const FinanceReport = () => {
                           fontSize: '12px'
                         }}
                         formatter={(value: number) => formatCurrency(value)}
+                        labelFormatter={(label, payload) => {
+                          if (payload && payload[0]) {
+                            const data = payload[0].payload;
+                            return `${data.period}${data.truckCount ? ` (${data.truckCount} trucks)` : ''}`;
+                          }
+                          return label;
+                        }}
                       />
-                      <Legend />
-                      <Bar dataKey="Revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="Net Profit" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                      <Legend 
+                        wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
+                        iconType="square"
+                      />
+                      <Bar dataKey="Revenue" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="Expenses" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="Net Profit" stackId="a" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -903,33 +1042,144 @@ const FinanceReport = () => {
           {/* Trip-wise View */}
           {!loading && activeView === 'trips' && (
             <div className="space-y-4">
-              {/* Trip-wise Comparison Chart */}
+              {/* Period Selector for Trip-wise */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+                <div className="flex items-center gap-4">
+                  <label className="text-sm font-medium text-gray-700">Group by Period:</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {(['2weeks', '1month', 'monthly'] as TimePeriod[]).map((period) => {
+                      const getPeriodLabel = (p: TimePeriod) => {
+                        switch (p) {
+                          case '2weeks': return '2 Weeks';
+                          case '1month': return '1 Month';
+                          default: return p.charAt(0).toUpperCase() + p.slice(1);
+                        }
+                      };
+                      return (
+                        <button
+                          key={period}
+                          onClick={() => {
+                            console.log('📊 [Trip Period] Changing period to:', period);
+                            setTimePeriod(period);
+                          }}
+                          disabled={loading}
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                            timePeriod === period
+                              ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                          {getPeriodLabel(period)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Trip-wise Comparison Chart - Grouped by Time Period */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <BarChart3 size={20} className="text-[#42aeec]" />
-                  Trip-wise Revenue vs Expenses vs Net Profit
+                  Trip-wise Revenue vs Expenses vs Net Profit (Grouped by {(() => {
+                    switch (timePeriod) {
+                      case '2weeks': return '2 Weeks';
+                      case '1month': return '1 Month';
+                      default: return 'Month';
+                    }
+                  })()})
                 </h2>
                 <div className="h-96 mb-6">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={tripFinancialData.map(trip => ({
-                        name: trip.tripNumber?.split('-')[2] || trip.tripNumber || 'Trip',
-                        Revenue: Number(trip.revenue) || 0,
-                        Expenses: (Number(trip.expenses) || 0) + (Number(trip.driverPay) || 0),
-                        'Net Profit': Number(trip.netProfit) || 0
-                      }))}
+                      data={(() => {
+                        // Group trips by time period
+                        const periodMap = new Map<string, {
+                          period: string;
+                          Revenue: number;
+                          Expenses: number;
+                          'Net Profit': number;
+                          tripCount: number;
+                        }>();
+
+                        tripFinancialData.forEach(trip => {
+                          let periodKey = '';
+                          let periodLabel = '';
+                          
+                          try {
+                            // Use startDate for grouping, fallback to date if startDate is not available
+                            const dateToUse = trip.startDate || trip.date;
+                            if (dateToUse) {
+                              const date = new Date(dateToUse);
+                              
+                              if (timePeriod === '2weeks') {
+                                // Group by 2-week periods
+                                const year = date.getFullYear();
+                                const weekNumber = Math.floor((date.getTime() - new Date(year, 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                const twoWeekPeriod = Math.floor(weekNumber / 2) + 1;
+                                periodKey = `${year}-W${twoWeekPeriod}`;
+                                periodLabel = `Week ${(twoWeekPeriod - 1) * 2 + 1}-${twoWeekPeriod * 2}, ${year}`;
+                              } else if (timePeriod === '1month') {
+                                // Group by month
+                                const year = date.getFullYear();
+                                const month = date.getMonth() + 1;
+                                periodKey = `${year}-${month.toString().padStart(2, '0')}`;
+                                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                periodLabel = `${monthNames[month - 1]} ${year}`;
+                              } else {
+                                // Monthly (same as 1month for now)
+                                const year = date.getFullYear();
+                                const month = date.getMonth() + 1;
+                                periodKey = `${year}-${month.toString().padStart(2, '0')}`;
+                                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                periodLabel = `${monthNames[month - 1]} ${year}`;
+                              }
+                            } else {
+                              periodKey = 'Unknown';
+                              periodLabel = 'Unknown';
+                            }
+                          } catch (e) {
+                            periodKey = 'Unknown';
+                            periodLabel = 'Unknown';
+                          }
+
+                          if (!periodMap.has(periodKey)) {
+                            periodMap.set(periodKey, {
+                              period: periodLabel,
+                              Revenue: 0,
+                              Expenses: 0,
+                              'Net Profit': 0,
+                              tripCount: 0
+                            });
+                          }
+
+                          const periodData = periodMap.get(periodKey)!;
+                          periodData.Revenue += Number(trip.revenue) || 0;
+                          periodData.Expenses += (Number(trip.expenses) || 0) + (Number(trip.driverPay) || 0);
+                          periodData['Net Profit'] += Number(trip.netProfit) || 0;
+                          periodData.tripCount += 1;
+                        });
+
+                        // Convert to array and sort by period
+                        return Array.from(periodMap.values()).sort((a, b) => {
+                          // Simple string comparison should work for date-based periods
+                          return a.period.localeCompare(b.period);
+                        });
+                      })()}
                       margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis
-                        dataKey="name"
+                        dataKey="period"
                         stroke="#6b7280"
                         style={{ fontSize: '11px' }}
-                        angle={-45}
-                        textAnchor="end"
-                        height={80}
+                        height={60}
                       />
-                      <YAxis stroke="#6b7280" style={{ fontSize: '11px' }} />
+                      <YAxis 
+                        stroke="#6b7280" 
+                        style={{ fontSize: '11px' }}
+                        tickFormatter={(value) => `$${value.toLocaleString()}`}
+                      />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: '#fff',
@@ -939,11 +1189,21 @@ const FinanceReport = () => {
                           fontSize: '12px'
                         }}
                         formatter={(value: number) => formatCurrency(value)}
+                        labelFormatter={(label, payload) => {
+                          if (payload && payload[0]) {
+                            const data = payload[0].payload;
+                            return `${data.period} (${data.tripCount} trips)`;
+                          }
+                          return label;
+                        }}
                       />
-                      <Legend />
-                      <Bar dataKey="Revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="Net Profit" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                      <Legend 
+                        wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
+                        iconType="square"
+                      />
+                      <Bar dataKey="Revenue" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="Expenses" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="Net Profit" stackId="a" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -967,7 +1227,9 @@ const FinanceReport = () => {
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trip #</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Truck</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Miles</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Revenue</th>
                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Expenses</th>
                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Driver Pay</th>
@@ -987,14 +1249,22 @@ const FinanceReport = () => {
                         // Calculate profit margin safely
                         const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
                         
-                        // Format date safely
-                        let formattedDate = 'N/A';
+                        // Format dates safely
+                        let formattedStartDate = 'N/A';
+                        let formattedEndDate = 'N/A';
                         try {
-                          if (trip.date) {
-                            formattedDate = new Date(trip.date).toLocaleDateString();
+                          if (trip.startDate) {
+                            formattedStartDate = new Date(trip.startDate).toLocaleDateString();
                           }
                         } catch (e) {
-                          formattedDate = 'N/A';
+                          formattedStartDate = 'N/A';
+                        }
+                        try {
+                          if (trip.endDate) {
+                            formattedEndDate = new Date(trip.endDate).toLocaleDateString();
+                          }
+                        } catch (e) {
+                          formattedEndDate = 'N/A';
                         }
                         
                         return (
@@ -1008,7 +1278,9 @@ const FinanceReport = () => {
                                 <span>{trip.destination || 'N/A'}</span>
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">{formattedDate}</td>
+                            <td className="px-4 py-3 text-sm text-right text-gray-700">{(trip.totalMiles || 0).toLocaleString()}</td>
+                            <td className="px-4 py-3 text-sm text-gray-700">{formattedStartDate}</td>
+                            <td className="px-4 py-3 text-sm text-gray-700">{formattedEndDate}</td>
                             <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">{formatCurrency(revenue)}</td>
                             <td className="px-4 py-3 text-sm text-right text-red-600">{formatCurrency(expenses)}</td>
                             <td className="px-4 py-3 text-sm text-right text-blue-600">{formatCurrency(driverPay)}</td>
@@ -1033,7 +1305,11 @@ const FinanceReport = () => {
                         );
                       })}
                       <tr className="bg-gray-50 font-bold">
-                        <td colSpan={4} className="px-4 py-3 text-sm text-gray-900">Total</td>
+                        <td colSpan={3} className="px-4 py-3 text-sm text-gray-900">Total</td>
+                        <td className="px-4 py-3 text-sm text-right text-gray-700">
+                          {tripFinancialData.reduce((sum, t) => sum + (Number(t.totalMiles) || 0), 0).toLocaleString()}
+                        </td>
+                        <td colSpan={2} className="px-4 py-3"></td>
                         <td className="px-4 py-3 text-sm text-right text-green-600">
                           {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.revenue) || 0), 0))}
                         </td>
@@ -1070,24 +1346,34 @@ const FinanceReport = () => {
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
                 <div className="flex items-center gap-4">
                   <label className="text-sm font-medium text-gray-700">Report Period:</label>
-                  <div className="flex gap-2">
-                    {(['monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => (
-                      <button
-                        key={period}
-                        onClick={() => {
-                          console.log('📊 [Time Period] Changing period to:', period);
-                          setTimePeriod(period);
-                        }}
-                        disabled={loading}
-                        className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                          timePeriod === period
-                            ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                      >
-                        {period === 'half-yearly' ? 'Half Yearly' : period.charAt(0).toUpperCase() + period.slice(1)}
-                      </button>
-                    ))}
+                  <div className="flex gap-2 flex-wrap">
+                    {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
+                      const getPeriodLabel = (p: TimePeriod) => {
+                        switch (p) {
+                          case '2weeks': return '2 Weeks';
+                          case '1month': return '1 Month';
+                          case 'half-yearly': return 'Half Yearly';
+                          default: return p.charAt(0).toUpperCase() + p.slice(1);
+                        }
+                      };
+                      return (
+                        <button
+                          key={period}
+                          onClick={() => {
+                            console.log('📊 [Time Period] Changing period to:', period);
+                            setTimePeriod(period);
+                          }}
+                          disabled={loading}
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                            timePeriod === period
+                              ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] text-white shadow-md'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                          {getPeriodLabel(period)}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -1117,7 +1403,14 @@ const FinanceReport = () => {
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <BarChart3 size={20} className="text-[#42aeec]" />
-                  {timePeriod === 'half-yearly' ? 'Half Yearly' : timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)} Revenue vs Expenses vs Net Profit Trend
+                  {(() => {
+                    switch (timePeriod) {
+                      case '2weeks': return '2 Weeks';
+                      case '1month': return '1 Month';
+                      case 'half-yearly': return 'Half Yearly';
+                      default: return timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1);
+                    }
+                  })()} Revenue vs Expenses vs Net Profit Trend
                 </h2>
                 <div className="h-96 mb-6">
                   {getCurrentReports().length > 0 ? (
@@ -1136,11 +1429,13 @@ const FinanceReport = () => {
                         dataKey="period"
                         stroke="#6b7280"
                         style={{ fontSize: '11px' }}
-                        angle={-45}
-                        textAnchor="end"
-                        height={80}
+                        height={60}
                       />
-                      <YAxis stroke="#6b7280" style={{ fontSize: '11px' }} />
+                      <YAxis 
+                        stroke="#6b7280" 
+                        style={{ fontSize: '11px' }}
+                        tickFormatter={(value) => `$${value.toLocaleString()}`}
+                      />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: '#fff',
@@ -1190,7 +1485,14 @@ const FinanceReport = () => {
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <BarChart3 size={20} className="text-[#42aeec]" />
-                  {timePeriod === 'half-yearly' ? 'Half Yearly' : timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)} Comparison
+                  {(() => {
+                    switch (timePeriod) {
+                      case '2weeks': return '2 Weeks';
+                      case '1month': return '1 Month';
+                      case 'half-yearly': return 'Half Yearly';
+                      default: return timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1);
+                    }
+                  })()} Comparison
                 </h2>
                 <div className="h-96 mb-6">
                   {getCurrentReports().length > 0 ? (
@@ -1209,11 +1511,13 @@ const FinanceReport = () => {
                         dataKey="period"
                         stroke="#6b7280"
                         style={{ fontSize: '11px' }}
-                        angle={-45}
-                        textAnchor="end"
-                        height={80}
+                        height={60}
                       />
-                      <YAxis stroke="#6b7280" style={{ fontSize: '11px' }} />
+                      <YAxis 
+                        stroke="#6b7280" 
+                        style={{ fontSize: '11px' }}
+                        tickFormatter={(value) => `$${value.toLocaleString()}`}
+                      />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: '#fff',
@@ -1223,11 +1527,15 @@ const FinanceReport = () => {
                           fontSize: '12px'
                         }}
                         formatter={(value: number) => formatCurrency(value)}
+                        labelFormatter={(label) => `Period: ${label}`}
                       />
-                      <Legend />
-                      <Bar dataKey="Revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="Net Profit" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                      <Legend 
+                        wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
+                        iconType="square"
+                      />
+                      <Bar dataKey="Revenue" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="Expenses" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="Net Profit" stackId="a" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                     </BarChart>
                     </ResponsiveContainer>
                   ) : (

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getUserRole } from '../../../utils/auth';
 import {
   DollarSign,
   TrendingUp,
@@ -16,7 +17,6 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Building2,
   UserCheck,
   UserX,
   Truck
@@ -50,6 +50,11 @@ interface Payroll {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const userRole = getUserRole();
+  // Determine route prefix based on user role
+  // HR users access via /accounts/*, admin users via /admin/accounts/*
+  const routePrefix = userRole === 'hr' ? '/accounts' : '/admin/accounts';
+  
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [payrolls, setPayrolls] = useState<Payroll[]>([]);
@@ -151,7 +156,8 @@ const Dashboard = () => {
   const totalPayroll = dashboardStats.totalPayroll || payrolls.reduce((sum, payroll) => sum + normalizeAmount(payroll.totalSalary), 0);
   const netProfit = dashboardStats.netProfit || (totalRevenue - totalExpenses - totalPayroll);
 
-  const features = [
+  // Row 1: Total Revenue, Total Expenses, Net Profit
+  const row1Cards = [
     {
       id: 'revenue',
       title: 'Total Revenue',
@@ -173,16 +179,6 @@ const Dashboard = () => {
       cardBg: 'bg-gradient-to-br from-red-50 to-red-100'
     },
     {
-      id: 'payroll',
-      title: 'Total Payroll',
-      value: `$${totalPayroll.toLocaleString()}`,
-      subtitle: `${dashboardStats.payrollCount} employees`,
-      icon: Users,
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-blue-700',
-      cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100'
-    },
-    {
       id: 'profit',
       title: 'Net Profit',
       value: `$${netProfit.toLocaleString()}`,
@@ -191,6 +187,20 @@ const Dashboard = () => {
       bgColor: 'bg-purple-100',
       iconColor: 'text-purple-700',
       cardBg: 'bg-gradient-to-br from-purple-50 to-purple-100'
+    }
+  ];
+
+  // Row 2: Total Payroll, Paid Invoices, Unpaid Invoices
+  const row2Cards = [
+    {
+      id: 'payroll',
+      title: 'Total Payroll',
+      value: `$${totalPayroll.toLocaleString()}`,
+      subtitle: `${dashboardStats.payrollCount} employees`,
+      icon: Users,
+      bgColor: 'bg-blue-100',
+      iconColor: 'text-blue-700',
+      cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100'
     },
     {
       id: 'paid-invoices',
@@ -204,63 +214,43 @@ const Dashboard = () => {
     },
     {
       id: 'unpaid-overdue',
-      title: 'Unpaid Over Due',
+      title: 'Unpaid Invoices',
       value: `$${dashboardStats.unpaidOverdue.toLocaleString()}`,
       subtitle: 'Overdue payments',
       icon: XCircle,
       bgColor: 'bg-rose-100',
       iconColor: 'text-rose-700',
       cardBg: 'bg-gradient-to-br from-rose-50 to-rose-100'
-    },
+    }
+  ];
+
+  // Row 3: Employee Paid & Unpaid (Combined)
+  const row3Cards = [
     {
-      id: 'employee-paid',
-      title: 'Employee Paid',
-      value: `${dashboardStats.employeePaidCount}`,
-      subtitle: 'employees',
-      icon: UserCheck,
-      bgColor: 'bg-emerald-100',
-      iconColor: 'text-emerald-700',
-      cardBg: 'bg-gradient-to-br from-emerald-50 to-emerald-100'
-    },
+      id: 'employees',
+      title: 'Employees',
+      paidCount: dashboardStats.employeePaidCount,
+      unpaidCount: dashboardStats.employeeUnpaidCount,
+      totalCount: dashboardStats.employeePaidCount + dashboardStats.employeeUnpaidCount,
+      icon: Users,
+      bgColor: 'bg-indigo-100',
+      iconColor: 'text-indigo-700',
+      cardBg: 'bg-gradient-to-br from-indigo-50 to-indigo-100'
+    }
+  ];
+
+  // Row 4: Driver Paid & Unpaid (Combined)
+  const row4Cards = [
     {
-      id: 'employee-unpaid',
-      title: 'Employee Unpaid',
-      value: `${dashboardStats.employeeUnpaidCount}`,
-      subtitle: 'employees',
-      icon: UserX,
-      bgColor: 'bg-amber-100',
-      iconColor: 'text-amber-700',
-      cardBg: 'bg-gradient-to-br from-amber-50 to-amber-100'
-    },
-    {
-      id: 'driver-paid',
-      title: 'Driver Paid',
-      value: `${dashboardStats.driverPaidCount}`,
-      subtitle: 'drivers',
+      id: 'drivers',
+      title: 'Drivers',
+      paidCount: dashboardStats.driverPaidCount,
+      unpaidCount: dashboardStats.driverUnpaidCount,
+      totalCount: dashboardStats.driverPaidCount + dashboardStats.driverUnpaidCount,
       icon: Truck,
       bgColor: 'bg-blue-100',
       iconColor: 'text-blue-700',
       cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100'
-    },
-    {
-      id: 'driver-unpaid',
-      title: 'Driver Unpaid',
-      value: `${dashboardStats.driverUnpaidCount}`,
-      subtitle: 'drivers',
-      icon: Clock,
-      bgColor: 'bg-cyan-100',
-      iconColor: 'text-cyan-700',
-      cardBg: 'bg-gradient-to-br from-cyan-50 to-cyan-100'
-    },
-    {
-      id: 'vendor-payment',
-      title: 'Vendor Payment',
-      value: `$${dashboardStats.vendorPayment.toLocaleString()}`,
-      subtitle: 'Vendor payments',
-      icon: Building2,
-      bgColor: 'bg-violet-100',
-      iconColor: 'text-violet-700',
-      cardBg: 'bg-gradient-to-br from-violet-50 to-violet-100'
     }
   ];
 
@@ -273,7 +263,7 @@ const Dashboard = () => {
       icon: Handshake,
       bgColor: 'bg-green-100',
       iconColor: 'text-green-700',
-      path: '/admin/accounts/settlements'
+      path: `${routePrefix}/settlements`
     },
     {
       id: 'expenses',
@@ -283,7 +273,7 @@ const Dashboard = () => {
       icon: Receipt,
       bgColor: 'bg-red-100',
       iconColor: 'text-red-700',
-      path: '/admin/accounts/expenses'
+      path: `${routePrefix}/expenses`
     },
     {
       id: 'invoices',
@@ -293,7 +283,7 @@ const Dashboard = () => {
       icon: FileText,
       bgColor: 'bg-orange-100',
       iconColor: 'text-orange-700',
-      path: '/admin/accounts/invoice'
+      path: `${routePrefix}/invoice`
     },
     {
       id: 'payroll',
@@ -303,7 +293,7 @@ const Dashboard = () => {
       icon: Users,
       bgColor: 'bg-indigo-100',
       iconColor: 'text-indigo-700',
-      path: '/admin/accounts/payroll'
+      path: `${routePrefix}/payroll`
     },
     {
       id: 'driver-payroll',
@@ -313,7 +303,7 @@ const Dashboard = () => {
       icon: Users,
       bgColor: 'bg-sky-100',
       iconColor: 'text-sky-700',
-      path: '/admin/accounts/driverpayroll'
+      path: `${routePrefix}/driverpayroll`
     },
     {
       id: 'config',
@@ -323,7 +313,7 @@ const Dashboard = () => {
       icon: BarChart3,
       bgColor: 'bg-purple-100',
       iconColor: 'text-purple-700',
-      path: '/admin/accounts/config'
+      path: `${routePrefix}/config`
     }
   ];
 
@@ -361,47 +351,183 @@ const Dashboard = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 -mt-2 mb-4">
-            {features.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={feature.id}
-                  onClick={() => {
-                    if (feature.id === 'revenue' || feature.id === 'profit' || feature.id === 'paid-invoices' || feature.id === 'unpaid-overdue') {
-                      navigate('/admin/accounts/invoice');
-                    } else if (feature.id === 'expenses' || feature.id === 'vendor-payment') {
-                      navigate('/admin/accounts/expenses');
-                    } else if (feature.id === 'payroll' || feature.id === 'employee-paid' || feature.id === 'employee-unpaid') {
-                      navigate('/admin/accounts/payroll');
-                    } else if (feature.id === 'driver-paid' || feature.id === 'driver-unpaid') {
-                      navigate('/admin/accounts/driverpayroll');
-                    }
-                  }}
-                  className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    {/* Left side content */}
-                    <div className="flex-1">
-                      <h3 className="text-sm font-bold text-gray-900 mb-1">
-                        {feature.title}
-                      </h3>
+          <div className="space-y-3 -mt-2 mb-4">
+            {/* Row 1: Total Revenue, Total Expenses, Net Profit */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {row1Cards.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={feature.id}
+                    onClick={() => {
+                      if (feature.id === 'revenue' || feature.id === 'profit') {
+                        navigate(`${routePrefix}/invoice`);
+                      } else if (feature.id === 'expenses') {
+                        navigate(`${routePrefix}/expenses`);
+                      }
+                    }}
+                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      {/* Left side content */}
+                      <div className="flex-1">
+                        <h3 className="text-sm font-bold text-gray-900 mb-1">
+                          {feature.title}
+                        </h3>
 
-                      <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="text-xl font-bold text-gray-900">{feature.value}</span>
+                        <div className="flex items-baseline gap-2 mb-0.5">
+                          <span className="text-xl font-bold text-gray-900">{feature.value}</span>
+                        </div>
+
+                        <p className="text-xs text-gray-400">{feature.subtitle}</p>
                       </div>
 
-                      <p className="text-xs text-gray-400">{feature.subtitle}</p>
-                    </div>
-
-                    {/* Right side icon */}
-                    <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
-                      <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                      {/* Right side icon */}
+                      <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
+                        <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+
+            {/* Row 2: Total Payroll, Paid Invoices, Unpaid Invoices */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {row2Cards.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={feature.id}
+                    onClick={() => {
+                      if (feature.id === 'paid-invoices' || feature.id === 'unpaid-overdue') {
+                        navigate(`${routePrefix}/invoice`);
+                      } else if (feature.id === 'payroll') {
+                        navigate(`${routePrefix}/payroll`);
+                      }
+                    }}
+                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      {/* Left side content */}
+                      <div className="flex-1">
+                        <h3 className="text-sm font-bold text-gray-900 mb-1">
+                          {feature.title}
+                        </h3>
+
+                        <div className="flex items-baseline gap-2 mb-0.5">
+                          <span className="text-xl font-bold text-gray-900">{feature.value}</span>
+                        </div>
+
+                        <p className="text-xs text-gray-400">{feature.subtitle}</p>
+                      </div>
+
+                      {/* Right side icon */}
+                      <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
+                        <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Row 3: Employees & Drivers (Paid & Unpaid Combined) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Employees Card */}
+              {row3Cards.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={feature.id}
+                    onClick={() => {
+                      navigate(`${routePrefix}/payroll`);
+                    }}
+                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      {/* Left side content */}
+                      <div className="flex-1">
+                        <h3 className="text-sm font-bold text-gray-900 mb-2">
+                          {feature.title}
+                        </h3>
+
+                        <div className="flex items-center gap-4 mb-1">
+                          <div className="flex items-center gap-2">
+                            <UserCheck className="text-emerald-600" size={18} />
+                            <div>
+                              <span className="text-lg font-bold text-gray-900">{feature.paidCount}</span>
+                              <p className="text-xs text-gray-500">Paid</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <UserX className="text-amber-600" size={18} />
+                            <div>
+                              <span className="text-lg font-bold text-gray-900">{feature.unpaidCount}</span>
+                              <p className="text-xs text-gray-500">Unpaid</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-gray-400">Total: {feature.totalCount} employees</p>
+                      </div>
+
+                      {/* Right side icon */}
+                      <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
+                        <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Drivers Card */}
+              {row4Cards.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={feature.id}
+                    onClick={() => {
+                      navigate(`${routePrefix}/driverpayroll`);
+                    }}
+                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      {/* Left side content */}
+                      <div className="flex-1">
+                        <h3 className="text-sm font-bold text-gray-900 mb-2">
+                          {feature.title}
+                        </h3>
+
+                        <div className="flex items-center gap-4 mb-1">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="text-emerald-600" size={18} />
+                            <div>
+                              <span className="text-lg font-bold text-gray-900">{feature.paidCount}</span>
+                              <p className="text-xs text-gray-500">Paid</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="text-amber-600" size={18} />
+                            <div>
+                              <span className="text-lg font-bold text-gray-900">{feature.unpaidCount}</span>
+                              <p className="text-xs text-gray-500">Unpaid</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-gray-400">Total: {feature.totalCount} drivers</p>
+                      </div>
+
+                      {/* Right side icon */}
+                      <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
+                        <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Quick Actions Section */}
@@ -449,7 +575,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <button
-                    onClick={() => navigate('/admin/accounts/settlements')}
+                    onClick={() => navigate(`${routePrefix}/settlements`)}
                     className="px-3 py-1.5 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-xs font-medium transition-all"
                   >
                     View →
@@ -490,7 +616,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <button
-                    onClick={() => navigate('/admin/accounts/expenses')}
+                    onClick={() => navigate(`${routePrefix}/expenses`)}
                     className="px-3 py-1.5 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-xs font-medium transition-all"
                   >
                     View →
@@ -527,7 +653,7 @@ const Dashboard = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
               <h3 className="text-base font-semibold text-gray-900 mb-3">Alerts & Notifications</h3>
               <div
-                onClick={() => navigate('/admin/accounts/invoice')}
+                onClick={() => navigate(`${routePrefix}/invoice`)}
                 className="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg cursor-pointer hover:bg-yellow-100 transition-colors"
               >
                 <AlertCircle className="text-yellow-600 mr-3" size={20} />

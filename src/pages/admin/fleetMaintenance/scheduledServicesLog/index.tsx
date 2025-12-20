@@ -727,7 +727,7 @@ const ScheduledServicesLog: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Incoming Maintenance</p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Upcoming Services</p>
                   <p className="text-2xl font-bold text-orange-600 mb-1">{summaryStats.incomingMaintenance}</p>
                   <p className="text-xs text-gray-500">Services due within next 7,500 km or 30 days</p>
                 </div>

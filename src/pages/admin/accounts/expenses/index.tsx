@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Trash2, Eye, Building2 } from 'lucide-react';
+import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Trash2, Eye, Building2, Users } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { createExpense, listExpenses, updateExpense, deleteExpense, getExpenseReceiptSignedUrl, extractReceiptData } from "../../../../axios/api/account.expense";
 import { getEmployees } from "../../../../axios/api/account.payroll";
@@ -83,6 +83,7 @@ const ExpensesPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const [extractingReceipt, setExtractingReceipt] = useState(false);
+  const [totalPayroll, setTotalPayroll] = useState<number>(0);
 
   const [formData, setFormData] = useState<{
     userId: string;
@@ -104,7 +105,20 @@ const ExpensesPage = () => {
   useEffect(() => {
     fetchExpenses();
     fetchEmployees();
+    fetchDashboardData();
   }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const { getAccountsDashboard } = await import('../../../../axios/api/account.dashboard');
+      const dashboardRes = await getAccountsDashboard();
+      if (dashboardRes?.success && dashboardRes.data) {
+        setTotalPayroll(dashboardRes.data.totalPayroll ?? 0);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    }
+  };
 
   const getLocalUserInfo = () => {
     const userInfoString = localStorage.getItem('userInfo');
@@ -509,57 +523,71 @@ const ExpensesPage = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-[#E3F2FD] p-6 rounded-xl border-blue-100 shadow-sm border hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <div className="bg-[#E3F2FD] p-6 rounded-xl border-blue-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[#063f6f] text-sm">Total Expenses</p>
                 <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>${totalAmount.toLocaleString()}</p>
               </div>
-              <div className="bg-white p-3 rounded-full shadow-sm">
-                <DollarSign className="text-[#42aeec]" size={24} />
+              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
+                <DollarSign className="text-[#42aeec]" size={20} />
               </div>
             </div>
           </div>
 
-          <div className="bg-[#E1F5FE] p-6 rounded-xl border-cyan-100 shadow-sm border hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
+          <div className="bg-[#E1F5FE] p-6 rounded-xl border-cyan-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[#063f6f] text-sm">Fuel Expenses</p>
                 <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
                   ${expenses.filter(e => e.type && e.type.includes('Fuel')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
-              <div className="bg-white p-3 rounded-full shadow-sm">
-                <span className="text-2xl">⛽</span>
+              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
+                <span className="text-xl">⛽</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#E8F5E9] p-6 rounded-xl border-green-100 shadow-sm border hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
+          <div className="bg-[#E8F5E9] p-6 rounded-xl border-green-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[#063f6f] text-sm">Maintenance</p>
                 <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
                   ${expenses.filter(e => e.type && (e.type.includes('Repair') || e.type.includes('Maintenance'))).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
-              <div className="bg-white p-3 rounded-full shadow-sm">
-                <span className="text-2xl">🔧</span>
+              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
+                <span className="text-xl">🔧</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#F3E5F5] p-6 rounded-xl border-purple-100 shadow-sm border hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
+          <div className="bg-[#F3E5F5] p-6 rounded-xl border-purple-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[#063f6f] text-sm">Cash Expenses</p>
                 <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
                   ${expenses.filter(e => e.type && e.type.includes('Cash')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
-              <div className="bg-white p-3 rounded-full shadow-sm">
-                <span className="text-2xl">💰</span>
+              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
+                <span className="text-xl">💰</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#FFF3E0] p-6 rounded-xl border-orange-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-[#063f6f] text-sm mb-1">Total Payroll</p>
+                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
+                  ${totalPayroll.toLocaleString()}
+                </p>
+              </div>
+              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
+                <Users className="text-[#42aeec]" size={20} />
               </div>
             </div>
           </div>

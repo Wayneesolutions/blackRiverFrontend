@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, ExternalLink, Truck } from 'lucide-react';
 
 interface ExpiringVehicleDocumentsToastProps {
@@ -8,23 +8,50 @@ interface ExpiringVehicleDocumentsToastProps {
   count: number;
 }
 
+const ONE_HOUR = 60 * 60 * 1000; // 3600000 ms
+const AUTO_CLOSE_TIME = 5000;   // 5 seconds
+
 const ExpiringVehicleDocumentsToast: React.FC<ExpiringVehicleDocumentsToastProps> = ({
   isOpen,
   onClose,
   onViewDocuments,
   count
 }) => {
-  // Auto-close after 8 seconds
-  useEffect(() => {
-    if (isOpen) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 8000);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, onClose]);
+  const [visible, setVisible] = useState(false);
 
-  if (!isOpen || count === 0) {
+  // 🔁 Show toast every 1 hour
+  useEffect(() => {
+    if (count === 0) return;
+
+    // First show after 1 hour
+    const initialTimer = setTimeout(() => {
+      setVisible(true);
+    }, ONE_HOUR);
+
+    // Repeat every 1 hour
+    const interval = setInterval(() => {
+      setVisible(true);
+    }, ONE_HOUR);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, [count]);
+
+  // ⏱ Auto-close after 5 seconds
+  useEffect(() => {
+    if (visible) {
+      const closeTimer = setTimeout(() => {
+        setVisible(false);
+        onClose();
+      }, AUTO_CLOSE_TIME);
+
+      return () => clearTimeout(closeTimer);
+    }
+  }, [visible, onClose]);
+
+  if (!visible || !isOpen || count === 0) {
     return null;
   }
 
@@ -42,12 +69,17 @@ const ExpiringVehicleDocumentsToast: React.FC<ExpiringVehicleDocumentsToastProps
                   Vehicle Documents Expiring Soon
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {count} vehicle document{count !== 1 ? 's' : ''} {count === 1 ? 'is' : 'are'} expiring within 30 days
+                  {count} vehicle document{count !== 1 ? 's' : ''}{' '}
+                  {count === 1 ? 'is' : 'are'} expiring within 30 days
                 </p>
               </div>
             </div>
+
             <button
-              onClick={onClose}
+              onClick={() => {
+                setVisible(false);
+                onClose();
+              }}
               className="p-1 hover:bg-gray-100 rounded transition-colors ml-2"
             >
               <X className="w-4 h-4 text-gray-500" />
@@ -59,50 +91,24 @@ const ExpiringVehicleDocumentsToast: React.FC<ExpiringVehicleDocumentsToastProps
               <button
                 onClick={() => {
                   onViewDocuments();
+                  setVisible(false);
                   onClose();
                 }}
-                className="flex items-center gap-1 px-3 py-1.5  text-white text-xs font-medium rounded  transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-white text-xs font-medium rounded transition-colors"
                 style={{
-                  color: 'white', background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                  background:
+                    'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
                 }}
               >
-                <ExternalLink className="w-3 h-3 text-white" style={{ color: 'white', stroke: 'white' }} />
-                <span className="text-white" style={{ color: 'white' }}>View Vehicle Documents</span>
+                <ExternalLink className="w-3 h-3 text-white" />
+                <span className="text-white">View Vehicle Documents</span>
               </button>
             </div>
           )}
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 
 export default ExpiringVehicleDocumentsToast;
-
-// Add CSS animation styles
-const styles = `
-  @keyframes slide-in {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  .animate-slide-in {
-    animation: slide-in 0.3s ease-out;
-  }
-`;
-
-// Inject styles into the document
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = styles;
-  if (!document.head.querySelector('style[data-expiring-vehicle-toast]')) {
-    styleSheet.setAttribute('data-expiring-vehicle-toast', 'true');
-    document.head.appendChild(styleSheet);
-  }
-}
