@@ -10,6 +10,7 @@ import {
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserRole } from '../../../utils/auth';
+import AIChatAssistant from '../../../components/ai/AIChatAssistant';
 import {
   getHRDashboard
 } from '../../../axios/api/driverDashboard';
@@ -187,6 +188,7 @@ const Index = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
      <div className="w-full mx-auto p-2 relative">
         {/* Gradient band */}
@@ -284,6 +286,8 @@ const Index = () => {
         </div>
       </div>
     </div>
+    <AIChatAssistant />
+    </>
   );
 }
 

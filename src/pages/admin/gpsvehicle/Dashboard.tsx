@@ -14,6 +14,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { getGpsVehicleDashboardStats } from "../../../axios/api/distapcher";
 import { listFleetUnits } from "../../../axios/api/fleet.units";
+import AIChatAssistant from "../../../components/ai/AIChatAssistant";
 
 interface FleetUnit {
   _id?: string;
@@ -192,6 +193,7 @@ const Dashboard = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="relative w-full mx-auto p-2">
         {/* Gradient band */}
@@ -374,6 +376,8 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
+    <AIChatAssistant />
+    </>
   );
 };
 

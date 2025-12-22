@@ -13,6 +13,7 @@ import {
 import { getCvsaInspectionStats, getTicketStats, getIncidentStats } from "../../../axios/api/admin";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import AIChatAssistant from "../../../components/ai/AIChatAssistant";
 
 interface CvsaStats {
   total: number;
@@ -196,6 +197,7 @@ function Dashboard() {
   }
 
   return (
+    <>
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="relative w-full mx-auto p-2">
         {/* Gradient band - Matching Dispatch */}
@@ -388,6 +390,8 @@ function Dashboard() {
         </div>
       </div>
     </div>
+    <AIChatAssistant />
+    </>
   );
 }
 

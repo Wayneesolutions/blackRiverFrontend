@@ -12,6 +12,7 @@ import {
   FaChevronRight,
 } from '../../../theme/icons';
 import { getUserRole } from '../../../utils/auth';
+import AIChatAssistant from '../../../components/ai/AIChatAssistant';
 import {
   getDashboardStats,
   getRecentActivity,
@@ -147,6 +148,7 @@ const Dashboard: React.FC = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-[#EDF8FF]">
       <div className="relative w-full mx-auto p-2">
         {/* Gradient Header */}
@@ -306,6 +308,8 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
     </div>
+    <AIChatAssistant />
+    </>
   );
 };
 

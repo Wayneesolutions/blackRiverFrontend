@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
 import { getUserRole } from '../../../../utils/auth';
+import AIChatAssistant from '../../../../components/ai/AIChatAssistant';
 import {
   fetchComplianceDashboard,
   type ComplianceDashboardResponse,
@@ -166,6 +167,7 @@ const ComplianceDashboard: React.FC = () => {
   ];
 
   return (
+    <>
     <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
         <div className="w-full mx-auto p-2 relative">
         {/* Gradient band */}
@@ -462,6 +464,8 @@ const ComplianceDashboard: React.FC = () => {
         </div>
       </div>
     </div>
+    <AIChatAssistant />
+    </>
   );
 };
 

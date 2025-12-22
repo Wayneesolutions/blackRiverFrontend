@@ -9,6 +9,7 @@ import {
 } from "../../../../axios/api/distapcher";
 import { listFleetUnits, type FleetUnitDto } from "../../../../axios/api/fleet.units";
 import { getUserRole } from "../../../../utils/auth";
+import AIChatAssistant from "../../../../components/ai/AIChatAssistant";
 
 
 interface DashboardStats {
@@ -630,6 +631,7 @@ const Index = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="relative w-full mx-auto">
         {/* Gradient band */}
@@ -1670,6 +1672,8 @@ const Index = () => {
         </div>
       </div>
     </div>
+    <AIChatAssistant />
+    </>
   );
 };
 

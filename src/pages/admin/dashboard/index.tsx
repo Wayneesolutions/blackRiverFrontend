@@ -14,6 +14,7 @@ import {
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import type { Libraries } from '@react-google-maps/api';
 import { getAdminDashboard, type Trip, type Truck, type DashboardStats } from '../../../axios/api/main.dashboard';
+import AIChatAssistant from '../../../components/ai/AIChatAssistant';
 
 declare global {
     interface Window {
@@ -273,6 +274,7 @@ const Index = () => {
     }
 
     return (
+        <>
         <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
             <div className="relative w-full mx-auto">
                 {/* Gradient band */}
@@ -562,6 +564,8 @@ const Index = () => {
                 </div>
             </div>
         </div>
+        <AIChatAssistant />
+        </>
     );
 };
 
