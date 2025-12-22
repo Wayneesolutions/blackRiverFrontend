@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash2, Eye, Search, X, File, Download } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, X, File, Download, MessageCircle } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck, FaUser, FaTrailer } from "react-icons/fa";
 import NewTripSidebar from "./NewTripSidebar";
 import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
+import TripChat from "../../../../../components/chat/TripChat";
 
 interface Trip {
   _id: string;
@@ -125,6 +126,7 @@ const Trips = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [viewingTrip, setViewingTrip] = useState<Trip | null>(null);
+  const [showChat, setShowChat] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [startConfirm, setStartConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [completeConfirm, setCompleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
@@ -658,17 +660,39 @@ const Trips = () => {
       {/* View Trip Modal */}
       {viewingTrip && (
         <div className="fixed inset-0 z-[10001] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
+          <div className={`bg-white rounded-xl shadow-2xl ${showChat ? 'w-full max-w-5xl' : 'w-full max-w-3xl'} max-h-[90vh] h-[90vh] overflow-hidden flex flex-col`}>
+            <div className="flex-shrink-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
               <h3 className="text-xl font-bold text-gray-800">Trip Details: {viewingTrip.tripNumber}</h3>
-              <button
-                onClick={() => setViewingTrip(null)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowChat(!showChat)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2"
+                  title="Open Chat"
+                >
+                  <MessageCircle className="w-5 h-5 text-blue-600" />
+                  <span className="text-sm text-gray-700">Chat</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setViewingTrip(null);
+                    setShowChat(false);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
             </div>
-            <div className="p-6 space-y-6">
+            {showChat ? (
+              <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
+                <TripChat
+                  tripId={viewingTrip._id}
+                  tripNumber={viewingTrip.tripNumber}
+                  onClose={() => setShowChat(false)}
+                />
+              </div>
+            ) : (
+              <div className="p-6 space-y-6 overflow-y-auto flex-1">
               {/* Trip Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -831,16 +855,22 @@ const Trips = () => {
                   </div>
                 </div>
               )}
-            </div>
-            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end border-t rounded-b-xl">
-              <button
-                onClick={() => setViewingTrip(null)}
-                className="px-6 py-2 !text-white rounded-lg font-medium transition-all hover:opacity-90 hover:shadow-md"
-                style={{ background: FLEET_COLORS.gradient }}
-              >
-                Close
-              </button>
-            </div>
+              </div>
+            )}
+            {!showChat && (
+              <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end border-t rounded-b-xl">
+                <button
+                  onClick={() => {
+                    setViewingTrip(null);
+                    setShowChat(false);
+                  }}
+                  className="px-6 py-2 !text-white rounded-lg font-medium transition-all hover:opacity-90 hover:shadow-md"
+                  style={{ background: FLEET_COLORS.gradient }}
+                >
+                  Close
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
