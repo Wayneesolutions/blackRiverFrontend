@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Eye, X, CheckCircle, Clock, Truck, Package, MapPin, Search, Filter } from "lucide-react";
 import { listInvoices, getInvoiceById } from "../../../../axios/api/invoice";
 import { message } from "antd";
@@ -39,6 +39,8 @@ const InvoiceList = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
 
   // Fetch invoices from API
   const fetchInvoices = async () => {
@@ -81,6 +83,82 @@ const InvoiceList = () => {
 
     setFilteredInvoices(filtered);
   }, [statusFilter, clientFilter, invoices]);
+
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      // Get the actual scrollable width from the bottom table container
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        // Also sync initial scroll position
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    // Also sync after a short delay to ensure table is fully rendered
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    // Sync when table content changes
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [filteredInvoices, loading]);
 
   const handleViewInvoice = async (invoiceId: string) => {
     setViewLoading(true);
@@ -173,8 +251,50 @@ const InvoiceList = () => {
 
 
       {/* Invoice Table */}
-      <div className="overflow-x-auto bg-white shadow-lg">
-        <table className="w-full text-sm">
+      <div className="bg-white shadow-lg">
+        {/* Top Scrollbar - Only visible horizontal scrollbar */}
+        <style>{`
+          .top-scrollbar-container::-webkit-scrollbar {
+            height: 8px;
+          }
+          .top-scrollbar-container::-webkit-scrollbar-track {
+            background: #f7fafc;
+          }
+          .top-scrollbar-container::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+          }
+          .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+          }
+        `}</style>
+        <div 
+          ref={topScrollRef}
+          className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+          style={{ 
+            maxHeight: '20px',
+            marginBottom: '2px',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+          }}
+        >
+          <div className="top-scroll-content" style={{ height: '1px' }}></div>
+        </div>
+        {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+        <style>{`
+          .table-container-hidden-scrollbar {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+          }
+          .table-container-hidden-scrollbar::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+          }
+        `}</style>
+        <div 
+          ref={bottomScrollRef}
+          className="overflow-x-auto table-container-hidden-scrollbar"
+        >
+          <table className="w-full text-sm">
           <thead className="bg-gradient-to-r from-[#5CB4F4] to-[#3C8DCE] text-white">
             <tr>
               <th className="p-4 text-left font-semibold">Client</th>
@@ -269,6 +389,7 @@ const InvoiceList = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Sidebar */}

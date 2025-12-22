@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Edit, Trash2, Plus, X, RefreshCw, AlertCircle, User, Search, Eye, CheckCircle, FileText, Briefcase, Phone, Globe, MapPin, CreditCard, Heart, Building2, DollarSign, Snowflake, Thermometer, Upload, ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import * as driverApi from '../../../../axios/api/driver';
@@ -88,6 +88,12 @@ const DriverManagement = () => {
 
   const [showDocumentsModal, setShowDocumentsModal] = useState<{ show: boolean; driver: Driver | null }>({ show: false, driver: null });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const [showDriverDetails, setShowDriverDetails] = useState(false);
+  
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<DriverFormData>({
     name: '',
@@ -122,6 +128,78 @@ const DriverManagement = () => {
   useEffect(() => {
     fetchDrivers();
   }, []);
+
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [drivers, loading]);
 
   const fetchDrivers = async () => {
     try {
@@ -794,9 +872,48 @@ const DriverManagement = () => {
         </div>
 
         {/* Table */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6">
+        <div className="flex-1 p-6">
           <div className="bg-white rounded-lg shadow">
-            <div className="overflow-x-auto overflow-y-visible">
+            {/* Top Scrollbar - Only visible horizontal scrollbar */}
+            <style>{`
+              .top-scrollbar-container::-webkit-scrollbar {
+                height: 8px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-track {
+                background: #f7fafc;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb {
+                background: #cbd5e0;
+                border-radius: 4px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                background: #a0aec0;
+              }
+              .table-container-hidden-scrollbar {
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE and Edge */
+              }
+              .table-container-hidden-scrollbar::-webkit-scrollbar {
+                display: none; /* Chrome, Safari, Opera */
+              }
+            `}</style>
+            <div 
+              ref={topScrollRef}
+              className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+              style={{ 
+                maxHeight: '20px',
+                marginBottom: '2px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+              }}
+            >
+              <div className="top-scroll-content" style={{ height: '1px' }}></div>
+            </div>
+            {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+            <div 
+              ref={bottomScrollRef}
+              className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+            >
               <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '1000px' }}>
                 <thead className="bg-gray-50">
                   <tr>
@@ -841,7 +958,14 @@ const DriverManagement = () => {
                     </tr>
                   ) : (
                     filteredDrivers.map((driver) => (
-                      <tr key={driver._id} className="hover:bg-gray-50 transition-colors">
+                      <tr 
+                        key={driver._id} 
+                        className="hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => {
+                          setSelectedDriver(driver);
+                          setShowDriverDetails(true);
+                        }}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className="font-mono text-sm px-2 py-1 rounded"
@@ -891,7 +1015,10 @@ const DriverManagement = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
-                            onClick={() => toggleStatus(driver._id, driver.status)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleStatus(driver._id, driver.status);
+                            }}
                             className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full transition-colors ${driver.status === 'active'
                               ? 'bg-green-100 text-green-800 hover:bg-green-200'
                               : 'bg-red-100 text-red-800 hover:bg-red-200'
@@ -912,7 +1039,8 @@ const DriverManagement = () => {
                               {driver.documents?.length || 0}
                             </span>
                             <button
-                              onClick={async () => {
+                              onClick={async (e) => {
+                                e.stopPropagation();
                                 // Refresh documents when opening modal to ensure we have latest data
                                 try {
                                   const docsResponse = await getDocumentsByEmployee(driver._id);
@@ -947,7 +1075,10 @@ const DriverManagement = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center gap-3">
                             <button
-                              onClick={() => handleEdit(driver)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(driver);
+                              }}
                               style={{ color: FLEET_COLORS.primary }}
                               onMouseEnter={(e) => e.currentTarget.style.color = FLEET_COLORS.dark}
                               onMouseLeave={(e) => e.currentTarget.style.color = FLEET_COLORS.primary}
@@ -957,7 +1088,10 @@ const DriverManagement = () => {
                               <Edit size={18} />
                             </button>
                             <button
-                              onClick={() => handleDelete(driver._id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(driver._id);
+                              }}
                               className="text-red-600 hover:text-red-900 transition-colors"
                               title="Delete Driver"
                             >
@@ -2024,7 +2158,7 @@ const DriverManagement = () => {
 
       {/* Documents View Modal */}
       {showDocumentsModal.show && showDocumentsModal.driver && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <div>
@@ -2167,6 +2301,303 @@ const DriverManagement = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Driver Details Sidebar */}
+      {showDriverDetails && selectedDriver && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+            onClick={() => {
+              setShowDriverDetails(false);
+              setTimeout(() => setSelectedDriver(null), 300);
+            }}
+          ></div>
+
+          {/* Sidebar Panel */}
+          <div
+            className={`fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0 ${showDocumentsModal.show ? 'backdrop-blur-sm opacity-50' : ''}`}
+          >
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900">Driver Details</h2>
+                <button
+                  onClick={() => {
+                    setShowDriverDetails(false);
+                    setTimeout(() => setSelectedDriver(null), 300);
+                  }}
+                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Driver Header */}
+                <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="h-20 w-20 flex-shrink-0">
+                      {selectedDriver.profileImageUrl && !imageErrors.has(selectedDriver._id) ? (
+                        <img
+                          className="h-20 w-20 rounded-full object-cover border-4 border-white"
+                          src={selectedDriver.profileImageUrl}
+                          alt={selectedDriver.name || 'Driver'}
+                          onError={() => {
+                            setImageErrors(prev => new Set(prev).add(selectedDriver._id));
+                          }}
+                        />
+                      ) : (
+                        <div
+                          className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white"
+                          style={{ background: FLEET_COLORS.gradientVertical }}
+                        >
+                          {selectedDriver.name?.charAt(0) || '?'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold mb-1">{selectedDriver.name}</h3>
+                      <p className="text-blue-100 text-sm flex items-center gap-2">
+                        <User size={16} />
+                        Driver ID: <span className="font-semibold">{selectedDriver.internalId}</span>
+                      </p>
+                      <span
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mt-2 ${selectedDriver.status === "active"
+                          ? "bg-emerald-500 text-white"
+                          : "bg-red-500 text-white"
+                          }`}
+                      >
+                        {selectedDriver.status === "active" ? (
+                          <>
+                            <CheckCircle size={16} />
+                            Active
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle size={16} />
+                            Inactive
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Personal Information */}
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                    <User size={20} className="text-blue-600" />
+                    Personal Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Full Name</p>
+                      <p className="font-medium text-gray-900">{selectedDriver.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Email</p>
+                      <p className="font-medium text-gray-900">{selectedDriver.email || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Gender</p>
+                      <p className="font-medium text-gray-900">{selectedDriver.gender || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Phone</p>
+                      <p className="font-medium text-gray-900">{selectedDriver.phone || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Mobile</p>
+                      <p className="font-medium text-gray-900">{selectedDriver.mobile || "—"}</p>
+                    </div>
+                    {selectedDriver.address && (
+                      <div className="md:col-span-2">
+                        <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+                          <MapPin size={14} className="text-blue-600" />
+                          Address
+                        </p>
+                        <p className="font-medium text-gray-900">{selectedDriver.address}</p>
+                      </div>
+                    )}
+                    {selectedDriver.citizenship && (
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Citizenship</p>
+                        <p className="font-medium text-gray-900">{selectedDriver.citizenship}</p>
+                      </div>
+                    )}
+                    {selectedDriver.country && (
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Country</p>
+                        <p className="font-medium text-gray-900">{selectedDriver.country}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Professional Information */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                    <Briefcase size={20} className="text-blue-600" />
+                    Professional Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedDriver.company && (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Company</p>
+                        <p className="font-medium text-gray-900">{selectedDriver.company}</p>
+                      </div>
+                    )}
+                    {selectedDriver.licenseNumber && (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">License Number</p>
+                        <p className="font-medium text-gray-900">{selectedDriver.licenseNumber}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">CSA Status</p>
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${selectedDriver.csa === 'Yes' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                        {selectedDriver.csa || 'N/A'}
+                      </span>
+                    </div>
+                    {selectedDriver.joinDate && (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Join Date</p>
+                        <p className="font-medium text-gray-900">
+                          {new Date(selectedDriver.joinDate).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    )}
+                    {selectedDriver.employmentDetails && (
+                      <div className="md:col-span-2">
+                        <p className="text-sm text-gray-600 mb-1">Employment Details</p>
+                        <p className="font-medium text-gray-900">{selectedDriver.employmentDetails}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Additional Information */}
+                {(selectedDriver.wsib || selectedDriver.fastCard || selectedDriver.medicalTracking) && (
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-4 text-lg">Additional Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedDriver.wsib && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">WSIB</p>
+                          <p className="font-medium text-gray-900">{selectedDriver.wsib}</p>
+                        </div>
+                      )}
+                      {selectedDriver.fastCard && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Fast Card</p>
+                          <p className="font-medium text-gray-900">{selectedDriver.fastCard}</p>
+                        </div>
+                      )}
+                      {selectedDriver.medicalTracking && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Medical Tracking</p>
+                          <p className="font-medium text-gray-900">{selectedDriver.medicalTracking}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Documents Summary */}
+                {selectedDriver.documents && selectedDriver.documents.length > 0 && (
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                      <FileText size={20} className="text-blue-600" />
+                      Documents ({selectedDriver.documents.length})
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Valid Documents</span>
+                        <span className="font-semibold text-green-700">
+                          {selectedDriver.documents.filter(d => d.status === 'valid').length}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Pending Documents</span>
+                        <span className="font-semibold text-yellow-700">
+                          {selectedDriver.documents.filter(d => d.status === 'pending').length}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Expired Documents</span>
+                        <span className="font-semibold text-red-700">
+                          {selectedDriver.documents.filter(d => d.status === 'expired').length}
+                        </span>
+                      </div>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const docsResponse = await getDocumentsByEmployee(selectedDriver._id);
+                            if (docsResponse.success && Array.isArray(docsResponse.data)) {
+                              const driverWithUpdatedDocs = {
+                                ...selectedDriver,
+                                documents: docsResponse.data
+                              };
+                              setShowDocumentsModal({ show: true, driver: driverWithUpdatedDocs });
+                            } else {
+                              setShowDocumentsModal({ show: true, driver: selectedDriver });
+                            }
+                          } catch (err) {
+                            console.error(`Error fetching documents:`, err);
+                            setShowDocumentsModal({ show: true, driver: selectedDriver });
+                          }
+                        }}
+                        className="mt-4 w-full px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Eye size={18} />
+                        View All Documents
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Last Modified */}
+                {selectedDriver.lastModified && (
+                  <div className="text-sm text-gray-500 text-center pt-4 border-t border-gray-200">
+                    Last Modified: {selectedDriver.lastModified}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                  <button
+                    onClick={() => {
+                      setShowDriverDetails(false);
+                      setTimeout(() => setSelectedDriver(null), 300);
+                    }}
+                    className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(selectedDriver);
+                      setShowDriverDetails(false);
+                    }}
+                    className="px-6 py-2.5 bg-gradient-to-r from-[#4A90E2] to-[#357ABD] !text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+                  >
+                    <Edit size={18} />
+                    Edit Driver
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
