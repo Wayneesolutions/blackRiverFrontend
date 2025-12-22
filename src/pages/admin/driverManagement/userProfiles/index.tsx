@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { Search, Filter, Calendar, Users, DollarSign, Clock, TrendingUp, MapPin, FileText, Eye, X, User as UserIcon, Mail, Briefcase, AlertCircle, Download } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
@@ -51,6 +51,10 @@ const UserProfilesPortfolio: React.FC = () => {
     const [showProfileSidebar, setShowProfileSidebar] = useState(false);
     const [profileTimePeriod, setProfileTimePeriod] = useState<ProfileTimePeriod>('1month');
     const PAGE_SIZE = 100;
+    
+    // Refs for scrollbar synchronization
+    const topScrollRef = useRef<HTMLDivElement>(null);
+    const bottomScrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -130,6 +134,78 @@ const UserProfilesPortfolio: React.FC = () => {
     const emptyStateMessage = requiresCompanySetup
         ? 'Complete your company setup to start seeing employee records.'
         : 'No employees found matching your criteria';
+
+    // Sync scroll between top and bottom scrollbars
+    useEffect(() => {
+        const topScroll = topScrollRef.current;
+        const bottomScroll = bottomScrollRef.current;
+
+        if (!topScroll || !bottomScroll) return;
+
+        let isScrolling = false;
+
+        const handleTopScroll = () => {
+            if (isScrolling) return;
+            isScrolling = true;
+            bottomScroll.scrollLeft = topScroll.scrollLeft;
+            requestAnimationFrame(() => {
+                isScrolling = false;
+            });
+        };
+
+        const handleBottomScroll = () => {
+            if (isScrolling) return;
+            isScrolling = true;
+            topScroll.scrollLeft = bottomScroll.scrollLeft;
+            requestAnimationFrame(() => {
+                isScrolling = false;
+            });
+        };
+
+        // Sync scroll widths
+        const syncScrollWidths = () => {
+            const bottomScrollWidth = bottomScroll.scrollWidth;
+            const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+            if (topInner && bottomScrollWidth > 0) {
+                topInner.style.width = `${bottomScrollWidth}px`;
+                topScroll.scrollLeft = bottomScroll.scrollLeft;
+            }
+        };
+
+        // Initial sync - wait for table to render
+        const timeoutId = setTimeout(syncScrollWidths, 100);
+        const timeoutId2 = setTimeout(syncScrollWidths, 300);
+        const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+        // Observe table changes
+        const tableObserver = new MutationObserver(() => {
+            syncScrollWidths();
+        });
+
+        const bottomTable = bottomScroll.querySelector('table');
+        if (bottomTable) {
+            tableObserver.observe(bottomTable, { 
+                childList: true, 
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['style', 'class']
+            });
+        }
+
+        topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+        bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+        window.addEventListener('resize', syncScrollWidths);
+
+        return () => {
+            clearTimeout(timeoutId);
+            clearTimeout(timeoutId2);
+            clearTimeout(timeoutId3);
+            tableObserver.disconnect();
+            topScroll.removeEventListener('scroll', handleTopScroll);
+            bottomScroll.removeEventListener('scroll', handleBottomScroll);
+            window.removeEventListener('resize', syncScrollWidths);
+        };
+    }, [filteredProfiles, profiles, selectedRole]);
 
     // Calculate summary statistics
     const summaryStats = useMemo(() => {
@@ -494,8 +570,47 @@ const UserProfilesPortfolio: React.FC = () => {
 
                 {/* User Profiles Table */}
                 <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
+                    {/* Top Scrollbar - Only visible horizontal scrollbar */}
+                    <style>{`
+                        .top-scrollbar-container::-webkit-scrollbar {
+                            height: 8px;
+                        }
+                        .top-scrollbar-container::-webkit-scrollbar-track {
+                            background: #f7fafc;
+                        }
+                        .top-scrollbar-container::-webkit-scrollbar-thumb {
+                            background: #cbd5e0;
+                            border-radius: 4px;
+                        }
+                        .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                            background: #a0aec0;
+                        }
+                        .table-container-hidden-scrollbar {
+                            scrollbar-width: none; /* Firefox */
+                            -ms-overflow-style: none; /* IE and Edge */
+                        }
+                        .table-container-hidden-scrollbar::-webkit-scrollbar {
+                            display: none; /* Chrome, Safari, Opera */
+                        }
+                    `}</style>
+                    <div 
+                        ref={topScrollRef}
+                        className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+                        style={{ 
+                            maxHeight: '20px',
+                            marginBottom: '2px',
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                        }}
+                    >
+                        <div className="top-scroll-content" style={{ height: '1px' }}></div>
+                    </div>
+                    {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+                    <div 
+                        ref={bottomScrollRef}
+                        className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+                    >
+                        <table className="w-full" style={{ minWidth: '1200px' }}>
                             <thead className="text-white" style={{ background: ACCENT_GRADIENT }}>
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Employee</th>
@@ -529,7 +644,14 @@ const UserProfilesPortfolio: React.FC = () => {
                                     </tr>
                                 ) : (
                                     filteredProfiles.map((profile) => (
-                                        <tr key={profile._id} className="hover:bg-gray-50 transition-colors">
+                                        <tr 
+                                            key={profile._id} 
+                                            className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                            onClick={() => {
+                                                setSelectedProfile(profile);
+                                                setShowProfileSidebar(true);
+                                            }}
+                                        >
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div
@@ -651,7 +773,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                                                 <button
                                                     onClick={() => {
                                                         setSelectedProfile(profile);
@@ -669,6 +791,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
                     </div>
                 </div>
 
@@ -1027,7 +1150,7 @@ const UserProfilesPortfolio: React.FC = () => {
                     </>
                 )}
             </div>
-        </div>
+     
     );
 };
 

@@ -1,7 +1,6 @@
 import {
   MdDashboard,         
   MdAccessTime,           // Attendance
-  MdErrorOutline,         // Issues
   MdPerson,               // Profile / Portfolio
 } from "react-icons/md";
 
@@ -36,11 +35,6 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     label: "Employees",
   },
   {
-    key: "/admin/Management/documents",
-    icon: <FaClipboardList />,
-    label: "Employee Documents",
-  },
-  {
     key: "/admin/Management/company-documents",
     icon: <FaFolderOpen />,
     label: "Company Documents",
@@ -59,11 +53,6 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/driver-profiles",
     icon: <FaIdCard />,
     label: "Driver Portfolio",
-  },
-  {
-    key: "/admin/Management/issues",
-    icon: <MdErrorOutline />,
-    label: "Issues",
   },
 ];
 

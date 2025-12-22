@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     User,
     MapPin,
@@ -16,6 +16,9 @@ import {
     UserX,
     Activity,
     Truck,
+    CheckCircle,
+    AlertCircle,
+    Briefcase,
 } from 'lucide-react';
 import { listDriver } from '../../../../axios/api/distapcher';
 
@@ -77,8 +80,13 @@ const DriverList = () => {
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
     const [showDetails, setShowDetails] = useState(false);
+    const [showDetailsSidebar, setShowDetailsSidebar] = useState(false);
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [loading, setLoading] = useState(true);
+    
+    // Refs for scrollbar synchronization
+    const topScrollRef = useRef<HTMLDivElement>(null);
+    const bottomScrollRef = useRef<HTMLDivElement>(null);
 
     // Fetch drivers from API
     useEffect(() => {
@@ -262,6 +270,78 @@ const DriverList = () => {
         withoutVehicle: drivers.filter(d => !d.details?.vehicle).length,
     };
 
+    // Sync scroll between top and bottom scrollbars
+    useEffect(() => {
+        const topScroll = topScrollRef.current;
+        const bottomScroll = bottomScrollRef.current;
+
+        if (!topScroll || !bottomScroll) return;
+
+        let isScrolling = false;
+
+        const handleTopScroll = () => {
+            if (isScrolling) return;
+            isScrolling = true;
+            bottomScroll.scrollLeft = topScroll.scrollLeft;
+            requestAnimationFrame(() => {
+                isScrolling = false;
+            });
+        };
+
+        const handleBottomScroll = () => {
+            if (isScrolling) return;
+            isScrolling = true;
+            topScroll.scrollLeft = bottomScroll.scrollLeft;
+            requestAnimationFrame(() => {
+                isScrolling = false;
+            });
+        };
+
+        // Sync scroll widths
+        const syncScrollWidths = () => {
+            const bottomScrollWidth = bottomScroll.scrollWidth;
+            const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+            if (topInner && bottomScrollWidth > 0) {
+                topInner.style.width = `${bottomScrollWidth}px`;
+                topScroll.scrollLeft = bottomScroll.scrollLeft;
+            }
+        };
+
+        // Initial sync - wait for table to render
+        const timeoutId = setTimeout(syncScrollWidths, 100);
+        const timeoutId2 = setTimeout(syncScrollWidths, 300);
+        const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+        // Observe table changes
+        const tableObserver = new MutationObserver(() => {
+            syncScrollWidths();
+        });
+
+        const bottomTable = bottomScroll.querySelector('table');
+        if (bottomTable) {
+            tableObserver.observe(bottomTable, { 
+                childList: true, 
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['style', 'class']
+            });
+        }
+
+        topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+        bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+        window.addEventListener('resize', syncScrollWidths);
+
+        return () => {
+            clearTimeout(timeoutId);
+            clearTimeout(timeoutId2);
+            clearTimeout(timeoutId3);
+            tableObserver.disconnect();
+            topScroll.removeEventListener('scroll', handleTopScroll);
+            bottomScroll.removeEventListener('scroll', handleBottomScroll);
+            window.removeEventListener('resize', syncScrollWidths);
+        };
+    }, [currentDrivers, drivers, searchTerm, filterStatus]);
+
     if (loading) {
         return (
             <div className="min-h-screen p-4 bg-gray-50 px-6 flex items-center justify-center">
@@ -417,8 +497,47 @@ const DriverList = () => {
                     </div>
 
                     {/* Table */}
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-slate-200">
+                    {/* Top Scrollbar - Only visible horizontal scrollbar */}
+                    <style>{`
+                        .top-scrollbar-container::-webkit-scrollbar {
+                            height: 8px;
+                        }
+                        .top-scrollbar-container::-webkit-scrollbar-track {
+                            background: #f7fafc;
+                        }
+                        .top-scrollbar-container::-webkit-scrollbar-thumb {
+                            background: #cbd5e0;
+                            border-radius: 4px;
+                        }
+                        .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                            background: #a0aec0;
+                        }
+                        .table-container-hidden-scrollbar {
+                            scrollbar-width: none; /* Firefox */
+                            -ms-overflow-style: none; /* IE and Edge */
+                        }
+                        .table-container-hidden-scrollbar::-webkit-scrollbar {
+                            display: none; /* Chrome, Safari, Opera */
+                        }
+                    `}</style>
+                    <div 
+                        ref={topScrollRef}
+                        className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+                        style={{ 
+                            maxHeight: '20px',
+                            marginBottom: '2px',
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                        }}
+                    >
+                        <div className="top-scroll-content" style={{ height: '1px' }}></div>
+                    </div>
+                    {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+                    <div 
+                        ref={bottomScrollRef}
+                        className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+                    >
+                        <table className="min-w-full divide-y divide-slate-200" style={{ minWidth: '1200px' }}>
                             <thead className="bg-slate-50">
                                 <tr>
                                     <SortHeader field="internalId">Driver ID</SortHeader>
@@ -451,7 +570,14 @@ const DriverList = () => {
                                     </tr>
                                 ) : (
                                     currentDrivers.map((driver) => (
-                                        <tr key={driver._id} className="hover:bg-slate-50 transition-colors duration-150">
+                                        <tr 
+                                            key={driver._id} 
+                                            className="hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+                                            onClick={() => {
+                                                setSelectedDriver(driver);
+                                                setShowDetailsSidebar(true);
+                                            }}
+                                        >
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
                                                     <div className="p-2 bg-blue-50 rounded-lg mr-3 border border-blue-100">
@@ -549,7 +675,7 @@ const DriverList = () => {
                                                 </div>
                                             </td>
 
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                                                 <button
                                                     onClick={() => handleViewDetails(driver)}
                                                     className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors duration-150 text-sm font-medium"
@@ -812,6 +938,216 @@ const DriverList = () => {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* Driver Details Sidebar */}
+                {showDetailsSidebar && selectedDriver && (
+                    <>
+                        {/* Overlay */}
+                        <div
+                            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+                            onClick={() => {
+                                setShowDetailsSidebar(false);
+                                setTimeout(() => setSelectedDriver(null), 300);
+                            }}
+                        ></div>
+
+                        {/* Sidebar Panel */}
+                        <div
+                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+                        >
+                            <div className="p-6">
+                                {/* Header */}
+                                <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
+                                    <h2 className="text-2xl font-bold text-gray-900">Driver Details</h2>
+                                    <button
+                                        onClick={() => {
+                                            setShowDetailsSidebar(false);
+                                            setTimeout(() => setSelectedDriver(null), 300);
+                                        }}
+                                        className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                                    >
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {/* Driver Header */}
+                                    <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-20 w-20 flex-shrink-0">
+                                                {selectedDriver.avatar || selectedDriver.profileImageUrl ? (
+                                                    <img
+                                                        className="h-20 w-20 rounded-full object-cover border-4 border-white"
+                                                        src={selectedDriver.avatar || selectedDriver.profileImageUrl}
+                                                        alt={selectedDriver.name}
+                                                    />
+                                                ) : (
+                                                    <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600">
+                                                        {selectedDriver.name?.charAt(0) || '?'}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="text-2xl font-bold mb-1">{selectedDriver.name}</h3>
+                                                <p className="text-blue-100 text-sm flex items-center gap-2">
+                                                    <User size={16} />
+                                                    Driver ID: <span className="font-semibold">{selectedDriver.internalId}</span>
+                                                </p>
+                                                <span
+                                                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mt-2 ${selectedDriver.status === "active"
+                                                        ? "bg-emerald-500 text-white"
+                                                        : "bg-red-500 text-white"
+                                                        }`}
+                                                >
+                                                    {selectedDriver.status === "active" ? (
+                                                        <>
+                                                            <CheckCircle size={16} />
+                                                            Active
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <AlertCircle size={16} />
+                                                            Inactive
+                                                        </>
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Personal Information */}
+                                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                        <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                                            <User size={20} className="text-blue-600" />
+                                            Personal Information
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-sm text-gray-500 mb-1">Full Name</p>
+                                                <p className="font-medium text-gray-900">{selectedDriver.name}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-500 mb-1">Email</p>
+                                                <p className="font-medium text-gray-900">{selectedDriver.email || "—"}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-500 mb-1">Phone</p>
+                                                <p className="font-medium text-gray-900">{selectedDriver.phone || "—"}</p>
+                                            </div>
+                                            {selectedDriver.country && (
+                                                <div>
+                                                    <p className="text-sm text-gray-500 mb-1">Country</p>
+                                                    <p className="font-medium text-gray-900">{selectedDriver.country}</p>
+                                                </div>
+                                            )}
+                                            {selectedDriver.details?.employeeCode && (
+                                                <div>
+                                                    <p className="text-sm text-gray-500 mb-1">Employee Code</p>
+                                                    <p className="font-medium text-gray-900">{selectedDriver.details.employeeCode}</p>
+                                                </div>
+                                            )}
+                                            {selectedDriver.details?.licenceNumber && (
+                                                <div>
+                                                    <p className="text-sm text-gray-500 mb-1">License Number</p>
+                                                    <p className="font-medium text-gray-900">{selectedDriver.details.licenceNumber}</p>
+                                                </div>
+                                            )}
+                                            {selectedDriver.joinDate && (
+                                                <div>
+                                                    <p className="text-sm text-gray-500 mb-1">Join Date</p>
+                                                    <p className="font-medium text-gray-900">
+                                                        {new Date(selectedDriver.joinDate).toLocaleDateString('en-US', {
+                                                            year: 'numeric',
+                                                            month: 'long',
+                                                            day: 'numeric'
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Location Information */}
+                                    {selectedDriver.location?.address && (
+                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+                                            <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                                                <MapPin size={20} className="text-blue-600" />
+                                                Location
+                                            </h4>
+                                            <div>
+                                                <p className="text-sm text-gray-600 mb-1">Current Address</p>
+                                                <p className="font-medium text-gray-900">{selectedDriver.location.address}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Vehicle Information */}
+                                    {selectedDriver.details?.vehicle && (
+                                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                            <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                                                <Truck size={20} className="text-blue-600" />
+                                                Assigned Vehicle
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <p className="text-sm text-gray-500 mb-1">Plate Number</p>
+                                                    <p className="font-medium text-gray-900">{selectedDriver.details.vehicle.plateNumber}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-500 mb-1">Make / Model</p>
+                                                    <p className="font-medium text-gray-900">{selectedDriver.details.vehicle.make} {selectedDriver.details.vehicle.model}</p>
+                                                </div>
+                                                {selectedDriver.details.vehicle.currentLocation?.address && (
+                                                    <div className="md:col-span-2">
+                                                        <p className="text-sm text-gray-500 mb-1">Vehicle Location</p>
+                                                        <p className="font-medium text-gray-900">{selectedDriver.details.vehicle.currentLocation.address}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Performance Metrics */}
+                                    {(selectedDriver.milesToday !== undefined || selectedDriver.avgSpeed !== undefined) && (
+                                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                            <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                                                <Activity size={20} className="text-blue-600" />
+                                                Performance Metrics
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {selectedDriver.milesToday !== undefined && (
+                                                    <div>
+                                                        <p className="text-sm text-gray-500 mb-1">Miles Today</p>
+                                                        <p className="font-medium text-gray-900">{selectedDriver.milesToday.toLocaleString()} mi</p>
+                                                    </div>
+                                                )}
+                                                {selectedDriver.avgSpeed !== undefined && (
+                                                    <div>
+                                                        <p className="text-sm text-gray-500 mb-1">Average Speed</p>
+                                                        <p className="font-medium text-gray-900">{selectedDriver.avgSpeed} mph</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Action Buttons */}
+                                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                                        <button
+                                            onClick={() => {
+                                                setShowDetailsSidebar(false);
+                                                setTimeout(() => setSelectedDriver(null), 300);
+                                            }}
+                                            className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </>
                 )}
             </div>
         </div>

@@ -8,7 +8,10 @@ import {
   Edit,
   Trash2,
   Search,
-  Clock
+  Clock,
+  X,
+  User,
+  Briefcase
 } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import { getUserRole } from '../../../../utils/auth';
@@ -51,6 +54,12 @@ const AttendanceTracking = () => {
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const notificationIdRef = useRef<number>(0);
+  const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
+  const [showDetailsSidebar, setShowDetailsSidebar] = useState(false);
+  
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
 
   const [attendanceForm, setAttendanceForm] = useState({
     employeeId: '',
@@ -213,6 +222,78 @@ const AttendanceTracking = () => {
     return matchesSearch && matchesStatus;
   });
 
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [filteredRecords, attendanceRecords, searchQuery, filterStatus]);
+
   return (
     <div
       className="min-h-screen bg-[#EDF8FF] p-6 overflow-x-hidden">
@@ -369,8 +450,47 @@ const AttendanceTracking = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          {/* Top Scrollbar - Only visible horizontal scrollbar */}
+          <style>{`
+            .top-scrollbar-container::-webkit-scrollbar {
+              height: 8px;
+            }
+            .top-scrollbar-container::-webkit-scrollbar-track {
+              background: #f7fafc;
+            }
+            .top-scrollbar-container::-webkit-scrollbar-thumb {
+              background: #cbd5e0;
+              border-radius: 4px;
+            }
+            .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+              background: #a0aec0;
+            }
+            .table-container-hidden-scrollbar {
+              scrollbar-width: none; /* Firefox */
+              -ms-overflow-style: none; /* IE and Edge */
+            }
+            .table-container-hidden-scrollbar::-webkit-scrollbar {
+              display: none; /* Chrome, Safari, Opera */
+            }
+          `}</style>
+          <div 
+            ref={topScrollRef}
+            className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+            style={{ 
+              maxHeight: '20px',
+              marginBottom: '2px',
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+            }}
+          >
+            <div className="top-scroll-content" style={{ height: '1px' }}></div>
+          </div>
+          {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+          <div 
+            ref={bottomScrollRef}
+            className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+          >
+            <table className="w-full" style={{ minWidth: '1000px' }}>
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
@@ -385,7 +505,14 @@ const AttendanceTracking = () => {
               <tbody className="divide-y divide-gray-200">
                 {filteredRecords.length > 0 ? (
                   filteredRecords.map((record, idx) => (
-                    <tr key={record._id || idx} className="hover:bg-gray-50 transition-colors">
+                    <tr 
+                      key={record._id || idx} 
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => {
+                        setSelectedRecord(record);
+                        setShowDetailsSidebar(true);
+                      }}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
@@ -405,7 +532,7 @@ const AttendanceTracking = () => {
                           {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleEdit(record)}
@@ -433,7 +560,6 @@ const AttendanceTracking = () => {
               </tbody>
             </table>
           </div>
-
           {filteredRecords.length > 0 && (
             <div className="p-4 border-t border-gray-200">
               <p className="text-sm text-gray-600">Showing {filteredRecords.length} records</p>
@@ -587,6 +713,140 @@ const AttendanceTracking = () => {
         cancelText="Cancel"
         type="danger"
       />
+
+      {/* Attendance Details Sidebar */}
+      {showDetailsSidebar && selectedRecord && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+            onClick={() => {
+              setShowDetailsSidebar(false);
+              setTimeout(() => setSelectedRecord(null), 300);
+            }}
+          ></div>
+
+          {/* Sidebar Panel */}
+          <div
+            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+          >
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900">Attendance Details</h2>
+                <button
+                  onClick={() => {
+                    setShowDetailsSidebar(false);
+                    setTimeout(() => setSelectedRecord(null), 300);
+                  }}
+                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Employee Header */}
+                <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="h-20 w-20 flex-shrink-0">
+                      <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600">
+                        {selectedRecord ? ((typeof selectedRecord.employee === 'string' ? employees.find((e: { _id: string; name: string }) => e._id === selectedRecord.employee)?.name : (selectedRecord.employee as any)?.name) || '').split(' ').map((n: string) => n[0]).join('').substring(0, 2) : ''}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold mb-1">
+                        {selectedRecord ? (typeof selectedRecord.employee === 'string' ? (employees.find((e: { _id: string; name: string }) => e._id === selectedRecord.employee)?.name || 'N/A') : (selectedRecord.employee as any)?.name || 'N/A') : 'N/A'}
+                      </h3>
+                      <p className="text-blue-100 text-sm flex items-center gap-2">
+                        <User size={16} />
+                        Employee Attendance Record
+                      </p>
+                      {selectedRecord && (
+                        <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mt-2 ${getStatusBadge(selectedRecord.status)} text-black`}>
+                          {selectedRecord.status.charAt(0).toUpperCase() + selectedRecord.status.slice(1)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Attendance Information */}
+                {selectedRecord && (
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                      <Briefcase size={20} className="text-blue-600" />
+                      Attendance Information
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Employee Name</p>
+                        <p className="font-medium text-gray-900">
+                          {typeof selectedRecord.employee === 'string' ? (employees.find((e: { _id: string; name: string }) => e._id === selectedRecord.employee)?.name || 'N/A') : (selectedRecord.employee as any)?.name || 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Date</p>
+                        <p className="font-medium text-gray-900">
+                          {new Date(selectedRecord.date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Check In</p>
+                        <p className="font-medium text-gray-900">{selectedRecord.checkIn || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Check Out</p>
+                        <p className="font-medium text-gray-900">{selectedRecord.checkOut || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Total Hours</p>
+                        <p className="font-medium text-gray-900">{(selectedRecord.totalHours || 0).toFixed(1)} hours</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Status</p>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${getStatusBadge(selectedRecord.status)}`}>
+                          {selectedRecord.status.charAt(0).toUpperCase() + selectedRecord.status.slice(1)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                {selectedRecord && (
+                  <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                    <button
+                      onClick={() => {
+                        setShowDetailsSidebar(false);
+                        setTimeout(() => setSelectedRecord(null), 300);
+                      }}
+                      className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (selectedRecord) {
+                          handleEdit(selectedRecord);
+                          setShowDetailsSidebar(false);
+                        }
+                      }}
+                      className="px-6 py-2.5 bg-blue-600 !text-white font-medium rounded-lg hover:bg-blue-700 transition-all"
+                    >
+                      Edit Record
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

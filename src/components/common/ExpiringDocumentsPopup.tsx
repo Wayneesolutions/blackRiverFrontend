@@ -50,6 +50,11 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
   const [loading, setLoading] = useState(false);
   const [hasShown, setHasShown] = useState(false);
 
+  // Log when isOpen prop changes
+  useEffect(() => {
+    console.log('🎯 Popup: isOpen prop changed', { isOpen, showOnlyOnce, hasShown });
+  }, [isOpen, showOnlyOnce, hasShown]);
+
   // Check if popup has been shown before (localStorage)
   useEffect(() => {
     if (showOnlyOnce) {
@@ -61,10 +66,18 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
 
   // Fetch expiring documents when popup opens
   useEffect(() => {
-    if (isOpen && !hasShown) {
+    if (isOpen) {
+      // If showOnlyOnce is true, only fetch if not shown before
+      if (showOnlyOnce && hasShown) {
+        console.log('⏸️ Popup: Skipping fetch - already shown today (showOnlyOnce=true)');
+        return;
+      }
+      console.log('🔄 Popup: Fetching expiring documents (isOpen=true)');
       fetchExpiringDocuments();
+    } else {
+      console.log('⏸️ Popup: Not fetching - isOpen=false');
     }
-  }, [isOpen, hasShown, daysThreshold]);
+  }, [isOpen, hasShown, daysThreshold, showOnlyOnce]);
 
   // Auto-close after delay
   useEffect(() => {
@@ -79,18 +92,24 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
   const fetchExpiringDocuments = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Fetching expiring documents...');
+      console.log('🔍 Popup: Fetching expiring documents...', { daysThreshold });
       const response = await getExpiringDocuments(daysThreshold);
 
-      if (response.success) {
-        console.log('✅ Expiring documents fetched:', response.data.length);
+      console.log('📄 Popup: API response received', {
+        success: response?.success,
+        count: response?.data?.length || 0,
+        hasData: !!response?.data
+      });
+
+      if (response && response.success && response.data && response.data.length > 0) {
+        console.log('✅ Popup: Expiring documents fetched successfully:', response.data.length);
         setExpiringDocuments(response.data as unknown as ExpiringDocumentWithEmployee[]);
       } else {
-        console.error('❌ Failed to fetch expiring documents');
+        console.log('ℹ️ Popup: No expiring documents found or API returned empty');
         setExpiringDocuments([]);
       }
     } catch (error) {
-      console.error('❌ Error fetching expiring documents:', error);
+      console.error('❌ Popup: Error fetching expiring documents:', error);
       setExpiringDocuments([]);
     } finally {
       setLoading(false);
@@ -102,6 +121,9 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
       const shownKey = `expiring-docs-popup-shown-${new Date().toDateString()}`;
       localStorage.setItem(shownKey, 'true');
       setHasShown(true);
+    } else {
+      // Reset hasShown when showOnlyOnce is false, so it can show again
+      setHasShown(false);
     }
     onClose();
   };
@@ -133,11 +155,26 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
   if (!isOpen) {
     return null;
   }
-
-  // Don't show popup if no expiring documents
-  if (!loading && expiringDocuments.length === 0) {
+  
+  // If showOnlyOnce is enabled and already shown, don't show again
+  if (showOnlyOnce && hasShown) {
+    console.log('⏸️ Popup: Not showing - already shown today (showOnlyOnce=true)');
     return null;
   }
+
+  // Don't show popup if no expiring documents (but allow showing while loading)
+  if (!loading && expiringDocuments.length === 0) {
+    console.log('⏸️ Popup: Not showing - no expiring documents found');
+    return null;
+  }
+  
+  console.log('✅ Popup: Rendering popup', {
+    isOpen,
+    loading,
+    documentCount: expiringDocuments.length,
+    showOnlyOnce,
+    hasShown
+  });
 
   return (
     <div className="fixed top-4 right-4 z-[9999] max-w-md w-full">
