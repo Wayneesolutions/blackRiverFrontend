@@ -1,9 +1,10 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import ExcelJS from "exceljs";
 import {
   Download,
   Filter,
   Search,
+  X,
 } from "lucide-react";
 import { FaFileInvoiceDollar, FaClipboardList, FaTools } from "react-icons/fa";
 import { getComplianceInvoices } from "../../../../axios/api/admin";
@@ -53,6 +54,12 @@ const ComplianceInvoices = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 50;
+  const [showInvoiceDetails, setShowInvoiceDetails] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<MechanicInvoice | null>(null);
+  
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
 
   // Fetch invoices from API
   useEffect(() => {
@@ -110,6 +117,78 @@ const ComplianceInvoices = () => {
 
     fetchInvoices();
   }, [truckFilter, driverFilter, mechanicFilter, searchTerm, currentPage]);
+
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [invoices, searchTerm, truckFilter, driverFilter, mechanicFilter]);
 
   // Get unique values for filters
   const uniqueTrucks = useMemo(
@@ -341,8 +420,47 @@ const ComplianceInvoices = () => {
 
           {/* Table */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
-            <div className="overflow-x-auto">
-              <table className="w-full divide-y divide-gray-200">
+            {/* Top Scrollbar - Only visible horizontal scrollbar */}
+            <style>{`
+              .top-scrollbar-container::-webkit-scrollbar {
+                height: 8px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-track {
+                background: #f7fafc;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb {
+                background: #cbd5e0;
+                border-radius: 4px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                background: #a0aec0;
+              }
+              .table-container-hidden-scrollbar {
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE and Edge */
+              }
+              .table-container-hidden-scrollbar::-webkit-scrollbar {
+                display: none; /* Chrome, Safari, Opera */
+              }
+            `}</style>
+            <div 
+              ref={topScrollRef}
+              className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+              style={{ 
+                maxHeight: '20px',
+                marginBottom: '2px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+              }}
+            >
+              <div className="top-scroll-content" style={{ height: '1px' }}></div>
+            </div>
+            {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+            <div 
+              ref={bottomScrollRef}
+              className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+            >
+              <table className="w-full divide-y divide-gray-200" style={{ minWidth: '1400px' }}>
                 <thead className="bg-gray-50">
                   <tr>
                     {[
@@ -369,7 +487,14 @@ const ComplianceInvoices = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredInvoices.map((invoice) => (
-                    <tr key={invoice.id} className="hover:bg-gray-50">
+                    <tr 
+                      key={invoice.id} 
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => {
+                        setSelectedInvoice(invoice);
+                        setShowInvoiceDetails(true);
+                      }}
+                    >
                       <td className="px-6 py-2 text-xs font-semibold text-gray-900">
                         {invoice.serviceDate ? new Date(invoice.serviceDate).toLocaleDateString() : 'N/A'}
                         <div className="text-[10px] text-gray-500">{invoice.location}</div>
@@ -451,6 +576,185 @@ const ComplianceInvoices = () => {
               </table>
             </div>
           </div>
+
+          {/* Invoice Details Sidebar */}
+          {showInvoiceDetails && selectedInvoice && (
+            <>
+              {/* Overlay */}
+              <div
+                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+                onClick={() => {
+                  setShowInvoiceDetails(false);
+                  setTimeout(() => setSelectedInvoice(null), 300);
+                }}
+              ></div>
+
+              {/* Sidebar Panel */}
+              <div
+    className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+              >
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900">Invoice Details</h2>
+                    <button
+                      onClick={() => {
+                        setShowInvoiceDetails(false);
+                        setTimeout(() => setSelectedInvoice(null), 300);
+                      }}
+                      className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                    >
+                      <X size={24} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Invoice Header */}
+                    <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <h3 className="text-2xl font-bold mb-1">{selectedInvoice.invoiceNumber || 'N/A'}</h3>
+                          <p className="text-blue-100 text-sm mb-2">
+                            Unit: {selectedInvoice.unitNumber}
+                          </p>
+                          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${selectedInvoice.passedInspection
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-amber-500 text-white'
+                            }`}>
+                            {selectedInvoice.passedInspection ? 'Passed Inspection' : 'Follow-up Required'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Invoice Information */}
+                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                      <h4 className="font-semibold text-gray-900 mb-4 text-lg">Invoice Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
+                          <p className="font-medium text-gray-900">{selectedInvoice.invoiceNumber || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Service Date</p>
+                          <p className="font-medium text-gray-900">
+                            {selectedInvoice.serviceDate ? new Date(selectedInvoice.serviceDate).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            }) : "—"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Unit Number</p>
+                          <p className="font-medium text-gray-900">{selectedInvoice.unitNumber || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Make / Model</p>
+                          <p className="font-medium text-gray-900">{selectedInvoice.makeModel || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">VIN / License Plate</p>
+                          <p className="font-medium text-gray-900">{selectedInvoice.vinOrPlate || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Odometer</p>
+                          <p className="font-medium text-gray-900">
+                            {selectedInvoice.odometer ? `${selectedInvoice.odometer.toLocaleString()} km` : "—"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Service Provider</p>
+                          <p className="font-medium text-gray-900">{selectedInvoice.serviceProvider || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Driver</p>
+                          <p className="font-medium text-gray-900">{selectedInvoice.driver || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Service Category</p>
+                          <p className="font-medium text-gray-900">{selectedInvoice.serviceCategory || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Location</p>
+                          <p className="font-medium text-gray-900">{selectedInvoice.location || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Inspection Status</p>
+                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${selectedInvoice.passedInspection
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-amber-100 text-amber-800'
+                            }`}>
+                            {selectedInvoice.passedInspection ? 'Passed' : 'Follow-up Required'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    {selectedInvoice.description && (
+                      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h4 className="font-semibold text-gray-900 mb-2 text-lg">Description</h4>
+                        <p className="text-sm text-gray-700">{selectedInvoice.description}</p>
+                      </div>
+                    )}
+
+                    {/* Parts */}
+                    {selectedInvoice.parts && selectedInvoice.parts.length > 0 && (
+                      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h4 className="font-semibold text-gray-900 mb-4 text-lg">Parts Used</h4>
+                        <div className="space-y-3">
+                          {selectedInvoice.parts.map((part, idx) => (
+                            <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <div className="font-medium text-gray-900">{part.name || 'Part'}</div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-medium text-gray-900">
+                                    ${(Number(part.cost) || 0).toFixed(2)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-semibold text-gray-900">Total Parts Cost:</span>
+                            <span className="font-bold text-gray-900">
+                              ${selectedInvoice.parts.reduce((sum, part) => sum + (Number(part.cost) || 0), 0).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Notes */}
+                    {selectedInvoice.notes && (
+                      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h4 className="font-semibold text-gray-900 mb-2 text-lg">Notes</h4>
+                        <p className="text-sm text-gray-700">{selectedInvoice.notes}</p>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                      <button
+                        onClick={() => {
+                          setShowInvoiceDetails(false);
+                          setTimeout(() => setSelectedInvoice(null), 300);
+                        }}
+                        className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Pagination */}
           {totalPages > 1 && (

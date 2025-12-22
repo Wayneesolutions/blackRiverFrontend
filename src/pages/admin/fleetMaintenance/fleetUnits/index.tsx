@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { CSSProperties } from 'react';
-import { Plus, Edit, Trash2, Search, Truck, CheckCircle, XCircle, Filter, MapPin } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Truck, CheckCircle, XCircle, Filter, MapPin, FileText, X, Download } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import {
   listFleetUnits,
@@ -10,6 +10,11 @@ import {
   type FleetUnitDto,
   type FleetUnitSummary
 } from '../../../../axios/api/fleet.units';
+import {
+  createVehicleDocument,
+  updateVehicleDocument,
+  getVehicleDocument
+} from '../../../../axios/api/compilance.vehicledoc';
 import { FLEET_COLORS } from '../colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -38,6 +43,14 @@ type TrailerType = 'Reefer Trailer' | 'Tri-Axle Trailer' | 'Dry Van' | 'Flatbed'
 
 type FleetUnit = FleetUnitDto & {
   source?: 'vehicle' | 'trailer' | 'custom';
+  documents?: Array<{
+    _id: string;
+    documentType: string;
+    documentNumber?: string;
+    expiryDate?: string;
+    issuedAt?: string;
+    status?: string;
+  }>;
 };
 
 interface FleetUnitFormData {
@@ -60,6 +73,15 @@ interface FleetUnitFormData {
   reason: string;
   serviceIntervalDays: string;
   serviceIntervalMileage: string;
+}
+
+interface FleetDocumentForm {
+  documentType: 'insurance' | 'permit' | 'fitness' | 'pollution' | 'driver_license' | 'logbook' | 'maintenance' | 'trailer_registration' | 'safety_inspection' | 'brake_certificate' | 'coupling_certificate' | 'other';
+  documentNumber: string;
+  expiryDate: string;
+  issuedAt: string;
+  file: File | null;
+  _id?: string; // For existing documents
 }
 
 const defaultSummary: FleetUnitSummary = {
@@ -90,6 +112,16 @@ const FleetUnits: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  // Two-step flow state
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const [fleetDocuments, setFleetDocuments] = useState<FleetDocumentForm[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Unit details view
+  const [showUnitDetails, setShowUnitDetails] = useState(false);
+  const [selectedUnitDetails, setSelectedUnitDetails] = useState<FleetUnit | null>(null);
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState<FleetUnitFormData>({
     unitNo: '',
     internalId: '',
@@ -134,8 +166,80 @@ const FleetUnits: React.FC = () => {
       serviceIntervalDays: '',
       serviceIntervalMileage: ''
     });
+    setFleetDocuments([]);
+    setCurrentStep(1);
     setFormError(null);
+    setIsSubmitting(false);
   };
+
+  // Vehicle document types
+  const VEHICLE_DOCUMENT_TYPES: Array<'insurance' | 'permit' | 'fitness' | 'pollution' | 'driver_license' | 'logbook' | 'maintenance' | 'trailer_registration' | 'safety_inspection' | 'brake_certificate' | 'coupling_certificate' | 'other'> = [
+    'insurance',
+    'permit',
+    'fitness',
+    'pollution',
+    'driver_license',
+    'logbook',
+    'maintenance',
+    'trailer_registration',
+    'safety_inspection',
+    'brake_certificate',
+    'coupling_certificate',
+    'other'
+  ];
+
+  const addDocument = () => {
+    setFleetDocuments([...fleetDocuments, {
+      documentType: 'insurance',
+      documentNumber: '',
+      expiryDate: '',
+      issuedAt: '',
+      file: null
+    }]);
+  };
+
+  const removeDocument = (index: number) => {
+    setFleetDocuments(fleetDocuments.filter((_, i) => i !== index));
+  };
+
+  const updateDocument = (index: number, field: keyof FleetDocumentForm, value: any) => {
+    const updated = [...fleetDocuments];
+    updated[index] = { ...updated[index], [field]: value };
+    setFleetDocuments(updated);
+  };
+
+  const handleDocumentFileChange = (index: number, file: File | null) => {
+    updateDocument(index, 'file', file);
+  };
+
+  // Fetch documents for a fleet unit
+  const fetchFleetUnitDocuments = useCallback(async (fleetUnitId: string) => {
+    try {
+      const response = await getVehicleDocument();
+      if (response?.success && Array.isArray(response?.documentsByVehicle)) {
+        // Find documents for this fleet unit
+        const unitDocuments = response.documentsByVehicle
+          .flatMap((item: any) => {
+            const docs = item.documents || [];
+            return docs
+              .filter((doc: any) => doc.fleetUnitId === fleetUnitId)
+              .map((doc: any) => ({
+                documentType: doc.documentType,
+                documentNumber: doc.documentNumber || '',
+                expiryDate: doc.expiryDate ? doc.expiryDate.split('T')[0] : '',
+                issuedAt: doc.issuedAt ? doc.issuedAt.split('T')[0] : '',
+               
+                file: null,
+                _id: doc._id
+              }));
+          });
+        setFleetDocuments(unitDocuments);
+      }
+    } catch (error) {
+      console.error('Error fetching fleet unit documents:', error);
+      setFleetDocuments([]);
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -143,6 +247,77 @@ const FleetUnits: React.FC = () => {
     }, 400);
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // Sync scroll between top and bottom scrollbars for documents table
+  useEffect(() => {
+    if (!showUnitDetails) return;
+    
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { childList: true, subtree: true });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll);
+    bottomScroll.addEventListener('scroll', handleBottomScroll);
+
+    // Sync on window resize
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+      tableObserver.disconnect();
+    };
+  }, [showUnitDetails, selectedUnitDetails]);
 
   const loadFleetUnits = useCallback(async () => {
     setLoading(true);
@@ -155,7 +330,30 @@ const FleetUnits: React.FC = () => {
       });
 
       if (response?.success) {
-        setUnits(response.data || []);
+        const unitsData = response.data || [];
+        
+        // Fetch documents for each unit
+        const unitsWithDocuments = await Promise.all(
+          unitsData.map(async (unit: FleetUnit) => {
+            try {
+              const docsResponse = await getVehicleDocument();
+              if (docsResponse?.success && Array.isArray(docsResponse?.documentsByVehicle)) {
+                // Find documents for this fleet unit
+                const unitDocuments = docsResponse.documentsByVehicle
+                  .flatMap((item: any) => {
+                    const docs = item.documents || [];
+                    return docs.filter((doc: any) => doc.fleetUnitId === unit._id);
+                  });
+                return { ...unit, documents: unitDocuments };
+              }
+            } catch (err) {
+              console.error(`Error fetching documents for unit ${unit._id}:`, err);
+            }
+            return { ...unit, documents: [] };
+          })
+        );
+        
+        setUnits(unitsWithDocuments);
         setSummary(response.summary || defaultSummary);
         setRequiresCompanySetup(!!response.requiresCompanySetup);
       } else {
@@ -179,10 +377,11 @@ const FleetUnits: React.FC = () => {
   const handleAddUnit = () => {
     resetForm();
     setSelectedUnit(null);
+    setCurrentStep(1); // Ensure we start at step 1
     setShowAddModal(true);
   };
 
-  const handleEditUnit = (unit: FleetUnit) => {
+  const handleEditUnit = async (unit: FleetUnit) => {
     setSelectedUnit(unit);
     setFormData({
       unitNo: unit.unitNo,
@@ -206,7 +405,10 @@ const FleetUnits: React.FC = () => {
       serviceIntervalMileage: (unit as any).serviceIntervalMileage?.toString() || ''
     });
     setFormError(null);
+    setCurrentStep(1);
     setShowEditModal(true);
+    // Fetch existing documents for this unit
+    await fetchFleetUnitDocuments(unit._id);
   };
 
 
@@ -216,56 +418,115 @@ const FleetUnits: React.FC = () => {
   };
 
   const handleSaveUnit = async () => {
+    // Step 1: Validate and move to step 2 for new units or when editing
+    if (currentStep === 1 && (showAddModal || showEditModal)) {
+      setFormError(null);
+      if (!formData.unitNo || !formData.makeModel || !formData.vinNo || !formData.licensePlate || !formData.initialOdometer) {
+        setFormError('Please fill in all required fields highlighted with *');
+        return;
+      }
+      // Move to step 2
+      setCurrentStep(2);
+      return;
+    }
+
+    // Step 2: Save fleet unit and documents
     setFormError(null);
     if (!formData.unitNo || !formData.makeModel || !formData.vinNo || !formData.licensePlate || !formData.initialOdometer) {
       setFormError('Please fill in all required fields highlighted with *');
       return;
     }
 
-    // Map UnitType to FleetUnitType
-    const mappedUnitType: import('../../../../axios/api/fleet.units').FleetUnitType = formData.unitType;
+    if (isSubmitting) {
+      return;
+    }
 
-    const payload: import('../../../../axios/api/fleet.units').FleetUnitPayload = {
-      unitNo: formData.unitNo.trim(),
-      internalId: formData.internalId.trim() || undefined,
-      unitType: mappedUnitType,
-      makeModel: formData.makeModel.trim(),
-      vinNo: formData.vinNo.trim(),
-      licensePlate: formData.licensePlate.trim(),
-      year: formData.year ? Number(formData.year) : undefined,
-      truckType: formData.unitType === 'Truck' ? formData.truckType : undefined,
-      trailerType: formData.unitType !== 'Truck' ? formData.trailerType : undefined,
-      capacity: formData.unitType !== 'Truck' ? formData.capacity : undefined,
-      initialOdometer: formData.initialOdometer ? Number(formData.initialOdometer) : 0,
-      currentOdometer: formData.currentOdometer
-        ? Number(formData.currentOdometer)
-        : formData.initialOdometer
-          ? Number(formData.initialOdometer)
-          : 0,
-      status: formData.status,
-      operationStatus: formData.unitType !== 'Truck' ? formData.operationStatus : undefined,
-      address: formData.address.trim() || undefined,
-      lastDate: formData.status === 'Inactive' ? formData.lastDate || undefined : undefined,
-      reason: formData.status === 'Inactive' ? formData.reason || undefined : undefined,
-      serviceIntervalDays: formData.serviceIntervalDays ? Number(formData.serviceIntervalDays) : undefined,
-      serviceIntervalMileage: formData.serviceIntervalMileage ? Number(formData.serviceIntervalMileage) : undefined
-    };
-
+    setIsSubmitting(true);
     setSaving(true);
+
     try {
+      // Map UnitType to FleetUnitType
+      const mappedUnitType: import('../../../../axios/api/fleet.units').FleetUnitType = formData.unitType;
+
+      const payload: import('../../../../axios/api/fleet.units').FleetUnitPayload = {
+        unitNo: formData.unitNo.trim(),
+        internalId: formData.internalId.trim() || undefined,
+        unitType: mappedUnitType,
+        makeModel: formData.makeModel.trim(),
+        vinNo: formData.vinNo.trim(),
+        licensePlate: formData.licensePlate.trim(),
+        year: formData.year ? Number(formData.year) : undefined,
+        truckType: formData.unitType === 'Truck' ? formData.truckType : undefined,
+        trailerType: formData.unitType !== 'Truck' ? formData.trailerType : undefined,
+        capacity: formData.unitType !== 'Truck' ? formData.capacity : undefined,
+        initialOdometer: formData.initialOdometer ? Number(formData.initialOdometer) : 0,
+        currentOdometer: formData.currentOdometer
+          ? Number(formData.currentOdometer)
+          : formData.initialOdometer
+            ? Number(formData.initialOdometer)
+            : 0,
+        status: formData.status,
+        operationStatus: formData.unitType !== 'Truck' ? formData.operationStatus : undefined,
+        address: formData.address.trim() || undefined,
+        lastDate: formData.status === 'Inactive' ? formData.lastDate || undefined : undefined,
+        reason: formData.status === 'Inactive' ? formData.reason || undefined : undefined,
+        serviceIntervalDays: formData.serviceIntervalDays ? Number(formData.serviceIntervalDays) : undefined,
+        serviceIntervalMileage: formData.serviceIntervalMileage ? Number(formData.serviceIntervalMileage) : undefined
+      };
+
+      let fleetUnitId: string | null = null;
+
       if (showAddModal) {
         const response = await apiCreateFleetUnit(payload);
         if (!response?.success) {
           throw new Error(response?.message || 'Failed to create fleet unit');
         }
+        fleetUnitId = response.data?._id || (response.data as any)?.id;
         setNotification({ type: 'success', message: 'Fleet unit added successfully.' });
       } else if (showEditModal && selectedUnit) {
         const response = await apiUpdateFleetUnit(selectedUnit._id, payload);
         if (!response?.success) {
           throw new Error(response?.message || 'Failed to update fleet unit');
         }
+        fleetUnitId = selectedUnit._id;
         setNotification({ type: 'success', message: 'Fleet unit updated successfully.' });
       }
+
+      // Upload documents if any
+      if (fleetUnitId && fleetDocuments.length > 0) {
+        try {
+          const assetType = formData.unitType === 'Truck' ? 'vehicle' : 'trailer';
+          for (const doc of fleetDocuments) {
+            if (doc.file && doc.documentType) {
+              const docFormData = new FormData();
+              docFormData.append('assetType', assetType);
+              docFormData.append('fleetUnitId', fleetUnitId);
+              docFormData.append('vehicleId', ''); // Empty string when using fleetUnitId
+              docFormData.append('trailerId', ''); // Empty string when using fleetUnitId
+              docFormData.append('documentType', doc.documentType);
+              if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
+              if (doc.issuedAt) docFormData.append('issuedAt', doc.issuedAt);
+              if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+              docFormData.append('file', doc.file); // Use 'file' instead of 'document'
+
+              await createVehicleDocument(docFormData);
+            } else if (doc._id && doc.documentType) {
+              // Update existing document without file change
+              const docFormData = new FormData();
+              docFormData.append('documentType', doc.documentType);
+              if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
+              if (doc.issuedAt) docFormData.append('issuedAt', doc.issuedAt);
+              if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+
+              await updateVehicleDocument(doc._id, docFormData);
+            }
+          }
+        } catch (docError) {
+          console.error('Error uploading documents:', docError);
+          setNotification({ type: 'error', message: 'Fleet unit saved but some documents failed to upload. Please add them manually.' });
+        }
+      }
+
       setShowAddModal(false);
       setShowEditModal(false);
       setSelectedUnit(null);
@@ -277,6 +538,7 @@ const FleetUnits: React.FC = () => {
       setNotification({ type: 'error', message });
     } finally {
       setSaving(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -559,19 +821,20 @@ const FleetUnits: React.FC = () => {
                     )}
                     <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Comment</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Documents</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={activeTab === 'trailers' ? 11 : 10} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={activeTab === 'trailers' ? 12 : 11} className="px-6 py-12 text-center text-gray-500">
                         Loading fleet units...
                       </td>
                     </tr>
                   ) : units.length === 0 ? (
                     <tr>
-                      <td colSpan={activeTab === 'trailers' ? 11 : 10} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={activeTab === 'trailers' ? 12 : 11} className="px-6 py-12 text-center text-gray-500">
                         {requiresCompanySetup
                           ? 'Please complete your company settings to manage fleet units.'
                           : error || 'No units found'}
@@ -580,7 +843,14 @@ const FleetUnits: React.FC = () => {
                   ) : (
                     units.map((unit) => {
                       return (
-                        <tr key={unit._id} className="hover:bg-gray-50 transition-colors">
+                        <tr 
+                          key={unit._id} 
+                          className="hover:bg-gray-50 transition-colors cursor-pointer"
+                          onClick={() => {
+                            setSelectedUnitDetails(unit);
+                            setShowUnitDetails(true);
+                          }}
+                        >
                           <td className="px-6 py-4 font-medium text-gray-900">{unit.unitNo}</td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col gap-1">
@@ -641,6 +911,19 @@ const FleetUnits: React.FC = () => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-gray-500" />
+                              <span className="text-sm font-medium text-gray-900">
+                                {unit.documents?.length || 0}
+                              </span>
+                              {unit.documents && unit.documents.length > 0 && (
+                                <span className="text-xs text-gray-500">
+                                  ({unit.documents.filter((d: any) => d.status === 'completed' || !d.status).length} valid)
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                               <button
                                 onClick={() => handleEditUnit(unit)}
                                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -681,7 +964,9 @@ const FleetUnits: React.FC = () => {
             <div className="h-full flex flex-col">
               {/* Header - Fixed to top */}
               <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
-                <h2 className="text-2xl font-bold">{showAddModal ? 'Add New Unit' : 'Edit Unit'}</h2>
+                <h2 className="text-2xl font-bold">
+                  {showAddModal ? 'Add New Unit' : showEditModal ? 'Edit Unit' : ''}
+                </h2>
                 <button
                   onClick={() => {
                     setShowAddModal(false);
@@ -695,6 +980,79 @@ const FleetUnits: React.FC = () => {
                 </button>
               </div>
 
+              {/* Step Indicator - Always show when modal is open */}
+              {showAddModal && (
+                <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 1
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-300 bg-white'
+                          }`}>
+                          {currentStep > 1 ? <CheckCircle size={16} className="text-blue-600" /> : '1'}
+                        </div>
+                        <span className="text-sm font-medium">Fleet Information</span>
+                      </div>
+                      <div className="flex-1 h-0.5 bg-gray-200 mx-2">
+                        <div
+                          className={`h-full transition-all ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}
+                          style={{ width: currentStep >= 2 ? '100%' : '0%' }}
+                        />
+                      </div>
+                      <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 2
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-300 bg-white'
+                          }`}>
+                          2
+                        </div>
+                        <span className="text-sm font-medium">Fleet Documents</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {showEditModal && (
+                <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentStep(1)}
+                      style={
+                        currentStep === 1
+                          ? {
+                            background: 'linear-gradient(to right, #016ab2, #063f6f)',
+                          }
+                          : undefined
+                      }
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 1
+                        ? '!text-white shadow-sm'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                    >
+                      Fleet Information
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentStep(2)}
+                      style={
+                        currentStep === 2
+                          ? {
+                            background: 'linear-gradient(to right, #016ab2, #063f6f)',
+                          }
+                          : undefined
+                      }
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 2
+                        ? '!text-white shadow-sm'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                    >
+                      Fleet Documents ({fleetDocuments.length})
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Content - Scrollable */}
               <div className="flex-1 overflow-y-auto p-6">
                 {formError && (
@@ -702,7 +1060,137 @@ const FleetUnits: React.FC = () => {
                     {formError}
                   </div>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {currentStep === 2 ? (
+                  /* Step 2: Fleet Documents */
+                  <div className="space-y-4 min-h-[400px]">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2 font-semibold text-xl" style={{ color: ACCENT_PRIMARY }}>
+                        <FileText size={24} />
+                        <span>Fleet Documents</span>
+                      </div>
+                      <button
+                        onClick={addDocument}
+                        className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+                      >
+                        <Plus size={16} />
+                        Add Document
+                      </button>
+                    </div>
+
+                    {fleetDocuments.length === 0 ? (
+                      <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-600 mb-2">No documents added yet</p>
+                        <p className="text-sm text-gray-500 mb-4">Click "Add Document" to upload fleet documents</p>
+                        <button
+                          onClick={addDocument}
+                          className="px-4 py-2 !text-white rounded-lg hover:opacity-90 transition-colors"
+                          style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                        >
+                          Add First Document
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {fleetDocuments.map((doc, index) => (
+                          <div key={doc._id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold text-gray-700">Document {index + 1}</h4>
+                                {doc._id && (
+                                  <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">Existing</span>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => removeDocument(index)}
+                                className="text-red-600 hover:text-red-800 transition-colors"
+                              >
+                                <X size={18} />
+                              </button>
+                            </div>
+
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Document Type <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={doc.documentType}
+                                  onChange={(e) => updateDocument(index, 'documentType', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                  {VEHICLE_DOCUMENT_TYPES.map((type) => (
+                                    <option key={type} value={type}>{type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Document Number</label>
+                                  <input
+                                    type="text"
+                                    value={doc.documentNumber}
+                                    onChange={(e) => updateDocument(index, 'documentNumber', e.target.value)}
+                                    placeholder="e.g., DOC-123456"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                </div>
+                               
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                                  <input
+                                    type="date"
+                                    value={doc.issuedAt}
+                                    onChange={(e) => updateDocument(index, 'issuedAt', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                  <input
+                                    type="date"
+                                    value={doc.expiryDate}
+                                    onChange={(e) => updateDocument(index, 'expiryDate', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                </div>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Document File {!doc._id && <span className="text-red-500">*</span>}
+                                </label>
+                                <input
+                                  type="file"
+                                  onChange={(e) => handleDocumentFileChange(index, e.target.files?.[0] || null)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                                />
+                                {doc.file && (
+                                  <p className="text-xs mt-1 text-green-600 flex items-center gap-1">
+                                    <CheckCircle size={12} />
+                                    Selected: {doc.file.name}
+                                  </p>
+                                )}
+                                {doc._id && !doc.file && (
+                                  <p className="text-xs mt-1 text-gray-500">
+                                    Leave empty to keep existing file
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Step 1: Fleet Information */
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Unit No. *</label>
                     <input
@@ -995,34 +1483,369 @@ const FleetUnits: React.FC = () => {
                     </>
                   )}
                 </div>
+                )}
               </div>
 
               {/* Footer - Fixed to bottom */}
-              <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-200">
-                <button
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setShowEditModal(false);
-                    setSelectedUnit(null);
-                    resetForm();
-                  }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveUnit}
-                  disabled={saving}
-                  className={`px-6 py-2 !text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
-                    }`}
-                  style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-                >
-                  {saving ? 'Saving...' : showAddModal ? 'Add Fleet' : 'Save Changes'}
-                </button>
+              <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-between gap-3 border-t border-gray-200">
+                <div className="flex gap-3">
+                  {currentStep === 2 && (
+                    <button
+                      onClick={() => setCurrentStep(1)}
+                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Back
+                    </button>
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setShowEditModal(false);
+                      setSelectedUnit(null);
+                      resetForm();
+                    }}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveUnit}
+                    disabled={saving || isSubmitting}
+                    className={`px-6 py-2 !text-white rounded-lg transition-colors ${saving || isSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
+                      }`}
+                    style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                  >
+                    {(() => {
+                      if (saving || isSubmitting) return 'Saving...';
+                      if (showAddModal) {
+                        if (currentStep === 1) return 'Continue to Documents';
+                        if (currentStep === 2) return 'Add Fleet';
+                      }
+                      if (showEditModal) {
+                        if (currentStep === 1) return 'Continue to Documents';
+                        if (currentStep === 2) return 'Save Changes';
+                      }
+                      return 'Save Changes';
+                    })()}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </>
+      )}
+
+      {/* Unit Details Modal with Horizontal Scrollbar */}
+      {showUnitDetails && selectedUnitDetails && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+              <div className="flex items-center space-x-3">
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                  style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                >
+                  <Truck className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{selectedUnitDetails.unitNo}</h2>
+                  <p className="text-sm text-gray-500">{selectedUnitDetails.makeModel}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowUnitDetails(false);
+                  setSelectedUnitDetails(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <FaTimes className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-6">
+                {/* Fleet Unit Information */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Truck className="w-5 h-5" style={{ color: ACCENT_PRIMARY }} />
+                    <span>Fleet Unit Information</span>
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <div className="min-w-[800px] grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Unit Number</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.unitNo}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Internal ID</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.internalId || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Unit Type</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.unitType}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Make/Model</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.makeModel}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">VIN Number</p>
+                        <p className="text-sm font-medium text-gray-900 font-mono">{selectedUnitDetails.vinNo}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">License Plate</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.licensePlate}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Year</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.year || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Status</p>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${selectedUnitDetails.status === 'Active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                          }`}>
+                          {selectedUnitDetails.status}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Initial Odometer</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.initialOdometer?.toLocaleString() || '0'} km</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Current Odometer</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {(selectedUnitDetails.currentOdometer ?? selectedUnitDetails.initialOdometer ?? 0).toLocaleString()} km
+                        </p>
+                      </div>
+                      {selectedUnitDetails.unitType !== 'Truck' && (
+                        <>
+                          <div>
+                            <p className="text-sm text-gray-500 mb-1">Capacity</p>
+                            <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.capacity || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500 mb-1">Operation Status</p>
+                            <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.operationStatus || 'N/A'}</p>
+                          </div>
+                        </>
+                      )}
+                      {selectedUnitDetails.currentLocation?.address && (
+                        <div className="col-span-2">
+                          <p className="text-sm text-gray-500 mb-1">Current Location</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.currentLocation.address}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Documents Section */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <FileText className="w-5 h-5" style={{ color: ACCENT_PRIMARY }} />
+                    <span>Documents ({selectedUnitDetails.documents?.length || 0})</span>
+                  </h3>
+                  {!selectedUnitDetails.documents || selectedUnitDetails.documents.length === 0 ? (
+                    <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                      <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600">No documents uploaded for this fleet unit</p>
+                    </div>
+                  ) : (
+                    <>
+                      <style>{`
+                        .table-container-hidden-scrollbar {
+                          scrollbar-width: none; /* Firefox */
+                          -ms-overflow-style: none; /* IE and Edge */
+                        }
+                        .table-container-hidden-scrollbar::-webkit-scrollbar {
+                          display: none; /* Chrome, Safari, Opera */
+                        }
+                      `}</style>
+                      <div 
+                        ref={topScrollRef}
+                        className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+                        style={{ 
+                          maxHeight: '20px',
+                          marginBottom: '2px',
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                        }}
+                      >
+                        <div className="top-scroll-content" style={{ height: '1px' }}></div>
+                      </div>
+                      {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+                      <div 
+                        ref={bottomScrollRef}
+                        className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+                      >
+                        <table className="w-full" style={{ minWidth: '1200px' }}>
+                          <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Document Type</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Document Number</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Issue Date</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Expiry Date</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">File Name</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">File Size</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Uploaded Date</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {selectedUnitDetails.documents.map((doc: any, index: number) => {
+                              const file = doc.files && doc.files.length > 0 ? doc.files[0] : null;
+                              const formatFileSize = (bytes: number) => {
+                                if (bytes === 0) return '0 Bytes';
+                                const k = 1024;
+                                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                                return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+                              };
+                              return (
+                                <tr key={doc._id || index} className="hover:bg-gray-50">
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center space-x-2">
+                                      <FileText className="w-4 h-4 text-gray-400" />
+                                      <span className="text-sm font-medium text-gray-800">
+                                        {doc.documentType?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="text-sm text-gray-600">{doc.documentNumber || '-'}</span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="text-sm text-gray-600">
+                                      {doc.issuedAt ? new Date(doc.issuedAt).toLocaleDateString() : '-'}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className={`text-sm ${!doc.expiryDate ? 'text-gray-400' : 'text-gray-600'}`}>
+                                      {doc.expiryDate ? new Date(doc.expiryDate).toLocaleDateString() : '-'}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                                      doc.status === 'completed' || !doc.status
+                                        ? 'bg-green-100 text-green-800'
+                                        : doc.status === 'pending'
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : doc.status === 'expired'
+                                        ? 'bg-red-100 text-red-800'
+                                        : 'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {doc.status || 'completed'}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="text-sm text-gray-600" title={file?.fileName || '-'}>
+                                      {file?.fileName ? (file.fileName.length > 30 ? file.fileName.substring(0, 30) + '...' : file.fileName) : '-'}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="text-sm text-gray-600">
+                                      {file?.fileSize ? formatFileSize(file.fileSize) : '-'}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="text-sm text-gray-600">
+                                      {file?.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : '-'}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center space-x-2">
+                                      {file && (
+                                        <>
+                                          <button
+                                            onClick={async (e) => {
+                                              e.stopPropagation();
+                                              try {
+                                                const { getSignedVehicleDocumentUrl } = await import('../../../../axios/api/compilance.vehicledoc');
+                                                const signedRes = await getSignedVehicleDocumentUrl(doc._id, 0, 'attachment');
+                                                const url = signedRes?.success && signedRes?.url ? signedRes.url : file.fileUrl;
+                                                if (url) {
+                                                  const link = window.document.createElement('a');
+                                                  link.href = url;
+                                                  link.download = file.fileName || 'document';
+                                                  link.target = '_blank';
+                                                  window.document.body.appendChild(link);
+                                                  link.click();
+                                                  window.document.body.removeChild(link);
+                                                }
+                                              } catch (error) {
+                                                console.error('Download error:', error);
+                                              }
+                                            }}
+                                            className="p-1.5 hover:bg-green-50 rounded text-green-600"
+                                            title="Download"
+                                          >
+                                            <Download className="w-4 h-4" />
+                                          </button>
+                                          <button
+                                            onClick={async (e) => {
+                                              e.stopPropagation();
+                                              try {
+                                                const { getSignedVehicleDocumentUrl } = await import('../../../../axios/api/compilance.vehicledoc');
+                                                const signedRes = await getSignedVehicleDocumentUrl(doc._id, 0, 'inline');
+                                                const url = signedRes?.success && signedRes?.url ? signedRes.url : file.fileUrl;
+                                                if (url) {
+                                                  window.open(url, '_blank', 'noopener,noreferrer');
+                                                }
+                                              } catch (error) {
+                                                console.error('View error:', error);
+                                              }
+                                            }}
+                                            className="p-1.5 hover:bg-blue-50 rounded text-blue-600"
+                                            title="View"
+                                          >
+                                            <FileText className="w-4 h-4" />
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowUnitDetails(false);
+                  setSelectedUnitDetails(null);
+                }}
+                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setShowUnitDetails(false);
+                  setSelectedUnitDetails(null);
+                  handleEditUnit(selectedUnitDetails);
+                }}
+                className="px-6 py-2 !text-white rounded-lg hover:opacity-90 transition-colors font-medium"
+                style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+              >
+                Edit Unit
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Delete Confirmation Modal */}

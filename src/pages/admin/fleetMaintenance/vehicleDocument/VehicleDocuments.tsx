@@ -7,11 +7,11 @@ import {
   updateVehicleDocument,
   deleteVehicleDocument,
   getSignedVehicleDocumentUrl
-} from "../../../axios/api/compilance.vehicledoc";
-import { useVehicles } from "../../../customHooks/useVehicles";
-import { useTrailers } from "../../../customHooks/useTrailers";
-import { listFleetUnits } from "../../../axios/api/fleet.units";
-import { FLEET_COLORS } from "../fleetMaintenance/colorUtils";
+} from "../../../../axios/api/compilance.vehicledoc";
+import { useVehicles } from "../../../../customHooks/useVehicles";
+import { useTrailers } from "../../../../customHooks/useTrailers";
+import { listFleetUnits } from "../../../../axios/api/fleet.units";
+import { FLEET_COLORS } from "../colorUtils";
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const ACCENT_GRADIENT = FLEET_COLORS.gradient;

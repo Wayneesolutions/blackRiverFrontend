@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   deleteIssue,
   listIssues,
@@ -16,7 +16,8 @@ import {
   MdVisibility,
   MdWarning,
   MdError,
-  MdInfo
+  MdInfo,
+  MdClose
 } from 'react-icons/md';
 import { FaFilter } from 'react-icons/fa';
 
@@ -55,12 +56,17 @@ const Issues: React.FC = () => {
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [loadingView, setLoadingView] = useState(false);
+  const [showIssueDetails, setShowIssueDetails] = useState(false);
   const [pagination, setPagination] = useState({
     current: 1,
     pages: 1,
     total: 0,
     limit: 10
   });
+  
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
   // Fetch issues
   const fetchIssues = async (page: number = 1) => {
     setLoading(true);
@@ -222,6 +228,78 @@ const Issues: React.FC = () => {
     fetchIssues();
   }, []);
 
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [issues, searchQuery]);
+
   return (
     <div className="flex h-screen bg-[#EDF8FF] overflow-hidden">
       {/* Main Content */}
@@ -325,8 +403,47 @@ const Issues: React.FC = () => {
 
           {/* Issues Table */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+            {/* Top Scrollbar - Only visible horizontal scrollbar */}
+            <style>{`
+              .top-scrollbar-container::-webkit-scrollbar {
+                height: 8px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-track {
+                background: #f7fafc;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb {
+                background: #cbd5e0;
+                border-radius: 4px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                background: #a0aec0;
+              }
+              .table-container-hidden-scrollbar {
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE and Edge */
+              }
+              .table-container-hidden-scrollbar::-webkit-scrollbar {
+                display: none; /* Chrome, Safari, Opera */
+              }
+            `}</style>
+            <div 
+              ref={topScrollRef}
+              className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+              style={{ 
+                maxHeight: '20px',
+                marginBottom: '2px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+              }}
+            >
+              <div className="top-scroll-content" style={{ height: '1px' }}></div>
+            </div>
+            {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+            <div 
+              ref={bottomScrollRef}
+              className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+            >
+              <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '1000px' }}>
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -364,7 +481,14 @@ const Issues: React.FC = () => {
                     </tr>
                   ) : (
                     issues.map((issue) => (
-                      <tr key={issue._id} className="hover:bg-gray-50">
+                      <tr 
+                        key={issue._id} 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedIssue(issue);
+                          setShowIssueDetails(true);
+                        }}
+                      >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             {getIssueTypeIcon(issue.issueType)}
@@ -413,20 +537,9 @@ const Issues: React.FC = () => {
                             ) : 'No vehicle'}
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleView(issue._id);
-                              }}
-                              disabled={loadingView}
-                              className="text-blue-600 hover:text-blue-800 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="View Details"
-                            >
-                              <MdVisibility />
-                            </button>
+                         
                             <button
                               onClick={() => {
                                 setEditingIssue(issue);
@@ -549,6 +662,195 @@ const Issues: React.FC = () => {
             setSelectedIssue(null);
           }}
         />
+      )}
+
+      {/* Issue Details Sidebar */}
+      {showIssueDetails && selectedIssue && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+            onClick={() => {
+              setShowIssueDetails(false);
+              setTimeout(() => setSelectedIssue(null), 300);
+            }}
+          ></div>
+
+          {/* Sidebar Panel */}
+          <div
+            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+          >
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900">Issue Details</h2>
+                <button
+                  onClick={() => {
+                    setShowIssueDetails(false);
+                    setTimeout(() => setSelectedIssue(null), 300);
+                  }}
+                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                >
+                  <MdClose size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Issue Header */}
+                <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0">
+                      {getIssueTypeIcon(selectedIssue.issueType)}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold mb-1">
+                        {selectedIssue.issueType.charAt(0).toUpperCase() + selectedIssue.issueType.slice(1)}
+                      </h3>
+                      <p className="text-blue-100 text-sm mb-2">
+                        {selectedIssue.issueCategory.replace('-', ' ').charAt(0).toUpperCase() + selectedIssue.issueCategory.replace('-', ' ').slice(1)}
+                      </p>
+                      <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(selectedIssue.status)}`}>
+                        {selectedIssue.status.replace('-', ' ').charAt(0).toUpperCase() + selectedIssue.status.replace('-', ' ').slice(1)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Issue Information */}
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-4 text-lg">Issue Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Issue Type</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedIssue.issueType.charAt(0).toUpperCase() + selectedIssue.issueType.slice(1)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Category</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedIssue.issueCategory.replace('-', ' ').charAt(0).toUpperCase() + selectedIssue.issueCategory.replace('-', ' ').slice(1)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Priority</p>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(selectedIssue.priority)}`}>
+                        {selectedIssue.priority.charAt(0).toUpperCase() + selectedIssue.priority.slice(1)}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Status</p>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedIssue.status)}`}>
+                        {selectedIssue.status.replace('-', ' ').charAt(0).toUpperCase() + selectedIssue.status.replace('-', ' ').slice(1)}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Reported By</p>
+                      <p className="font-medium text-gray-900">{selectedIssue.reportedBy || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Assigned To</p>
+                      <p className="font-medium text-gray-900">{selectedIssue.assignedTo || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Created Date</p>
+                      <p className="font-medium text-gray-900">
+                        {new Date(selectedIssue.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    {selectedIssue.address && (
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Address</p>
+                        <p className="font-medium text-gray-900">{selectedIssue.address}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-500 mb-1">Issue Report</p>
+                    <p className="font-medium text-gray-900">{selectedIssue.issueReport || "—"}</p>
+                  </div>
+                  {selectedIssue.issueTags && selectedIssue.issueTags.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm text-gray-500 mb-2">Tags</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedIssue.issueTags.map((tag, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Vehicle Information */}
+                {selectedIssue.vehicle && (
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-4 text-lg">Vehicle Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedIssue.vehicle && typeof selectedIssue.vehicle === 'object' ? (
+                        <>
+                          {selectedIssue.vehicle.make && (
+                            <div>
+                              <p className="text-sm text-gray-500 mb-1">Make</p>
+                              <p className="font-medium text-gray-900">{selectedIssue.vehicle.make}</p>
+                            </div>
+                          )}
+                          {selectedIssue.vehicle.model && (
+                            <div>
+                              <p className="text-sm text-gray-500 mb-1">Model</p>
+                              <p className="font-medium text-gray-900">{selectedIssue.vehicle.model}</p>
+                            </div>
+                          )}
+                          {(selectedIssue.vehicle.plateNumber || selectedIssue.vehicle.internalId) && (
+                            <div>
+                              <p className="text-sm text-gray-500 mb-1">Plate / ID</p>
+                              <p className="font-medium text-gray-900">
+                                {selectedIssue.vehicle.plateNumber || selectedIssue.vehicle.internalId}
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Vehicle ID</p>
+                          <p className="font-medium text-gray-900">{selectedIssue.vehicle}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                  <button
+                    onClick={() => {
+                      setShowIssueDetails(false);
+                      setTimeout(() => setSelectedIssue(null), 300);
+                    }}
+                    className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowIssueDetails(false);
+                      setEditingIssue(selectedIssue);
+                      setShowNewIssueSidebar(true);
+                    }}
+                    className="px-6 py-2.5 bg-blue-600 !text-white font-medium rounded-lg hover:bg-blue-700 transition-all"
+                  >
+                    Edit Issue
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Delete Confirmation Modal */}

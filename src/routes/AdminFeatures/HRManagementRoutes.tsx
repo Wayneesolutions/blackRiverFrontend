@@ -11,7 +11,7 @@ const Documents = lazy(() => import("../../pages/admin/driverManagement/document
 const Attendence = lazy(() => import("../../pages/admin/driverManagement/Attendance/index"))
 const Issues = lazy(() => import("../../pages/admin/dispatch/resources/issues/index"))
 const CompanyDocuments = lazy(() => import("../../pages/admin/dashboard/documents/index"))
-const VehicleDocuments = lazy(() => import("../../pages/admin/driverManagement/VehicleDocuments"))
+const VehicleDocuments = lazy(() => import("../../pages/admin/fleetMaintenance/vehicleDocument/VehicleDocuments"))
 const UserProfilesPortfolio = lazy(() => import("../../pages/admin/driverManagement/userProfiles/index"))
 const DriverProfiles = lazy(() => import("../../pages/admin/driverManagement/driverportfolio/index"))
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"));

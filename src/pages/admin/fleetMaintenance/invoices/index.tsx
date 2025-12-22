@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   FaFileInvoice, 
   FaPlus, 
   FaEdit, 
   FaTrash, 
-  FaEye, 
   FaTimes, 
   FaCheckCircle, 
   FaExclamationCircle, 
@@ -115,6 +114,11 @@ const InvoicesPage = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showInvoiceDetails, setShowInvoiceDetails] = useState(false);
+  
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
@@ -190,6 +194,78 @@ const InvoicesPage = () => {
     fetchInvoices();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
+
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [invoices, searchTerm, statusFilter]);
 
   const fetchInvoices = async () => {
     setLoading(true);
@@ -686,8 +762,47 @@ const InvoicesPage = () => {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          {/* Top Scrollbar - Only visible horizontal scrollbar */}
+          <style>{`
+            .top-scrollbar-container::-webkit-scrollbar {
+              height: 8px;
+            }
+            .top-scrollbar-container::-webkit-scrollbar-track {
+              background: #f7fafc;
+            }
+            .top-scrollbar-container::-webkit-scrollbar-thumb {
+              background: #cbd5e0;
+              border-radius: 4px;
+            }
+            .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+              background: #a0aec0;
+            }
+            .table-container-hidden-scrollbar {
+              scrollbar-width: none; /* Firefox */
+              -ms-overflow-style: none; /* IE and Edge */
+            }
+            .table-container-hidden-scrollbar::-webkit-scrollbar {
+              display: none; /* Chrome, Safari, Opera */
+            }
+          `}</style>
+          <div 
+            ref={topScrollRef}
+            className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+            style={{ 
+              maxHeight: '20px',
+              marginBottom: '2px',
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+            }}
+          >
+            <div className="top-scroll-content" style={{ height: '1px' }}></div>
+          </div>
+          {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+          <div 
+            ref={bottomScrollRef}
+            className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+          >
+            <table className="w-full" style={{ minWidth: '1000px' }}>
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -712,7 +827,14 @@ const InvoicesPage = () => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredInvoices.map((invoice) => (
-                  <tr key={invoice._id} className="hover:bg-gray-50 transition-colors">
+                  <tr 
+                    key={invoice._id} 
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setSelectedInvoice(invoice);
+                      setShowInvoiceDetails(true);
+                    }}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-semibold text-gray-900">{invoice.invoiceNumber}</div>
                       <div className="text-xs text-gray-500">{formatDate(invoice.createdAt)}</div>
@@ -733,18 +855,8 @@ const InvoicesPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(invoice.dueDate)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedInvoice(invoice);
-                            setShowDetailsModal(true);
-                          }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="View Details"
-                        >
-                          <FaEye size={14} />
-                        </button>
                         <button
                           onClick={() => handleEditInvoice(invoice)}
                           className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
@@ -752,7 +864,6 @@ const InvoicesPage = () => {
                         >
                           <FaEdit size={14} />
                         </button>
-                     
                         <button
                           onClick={() => handleDeleteInvoice(invoice._id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -768,6 +879,183 @@ const InvoicesPage = () => {
             </table>
           </div>
         </div>
+      )}
+
+      {/* Invoice Details Sidebar */}
+      {showInvoiceDetails && selectedInvoice && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+            onClick={() => {
+              setShowInvoiceDetails(false);
+              setTimeout(() => setSelectedInvoice(null), 300);
+            }}
+          ></div>
+
+          {/* Sidebar Panel */}
+          <div
+            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+          >
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900">Invoice Details</h2>
+                <button
+                  onClick={() => {
+                    setShowInvoiceDetails(false);
+                    setTimeout(() => setSelectedInvoice(null), 300);
+                  }}
+                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                >
+                  <FaTimes size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Invoice Header */}
+                <div className="bg-gradient-to-r from-[#9793E4] via-[#8783D4] to-[#7773C4] text-white p-6 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold mb-1">{selectedInvoice.invoiceNumber || 'N/A'}</h3>
+                      <p className="text-purple-100 text-sm mb-2">
+                        Total: ${selectedInvoice.total.toFixed(2)}
+                      </p>
+                      <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(selectedInvoice.status)}`}>
+                        {selectedInvoice.status.charAt(0).toUpperCase() + selectedInvoice.status.slice(1)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Invoice Information */}
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-4 text-lg">Invoice Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
+                      <p className="font-medium text-gray-900">{selectedInvoice.invoiceNumber || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Status</p>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedInvoice.status)}`}>
+                        {selectedInvoice.status.charAt(0).toUpperCase() + selectedInvoice.status.slice(1)}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Created Date</p>
+                      <p className="font-medium text-gray-900">{formatDate(selectedInvoice.createdAt)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Due Date</p>
+                      <p className="font-medium text-gray-900">{formatDate(selectedInvoice.dueDate)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Customer Information */}
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-4 text-lg">Customer Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Customer Name</p>
+                      <p className="font-medium text-gray-900">{selectedInvoice.customerName || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Email</p>
+                      <p className="font-medium text-gray-900">{selectedInvoice.customerEmail || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Phone</p>
+                      <p className="font-medium text-gray-900">{selectedInvoice.customerPhone || "—"}</p>
+                    </div>
+                    {selectedInvoice.customerAddress && (
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Address</p>
+                        <p className="font-medium text-gray-900">{selectedInvoice.customerAddress}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Invoice Items */}
+                {selectedInvoice.items && selectedInvoice.items.length > 0 && (
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-4 text-lg">Invoice Items</h4>
+                    <div className="space-y-3">
+                      {selectedInvoice.items.map((item, idx) => (
+                        <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="font-medium text-gray-900">{item.partName}</div>
+                              <div className="text-sm text-gray-500">{item.partNumber}</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-medium text-gray-900">
+                                {item.quantity} × ${item.unitPrice.toFixed(2)}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                Total: ${item.totalPrice.toFixed(2)}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Invoice Totals */}
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-4 text-lg">Invoice Totals</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Subtotal:</span>
+                      <span className="font-medium text-gray-900">${selectedInvoice.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Tax ({selectedInvoice.taxRate}%):</span>
+                      <span className="font-medium text-gray-900">${selectedInvoice.taxAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-semibold border-t pt-2">
+                      <span className="text-gray-900">Total:</span>
+                      <span className="text-gray-900">${selectedInvoice.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {selectedInvoice.notes && (
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2 text-lg">Notes</h4>
+                    <p className="text-sm text-gray-700">{selectedInvoice.notes}</p>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                  <button
+                    onClick={() => {
+                      setShowInvoiceDetails(false);
+                      setTimeout(() => setSelectedInvoice(null), 300);
+                    }}
+                    className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowInvoiceDetails(false);
+                      handleEditInvoice(selectedInvoice);
+                    }}
+                    className="px-6 py-2.5 bg-[#9793E4] !text-white font-medium rounded-lg hover:bg-[#8783D4] transition-all"
+                  >
+                    Edit Invoice
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Create Invoice Modal */}
@@ -990,7 +1278,7 @@ const InvoicesPage = () => {
 
       {/* Invoice Details Modal */}
       {showDetailsModal && selectedInvoice && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
               <div className="flex justify-between items-center">

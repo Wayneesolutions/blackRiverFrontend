@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import ExcelJS from 'exceljs';
-import { Plus, Edit, Trash2, Search, AlertTriangle, Calendar, Download } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, AlertTriangle, Calendar, Download, X } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import {
   listRegulatorySafety,
@@ -128,6 +128,7 @@ const RegulatorySafety: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<RegulatorySafetyDto | null>(null);
+  const [showRecordDetails, setShowRecordDetails] = useState(false);
   const [formData, setFormData] = useState<FormState>({
     unitNo: '',
     safetyExpiryDate: '',
@@ -145,6 +146,10 @@ const RegulatorySafety: React.FC = () => {
   const [notification, setNotification] = useState<NotificationState | null>(null);
   const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
   const [exporting, setExporting] = useState(false);
+  
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 400);
@@ -215,6 +220,78 @@ const RegulatorySafety: React.FC = () => {
   useEffect(() => {
     loadRecords();
   }, [loadRecords]);
+
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [records, searchTerm, unitFilter]);
 
   const unitMap = useMemo(() => {
     const map = new Map<string, UnitOption>();
@@ -547,8 +624,47 @@ const RegulatorySafety: React.FC = () => {
 
           {/* Table */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            {/* Top Scrollbar - Only visible horizontal scrollbar */}
+            <style>{`
+              .top-scrollbar-container::-webkit-scrollbar {
+                height: 8px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-track {
+                background: #f7fafc;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb {
+                background: #cbd5e0;
+                border-radius: 4px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                background: #a0aec0;
+              }
+              .table-container-hidden-scrollbar {
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE and Edge */
+              }
+              .table-container-hidden-scrollbar::-webkit-scrollbar {
+                display: none; /* Chrome, Safari, Opera */
+              }
+            `}</style>
+            <div 
+              ref={topScrollRef}
+              className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+              style={{ 
+                maxHeight: '20px',
+                marginBottom: '2px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+              }}
+            >
+              <div className="top-scroll-content" style={{ height: '1px' }}></div>
+            </div>
+            {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+            <div 
+              ref={bottomScrollRef}
+              className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+            >
+              <table className="w-full" style={{ minWidth: '1200px' }}>
                 <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Unit No.</th>
@@ -588,7 +704,11 @@ const RegulatorySafety: React.FC = () => {
                       return (
                         <tr
                           key={record._id}
-                          className={`hover:bg-gray-50 transition-colors ${rowAccent}`}
+                          className={`hover:bg-gray-50 transition-colors cursor-pointer ${rowAccent}`}
+                          onClick={() => {
+                            setSelectedRecord(record);
+                            setShowRecordDetails(true);
+                          }}
                         >
                           <td className="px-6 py-4 font-medium text-gray-900">{record.unitNo}</td>
                           <td className="px-6 py-4">
@@ -615,7 +735,7 @@ const RegulatorySafety: React.FC = () => {
                           <td className="px-6 py-4 text-gray-600 font-mono text-sm">{record.safetyPaperNumber || '—'}</td>
                           <td className="px-6 py-4 text-gray-900">{record.shopName || '—'}</td>
                           <td className="px-6 py-4 text-gray-600 font-mono text-sm">{record.invoiceNo || '—'}</td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => handleEditRecord(record)}
@@ -641,6 +761,147 @@ const RegulatorySafety: React.FC = () => {
               </table>
             </div>
           </div>
+
+          {/* Record Details Sidebar */}
+          {showRecordDetails && selectedRecord && (
+            <>
+              {/* Overlay */}
+              <div
+                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+                onClick={() => {
+                  setShowRecordDetails(false);
+                  setTimeout(() => setSelectedRecord(null), 300);
+                }}
+              ></div>
+
+              {/* Sidebar Panel */}
+              <div
+                className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+              >
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900">Safety Record Details</h2>
+                    <button
+                      onClick={() => {
+                        setShowRecordDetails(false);
+                        setTimeout(() => setSelectedRecord(null), 300);
+                      }}
+                      className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                    >
+                      <X size={24} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Record Header */}
+                    <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <h3 className="text-2xl font-bold mb-1">{selectedRecord.unitNo || 'N/A'}</h3>
+                          <p className="text-blue-100 text-sm mb-2">
+                            {selectedRecord.makeModel || '—'}
+                          </p>
+                          {(() => {
+                            const status = getExpiryStatus(selectedRecord.safetyExpiryDate);
+                            return (
+                              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mt-2 ${status.status === 'expired' ? 'bg-red-500 text-white' : status.status === 'warning' ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'}`}>
+                                {status.status === 'expired' && <FaExclamationCircle size={16} />}
+                                {status.status === 'warning' && <AlertTriangle size={16} />}
+                                {status.status === 'ok' && <FaCheckCircle size={16} />}
+                                {status.text}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Record Information */}
+                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                      <h4 className="font-semibold text-gray-900 mb-4 text-lg">Safety Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Unit Number</p>
+                          <p className="font-medium text-gray-900">{selectedRecord.unitNo || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Unit Type</p>
+                          <p className="font-medium text-gray-900">{selectedRecord.unitType || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Make / Model</p>
+                          <p className="font-medium text-gray-900">{selectedRecord.makeModel || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Safety Expiry Date</p>
+                          <p className="font-medium text-gray-900">{formatDate(selectedRecord.safetyExpiryDate)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Status</p>
+                          {(() => {
+                            const status = getExpiryStatus(selectedRecord.safetyExpiryDate);
+                            return (
+                              <span className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${status.color}`}>
+                                {status.status === 'expired' && <FaExclamationCircle size={12} />}
+                                {status.status === 'warning' && <AlertTriangle size={12} />}
+                                {status.status === 'ok' && <FaCheckCircle size={12} />}
+                                {status.text}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Safety Decal Number</p>
+                          <p className="font-medium text-gray-900 font-mono">{selectedRecord.safetyDecalNumber || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Safety Paper Number</p>
+                          <p className="font-medium text-gray-900 font-mono">{selectedRecord.safetyPaperNumber || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Shop Name</p>
+                          <p className="font-medium text-gray-900">{selectedRecord.shopName || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
+                          <p className="font-medium text-gray-900 font-mono">{selectedRecord.invoiceNo || "—"}</p>
+                        </div>
+                      </div>
+                      {selectedRecord.notes && (
+                        <div className="mt-4">
+                          <p className="text-sm text-gray-500 mb-1">Notes</p>
+                          <p className="font-medium text-gray-900">{selectedRecord.notes}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                      <button
+                        onClick={() => {
+                          setShowRecordDetails(false);
+                          setTimeout(() => setSelectedRecord(null), 300);
+                        }}
+                        className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                      >
+                        Close
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowRecordDetails(false);
+                          handleEditRecord(selectedRecord);
+                        }}
+                        className="px-6 py-2.5 bg-blue-600 !text-white font-medium rounded-lg hover:bg-blue-700 transition-all"
+                      >
+                        Edit Record
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

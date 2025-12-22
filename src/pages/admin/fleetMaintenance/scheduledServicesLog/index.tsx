@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import ExcelJS from 'exceljs';
-import { Plus, Edit, Trash2, Search, Download, AlertCircle, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Download, AlertCircle, Clock, X } from 'lucide-react';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import { useLocation } from 'react-router-dom';
 import {
@@ -114,6 +114,11 @@ const ScheduledServicesLog: React.FC = () => {
   const [services, setServices] = useState<ScheduledService[]>([]);
   const [units, setUnits] = useState<UnitOption[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showServiceDetails, setShowServiceDetails] = useState(false);
+  
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -223,6 +228,78 @@ const ScheduledServicesLog: React.FC = () => {
   useEffect(() => {
     fetchServices();
   }, [fetchServices]);
+
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [services, searchTerm, filterServiceType, filterIncoming]);
 
   // Helper function to check if a service is incoming maintenance
   // This must match the logic in summaryStats exactly
@@ -846,8 +923,47 @@ const ScheduledServicesLog: React.FC = () => {
 
           {/* Table */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            {/* Top Scrollbar - Only visible horizontal scrollbar */}
+            <style>{`
+              .top-scrollbar-container::-webkit-scrollbar {
+                height: 8px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-track {
+                background: #f7fafc;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb {
+                background: #cbd5e0;
+                border-radius: 4px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                background: #a0aec0;
+              }
+              .table-container-hidden-scrollbar {
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE and Edge */
+              }
+              .table-container-hidden-scrollbar::-webkit-scrollbar {
+                display: none; /* Chrome, Safari, Opera */
+              }
+            `}</style>
+            <div 
+              ref={topScrollRef}
+              className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+              style={{ 
+                maxHeight: '20px',
+                marginBottom: '2px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+              }}
+            >
+              <div className="top-scroll-content" style={{ height: '1px' }}></div>
+            </div>
+            {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+            <div 
+              ref={bottomScrollRef}
+              className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+            >
+              <table className="w-full" style={{ minWidth: '1200px' }}>
                 <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Service Date</th>
@@ -901,7 +1017,14 @@ const ScheduledServicesLog: React.FC = () => {
                     </tr>
                   ) : (
                     filteredServices.map((service) => (
-                      <tr key={service._id} className="hover:bg-gray-50 transition-colors">
+                      <tr 
+                        key={service._id} 
+                        className="hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => {
+                          setSelectedService(service);
+                          setShowServiceDetails(true);
+                        }}
+                      >
                         <td className="px-6 py-4 text-gray-900">
                           {formatDate(service.serviceDate || service.dueDate)}
                         </td>
@@ -936,7 +1059,7 @@ const ScheduledServicesLog: React.FC = () => {
                         <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={service.notes || undefined}>
                           {service.notes || 'N/A'}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleEditService(service)}
@@ -961,6 +1084,153 @@ const ScheduledServicesLog: React.FC = () => {
               </table>
             </div>
           </div>
+
+          {/* Service Details Sidebar */}
+          {showServiceDetails && selectedService && (
+            <>
+              {/* Overlay */}
+              <div
+                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+                onClick={() => {
+                  setShowServiceDetails(false);
+                  setTimeout(() => setSelectedService(null), 300);
+                }}
+              ></div>
+
+              {/* Sidebar Panel */}
+              <div
+                className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+              >
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900">Service Details</h2>
+                    <button
+                      onClick={() => {
+                        setShowServiceDetails(false);
+                        setTimeout(() => setSelectedService(null), 300);
+                      }}
+                      className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                    >
+                      <X size={24} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Service Header */}
+                    <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <h3 className="text-2xl font-bold mb-1">{selectedService.unitNo || 'N/A'}</h3>
+                          <p className="text-blue-100 text-sm mb-2">
+                            {getServiceTypeLabel(selectedService.serviceType)}
+                          </p>
+                          <span
+                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${selectedService.status === 'completed'
+                              ? 'bg-emerald-500 text-white'
+                              : selectedService.status === 'in-progress'
+                                ? 'bg-yellow-500 text-white'
+                                : 'bg-blue-500 text-white'
+                              }`}
+                          >
+                            {selectedService.status.replace('-', ' ')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Service Information */}
+                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                      <h4 className="font-semibold text-gray-900 mb-4 text-lg">Service Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Unit Number</p>
+                          <p className="font-medium text-gray-900">{selectedService.unitNo || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Unit Type</p>
+                          <p className="font-medium text-gray-900">{selectedService.unitType || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Make / Model</p>
+                          <p className="font-medium text-gray-900">{selectedService.makeModel || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Service Type</p>
+                          <p className="font-medium text-gray-900">{getServiceTypeLabel(selectedService.serviceType)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Service Date</p>
+                          <p className="font-medium text-gray-900">{formatDate(selectedService.serviceDate || selectedService.dueDate)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Due Date</p>
+                          <p className="font-medium text-gray-900">{formatDate(selectedService.dueDate)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Odometer</p>
+                          <p className="font-medium text-gray-900">
+                            {selectedService.odometer !== undefined ? `${selectedService.odometer.toLocaleString()} km` : '—'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
+                          <p className="font-medium text-gray-900">{selectedService.invoiceNo || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Status</p>
+                          <span
+                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${selectedService.status === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : selectedService.status === 'in-progress'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-blue-100 text-blue-800'
+                              }`}
+                          >
+                            {selectedService.status.replace('-', ' ')}
+                          </span>
+                        </div>
+                        {selectedService.priority && (
+                          <div>
+                            <p className="text-sm text-gray-500 mb-1">Priority</p>
+                            <p className="font-medium text-gray-900">{selectedService.priority}</p>
+                          </div>
+                        )}
+                      </div>
+                      {selectedService.notes && (
+                        <div className="mt-4">
+                          <p className="text-sm text-gray-500 mb-1">Notes</p>
+                          <p className="font-medium text-gray-900">{selectedService.notes}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                      <button
+                        onClick={() => {
+                          setShowServiceDetails(false);
+                          setTimeout(() => setSelectedService(null), 300);
+                        }}
+                        className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                      >
+                        Close
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowServiceDetails(false);
+                          handleEditService(selectedService);
+                        }}
+                        className="px-6 py-2.5 bg-blue-600 !text-white font-medium rounded-lg hover:bg-blue-700 transition-all"
+                      >
+                        Edit Service
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Add/Edit Sidebar */}
           {(showAddModal || showEditModal) && (
