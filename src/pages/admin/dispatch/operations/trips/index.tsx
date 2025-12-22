@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash2, Eye, Search, X, File, Download, MessageCircle } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Plus, Edit, Trash2, Eye, Search, X, File, Download ,MessageCircle} from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck, FaUser, FaTrailer } from "react-icons/fa";
 import NewTripSidebar from "./NewTripSidebar";
 import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
@@ -131,6 +131,10 @@ const Trips = () => {
   const [startConfirm, setStartConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [completeConfirm, setCompleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
 
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+
   const focusHandlers = getFocusStyles();
   const primaryButtonStyle: React.CSSProperties = {
     background: `linear-gradient(
@@ -183,6 +187,78 @@ const Trips = () => {
     fetchFiltersData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [trips, loading]);
 
   const fetchFiltersData = async () => {
     try {
@@ -479,7 +555,48 @@ const Trips = () => {
       ) : (
         <>
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Top Scrollbar - Only visible horizontal scrollbar */}
+            <style>{`
+              .top-scrollbar-container::-webkit-scrollbar {
+                height: 8px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-track {
+                background: #f7fafc;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb {
+                background: #cbd5e0;
+                border-radius: 4px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                background: #a0aec0;
+              }
+              .table-container-hidden-scrollbar {
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE and Edge */
+              }
+              .table-container-hidden-scrollbar::-webkit-scrollbar {
+                display: none; /* Chrome, Safari, Opera */
+              }
+            `}</style>
+            <div 
+              ref={topScrollRef}
+              className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+              style={{ 
+                height: '20px',
+                marginBottom: '2px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#cbd5e0 #f7fafc', /* Firefox */
+                width: '100%',
+                display: 'block'
+              }}
+            >
+              <div className="top-scroll-content" style={{ height: '1px', minWidth: '100%' }}></div>
+            </div>
+            {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+            <div 
+              ref={bottomScrollRef}
+              className="overflow-x-auto table-container-hidden-scrollbar"
+            >
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
