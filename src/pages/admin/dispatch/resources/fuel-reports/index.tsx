@@ -20,6 +20,33 @@ interface FuelReportType {
   reporterEmail?: string;
   driver: { _id: string; name: string };
   vehicle: { _id: string; plateNumber?: string; vinNumber?: string; unitNo?: string; unitType?: string; makeModel?: string };
+  trip?: {
+    _id: string;
+    tripNumber?: string;
+    status?: string;
+    plannedStartDate?: string | Date;
+    plannedEndDate?: string | Date;
+    actualStartDate?: string | Date;
+    actualEndDate?: string | Date;
+    startLocation?: {
+      place?: string;
+      latitude?: string;
+      longitude?: string;
+    };
+    endLocation?: {
+      place?: string;
+      latitude?: string;
+      longitude?: string;
+    };
+    driver?: {
+      _id: string;
+      name?: string;
+    };
+    coDriver?: {
+      _id: string;
+      name?: string;
+    };
+  } | null;
   volume: string;
   type: string;
   odometer: string;
@@ -583,7 +610,7 @@ const FuelReports = () => {
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by reporter, driver, vehicle or status..."
+                placeholder="Search by reporter, driver, vehicle, trip or status..."
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm"
@@ -626,6 +653,9 @@ const FuelReports = () => {
                     Vehicle
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                    Trip
+                  </th>
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Status
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
@@ -646,7 +676,7 @@ const FuelReports = () => {
                 {filteredReports.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="px-6 py-8 text-center text-gray-500"
                     >
                       No fuel reports found
@@ -704,6 +734,30 @@ const FuelReports = () => {
                             </div>
                           );
                         })()}
+                      </td>
+                      <td className="px-6 py-2 text-xs">
+                        {report.trip ? (
+                          <div className="space-y-1">
+                            <div className="font-semibold text-gray-900">
+                              {report.trip.tripNumber || 'N/A'}
+                            </div>
+                            <div className="text-[10px] text-gray-500">
+                              {report.trip.status || 'N/A'}
+                            </div>
+                            {report.trip.startLocation?.place && (
+                              <div className="text-[10px] text-gray-400">
+                                From: {report.trip.startLocation.place}
+                              </div>
+                            )}
+                            {report.trip.endLocation?.place && (
+                              <div className="text-[10px] text-gray-400">
+                                To: {report.trip.endLocation.place}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 italic">No trip</span>
+                        )}
                       </td>
                       <td className="px-6 py-2">
                         <span
@@ -833,12 +887,13 @@ const FuelReports = () => {
       {/* Sidebar Component */}
       <NewFuelReportSidebar
         isOpen={isSidebarOpen}
-        onClose={(shouldRefresh = true) => {
+        onClose={async (shouldRefresh = true) => {
           setIsSidebarOpen(false);
           if (shouldRefresh) {
             // Reset to page 1 to show the newly created report (since sorted by createdAt desc)
             setCurrentPage(1);
-            // The useEffect will trigger fetchFuelReports when currentPage changes
+            // Directly call fetchFuelReports to refresh the table immediately
+            await fetchFuelReports();
           }
         }}
         units={units}

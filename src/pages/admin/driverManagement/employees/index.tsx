@@ -29,6 +29,18 @@ import {
   updateEmployeeStatus
 } from '../../../../axios/api/employee';
 import {
+  getAllCustomers,
+  createCustomer,
+  updateCustomer,
+  deleteCustomer
+} from '../../../../axios/api/customer';
+import {
+  getAllContacts,
+  createContact,
+  updateContact,
+  deleteContact
+} from '../../../../axios/api/contact';
+import {
   createEmployeeDocument,
   updateEmployeeDocument,
   getDocumentsByEmployee,
@@ -211,6 +223,19 @@ const EmployeesPage = () => {
     show: false,
     employeeId: null
   });
+  
+  // Tab state - Employees, Contacts, Customers
+  const [activeTab, setActiveTab] = useState<'employees' | 'contacts' | 'customers'>('employees');
+  const [contacts, setContacts] = useState<Employee[]>([]);
+  const [customers, setCustomers] = useState<Employee[]>([]);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalEmployees, setTotalEmployees] = useState(0);
+  const [totalContacts, setTotalContacts] = useState(0);
+  const [totalCustomers, setTotalCustomers] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Show 10 users per page
 
   // Two-step flow state
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
@@ -238,10 +263,11 @@ const EmployeesPage = () => {
     password: ''
   });
 
-  // Available roles (excluding driver - drivers should use Driver Documents)
+  // Available roles - includes employee roles, contact, and customer
   const roles = [
-    'dispatcher', 'hr', 'contact', 'customer', 'reporter',
-    'Fleet Maintenance Manager', 'Compliance Manager', 'Maintenance Crew (Mechanics)', 'safety officer'
+    'dispatcher', 'hr', 'reporter',
+    'Fleet Maintenance Manager', 'Compliance Manager', 'Maintenance Crew (Mechanics)', 'safety officer',
+    'contact', 'customer'
   ];
 
   // Roles that require login access (ID, username, password)
@@ -249,17 +275,24 @@ const EmployeesPage = () => {
 
   // Role display mapping
   const getRoleDisplayName = (role: string) => {
+    if (!role) return 'N/A';
     if (role === 'Compliance Manager') {
       return 'Compliance Manager/Safety Manager';
     }
     if (role === 'safety officer') {
       return 'Safety Officer';
     }
+    if (role === 'contact') {
+      return 'Contact';
+    }
+    if (role === 'customer') {
+      return 'Customer';
+    }
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 
   // Roles without login access (only basic information)
-  const rolesWithoutLoginAccess = ['contact', 'customer', 'reporter', 'Maintenance Crew (Mechanics)'];
+  const rolesWithoutLoginAccess = ['reporter', 'Maintenance Crew (Mechanics)'];
 
   // Employee document types
   const EMPLOYEE_DOCUMENT_TYPES = [
@@ -282,13 +315,24 @@ const EmployeesPage = () => {
     'Other'
   ];
 
-  // Fetch employees data
+  // Reset to page 1 when search or filters change
   useEffect(() => {
-    fetchEmployees();
+    setCurrentPage(1);
+  }, [searchQuery, selectedStatus, activeTab]);
+
+  // Fetch data based on active tab
+  useEffect(() => {
+    if (activeTab === 'employees') {
+      fetchEmployees();
+    } else if (activeTab === 'contacts') {
+      fetchContacts();
+    } else if (activeTab === 'customers') {
+      fetchCustomers();
+    }
     if (editingEmployee) {
       fetchEmployeeDocuments();
     }
-  }, []);
+  }, [currentPage, searchQuery, selectedStatus, activeTab]); // Removed selectedRole from dependencies
 
   useEffect(() => {
     if (editingEmployee) {
@@ -380,9 +424,40 @@ const EmployeesPage = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const response = await getAllEmployees(1, 100, searchQuery, selectedRole || undefined, selectedStatus || undefined);
+      // No role filtering - show all users
+      // Don't pass role filter to backend - we want all users
+      const response = await getAllEmployees(currentPage, itemsPerPage, searchQuery, undefined, selectedStatus || undefined);
       if (response.success) {
-        const filteredEmployees = (response.data || []).filter((e: Employee) => e.role !== 'driver');
+        // Filter out admin, superadmin, driver, contact, and customer from employees tab
+        const filteredEmployees = (response.data || []).filter((e: Employee) => {
+          const roleLower = (e.role || '').toLowerCase();
+          // Exclude system admin roles and driver/contact/customer (these have separate tabs)
+          return roleLower !== 'admin' && 
+                 roleLower !== 'superadmin' && 
+                 roleLower !== 'driver' && 
+                 roleLower !== 'contact' && 
+                 roleLower !== 'customer';
+        });
+        
+        // Update pagination state
+        // Use the actual filtered count for pagination
+        const filteredCount = filteredEmployees.length;
+        
+        // For pagination, we need to calculate based on filtered results
+        // Since we're showing all users now (no role filtering), use the actual count
+        if (response.pagination) {
+          // Calculate total pages based on filtered results
+          const totalPagesCalc = Math.ceil(filteredCount / itemsPerPage);
+          setTotalPages(totalPagesCalc || 1);
+          setTotalEmployees(filteredCount);
+        } else {
+          setTotalPages(1);
+          setTotalEmployees(filteredCount);
+        }
+        
+        console.log('Filtered employees count:', filteredCount);
+        console.log('Total employees set to:', filteredCount);
+        console.log('Total pages:', Math.ceil(filteredCount / itemsPerPage));
         
         // Fetch documents for each employee
         const employeesWithDocs = await Promise.all(
@@ -411,6 +486,82 @@ const EmployeesPage = () => {
     }
   };
 
+  const fetchContacts = async () => {
+    try {
+      setLoading(true);
+      const response = await getAllContacts(currentPage, itemsPerPage, searchQuery, selectedStatus || undefined);
+      if (response.success) {
+        // Update pagination state
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages || 1);
+          setTotalContacts(response.pagination.totalEmployees || 0);
+        }
+        
+        // Fetch documents for each contact
+        const contactsWithDocs = await Promise.all(
+          (response.data || []).map(async (contact: Employee) => {
+            try {
+              const docsResponse = await getDocumentsByEmployee(contact._id);
+              if (docsResponse.success && Array.isArray(docsResponse.data)) {
+                return { ...contact, documents: docsResponse.data };
+              }
+            } catch (err) {
+              console.error(`Error fetching documents for contact ${contact._id}:`, err);
+            }
+            return { ...contact, documents: [] };
+          })
+        );
+        
+        setContacts(contactsWithDocs);
+      } else {
+        addNotification('error', response?.message || 'Failed to fetch contacts');
+      }
+    } catch (error: any) {
+      console.error('Error fetching contacts:', error);
+      addNotification('error', error?.message || 'Failed to fetch contacts');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const response = await getAllCustomers(currentPage, itemsPerPage, searchQuery, selectedStatus || undefined);
+      if (response.success) {
+        // Update pagination state
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages || 1);
+          setTotalCustomers(response.pagination.totalEmployees || 0);
+        }
+        
+        // Fetch documents for each customer
+        const customersWithDocs = await Promise.all(
+          (response.data || []).map(async (customer: Employee) => {
+            try {
+              const docsResponse = await getDocumentsByEmployee(customer._id);
+              if (docsResponse.success && Array.isArray(docsResponse.data)) {
+                return { ...customer, documents: docsResponse.data };
+              }
+            } catch (err) {
+              console.error(`Error fetching documents for customer ${customer._id}:`, err);
+            }
+            return { ...customer, documents: [] };
+          })
+        );
+        
+        setCustomers(customersWithDocs);
+      } else {
+        addNotification('error', response?.message || 'Failed to fetch customers');
+      }
+    } catch (error: any) {
+      console.error('Error fetching customers:', error);
+      addNotification('error', error?.message || 'Failed to fetch customers');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchEmployeeDocuments = async () => {
     if (!editingEmployee) return;
     try {
@@ -433,13 +584,6 @@ const EmployeesPage = () => {
     }
   };
 
-  // Search employees and apply filters
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      fetchEmployees();
-    }, 500);
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedRole, selectedStatus]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -450,12 +594,20 @@ const EmployeesPage = () => {
   };
 
   const resetForm = () => {
+    // Set role based on active tab, but allow changing it in the form
+    let defaultRole = '';
+    if (activeTab === 'contacts') {
+      defaultRole = 'contact';
+    } else if (activeTab === 'customers') {
+      defaultRole = 'customer';
+    }
+    
     setFormData({
       name: '',
       email: '',
       phone: '',
       country: '',
-      role: '',
+      role: defaultRole,
       state: '',
       city: '',
       address: '',
@@ -493,8 +645,40 @@ const EmployeesPage = () => {
     setEmployeeDocuments(updated);
   };
 
-  const handleDocumentFileChange = (index: number, file: File | null) => {
-    updateDocument(index, 'file', file);
+  const handleDocumentFileChange = (index: number, files: FileList | null) => {
+    if (!files || files.length === 0) {
+      updateDocument(index, 'file', null);
+      return;
+    }
+    
+    // Support multiple files - if multiple files selected, create multiple document entries
+    if (files.length > 1) {
+      const newDocs: EmployeeDocumentForm[] = [];
+      Array.from(files).forEach((file, fileIndex) => {
+        if (fileIndex === 0) {
+          // Update the current document with first file
+          updateDocument(index, 'file', file);
+        } else {
+          // Create new document entries for additional files
+          newDocs.push({
+            documentType: employeeDocuments[index]?.documentType || 'Other',
+            documentNumber: '',
+            issueDate: '',
+            expiryDate: '',
+            description: '',
+            status: 'valid',
+            file: file
+          });
+        }
+      });
+      // Add new documents to the list
+      if (newDocs.length > 0) {
+        setEmployeeDocuments([...employeeDocuments, ...newDocs]);
+      }
+    } else {
+      // Single file
+      updateDocument(index, 'file', files[0]);
+    }
   };
 
   const handleCreate = async () => {
@@ -529,7 +713,15 @@ const EmployeesPage = () => {
         delete submitData.password;
       }
 
-      const response = await createEmployee(submitData);
+      let response;
+      // Check role to determine which API to call (allows creating contact/customer from employees tab)
+      if (formData.role === 'contact') {
+        response = await createContact(submitData);
+      } else if (formData.role === 'customer') {
+        response = await createCustomer(submitData);
+      } else {
+        response = await createEmployee(submitData);
+      }
 
       if (response && response.success === true) {
         const employeeId = response.data?._id || response.data?.id;
@@ -558,8 +750,26 @@ const EmployeesPage = () => {
           }
         }
 
-        addNotification('success', response.message || 'Employee created successfully');
-        await fetchEmployees();
+        // Determine the type based on role
+        const entityType = formData.role === 'contact' ? 'Contact' : formData.role === 'customer' ? 'Customer' : 'Employee';
+        addNotification('success', response.message || `${entityType} created successfully`);
+        
+        // Refresh the appropriate tab based on role
+        if (formData.role === 'contact') {
+          await fetchContacts();
+          // If we're on employees tab, also refresh employees to show updated count
+          if (activeTab === 'employees') {
+            await fetchEmployees();
+          }
+        } else if (formData.role === 'customer') {
+          await fetchCustomers();
+          // If we're on employees tab, also refresh employees to show updated count
+          if (activeTab === 'employees') {
+            await fetchEmployees();
+          }
+        } else {
+          await fetchEmployees();
+        }
         setShowAddModal(false);
         resetForm();
       } else {
@@ -626,7 +836,14 @@ const EmployeesPage = () => {
         delete submitData.password;
       }
 
-      const response = await updateEmployee(editingEmployee._id, submitData);
+      let response;
+      if (activeTab === 'contacts') {
+        response = await updateContact(editingEmployee._id, submitData);
+      } else if (activeTab === 'customers') {
+        response = await updateCustomer(editingEmployee._id, submitData);
+      } else {
+        response = await updateEmployee(editingEmployee._id, submitData);
+      }
 
       if (response && response.success === true) {
         // Update documents
@@ -668,8 +885,14 @@ const EmployeesPage = () => {
           }
         }
 
-        addNotification('success', response.message || 'Employee updated successfully');
-        await fetchEmployees();
+        addNotification('success', response.message || `${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'} updated successfully`);
+        if (activeTab === 'employees') {
+          await fetchEmployees();
+        } else if (activeTab === 'contacts') {
+          await fetchContacts();
+        } else if (activeTab === 'customers') {
+          await fetchCustomers();
+        }
         setShowAddModal(false);
         resetForm();
       } else {
@@ -737,10 +960,24 @@ const EmployeesPage = () => {
     if (!deleteConfirm.employeeId) return;
 
     try {
-      const response = await deleteEmployee(deleteConfirm.employeeId);
+      let response;
+      if (activeTab === 'contacts') {
+        response = await deleteContact(deleteConfirm.employeeId);
+      } else if (activeTab === 'customers') {
+        response = await deleteCustomer(deleteConfirm.employeeId);
+      } else {
+        response = await deleteEmployee(deleteConfirm.employeeId);
+      }
+      
       if (response.success) {
-        addNotification('success', response.message || 'Employee deleted successfully');
-        fetchEmployees();
+        addNotification('success', response.message || `${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'} deleted successfully`);
+        if (activeTab === 'employees') {
+          fetchEmployees();
+        } else if (activeTab === 'contacts') {
+          fetchContacts();
+        } else if (activeTab === 'customers') {
+          fetchCustomers();
+        }
       } else {
         const errorMessage = response?.message || response?.error?.message || 'Failed to delete employee';
         addNotification('error', errorMessage);
@@ -832,7 +1069,7 @@ const EmployeesPage = () => {
   return (
     <div className="flex h-screen bg-[#EDF8FF] overflow-hidden">
       <div className={`flex-1 flex flex-col transition-all duration-300 ${showAddModal ? 'mr-[800px]' : ''} overflow-hidden`}>
-        <div className="flex-1  p-8" style={{ ...ACCENT_VARS, transform: 'scale(0.99)', transformOrigin: 'top left', width: '101.01%', height: '101.01%' }}>
+        <div className="flex-1 flex flex-col overflow-hidden p-8" style={{ ...ACCENT_VARS, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {/* Notifications Container */}
           <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
             {notifications.map(notification => (
@@ -844,52 +1081,138 @@ const EmployeesPage = () => {
             ))}
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-800">All Employees ({employees.length})</h2>
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200 flex-shrink-0">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-1">Employee Management</h2>
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-gray-500">
+                    {activeTab === 'employees' && (totalEmployees > 0 
+                      ? `Showing ${employees.length} of ${totalEmployees} employees`
+                      : 'No employees found')
+                    }
+                    {activeTab === 'contacts' && (totalContacts > 0 
+                      ? `Showing ${contacts.length} of ${totalContacts} contacts`
+                      : 'No contacts found')
+                    }
+                    {activeTab === 'customers' && (totalCustomers > 0 
+                      ? `Showing ${customers.length} of ${totalCustomers} customers`
+                      : 'No customers found')
+                    }
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => {
                   resetForm();
                   setShowAddModal(true);
                 }}
-                className="px-4 py-2 !text-white rounded-lg transition-opacity flex items-center space-x-2 shadow-sm hover:opacity-90"
+                className="px-5 py-2.5 !text-white rounded-xl transition-all flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105"
                 style={{ backgroundImage: ACCENT_GRADIENT }}
               >
-                <Plus className="w-4 h-4" />
-                <span>Add Employee</span>
+                <Plus className="w-5 h-5" />
+                <span className="font-semibold">
+                  {activeTab === 'employees' && 'Add Employee'}
+                  {activeTab === 'contacts' && 'Add Contact'}
+                  {activeTab === 'customers' && 'Add Customer'}
+                </span>
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex space-x-1 mb-6 border-b border-gray-200 flex-shrink-0">
+              <button
+                onClick={() => setActiveTab('employees')}
+                className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === 'employees'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+                style={
+                  activeTab === 'employees'
+                    ? { borderColor: ACCENT_PRIMARY, color: ACCENT_PRIMARY }
+                    : undefined
+                }
+              >
+                Employees
+                {totalEmployees > 0 && (
+                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                    {totalEmployees}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('contacts')}
+                className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === 'contacts'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+                style={
+                  activeTab === 'contacts'
+                    ? { borderColor: ACCENT_PRIMARY, color: ACCENT_PRIMARY }
+                    : undefined
+                }
+              >
+                Contacts
+                {totalContacts > 0 && (
+                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                    {totalContacts}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('customers')}
+                className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === 'customers'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+                style={
+                  activeTab === 'customers'
+                    ? { borderColor: ACCENT_PRIMARY, color: ACCENT_PRIMARY }
+                    : undefined
+                }
+              >
+                Customers
+                {totalCustomers > 0 && (
+                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                    {totalCustomers}
+                  </span>
+                )}
               </button>
             </div>
 
             <div className="flex items-center space-x-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Search by name, ID, role, or department..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent bg-gray-50 focus:bg-white transition-colors"
                   style={focusRingStyle}
                 />
               </div>
               <div className="relative">
                 <button
                   onClick={() => setShowFilterPanel(!showFilterPanel)}
-                  className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center space-x-2"
+                  className="px-5 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 flex items-center space-x-2 bg-white transition-all"
                   style={
                     showFilterPanel
-                      ? { backgroundColor: "rgba(1, 106, 178, 0.08)", borderColor: ACCENT_PRIMARY }
+                      ? { backgroundColor: "rgba(66, 174, 236, 0.1)", borderColor: ACCENT_PRIMARY, boxShadow: `0 0 0 3px rgba(66, 174, 236, 0.1)` }
                       : undefined
                   }
                 >
-                  <Filter className="w-4 h-4" />
-                  <span>Filter</span>
-                  {(selectedRole || selectedStatus) && (
+                  <Filter className="w-5 h-5" />
+                  <span className="font-medium">Filter</span>
+                  {selectedStatus && (
                     <span
-                      className="ml-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                      className="ml-1 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-semibold"
                       style={{ backgroundColor: ACCENT_PRIMARY }}
                     >
-                      {(selectedRole ? 1 : 0) + (selectedStatus ? 1 : 0)}
+                      1
                     </span>
                   )}
                 </button>
@@ -902,7 +1225,11 @@ const EmployeesPage = () => {
                     ></div>
                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-gray-800">Filter Employees</h3>
+                        <h3 className="text-sm font-semibold text-gray-800">
+                          {activeTab === 'employees' && 'Filter Employees'}
+                          {activeTab === 'contacts' && 'Filter Contacts'}
+                          {activeTab === 'customers' && 'Filter Customers'}
+                        </h3>
                         <button
                           onClick={() => setShowFilterPanel(false)}
                           className="text-gray-400 hover:text-gray-600"
@@ -912,24 +1239,7 @@ const EmployeesPage = () => {
                       </div>
 
                       <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Role
-                          </label>
-                          <select
-                            value={selectedRole}
-                            onChange={(e) => setSelectedRole(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm"
-                            style={focusRingStyle}
-                          >
-                            <option value="">All Roles</option>
-                            {roles.map(role => (
-                              <option key={role} value={role}>
-                                {getRoleDisplayName(role)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                        {/* Role filter removed - showing all users in employees tab */}
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -950,13 +1260,13 @@ const EmployeesPage = () => {
                         <div className="flex items-center space-x-2 pt-2 border-t border-gray-200">
                           <button
                             onClick={() => {
-                              setSelectedRole('');
                               setSelectedStatus('');
                               setShowFilterPanel(false);
+                              setCurrentPage(1); // Reset to first page when clearing filters
                             }}
                             className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
                           >
-                            Clear
+                            Clear Status Filter
                           </button>
                           <button
                             onClick={() => setShowFilterPanel(false)}
@@ -975,7 +1285,7 @@ const EmployeesPage = () => {
           </div>
 
           {/* Table */}
-          <div className="bg-white rounded-lg shadow">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col" style={{ maxHeight: 'calc(100vh - 350px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
             <style>{`
               .top-scrollbar-container::-webkit-scrollbar {
@@ -998,10 +1308,29 @@ const EmployeesPage = () => {
               .table-container-hidden-scrollbar::-webkit-scrollbar {
                 display: none; /* Chrome, Safari, Opera */
               }
+              .table-wrapper {
+                overflow-x: auto;
+                overflow-y: auto;
+                flex: 1;
+                min-height: 0;
+              }
+              .table-wrapper::-webkit-scrollbar {
+                width: 8px;
+              }
+              .table-wrapper::-webkit-scrollbar-track {
+                background: #f7fafc;
+              }
+              .table-wrapper::-webkit-scrollbar-thumb {
+                background: #cbd5e0;
+                border-radius: 4px;
+              }
+              .table-wrapper::-webkit-scrollbar-thumb:hover {
+                background: #a0aec0;
+              }
             `}</style>
             <div
               ref={topScrollRef}
-              className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+              className="overflow-x-auto overflow-y-hidden top-scrollbar-container flex-shrink-0"
               style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
@@ -1011,79 +1340,115 @@ const EmployeesPage = () => {
             >
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
             </div>
-            {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+            {/* Main Table */}
             <div
               ref={bottomScrollRef}
-              className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+              className="table-wrapper"
+              style={{
+                overflowY: 'auto',
+                overflowX: 'auto',
+                maxHeight: 'calc(100vh - 450px)',
+                minHeight: '400px'
+              }}
             >
               <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '1200px' }}>
-                <thead className="bg-gray-50">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Employee ID</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Role</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Phone</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Country</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Location</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Join Date</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Documents</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={11} className="px-6 py-12 text-center">
-                        <div className="flex items-center justify-center text-gray-500">
-                          <RefreshCw className="animate-spin h-5 w-5 mr-2" />
-                          Loading employees...
+                      <td colSpan={11} className="px-6 py-16 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-500">
+                          <RefreshCw className="animate-spin h-8 w-8 mb-3" style={{ color: ACCENT_PRIMARY }} />
+                          <p className="text-sm font-medium">Loading employees...</p>
                         </div>
                       </td>
                     </tr>
-                  ) : employees.length === 0 ? (
-                    <tr>
-                      <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
-                        No employees found
-                      </td>
-                    </tr>
-                  ) : (
-                    employees.map((employee) => (
+                  ) : (() => {
+                    const currentData = activeTab === 'employees' ? employees : activeTab === 'contacts' ? contacts : customers;
+                    
+                    if (currentData.length === 0) {
+                      return (
+                        <tr key="no-data">
+                          <td colSpan={11} className="px-6 py-16 text-center">
+                            <div className="flex flex-col items-center justify-center">
+                              <User className="w-16 h-16 text-gray-300 mb-4" />
+                              <p className="text-lg font-semibold text-gray-600 mb-1">
+                                {activeTab === 'employees' && 'No employees found'}
+                                {activeTab === 'contacts' && 'No contacts found'}
+                                {activeTab === 'customers' && 'No customers found'}
+                              </p>
+                              <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+                    
+                    
+                    return currentData.map((employee, index) => {
+                      // Use a unique key combining _id and index to prevent React key conflicts
+                      const uniqueKey = `${employee._id}-${index}-${employee.role}`;
+                      return (
                       <tr
-                        key={employee._id}
-                        className="hover:bg-gray-50 transition-colors cursor-pointer"
+                        key={uniqueKey}
+                        className="hover:bg-blue-50/50 transition-all cursor-pointer border-b border-gray-100"
                         onClick={() => handleRowClick(employee)}
+                        data-employee-role={employee.role}
+                        data-employee-name={employee.name}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
-                            className="font-mono text-sm px-2 py-1 rounded"
+                            className="font-mono text-sm px-3 py-1.5 rounded-lg font-semibold"
                             style={{
                               backgroundColor: `${ACCENT_PRIMARY}15`,
-                              color: ACCENT_DARK
+                              color: ACCENT_DARK,
+                              border: `1px solid ${ACCENT_PRIMARY}30`
                             }}
                           >
-                            {employee.internalId}
+                            {employee.internalId || 'N/A'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div
-                              className="h-10 w-10 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0"
+                              className="h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-md"
                               style={{ background: ACCENT_GRADIENT }}
                             >
                               {employee.name?.charAt(0) || '?'}
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{employee.name}</div>
+                              <div className="text-sm font-semibold text-gray-900">{employee.name || 'N/A'}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{getRoleDisplayName(employee.role)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.email}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.phone}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.country}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-purple-100 text-purple-700">
+                            {getRoleDisplayName(employee.role || 'N/A')}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center text-sm text-gray-700">
+                            <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                            {employee.email || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">{employee.phone || 'N/A'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{employee.country || 'N/A'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {employee.city && employee.state ? `${employee.city}, ${employee.state}` : employee.location?.address || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1092,40 +1457,40 @@ const EmployeesPage = () => {
                               e.stopPropagation();
                               handleStatusToggle(employee);
                             }}
-                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full transition-colors ${employee.status === 'active'
-                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                              : 'bg-red-100 text-red-800 hover:bg-red-200'
+                            className={`inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-lg transition-all shadow-sm hover:shadow-md ${(employee.status || 'active') === 'active'
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
+                              : 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'
                               }`}
                           >
-                            {employee.status}
+                            <div className={`w-2 h-2 rounded-full mr-2 ${(employee.status || 'active') === 'active' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                            {(employee.status || 'active').charAt(0).toUpperCase() + (employee.status || 'active').slice(1)}
                           </button>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(employee.joinDate).toLocaleDateString()}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                          {employee.joinDate ? new Date(employee.joinDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-900">
+                            <FileText className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm font-semibold text-gray-900">
                               {employee.documents?.length || 0}
                             </span>
                             {employee.documents && employee.documents.length > 0 && (
-                              <div className="text-xs text-gray-500">
-                                ({employee.documents.filter(d => d.status === 'valid').length} valid)
-                              </div>
+                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                                {employee.documents.filter(d => d.status === 'valid').length} valid
+                              </span>
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex items-center gap-3">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleEdit(employee);
                               }}
+                              className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
                               style={{ color: ACCENT_PRIMARY }}
-                              onMouseEnter={(e) => e.currentTarget.style.color = ACCENT_DARK}
-                              onMouseLeave={(e) => e.currentTarget.style.color = ACCENT_PRIMARY}
-                              className="transition-colors"
                               title="Edit Employee"
                             >
                               <Edit size={18} />
@@ -1135,7 +1500,7 @@ const EmployeesPage = () => {
                                 e.stopPropagation();
                                 handleDelete(employee._id);
                               }}
-                              className="text-red-600 hover:text-red-900 transition-colors"
+                              className="p-2 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors"
                               title="Delete Employee"
                             >
                               <Trash2 size={18} />
@@ -1143,11 +1508,95 @@ const EmployeesPage = () => {
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
+                      );
+                    });
+                  })()}
                 </tbody>
               </table>
             </div>
+            
+            {/* Pagination - Always show if there's data */}
+            {((activeTab === 'employees' && totalEmployees > 0) || 
+              (activeTab === 'contacts' && totalContacts > 0) || 
+              (activeTab === 'customers' && totalCustomers > 0)) && (
+              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-700">
+                    Showing <span className="font-semibold">
+                      {(currentPage - 1) * itemsPerPage + 1}
+                    </span> to{' '}
+                    <span className="font-semibold">
+                      {Math.min(
+                        currentPage * itemsPerPage,
+                        activeTab === 'employees' ? totalEmployees :
+                        activeTab === 'contacts' ? totalContacts :
+                        totalCustomers
+                      )}
+                    </span>{' '}
+                    of <span className="font-semibold">
+                      {activeTab === 'employees' ? totalEmployees :
+                       activeTab === 'contacts' ? totalContacts :
+                       totalCustomers}
+                    </span>{' '}
+                    {activeTab === 'employees' && 'employees'}
+                    {activeTab === 'contacts' && 'contacts'}
+                    {activeTab === 'customers' && 'customers'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          disabled={loading}
+                          className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            currentPage === pageNum
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                          style={
+                            currentPage === pageNum
+                              ? { backgroundImage: ACCENT_GRADIENT }
+                              : undefined
+                          }
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages || loading}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1167,10 +1616,13 @@ const EmployeesPage = () => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">
-                    {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
+                    {editingEmployee 
+                      ? `Edit ${formData.role === 'contact' ? 'Contact' : formData.role === 'customer' ? 'Customer' : activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'}`
+                      : `Add New ${formData.role === 'contact' ? 'Contact' : formData.role === 'customer' ? 'Customer' : activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'}`
+                    }
                   </h2>
                   <p className="text-sm !text-white">
-                    Fill in the employee details below
+                    Fill in the details below
                   </p>
                 </div>
               </div>
@@ -1389,7 +1841,8 @@ const EmployeesPage = () => {
                               </label>
                               <input
                                 type="file"
-                                onChange={(e) => handleDocumentFileChange(index, e.target.files?.[0] || null)}
+                                multiple
+                                onChange={(e) => handleDocumentFileChange(index, e.target.files)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                               />
@@ -1446,9 +1899,15 @@ const EmployeesPage = () => {
                           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="">Select role</option>
-                          {roles.map(role => (
-                            <option key={role} value={role}>{getRoleDisplayName(role)}</option>
-                          ))}
+                          <optgroup label="Employee Roles">
+                            {roles.filter(r => r !== 'contact' && r !== 'customer').map(role => (
+                              <option key={role} value={role}>{getRoleDisplayName(role)}</option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="Other">
+                            <option value="contact">Contact</option>
+                            <option value="customer">Customer</option>
+                          </optgroup>
                         </select>
                       </div>
 
@@ -1868,21 +2327,40 @@ const EmployeesPage = () => {
                                       e.stopPropagation();
                                       try {
                                         const signedRes = await getSignedEmployeeDocumentUrl(doc._id, 'attachment');
-                                        const url = signedRes?.success && signedRes?.url ? signedRes.url : doc.fileUrl;
-                                        const link = window.document.createElement('a');
-                                        link.href = url || '';
-                                        link.download = doc.fileName || 'document';
-                                        link.target = '_blank';
-                                        window.document.body.appendChild(link);
-                                        link.click();
-                                        window.document.body.removeChild(link);
-                                      } catch (error) {
+                                        const url = signedRes?.success && signedRes?.url ? signedRes.url : (signedRes?.data?.url || doc.fileUrl);
+                                        if (url) {
+                                          const link = window.document.createElement('a');
+                                          link.href = url;
+                                          link.download = doc.fileName || 'document';
+                                          link.target = '_blank';
+                                          window.document.body.appendChild(link);
+                                          link.click();
+                                          window.document.body.removeChild(link);
+                                        } else {
+                                          addNotification('error', 'Document URL not available');
+                                        }
+                                      } catch (error: any) {
                                         console.error('Download error:', error);
-                                        addNotification('error', 'Download failed. Please try again.');
+                                        // Fallback to original URL if signed URL fails
+                                        if (doc.fileUrl) {
+                                          try {
+                                            const link = window.document.createElement('a');
+                                            link.href = doc.fileUrl;
+                                            link.download = doc.fileName || 'document';
+                                            link.target = '_blank';
+                                            window.document.body.appendChild(link);
+                                            link.click();
+                                            window.document.body.removeChild(link);
+                                          } catch (fallbackError) {
+                                            addNotification('error', 'Download failed. Please try again.');
+                                          }
+                                        } else {
+                                          addNotification('error', 'Download failed. Please try again.');
+                                        }
                                       }
                                     }}
-                                    className="p-1.5 hover:bg-green-50 rounded text-green-600"
-                                    title="Download"
+                                    className="p-2 hover:bg-green-50 rounded-lg text-green-600 transition-colors"
+                                    title="Download Document"
                                   >
                                     <Download className="w-4 h-4" />
                                   </button>
@@ -1892,17 +2370,28 @@ const EmployeesPage = () => {
                                     e.stopPropagation();
                                     try {
                                       const signedRes = await getSignedEmployeeDocumentUrl(doc._id, 'inline');
-                                      const url = signedRes?.success && signedRes?.url ? signedRes.url : doc.fileUrl;
+                                      const url = signedRes?.success && signedRes?.url ? signedRes.url : (signedRes?.data?.url || doc.fileUrl);
                                       if (url) {
                                         window.open(url, '_blank', 'noopener,noreferrer');
+                                      } else {
+                                        addNotification('error', 'Document URL not available');
                                       }
-                                    } catch (error) {
+                                    } catch (error: any) {
                                       console.error('View error:', error);
-                                      addNotification('error', 'Failed to open document. Please try again.');
+                                      // Fallback to original URL if signed URL fails
+                                      if (doc.fileUrl) {
+                                        try {
+                                          window.open(doc.fileUrl, '_blank', 'noopener,noreferrer');
+                                        } catch (fallbackError) {
+                                          addNotification('error', 'Failed to open document. Please try again.');
+                                        }
+                                      } else {
+                                        addNotification('error', 'Failed to open document. Please try again.');
+                                      }
                                     }
                                   }}
-                                  className="p-1.5 hover:bg-blue-50 rounded text-blue-600"
-                                  title="View"
+                                  className="p-2 hover:bg-blue-50 rounded-lg text-blue-600 transition-colors"
+                                  title="View Document"
                                 >
                                   <Eye className="w-4 h-4" />
                                 </button>
@@ -1978,3 +2467,4 @@ const EmployeesPage = () => {
 };
 
 export default EmployeesPage;
+
