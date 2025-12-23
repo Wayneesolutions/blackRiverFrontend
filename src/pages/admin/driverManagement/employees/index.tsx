@@ -320,29 +320,6 @@ const EmployeesPage = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedStatus, activeTab]);
 
-  // Calculate total pages whenever data changes
-  useEffect(() => {
-    const currentData = activeTab === 'employees' ? employees : activeTab === 'contacts' ? contacts : customers;
-    const total = currentData.length;
-    const pages = Math.ceil(total / itemsPerPage) || 1;
-    
-    setTotalPages(pages);
-    
-    // Update total counts
-    if (activeTab === 'employees') {
-      setTotalEmployees(total);
-    } else if (activeTab === 'contacts') {
-      setTotalContacts(total);
-    } else {
-      setTotalCustomers(total);
-    }
-    
-    // If current page is beyond total pages, reset to last page
-    if (currentPage > pages) {
-      setCurrentPage(pages);
-    }
-  }, [employees, contacts, customers, activeTab, itemsPerPage, currentPage]);
-
   // Fetch data based on active tab
   useEffect(() => {
     if (activeTab === 'employees') {
@@ -451,40 +428,29 @@ const EmployeesPage = () => {
       // Don't pass role filter to backend - we want all users
       const response = await getAllEmployees(currentPage, itemsPerPage, searchQuery, undefined, selectedStatus || undefined);
       if (response.success) {
-        // Filter out admin, superadmin, driver, contact, and customer from employees tab
-        const filteredEmployees = (response.data || []).filter((e: Employee) => {
-          const roleLower = (e.role || '').toLowerCase();
-          // Exclude system admin roles and driver/contact/customer (these have separate tabs)
-          return roleLower !== 'admin' && 
-                 roleLower !== 'superadmin' && 
-                 roleLower !== 'driver' && 
-                 roleLower !== 'contact' && 
-                 roleLower !== 'customer';
-        });
+        // Backend already filters out admin, superadmin, driver, contact, and customer
+        const employeeData = response.data || [];
         
-        // Update pagination state
-        // Use the actual filtered count for pagination
-        const filteredCount = filteredEmployees.length;
-        
-        // For pagination, we need to calculate based on filtered results
-        // Since we're showing all users now (no role filtering), use the actual count
+        // Update pagination state using backend's pagination data
         if (response.pagination) {
-          // Calculate total pages based on filtered results
-          const totalPagesCalc = Math.ceil(filteredCount / itemsPerPage);
-          setTotalPages(totalPagesCalc || 1);
-          setTotalEmployees(filteredCount);
+          setTotalPages(response.pagination.totalPages || 1);
+          setTotalEmployees(response.pagination.totalEmployees || 0);
         } else {
-          setTotalPages(1);
-          setTotalEmployees(filteredCount);
+          // Fallback if backend doesn't provide pagination
+          setTotalPages(Math.ceil(employeeData.length / itemsPerPage) || 1);
+          setTotalEmployees(employeeData.length);
         }
         
-        console.log('Filtered employees count:', filteredCount);
-        console.log('Total employees set to:', filteredCount);
-        console.log('Total pages:', Math.ceil(filteredCount / itemsPerPage));
+        console.log('📊 Pagination:', {
+          currentPage,
+          totalPages: response.pagination?.totalPages,
+          totalEmployees: response.pagination?.totalEmployees,
+          employeesOnPage: employeeData.length
+        });
         
         // Fetch documents for each employee
         const employeesWithDocs = await Promise.all(
-          filteredEmployees.map(async (employee: Employee) => {
+          employeeData.map(async (employee: Employee) => {
             try {
               const docsResponse = await getDocumentsByEmployee(employee._id);
               if (docsResponse.success && Array.isArray(docsResponse.data)) {
@@ -1092,7 +1058,7 @@ const EmployeesPage = () => {
   return (
     <div className="flex min-h-screen bg-[#EDF8FF]">
       <div className={`flex-1 flex flex-col transition-all duration-300 ${showAddModal ? 'mr-[800px]' : ''}`}>
-        <div className="flex-1 flex flex-col p-8" style={ACCENT_VARS}>
+        <div className="flex-1 flex flex-col p-4" style={ACCENT_VARS}>
           {/* Notifications Container */}
           <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
             {notifications.map(notification => (
@@ -1104,10 +1070,10 @@ const EmployeesPage = () => {
             ))}
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200 flex-shrink-0">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-white rounded-xl shadow-lg p-4 mb-4 border border-gray-200 flex-shrink-0">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-1">Employee Management</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-1">Employee Management</h2>
                 <div className="flex items-center gap-3">
                   <p className="text-sm text-gray-500">
                     {activeTab === 'employees' && (totalEmployees > 0 
@@ -1143,10 +1109,10 @@ const EmployeesPage = () => {
             </div>
 
             {/* Tabs */}
-            <div className="flex space-x-1 mb-6 border-b border-gray-200 flex-shrink-0">
+            <div className="flex space-x-1 mb-4 border-b border-gray-200 flex-shrink-0">
               <button
                 onClick={() => setActiveTab('employees')}
-                className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
                   activeTab === 'employees'
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -1166,7 +1132,7 @@ const EmployeesPage = () => {
               </button>
               <button
                 onClick={() => setActiveTab('contacts')}
-                className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
                   activeTab === 'contacts'
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -1186,7 +1152,7 @@ const EmployeesPage = () => {
               </button>
               <button
                 onClick={() => setActiveTab('customers')}
-                className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
                   activeTab === 'customers'
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -1371,42 +1337,39 @@ const EmployeesPage = () => {
                 overflowX: 'auto'
               }}
             >
-              <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '1200px' }}>
+              <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Employee ID</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Phone</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Country</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Location</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Join Date</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Documents</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">User</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Role</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Contact</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Location</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Created</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={11} className="px-6 py-16 text-center">
+                      <td colSpan={7} className="px-4 py-8 text-center">
                         <div className="flex flex-col items-center justify-center text-gray-500">
-                          <RefreshCw className="animate-spin h-8 w-8 mb-3" style={{ color: ACCENT_PRIMARY }} />
+                          <RefreshCw className="animate-spin h-6 w-6 mb-2" style={{ color: ACCENT_PRIMARY }} />
                           <p className="text-sm font-medium">Loading employees...</p>
                         </div>
                       </td>
                     </tr>
                   ) : (() => {
+                    // Backend already sends paginated data (10 items per page)
                     const currentData = activeTab === 'employees' ? employees : activeTab === 'contacts' ? contacts : customers;
                     
                     if (currentData.length === 0) {
                       return (
                         <tr key="no-data">
-                          <td colSpan={11} className="px-6 py-16 text-center">
+                          <td colSpan={7} className="px-4 py-8 text-center">
                             <div className="flex flex-col items-center justify-center">
-                              <User className="w-16 h-16 text-gray-300 mb-4" />
-                              <p className="text-lg font-semibold text-gray-600 mb-1">
+                              <User className="w-12 h-12 text-gray-300 mb-3" />
+                              <p className="text-base font-semibold text-gray-600 mb-1">
                                 {activeTab === 'employees' && 'No employees found'}
                                 {activeTab === 'contacts' && 'No contacts found'}
                                 {activeTab === 'customers' && 'No customers found'}
@@ -1418,12 +1381,8 @@ const EmployeesPage = () => {
                       );
                     }
                     
-                    // Paginate the data
-                    const startIndex = (currentPage - 1) * itemsPerPage;
-                    const endIndex = startIndex + itemsPerPage;
-                    const paginatedData = currentData.slice(startIndex, endIndex);
-                    
-                    return paginatedData.map((employee, index) => {
+                    // Display all data from current page (backend handles pagination)
+                    return currentData.map((employee, index) => {
                       // Use a unique key combining _id and index to prevent React key conflicts
                       const uniqueKey = `${employee._id}-${index}-${employee.role}`;
                       return (
@@ -1434,100 +1393,97 @@ const EmployeesPage = () => {
                         data-employee-role={employee.role}
                         data-employee-name={employee.name}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className="font-mono text-sm px-3 py-1.5 rounded-lg font-semibold"
-                            style={{
-                              backgroundColor: `${ACCENT_PRIMARY}15`,
-                              color: ACCENT_DARK,
-                              border: `1px solid ${ACCENT_PRIMARY}30`
-                            }}
-                          >
-                            {employee.internalId || 'N/A'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        {/* User */}
+                        <td className="px-4 py-2.5">
                           <div className="flex items-center">
                             <div
-                              className="h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-md"
+                              className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md"
                               style={{ background: ACCENT_GRADIENT }}
                             >
                               {employee.name?.charAt(0) || '?'}
                             </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-semibold text-gray-900">{employee.name || 'N/A'}</div>
+                            <div className="ml-3">
+                              <div className="text-sm font-semibold text-gray-900" title={employee.name}>
+                                {employee.name || 'N/A'}
+                              </div>
+                              <div className="text-xs text-gray-500 font-mono">
+                                {employee.internalId || 'N/A'}
+                              </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-purple-100 text-purple-700">
+                        {/* Role */}
+                        <td className="px-4 py-2.5 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-700">
                             {getRoleDisplayName(employee.role || 'N/A')}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center text-sm text-gray-700">
-                            <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                            {employee.email || 'N/A'}
+                        {/* Contact */}
+                        <td className="px-4 py-2.5">
+                          <div className="space-y-1">
+                            <div className="flex items-center text-sm text-gray-700">
+                              <Mail className="w-3.5 h-3.5 mr-1.5 text-gray-400 flex-shrink-0" />
+                              <span className="truncate text-xs" title={employee.email}>{employee.email || 'N/A'}</span>
+                            </div>
+                            <div className="text-xs text-gray-600 pl-5">
+                              {employee.phone || 'N/A'}
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">{employee.phone || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{employee.country || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {employee.city && employee.state ? `${employee.city}, ${employee.state}` : employee.location?.address || '-'}
+                        {/* Location */}
+                        <td className="px-4 py-2.5 text-sm text-gray-600">
+                          <div>
+                            <div className="font-medium text-gray-700">
+                              {employee.country || 'N/A'}
+                            </div>
+                            <div className="text-xs text-gray-500 truncate" title={employee.city && employee.state ? `${employee.city}, ${employee.state}` : employee.location?.address || '-'}>
+                              {employee.city && employee.state ? `${employee.city}, ${employee.state}` : employee.location?.address || '-'}
+                            </div>
+                          </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        {/* Status */}
+                        <td className="px-4 py-2.5 whitespace-nowrap">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStatusToggle(employee);
                             }}
-                            className={`inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-lg transition-all shadow-sm hover:shadow-md ${(employee.status || 'active') === 'active'
+                            className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md transition-all shadow-sm hover:shadow-md ${(employee.status || 'active') === 'active'
                               ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
                               : 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'
                               }`}
                           >
-                            <div className={`w-2 h-2 rounded-full mr-2 ${(employee.status || 'active') === 'active' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                            <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${(employee.status || 'active') === 'active' ? 'bg-green-500' : 'bg-red-500'}`}></div>
                             {(employee.status || 'active').charAt(0).toUpperCase() + (employee.status || 'active').slice(1)}
                           </button>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                          {employee.joinDate ? new Date(employee.joinDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
+                        {/* Created */}
+                        <td className="px-4 py-2.5 whitespace-nowrap text-sm text-gray-600 font-medium">
+                          {employee.joinDate ? new Date(employee.joinDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : 'N/A'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm font-semibold text-gray-900">
-                              {employee.documents?.length || 0}
-                            </span>
-                            {employee.documents && employee.documents.length > 0 && (
-                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                {employee.documents.filter(d => d.status === 'valid').length} valid
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
+                        {/* Actions */}
+                        <td className="px-4 py-2.5 whitespace-nowrap">
+                          <div className="flex items-center gap-1">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleEdit(employee);
                               }}
-                              className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                              className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
                               style={{ color: ACCENT_PRIMARY }}
-                              title="Edit Employee"
+                              title={`Edit ${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'}`}
                             >
-                              <Edit size={18} />
+                              <Edit size={16} />
                             </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDelete(employee._id);
                               }}
-                              className="p-2 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors"
-                              title="Delete Employee"
+                              className="p-1.5 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors"
+                              title={`Delete ${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'}`}
                             >
-                              <Trash2 size={18} />
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </td>
@@ -1550,7 +1506,7 @@ const EmployeesPage = () => {
               const endItem = Math.min(currentPage * itemsPerPage, totalCount);
               
               return (
-              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+              <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-700">
                     Showing <span className="font-semibold">{startItem}</span> to{' '}
@@ -2308,37 +2264,37 @@ const EmployeesPage = () => {
                       <tbody className="divide-y divide-gray-200">
                         {selectedEmployeeDetails.documents.map((doc: EmployeeDocument, index: number) => (
                           <tr key={doc._id || index} className="hover:bg-gray-50">
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-2.5">
                               <div className="flex items-center space-x-2">
                                 <FileText className="w-4 h-4 text-gray-400" />
                                 <span className="text-sm font-medium text-gray-800">{doc.documentType}</span>
                               </div>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-2.5">
                               <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
                                 {getStatusIcon(doc.status)}
                                 <span className="capitalize">{doc.status}</span>
                               </span>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-2.5">
                               <span className="text-sm text-gray-600">{doc.documentNumber || '-'}</span>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-2.5">
                               <span className="text-sm text-gray-600">
                                 {doc.issueDate ? new Date(doc.issueDate).toLocaleDateString() : '-'}
                               </span>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-2.5">
                               <span className={`text-sm ${!doc.expiryDate ? 'text-gray-400' : 'text-gray-600'}`}>
                                 {doc.expiryDate ? new Date(doc.expiryDate).toLocaleDateString() : '-'}
                               </span>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-2.5">
                               <span className="text-sm text-gray-600">
                                 {doc.fileSize ? formatFileSize(doc.fileSize) : '-'}
                               </span>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-2.5">
                               <div className="flex items-center space-x-2">
                                 {doc.fileUrl && (
                                   <button
@@ -2346,7 +2302,7 @@ const EmployeesPage = () => {
                                       e.stopPropagation();
                                       try {
                                         const signedRes = await getSignedEmployeeDocumentUrl(doc._id, 'attachment');
-                                        const url = signedRes?.success && signedRes?.url ? signedRes.url : (signedRes?.data?.url || doc.fileUrl);
+                                        const url = signedRes?.success && signedRes?.url ? signedRes.url : doc.fileUrl;
                                         if (url) {
                                           const link = window.document.createElement('a');
                                           link.href = url;
@@ -2389,7 +2345,7 @@ const EmployeesPage = () => {
                                     e.stopPropagation();
                                     try {
                                       const signedRes = await getSignedEmployeeDocumentUrl(doc._id, 'inline');
-                                      const url = signedRes?.success && signedRes?.url ? signedRes.url : (signedRes?.data?.url || doc.fileUrl);
+                                      const url = signedRes?.success && signedRes?.url ? signedRes.url : doc.fileUrl;
                                       if (url) {
                                         window.open(url, '_blank', 'noopener,noreferrer');
                                       } else {
