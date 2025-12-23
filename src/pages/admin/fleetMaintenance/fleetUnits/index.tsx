@@ -7,13 +7,15 @@ import {
   createFleetUnit as apiCreateFleetUnit,
   updateFleetUnit as apiUpdateFleetUnit,
   deleteFleetUnit as apiDeleteFleetUnit,
+  getFleetUnitById,
   type FleetUnitDto,
   type FleetUnitSummary
 } from '../../../../axios/api/fleet.units';
 import {
   createVehicleDocument,
   updateVehicleDocument,
-  getVehicleDocument
+  getVehicleDocument,
+  deleteVehicleDocument
 } from '../../../../axios/api/compilance.vehicledoc';
 import { FLEET_COLORS } from '../colorUtils';
 
@@ -80,7 +82,7 @@ interface FleetDocumentForm {
   documentNumber: string;
   expiryDate: string;
   issuedAt: string;
-  file: File | null;
+  files: File[]; // Support multiple files
   _id?: string; // For existing documents
 }
 
@@ -119,6 +121,10 @@ const FleetUnits: React.FC = () => {
   // Unit details view
   const [showUnitDetails, setShowUnitDetails] = useState(false);
   const [selectedUnitDetails, setSelectedUnitDetails] = useState<FleetUnit | null>(null);
+  // Document edit/delete
+  const [editingDocument, setEditingDocument] = useState<any | null>(null);
+  const [showEditDocumentModal, setShowEditDocumentModal] = useState(false);
+  const [editDocumentForm, setEditDocumentForm] = useState<FleetDocumentForm | null>(null);
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -194,7 +200,7 @@ const FleetUnits: React.FC = () => {
       documentNumber: '',
       expiryDate: '',
       issuedAt: '',
-      file: null
+      files: []
     }]);
   };
 
@@ -208,8 +214,124 @@ const FleetUnits: React.FC = () => {
     setFleetDocuments(updated);
   };
 
-  const handleDocumentFileChange = (index: number, file: File | null) => {
-    updateDocument(index, 'file', file);
+  const handleDocumentFileChange = (index: number, files: FileList | null) => {
+    if (files && files.length > 0) {
+      // Convert FileList to Array
+      const filesArray = Array.from(files);
+      updateDocument(index, 'files', filesArray);
+    } else {
+      updateDocument(index, 'files', []);
+    }
+  };
+
+  // Handle edit document
+  const handleEditDocument = (doc: any) => {
+    setEditingDocument(doc);
+    setEditDocumentForm({
+      documentType: doc.documentType || 'insurance',
+      documentNumber: doc.documentNumber || '',
+      expiryDate: doc.expiryDate ? doc.expiryDate.split('T')[0] : '',
+      issuedAt: doc.issuedAt ? doc.issuedAt.split('T')[0] : '',
+      files: [],
+      _id: doc._id
+    });
+    setShowEditDocumentModal(true);
+  };
+
+  // Handle delete document
+  const handleDeleteDocument = async (docId: string) => {
+    if (!window.confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await deleteVehicleDocument(docId);
+      if (response?.success) {
+        setNotification({ type: 'success', message: 'Document deleted successfully' });
+        // Refresh the unit details
+        if (selectedUnitDetails?._id) {
+          const unitId = selectedUnitDetails._id.startsWith('custom-') 
+            ? selectedUnitDetails._id.replace('custom-', '') 
+            : selectedUnitDetails._id;
+          const updatedUnitResponse = await getFleetUnitById(unitId);
+          if (updatedUnitResponse?.success && updatedUnitResponse?.data) {
+            setSelectedUnitDetails(updatedUnitResponse.data);
+            // Also refresh the main units list
+            loadFleetUnits();
+          }
+        }
+      } else {
+        setNotification({ type: 'error', message: response?.message || 'Failed to delete document' });
+      }
+    } catch (error) {
+      console.error('Delete document error:', error);
+      setNotification({ type: 'error', message: 'Failed to delete document' });
+    }
+  };
+
+  // Handle save edited document
+  const handleSaveEditedDocument = async () => {
+    if (!editingDocument || !editDocumentForm) return;
+
+    try {
+      setIsSubmitting(true);
+      const formData = new FormData();
+      
+      // Only append fields that have values (allow partial updates)
+      // Document type is required
+      if (editDocumentForm.documentType) {
+        formData.append('documentType', editDocumentForm.documentType);
+      }
+      
+      // Only append document number if it has a value
+      if (editDocumentForm.documentNumber && editDocumentForm.documentNumber.trim() !== '') {
+        formData.append('documentNumber', editDocumentForm.documentNumber.trim());
+      }
+      
+      // Only append dates if they have values
+      if (editDocumentForm.expiryDate && editDocumentForm.expiryDate.trim() !== '') {
+        formData.append('expiryDate', editDocumentForm.expiryDate);
+      }
+      
+      if (editDocumentForm.issuedAt && editDocumentForm.issuedAt.trim() !== '') {
+        formData.append('issuedAt', editDocumentForm.issuedAt);
+      }
+      
+      // Add files if any (optional - only if user wants to update files)
+      if (editDocumentForm.files && editDocumentForm.files.length > 0) {
+        editDocumentForm.files.forEach((file) => {
+          formData.append('file', file);
+        });
+      }
+
+      const response = await updateVehicleDocument(editingDocument._id, formData);
+      if (response?.success) {
+        setNotification({ type: 'success', message: 'Document updated successfully' });
+        setShowEditDocumentModal(false);
+        setEditingDocument(null);
+        setEditDocumentForm(null);
+        
+        // Refresh the unit details
+        if (selectedUnitDetails?._id) {
+          const unitId = selectedUnitDetails._id.startsWith('custom-') 
+            ? selectedUnitDetails._id.replace('custom-', '') 
+            : selectedUnitDetails._id;
+          const updatedUnitResponse = await getFleetUnitById(unitId);
+          if (updatedUnitResponse?.success && updatedUnitResponse?.data) {
+            setSelectedUnitDetails(updatedUnitResponse.data);
+            // Also refresh the main units list
+            loadFleetUnits();
+          }
+        }
+      } else {
+        setNotification({ type: 'error', message: response?.message || 'Failed to update document' });
+      }
+    } catch (error) {
+      console.error('Update document error:', error);
+      setNotification({ type: 'error', message: 'Failed to update document' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Fetch documents for a fleet unit
@@ -228,8 +350,7 @@ const FleetUnits: React.FC = () => {
                 documentNumber: doc.documentNumber || '',
                 expiryDate: doc.expiryDate ? doc.expiryDate.split('T')[0] : '',
                 issuedAt: doc.issuedAt ? doc.issuedAt.split('T')[0] : '',
-               
-                file: null,
+                files: [],
                 _id: doc._id
               }));
           });
@@ -319,7 +440,7 @@ const FleetUnits: React.FC = () => {
     };
   }, [showUnitDetails, selectedUnitDetails]);
 
-  const loadFleetUnits = useCallback(async () => {
+  const loadFleetUnits = useCallback(async (refreshUnitId?: string) => {
     setLoading(true);
     setError(null);
     try {
@@ -332,30 +453,120 @@ const FleetUnits: React.FC = () => {
       if (response?.success) {
         const unitsData = response.data || [];
         
-        // Fetch documents for each unit
-        const unitsWithDocuments = await Promise.all(
-          unitsData.map(async (unit: FleetUnit) => {
-            try {
-              const docsResponse = await getVehicleDocument();
-              if (docsResponse?.success && Array.isArray(docsResponse?.documentsByVehicle)) {
-                // Find documents for this fleet unit
-                const unitDocuments = docsResponse.documentsByVehicle
-                  .flatMap((item: any) => {
-                    const docs = item.documents || [];
-                    return docs.filter((doc: any) => doc.fleetUnitId === unit._id);
-                  });
-                return { ...unit, documents: unitDocuments };
-              }
-            } catch (err) {
-              console.error(`Error fetching documents for unit ${unit._id}:`, err);
+        // Fetch documents once for all units (more efficient)
+        let allDocuments: any[] = [];
+        try {
+          const docsResponse = await getVehicleDocument();
+          console.log('📄 Documents API response:', docsResponse);
+          if (docsResponse?.success && Array.isArray(docsResponse?.documentsByVehicle)) {
+            // Flatten all documents from all vehicles
+            allDocuments = docsResponse.documentsByVehicle.flatMap((item: any) => {
+              const docs = item.documents || [];
+              return docs.map((doc: any) => {
+                // Normalize fleetUnitId to string for comparison
+                let fleetUnitIdStr = '';
+                if (doc.fleetUnitId) {
+                  if (typeof doc.fleetUnitId === 'string') {
+                    fleetUnitIdStr = doc.fleetUnitId;
+                  } else if (doc.fleetUnitId._id) {
+                    // Handle populated ObjectId
+                    fleetUnitIdStr = typeof doc.fleetUnitId._id === 'string' 
+                      ? doc.fleetUnitId._id 
+                      : String(doc.fleetUnitId._id);
+                  } else if (typeof doc.fleetUnitId === 'object' && doc.fleetUnitId.toString) {
+                    // Handle Mongoose ObjectId
+                    fleetUnitIdStr = doc.fleetUnitId.toString();
+                  } else {
+                    fleetUnitIdStr = String(doc.fleetUnitId);
+                  }
+                }
+                return {
+                  ...doc,
+                  fleetUnitIdStr: fleetUnitIdStr.trim()
+                };
+              });
+            });
+            console.log(`📄 Total documents fetched: ${allDocuments.length}`);
+            if (allDocuments.length > 0) {
+              console.log('📄 Sample documents:', allDocuments.slice(0, 3).map(d => ({ 
+                _id: d._id, 
+                fleetUnitId: d.fleetUnitId, 
+                fleetUnitIdStr: d.fleetUnitIdStr,
+                documentType: d.documentType 
+              })));
             }
-            return { ...unit, documents: [] };
-          })
-        );
+          }
+        } catch (err) {
+          console.error('Error fetching documents:', err);
+        }
+
+        // Helper function to extract real ID from prefixed IDs (e.g., "custom-123" -> "123")
+        const extractRealId = (prefixedId: string | any): string => {
+          if (!prefixedId) return '';
+          
+          let idStr = '';
+          if (typeof prefixedId === 'string') {
+            idStr = prefixedId;
+          } else if (prefixedId && typeof prefixedId === 'object' && (prefixedId as any).toString) {
+            idStr = (prefixedId as any).toString();
+          } else {
+            idStr = String(prefixedId);
+          }
+          
+          // Remove prefixes if present
+          if (idStr.startsWith('custom-')) {
+            return idStr.replace('custom-', '');
+          }
+          if (idStr.startsWith('vehicle-')) {
+            return idStr.replace('vehicle-', '');
+          }
+          if (idStr.startsWith('trailer-')) {
+            return idStr.replace('trailer-', '');
+          }
+          
+          return idStr.trim();
+        };
+
+        // Match documents to units
+        const unitsWithDocuments = unitsData.map((unit: FleetUnit) => {
+          // Extract real ID from unit (handle prefixed IDs like "custom-123")
+          const unitIdStr = extractRealId(unit._id);
+          
+          console.log(`🔍 Unit ${unit.unitNo}: Original ID = ${unit._id}, Extracted ID = ${unitIdStr}`);
+          
+          // Find documents for this unit
+          const unitDocuments = allDocuments.filter((doc: any) => {
+            const matches = doc.fleetUnitIdStr === unitIdStr;
+            if (matches) {
+              console.log(`✅ Matched document ${doc._id} (type: ${doc.documentType}) to unit ${unit.unitNo} (${unitIdStr})`);
+            }
+            return matches;
+          });
+          
+          if (unitDocuments.length > 0) {
+            console.log(`📄 Unit ${unit.unitNo} (${unitIdStr}): Found ${unitDocuments.length} documents`);
+          } else {
+            console.log(`⚠️ Unit ${unit.unitNo} (${unitIdStr}): No documents found. Available fleetUnitIds in docs:`, 
+              [...new Set(allDocuments.map(d => d.fleetUnitIdStr))].slice(0, 5));
+          }
+          
+          return { ...unit, documents: unitDocuments };
+        });
         
         setUnits(unitsWithDocuments);
         setSummary(response.summary || defaultSummary);
         setRequiresCompanySetup(!!response.requiresCompanySetup);
+        
+        // If a specific unit was refreshed, update the selected unit details if modal is open
+        if (refreshUnitId) {
+          setSelectedUnitDetails(prev => {
+            if (prev && prev._id === refreshUnitId) {
+              const updatedUnit = unitsWithDocuments.find(u => u._id === refreshUnitId);
+              return updatedUnit || prev;
+            }
+            return prev;
+          });
+        }
       } else {
         setUnits([]);
         setSummary(defaultSummary);
@@ -496,29 +707,107 @@ const FleetUnits: React.FC = () => {
       if (fleetUnitId && fleetDocuments.length > 0) {
         try {
           const assetType = formData.unitType === 'Truck' ? 'vehicle' : 'trailer';
+          const uploadPromises: Promise<any>[] = [];
+          
           for (const doc of fleetDocuments) {
-            if (doc.file && doc.documentType) {
-              const docFormData = new FormData();
-              docFormData.append('assetType', assetType);
-              docFormData.append('fleetUnitId', fleetUnitId);
-              docFormData.append('vehicleId', ''); // Empty string when using fleetUnitId
-              docFormData.append('trailerId', ''); // Empty string when using fleetUnitId
-              docFormData.append('documentType', doc.documentType);
-              if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
-              if (doc.issuedAt) docFormData.append('issuedAt', doc.issuedAt);
-              if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
-              docFormData.append('file', doc.file); // Use 'file' instead of 'document'
+            // Handle multiple files for new documents
+            if (doc.files && doc.files.length > 0 && doc.documentType) {
+              // Create a separate document entry for each file
+              for (const file of doc.files) {
+                const docFormData = new FormData();
+                docFormData.append('assetType', assetType);
+                docFormData.append('fleetUnitId', fleetUnitId);
+                docFormData.append('vehicleId', ''); // Empty string when using fleetUnitId
+                docFormData.append('trailerId', ''); // Empty string when using fleetUnitId
+                docFormData.append('documentType', doc.documentType);
+                if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
+                if (doc.issuedAt) docFormData.append('issuedAt', doc.issuedAt);
+                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                docFormData.append('file', file); // Use 'file' as the field name
 
-              await createVehicleDocument(docFormData);
+                // Debug logging
+                console.log('📤 Uploading document:', {
+                  fleetUnitId,
+                  documentType: doc.documentType,
+                  documentNumber: doc.documentNumber,
+                  fileName: file.name,
+                  fileSize: file.size,
+                  fileType: file.type
+                });
+
+                uploadPromises.push(createVehicleDocument(docFormData));
+              }
             } else if (doc._id && doc.documentType) {
-              // Update existing document without file change
+              // Update existing document - check if new files are added
+              if (doc.files && doc.files.length > 0) {
+                // If new files are added to existing document, create new document entries for each file
+                for (const file of doc.files) {
+                  const docFormData = new FormData();
+                  docFormData.append('assetType', assetType);
+                  docFormData.append('fleetUnitId', fleetUnitId);
+                  docFormData.append('vehicleId', '');
+                  docFormData.append('trailerId', '');
+                  docFormData.append('documentType', doc.documentType);
+                  if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
+                  if (doc.issuedAt) docFormData.append('issuedAt', doc.issuedAt);
+                  if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                  docFormData.append('file', file);
+
+                  uploadPromises.push(createVehicleDocument(docFormData));
+                }
+              }
+              
+              // Update existing document metadata (even if no new files)
               const docFormData = new FormData();
               docFormData.append('documentType', doc.documentType);
               if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
               if (doc.issuedAt) docFormData.append('issuedAt', doc.issuedAt);
               if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
 
-              await updateVehicleDocument(doc._id, docFormData);
+              uploadPromises.push(updateVehicleDocument(doc._id, docFormData));
+            }
+          }
+          
+          // Wait for all document uploads to complete
+          const uploadResults = await Promise.all(uploadPromises);
+          console.log('✅ All documents uploaded:', uploadResults);
+          
+          // Check for any failed uploads
+          const failedUploads = uploadResults.filter(result => !result?.success);
+          if (failedUploads.length > 0) {
+            console.error('❌ Some document uploads failed:', failedUploads);
+            setNotification({ 
+              type: 'error', 
+              message: `${failedUploads.length} document(s) failed to upload. Please check the console for details.` 
+            });
+          }
+
+          // After documents are uploaded, fetch the updated fleet unit with documents
+          if (fleetUnitId && uploadResults.length > 0 && uploadResults.some(r => r?.success)) {
+            try {
+              const updatedUnitResponse = await getFleetUnitById(fleetUnitId);
+              if (updatedUnitResponse?.success && updatedUnitResponse?.data) {
+                console.log('✅ Fetched updated fleet unit with documents:', updatedUnitResponse.data);
+                // Update the units list with the updated unit
+                setUnits(prevUnits => {
+                  const updatedUnits = prevUnits.map(unit => 
+                    unit._id === fleetUnitId ? { ...updatedUnitResponse.data, documents: updatedUnitResponse.data.documents || [] } : unit
+                  );
+                  // If unit not found in list (newly created), add it
+                  if (!updatedUnits.find(u => u._id === fleetUnitId)) {
+                    updatedUnits.unshift({ ...updatedUnitResponse.data, documents: updatedUnitResponse.data.documents || [] });
+                  }
+                  return updatedUnits;
+                });
+                
+                // Also update selectedUnitDetails if the details modal is open
+                if (showUnitDetails && selectedUnitDetails && selectedUnitDetails._id === fleetUnitId) {
+                  setSelectedUnitDetails({ ...updatedUnitResponse.data, documents: updatedUnitResponse.data.documents || [] });
+                }
+              }
+            } catch (fetchError) {
+              console.error('Error fetching updated fleet unit:', fetchError);
+              // Continue with normal refresh
             }
           }
         } catch (docError) {
@@ -531,7 +820,10 @@ const FleetUnits: React.FC = () => {
       setShowEditModal(false);
       setSelectedUnit(null);
       resetForm();
-      await loadFleetUnits();
+      
+      // Refresh the fleet units list to show updated documents
+      // Pass fleetUnitId to refresh the unit details modal if it's open
+      await loadFleetUnits(fleetUnitId || undefined);
     } catch (error: any) {
       const message = error?.response?.data?.message || error?.message || 'Failed to save fleet unit';
       setFormError(message);
@@ -846,8 +1138,30 @@ const FleetUnits: React.FC = () => {
                         <tr 
                           key={unit._id} 
                           className="hover:bg-gray-50 transition-colors cursor-pointer"
-                          onClick={() => {
-                            setSelectedUnitDetails(unit);
+                          onClick={async () => {
+                            // Fetch the unit with documents to ensure we have the latest data
+                            try {
+                              console.log('📋 Fetching unit details for:', unit._id);
+                              const unitResponse = await getFleetUnitById(unit._id);
+                              console.log('📋 Unit response:', unitResponse);
+                              if (unitResponse?.success && unitResponse?.data) {
+                                const unitWithDocs = { 
+                                  ...unitResponse.data, 
+                                  documents: unitResponse.data.documents || [] 
+                                };
+                                console.log('📋 Unit with documents:', unitWithDocs);
+                                console.log('📋 Documents count:', unitWithDocs.documents?.length || 0);
+                                setSelectedUnitDetails(unitWithDocs);
+                              } else {
+                                // Fallback to unit from list if fetch fails
+                                console.log('⚠️ Using unit from list (fetch failed)');
+                                setSelectedUnitDetails(unit);
+                              }
+                            } catch (error) {
+                              console.error('❌ Error fetching unit details:', error);
+                              // Fallback to unit from list if fetch fails
+                              setSelectedUnitDetails(unit);
+                            }
                             setShowUnitDetails(true);
                           }}
                         >
@@ -1162,23 +1476,28 @@ const FleetUnits: React.FC = () => {
 
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Document File {!doc._id && <span className="text-red-500">*</span>}
+                                  Document File(s) {!doc._id && <span className="text-red-500">*</span>}
                                 </label>
                                 <input
                                   type="file"
-                                  onChange={(e) => handleDocumentFileChange(index, e.target.files?.[0] || null)}
+                                  multiple
+                                  onChange={(e) => handleDocumentFileChange(index, e.target.files)}
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                                 />
-                                {doc.file && (
-                                  <p className="text-xs mt-1 text-green-600 flex items-center gap-1">
-                                    <CheckCircle size={12} />
-                                    Selected: {doc.file.name}
-                                  </p>
+                                {doc.files && doc.files.length > 0 && (
+                                  <div className="mt-2 space-y-1">
+                                    {doc.files.map((file, fileIndex) => (
+                                      <p key={fileIndex} className="text-xs text-green-600 flex items-center gap-1">
+                                        <CheckCircle size={12} />
+                                        Selected: {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                                      </p>
+                                    ))}
+                                  </div>
                                 )}
-                                {doc._id && !doc.file && (
+                                {doc._id && (!doc.files || doc.files.length === 0) && (
                                   <p className="text-xs mt-1 text-gray-500">
-                                    Leave empty to keep existing file
+                                    Leave empty to keep existing file(s), or select new file(s) to add
                                   </p>
                                 )}
                               </div>
@@ -1808,6 +2127,26 @@ const FleetUnits: React.FC = () => {
                                           </button>
                                         </>
                                       )}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleEditDocument(doc);
+                                        }}
+                                        className="p-1.5 hover:bg-yellow-50 rounded text-yellow-600"
+                                        title="Edit Document"
+                                      >
+                                        <Edit className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteDocument(doc._id);
+                                        }}
+                                        className="p-1.5 hover:bg-red-50 rounded text-red-600"
+                                        title="Delete Document"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
                                     </div>
                                   </td>
                                 </tr>
@@ -1894,6 +2233,234 @@ const FleetUnits: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Edit Document Modal */}
+      {showEditDocumentModal && editDocumentForm && (
+        <div className="fixed inset-0 bg-transparent flex items-center justify-center z-[10002]">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-800">Edit Document</h2>
+              <button
+                onClick={() => {
+                  setShowEditDocumentModal(false);
+                  setEditingDocument(null);
+                  setEditDocumentForm(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Selected Document Information */}
+              {editingDocument && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-sm font-bold text-blue-900">Selected Document</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-gray-600 font-medium">Type:</span>
+                      <span className="ml-2 text-gray-900 font-semibold">
+                        {editingDocument.documentType?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || '-'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 font-medium">Number:</span>
+                      <span className="ml-2 text-gray-900 font-semibold">
+                        {editingDocument.documentNumber || 'N/A'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 font-medium">Issue Date:</span>
+                      <span className="ml-2 text-gray-900">
+                        {editingDocument.issuedAt ? new Date(editingDocument.issuedAt).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 font-medium">Expiry Date:</span>
+                      <span className="ml-2 text-gray-900">
+                        {editingDocument.expiryDate ? new Date(editingDocument.expiryDate).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 font-medium">Status:</span>
+                      <span className={`ml-2 inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                        editingDocument.status === 'completed' || !editingDocument.status
+                          ? 'bg-green-100 text-green-800'
+                          : editingDocument.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : editingDocument.status === 'expired'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {editingDocument.status || 'completed'}
+                      </span>
+                    </div>
+                    {editingDocument.files && editingDocument.files.length > 0 && (
+                      <div>
+                        <span className="text-gray-600 font-medium">File(s):</span>
+                        <div className="mt-1">
+                          {editingDocument.files.map((file: any, idx: number) => (
+                            <div key={idx} className="text-xs text-gray-700 flex items-center gap-1">
+                              <FileText className="w-3 h-3" />
+                              {file.fileName || `File ${idx + 1}`}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Document Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={editDocumentForm.documentType}
+                    onChange={(e) => setEditDocumentForm({
+                      ...editDocumentForm,
+                      documentType: e.target.value as any
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {VEHICLE_DOCUMENT_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Document Number <span className="text-gray-400 text-xs">(Optional - leave empty to keep current)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editDocumentForm.documentNumber}
+                    onChange={(e) => setEditDocumentForm({
+                      ...editDocumentForm,
+                      documentNumber: e.target.value
+                    })}
+                    placeholder="e.g., DOC-123456 (optional)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {editingDocument?.documentNumber && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Current: <span className="font-medium">{editingDocument.documentNumber}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Issue Date <span className="text-gray-400 text-xs">(Optional)</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={editDocumentForm.issuedAt}
+                      onChange={(e) => setEditDocumentForm({
+                        ...editDocumentForm,
+                        issuedAt: e.target.value
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {editingDocument?.issuedAt && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Current: <span className="font-medium">{new Date(editingDocument.issuedAt).toLocaleDateString()}</span>
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Expiry Date <span className="text-gray-400 text-xs">(Optional)</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={editDocumentForm.expiryDate}
+                      onChange={(e) => setEditDocumentForm({
+                        ...editDocumentForm,
+                        expiryDate: e.target.value
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {editingDocument?.expiryDate && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Current: <span className="font-medium">{new Date(editingDocument.expiryDate).toLocaleDateString()}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Update Document File(s) (Optional)
+                  </label>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        const filesArray = Array.from(e.target.files);
+                        setEditDocumentForm({
+                          ...editDocumentForm,
+                          files: filesArray
+                        });
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                  />
+                  {editDocumentForm.files && editDocumentForm.files.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {editDocumentForm.files.map((file, fileIndex) => (
+                        <p key={fileIndex} className="text-xs text-green-600 flex items-center gap-1">
+                          <CheckCircle size={12} />
+                          Selected: {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Leave empty to keep existing file(s)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowEditDocumentModal(false);
+                  setEditingDocument(null);
+                  setEditDocumentForm(null);
+                }}
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEditedDocument}
+                disabled={isSubmitting}
+                className={`px-6 py-2 !text-white rounded-lg hover:opacity-90 transition-colors ${
+                  isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+              >
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

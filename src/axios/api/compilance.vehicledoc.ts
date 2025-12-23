@@ -25,10 +25,34 @@ export const getVehicleDocument = async () => {
 
 export const createVehicleDocument = async (data: any) => {
     try {
-        const res: AxiosResponse = await apiClient.post(`hr/vehicle-document`, data);
-        console.log("==res ", res);
+        console.log('📤 FRONTEND: Creating vehicle document');
+        // Log FormData contents (can't directly log FormData, but log what we can)
+        if (data instanceof FormData) {
+            console.log('📦 FRONTEND: FormData being sent');
+            // Try to log entries if possible
+            const entries: string[] = [];
+            for (const [key, value] of data.entries()) {
+                if (value instanceof File) {
+                    entries.push(`${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+                } else {
+                    entries.push(`${key}: ${value}`);
+                }
+            }
+            console.log('📦 FRONTEND: FormData entries:', entries);
+        } else {
+            console.log('📦 FRONTEND: Data being sent:', data);
+        }
+        
+        const res: AxiosResponse = await apiClient.post(`hr/vehicle-document`, data, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        console.log("✅ FRONTEND: Vehicle document created successfully:", res.data);
         return res.data;
     } catch (error: any) {
+        console.error("❌ FRONTEND: Vehicle document creation error:", error);
+        console.error("❌ FRONTEND: Error response:", error.response?.data);
         const err = error as Error;
         return err.response?.data;
     }
@@ -37,10 +61,17 @@ export const createVehicleDocument = async (data: any) => {
 
 export const updateVehicleDocument = async (id: string, data: any) => {
     try {
-        const res: AxiosResponse = await apiClient.put(`hr/vehicle-document/${id}`, data);
-        console.log("==update res ", res);
+        console.log('📤 FRONTEND: Updating vehicle document', id);
+        // Check if data is FormData
+        const headers = data instanceof FormData
+            ? { 'Content-Type': 'multipart/form-data' }
+            : {};
+        
+        const res: AxiosResponse = await apiClient.put(`hr/vehicle-document/${id}`, data, { headers });
+        console.log("✅ FRONTEND: Vehicle document updated successfully:", res.data);
         return res.data;
     } catch (error: any) {
+        console.error("❌ FRONTEND: Vehicle document update error:", error);
         const err = error as Error;
         return err.response?.data;
     }
