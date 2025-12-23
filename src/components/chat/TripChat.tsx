@@ -279,7 +279,7 @@ const TripChat: React.FC<TripChatProps> = ({ tripId, tripNumber, onClose }) => {
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-gray-100 min-h-0">
       {/* Modern Header */}
-      <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg">
+      <div className="flex-shrink-0 text-white shadow-lg" style={{ background: '#00C2A6' }}>
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
@@ -527,7 +527,8 @@ const TripChat: React.FC<TripChatProps> = ({ tripId, tripNumber, onClose }) => {
           <button
             onClick={handleSendMessage}
             disabled={sending || uploadingFile || (!newMessage.trim() && !selectedFile)}
-            className="p-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0 disabled:hover:shadow-md"
+            className="p-2.5  !text-white rounded-xl  disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0 disabled:hover:shadow-md"
+            style={{ background: '#00C2A6' }}
             title="Send message"
           >
             {sending || uploadingFile ? (
