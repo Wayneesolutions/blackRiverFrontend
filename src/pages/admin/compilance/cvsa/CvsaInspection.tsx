@@ -185,6 +185,10 @@ const CvsaInspection: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
 
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
@@ -338,6 +342,78 @@ const CvsaInspection: React.FC = () => {
       console.error('Error refreshing data:', error);
     }
   };
+
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [filteredInspections, currentPage]);
 
   // Fetch inspections and stats when filters change
   useEffect(() => {
@@ -966,8 +1042,48 @@ const CvsaInspection: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[1200px]">
+              <style>{`
+                .top-scrollbar-container::-webkit-scrollbar {
+                  height: 8px;
+                }
+                .top-scrollbar-container::-webkit-scrollbar-track {
+                  background: #f7fafc;
+                }
+                .top-scrollbar-container::-webkit-scrollbar-thumb {
+                  background: #cbd5e0;
+                  border-radius: 4px;
+                }
+                .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                  background: #a0aec0;
+                }
+                .table-container-hidden-scrollbar {
+                  scrollbar-width: none; /* Firefox */
+                  -ms-overflow-style: none; /* IE and Edge */
+                }
+                .table-container-hidden-scrollbar::-webkit-scrollbar {
+                  display: none; /* Chrome, Safari, Opera */
+                }
+              `}</style>
+              <div className="relative">
+                {/* Top Scrollbar - Only visible horizontal scrollbar */}
+                <div 
+                  ref={topScrollRef}
+                  className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+                  style={{ 
+                    maxHeight: '20px',
+                    marginBottom: '2px',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                  }}
+                >
+                  <div className="top-scroll-content" style={{ height: '1px' }}></div>
+                </div>
+                {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+                <div 
+                  ref={bottomScrollRef}
+                  className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+                >
+                  <table className="w-full min-w-[1200px]">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
@@ -1019,7 +1135,11 @@ const CvsaInspection: React.FC = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredInspections.map((inspection) => (
-                      <tr key={inspection._id} className="hover:bg-gray-50">
+                      <tr 
+                        key={inspection._id} 
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleViewInspection(inspection)}
+                      >
                         <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-white z-10">
                           <div className="text-sm font-medium text-gray-900">
                             {inspection.inspectionId || 'N/A'}
@@ -1151,7 +1271,7 @@ const CvsaInspection: React.FC = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-10">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-10" onClick={(e) => e.stopPropagation()}>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleViewInspection(inspection)}
@@ -1179,7 +1299,8 @@ const CvsaInspection: React.FC = () => {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                  </table>
+                </div>
               </div>
 
               {/* Pagination Controls */}
@@ -1247,80 +1368,81 @@ const CvsaInspection: React.FC = () => {
           )}
         </div>
 
-        {/* View Inspection Modal */}
+        {/* View Inspection Sidebar */}
         {showViewModal && selectedInspection && (
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
+          <>
+            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-300" onClick={() => setShowViewModal(false)} />
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white shadow-2xl transform transition-transform duration-300 ease-out z-[101] border-l border-gray-200 overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b px-4 py-3 z-10">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-gray-800">
-                    Inspection Details: {selectedInspection.inspectionId}
+                  <h3 className="text-base font-bold text-gray-800">
+                    {selectedInspection.inspectionId}
                   </h3>
                   <button
                     onClick={() => setShowViewModal(false)}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                   >
-                    <FaTimesCircle className="text-gray-500" size={20} />
+                    <FaTimesCircle className="text-gray-500" size={18} />
                   </button>
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-3 space-y-2">
                 {/* Inspection Overview */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h4 className="text-lg font-bold text-gray-800 mb-4">Inspection Overview</h4>
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <h4 className="text-sm font-bold text-gray-800 mb-2">Overview</h4>
+                  <div className="grid grid-cols-1 gap-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Inspection ID</label>
-                      <p className="text-lg font-semibold text-gray-800">{selectedInspection.inspectionId}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Inspection ID</label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedInspection.inspectionId}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Country</label>
-                      <p className="text-lg font-semibold text-gray-800 uppercase">{selectedInspection.country}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Country</label>
+                      <p className="text-sm font-semibold text-gray-800 uppercase">{selectedInspection.country}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Date</label>
-                      <p className="text-lg font-semibold text-gray-800">{formatDate(selectedInspection.date)}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Date</label>
+                      <p className="text-sm font-semibold text-gray-800">{formatDate(selectedInspection.date)}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Location</label>
-                      <p className="text-lg font-semibold text-gray-800">{selectedInspection.location}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Location</label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedInspection.location}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Status</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Status</label>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(selectedInspection.status)}
-                        <span className={`text-sm px-3 py-1 rounded-full font-semibold border ${getStatusBadgeColor(selectedInspection.status)}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${getStatusBadgeColor(selectedInspection.status)}`}>
                           {selectedInspection.status.replace('-', ' ').toUpperCase()}
                         </span>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Inspector</label>
-                      <p className="text-lg font-semibold text-gray-800">{selectedInspection.inspectorName}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Inspector</label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedInspection.inspectorName}</p>
                     </div>
                     {selectedInspection.reportNumber && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Report Number</label>
-                        <p className="text-lg font-semibold text-gray-800">{selectedInspection.reportNumber}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Report Number</label>
+                        <p className="text-sm font-semibold text-gray-800">{selectedInspection.reportNumber}</p>
                       </div>
                     )}
                     {selectedInspection.inspectionLevel && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Inspection Level</label>
-                        <p className="text-lg font-semibold text-gray-800">Level {selectedInspection.inspectionLevel}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Inspection Level</label>
+                        <p className="text-sm font-semibold text-gray-800">Level {selectedInspection.inspectionLevel}</p>
                       </div>
                     )}
                     {selectedInspection.jurisdiction && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Jurisdiction</label>
-                        <p className="text-lg font-semibold text-gray-800">{selectedInspection.jurisdiction}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Jurisdiction</label>
+                        <p className="text-sm font-semibold text-gray-800">{selectedInspection.jurisdiction}</p>
                       </div>
                     )}
                     {selectedInspection.timeOfInspection && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Time of Inspection</label>
-                        <p className="text-lg font-semibold text-gray-800">{selectedInspection.timeOfInspection}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Time</label>
+                        <p className="text-sm font-semibold text-gray-800">{selectedInspection.timeOfInspection}</p>
                       </div>
                     )}
                   </div>
@@ -1328,31 +1450,31 @@ const CvsaInspection: React.FC = () => {
 
                 {/* Official Document Information */}
                 {(selectedInspection.reportNumber || selectedInspection.inspectionLevel || selectedInspection.jurisdiction || selectedInspection.timeOfInspection) && (
-                  <div className="rounded-xl p-6" style={{ backgroundColor: ACCENT_SOFT }}>
-                    <h4 className="text-lg font-bold text-gray-800 mb-4">Official Document Information</h4>
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-lg p-3" style={{ backgroundColor: ACCENT_SOFT }}>
+                    <h4 className="text-xs font-bold text-gray-800 mb-2">Document Info</h4>
+                    <div className="grid grid-cols-1 gap-2">
                       {selectedInspection.reportNumber && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Report Number</label>
-                          <p className="text-lg font-semibold text-gray-800">{selectedInspection.reportNumber}</p>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Report Number</label>
+                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.reportNumber}</p>
                         </div>
                       )}
                       {selectedInspection.inspectionLevel && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Inspection Level</label>
-                          <p className="text-lg font-semibold text-gray-800">Level {selectedInspection.inspectionLevel}</p>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Level</label>
+                          <p className="text-sm font-semibold text-gray-800">Level {selectedInspection.inspectionLevel}</p>
                         </div>
                       )}
                       {selectedInspection.jurisdiction && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Jurisdiction (State/Province)</label>
-                          <p className="text-lg font-semibold text-gray-800">{selectedInspection.jurisdiction}</p>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Jurisdiction</label>
+                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.jurisdiction}</p>
                         </div>
                       )}
                       {selectedInspection.timeOfInspection && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Time of Inspection</label>
-                          <p className="text-lg font-semibold text-gray-800">{selectedInspection.timeOfInspection}</p>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Time</label>
+                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.timeOfInspection}</p>
                         </div>
                       )}
                     </div>
@@ -1361,25 +1483,25 @@ const CvsaInspection: React.FC = () => {
 
                 {/* Driver & Carrier Information */}
                 {(selectedInspection.driverLicenseNumber || selectedInspection.carrierUSDOTNumber || selectedInspection.carrierMotorCarrierNumber) && (
-                  <div className="bg-green-50 rounded-xl p-6">
-                    <h4 className="text-lg font-bold text-gray-800 mb-4">Driver & Carrier Information</h4>
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-green-50 rounded-lg p-3">
+                    <h4 className="text-xs font-bold text-gray-800 mb-2">Driver & Carrier</h4>
+                    <div className="grid grid-cols-1 gap-2">
                       {selectedInspection.driverLicenseNumber && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Driver License Number</label>
-                          <p className="text-lg font-semibold text-gray-800">{selectedInspection.driverLicenseNumber}</p>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">DL Number</label>
+                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.driverLicenseNumber}</p>
                         </div>
                       )}
                       {selectedInspection.carrierUSDOTNumber && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Carrier USDOT Number</label>
-                          <p className="text-lg font-semibold text-gray-800">{selectedInspection.carrierUSDOTNumber}</p>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">USDOT Number</label>
+                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.carrierUSDOTNumber}</p>
                         </div>
                       )}
                       {selectedInspection.carrierMotorCarrierNumber && (
-                        <div className="col-span-2">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Carrier MC Number</label>
-                          <p className="text-lg font-semibold text-gray-800">{selectedInspection.carrierMotorCarrierNumber}</p>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">MC Number</label>
+                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.carrierMotorCarrierNumber}</p>
                         </div>
                       )}
                     </div>
@@ -1388,12 +1510,12 @@ const CvsaInspection: React.FC = () => {
 
                 {/* Out-of-Service Information */}
                 {(selectedInspection.outOfServiceIssued || selectedInspection.defectRepairNeeded || selectedInspection.outOfServiceReleaseDate) && (
-                  <div className="bg-red-50 rounded-xl p-6">
-                    <h4 className="text-lg font-bold text-gray-800 mb-4">Out-of-Service Information</h4>
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-red-50 rounded-lg p-3">
+                    <h4 className="text-xs font-bold text-gray-800 mb-2">OOS Info</h4>
+                    <div className="grid grid-cols-1 gap-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Out-of-Service Order Issued</label>
-                        <p className="text-lg font-semibold text-gray-800">
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">OOS Issued</label>
+                        <p className="text-sm font-semibold text-gray-800">
                           {selectedInspection.outOfServiceIssued ? (
                             <span className="text-red-600">Yes</span>
                           ) : (
@@ -1402,8 +1524,8 @@ const CvsaInspection: React.FC = () => {
                         </p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Defect Repair Needed</label>
-                        <p className="text-lg font-semibold text-gray-800">
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Repair Needed</label>
+                        <p className="text-sm font-semibold text-gray-800">
                           {selectedInspection.defectRepairNeeded ? (
                             <span className="text-red-600">Yes</span>
                           ) : (
@@ -1412,9 +1534,9 @@ const CvsaInspection: React.FC = () => {
                         </p>
                       </div>
                       {selectedInspection.outOfServiceReleaseDate && (
-                        <div className="col-span-2">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Out-of-Service Release Date</label>
-                          <p className="text-lg font-semibold text-gray-800">{formatDate(selectedInspection.outOfServiceReleaseDate)}</p>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Release Date</label>
+                          <p className="text-sm font-semibold text-gray-800">{formatDate(selectedInspection.outOfServiceReleaseDate)}</p>
                         </div>
                       )}
                     </div>
@@ -1423,15 +1545,15 @@ const CvsaInspection: React.FC = () => {
 
                 {/* Documentation */}
                 {selectedInspection.documentLink && (
-                  <div className="bg-[var(--accent-soft)] rounded-xl p-6">
-                    <h4 className="text-lg font-bold text-gray-800 mb-4">Documentation</h4>
+                  <div className="bg-[var(--accent-soft)] rounded-lg p-3">
+                    <h4 className="text-xs font-bold text-gray-800 mb-2">Documentation</h4>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Document Link</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Link</label>
                       <a
                         href={selectedInspection.documentLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-lg font-semibold text-[var(--accent-color)] hover:text-[var(--accent-dark)] underline break-all"
+                        className="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-dark)] underline break-all"
                       >
                         {selectedInspection.documentLink}
                       </a>
@@ -1440,40 +1562,36 @@ const CvsaInspection: React.FC = () => {
                 )}
 
                 {/* Vehicle & Driver Info */}
-                <div className="rounded-xl p-6" style={{ backgroundColor: ACCENT_SOFT }}>
-                  <h4 className="text-lg font-bold text-gray-800 mb-4">Vehicle & Driver Information</h4>
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-lg p-3" style={{ backgroundColor: ACCENT_SOFT }}>
+                  <h4 className="text-xs font-bold text-gray-800 mb-2">Vehicle & Driver</h4>
+                  <div className="grid grid-cols-1 gap-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Vehicle</label>
-                      <p className="text-lg font-semibold text-gray-800">{getVehicleInfo(selectedInspection.vehicle)}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Vehicle</label>
+                      <p className="text-sm font-semibold text-gray-800">{getVehicleInfo(selectedInspection.vehicle)}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Driver</label>
-                      <p className="text-lg font-semibold text-gray-800">{getDriverName(selectedInspection.driver)}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Driver</label>
+                      <p className="text-sm font-semibold text-gray-800">{getDriverName(selectedInspection.driver)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Violations */}
                 {selectedInspection.violations && selectedInspection.violations.length > 0 && (
-                  <div className="bg-red-50 rounded-xl p-6">
-                    <h4 className="text-lg font-bold text-gray-800 mb-4">Violations Found</h4>
-                    <div className="space-y-3">
+                  <div className="bg-red-50 rounded-lg p-3">
+                    <h4 className="text-xs font-bold text-gray-800 mb-2">Violations ({selectedInspection.violations.length})</h4>
+                    <div className="space-y-2">
                       {selectedInspection.violations.map((violation) => (
-                        <div key={violation._id} className="bg-white rounded-lg p-4 border border-red-200">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                                  {violation.code}
-                                </span>
-                                <span className={`text-sm font-semibold ${getSeverityColor(violation.severity)}`}>
-                                  {violation.severity.toUpperCase()}
-                                </span>
-                              </div>
-                              <p className="text-gray-800">{violation.description}</p>
-                            </div>
+                        <div key={violation._id} className="bg-white rounded p-2 border border-red-200">
+                          <div className="flex items-start gap-2">
+                            <span className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                              {violation.code}
+                            </span>
+                            <span className={`text-xs font-semibold ${getSeverityColor(violation.severity)}`}>
+                              {violation.severity.toUpperCase()}
+                            </span>
                           </div>
+                          <p className="text-xs text-gray-800 mt-1">{violation.description}</p>
                         </div>
                       ))}
                     </div>
@@ -1482,23 +1600,23 @@ const CvsaInspection: React.FC = () => {
 
                 {/* Notes */}
                 {selectedInspection.notes && (
-                  <div className="bg-yellow-50 rounded-xl p-6">
-                    <h4 className="text-lg font-bold text-gray-800 mb-4">Inspector Notes</h4>
-                    <p className="text-gray-800">{selectedInspection.notes}</p>
+                  <div className="bg-yellow-50 rounded-lg p-3">
+                    <h4 className="text-xs font-bold text-gray-800 mb-2">Notes</h4>
+                    <p className="text-xs text-gray-800">{selectedInspection.notes}</p>
                   </div>
                 )}
               </div>
 
-              <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+              <div className="sticky bottom-0 bg-gray-50 px-3 py-2 flex justify-end gap-2 border-t">
                 <button
                   onClick={() => setShowViewModal(false)}
-                  className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                  className="px-4 py-1.5 text-xs bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 font-medium transition-colors"
                 >
                   Close
                 </button>
               </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Add Inspection Sidebar Panel */}

@@ -203,6 +203,11 @@ const Incidents: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -268,6 +273,78 @@ const Incidents: React.FC = () => {
     loadTrailers();
     loadStats();
   }, []);
+
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [incidents, currentPage]);
 
   useEffect(() => {
     refreshData();
@@ -918,8 +995,48 @@ const Incidents: React.FC = () => {
 
         {/* Incidents Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <style>{`
+            .top-scrollbar-container::-webkit-scrollbar {
+              height: 8px;
+            }
+            .top-scrollbar-container::-webkit-scrollbar-track {
+              background: #f7fafc;
+            }
+            .top-scrollbar-container::-webkit-scrollbar-thumb {
+              background: #cbd5e0;
+              border-radius: 4px;
+            }
+            .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+              background: #a0aec0;
+            }
+            .table-container-hidden-scrollbar {
+              scrollbar-width: none; /* Firefox */
+              -ms-overflow-style: none; /* IE and Edge */
+            }
+            .table-container-hidden-scrollbar::-webkit-scrollbar {
+              display: none; /* Chrome, Safari, Opera */
+            }
+          `}</style>
+          <div className="relative">
+            {/* Top Scrollbar - Only visible horizontal scrollbar */}
+            <div 
+              ref={topScrollRef}
+              className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+              style={{ 
+                maxHeight: '20px',
+                marginBottom: '2px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+              }}
+            >
+              <div className="top-scroll-content" style={{ height: '1px' }}></div>
+            </div>
+            {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+            <div 
+              ref={bottomScrollRef}
+              className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+            >
+              <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
@@ -966,7 +1083,11 @@ const Incidents: React.FC = () => {
                   </tr>
                 ) : (
                   incidents.map((incident) => (
-                    <tr key={incident._id} className="hover:bg-gray-50 transition-colors">
+                    <tr 
+                      key={incident._id} 
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => handleViewIncident(incident)}
+                    >
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky left-0 bg-white z-10">
                         <p className="text-sm font-semibold text-gray-800">{incident.incidentNumber || 'N/A'}</p>
                       </td>
@@ -1013,7 +1134,7 @@ const Incidents: React.FC = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-10">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-10" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleViewIncident(incident)}
@@ -1042,7 +1163,8 @@ const Incidents: React.FC = () => {
                   ))
                 )}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
 
           {/* Pagination Controls */}
@@ -1519,74 +1641,75 @@ const Incidents: React.FC = () => {
           </div>
         )}
 
-        {/* View Incident Modal - Display all fields in read-only mode */}
+        {/* View Incident Sidebar */}
         {showViewModal && selectedIncident && (
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
+          <>
+            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-300" onClick={() => setShowViewModal(false)} />
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white shadow-2xl transform transition-transform duration-300 ease-out z-[101] border-l border-gray-200 overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b px-4 py-3 z-10">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-gray-800">Incident Details: {selectedIncident.incidentNumber}</h3>
-                  <button onClick={() => setShowViewModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <FaTimesCircle className="text-gray-500" size={20} />
+                  <h3 className="text-base font-bold text-gray-800">{selectedIncident.incidentNumber || 'N/A'}</h3>
+                  <button onClick={() => setShowViewModal(false)} className="p-1.5 hover:bg-gray-100 rounded transition-colors">
+                    <FaTimesCircle className="text-gray-500" size={18} />
                   </button>
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-3 space-y-2">
                 {/* Display all incident fields in read-only mode */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h4 className="text-lg font-bold text-gray-800 mb-4">Incident Information</h4>
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <h4 className="text-sm font-bold text-gray-800 mb-2">Incident Info</h4>
+                  <div className="grid grid-cols-1 gap-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Incident Number</label>
-                      <p className="text-lg font-semibold text-gray-800">{selectedIncident.incidentNumber || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Incident Number</label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedIncident.incidentNumber || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Date/Time</label>
-                      <p className="text-lg font-semibold text-gray-800">{selectedIncident.incidentDateTime ? formatDate(selectedIncident.incidentDateTime) : 'N/A'}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Date/Time</label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedIncident.incidentDateTime ? formatDate(selectedIncident.incidentDateTime) : 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Type</label>
-                      <p className="text-lg font-semibold text-gray-800">{selectedIncident.incidentType || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Type</label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedIncident.incidentType || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Status</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Status</label>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(selectedIncident.incidentStatus)}
-                        <span className={`text-xs px-3 py-1 rounded-full font-semibold border ${getStatusBadgeColor(selectedIncident.incidentStatus)}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${getStatusBadgeColor(selectedIncident.incidentStatus)}`}>
                           {selectedIncident.incidentStatus?.toUpperCase().replace('-', ' ') || 'N/A'}
                         </span>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Location</label>
-                      <p className="text-lg font-semibold text-gray-800">
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Location</label>
+                      <p className="text-sm font-semibold text-gray-800">
                         {selectedIncident.location?.city || ''}{selectedIncident.location?.city && selectedIncident.location?.stateProvince ? ', ' : ''}
                         {selectedIncident.location?.stateProvince || ''}
                         {selectedIncident.location?.country ? ` (${selectedIncident.location.country.toUpperCase()})` : ''}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Driver</label>
-                      <p className="text-lg font-semibold text-gray-800">{getDriverName(selectedIncident.driver)}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Driver</label>
+                      <p className="text-sm font-semibold text-gray-800">{getDriverName(selectedIncident.driver)}</p>
                     </div>
+                    {selectedIncident.description && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Description</label>
+                        <p className="text-xs text-gray-800">{selectedIncident.description}</p>
+                      </div>
+                    )}
                   </div>
-                  {selectedIncident.description && (
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Description</label>
-                      <p className="text-gray-800">{selectedIncident.description}</p>
-                    </div>
-                  )}
                 </div>
               </div>
 
-              <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
-                <button onClick={() => setShowViewModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">
+              <div className="sticky bottom-0 bg-gray-50 px-3 py-2 flex justify-end gap-2 border-t">
+                <button onClick={() => setShowViewModal(false)} className="px-4 py-1.5 text-xs bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 font-medium transition-colors">
                   Close
                 </button>
               </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Delete Confirmation Modal */}
