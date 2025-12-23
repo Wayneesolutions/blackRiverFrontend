@@ -4,6 +4,7 @@ import Header from './Header'
 import Sidebar from './Sidebar'
 import ExpiringDocumentsToast from "../common/ExpiringDocumentsToast";
 import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
+import AIChatAssistant from "../ai/AIChatAssistant";
 
 function Layout() {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -46,6 +47,9 @@ function Layout() {
                 onViewDocuments={handleViewDocuments}
                 count={expiringDocuments.length}
             />
+            
+            {/* AI Chat Assistant */}
+            <AIChatAssistant />
         </div>
     );
 }

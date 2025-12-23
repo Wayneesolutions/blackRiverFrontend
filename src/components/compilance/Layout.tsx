@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import CompilanceSidebar from "./Sidebar";
 import CompilanceHeader from "./Header";
+import AIChatAssistant from "../ai/AIChatAssistant";
 
 const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -32,6 +33,9 @@ const Layout = () => {
                     <Outlet />
                 </main>
             </div>
+            
+            {/* AI Chat Assistant */}
+            <AIChatAssistant />
         </div>
     );
 };

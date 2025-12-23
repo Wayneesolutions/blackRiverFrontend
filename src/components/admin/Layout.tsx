@@ -5,6 +5,7 @@ import Header from "./Header";
 import ExpiringDriverDocumentsPopup from "../common/ExpiringDriverDocumentsPopup";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { useExpiringDriverDocuments } from "../../hooks/useExpiringDriverDocuments";
+import AIChatAssistant from "../ai/AIChatAssistant";
 
 // Wrapper to log route changes and catch rendering issues
 const OutletWrapper = () => {
@@ -88,6 +89,11 @@ const Layout = () => {
                         daysThreshold={30}
                         showOnlyOnce={false}
                     />
+                </ErrorBoundary>
+                
+                {/* AI Chat Assistant */}
+                <ErrorBoundary>
+                    <AIChatAssistant />
                 </ErrorBoundary>
             </div>
         </ErrorBoundary>

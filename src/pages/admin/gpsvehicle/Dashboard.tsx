@@ -14,7 +14,6 @@ import {
 import { Loader2 } from "lucide-react";
 import { getGpsVehicleDashboardStats } from "../../../axios/api/distapcher";
 import { listFleetUnits } from "../../../axios/api/fleet.units";
-import AIChatAssistant from "../../../components/ai/AIChatAssistant";
 
 interface FleetUnit {
   _id?: string;
@@ -376,7 +375,6 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
-    <AIChatAssistant />
     </>
   );
 };

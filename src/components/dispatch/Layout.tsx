@@ -4,6 +4,7 @@ import DispatchSidebar from "./Sidebar";
 import DispatchHeader from "./Header";
 import ExpiringDriverDocumentsPopup from "../common/ExpiringDriverDocumentsPopup";
 import { useExpiringDriverDocuments } from "../../hooks/useExpiringDriverDocuments";
+import AIChatAssistant from "../ai/AIChatAssistant";
 
 const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -48,6 +49,9 @@ const Layout = () => {
                 daysThreshold={30}
                 showOnlyOnce={false}
             />
+            
+            {/* AI Chat Assistant */}
+            <AIChatAssistant />
         </div>
     );
 };

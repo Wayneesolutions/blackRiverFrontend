@@ -19,7 +19,8 @@ import {
   FaDatabase,
   FaTrashAlt
 } from 'react-icons/fa';
-import { getCvsaMonthlyReport } from '../../../../axios/api/admin';
+import { getCvsaMonthlyReport, deleteOldCvsaData } from '../../../../axios/api/admin';
+import { getViolationsForMonthlyReport, getViolationStats } from '../../../../axios/api/violations';
 import jsPDF from 'jspdf';
 
 // Types
@@ -158,6 +159,11 @@ const MonthlyReport: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<'all' | 'canada' | 'usa'>('all');
   const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
   const [currentMonthData, setCurrentMonthData] = useState<MonthlyStats | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [deleteMessage, setDeleteMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [violationStats, setViolationStats] = useState<any>(null);
+  const [realViolationsData, setRealViolationsData] = useState<any>(null);
 
   // Calculate 2-year performance data statically from monthlyData
   const calculateTwoYearData = (): TwoYearData | null => {
@@ -215,7 +221,7 @@ const MonthlyReport: React.FC = () => {
     };
   };
 
-  // Calculate audit compliance score statically
+  // Calculate audit compliance score with real violation data
   const calculateComplianceScore = () => {
     const twoYearData = calculateTwoYearData();
     if (!twoYearData) return null;
@@ -229,17 +235,45 @@ const MonthlyReport: React.FC = () => {
     // Calculate inspection score
     const inspectionScore = totalInspections > 0 ? (passCount / totalInspections) * 100 : 0;
 
-    // Simulate violations (static - can be enhanced with actual data if available)
-    const estimatedTickets = Math.floor(totalInspections * 0.1); // Estimate 10% of inspections have tickets
-    const estimatedSpeeding = Math.floor(totalInspections * 0.05); // Estimate 5% speeding violations
+    // Use real violation data if available, otherwise estimate
+    let totalViolations = 0;
+    let speedingCount = 0;
+    let totalTickets = 0;
+    let violationPenalty = 0;
 
-    // Violation penalty
-    const violationPenalty = Math.min((estimatedTickets + estimatedSpeeding) * 2, 30);
+    if (violationStats && violationStats.total > 0) {
+      // Real data from Geotab/manual entries
+      totalViolations = violationStats.total;
+      speedingCount = violationStats.byType?.speeding || 0;
+      
+      // Count other serious violations as "tickets"
+      const harshBraking = violationStats.byType?.['harsh-braking'] || 0;
+      const harshAcceleration = violationStats.byType?.['harsh-acceleration'] || 0;
+      const trafficLight = violationStats.byType?.['traffic-light'] || 0;
+      const laneViolation = violationStats.byType?.['lane-violation'] || 0;
+      totalTickets = harshBraking + harshAcceleration + trafficLight + laneViolation;
+
+      // Calculate penalty based on severity
+      const criticalCount = violationStats.bySeverity?.critical || 0;
+      const majorCount = violationStats.bySeverity?.major || 0;
+      const moderateCount = violationStats.bySeverity?.moderate || 0;
+      
+      // Weighted penalty: critical=5, major=3, moderate=1
+      violationPenalty = Math.min((criticalCount * 5 + majorCount * 3 + moderateCount * 1), 30);
+    } else {
+      // Fallback to estimates if no real data
+      totalTickets = Math.floor(totalInspections * 0.1);
+      speedingCount = Math.floor(totalInspections * 0.05);
+      violationPenalty = Math.min((totalTickets + speedingCount) * 2, 30);
+      totalViolations = totalTickets + speedingCount;
+    }
+
     const finalScore = Math.max(0, Math.min(100, inspectionScore - violationPenalty));
 
     return {
       score: Math.round(finalScore),
       eligibleForAudit: finalScore >= 80,
+      usingRealData: violationStats && violationStats.total > 0,
       breakdown: {
         inspectionScore,
         violationPenalty,
@@ -248,8 +282,9 @@ const MonthlyReport: React.FC = () => {
         failCount,
         warningCount,
         outOfServiceCount,
-        totalTickets: estimatedTickets,
-        speedingCount: estimatedSpeeding
+        totalTickets,
+        speedingCount,
+        totalViolations
       }
     };
   };
@@ -339,6 +374,29 @@ const MonthlyReport: React.FC = () => {
   const complianceScore = calculateComplianceScore();
   const oldData = calculateOldData();
 
+  // Fetch real violations data
+  const fetchRealViolations = async () => {
+    try {
+      console.log('🔄 Fetching real violation data from backend...');
+      const [violationsRes, statsRes] = await Promise.all([
+        getViolationsForMonthlyReport(),
+        getViolationStats()
+      ]);
+
+      if (violationsRes.success && statsRes.success) {
+        setRealViolationsData(violationsRes.data);
+        setViolationStats(statsRes.data);
+        console.log('✅ Real violation data fetched:', {
+          totalViolations: violationsRes.data.length,
+          stats: statsRes.data
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching real violations:', error);
+      // Violations are optional, don't block the page
+    }
+  };
+
   // Fetch monthly report data
   useEffect(() => {
     const fetchMonthlyReport = async () => {
@@ -373,6 +431,7 @@ const MonthlyReport: React.FC = () => {
     };
 
     fetchMonthlyReport();
+    fetchRealViolations();
   }, [selectedYear, selectedCountry]);
 
   // Update current month data when selection changes
@@ -635,21 +694,54 @@ const MonthlyReport: React.FC = () => {
     );
   };
 
-  // Handle delete old data (static - informational only)
+  // Handle delete old data - Show confirmation modal
   const handleDeleteOldData = () => {
-    if (!oldData) {
-      alert('No old data to delete');
+    if (!oldData || (oldData.inspections.total === 0 && oldData.tickets.total === 0)) {
+      setDeleteMessage({ type: 'error', text: 'No old data found to delete' });
+      setTimeout(() => setDeleteMessage(null), 3000);
       return;
     }
+    setShowDeleteConfirm(true);
+  };
 
-    alert(
-      `This feature is for display purposes only.\n\n` +
-      `To delete old data, please contact your system administrator.\n\n` +
-      `Data to be deleted:\n` +
-      `- ${oldData.inspections.total} CVSA Inspections\n` +
-      `- ${oldData.tickets.total} Traffic Tickets\n\n` +
-      `Cutoff Date: ${new Date(oldData.cutoffDate).toLocaleDateString()}`
-    );
+  // Confirm and execute deletion
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    setShowDeleteConfirm(false);
+    try {
+      const response = await deleteOldCvsaData();
+      
+      if (response?.success) {
+        setDeleteMessage({ 
+          type: 'success', 
+          text: `Successfully deleted ${response.data.deletedCount} old record(s)` 
+        });
+        
+        // Refresh data after 2 seconds
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        setDeleteMessage({ 
+          type: 'error', 
+          text: response?.message || 'Failed to delete old data' 
+        });
+      }
+    } catch (error: any) {
+      console.error('Error deleting old data:', error);
+      setDeleteMessage({ 
+        type: 'error', 
+        text: error?.message || 'An error occurred while deleting old data' 
+      });
+    } finally {
+      setIsDeleting(false);
+      setTimeout(() => setDeleteMessage(null), 5000);
+    }
+  };
+
+  // Cancel deletion
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
   };
 
   // Handle PDF download
@@ -809,6 +901,110 @@ const MonthlyReport: React.FC = () => {
   };
 
   return (
+    <>
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-6 animate-fade-in">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <FaExclamationTriangle className="text-red-600" size={24} />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Confirm Permanent Deletion</h3>
+                <p className="text-gray-700 mb-4">
+                  You are about to <strong className="text-red-600">permanently delete</strong> the following data:
+                </p>
+                {oldData && (
+                  <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-4">
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-center justify-between">
+                        <span className="font-medium text-gray-700">CVSA Inspections:</span>
+                        <span className="font-bold text-red-700">{oldData.inspections.total} records</span>
+                      </li>
+                      <li className="flex items-center justify-between">
+                        <span className="font-medium text-gray-700">Traffic Tickets:</span>
+                        <span className="font-bold text-red-700">{oldData.tickets.total} records</span>
+                      </li>
+                      <li className="flex items-center justify-between border-t border-red-300 pt-2 mt-2">
+                        <span className="font-bold text-gray-900">Total Records:</span>
+                        <span className="font-bold text-red-900 text-lg">{oldData.inspections.total + oldData.tickets.total}</span>
+                      </li>
+                      <li className="flex items-center justify-between">
+                        <span className="font-medium text-gray-700">Cutoff Date:</span>
+                        <span className="font-semibold text-gray-900">{new Date(oldData.cutoffDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+                <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+                  <p className="text-sm text-yellow-900 font-semibold flex items-start gap-2">
+                    <FaExclamationCircle className="text-yellow-600 mt-0.5 flex-shrink-0" size={16} />
+                    <span>This action cannot be undone. All selected records will be permanently removed from the database.</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={cancelDelete}
+                disabled={isDeleting}
+                className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold flex items-center gap-2 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <FaTrashAlt size={16} />
+                    Yes, Delete Permanently
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success/Error Notification */}
+      {deleteMessage && (
+        <div className="fixed top-4 right-4 z-50 animate-slide-in-right">
+          <div className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-2xl ${
+            deleteMessage.type === 'success' 
+              ? 'bg-green-50 border-2 border-green-500' 
+              : 'bg-red-50 border-2 border-red-500'
+          }`}>
+            {deleteMessage.type === 'success' ? (
+              <FaCheckCircle className="text-green-600 flex-shrink-0" size={24} />
+            ) : (
+              <FaTimesCircle className="text-red-600 flex-shrink-0" size={24} />
+            )}
+            <div className="flex-1">
+              <p className={`font-semibold ${
+                deleteMessage.type === 'success' ? 'text-green-900' : 'text-red-900'
+              }`}>
+                {deleteMessage.text}
+              </p>
+            </div>
+            <button
+              onClick={() => setDeleteMessage(null)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <FaTimesCircle size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="relative w-full mx-auto p-2">
 
@@ -832,15 +1028,25 @@ const MonthlyReport: React.FC = () => {
                   <FaDownload size={16} />
                   Download PDF
                 </button>
-                {oldData && (oldData.inspections.total > 0 || oldData.tickets.total > 0) && (
-                  <button
-                    onClick={handleDeleteOldData}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors shadow-sm"
-                  >
-                    <FaExclamationCircle size={16} />
-                    View Old Data Info ({oldData.inspections.total + oldData.tickets.total} records)
-                  </button>
-                )}
+                <button
+                  onClick={handleDeleteOldData}
+                  disabled={!oldData || (oldData.inspections.total === 0 && oldData.tickets.total === 0)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-sm ${
+                    oldData && (oldData.inspections.total > 0 || oldData.tickets.total > 0)
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                  }`}
+                  title={
+                    oldData && (oldData.inspections.total > 0 || oldData.tickets.total > 0)
+                      ? `Delete ${oldData.inspections.total + oldData.tickets.total} old records (>2 years)`
+                      : 'No old data to delete (data must be older than 2 years)'
+                  }
+                >
+                  <FaTrashAlt size={16} />
+                  {oldData && (oldData.inspections.total > 0 || oldData.tickets.total > 0) 
+                    ? `Delete Old Data (${oldData.inspections.total + oldData.tickets.total})` 
+                    : 'Delete Old Data'}
+                </button>
               </div>
             </div>
           </div>
@@ -1039,60 +1245,162 @@ const MonthlyReport: React.FC = () => {
                 </div>
               </div>
 
-              {/* Driver Violations Section - Static */}
-              {twoYearData && (
+              {/* Driver Violations Section - Real Data from Geotab */}
+              {violationStats && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-6">Driver Violations (Past 2 Years - Estimated)</h3>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-gray-800">Driver Violations (Past 2 Years - Real Data)</h3>
+                    <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
+                      {violationStats.bySource?.geotab ? 'Geotab Integrated' : 'Live Data'}
+                    </span>
+                  </div>
+                  
+                  {/* Summary Stats */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-red-800">{violationStats.total || 0}</div>
+                      <div className="text-sm text-red-600 mt-1">Total Violations</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-800">{violationStats.byType?.speeding || 0}</div>
+                      <div className="text-sm text-orange-600 mt-1">Speeding</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-800">
+                        {(violationStats.byType?.['harsh-braking'] || 0) + (violationStats.byType?.['harsh-acceleration'] || 0)}
+                      </div>
+                      <div className="text-sm text-yellow-600 mt-1">Harsh Driving</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-800">{violationStats.byType?.other || 0}</div>
+                      <div className="text-sm text-purple-600 mt-1">Other</div>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Speeding Violations */}
+                    {/* Violation Types Breakdown */}
                     <div>
                       <div className="flex items-center gap-3 mb-4">
-                        <FaTachometerAlt className="text-red-600" size={20} />
-                        <h4 className="text-lg font-semibold text-gray-700">Speeding Violations</h4>
+                        <FaExclamationCircle className="text-red-600" size={20} />
+                        <h4 className="text-lg font-semibold text-gray-700">Violation Types</h4>
                       </div>
                       <div className="space-y-2">
-                        <div className="flex justify-between p-3 bg-red-50 rounded-lg">
-                          <span className="font-medium text-gray-800">Estimated Speeding Events</span>
-                          <span className="font-bold text-red-800">{Math.floor(twoYearData.summary.totalInspections * 0.05)}</span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-2">
-                          Estimated based on inspection data (vehicles exceeding 80 km/h speed limit)
-                        </p>
+                        {Object.entries(violationStats.byType || {}).map(([type, count]) => (
+                          <div key={type} className="flex justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <span className="font-medium text-gray-700 capitalize">{type.replace(/-/g, ' ')}</span>
+                            <span className="font-bold text-gray-900">{count as number}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Traffic Tickets */}
+                    {/* Severity Breakdown */}
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <FaShieldAlt className="text-orange-600" size={20} />
+                        <h4 className="text-lg font-semibold text-gray-700">Severity Levels</h4>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between p-3 bg-red-50 rounded-lg">
+                          <span className="font-medium text-gray-800">Critical</span>
+                          <span className="font-bold text-red-800">{violationStats.bySeverity?.critical || 0}</span>
+                        </div>
+                        <div className="flex justify-between p-3 bg-orange-50 rounded-lg">
+                          <span className="font-medium text-gray-800">Major</span>
+                          <span className="font-bold text-orange-800">{violationStats.bySeverity?.major || 0}</span>
+                        </div>
+                        <div className="flex justify-between p-3 bg-yellow-50 rounded-lg">
+                          <span className="font-medium text-gray-800">Moderate</span>
+                          <span className="font-bold text-yellow-800">{violationStats.bySeverity?.moderate || 0}</span>
+                        </div>
+                        <div className="flex justify-between p-3 bg-blue-50 rounded-lg">
+                          <span className="font-medium text-gray-800">Minor</span>
+                          <span className="font-bold text-blue-800">{violationStats.bySeverity?.minor || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Top Violators */}
+                  {violationStats.topViolators && violationStats.topViolators.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="text-lg font-semibold text-gray-700 mb-4">Top 5 Drivers with Most Violations</h4>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Driver</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Violations</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Points</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {violationStats.topViolators.slice(0, 5).map((violator: any, index: number) => (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm">
+                                  <div>
+                                    <div className="font-medium text-gray-900">{violator.driver?.name}</div>
+                                    <div className="text-gray-500 text-xs">{violator.driver?.internalId}</div>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-sm font-semibold text-gray-900">{violator.count}</td>
+                                <td className="px-4 py-3 text-sm">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                    violator.totalPoints > 20 ? 'bg-red-100 text-red-800' :
+                                    violator.totalPoints > 10 ? 'bg-orange-100 text-orange-800' :
+                                    'bg-yellow-100 text-yellow-800'
+                                  }`}>
+                                    {violator.totalPoints} pts
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-500 mt-4">
+                    * Data automatically synced from Geotab telematics system and manual entries
+                  </p>
+                </div>
+              )}
+
+              {/* Show estimated violations as fallback if no real data */}
+              {!violationStats && twoYearData && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-gray-800">Driver Violations (Past 2 Years)</h3>
+                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-semibold rounded-full">
+                      Estimated Data
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <FaInfoCircle className="inline mr-2 text-blue-600" />
+                    No real violation data available. Please sync with Geotab or add violations manually to see actual data.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Estimated Speeding */}
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <FaTachometerAlt className="text-red-600" size={20} />
+                        <h4 className="text-lg font-semibold text-gray-700">Estimated Speeding</h4>
+                      </div>
+                      <div className="flex justify-between p-3 bg-red-50 rounded-lg">
+                        <span className="font-medium text-gray-800">Est. Speeding Events</span>
+                        <span className="font-bold text-red-800">{Math.floor(twoYearData.summary.totalInspections * 0.05)}</span>
+                      </div>
+                    </div>
+                    {/* Estimated Tickets */}
                     <div>
                       <div className="flex items-center gap-3 mb-4">
                         <FaExclamationCircle className="text-orange-600" size={20} />
-                        <h4 className="text-lg font-semibold text-gray-700">Traffic Tickets</h4>
+                        <h4 className="text-lg font-semibold text-gray-700">Estimated Tickets</h4>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between p-3 bg-orange-50 rounded-lg">
-                          <span className="font-medium text-gray-800">Estimated Tickets</span>
-                          <span className="font-bold text-orange-800">{Math.floor(twoYearData.summary.totalInspections * 0.1)}</span>
-                        </div>
-                        <div className="mt-4">
-                          <p className="text-sm font-semibold text-gray-700 mb-2">Common Violation Types:</p>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Speeding</span>
-                              <span className="font-semibold text-gray-800">{Math.floor(twoYearData.summary.totalInspections * 0.04)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Traffic Light</span>
-                              <span className="font-semibold text-gray-800">{Math.floor(twoYearData.summary.totalInspections * 0.03)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Lane Violation</span>
-                              <span className="font-semibold text-gray-800">{Math.floor(twoYearData.summary.totalInspections * 0.02)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Other</span>
-                              <span className="font-semibold text-gray-800">{Math.floor(twoYearData.summary.totalInspections * 0.01)}</span>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="flex justify-between p-3 bg-orange-50 rounded-lg">
+                        <span className="font-medium text-gray-800">Est. Traffic Tickets</span>
+                        <span className="font-bold text-orange-800">{Math.floor(twoYearData.summary.totalInspections * 0.1)}</span>
                       </div>
                     </div>
                   </div>
@@ -1590,6 +1898,7 @@ const MonthlyReport: React.FC = () => {
           )}
         </div>
       </div>
+    </>
   );
 };
 

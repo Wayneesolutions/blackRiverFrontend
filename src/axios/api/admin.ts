@@ -180,6 +180,16 @@ export const getCvsaMonthlyReport = async (year?: number, country?: string) => {
   }
 };
 
+export const deleteOldCvsaData = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.delete('admin/cvsa-inspections/delete-old-data');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
 // Ticket API Functions
 export const getTickets = async (params?: { status?: string; search?: string; page?: number; limit?: number }) => {
   try {

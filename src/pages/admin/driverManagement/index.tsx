@@ -10,7 +10,6 @@ import {
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserRole } from '../../../utils/auth';
-import AIChatAssistant from '../../../components/ai/AIChatAssistant';
 import {
   getHRDashboard
 } from '../../../axios/api/driverDashboard';
@@ -286,7 +285,6 @@ const Index = () => {
         </div>
       </div>
     </div>
-    <AIChatAssistant />
     </>
   );
 }

@@ -9,7 +9,6 @@ import {
 } from "../../../../axios/api/distapcher";
 import { listFleetUnits, type FleetUnitDto } from "../../../../axios/api/fleet.units";
 import { getUserRole } from "../../../../utils/auth";
-import AIChatAssistant from "../../../../components/ai/AIChatAssistant";
 
 
 interface DashboardStats {
@@ -1914,7 +1913,6 @@ const Index = () => {
 
 
     </div>
-    <AIChatAssistant />
     </>
   );
 };

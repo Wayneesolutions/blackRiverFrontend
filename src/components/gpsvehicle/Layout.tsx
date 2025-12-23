@@ -4,6 +4,7 @@ import GpsHeader from "./Header";
 import GpsSidebar from "./Sidebar";
 import ExpiringDocumentsPopup from "../common/ExpiringDocumentsPopup";
 import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
+import AIChatAssistant from "../ai/AIChatAssistant";
 
 const Layout = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -49,6 +50,9 @@ const Layout = () => {
         daysThreshold={30}
         showOnlyOnce={false}
       />
+      
+      {/* AI Chat Assistant */}
+      <AIChatAssistant />
     </div>
   );
 };

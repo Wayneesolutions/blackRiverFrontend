@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import AIChatAssistant from "../ai/AIChatAssistant";
 
 const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -38,6 +39,9 @@ const Layout = () => {
             <footer className="bg-[#9793E4] text-center text-white py-4 text-md fixed bottom-0 left-0 w-full z-50">
                 Logistics All rights reserved
             </footer>
+            
+            {/* AI Chat Assistant */}
+            <AIChatAssistant />
         </div>
     );
 };

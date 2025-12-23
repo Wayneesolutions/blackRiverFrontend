@@ -4,6 +4,7 @@ import Header from './Header'
 import Sidebar from './Sidebar'
 import ExpiringDocumentsPopup from "../common/ExpiringDocumentsPopup";
 import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
+import AIChatAssistant from "../ai/AIChatAssistant";
 
 function Layout() {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -44,6 +45,9 @@ function Layout() {
                 daysThreshold={30}
                 showOnlyOnce={false}
             />
+            
+            {/* AI Chat Assistant */}
+            <AIChatAssistant />
         </div>
     );
 }

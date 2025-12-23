@@ -6,6 +6,7 @@ import ExpiringDocumentsPopup from "../common/ExpiringDocumentsPopup";
 import ExpiringVehicleDocumentsToast from "../common/ExpiringVehicleDocumentsToast";
 import { useExpiringDocuments } from "../../hooks/useExpiringDocuments";
 import { useExpiringVehicleDocumentsFleetMaintenance } from "../../hooks/useExpiringVehicleDocumentsFleetMaintenance";
+import AIChatAssistant from "../ai/AIChatAssistant";
 
 function Layout() {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -59,6 +60,9 @@ function Layout() {
                 onViewDocuments={handleViewVehicleDocuments}
                 count={expiringVehicleDocuments.length}
             />
+            
+            {/* AI Chat Assistant */}
+            <AIChatAssistant />
         </div>
     );
 }

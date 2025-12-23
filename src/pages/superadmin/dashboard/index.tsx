@@ -9,7 +9,6 @@ import {
   Package
 } from 'lucide-react';
 import { getSuperAdminDashboard } from '../../../axios/api/superadmin';
-import AIChatAssistant from '../../../components/ai/AIChatAssistant';
 
 const SuperAdminOverview = () => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('30d');
@@ -314,7 +313,6 @@ const SuperAdminOverview = () => {
         </div>
       </div>
     </div>
-    <AIChatAssistant />
     </>
   );
 };

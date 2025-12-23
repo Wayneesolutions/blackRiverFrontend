@@ -13,7 +13,6 @@ import {
 import { getCvsaInspectionStats, getTicketStats, getIncidentStats } from "../../../axios/api/admin";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import AIChatAssistant from "../../../components/ai/AIChatAssistant";
 
 interface CvsaStats {
   total: number;
@@ -390,7 +389,6 @@ function Dashboard() {
         </div>
       </div>
     </div>
-    <AIChatAssistant />
     </>
   );
 }

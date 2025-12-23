@@ -12,7 +12,6 @@ import {
   FaChevronRight,
 } from '../../../theme/icons';
 import { getUserRole } from '../../../utils/auth';
-import AIChatAssistant from '../../../components/ai/AIChatAssistant';
 import {
   getDashboardStats,
   getRecentActivity,
@@ -308,7 +307,6 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
     </div>
-    <AIChatAssistant />
     </>
   );
 };

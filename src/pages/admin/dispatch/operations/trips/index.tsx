@@ -6,6 +6,7 @@ import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeT
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
 import TripChat from "../../../../../components/chat/TripChat";
+import { getUnreadMessageCount } from "../../../../../axios/api/chat";
 
 interface Trip {
   _id: string;
@@ -130,6 +131,7 @@ const Trips = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [startConfirm, setStartConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [completeConfirm, setCompleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
@@ -299,6 +301,9 @@ const Trips = () => {
         setTrips(response.data || []);
         setTotalPages(response.pagination?.totalPages || 1);
         setTotalItems(response.pagination?.totalItems || 0);
+        
+        // Fetch unread message counts for all trips
+        fetchUnreadCounts(response.data || []);
       } else {
         addNotification('error', response?.message || 'Failed to fetch trips');
       }
@@ -307,6 +312,32 @@ const Trips = () => {
       addNotification('error', error?.message || 'An error occurred while fetching trips');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch unread message counts for all trips
+  const fetchUnreadCounts = async (tripsList: Trip[]) => {
+    try {
+      const counts: Record<string, number> = {};
+      
+      // Fetch unread counts for each trip in parallel
+      await Promise.all(
+        tripsList.map(async (trip) => {
+          try {
+            const response = await getUnreadMessageCount(trip._id);
+            if (response.success && response.data) {
+              counts[trip._id] = response.data.unreadCount;
+            }
+          } catch (error) {
+            console.error(`Error fetching unread count for trip ${trip._id}:`, error);
+            counts[trip._id] = 0;
+          }
+        })
+      );
+      
+      setUnreadCounts(counts);
+    } catch (error) {
+      console.error("Error fetching unread counts:", error);
     }
   };
 
@@ -607,6 +638,7 @@ const Trips = () => {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Orders</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Start Date</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Chat</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
                   </tr>
                 </thead>
@@ -650,6 +682,28 @@ const Trips = () => {
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(trip.status)}`}>
                           {trip.status.charAt(0).toUpperCase() + trip.status.slice(1).replace('-', ' ')}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center justify-center">
+                          <button
+                            onClick={() => {
+                              setViewingTrip(trip);
+                              setShowChat(true);
+                            }}
+                            className="relative p-2 rounded-lg transition-colors hover:bg-blue-50"
+                            title="Open Chat"
+                          >
+                            <MessageCircle 
+                              className="w-5 h-5" 
+                              style={{ color: unreadCounts[trip._id] > 0 ? FLEET_COLORS.primary : '#9CA3AF' }}
+                            />
+                            {unreadCounts[trip._id] > 0 && (
+                              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                                {unreadCounts[trip._id] > 99 ? '99+' : unreadCounts[trip._id]}
+                              </span>
+                            )}
+                          </button>
+                        </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
