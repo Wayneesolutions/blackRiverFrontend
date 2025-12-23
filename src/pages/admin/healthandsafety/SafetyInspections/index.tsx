@@ -1041,7 +1041,10 @@ const SafetyInspections: React.FC = () => {
                 </tr>
               ) : (
                 filteredInspections.map(inspection => (
-                  <tr key={inspection._id} className="hover:bg-gray-50 transition">
+                  <tr key={inspection._id} onClick={() => {
+                    setSelectedInspection(inspection);
+                    setShowDetailModal(true);
+                  }} className="hover:bg-gray-50 transition cursor-pointer">
                     <td className="px-6 py-4">
                       <div className="font-semibold text-gray-900">{inspection.inspectionNumber}</div>
                       <div className="text-xs text-gray-500">{inspection.category}</div>
@@ -1092,7 +1095,8 @@ const SafetyInspections: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedInspection(inspection);
                           setShowDetailModal(true);
                         }}

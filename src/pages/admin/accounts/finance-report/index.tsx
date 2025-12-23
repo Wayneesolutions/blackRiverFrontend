@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useRef } from 'react';
 import {
   DollarSign,
   TrendingUp,
@@ -90,7 +90,53 @@ const FinanceReport = () => {
   const [truckFinancialData, setTruckFinancialData] = useState<TruckFinancialData[]>([]);
   const [tripFinancialData, setTripFinancialData] = useState<TripFinancialData[]>([]);
   const [timeBasedData, setTimeBasedData] = useState<TimeBasedReport[]>([]);
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+  
+  // Synchronize scrollbars for trip-wise table
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
 
+    if (!topScroll || !bottomScroll) return;
+
+    const handleTopScroll = () => {
+      if (bottomScroll) {
+        bottomScroll.scrollLeft = topScroll.scrollLeft;
+      }
+    };
+
+    const handleBottomScroll = () => {
+      if (topScroll) {
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    topScroll.addEventListener('scroll', handleTopScroll);
+    bottomScroll.addEventListener('scroll', handleBottomScroll);
+
+    // Set the width of top scrollbar content to match table width
+    const updateScrollWidth = () => {
+      const table = bottomScroll.querySelector('table');
+      const scrollContent = topScroll.querySelector('.top-scroll-content');
+      if (table && scrollContent) {
+        (scrollContent as HTMLElement).style.width = `${table.scrollWidth}px`;
+      }
+    };
+
+    updateScrollWidth();
+    
+    // Update scroll width when window resizes or data changes
+    const resizeObserver = new ResizeObserver(updateScrollWidth);
+    if (bottomScroll) resizeObserver.observe(bottomScroll);
+
+    return () => {
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      resizeObserver.disconnect();
+    };
+  }, [activeView, tripFinancialData]);
+  
   // Fetch finance report data on initial mount
   useEffect(() => {
     console.log('📊 [useEffect] Initial mount - fetching finance report data');
@@ -118,7 +164,7 @@ const FinanceReport = () => {
     try {
       console.log('📊 [Finance Report Frontend] Calling API with period:', timePeriod);
       const response = await getFinanceReport({ period: timePeriod });
-      
+
       console.log('📊 [Finance Report Frontend] API Response:', {
         success: response?.success,
         hasData: !!response?.data,
@@ -129,7 +175,7 @@ const FinanceReport = () => {
         timeBasedCount: response?.data?.timeBased?.length || 0,
         fullResponse: response
       });
-      
+
       if (response?.success && response?.data) {
         console.log('📊 [Finance Report Frontend] Full response data:', {
           overview: response.data.overview,
@@ -137,7 +183,7 @@ const FinanceReport = () => {
           tripWiseCount: response.data.tripWise?.length || 0,
           timeBasedCount: response.data.timeBased?.length || 0
         });
-        
+
         // Set overview data - ensure we use the backend data even if it's 0
         if (response.data.overview) {
           const overviewData = {
@@ -153,7 +199,7 @@ const FinanceReport = () => {
         } else {
           console.warn('📊 [Finance Report Frontend] No overview data in response');
         }
-        
+
         setTruckFinancialData(response.data.truckWise || []);
         setTripFinancialData(response.data.tripWise || []);
         // Always set timeBasedData, even if empty array, to avoid using static fallback
@@ -409,22 +455,22 @@ const FinanceReport = () => {
 
   // Calculate totals from actual data
   // Prioritize overview data from backend, but fallback to truck-wise calculation if overview is 0
-  const totalRevenue = overview.totalRevenue > 0 
-    ? overview.totalRevenue 
+  const totalRevenue = overview.totalRevenue > 0
+    ? overview.totalRevenue
     : truckFinancialData.reduce((sum, truck) => sum + (Number(truck.revenue) || 0), 0);
-  const totalExpenses = overview.totalExpenses > 0 
-    ? overview.totalExpenses 
+  const totalExpenses = overview.totalExpenses > 0
+    ? overview.totalExpenses
     : truckFinancialData.reduce((sum, truck) => sum + (Number(truck.expenses) || 0), 0);
-  const totalPayroll = overview.totalPayroll > 0 
-    ? overview.totalPayroll 
+  const totalPayroll = overview.totalPayroll > 0
+    ? overview.totalPayroll
     : truckFinancialData.reduce((sum, truck) => sum + (Number(truck.payroll) || 0), 0);
-  const totalNetProfit = overview.netProfit !== 0 
-    ? overview.netProfit 
+  const totalNetProfit = overview.netProfit !== 0
+    ? overview.netProfit
     : truckFinancialData.reduce((sum, truck) => sum + (Number(truck.netProfit) || 0), 0);
-  const totalTrips = overview.totalTrips > 0 
-    ? overview.totalTrips 
+  const totalTrips = overview.totalTrips > 0
+    ? overview.totalTrips
     : truckFinancialData.reduce((sum, truck) => sum + (Number(truck.trips) || 0), 0);
-  
+
   console.log('📊 [Finance Report Frontend] Calculated totals:', {
     totalRevenue,
     totalExpenses,
@@ -533,7 +579,7 @@ const FinanceReport = () => {
                 <h1 className="text-xl font-bold text-black">Finance Report</h1>
                 <p className="text-xs text-black/90 mt-1">Comprehensive financial insights and analysis</p>
               </div>
-             
+
             </div>
           </div>
 
@@ -551,11 +597,10 @@ const FinanceReport = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveView(tab.id as ViewType)}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${
-                      activeView === tab.id
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${activeView === tab.id
                         ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
                         : 'text-gray-700 hover:bg-gray-100'
-                    }`}
+                      }`}
                   >
                     <Icon size={16} />
                     {tab.label}
@@ -588,9 +633,8 @@ const FinanceReport = () => {
                           <div className="flex items-baseline gap-2 mb-0.5">
                             <span className="text-xl font-bold text-gray-900">{stat.value}</span>
                             {stat.trend !== '—' && (
-                              <span className={`text-xs font-medium flex items-center gap-1 ${
-                                stat.trend.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                              }`}>
+                              <span className={`text-xs font-medium flex items-center gap-1 ${stat.trend.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                                }`}>
                                 {stat.trend.startsWith('+') ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                                 {stat.trend}
                               </span>
@@ -796,11 +840,10 @@ const FinanceReport = () => {
                             setTimePeriod(period);
                           }}
                           disabled={loading}
-                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                            timePeriod === period
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${timePeriod === period
                               ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
                         </button>
@@ -838,15 +881,15 @@ const FinanceReport = () => {
                         // Use trip data to group by time period (trips are linked to trucks)
                         // First pass: collect all trips and group by period
                         const periodTruckMap = new Map<string, Set<string>>();
-                        
+
                         tripFinancialData.forEach(trip => {
                           let periodKey = '';
                           let periodLabel = '';
-                          
+
                           try {
                             if (trip.date) {
                               const date = new Date(trip.date);
-                              
+
                               if (timePeriod === '2weeks') {
                                 // Group by 2-week periods
                                 const year = date.getFullYear();
@@ -893,7 +936,7 @@ const FinanceReport = () => {
                           periodData.Revenue += Number(trip.revenue) || 0;
                           periodData.Expenses += (Number(trip.expenses) || 0) + (Number(trip.driverPay) || 0);
                           periodData['Net Profit'] += Number(trip.netProfit) || 0;
-                          
+
                           // Track unique trucks per period
                           if (trip.truckNumber) {
                             const truckSet = periodTruckMap.get(periodKey)!;
@@ -923,8 +966,8 @@ const FinanceReport = () => {
                         style={{ fontSize: '11px' }}
                         height={60}
                       />
-                      <YAxis 
-                        stroke="#6b7280" 
+                      <YAxis
+                        stroke="#6b7280"
                         style={{ fontSize: '11px' }}
                         tickFormatter={(value) => `$${value.toLocaleString()}`}
                       />
@@ -945,7 +988,7 @@ const FinanceReport = () => {
                           return label;
                         }}
                       />
-                      <Legend 
+                      <Legend
                         wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
                         iconType="square"
                       />
@@ -1063,11 +1106,10 @@ const FinanceReport = () => {
                             setTimePeriod(period);
                           }}
                           disabled={loading}
-                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                            timePeriod === period
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${timePeriod === period
                               ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
                         </button>
@@ -1105,13 +1147,13 @@ const FinanceReport = () => {
                         tripFinancialData.forEach(trip => {
                           let periodKey = '';
                           let periodLabel = '';
-                          
+
                           try {
                             // Use startDate for grouping, fallback to date if startDate is not available
                             const dateToUse = trip.startDate || trip.date;
                             if (dateToUse) {
                               const date = new Date(dateToUse);
-                              
+
                               if (timePeriod === '2weeks') {
                                 // Group by 2-week periods
                                 const year = date.getFullYear();
@@ -1175,8 +1217,8 @@ const FinanceReport = () => {
                         style={{ fontSize: '11px' }}
                         height={60}
                       />
-                      <YAxis 
-                        stroke="#6b7280" 
+                      <YAxis
+                        stroke="#6b7280"
                         style={{ fontSize: '11px' }}
                         tickFormatter={(value) => `$${value.toLocaleString()}`}
                       />
@@ -1197,7 +1239,7 @@ const FinanceReport = () => {
                           return label;
                         }}
                       />
-                      <Legend 
+                      <Legend
                         wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
                         iconType="square"
                       />
@@ -1220,120 +1262,178 @@ const FinanceReport = () => {
                     Filter
                   </button>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trip #</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Truck</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Miles</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Revenue</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Expenses</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Driver Pay</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Net Profit</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Profit Margin</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {tripFinancialData.map((trip) => {
-                        // Ensure all values are numbers, defaulting to 0 if undefined/null
-                        const revenue = Number(trip.revenue) || 0;
-                        const expenses = Number(trip.expenses) || 0;
-                        const driverPay = Number(trip.driverPay) || 0;
-                        const netProfit = Number(trip.netProfit) || 0;
-                        
-                        // Calculate profit margin safely
-                        const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
-                        
-                        // Format dates safely
-                        let formattedStartDate = 'N/A';
-                        let formattedEndDate = 'N/A';
-                        try {
-                          if (trip.startDate) {
-                            formattedStartDate = new Date(trip.startDate).toLocaleDateString();
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
+                  {/* Top Scrollbar - Only visible horizontal scrollbar */}
+                  <style>{`
+              .top-scrollbar-container {
+                overflow-x: auto;
+                overflow-y: hidden;
+              }
+              .top-scrollbar-container::-webkit-scrollbar {
+                height: 10px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-track {
+                background: #f7fafc;
+                border-radius: 5px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb {
+                background: #42aeec;
+                border-radius: 5px;
+              }
+              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                background: #0ea3d8;
+              }
+              .table-container-with-scrollbar {
+                overflow-x: auto;
+                overflow-y: visible;
+              }
+              .table-container-with-scrollbar::-webkit-scrollbar {
+                height: 10px;
+              }
+              .table-container-with-scrollbar::-webkit-scrollbar-track {
+                background: #f7fafc;
+                border-radius: 5px;
+              }
+              .table-container-with-scrollbar::-webkit-scrollbar-thumb {
+                background: #42aeec;
+                border-radius: 5px;
+              }
+              .table-container-with-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: #0ea3d8;
+              }
+            `}</style>
+                  <div
+                    ref={topScrollRef}
+                    className="top-scrollbar-container"
+                    style={{
+                      height: '20px',
+                      marginBottom: '8px',
+                      paddingTop: '8px',
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: '#42aeec #f7fafc' /* Firefox */
+                    }}
+                  >
+                    <div className="top-scroll-content" style={{ height: '1px', minWidth: '100%' }}></div>
+                  </div>
+                  {/* Main Table with visible scrollbar */}
+                  <div
+                    ref={bottomScrollRef}
+                    className="table-container-with-scrollbar"
+                  >
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trip #</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Truck</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Miles</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Revenue</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Expenses</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Driver Pay</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Net Profit</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Profit Margin</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {tripFinancialData.map((trip) => {
+                          // Ensure all values are numbers, defaulting to 0 if undefined/null
+                          const revenue = Number(trip.revenue) || 0;
+                          const expenses = Number(trip.expenses) || 0;
+                          const driverPay = Number(trip.driverPay) || 0;
+                          const netProfit = Number(trip.netProfit) || 0;
+
+                          // Calculate profit margin safely
+                          const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+
+                          // Format dates safely
+                          let formattedStartDate = 'N/A';
+                          let formattedEndDate = 'N/A';
+                          try {
+                            if (trip.startDate) {
+                              formattedStartDate = new Date(trip.startDate).toLocaleDateString();
+                            }
+                          } catch (e) {
+                            formattedStartDate = 'N/A';
                           }
-                        } catch (e) {
-                          formattedStartDate = 'N/A';
-                        }
-                        try {
-                          if (trip.endDate) {
-                            formattedEndDate = new Date(trip.endDate).toLocaleDateString();
+                          try {
+                            if (trip.endDate) {
+                              formattedEndDate = new Date(trip.endDate).toLocaleDateString();
+                            }
+                          } catch (e) {
+                            formattedEndDate = 'N/A';
                           }
-                        } catch (e) {
-                          formattedEndDate = 'N/A';
-                        }
-                        
-                        return (
-                          <tr key={trip.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 text-sm font-medium text-gray-900">{trip.tripNumber || 'N/A'}</td>
-                            <td className="px-4 py-3 text-sm text-gray-700">{trip.truckNumber || 'N/A'}</td>
-                            <td className="px-4 py-3 text-sm text-gray-700">
-                              <div className="flex items-center gap-1">
-                                <span>{trip.origin || 'N/A'}</span>
-                                <ArrowUpRight size={12} className="text-gray-400" />
-                                <span>{trip.destination || 'N/A'}</span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-right text-gray-700">{(trip.totalMiles || 0).toLocaleString()}</td>
-                            <td className="px-4 py-3 text-sm text-gray-700">{formattedStartDate}</td>
-                            <td className="px-4 py-3 text-sm text-gray-700">{formattedEndDate}</td>
-                            <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">{formatCurrency(revenue)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-red-600">{formatCurrency(expenses)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-blue-600">{formatCurrency(driverPay)}</td>
-                            <td className="px-4 py-3 text-sm text-right font-bold text-gray-900">{formatCurrency(netProfit)}</td>
-                            <td className="px-4 py-3 text-sm text-center">
-                              <div className="flex flex-col items-center gap-1">
-                                <span className="text-xs font-medium text-gray-700">{isNaN(profitMargin) ? '0.0' : profitMargin.toFixed(1)}%</span>
-                                <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                  <div
-                                    className={`h-1.5 rounded-full ${profitMargin > 40 ? 'bg-green-500' : profitMargin > 25 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                    style={{ width: `${Math.min(Math.max(profitMargin, 0), 100)}%` }}
-                                  ></div>
+
+                          return (
+                            <tr key={trip.id} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 text-sm font-medium text-gray-900">{trip.tripNumber || 'N/A'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-700">{trip.truckNumber || 'N/A'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-700">
+                                <div className="flex items-center gap-1">
+                                  <span>{trip.origin || 'N/A'}</span>
+                                  <ArrowUpRight size={12} className="text-gray-400" />
+                                  <span>{trip.destination || 'N/A'}</span>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-center">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(trip.status || 'planned')}`}>
-                                {(trip.status || 'planned').replace('-', ' ')}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      <tr className="bg-gray-50 font-bold">
-                        <td colSpan={3} className="px-4 py-3 text-sm text-gray-900">Total</td>
-                        <td className="px-4 py-3 text-sm text-right text-gray-700">
-                          {tripFinancialData.reduce((sum, t) => sum + (Number(t.totalMiles) || 0), 0).toLocaleString()}
-                        </td>
-                        <td colSpan={2} className="px-4 py-3"></td>
-                        <td className="px-4 py-3 text-sm text-right text-green-600">
-                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.revenue) || 0), 0))}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right text-red-600">
-                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.expenses) || 0), 0))}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right text-blue-600">
-                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.driverPay) || 0), 0))}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right text-gray-900">
-                          {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.netProfit) || 0), 0))}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-700">
-                          {(() => {
-                            const totalRevenue = tripFinancialData.reduce((sum, t) => sum + (Number(t.revenue) || 0), 0);
-                            const totalProfit = tripFinancialData.reduce((sum, t) => sum + (Number(t.netProfit) || 0), 0);
-                            return totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0';
-                          })()}
-                          %
-                        </td>
-                        <td className="px-4 py-3"></td>
-                      </tr>
-                    </tbody>
-                  </table>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-right text-gray-700">{(trip.totalMiles || 0).toLocaleString()}</td>
+                              <td className="px-4 py-3 text-sm text-gray-700">{formattedStartDate}</td>
+                              <td className="px-4 py-3 text-sm text-gray-700">{formattedEndDate}</td>
+                              <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">{formatCurrency(revenue)}</td>
+                              <td className="px-4 py-3 text-sm text-right text-red-600">{formatCurrency(expenses)}</td>
+                              <td className="px-4 py-3 text-sm text-right text-blue-600">{formatCurrency(driverPay)}</td>
+                              <td className="px-4 py-3 text-sm text-right font-bold text-gray-900">{formatCurrency(netProfit)}</td>
+                              <td className="px-4 py-3 text-sm text-center">
+                                <div className="flex flex-col items-center gap-1">
+                                  <span className="text-xs font-medium text-gray-700">{isNaN(profitMargin) ? '0.0' : profitMargin.toFixed(1)}%</span>
+                                  <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                    <div
+                                      className={`h-1.5 rounded-full ${profitMargin > 40 ? 'bg-green-500' : profitMargin > 25 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                      style={{ width: `${Math.min(Math.max(profitMargin, 0), 100)}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-center">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(trip.status || 'planned')}`}>
+                                  {(trip.status || 'planned').replace('-', ' ')}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        <tr className="bg-gray-50 font-bold">
+                          <td colSpan={3} className="px-4 py-3 text-sm text-gray-900">Total</td>
+                          <td className="px-4 py-3 text-sm text-right text-gray-700">
+                            {tripFinancialData.reduce((sum, t) => sum + (Number(t.totalMiles) || 0), 0).toLocaleString()}
+                          </td>
+                          <td colSpan={2} className="px-4 py-3"></td>
+                          <td className="px-4 py-3 text-sm text-right text-green-600">
+                            {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.revenue) || 0), 0))}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-red-600">
+                            {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.expenses) || 0), 0))}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-blue-600">
+                            {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.driverPay) || 0), 0))}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-gray-900">
+                            {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.netProfit) || 0), 0))}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-center text-gray-700">
+                            {(() => {
+                              const totalRevenue = tripFinancialData.reduce((sum, t) => sum + (Number(t.revenue) || 0), 0);
+                              const totalProfit = tripFinancialData.reduce((sum, t) => sum + (Number(t.netProfit) || 0), 0);
+                              return totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0';
+                            })()}
+                            %
+                          </td>
+                          <td className="px-4 py-3"></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1364,11 +1464,10 @@ const FinanceReport = () => {
                             setTimePeriod(period);
                           }}
                           disabled={loading}
-                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                            timePeriod === period
-                              ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] text-white shadow-md'
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${timePeriod === period
+                              ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
                         </button>
@@ -1399,207 +1498,207 @@ const FinanceReport = () => {
               {!loading && getCurrentReports().length > 0 && (
                 <>
 
-              {/* Time-based Comparison Chart */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <BarChart3 size={20} className="text-[#42aeec]" />
-                  {(() => {
-                    switch (timePeriod) {
-                      case '2weeks': return '2 Weeks';
-                      case '1month': return '1 Month';
-                      case 'half-yearly': return 'Half Yearly';
-                      default: return timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1);
-                    }
-                  })()} Revenue vs Expenses vs Net Profit Trend
-                </h2>
-                <div className="h-96 mb-6">
-                  {getCurrentReports().length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={getCurrentReports().map(report => ({
-                          period: report.period,
-                          Revenue: Number(report.revenue) || 0,
-                          Expenses: (Number(report.expenses) || 0) + (Number(report.payroll) || 0),
-                          'Net Profit': Number(report.netProfit) || 0
-                        }))}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                      >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis
-                        dataKey="period"
-                        stroke="#6b7280"
-                        style={{ fontSize: '11px' }}
-                        height={60}
-                      />
-                      <YAxis 
-                        stroke="#6b7280" 
-                        style={{ fontSize: '11px' }}
-                        tickFormatter={(value) => `$${value.toLocaleString()}`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#fff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          fontSize: '12px'
-                        }}
-                        formatter={(value: number) => formatCurrency(value)}
-                      />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="Revenue"
-                        stroke="#10b981"
-                        strokeWidth={3}
-                        dot={{ fill: '#10b981', r: 5 }}
-                        activeDot={{ r: 7 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="Expenses"
-                        stroke="#ef4444"
-                        strokeWidth={3}
-                        dot={{ fill: '#ef4444', r: 5 }}
-                        activeDot={{ r: 7 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="Net Profit"
-                        stroke="#8b5cf6"
-                        strokeWidth={3}
-                        dot={{ fill: '#8b5cf6', r: 5 }}
-                        activeDot={{ r: 7 }}
-                      />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500">
-                      No data available for chart
+                  {/* Time-based Comparison Chart */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <BarChart3 size={20} className="text-[#42aeec]" />
+                      {(() => {
+                        switch (timePeriod) {
+                          case '2weeks': return '2 Weeks';
+                          case '1month': return '1 Month';
+                          case 'half-yearly': return 'Half Yearly';
+                          default: return timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1);
+                        }
+                      })()} Revenue vs Expenses vs Net Profit Trend
+                    </h2>
+                    <div className="h-96 mb-6">
+                      {getCurrentReports().length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={getCurrentReports().map(report => ({
+                              period: report.period,
+                              Revenue: Number(report.revenue) || 0,
+                              Expenses: (Number(report.expenses) || 0) + (Number(report.payroll) || 0),
+                              'Net Profit': Number(report.netProfit) || 0
+                            }))}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis
+                              dataKey="period"
+                              stroke="#6b7280"
+                              style={{ fontSize: '11px' }}
+                              height={60}
+                            />
+                            <YAxis
+                              stroke="#6b7280"
+                              style={{ fontSize: '11px' }}
+                              tickFormatter={(value) => `$${value.toLocaleString()}`}
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: '#fff',
+                                border: 'none',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                fontSize: '12px'
+                              }}
+                              formatter={(value: number) => formatCurrency(value)}
+                            />
+                            <Legend />
+                            <Line
+                              type="monotone"
+                              dataKey="Revenue"
+                              stroke="#10b981"
+                              strokeWidth={3}
+                              dot={{ fill: '#10b981', r: 5 }}
+                              activeDot={{ r: 7 }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="Expenses"
+                              stroke="#ef4444"
+                              strokeWidth={3}
+                              dot={{ fill: '#ef4444', r: 5 }}
+                              activeDot={{ r: 7 }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="Net Profit"
+                              stroke="#8b5cf6"
+                              strokeWidth={3}
+                              dot={{ fill: '#8b5cf6', r: 5 }}
+                              activeDot={{ r: 7 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-500">
+                          No data available for chart
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              {/* Time-based Comparison Bar Chart */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <BarChart3 size={20} className="text-[#42aeec]" />
-                  {(() => {
-                    switch (timePeriod) {
-                      case '2weeks': return '2 Weeks';
-                      case '1month': return '1 Month';
-                      case 'half-yearly': return 'Half Yearly';
-                      default: return timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1);
-                    }
-                  })()} Comparison
-                </h2>
-                <div className="h-96 mb-6">
-                  {getCurrentReports().length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={getCurrentReports().map(report => ({
-                          period: report.period,
-                          Revenue: Number(report.revenue) || 0,
-                          Expenses: (Number(report.expenses) || 0) + (Number(report.payroll) || 0),
-                          'Net Profit': Number(report.netProfit) || 0
-                        }))}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                      >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis
-                        dataKey="period"
-                        stroke="#6b7280"
-                        style={{ fontSize: '11px' }}
-                        height={60}
-                      />
-                      <YAxis 
-                        stroke="#6b7280" 
-                        style={{ fontSize: '11px' }}
-                        tickFormatter={(value) => `$${value.toLocaleString()}`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#fff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          fontSize: '12px'
-                        }}
-                        formatter={(value: number) => formatCurrency(value)}
-                        labelFormatter={(label) => `Period: ${label}`}
-                      />
-                      <Legend 
-                        wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
-                        iconType="square"
-                      />
-                      <Bar dataKey="Revenue" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
-                      <Bar dataKey="Expenses" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
-                      <Bar dataKey="Net Profit" stackId="a" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500">
-                      No data available for chart
+                  {/* Time-based Comparison Bar Chart */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <BarChart3 size={20} className="text-[#42aeec]" />
+                      {(() => {
+                        switch (timePeriod) {
+                          case '2weeks': return '2 Weeks';
+                          case '1month': return '1 Month';
+                          case 'half-yearly': return 'Half Yearly';
+                          default: return timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1);
+                        }
+                      })()} Comparison
+                    </h2>
+                    <div className="h-96 mb-6">
+                      {getCurrentReports().length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={getCurrentReports().map(report => ({
+                              period: report.period,
+                              Revenue: Number(report.revenue) || 0,
+                              Expenses: (Number(report.expenses) || 0) + (Number(report.payroll) || 0),
+                              'Net Profit': Number(report.netProfit) || 0
+                            }))}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis
+                              dataKey="period"
+                              stroke="#6b7280"
+                              style={{ fontSize: '11px' }}
+                              height={60}
+                            />
+                            <YAxis
+                              stroke="#6b7280"
+                              style={{ fontSize: '11px' }}
+                              tickFormatter={(value) => `$${value.toLocaleString()}`}
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: '#fff',
+                                border: 'none',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                fontSize: '12px'
+                              }}
+                              formatter={(value: number) => formatCurrency(value)}
+                              labelFormatter={(label) => `Period: ${label}`}
+                            />
+                            <Legend
+                              wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
+                              iconType="square"
+                            />
+                            <Bar dataKey="Revenue" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
+                            <Bar dataKey="Expenses" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
+                            <Bar dataKey="Net Profit" stackId="a" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-500">
+                          No data available for chart
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              {/* Summary Cards for Time-based Reports */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                  <div className="text-sm text-gray-600 mb-1">Average Revenue</div>
-                  <div className="text-2xl font-bold text-green-600">
-                    {formatCurrency(
-                      getCurrentReports().length > 0
-                        ? getCurrentReports().reduce((sum, r) => sum + (Number(r.revenue) || 0), 0) / getCurrentReports().length
-                        : 0
-                    )}
+                  {/* Summary Cards for Time-based Reports */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+                      <div className="text-sm text-gray-600 mb-1">Average Revenue</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {formatCurrency(
+                          getCurrentReports().length > 0
+                            ? getCurrentReports().reduce((sum, r) => sum + (Number(r.revenue) || 0), 0) / getCurrentReports().length
+                            : 0
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Per {timePeriod === 'half-yearly' ? 'half year' : timePeriod === 'yearly' ? 'year' : timePeriod.slice(0, -2)}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+                      <div className="text-sm text-gray-600 mb-1">Average Expenses</div>
+                      <div className="text-2xl font-bold text-red-600">
+                        {formatCurrency(
+                          getCurrentReports().length > 0
+                            ? getCurrentReports().reduce((sum, r) => sum + (Number(r.expenses) || 0), 0) / getCurrentReports().length
+                            : 0
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Per {timePeriod === 'half-yearly' ? 'half year' : timePeriod === 'yearly' ? 'year' : timePeriod.slice(0, -2)}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+                      <div className="text-sm text-gray-600 mb-1">Average Profit</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {formatCurrency(
+                          getCurrentReports().length > 0
+                            ? getCurrentReports().reduce((sum, r) => sum + (Number(r.netProfit) || 0), 0) / getCurrentReports().length
+                            : 0
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Per {timePeriod === 'half-yearly' ? 'half year' : timePeriod === 'yearly' ? 'year' : timePeriod.slice(0, -2)}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+                      <div className="text-sm text-gray-600 mb-1">Profit Margin</div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        {(() => {
+                          const totalRevenue = getCurrentReports().reduce((sum, r) => sum + (Number(r.revenue) || 0), 0);
+                          const totalProfit = getCurrentReports().reduce((sum, r) => sum + (Number(r.netProfit) || 0), 0);
+                          return totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0';
+                        })()}
+                        %
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">Overall margin</div>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Per {timePeriod === 'half-yearly' ? 'half year' : timePeriod === 'yearly' ? 'year' : timePeriod.slice(0, -2)}
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                  <div className="text-sm text-gray-600 mb-1">Average Expenses</div>
-                  <div className="text-2xl font-bold text-red-600">
-                    {formatCurrency(
-                      getCurrentReports().length > 0
-                        ? getCurrentReports().reduce((sum, r) => sum + (Number(r.expenses) || 0), 0) / getCurrentReports().length
-                        : 0
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Per {timePeriod === 'half-yearly' ? 'half year' : timePeriod === 'yearly' ? 'year' : timePeriod.slice(0, -2)}
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                  <div className="text-sm text-gray-600 mb-1">Average Profit</div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {formatCurrency(
-                      getCurrentReports().length > 0
-                        ? getCurrentReports().reduce((sum, r) => sum + (Number(r.netProfit) || 0), 0) / getCurrentReports().length
-                        : 0
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Per {timePeriod === 'half-yearly' ? 'half year' : timePeriod === 'yearly' ? 'year' : timePeriod.slice(0, -2)}
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                  <div className="text-sm text-gray-600 mb-1">Profit Margin</div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {(() => {
-                      const totalRevenue = getCurrentReports().reduce((sum, r) => sum + (Number(r.revenue) || 0), 0);
-                      const totalProfit = getCurrentReports().reduce((sum, r) => sum + (Number(r.netProfit) || 0), 0);
-                      return totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0';
-                    })()}
-                    %
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">Overall margin</div>
-                </div>
-              </div>
                 </>
               )}
             </div>

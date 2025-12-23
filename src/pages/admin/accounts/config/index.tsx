@@ -82,6 +82,11 @@ export default function AccountsSetup() {
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: TabType } | null>(null);
+  
+  // Detail modal states
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<DataItem | null>(null);
+  const [selectedItemType, setSelectedItemType] = useState<TabType | null>(null);
 
   // Data states
   const [accounts, setAccounts] = useState<ChartOfAccount[]>([]);
@@ -100,7 +105,6 @@ export default function AccountsSetup() {
     { id: 'chart-of-accounts', label: 'Chart of Accounts' },
     { id: 'tax-codes', label: 'Tax Code Setup' },
     { id: 'payment-methods', label: 'Payment Methods' },
-    { id: 'sms-billing', label: 'SMS Billing Tracking' }
   ];
 
   // Toast notification helpers
@@ -727,7 +731,15 @@ export default function AccountsSetup() {
                     </tr>
                   ) : (
                     (filteredData() as ChartOfAccount[]).map(account => (
-                      <tr key={account._id || account.id} className="hover:bg-gray-50">
+                      <tr 
+                        key={account._id || account.id} 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedItem(account);
+                          setSelectedItemType('chart-of-accounts');
+                          setShowDetailModal(true);
+                        }}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{account.number}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{account.name}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -741,7 +753,7 @@ export default function AccountsSetup() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${account.balance.toLocaleString()}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button onClick={() => handleEdit(account)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
                               <Edit className="w-4 h-4" />
@@ -783,7 +795,15 @@ export default function AccountsSetup() {
                     </tr>
                   ) : (
                     (filteredData() as AccountTaxCode[]).map(tax => (
-                      <tr key={tax._id || tax.id} className="hover:bg-gray-50">
+                      <tr 
+                        key={tax._id || tax.id} 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedItem(tax);
+                          setSelectedItemType('tax-codes');
+                          setShowDetailModal(true);
+                        }}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tax.code}</td>
                         <td className="px-6 py-4 text-sm text-gray-900">{tax.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tax.rate}%</td>
@@ -793,7 +813,7 @@ export default function AccountsSetup() {
                             {tax.category}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button onClick={() => handleEdit(tax)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
                               <Edit className="w-4 h-4" />
@@ -834,7 +854,15 @@ export default function AccountsSetup() {
                     </tr>
                   ) : (
                     (filteredData() as PaymentMethod[]).map(method => (
-                      <tr key={method._id || method.id} className="hover:bg-gray-50">
+                      <tr 
+                        key={method._id || method.id} 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedItem(method);
+                          setSelectedItemType('payment-methods');
+                          setShowDetailModal(true);
+                        }}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{method.method}</td>
                         <td className="px-6 py-4 text-sm text-gray-900">{method.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -842,7 +870,7 @@ export default function AccountsSetup() {
                             {method.preferred}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button onClick={() => handleEdit(method)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
                               <Edit className="w-4 h-4" />
@@ -860,62 +888,144 @@ export default function AccountsSetup() {
             </div>
           )}
 
-          {/* SMS Billing Tracking */}
-          {activeTab === 'sms-billing' && (
-            <div>
-              <div className="p-4 bg-[#E3F2FD] border-b border-blue-100">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-[#063f6f]">Total SMS Cost (Last 30 Days)</p>
-                    <p className="text-2xl font-bold text-[#016ab2]">${smsStats.totalCost.toFixed(2)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-[#063f6f]">Total Messages: {smsStats.totalMessages}</p>
-                    <p className="text-xs text-[#016ab2]">Avg Cost per SMS: ${smsStats.avgCostPerSms.toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message Content</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Billing Account</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {loading ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading...</td>
-                      </tr>
-                    ) : filteredData().length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No SMS billing records found</td>
-                      </tr>
-                    ) : (
-                      (filteredData() as SmsBilling[]).map(sms => (
-                        <tr key={sms._id || sms.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sms.timestamp}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sms.recipient}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{sms.content}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${sms.cost.toFixed(2)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sms.account}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+    
         </div>
       </div>
 
       {renderModal()}
       {renderDeleteModal()}
+
+      {/* Detail View Modal */}
+      {showDetailModal && selectedItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {selectedItemType === 'chart-of-accounts' && 'Account Details'}
+                {selectedItemType === 'tax-codes' && 'Tax Code Details'}
+                {selectedItemType === 'payment-methods' && 'Payment Method Details'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedItem(null);
+                  setSelectedItemType(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Chart of Accounts Details */}
+              {selectedItemType === 'chart-of-accounts' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-900 mb-1 block">Account Number</label>
+                      <p className="text-xl font-semibold text-blue-700">{(selectedItem as ChartOfAccount).number}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Account Name</label>
+                      <p className="text-xl font-semibold text-green-700">{(selectedItem as ChartOfAccount).name}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <label className="text-sm font-medium text-purple-900 mb-2 block">Account Type</label>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
+                      (selectedItem as ChartOfAccount).type === 'Asset' ? 'bg-green-100 text-green-800 border-green-300' :
+                      (selectedItem as ChartOfAccount).type === 'Liability' ? 'bg-red-100 text-red-800 border-red-300' :
+                      (selectedItem as ChartOfAccount).type === 'Equity' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                      (selectedItem as ChartOfAccount).type === 'Revenue' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                      'bg-orange-100 text-orange-800 border-orange-300'
+                    }`}>
+                      {(selectedItem as ChartOfAccount).type}
+                    </span>
+                  </div>
+
+                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                    <label className="text-sm font-medium text-indigo-900 mb-1 block">Current Balance</label>
+                    <p className="text-3xl font-bold text-indigo-700">
+                      ${(selectedItem as ChartOfAccount).balance.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Tax Code Details */}
+              {selectedItemType === 'tax-codes' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-900 mb-1 block">Tax Code</label>
+                      <p className="text-xl font-semibold text-blue-700">{(selectedItem as AccountTaxCode).code}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Tax Rate</label>
+                      <p className="text-3xl font-bold text-green-700">{(selectedItem as AccountTaxCode).rate}%</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">Description</label>
+                    <p className="text-gray-900">{(selectedItem as AccountTaxCode).description}</p>
+                  </div>
+
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <label className="text-sm font-medium text-purple-900 mb-2 block">Category</label>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
+                      (selectedItem as AccountTaxCode).category === 'IFTA' 
+                        ? 'bg-blue-100 text-blue-800 border-blue-300' 
+                        : (selectedItem as AccountTaxCode).category === 'Sales Tax'
+                        ? 'bg-green-100 text-green-800 border-green-300'
+                        : 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                    }`}>
+                      {(selectedItem as AccountTaxCode).category}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Payment Method Details */}
+              {selectedItemType === 'payment-methods' && (
+                <div className="space-y-6">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <label className="text-sm font-medium text-blue-900 mb-1 block">Payment Method</label>
+                    <p className="text-2xl font-semibold text-blue-700">{(selectedItem as PaymentMethod).method}</p>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">Description</label>
+                    <p className="text-gray-900 whitespace-pre-wrap">{(selectedItem as PaymentMethod).description}</p>
+                  </div>
+
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <label className="text-sm font-medium text-purple-900 mb-2 block">Preferred For</label>
+                    <span className="inline-block px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold border-2 border-purple-300">
+                      {(selectedItem as PaymentMethod).preferred}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedItem(null);
+                  setSelectedItemType(null);
+                }}
+                className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

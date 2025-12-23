@@ -79,6 +79,11 @@ export default function TaxConfigurationPage() {
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: TabType } | null>(null);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Detail modal states
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<IftaRate | SalesTaxRule | PayrollTaxFormula | VendorTax | null>(null);
+  const [selectedItemType, setSelectedItemType] = useState<TabType | null>(null);
 
   // Data states
   const [iftaRates, setIftaRates] = useState<IftaRate[]>([]);
@@ -459,11 +464,19 @@ export default function TaxConfigurationPage() {
                   </tr>
                 ) : (
                   iftaRates.map((item) => (
-                    <tr key={item._id || item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <tr 
+                      key={item._id || item.id} 
+                      className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setSelectedItemType('ifta');
+                        setShowDetailModal(true);
+                      }}
+                    >
                       <td className="px-4 py-3 text-sm text-slate-700">{item.jurisdiction}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">${item.rate}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">{item.effectiveDate}</td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -502,7 +515,15 @@ export default function TaxConfigurationPage() {
                   </tr>
                 ) : (
                   salesTaxRules.map((item) => (
-                    <tr key={item._id || item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <tr 
+                      key={item._id || item.id} 
+                      className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setSelectedItemType('sales');
+                        setShowDetailModal(true);
+                      }}
+                    >
                       <td className="px-4 py-3 text-sm text-slate-700">{item.name}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">{item.type}</td>
                       <td className="px-4 py-3 text-sm">
@@ -510,7 +531,7 @@ export default function TaxConfigurationPage() {
                           {item.qbSync ? 'Enabled' : 'Disabled'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -549,7 +570,15 @@ export default function TaxConfigurationPage() {
                   </tr>
                 ) : (
                   payrollFormulas.map((item) => (
-                    <tr key={item._id || item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <tr 
+                      key={item._id || item.id} 
+                      className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setSelectedItemType('payroll');
+                        setShowDetailModal(true);
+                      }}
+                    >
                       <td className="px-4 py-3 text-sm text-slate-700">{item.bracket}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">{item.rate}</td>
                       <td className="px-4 py-3 text-sm">
@@ -557,7 +586,7 @@ export default function TaxConfigurationPage() {
                           {item.classification}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -597,12 +626,20 @@ export default function TaxConfigurationPage() {
                   </tr>
                 ) : (
                   vendorTaxes.map((item) => (
-                    <tr key={item._id || item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <tr 
+                      key={item._id || item.id} 
+                      className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setSelectedItemType('vendor');
+                        setShowDetailModal(true);
+                      }}
+                    >
                       <td className="px-4 py-3 text-sm text-slate-700">{item.taxName}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">{item.rate}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">{item.payableAccount}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">{item.expenseAccount}</td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -956,6 +993,150 @@ export default function TaxConfigurationPage() {
                 }}
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail View Modal */}
+      {showDetailModal && selectedItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {selectedItemType === 'ifta' && 'IFTA Rate Details'}
+                {selectedItemType === 'sales' && 'Sales Tax Rule Details'}
+                {selectedItemType === 'payroll' && 'Payroll Tax Formula Details'}
+                {selectedItemType === 'vendor' && 'Vendor Tax Details'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedItem(null);
+                  setSelectedItemType(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* IFTA Rate Details */}
+              {selectedItemType === 'ifta' && (
+                <div className="space-y-6">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <label className="text-sm font-medium text-blue-900 mb-1 block">Jurisdiction (State/Province)</label>
+                    <p className="text-2xl font-semibold text-blue-700">{(selectedItem as IftaRate).jurisdiction}</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Fuel Tax Rate</label>
+                      <p className="text-3xl font-bold text-green-700">${(selectedItem as IftaRate).rate}/gal</p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-1 block">Effective Date</label>
+                      <p className="text-xl font-semibold text-purple-700">{(selectedItem as IftaRate).effectiveDate}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sales Tax Rule Details */}
+              {selectedItemType === 'sales' && (
+                <div className="space-y-6">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <label className="text-sm font-medium text-blue-900 mb-1 block">Rule Name</label>
+                    <p className="text-2xl font-semibold text-blue-700">{(selectedItem as SalesTaxRule).name}</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-2 block">Tax Type</label>
+                      <span className="inline-block px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold border-2 border-purple-300">
+                        {(selectedItem as SalesTaxRule).type}
+                      </span>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-2 block">QuickBooks Sync</label>
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
+                        (selectedItem as SalesTaxRule).qbSync 
+                          ? 'bg-green-100 text-green-800 border-green-300' 
+                          : 'bg-red-100 text-red-800 border-red-300'
+                      }`}>
+                        {(selectedItem as SalesTaxRule).qbSync ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Payroll Tax Formula Details */}
+              {selectedItemType === 'payroll' && (
+                <div className="space-y-6">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <label className="text-sm font-medium text-blue-900 mb-1 block">Income Tax Bracket</label>
+                    <p className="text-2xl font-semibold text-blue-700">{(selectedItem as PayrollTaxFormula).bracket}</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Tax Rate</label>
+                      <p className="text-3xl font-bold text-green-700">{(selectedItem as PayrollTaxFormula).rate}%</p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-2 block">Classification</label>
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
+                        (selectedItem as PayrollTaxFormula).classification === 'Employee'
+                          ? 'bg-blue-100 text-blue-800 border-blue-300'
+                          : 'bg-purple-100 text-purple-800 border-purple-300'
+                      }`}>
+                        {(selectedItem as PayrollTaxFormula).classification}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Vendor Tax Details */}
+              {selectedItemType === 'vendor' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-900 mb-1 block">Tax Rate Name</label>
+                      <p className="text-xl font-semibold text-blue-700">{(selectedItem as VendorTax).taxName}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Rate</label>
+                      <p className="text-2xl font-bold text-green-700">{(selectedItem as VendorTax).rate}%</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <label className="text-sm font-medium text-purple-900 mb-1 block">Tax Payable Account</label>
+                    <p className="text-lg font-semibold text-purple-700">{(selectedItem as VendorTax).payableAccount}</p>
+                  </div>
+
+                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                    <label className="text-sm font-medium text-indigo-900 mb-1 block">Tax Expense Account</label>
+                    <p className="text-lg font-semibold text-indigo-700">{(selectedItem as VendorTax).expenseAccount}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedItem(null);
+                  setSelectedItemType(null);
+                }}
+                className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+              >
+                Close
               </button>
             </div>
           </div>

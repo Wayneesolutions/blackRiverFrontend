@@ -83,6 +83,11 @@ export default function ReceiptsFinancialNotes() {
   const [loadingReceiptUrl, setLoadingReceiptUrl] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'receipt' | 'note' } | null>(null);
+  
+  // Detail modal states (separate from view modal)
+  const [showRowDetailModal, setShowRowDetailModal] = useState(false);
+  const [selectedRowItem, setSelectedRowItem] = useState<ReceiptData | FinancialNoteData | null>(null);
+  const [selectedRowType, setSelectedRowType] = useState<'receipt' | 'note' | null>(null);
 
   // Form data
   const [receiptFormData, setReceiptFormData] = useState({
@@ -729,7 +734,15 @@ export default function ReceiptsFinancialNotes() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredReceipts.map(receipt => (
-                      <tr key={receipt._id} className="hover:bg-gray-50">
+                      <tr 
+                        key={receipt._id} 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedRowItem(receipt);
+                          setSelectedRowType('receipt');
+                          setShowRowDetailModal(true);
+                        }}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-lg text-2xl">
                             {receipt.thumbnail || '🧾'}
@@ -773,7 +786,7 @@ export default function ReceiptsFinancialNotes() {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewReceipt(receipt)}
@@ -834,7 +847,15 @@ export default function ReceiptsFinancialNotes() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredNotes.map(note => (
-                      <tr key={note._id} className="hover:bg-gray-50">
+                      <tr 
+                        key={note._id} 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedRowItem(note);
+                          setSelectedRowType('note');
+                          setShowRowDetailModal(true);
+                        }}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-gray-400" />
@@ -865,7 +886,7 @@ export default function ReceiptsFinancialNotes() {
                             <span className="text-gray-400 text-xs">No link</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewNote(note)}
@@ -1223,6 +1244,154 @@ export default function ReceiptsFinancialNotes() {
                 className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Row Detail Modal */}
+      {showRowDetailModal && selectedRowItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {selectedRowType === 'receipt' && 'Receipt Details'}
+                {selectedRowType === 'note' && 'Financial Note Details'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowRowDetailModal(false);
+                  setSelectedRowItem(null);
+                  setSelectedRowType(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Receipt Details */}
+              {selectedRowType === 'receipt' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-900 mb-1 block">Date</label>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-blue-600" />
+                        <p className="text-lg font-semibold text-blue-700">{(selectedRowItem as ReceiptData).date}</p>
+                      </div>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Amount</label>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-5 h-5 text-green-600" />
+                        <p className="text-2xl font-bold text-green-700">${(selectedRowItem as ReceiptData).amount.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">Payee/Vendor</label>
+                    <div className="flex items-center gap-2">
+                      <User className="w-5 h-5 text-gray-600" />
+                      <p className="text-lg font-semibold text-gray-900">{(selectedRowItem as ReceiptData).payeeVendor}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <label className="text-sm font-medium text-purple-900 mb-2 block">Expense Type</label>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
+                      (selectedRowItem as ReceiptData).expenseType === 'Fuel' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                      (selectedRowItem as ReceiptData).expenseType === 'Repair' ? 'bg-orange-100 text-orange-800 border-orange-300' :
+                      (selectedRowItem as ReceiptData).expenseType === 'Permit Fees' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                      (selectedRowItem as ReceiptData).expenseType === 'Scales' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                      'bg-green-100 text-green-800 border-green-300'
+                    }`}>
+                      {(selectedRowItem as ReceiptData).expenseType}
+                    </span>
+                  </div>
+
+                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                    <label className="text-sm font-medium text-indigo-900 mb-2 block">File Information</label>
+                    <div className="flex items-center gap-3">
+                      <Paperclip className="w-5 h-5 text-indigo-600" />
+                      <div>
+                        <p className="text-sm font-medium text-indigo-900">{(selectedRowItem as ReceiptData).fileName || 'receipt'}</p>
+                        {(selectedRowItem as ReceiptData).fileType && (
+                          <span className="inline-block mt-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium">
+                            {(selectedRowItem as ReceiptData).fileType}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {(selectedRowItem as ReceiptData).uploadedBy && (
+                    <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                      <label className="text-sm font-medium text-amber-900 mb-1 block">Uploaded By</label>
+                      <p className="text-gray-900">{(selectedRowItem as ReceiptData).uploadedBy?.name || (selectedRowItem as ReceiptData).uploadedBy?.email}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Financial Note Details */}
+              {selectedRowType === 'note' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-900 mb-1 block">Date & Time</label>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-blue-600" />
+                        <p className="text-sm font-semibold text-blue-700">{(selectedRowItem as FinancialNoteData).date}</p>
+                      </div>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-1 block">Created By</label>
+                      <div className="flex items-center gap-2">
+                        <User className="w-5 h-5 text-purple-600" />
+                        <p className="text-lg font-semibold text-purple-700">{(selectedRowItem as FinancialNoteData).user}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <label className="text-sm font-medium text-green-900 mb-1 block">Note Title</label>
+                    <p className="text-xl font-semibold text-green-700">{(selectedRowItem as FinancialNoteData).noteTitle}</p>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Note Content</label>
+                    <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{(selectedRowItem as FinancialNoteData).noteContent}</p>
+                  </div>
+
+                  {(selectedRowItem as FinancialNoteData).linkedTransaction && (
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                      <label className="text-sm font-medium text-indigo-900 mb-2 block">Linked Transaction</label>
+                      <div className="flex items-center gap-3">
+                        <Tag className="w-5 h-5 text-indigo-600" />
+                        <span className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold border-2 border-indigo-300">
+                          {(selectedRowItem as FinancialNoteData).linkedTransaction}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+              <button
+                onClick={() => {
+                  setShowRowDetailModal(false);
+                  setSelectedRowItem(null);
+                  setSelectedRowType(null);
+                }}
+                className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+              >
+                Close
               </button>
             </div>
           </div>

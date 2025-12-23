@@ -552,7 +552,7 @@ const HazardControl = () => {
                                 </tr>
                             ) : (
                                 filteredHazards.map((hazard) => (
-                                    <tr key={hazard._id} className="hover:bg-blue-50/30 transition-colors group">
+                                    <tr key={hazard._id} onClick={() => setSelectedHazard(hazard)} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <div className="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{hazard.hazardId}</div>
                                             <div className="text-[10px] text-gray-500">{hazard.dateReported ? new Date(hazard.dateReported).toLocaleDateString() : 'N/A'}</div>
@@ -606,7 +606,10 @@ const HazardControl = () => {
                                                     className="p-1.5 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
                                                     style={{ color: CUSTOM_COLORS.primary }}
                                                     title="View Details"
-                                                    onClick={() => setSelectedHazard(hazard)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedHazard(hazard);
+                                                    }}
                                                 >
                                                     <FaEye size={12} />
                                                 </button>
@@ -614,7 +617,8 @@ const HazardControl = () => {
                                                     className="p-1.5 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
                                                     style={{ color: CUSTOM_COLORS.primary }}
                                                     title="Edit"
-                                                    onClick={() => {
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         setEditingHazard(hazard);
                                                         setSidebarType('hazard');
                                                         setShowSidebar(true);
@@ -625,7 +629,10 @@ const HazardControl = () => {
                                                 <button
                                                     className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-100"
                                                     title="Delete"
-                                                    onClick={() => handleDeleteHazard(hazard._id)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteHazard(hazard._id);
+                                                    }}
                                                 >
                                                     <FaTrash size={12} />
                                                 </button>
@@ -681,7 +688,7 @@ const HazardControl = () => {
                                 </tr>
                             ) : (
                                 observations.map((observation) => (
-                                    <tr key={observation._id} className="hover:bg-blue-50/30 transition-colors group">
+                                    <tr key={observation._id} onClick={() => setSelectedHazard(observation as any)} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <div className="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{observation.observationId}</div>
                                             <div className="text-[10px] text-gray-500">{new Date(observation.date).toLocaleDateString()}</div>
@@ -708,14 +715,18 @@ const HazardControl = () => {
                                                     className="p-1.5 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
                                                     style={{ color: CUSTOM_COLORS.primary }}
                                                     title="View Details"
-                                                    onClick={() => setSelectedHazard(observation as any)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedHazard(observation as any);
+                                                    }}
                                                 >
                                                     <FaEye size={12} />
                                                 </button>
                                                 <button
                                                     className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-100"
                                                     title="Delete"
-                                                    onClick={() => {
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         setItemToDelete(observation._id);
                                                         setDeleteType('observation');
                                                         setShowDeleteModal(true);
@@ -790,7 +801,7 @@ const HazardControl = () => {
                                     </tr>
                                 ) : (
                                     filteredTruckingHazards.map((hazard) => (
-                                        <tr key={hazard._id} className="hover:bg-blue-50/30 transition-colors group">
+                                        <tr key={hazard._id} onClick={() => setSelectedHazard(hazard as any)} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 <div className="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{hazard.hazardId}</div>
                                                 <div className="text-[10px] text-gray-500">{new Date(hazard.dateReported).toLocaleDateString()}</div>
@@ -818,7 +829,8 @@ const HazardControl = () => {
                                                     <button
                                                         className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
                                                         title="Edit"
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setEditingHazard(hazard);
                                                             setNewTruckingHazard({ truckingType: '', description: '', location: '', reporter: '', severity: 'Medium' });
                                                             setSidebarType('trucking-hazard');
@@ -830,7 +842,8 @@ const HazardControl = () => {
                                                     <button
                                                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-100"
                                                         title="Delete"
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setItemToDelete(hazard._id);
                                                             setDeleteType('trucking-hazard');
                                                             setShowDeleteModal(true);

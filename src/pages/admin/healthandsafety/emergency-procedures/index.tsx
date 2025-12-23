@@ -187,6 +187,8 @@ const EmergencyProcedures: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteItemType, setDeleteItemType] = useState<'contact' | 'procedure' | 'firstaid' | null>(null);
   const [itemToDelete, setItemToDelete] = useState<any | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedFirstAidLog, setSelectedFirstAidLog] = useState<FirstAidLog | null>(null);
 
   const addNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
     const id = Date.now();
@@ -878,7 +880,14 @@ const EmergencyProcedures: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {firstAidLogs.map((log) => (
-                <tr key={log._id} className="hover:bg-gray-50 transition">
+                <tr 
+                  key={log._id} 
+                  onClick={() => {
+                    setSelectedFirstAidLog(log);
+                    setShowDetailModal(true);
+                  }}
+                  className="hover:bg-gray-50 transition cursor-pointer"
+                >
                   <td className="px-6 py-4 text-sm">
                     <div className="font-medium text-gray-900">{new Date(log.date).toLocaleDateString()}</div>
                     <div className="text-gray-500 text-xs">{log.time}</div>
@@ -907,7 +916,8 @@ const EmergencyProcedures: React.FC = () => {
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setEditingFirstAid(log);
                           setNewFirstAidLog({
                             date: log.date,
@@ -927,7 +937,8 @@ const EmergencyProcedures: React.FC = () => {
                         <FaEdit />
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setItemToDelete(log);
                           setDeleteItemType('firstaid');
                           setShowDeleteModal(true);
@@ -1256,6 +1267,100 @@ const EmergencyProcedures: React.FC = () => {
                 className="flex-1 px-4 py-3 bg-red-600 !text-white rounded-xl font-semibold hover:bg-red-700 transition shadow-lg shadow-red-200"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* First Aid Log Detail Modal */}
+      {showDetailModal && selectedFirstAidLog && (
+        <div className="fixed inset-0 z-[10003] flex justify-center items-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 z-10 px-6 py-4 border-b flex justify-between items-center" style={{ background: CUSTOM_COLORS.gradient }}>
+              <h2 className="text-xl font-bold text-white">First Aid Log Details</h2>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="text-white hover:bg-white/20 p-2 rounded-lg transition"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</label>
+                  <div className="mt-1 text-base text-gray-900 font-medium">
+                    {new Date(selectedFirstAidLog.date).toLocaleDateString()}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Time</label>
+                  <div className="mt-1 text-base text-gray-900 font-medium">{selectedFirstAidLog.time}</div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</label>
+                <div className="mt-1 text-base text-gray-900 flex items-center gap-2">
+                  <FaMapMarkerAlt className="text-gray-400" />
+                  {selectedFirstAidLog.location}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Injured Person</label>
+                  <div className="mt-1 text-base text-gray-900 font-medium">{selectedFirstAidLog.injuredPerson}</div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Treated By</label>
+                  <div className="mt-1 text-base text-gray-900 font-medium">{selectedFirstAidLog.treatedBy}</div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Injury Description</label>
+                <div className="mt-1 text-base text-gray-900 bg-gray-50 p-4 rounded-lg">
+                  {selectedFirstAidLog.injuryDescription}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">First Aid Provided</label>
+                <div className="mt-1 text-base text-gray-900 bg-gray-50 p-4 rounded-lg">
+                  {selectedFirstAidLog.firstAidProvided}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Follow-up Required</label>
+                <div className="mt-1">
+                  {selectedFirstAidLog.followUpRequired ? (
+                    <span className="px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
+                      Yes - Follow-up Required
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
+                      No Follow-up Needed
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {selectedFirstAidLog.relatedIncident && (
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Related Incident</label>
+                  <div className="mt-1 text-base text-gray-900 font-medium">{selectedFirstAidLog.relatedIncident}</div>
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition font-semibold"
+              >
+                Close
               </button>
             </div>
           </div>

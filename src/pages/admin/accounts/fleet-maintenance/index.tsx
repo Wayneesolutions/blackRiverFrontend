@@ -137,6 +137,11 @@ export default function FleetMaintenanceFinance() {
   const [editingPlan, setEditingPlan] = useState<MaintenancePlanItem | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'parts' | 'labor' | 'plan' } | null>(null);
+  
+  // Detail modal states
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ExpenseSummaryItem | PartsCostLogItem | LaborRateItem | MaintenancePlanItem | null>(null);
+  const [selectedItemType, setSelectedItemType] = useState<'expense' | 'parts' | 'labor' | 'plan' | null>(null);
 
   // Form data
   const [partsFormData, setPartsFormData] = useState({
@@ -812,7 +817,15 @@ export default function FleetMaintenanceFinance() {
                     </tr>
                   ) : (
                     expenseSummary.map((expense, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50">
+                      <tr 
+                        key={idx} 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedItem(expense);
+                          setSelectedItemType('expense');
+                          setShowDetailModal(true);
+                        }}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{expense.vehicle}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${expense.totalExpense.toLocaleString()}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${expense.costPerMile.toFixed(2)}/mi</td>
@@ -826,7 +839,7 @@ export default function FleetMaintenanceFinance() {
                             ))}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="View Details">
                               <FileText className="w-4 h-4" />
@@ -867,7 +880,15 @@ export default function FleetMaintenanceFinance() {
                     </tr>
                   ) : (
                     partsCostLog.map((part) => (
-                      <tr key={part._id || part.id} className="hover:bg-gray-50">
+                      <tr 
+                        key={part._id || part.id} 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedItem(part);
+                          setSelectedItemType('parts');
+                          setShowDetailModal(true);
+                        }}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{part.partNumber}</td>
                         <td className="px-6 py-4 text-sm text-gray-900">{part.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${part.unitCost.toFixed(2)}</td>
@@ -879,7 +900,7 @@ export default function FleetMaintenanceFinance() {
                             {part.vehicle}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button onClick={() => handleEditParts(part)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
                               <Edit className="w-4 h-4" />
@@ -917,7 +938,15 @@ export default function FleetMaintenanceFinance() {
                     </tr>
                   ) : (
                     laborRates.map((rate) => (
-                      <tr key={rate._id || rate.id} className="hover:bg-gray-50">
+                      <tr 
+                        key={rate._id || rate.id} 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedItem(rate);
+                          setSelectedItemType('labor');
+                          setShowDetailModal(true);
+                        }}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{rate.rateType}</td>
                         <td className="px-6 py-4 text-sm text-gray-600">{rate.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${rate.rate.toFixed(2)}/hr</td>
@@ -927,7 +956,7 @@ export default function FleetMaintenanceFinance() {
                             {rate.isActive ? 'Active' : 'Inactive'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button onClick={() => handleEditLabor(rate)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
                               <Edit className="w-4 h-4" />
@@ -967,7 +996,15 @@ export default function FleetMaintenanceFinance() {
                     </tr>
                   ) : (
                     maintenancePlans.map((plan) => (
-                      <tr key={plan._id || plan.id} className="hover:bg-gray-50">
+                      <tr 
+                        key={plan._id || plan.id} 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedItem(plan);
+                          setSelectedItemType('plan');
+                          setShowDetailModal(true);
+                        }}
+                      >
                         <td className="px-6 py-4 text-sm font-medium text-gray-900">{plan.planName}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium">{plan.vehicle}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${plan.plannedCost.toLocaleString()}</td>
@@ -991,7 +1028,7 @@ export default function FleetMaintenanceFinance() {
                             {plan.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="View Report">
                               <FileText className="w-4 h-4" />
@@ -1370,6 +1407,230 @@ export default function FleetMaintenanceFinance() {
                 className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail View Modal */}
+      {showDetailModal && selectedItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {selectedItemType === 'expense' && 'Maintenance Expense Details'}
+                {selectedItemType === 'parts' && 'Parts Cost Log Details'}
+                {selectedItemType === 'labor' && 'Labor Rate Details'}
+                {selectedItemType === 'plan' && 'Maintenance Plan Details'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedItem(null);
+                  setSelectedItemType(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Expense Summary Details */}
+              {selectedItemType === 'expense' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-900 mb-1 block">Vehicle</label>
+                      <p className="text-lg font-semibold text-blue-700">{(selectedItem as ExpenseSummaryItem).vehicle}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Total Maintenance Expense</label>
+                      <p className="text-2xl font-bold text-green-700">${(selectedItem as ExpenseSummaryItem).totalExpense.toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">Cost per Mile/KM</label>
+                    <p className="text-xl font-semibold text-gray-900">${(selectedItem as ExpenseSummaryItem).costPerMile.toFixed(2)}/mi</p>
+                  </div>
+
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <label className="text-sm font-medium text-purple-900 mb-2 block">Breakdown by Type</label>
+                    <p className="text-gray-700">{(selectedItem as ExpenseSummaryItem).breakdown}</p>
+                  </div>
+
+                  <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <label className="text-sm font-medium text-orange-900 mb-3 block">Top 5 Expense Types</label>
+                    <div className="flex flex-wrap gap-2">
+                      {(selectedItem as ExpenseSummaryItem).topExpenses.map((type, idx) => (
+                        <span key={idx} className="px-3 py-2 bg-orange-100 text-orange-800 rounded-full text-sm font-medium border border-orange-300">
+                          {type}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Parts Cost Log Details */}
+              {selectedItemType === 'parts' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-900 mb-1 block">Part Number</label>
+                      <p className="text-lg font-semibold text-blue-700">{(selectedItem as PartsCostLogItem).partNumber}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Vehicle Assigned To</label>
+                      <p className="text-lg font-semibold text-green-700">{(selectedItem as PartsCostLogItem).vehicle}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">Description</label>
+                    <p className="text-gray-900">{(selectedItem as PartsCostLogItem).description}</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-1 block">Unit Cost</label>
+                      <p className="text-xl font-semibold text-purple-700">${(selectedItem as PartsCostLogItem).unitCost.toFixed(2)}</p>
+                    </div>
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                      <label className="text-sm font-medium text-indigo-900 mb-1 block">Quantity</label>
+                      <p className="text-xl font-semibold text-indigo-700">{(selectedItem as PartsCostLogItem).quantity}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Total Cost</label>
+                      <p className="text-xl font-bold text-green-700">
+                        ${((selectedItem as PartsCostLogItem).totalCost || ((selectedItem as PartsCostLogItem).unitCost * (selectedItem as PartsCostLogItem).quantity)).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <label className="text-sm font-medium text-blue-900 mb-1 block">Date of Use</label>
+                    <p className="text-lg font-semibold text-blue-700">{(selectedItem as PartsCostLogItem).dateOfUse}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Labor Rate Details */}
+              {selectedItemType === 'labor' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-900 mb-1 block">Rate Type</label>
+                      <p className="text-lg font-semibold text-blue-700">{(selectedItem as LaborRateItem).rateType}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Rate (per hour)</label>
+                      <p className="text-2xl font-bold text-green-700">${(selectedItem as LaborRateItem).rate.toFixed(2)}/hr</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">Description</label>
+                    <p className="text-gray-900">{(selectedItem as LaborRateItem).description}</p>
+                  </div>
+
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <label className="text-sm font-medium text-purple-900 mb-2 block">Status</label>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
+                      (selectedItem as LaborRateItem).isActive 
+                        ? 'bg-green-100 text-green-800 border-2 border-green-300' 
+                        : 'bg-gray-100 text-gray-800 border-2 border-gray-300'
+                    }`}>
+                      {(selectedItem as LaborRateItem).isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Maintenance Plan Details */}
+              {selectedItemType === 'plan' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-900 mb-1 block">Plan Name</label>
+                      <p className="text-lg font-semibold text-blue-700">{(selectedItem as MaintenancePlanItem).planName}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Vehicle</label>
+                      <p className="text-lg font-semibold text-green-700">{(selectedItem as MaintenancePlanItem).vehicle}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-1 block">Planned Cost</label>
+                      <p className="text-xl font-semibold text-purple-700">${(selectedItem as MaintenancePlanItem).plannedCost.toLocaleString()}</p>
+                    </div>
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                      <label className="text-sm font-medium text-indigo-900 mb-1 block">Actual Cost</label>
+                      <p className="text-xl font-semibold text-indigo-700">
+                        {(selectedItem as MaintenancePlanItem).actualCost > 0 
+                          ? `$${(selectedItem as MaintenancePlanItem).actualCost.toLocaleString()}` 
+                          : 'Not yet completed'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={`p-4 rounded-lg border-2 ${
+                    (selectedItem as MaintenancePlanItem).variance > 0 
+                      ? 'bg-red-50 border-red-300' 
+                      : (selectedItem as MaintenancePlanItem).variance < 0
+                      ? 'bg-green-50 border-green-300'
+                      : 'bg-gray-50 border-gray-300'
+                  }`}>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">Variance</label>
+                    <p className={`text-2xl font-bold ${
+                      (selectedItem as MaintenancePlanItem).variance > 0 
+                        ? 'text-red-700' 
+                        : (selectedItem as MaintenancePlanItem).variance < 0
+                        ? 'text-green-700'
+                        : 'text-gray-700'
+                    }`}>
+                      {(selectedItem as MaintenancePlanItem).variance !== 0 
+                        ? `${(selectedItem as MaintenancePlanItem).variance > 0 ? '+' : ''}$${(selectedItem as MaintenancePlanItem).variance.toLocaleString()}`
+                        : 'No variance'}
+                    </p>
+                    {(selectedItem as MaintenancePlanItem).variance > 0 && (
+                      <p className="text-sm text-red-600 mt-1">Over budget</p>
+                    )}
+                    {(selectedItem as MaintenancePlanItem).variance < 0 && (
+                      <p className="text-sm text-green-600 mt-1">Under budget</p>
+                    )}
+                  </div>
+
+                  <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <label className="text-sm font-medium text-orange-900 mb-2 block">Status</label>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
+                      (selectedItem as MaintenancePlanItem).status === 'Completed' 
+                        ? 'bg-green-100 text-green-800 border-green-300' 
+                        : (selectedItem as MaintenancePlanItem).status === 'In Progress'
+                        ? 'bg-blue-100 text-blue-800 border-blue-300'
+                        : 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                    }`}>
+                      {(selectedItem as MaintenancePlanItem).status}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedItem(null);
+                  setSelectedItemType(null);
+                }}
+                className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+              >
+                Close
               </button>
             </div>
           </div>

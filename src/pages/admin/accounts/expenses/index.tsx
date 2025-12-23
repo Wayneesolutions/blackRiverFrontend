@@ -648,7 +648,11 @@ const ExpensesPage = () => {
                 ) : (
                   <div className="space-y-4">
                     {filteredExpenses.map((expense) => (
-                      <div key={expense._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div 
+                        key={expense._id} 
+                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => handleView(expense)}
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="text-2xl">{getTypeIcon(expense.type)}</div>
@@ -681,7 +685,7 @@ const ExpensesPage = () => {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             <button
                               onClick={() => handleView(expense)}
                               className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
