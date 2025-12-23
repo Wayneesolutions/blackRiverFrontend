@@ -116,7 +116,8 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
             setIsOpen(true);
             setIsMinimized(false);
           }}
-          className="mb-4 mr-4 p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 hover:scale-110 flex items-center justify-center"
+          className="mb-4 mr-4 p-4 !text-white rounded-full shadow-lg  transition-all duration-200 hover:scale-110 flex items-center justify-center"
+          style={{ background: '#00C2A6' }}
           title="Open AI Assistant"
         >
           <Bot className="w-6 h-6" />
@@ -132,7 +133,9 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
           style={{ marginBottom: '0', marginRight: '16px' }}
         >
           {/* Header */}
-          <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-xl flex items-center justify-between">
+          <div className="flex-shrink-0  text-white p-4 rounded-t-xl flex items-center justify-between"
+          style={{ background: '#00C2A6' }}
+          >
             <div className="flex items-center gap-2">
               <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
                 <Bot className="w-5 h-5" />
@@ -228,7 +231,8 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                   <button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isLoading}
-                    className="p-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0"
+                    className="p-2.5  !text-white rounded-xl  disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0"
+                    style={{ background: '#00C2A6' }}
                     title="Send message"
                   >
                     {isLoading ? (
