@@ -56,10 +56,12 @@ const ComplianceInvoices = () => {
   const pageSize = 50;
   const [showInvoiceDetails, setShowInvoiceDetails] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<MechanicInvoice | null>(null);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
+
+ 
 
   // Fetch invoices from API
   useEffect(() => {
@@ -167,8 +169,8 @@ const ComplianceInvoices = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -312,8 +314,8 @@ const ComplianceInvoices = () => {
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="relative w-full mx-auto p-2">
 
-        <div className="relative z-10 px-4 pt-3 pb-6">
-          <div className="mb-4 relative z-10">
+        <div className="relative px-4 pt-3 pb-6" style={{ zIndex: showInvoiceDetails ? 0 : 10 }}>
+          <div className="mb-4 relative">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-black">Fleet Invoices</h1>
@@ -443,10 +445,10 @@ const ComplianceInvoices = () => {
                 display: none; /* Chrome, Safari, Opera */
               }
             `}</style>
-            <div 
+            <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
+              style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
                 scrollbarWidth: 'thin',
@@ -456,7 +458,7 @@ const ComplianceInvoices = () => {
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
             </div>
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
+            <div
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
@@ -487,8 +489,8 @@ const ComplianceInvoices = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredInvoices.map((invoice) => (
-                    <tr 
-                      key={invoice.id} 
+                    <tr
+                      key={invoice.id}
                       className="hover:bg-gray-50 cursor-pointer transition-colors"
                       onClick={() => {
                         setSelectedInvoice(invoice);
@@ -580,9 +582,9 @@ const ComplianceInvoices = () => {
           {/* Invoice Details Sidebar */}
           {showInvoiceDetails && selectedInvoice && (
             <>
-              {/* Overlay */}
               <div
-                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity"
+                style={{ zIndex: 99999 }}
                 onClick={() => {
                   setShowInvoiceDetails(false);
                   setTimeout(() => setSelectedInvoice(null), 300);
@@ -591,7 +593,8 @@ const ComplianceInvoices = () => {
 
               {/* Sidebar Panel */}
               <div
-    className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+                className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl overflow-y-auto transform transition-transform duration-300 translate-x-0"
+                style={{ zIndex: 100000 }}
               >
                 <div className="p-6">
                   {/* Header */}

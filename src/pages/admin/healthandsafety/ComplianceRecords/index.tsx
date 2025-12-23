@@ -611,7 +611,14 @@ const EnhancedComplianceRecords: React.FC = () => {
                     const complianceColor = getComplianceColor(record.complianceLevel);
 
                     return (
-                      <tr key={record._id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <tr 
+                        key={record._id} 
+                        onClick={() => {
+                          setSelectedRecord(record);
+                          setShowSidebar(true);
+                        }}
+                        className="border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
+                      >
                         <td className="px-6 py-4 font-medium">{record.recordId}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
@@ -677,7 +684,8 @@ const EnhancedComplianceRecords: React.FC = () => {
                             <button
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                               title="View Details"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setSelectedRecord(record);
                                 setShowSidebar(true);
                               }}

@@ -745,7 +745,8 @@ const IncidentManagement: React.FC = () => {
                   return (
                     <tr
                       key={incident._id}
-                      className="hover:bg-blue-50/30 transition-colors group"
+                      onClick={() => setSelectedIncidentForDetail(incident)}
+                      className="hover:bg-blue-50/30 transition-colors group cursor-pointer"
                     >
                       <td className="px-4 py-3">
                         <span className="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
@@ -823,14 +824,20 @@ const IncidentManagement: React.FC = () => {
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center gap-1">
                           <button
-                            onClick={() => setSelectedIncidentForDetail(incident)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedIncidentForDetail(incident);
+                            }}
                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="View Details"
                           >
                             <FaEye size={12} />
                           </button>
                           <button
-                            onClick={() => handleDeleteIncident(incident._id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteIncident(incident._id);
+                            }}
                             className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
                             title="Delete"
                           >

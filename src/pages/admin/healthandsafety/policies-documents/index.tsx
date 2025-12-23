@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   FaFileAlt,
   FaPlus,
@@ -114,6 +114,10 @@ const PolicyManagementModule = () => {
   const [showAcknowledgmentModal, setShowAcknowledgmentModal] = useState(false);
   const [showVersionHistoryModal, setShowVersionHistoryModal] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
+
+  // Refs for dual scrollbar
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
 
   const CUSTOM_COLORS = {
     background: '#EDF8FF',
@@ -799,7 +803,33 @@ const PolicyManagementModule = () => {
 
       {/* Policies Table - Version Control & Renewal Tracking */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Top Scrollbar */}
+        <div 
+          ref={topScrollRef}
+          className="overflow-x-auto overflow-y-hidden"
+          style={{ height: '17px' }}
+          onScroll={() => {
+            if (topScrollRef.current && bottomScrollRef.current) {
+              bottomScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+            }
+          }}
+        >
+          <div style={{ width: 'fit-content', minWidth: '100%', height: '1px' }}>
+            {/* Spacer to create scrollable width - matches table width */}
+            <div style={{ width: '1400px', height: '1px' }}></div>
+          </div>
+        </div>
+        
+        {/* Main Table with Bottom Scrollbar */}
+        <div 
+          ref={bottomScrollRef}
+          className="overflow-x-auto"
+          onScroll={() => {
+            if (topScrollRef.current && bottomScrollRef.current) {
+              topScrollRef.current.scrollLeft = bottomScrollRef.current.scrollLeft;
+            }
+          }}
+        >
           <table className="w-full">
             <thead style={{ background: CUSTOM_COLORS.gradient }}>
               <tr>
@@ -824,7 +854,14 @@ const PolicyManagementModule = () => {
                 </tr>
               ) : (
                 filteredPolicies.map((policy) => (
-                  <tr key={policy._id} className="border-b border-gray-200 hover:bg-gray-50">
+                  <tr 
+                    key={policy._id} 
+                    onClick={() => {
+                      setSelectedPolicy(policy);
+                      setShowVersionHistoryModal(true);
+                    }}
+                    className="border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
+                  >
                     <td className="px-6 py-4 font-medium">{policy.policyNumber || 'N/A'}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 font-medium">
@@ -904,7 +941,8 @@ const PolicyManagementModule = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedPolicy(policy);
                             setShowVersionHistoryModal(true);
                           }}
@@ -914,7 +952,8 @@ const PolicyManagementModule = () => {
                           <FaSyncAlt />
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedPolicy(policy);
                             setShowAcknowledgmentModal(true);
                           }}
@@ -924,7 +963,10 @@ const PolicyManagementModule = () => {
                           <FaClipboardCheck />
                         </button>
                         <button
-                          onClick={() => handleDownloadPolicy(policy, 'inline')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadPolicy(policy, 'inline');
+                          }}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                           title="View Policy"
                           disabled={!policy.fileUrl}
@@ -932,7 +974,10 @@ const PolicyManagementModule = () => {
                           <FaEye />
                         </button>
                         <button
-                          onClick={() => handleDownloadPolicy(policy, 'attachment')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadPolicy(policy, 'attachment');
+                          }}
                           className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
                           title="Download Policy"
                           disabled={!policy.fileUrl}

@@ -572,33 +572,7 @@ const ReportsAnalytics = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
-                            title="Download PDF"
-                            onClick={() => {
-                              if (report.fileUrl) {
-                                window.open(report.fileUrl, '_blank');
-                              } else {
-                                showNotification('info', 'Report file not available yet');
-                              }
-                            }}
-                          >
-                            <FaFilePdf />
-                          </button>
-                          <button
-                            className="p-2 hover:bg-blue-50 rounded-lg transition"
-                            style={{ color: CUSTOM_COLORS.primary }}
-                            title="Download Excel"
-                            onClick={() => {
-                              if (report.fileUrl) {
-                                window.open(report.fileUrl, '_blank');
-                              } else {
-                                showNotification('info', 'Report file not available yet');
-                              }
-                            }}
-                          >
-                            <FaFileExcel />
-                          </button>
+                      
                           <button
                             onClick={() => handleDeleteReport(report._id)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
@@ -673,18 +647,7 @@ const ReportsAnalytics = () => {
                     <option value="yearly">Yearly</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">File Type *</label>
-                  <select
-                    value={generateFormData.fileType}
-                    onChange={(e) => setGenerateFormData({ ...generateFormData, fileType: e.target.value })}
-                    required
-                    className="w-full border border-gray-300 p-2 rounded-lg"
-                  >
-                    <option value="pdf">PDF</option>
-                    <option value="excel">Excel</option>
-                  </select>
-                </div>
+              
                 <div className="flex justify-end gap-4 pt-4 border-t">
                   <button
                     type="button"
@@ -696,7 +659,7 @@ const ReportsAnalytics = () => {
                   <button
                     type="submit"
                     disabled={generateLoading}
-                    className="px-4 py-2 rounded-lg text-white disabled:opacity-50"
+                    className="px-4 py-2 rounded-lg !text-white disabled:opacity-50"
                     style={{ background: CUSTOM_COLORS.gradient }}
                   >
                     {generateLoading ? 'Generating...' : 'Generate'}

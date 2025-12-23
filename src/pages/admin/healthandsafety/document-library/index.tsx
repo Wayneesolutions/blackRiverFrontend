@@ -365,7 +365,14 @@ const DocumentLibrary: React.FC = () => {
                   </tr>
                 ) : (
                   filteredDocuments.map((doc) => (
-                    <tr key={doc._id} className="hover:bg-gray-50 transition">
+                    <tr 
+                      key={doc._id} 
+                      onClick={() => {
+                        setSelectedDocument(doc);
+                        setShowDetailModal(true);
+                      }}
+                      className="hover:bg-gray-50 transition cursor-pointer"
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           {getFileIcon(doc.documentType)}
@@ -436,7 +443,8 @@ const DocumentLibrary: React.FC = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setSelectedDocument(doc);
                               setShowDetailModal(true);
                             }}
@@ -446,7 +454,8 @@ const DocumentLibrary: React.FC = () => {
                             <FaEye />
                           </button>
                           <button
-                            onClick={async () => {
+                            onClick={async (e) => {
+                              e.stopPropagation();
                               try {
                                 const result = await getDocumentSignedUrl(doc._id, 'attachment');
                                 if (result.success && result.signedUrl) {
@@ -463,7 +472,10 @@ const DocumentLibrary: React.FC = () => {
                             <FaDownload />
                           </button>
                           <button
-                            onClick={() => handleDeleteDocument(doc)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteDocument(doc);
+                            }}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete"
                           >
                             <FaTrash />

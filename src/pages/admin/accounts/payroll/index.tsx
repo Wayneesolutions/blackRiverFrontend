@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, Building2, Sparkles, Clock, CalendarCheck } from 'lucide-react';
 import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, deleteAllPayrolls, generateAutomatedPayroll, bulkAIGenerateAllPayrolls } from "../../../../axios/api/account.payroll";
 import { listAttendance } from "../../../../axios/api/attendance";
@@ -145,6 +145,9 @@ interface Notification {
 }
 
 const PayrollManagement = () => {
+    const topScrollRef = useRef<HTMLDivElement>(null);
+    const bottomScrollRef = useRef<HTMLDivElement>(null);
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -329,6 +332,50 @@ const PayrollManagement = () => {
 
         return () => clearTimeout(timeoutId);
     }, [searchTerm]);
+
+    // Synchronize scrollbars for payroll table
+    useEffect(() => {
+        const topScroll = topScrollRef.current;
+        const bottomScroll = bottomScrollRef.current;
+
+        if (!topScroll || !bottomScroll) return;
+
+        const handleTopScroll = () => {
+            if (bottomScroll) {
+                bottomScroll.scrollLeft = topScroll.scrollLeft;
+            }
+        };
+
+        const handleBottomScroll = () => {
+            if (topScroll) {
+                topScroll.scrollLeft = bottomScroll.scrollLeft;
+            }
+        };
+
+        topScroll.addEventListener('scroll', handleTopScroll);
+        bottomScroll.addEventListener('scroll', handleBottomScroll);
+
+        // Set the width of top scrollbar content to match table width
+        const updateScrollWidth = () => {
+            const table = bottomScroll.querySelector('table');
+            const scrollContent = topScroll.querySelector('.top-scroll-content');
+            if (table && scrollContent) {
+                (scrollContent as HTMLElement).style.width = `${table.scrollWidth}px`;
+            }
+        };
+
+        updateScrollWidth();
+        
+        // Update scroll width when window resizes or data changes
+        const resizeObserver = new ResizeObserver(updateScrollWidth);
+        if (bottomScroll) resizeObserver.observe(bottomScroll);
+
+        return () => {
+            topScroll.removeEventListener('scroll', handleTopScroll);
+            bottomScroll.removeEventListener('scroll', handleBottomScroll);
+            resizeObserver.disconnect();
+        };
+    }, [payrollData]);
 
     // Fetch attendance data for selected employee and date range
     const fetchAttendance = async (employeeId: string, startDate: string, endDate: string) => {
@@ -1178,17 +1225,75 @@ const PayrollManagement = () => {
                     <div className="p-6 border-b border-gray-200">
                         <h2 className="text-xl font-bold text-gray-900">Payroll Records</h2>
                     </div>
-                    <div className="overflow-x-auto">
-                        {loading ? (
-                            <div className="flex justify-center items-center py-12">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    
+                    {loading ? (
+                        <div className="flex justify-center items-center py-12">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        </div>
+                    ) : filteredPayrolls.length === 0 ? (
+                        <div className="text-center py-12 text-gray-500">
+                            No payroll records found
+                        </div>
+                    ) : (
+                        <div className="bg-white rounded-lg overflow-hidden">
+                            {/* Top Scrollbar - Only visible horizontal scrollbar */}
+                            <style>{`
+                                .top-scrollbar-container {
+                                    overflow-x: auto;
+                                    overflow-y: hidden;
+                                }
+                                .top-scrollbar-container::-webkit-scrollbar {
+                                    height: 10px;
+                                }
+                                .top-scrollbar-container::-webkit-scrollbar-track {
+                                    background: #f7fafc;
+                                    border-radius: 5px;
+                                }
+                                .top-scrollbar-container::-webkit-scrollbar-thumb {
+                                    background: #42aeec;
+                                    border-radius: 5px;
+                                }
+                                .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                                    background: #0ea3d8;
+                                }
+                                .table-container-with-scrollbar {
+                                    overflow-x: auto;
+                                    overflow-y: visible;
+                                }
+                                .table-container-with-scrollbar::-webkit-scrollbar {
+                                    height: 10px;
+                                }
+                                .table-container-with-scrollbar::-webkit-scrollbar-track {
+                                    background: #f7fafc;
+                                    border-radius: 5px;
+                                }
+                                .table-container-with-scrollbar::-webkit-scrollbar-thumb {
+                                    background: #42aeec;
+                                    border-radius: 5px;
+                                }
+                                .table-container-with-scrollbar::-webkit-scrollbar-thumb:hover {
+                                    background: #0ea3d8;
+                                }
+                            `}</style>
+                            <div
+                                ref={topScrollRef}
+                                className="top-scrollbar-container"
+                                style={{
+                                    height: '20px',
+                                    marginBottom: '8px',
+                                    paddingTop: '8px',
+                                    scrollbarWidth: 'thin',
+                                    scrollbarColor: '#42aeec #f7fafc'
+                                }}
+                            >
+                                <div className="top-scroll-content" style={{ height: '1px', minWidth: '100%' }}></div>
                             </div>
-                        ) : filteredPayrolls.length === 0 ? (
-                            <div className="text-center py-12 text-gray-500">
-                                No payroll records found
-                            </div>
-                        ) : (
-                            <table className="w-full">
+                            {/* Main Table with visible scrollbar */}
+                            <div
+                                ref={bottomScrollRef}
+                                className="table-container-with-scrollbar"
+                            >
+                                <table className="w-full">
                                 <thead className="bg-gray-50">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1220,7 +1325,11 @@ const PayrollManagement = () => {
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {filteredPayrolls.map((payroll) => {
                                         return (
-                                            <tr key={payroll._id} className="hover:bg-gray-50">
+                                            <tr 
+                                                key={payroll._id} 
+                                                className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                                onClick={() => openViewModal(payroll)}
+                                            >
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
                                                         <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium bg-blue-500">
@@ -1258,7 +1367,7 @@ const PayrollManagement = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     {new Date(payroll.payDate).toLocaleDateString()}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                                                     <div className="flex items-center justify-end gap-1">
                                                         <button
                                                             onClick={() => openViewModal(payroll)}
@@ -1288,8 +1397,9 @@ const PayrollManagement = () => {
                                     })}
                                 </tbody>
                             </table>
-                        )}
-                    </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {(showCreateModal || showEditModal) && (

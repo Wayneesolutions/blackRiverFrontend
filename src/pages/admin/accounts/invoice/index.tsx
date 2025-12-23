@@ -1109,7 +1109,14 @@ const InvoiceManagement: React.FC = () => {
                                 const ordersCount = trip?.orders?.length || 0;
 
                                 return (
-                                    <tr key={invoice._id} className="hover:bg-gray-50">
+                                    <tr 
+                                        key={invoice._id} 
+                                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                        onClick={() => {
+                                            setSelectedInvoice(invoice);
+                                            setActiveTab('view');
+                                        }}
+                                    >
                                         <td className="py-4 px-6">
                                             <div className="flex items-center">
                                                 <FileText className="h-4 w-4 text-gray-400 mr-2" />
@@ -1163,7 +1170,7 @@ const InvoiceManagement: React.FC = () => {
                                                 {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                                             </span>
                                         </td>
-                                        <td className="py-4 px-6">
+                                        <td className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => {
