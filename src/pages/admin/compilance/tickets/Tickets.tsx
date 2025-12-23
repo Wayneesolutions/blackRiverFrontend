@@ -199,6 +199,11 @@ const Tickets: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
+  
+  // Refs for scrollbar synchronization
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+  
   const [activeTab, setActiveTab] = useState<'usa' | 'canada' | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -423,6 +428,78 @@ const Tickets: React.FC = () => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, statusFilter]);
+
+  // Sync scroll between top and bottom scrollbars
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    let isScrolling = false;
+
+    const handleTopScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      bottomScroll.scrollLeft = topScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    const handleBottomScroll = () => {
+      if (isScrolling) return;
+      isScrolling = true;
+      topScroll.scrollLeft = bottomScroll.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+
+    // Sync scroll widths
+    const syncScrollWidths = () => {
+      const bottomScrollWidth = bottomScroll.scrollWidth;
+      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
+      if (topInner && bottomScrollWidth > 0) {
+        topInner.style.width = `${bottomScrollWidth}px`;
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+      }
+    };
+
+    // Initial sync - wait for table to render
+    const timeoutId = setTimeout(syncScrollWidths, 100);
+    const timeoutId2 = setTimeout(syncScrollWidths, 300);
+    const timeoutId3 = setTimeout(syncScrollWidths, 500);
+
+    // Observe table changes
+    const tableObserver = new MutationObserver(() => {
+      syncScrollWidths();
+    });
+
+    const bottomTable = bottomScroll.querySelector('table');
+    if (bottomTable) {
+      tableObserver.observe(bottomTable, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
+    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
+    window.addEventListener('resize', syncScrollWidths);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      tableObserver.disconnect();
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+      window.removeEventListener('resize', syncScrollWidths);
+    };
+  }, [filteredTickets, currentPage]);
 
   // Debounce search
   useEffect(() => {
@@ -1107,8 +1184,48 @@ const Tickets: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[1400px]">
+              <style>{`
+                .top-scrollbar-container::-webkit-scrollbar {
+                  height: 8px;
+                }
+                .top-scrollbar-container::-webkit-scrollbar-track {
+                  background: #f7fafc;
+                }
+                .top-scrollbar-container::-webkit-scrollbar-thumb {
+                  background: #cbd5e0;
+                  border-radius: 4px;
+                }
+                .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+                  background: #a0aec0;
+                }
+                .table-container-hidden-scrollbar {
+                  scrollbar-width: none; /* Firefox */
+                  -ms-overflow-style: none; /* IE and Edge */
+                }
+                .table-container-hidden-scrollbar::-webkit-scrollbar {
+                  display: none; /* Chrome, Safari, Opera */
+                }
+              `}</style>
+              <div className="relative">
+                {/* Top Scrollbar - Only visible horizontal scrollbar */}
+                <div 
+                  ref={topScrollRef}
+                  className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+                  style={{ 
+                    maxHeight: '20px',
+                    marginBottom: '2px',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                  }}
+                >
+                  <div className="top-scroll-content" style={{ height: '1px' }}></div>
+                </div>
+                {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
+                <div 
+                  ref={bottomScrollRef}
+                  className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+                >
+                  <table className="w-full min-w-[1400px]">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
@@ -1190,7 +1307,11 @@ const Tickets: React.FC = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredTickets.map((ticket) => (
-                      <tr key={ticket._id} className="hover:bg-gray-50">
+                      <tr 
+                        key={ticket._id} 
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleViewTicket(ticket)}
+                      >
                         <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-white z-10">
                           <div className="text-sm font-medium text-gray-900">
                             {ticket.ticketNumber || 'N/A'}
@@ -1311,7 +1432,7 @@ const Tickets: React.FC = () => {
                             {ticket.dueDate ? formatDate(ticket.dueDate) : 'N/A'}
                           </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-10">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-10" onClick={(e) => e.stopPropagation()}>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleViewTicket(ticket)}
@@ -1339,7 +1460,8 @@ const Tickets: React.FC = () => {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                  </table>
+                </div>
               </div>
 
               {/* Pagination Controls */}
@@ -2313,33 +2435,34 @@ const Tickets: React.FC = () => {
           </div>
         )}
 
-        {/* View Ticket Modal */}
+        {/* View Ticket Sidebar */}
         {showViewModal && selectedTicket && (
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
+          <>
+            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-300" onClick={() => setShowViewModal(false)} />
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white shadow-2xl transform transition-transform duration-300 ease-out z-[101] border-l border-gray-200 overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b px-4 py-3 z-10">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-gray-800">
-                    Ticket Details: {selectedTicket.ticketNumber}
+                  <h3 className="text-base font-bold text-gray-800">
+                    {selectedTicket.ticketNumber}
                   </h3>
-                  <button onClick={() => setShowViewModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <FaTimesCircle className="text-gray-500" size={20} />
+                  <button onClick={() => setShowViewModal(false)} className="p-1.5 hover:bg-gray-100 rounded transition-colors">
+                    <FaTimesCircle className="text-gray-500" size={18} />
                   </button>
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-3 space-y-2">
                 {/* Ticket Overview */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h4 className="text-lg font-bold text-gray-800 mb-4">Ticket Information</h4>
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <h4 className="text-sm font-bold text-gray-800 mb-2">Ticket Info</h4>
+                  <div className="grid grid-cols-1 gap-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Ticket Number</label>
-                      <p className="text-lg font-semibold text-gray-800">{selectedTicket.ticketNumber}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Ticket Number</label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedTicket.ticketNumber}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Country</label>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${selectedTicket.country === 'usa'
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Country</label>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${selectedTicket.country === 'usa'
                         ? 'bg-blue-100 text-blue-800'
                         : 'bg-red-100 text-red-800'
                         }`}>
@@ -2347,121 +2470,121 @@ const Tickets: React.FC = () => {
                       </span>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Violation Type</label>
-                      <p className="text-lg font-semibold text-gray-800">{selectedTicket.violationType}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Violation Type</label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedTicket.violationType}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Amount</label>
-                      <p className="text-lg font-semibold text-gray-800">
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Amount</label>
+                      <p className="text-sm font-semibold text-gray-800">
                         {formatCurrency(selectedTicket.amount)}
                         {selectedTicket.finalAmount && selectedTicket.finalAmount !== selectedTicket.amount && (
-                          <span className="text-green-600 text-sm ml-2">(Final: {formatCurrency(selectedTicket.finalAmount)})</span>
+                          <span className="text-green-600 text-xs ml-2">(Final: {formatCurrency(selectedTicket.finalAmount)})</span>
                         )}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Status</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Status</label>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(selectedTicket.status)}
-                        <span className={`text-sm px-3 py-1 rounded-full font-semibold border ${getStatusBadgeColor(selectedTicket.status)}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${getStatusBadgeColor(selectedTicket.status)}`}>
                           {selectedTicket.status === 'fight' ? 'ON FIGHT' : selectedTicket.status.toUpperCase()}
                         </span>
                       </div>
                     </div>
                     {selectedTicket.outcome && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Outcome</label>
-                        <p className="text-lg font-semibold text-gray-800 capitalize">{selectedTicket.outcome}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Outcome</label>
+                        <p className="text-sm font-semibold text-gray-800 capitalize">{selectedTicket.outcome}</p>
                       </div>
                     )}
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Date Issued</label>
-                      <p className="text-lg font-semibold text-gray-800">{formatDate(selectedTicket.dateIssued)}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Date Issued</label>
+                      <p className="text-sm font-semibold text-gray-800">{formatDate(selectedTicket.dateIssued)}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Due Date</label>
-                      <p className="text-lg font-semibold text-gray-800">{formatDate(selectedTicket.dueDate)}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Due Date</label>
+                      <p className="text-sm font-semibold text-gray-800">{formatDate(selectedTicket.dueDate)}</p>
                     </div>
                     {selectedTicket.courtDate && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Court Date</label>
-                        <p className="text-lg font-semibold text-gray-800">{formatDate(selectedTicket.courtDate)}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Court Date</label>
+                        <p className="text-sm font-semibold text-gray-800">{formatDate(selectedTicket.courtDate)}</p>
                       </div>
                     )}
                     {selectedTicket.fightingBy && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Fighting By</label>
-                        <p className="text-lg font-semibold text-gray-800 capitalize">{selectedTicket.fightingBy}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Fighting By</label>
+                        <p className="text-sm font-semibold text-gray-800 capitalize">{selectedTicket.fightingBy}</p>
                       </div>
                     )}
-                  </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      {selectedTicket.country === 'canada' ? 'Province' : 'State'}
-                    </label>
-                    <p className="text-lg font-semibold text-gray-800">{selectedTicket.location}</p>
-                  </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Violation Description</label>
-                    <p className="text-gray-800">{selectedTicket.violationDescription}</p>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                        {selectedTicket.country === 'canada' ? 'Province' : 'State'}
+                      </label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedTicket.location}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Description</label>
+                      <p className="text-xs text-gray-800">{selectedTicket.violationDescription}</p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Driver & Vehicle Info */}
-                <div className="bg-blue-50 rounded-xl p-6">
-                  <h4 className="text-lg font-bold text-gray-800 mb-4">Driver & Vehicle Information</h4>
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <h4 className="text-xs font-bold text-gray-800 mb-2">Driver & Vehicle</h4>
+                  <div className="grid grid-cols-1 gap-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Driver</label>
-                      <p className="text-lg font-semibold text-gray-800">{getDriverName(selectedTicket.driver)}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Driver</label>
+                      <p className="text-sm font-semibold text-gray-800">{getDriverName(selectedTicket.driver)}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Vehicle</label>
-                      <p className="text-lg font-semibold text-gray-800">{getVehicleInfo(selectedTicket.vehicle)}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Vehicle</label>
+                      <p className="text-sm font-semibold text-gray-800">{getVehicleInfo(selectedTicket.vehicle)}</p>
                     </div>
                     {selectedTicket.unitNumber && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Unit Number</label>
-                        <p className="text-lg font-semibold text-gray-800">{selectedTicket.unitNumber}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Unit Number</label>
+                        <p className="text-sm font-semibold text-gray-800">{selectedTicket.unitNumber}</p>
                       </div>
                     )}
                     {selectedTicket.trailerNumber && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Trailer Number</label>
-                        <p className="text-lg font-semibold text-gray-800">{selectedTicket.trailerNumber}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Trailer Number</label>
+                        <p className="text-sm font-semibold text-gray-800">{selectedTicket.trailerNumber}</p>
                       </div>
                     )}
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Officer</label>
-                      <p className="text-lg font-semibold text-gray-800">{selectedTicket.officerName}</p>
+                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Officer</label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedTicket.officerName}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Payment Information - Only show if status is 'paid' */}
                 {selectedTicket.status === 'paid' && (
-                  <div className="bg-green-50 rounded-xl p-6 border border-green-200">
-                    <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                      <FaCheckCircle className="text-green-600" size={20} />
-                      Payment Information
+                  <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                    <h4 className="text-xs font-bold text-gray-800 mb-2 flex items-center gap-1">
+                      <FaCheckCircle className="text-green-600" size={14} />
+                      Payment Info
                     </h4>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-2">
                       {selectedTicket.paidDate && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Paid Date</label>
-                          <p className="text-lg font-semibold text-gray-800">{formatDate(selectedTicket.paidDate)}</p>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Paid Date</label>
+                          <p className="text-sm font-semibold text-gray-800">{formatDate(selectedTicket.paidDate)}</p>
                         </div>
                       )}
                       {selectedTicket.paymentMethod && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Payment Method</label>
-                          <p className="text-lg font-semibold text-gray-800">{formatPaymentMethod(selectedTicket.paymentMethod)}</p>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Payment Method</label>
+                          <p className="text-sm font-semibold text-gray-800">{formatPaymentMethod(selectedTicket.paymentMethod)}</p>
                         </div>
                       )}
                       {selectedTicket.paymentReference && (
-                        <div className="col-span-2">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Payment Reference</label>
-                          <p className="text-lg font-semibold text-gray-800">{selectedTicket.paymentReference}</p>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Payment Reference</label>
+                          <p className="text-sm font-semibold text-gray-800">{selectedTicket.paymentReference}</p>
                         </div>
                       )}
                     </div>
@@ -2470,42 +2593,42 @@ const Tickets: React.FC = () => {
 
                 {/* Lawyer Details - Only show if status is 'fight' */}
                 {selectedTicket.status === 'fight' && selectedTicket.lawyerDetails && (
-                  <div className="bg-orange-50 rounded-xl p-6 border border-orange-200">
-                    <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                      <FaGavel className="text-orange-600" size={20} />
-                      Lawyer Information
+                  <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
+                    <h4 className="text-xs font-bold text-gray-800 mb-2 flex items-center gap-1">
+                      <FaGavel className="text-orange-600" size={14} />
+                      Lawyer Info
                     </h4>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Lawyer Name</label>
-                        <p className="text-lg font-semibold text-gray-800">{selectedTicket.lawyerDetails.name}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Lawyer Name</label>
+                        <p className="text-sm font-semibold text-gray-800">{selectedTicket.lawyerDetails.name}</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Firm</label>
-                        <p className="text-lg font-semibold text-gray-800">{selectedTicket.lawyerDetails.firm}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Firm</label>
+                        <p className="text-sm font-semibold text-gray-800">{selectedTicket.lawyerDetails.firm}</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Phone</label>
-                        <p className="text-lg font-semibold text-gray-800">{selectedTicket.lawyerDetails.phone}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Phone</label>
+                        <p className="text-sm font-semibold text-gray-800">{selectedTicket.lawyerDetails.phone}</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
-                        <p className="text-lg font-semibold text-gray-800">{selectedTicket.lawyerDetails.email}</p>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Email</label>
+                        <p className="text-sm font-semibold text-gray-800">{selectedTicket.lawyerDetails.email}</p>
                       </div>
-                      <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Address</label>
-                        <p className="text-lg font-semibold text-gray-800">{selectedTicket.lawyerDetails.address}</p>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Address</label>
+                        <p className="text-sm font-semibold text-gray-800">{selectedTicket.lawyerDetails.address}</p>
                       </div>
                       {selectedTicket.lawyerDetails.caseNumber && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Case Number</label>
-                          <p className="text-lg font-semibold text-gray-800">{selectedTicket.lawyerDetails.caseNumber}</p>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Case Number</label>
+                          <p className="text-sm font-semibold text-gray-800">{selectedTicket.lawyerDetails.caseNumber}</p>
                         </div>
                       )}
                       {selectedTicket.lawyerDetails.courtDate && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Court Date</label>
-                          <p className="text-lg font-semibold text-gray-800">{formatDate(selectedTicket.lawyerDetails.courtDate)}</p>
+                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Court Date</label>
+                          <p className="text-sm font-semibold text-gray-800">{formatDate(selectedTicket.lawyerDetails.courtDate)}</p>
                         </div>
                       )}
                     </div>
@@ -2514,18 +2637,18 @@ const Tickets: React.FC = () => {
 
                 {/* Notes */}
                 {selectedTicket.notes && (
-                  <div className="bg-yellow-50 rounded-xl p-6">
-                    <h4 className="text-lg font-bold text-gray-800 mb-4">Notes</h4>
-                    <p className="text-gray-800">{selectedTicket.notes}</p>
+                  <div className="bg-yellow-50 rounded-lg p-3">
+                    <h4 className="text-xs font-bold text-gray-800 mb-2">Notes</h4>
+                    <p className="text-xs text-gray-800">{selectedTicket.notes}</p>
                   </div>
                 )}
               </div>
 
-              <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
-                <button onClick={() => setShowViewModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Close</button>
+              <div className="sticky bottom-0 bg-gray-50 px-3 py-2 flex justify-end gap-2 border-t">
+                <button onClick={() => setShowViewModal(false)} className="px-4 py-1.5 text-xs bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 font-medium transition-colors">Close</button>
               </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Delete Confirmation Modal */}
