@@ -320,6 +320,29 @@ const EmployeesPage = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedStatus, activeTab]);
 
+  // Calculate total pages whenever data changes
+  useEffect(() => {
+    const currentData = activeTab === 'employees' ? employees : activeTab === 'contacts' ? contacts : customers;
+    const total = currentData.length;
+    const pages = Math.ceil(total / itemsPerPage) || 1;
+    
+    setTotalPages(pages);
+    
+    // Update total counts
+    if (activeTab === 'employees') {
+      setTotalEmployees(total);
+    } else if (activeTab === 'contacts') {
+      setTotalContacts(total);
+    } else {
+      setTotalCustomers(total);
+    }
+    
+    // If current page is beyond total pages, reset to last page
+    if (currentPage > pages) {
+      setCurrentPage(pages);
+    }
+  }, [employees, contacts, customers, activeTab, itemsPerPage, currentPage]);
+
   // Fetch data based on active tab
   useEffect(() => {
     if (activeTab === 'employees') {
@@ -1067,9 +1090,9 @@ const EmployeesPage = () => {
   };
 
   return (
-    <div className="flex h-screen bg-[#EDF8FF] overflow-hidden">
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${showAddModal ? 'mr-[800px]' : ''} overflow-hidden`}>
-        <div className="flex-1 flex flex-col overflow-hidden p-8" style={{ ...ACCENT_VARS, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+    <div className="flex min-h-screen bg-[#EDF8FF]">
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${showAddModal ? 'mr-[800px]' : ''}`}>
+        <div className="flex-1 flex flex-col p-8" style={ACCENT_VARS}>
           {/* Notifications Container */}
           <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
             {notifications.map(notification => (
@@ -1285,7 +1308,7 @@ const EmployeesPage = () => {
           </div>
 
           {/* Table */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col" style={{ maxHeight: 'calc(100vh - 350px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
             <style>{`
               .top-scrollbar-container::-webkit-scrollbar {
@@ -1345,10 +1368,7 @@ const EmployeesPage = () => {
               ref={bottomScrollRef}
               className="table-wrapper"
               style={{
-                overflowY: 'auto',
-                overflowX: 'auto',
-                maxHeight: 'calc(100vh - 450px)',
-                minHeight: '400px'
+                overflowX: 'auto'
               }}
             >
               <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '1200px' }}>
@@ -1398,8 +1418,12 @@ const EmployeesPage = () => {
                       );
                     }
                     
+                    // Paginate the data
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    const endIndex = startIndex + itemsPerPage;
+                    const paginatedData = currentData.slice(startIndex, endIndex);
                     
-                    return currentData.map((employee, index) => {
+                    return paginatedData.map((employee, index) => {
                       // Use a unique key combining _id and index to prevent React key conflicts
                       const uniqueKey = `${employee._id}-${index}-${employee.role}`;
                       return (
@@ -1516,28 +1540,22 @@ const EmployeesPage = () => {
             </div>
             
             {/* Pagination - Always show if there's data */}
-            {((activeTab === 'employees' && totalEmployees > 0) || 
-              (activeTab === 'contacts' && totalContacts > 0) || 
-              (activeTab === 'customers' && totalCustomers > 0)) && (
+            {(() => {
+              const currentData = activeTab === 'employees' ? employees : activeTab === 'contacts' ? contacts : customers;
+              const totalCount = currentData.length;
+              
+              if (totalCount === 0) return null;
+              
+              const startItem = (currentPage - 1) * itemsPerPage + 1;
+              const endItem = Math.min(currentPage * itemsPerPage, totalCount);
+              
+              return (
               <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-700">
-                    Showing <span className="font-semibold">
-                      {(currentPage - 1) * itemsPerPage + 1}
-                    </span> to{' '}
-                    <span className="font-semibold">
-                      {Math.min(
-                        currentPage * itemsPerPage,
-                        activeTab === 'employees' ? totalEmployees :
-                        activeTab === 'contacts' ? totalContacts :
-                        totalCustomers
-                      )}
-                    </span>{' '}
-                    of <span className="font-semibold">
-                      {activeTab === 'employees' ? totalEmployees :
-                       activeTab === 'contacts' ? totalContacts :
-                       totalCustomers}
-                    </span>{' '}
+                    Showing <span className="font-semibold">{startItem}</span> to{' '}
+                    <span className="font-semibold">{endItem}</span> of{' '}
+                    <span className="font-semibold">{totalCount}</span>{' '}
                     {activeTab === 'employees' && 'employees'}
                     {activeTab === 'contacts' && 'contacts'}
                     {activeTab === 'customers' && 'customers'}
@@ -1596,7 +1614,8 @@ const EmployeesPage = () => {
                   </button>
                 </div>
               </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       </div>

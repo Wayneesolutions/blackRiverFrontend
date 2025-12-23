@@ -65,6 +65,16 @@ export const deletePayroll = async (id: string) => {
     }
 };
 
+export const deleteAllPayrolls = async () => {
+    try {
+        const res: AxiosResponse = await apiClient.delete(`hr/delete-all-payrolls`);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
 
 export const getDriverCompletedLoads = async (driverId: string, startDate?: string, endDate?: string) => {
     try {

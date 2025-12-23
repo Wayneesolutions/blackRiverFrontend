@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, Building2, Sparkles, Clock, CalendarCheck } from 'lucide-react';
-import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, generateAutomatedPayroll, bulkAIGenerateAllPayrolls } from "../../../../axios/api/account.payroll";
+import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, deleteAllPayrolls, generateAutomatedPayroll, bulkAIGenerateAllPayrolls } from "../../../../axios/api/account.payroll";
 import { listAttendance } from "../../../../axios/api/attendance";
 
 interface Employee {
@@ -661,6 +661,26 @@ const PayrollManagement = () => {
         }
     };
 
+    const handleDeleteAll = async () => {
+        setLoading(true);
+
+        try {
+            const response = await deleteAllPayrolls();
+
+            if (response?.success) {
+                showNotification('success', response.message || 'All payrolls deleted successfully!');
+                setShowDeleteAllModal(false);
+                fetchPayrolls();
+            } else {
+                showNotification('error', response?.message || 'Failed to delete all payrolls');
+            }
+        } catch (error) {
+            showNotification('error', 'Error deleting all payrolls');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const openViewModal = (payroll: Payroll) => {
         setSelectedPayroll(payroll);
         setShowViewModal(true);
@@ -1046,6 +1066,15 @@ const PayrollManagement = () => {
                         <p className="text-gray-600 mt-2">Manage employee salaries and payroll records</p>
                     </div>
                     <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowDeleteAllModal(true)}
+                            disabled={payrollData.length === 0}
+                            className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            style={{ background: 'linear-gradient(90deg, #ef4444 0%, #dc2626 40%, #b91c1c 100%)' }}
+                        >
+                            <Trash2 size={16} />
+                            Delete All
+                        </button>
                         <button
                             onClick={() => setShowBulkAIModal(true)}
                             className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all font-medium flex items-center gap-2"
@@ -2493,8 +2522,15 @@ const PayrollManagement = () => {
                                                                 </td>
                                                                 <td className="px-4 py-3">
                                                                     <div className="text-xs space-y-1">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <span className="text-green-600">P: {payroll.attendance?.presentDays || 0}</span>
+                                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                                            <span className="text-green-600 font-medium">
+                                                                                W: {(payroll.attendance?.workedDays || (payroll.attendance?.presentDays || 0) + (payroll.attendance?.lateDays || 0))}
+                                                                            </span>
+                                                                            {(payroll.attendance?.lateDays || 0) > 0 && (
+                                                                                <span className="text-yellow-600 text-[10px]">
+                                                                                    (P:{payroll.attendance?.presentDays || 0}, L:{payroll.attendance?.lateDays})
+                                                                                </span>
+                                                                            )}
                                                                             <span className="text-red-600">A: {payroll.attendance?.absentDays || 0}</span>
                                                                         </div>
                                                                         {payroll.attendance?.totalHours > 0 && (
@@ -2704,6 +2740,52 @@ const PayrollManagement = () => {
                                         </div>
                                     </div>
                                 )}
+
+                            {/* Delete All Confirmation Modal */}
+                            {showDeleteAllModal && (
+                                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10001]">
+                                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="p-3 bg-red-100 rounded-full">
+                                                <AlertCircle className="text-red-600" size={24} />
+                                            </div>
+                                            <h2 className="text-xl font-bold text-gray-900">Delete All Payrolls</h2>
+                                        </div>
+                                        <p className="text-gray-600 mb-2">
+                                            Are you sure you want to delete <strong>ALL {payrollData.length} payroll records</strong>?
+                                        </p>
+                                        <p className="text-sm text-red-600 font-medium mb-6">
+                                            ⚠️ This action cannot be undone!
+                                        </p>
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={() => setShowDeleteAllModal(false)}
+                                                disabled={loading}
+                                                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium disabled:opacity-50"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleDeleteAll}
+                                                disabled={loading}
+                                                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                                            >
+                                                {loading ? (
+                                                    <>
+                                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                        Deleting...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Trash2 size={16} />
+                                                        Delete All
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             </div>
                         </div>
                     </div>
