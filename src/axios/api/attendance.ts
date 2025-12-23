@@ -1,10 +1,12 @@
 import apiClient from "../apiClient";
 
-export const listAttendance = async (params?: { month?: number; year?: number; employee?: string }) => {
+export const listAttendance = async (params?: { month?: number; year?: number; employee?: string; includeActiveSessions?: boolean }) => {
   const q = new URLSearchParams();
   if (params?.month) q.set("month", String(params.month));
   if (params?.year) q.set("year", String(params.year));
   if (params?.employee) q.set("employee", params.employee);
+  // Default to true - include currently logged in users
+  q.set("includeActiveSessions", params?.includeActiveSessions !== false ? "true" : "false");
   const res = await apiClient.get(`/hr/attendance?${q.toString()}`);
   return res.data;
 };

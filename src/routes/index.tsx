@@ -10,11 +10,16 @@ import SafetyOfficerRoute from "./SafetyOfficerRoute";
 import InvoicePayment from "../pages/customer/InvoicePayment";
 import PublicRoute from "../components/auth/PublicRoute";
 import Loading from "../components/common/Loading";
+import { useInactivityTimer } from "../hooks/useInactivityTimer";
 
 const Login = lazy(() => import("../pages/admin/auth/Login"));
 const Register = lazy(() => import("../pages/admin/auth/Register"));
 
 const AppRoutes = () => {
+  // Initialize inactivity timer for automatic logout after 1 hour of inactivity
+  // This hook must be called inside Router context (which AppRoutes is)
+  useInactivityTimer();
+
   return (
 
     <Routes>

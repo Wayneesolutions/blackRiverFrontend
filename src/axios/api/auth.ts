@@ -1,80 +1,107 @@
-import type { AxiosResponse } from "axios";
-import apiClient from "../apiClient";
+import apiClient from '../apiClient';
 
-interface Error {
-  response?: {
-    data?: {
-      message: string,
-    }
-  }
-}
-
-export const login = async (data: { email: string; password: string }) => {
+/**
+ * Login API
+ */
+export const login = async (credentials: { email: string; password: string }) => {
   try {
-    const res: AxiosResponse = await apiClient.post('admin/login', data);
+    const res = await apiClient.post('/login', credentials);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return (error as Error).response?.data;
+  } catch (error: any) {
+    console.error('Login error:', error);
+    return error.response?.data || { success: false, message: 'Login failed' };
   }
 };
 
-export const registerAdmin = async (data: {
-  name: string;
-  email: string;
-  password: string;
-  phone?: string;
-  country?: string;
-  state?: string;
-  city?: string;
-  address?: string;
-  policies?: string;
-}) => {
+/**
+ * Register Admin API
+ */
+export const registerAdmin = async (data: any) => {
   try {
-    const res: AxiosResponse = await apiClient.post('admin/register', data);
+    const res = await apiClient.post('/admin/register', data);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return (error as Error).response?.data;
+  } catch (error: any) {
+    console.error('Register error:', error);
+    return error.response?.data || { success: false, message: 'Registration failed' };
   }
 };
 
-export const loginSuperAdmin = async (data: { email: string; password: string }) => {
+/**
+ * Super Admin Login API
+ */
+export const loginSuperAdmin = async (credentials: { email: string; password: string }) => {
   try {
-    const res: AxiosResponse = await apiClient.post('superadmin/login', data);
+    const res = await apiClient.post('/superadmin/login', credentials);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return (error as Error).response?.data;
+  } catch (error: any) {
+    console.error('Super admin login error:', error);
+    return error.response?.data || { success: false, message: 'Login failed' };
   }
 };
 
+/**
+ * Get Current User Profile API
+ */
 export const getCurrentUserProfile = async () => {
   try {
-    const res: AxiosResponse = await apiClient.get('admin/profile');
+    const res = await apiClient.get('/auth/me');
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return (error as Error).response?.data;
+  } catch (error: any) {
+    console.error('Get profile error:', error);
+    return error.response?.data || { success: false, message: 'Failed to get profile' };
   }
 };
 
+/**
+ * Update Current User Profile API
+ */
 export const updateCurrentUserProfile = async (data: any) => {
   try {
-    const res: AxiosResponse = await apiClient.put('admin/profile', data);
+    const res = await apiClient.put('/auth/me', data);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return (error as Error).response?.data;
+  } catch (error: any) {
+    console.error('Update profile error:', error);
+    return error.response?.data || { success: false, message: 'Failed to update profile' };
   }
 };
 
-export const changePassword = async (data: { newPassword: string }) => {
+/**
+ * Change Password API
+ */
+export const changePassword = async (data: { currentPassword: string; newPassword: string }) => {
   try {
-    const res: AxiosResponse = await apiClient.post('admin/change-password', data);
+    const res = await apiClient.put('/auth/change-password', data);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return (error as Error).response?.data;
+  } catch (error: any) {
+    console.error('Change password error:', error);
+    return error.response?.data || { success: false, message: 'Failed to change password' };
+  }
+};
+
+/**
+ * Logout API - records logout for attendance tracking
+ */
+export const logout = async () => {
+  try {
+    const res = await apiClient.post('/auth/logout');
+    return res.data;
+  } catch (error: any) {
+    // Even if API fails, we should still logout locally
+    console.error('Logout API error:', error);
+    return { success: true, message: 'Logged out' };
+  }
+};
+
+/**
+ * Auto logout API - records auto logout for attendance tracking
+ */
+export const autoLogout = async () => {
+  try {
+    const res = await apiClient.post('/auth/auto-logout');
+    return res.data;
+  } catch (error: any) {
+    // Even if API fails, we should still logout locally
+    console.error('Auto logout API error:', error);
+    return { success: true, message: 'Auto logged out' };
   }
 };

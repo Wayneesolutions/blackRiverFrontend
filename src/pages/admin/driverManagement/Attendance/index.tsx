@@ -27,6 +27,9 @@ interface AttendanceRecord {
   checkOut?: string;
   totalHours?: number;
   status: 'present' | 'absent' | 'late' | 'leave';
+  notes?: string;
+  isAutoTracked?: boolean; // True if automatically tracked from login/logout
+  isActiveSession?: boolean; // True if currently logged in
 }
 
 type NotificationType = 'success' | 'error' | 'info';
@@ -66,7 +69,8 @@ const AttendanceTracking = () => {
     date: new Date().toISOString().split('T')[0],
     checkIn: '',
     checkOut: '',
-    status: 'present' as 'present' | 'absent' | 'late' | 'leave'
+    status: 'present' as 'present' | 'absent' | 'late' | 'leave',
+    notes: ''
   });
 
   const fetchEmployees = async () => {
@@ -140,6 +144,12 @@ const AttendanceTracking = () => {
       return;
     }
 
+    // Validate notes for absent/leave status
+    if ((attendanceForm.status === 'absent' || attendanceForm.status === 'leave') && !attendanceForm.notes?.trim()) {
+      addNotification('error', 'Please provide a reason/note for absence or leave');
+      return;
+    }
+
     try {
       const payload = {
         employee: attendanceForm.employeeId,
@@ -147,6 +157,7 @@ const AttendanceTracking = () => {
         checkIn: attendanceForm.status === 'absent' || attendanceForm.status === 'leave' ? undefined : attendanceForm.checkIn,
         checkOut: attendanceForm.status === 'absent' || attendanceForm.status === 'leave' ? undefined : attendanceForm.checkOut,
         status: attendanceForm.status,
+        notes: attendanceForm.notes || undefined,
       } as any;
       const res = await apiUpsertAttendance(payload);
       if (res?.success) {
@@ -158,7 +169,8 @@ const AttendanceTracking = () => {
           date: new Date().toISOString().split('T')[0],
           checkIn: '',
           checkOut: '',
-          status: 'present'
+          status: 'present',
+          notes: ''
         });
         setShowAddModal(false);
       } else {
@@ -176,7 +188,8 @@ const AttendanceTracking = () => {
       date: (record.date || '').slice(0, 10),
       checkIn: record.checkIn || '',
       checkOut: record.checkOut || '',
-      status: record.status
+      status: record.status,
+      notes: record.notes || ''
     });
     setShowAddModal(true);
   };
@@ -499,6 +512,7 @@ const AttendanceTracking = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Check Out</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hours</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
@@ -524,35 +538,72 @@ const AttendanceTracking = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {new Date(record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.checkIn || '--'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.checkOut || '--'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{(record.totalHours || 0).toFixed(1)}h</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div className="flex items-center gap-2">
+                          {record.checkIn || '--'}
+                          {record.isAutoTracked && (
+                            <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded" title="Auto-tracked from login/logout">
+                              Auto
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div className="flex items-center gap-2">
+                          {record.checkOut || '--'}
+                          {record.isActiveSession && (
+                            <span className="text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded animate-pulse" title="Currently logged in">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {(() => {
+                          const hours = record.totalHours || 0;
+                          if (hours < 1) {
+                            // Show minutes for durations less than 1 hour
+                            const minutes = Math.round(hours * 60);
+                            return `${minutes}min`;
+                          }
+                          return `${hours.toFixed(1)}h`;
+                        })()}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(record.status)}`}>
                           {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEdit(record)}
-                            className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(record._id)}
-                            className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                      <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                        <div className="truncate" title={record.notes || '--'}>
+                          {record.notes || '--'}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        {!record.isActiveSession ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEdit(record)}
+                              className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(record._id)}
+                              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">In progress</span>
+                        )}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                       No attendance records found
                     </td>
                   </tr>
@@ -587,7 +638,8 @@ const AttendanceTracking = () => {
                       date: new Date().toISOString().split('T')[0],
                       checkIn: '',
                       checkOut: '',
-                      status: 'present'
+                      status: 'present',
+                      notes: ''
                     });
                   }}
                   className="text-gray-400 hover:text-gray-600"
@@ -673,6 +725,30 @@ const AttendanceTracking = () => {
                 </div>
               )}
 
+              {/* Notes/Remarks Field - Always visible, but especially important for absent/leave */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Notes/Remarks
+                  {(attendanceForm.status === 'absent' || attendanceForm.status === 'leave') && (
+                    <span className="text-red-500 ml-1">*</span>
+                  )}
+                </label>
+                <textarea
+                  value={attendanceForm.notes}
+                  onChange={(e) => setAttendanceForm({ ...attendanceForm, notes: e.target.value })}
+                  placeholder={
+                    attendanceForm.status === 'absent' || attendanceForm.status === 'leave'
+                      ? "Please provide reason for absence or leave..."
+                      : "Add any additional notes or remarks (optional)..."
+                  }
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+                {(attendanceForm.status === 'absent' || attendanceForm.status === 'leave') && !attendanceForm.notes && (
+                  <p className="text-xs text-red-500 mt-1">Note is required for absent or leave status</p>
+                )}
+              </div>
+
               <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={() => {
@@ -683,7 +759,8 @@ const AttendanceTracking = () => {
                       date: new Date().toISOString().split('T')[0],
                       checkIn: '',
                       checkOut: '',
-                      status: 'present'
+                      status: 'present',
+                      notes: ''
                     });
                   }}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
@@ -806,6 +883,12 @@ const AttendanceTracking = () => {
                       <div>
                         <p className="text-sm text-gray-500 mb-1">Total Hours</p>
                         <p className="font-medium text-gray-900">{(selectedRecord.totalHours || 0).toFixed(1)} hours</p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <p className="text-sm text-gray-500 mb-1">Notes/Remarks</p>
+                        <p className="font-medium text-gray-900 whitespace-pre-wrap">
+                          {selectedRecord.notes || '—'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500 mb-1">Status</p>
