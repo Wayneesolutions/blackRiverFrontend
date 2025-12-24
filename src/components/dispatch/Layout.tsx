@@ -5,6 +5,7 @@ import DispatchHeader from "./Header";
 import ExpiringDriverDocumentsPopup from "../common/ExpiringDriverDocumentsPopup";
 import { useExpiringDriverDocuments } from "../../hooks/useExpiringDriverDocuments";
 import AIChatAssistant from "../ai/AIChatAssistant";
+import GlobalChatNotifications from "../common/GlobalChatNotifications";
 
 const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -49,6 +50,9 @@ const Layout = () => {
                 daysThreshold={30}
                 showOnlyOnce={false}
             />
+            
+            {/* Global Chat Notifications - Works on ALL dispatcher pages */}
+            <GlobalChatNotifications />
             
             {/* AI Chat Assistant */}
             <AIChatAssistant />

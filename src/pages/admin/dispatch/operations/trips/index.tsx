@@ -76,15 +76,124 @@ interface Trip {
   }>;
 }
 
-type NotificationType = 'success' | 'error' | 'warning';
+type NotificationType = 'success' | 'error' | 'warning' | 'chat';
 
 interface ToastNotification {
   id: number;
   type: NotificationType;
   message: string;
+  tripId?: string;
+  tripNumber?: string;
+  driverName?: string;
 }
 
-const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+const ToastNotification = ({ notification, onClose, onChatClick }: { 
+  notification: ToastNotification; 
+  onClose: (id: number) => void;
+  onChatClick?: (tripId: string, tripNumber: string) => void;
+}) => {
+  const [progress, setProgress] = useState(100);
+  const duration = notification.type === 'chat' ? 8000 : 5000;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, duration);
+
+    // Progress bar animation
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        const decrement = (100 / duration) * 50; // Update every 50ms
+        return Math.max(0, prev - decrement);
+      });
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(progressInterval);
+    };
+  }, [notification.id, onClose, duration]);
+
+  const handleClick = () => {
+    if (notification.type === 'chat' && notification.tripId && notification.tripNumber && onChatClick) {
+      onChatClick(notification.tripId, notification.tripNumber);
+      onClose(notification.id);
+    }
+  };
+
+  // Chat notification (Advanced UI)
+  if (notification.type === 'chat') {
+    return (
+      <div 
+        onClick={handleClick}
+        className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
+        style={{
+          animation: 'slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+        }}
+      >
+        {/* Progress bar */}
+        <div className="h-1 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-100" style={{ width: `${progress}%` }}></div>
+        
+        <div className="p-5">
+          {/* Header with avatar */}
+          <div className="flex items-start gap-4">
+            {/* Driver Avatar */}
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                {notification.driverName?.charAt(0) || 'D'}
+              </div>
+              <div className="w-4 h-4 bg-green-500 rounded-full border-2 border-white absolute ml-8 -mt-3"></div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              {/* Driver Name & Trip */}
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-bold text-gray-900 text-base">
+                  {notification.driverName || 'Driver'}
+                </h4>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                  <FaTruck className="w-3 h-3" />
+                  {notification.tripNumber}
+                </span>
+              </div>
+
+              {/* Message */}
+              <p className="text-gray-700 text-sm leading-relaxed line-clamp-2 mb-3">
+                {notification.message}
+              </p>
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-blue-600 text-xs font-semibold">
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Click to reply</span>
+                </div>
+                <div className="flex-1"></div>
+                <span className="text-gray-400 text-xs">Just now</span>
+              </div>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose(notification.id);
+              }}
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Hover effect gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-purple-50/50 opacity-0 hover:opacity-100 transition-opacity pointer-events-none"></div>
+      </div>
+    );
+  }
+
+  // Standard notifications (Success, Error, Warning)
   const icons = {
     success: <FaCheckCircle className="text-green-500" size={24} />,
     error: <FaExclamationCircle className="text-red-500" size={24} />,
@@ -97,25 +206,34 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
     warning: 'bg-yellow-50 border-yellow-200',
   };
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose(notification.id);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [notification.id, onClose]);
+  const progressColors = {
+    success: 'bg-green-500',
+    error: 'bg-red-500',
+    warning: 'bg-yellow-500',
+  };
 
   return (
-    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10000] ${bgColors[notification.type]} animate-slide-in min-w-[300px] max-w-[500px]`}>
-      <div className="flex-shrink-0 mt-0.5">
-        {icons[notification.type]}
+    <div className={`fixed top-4 right-4 w-[350px] rounded-xl border-2 shadow-xl z-[10000] ${bgColors[notification.type]} animate-slide-in overflow-hidden`}>
+      {/* Progress bar */}
+      <div className={`h-1 ${progressColors[notification.type]} transition-all duration-100`} style={{ width: `${progress}%` }}></div>
+      
+      <div className="flex items-start gap-3 p-4">
+        <div className="flex-shrink-0 mt-0.5">
+          {icons[notification.type]}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-800">{notification.message}</p>
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose(notification.id);
+          }}
+          className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <FaTimes size={16} />
+        </button>
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
-      <button
-        onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <FaTimes size={16} />
-      </button>
     </div>
   );
 };
@@ -165,14 +283,42 @@ const Trips = () => {
   const [drivers, setDrivers] = useState<any[]>([]);
   const [trucks, setTrucks] = useState<any[]>([]);
 
-  const addNotification = useCallback((type: NotificationType, message: string) => {
+  const addNotification = useCallback((
+    type: NotificationType, 
+    message: string, 
+    extra?: { tripId?: string; tripNumber?: string; driverName?: string }
+  ) => {
     const id = Date.now();
-    setNotifications(prev => [...prev, { id, type, message }]);
+    setNotifications(prev => [...prev, { id, type, message, ...extra }]);
   }, []);
 
   const removeNotification = useCallback((id: number) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
+
+  const handleChatNotificationClick = useCallback((tripId: string, tripNumber: string) => {
+    // Find the trip
+    const trip = trips.find(t => t._id === tripId);
+    if (trip) {
+      setViewingTrip(trip);
+      setShowChat(true);
+      // Clear unread count for this trip when opening chat
+      setUnreadCounts(prev => ({
+        ...prev,
+        [tripId]: 0
+      }));
+    }
+  }, [trips]);
+
+  // Clear unread count when chat is opened
+  useEffect(() => {
+    if (showChat && viewingTrip) {
+      setUnreadCounts(prev => ({
+        ...prev,
+        [viewingTrip._id]: 0
+      }));
+    }
+  }, [showChat, viewingTrip]);
 
   // Reset to page 1 when filters or itemsPerPage change
   useEffect(() => {
@@ -189,6 +335,9 @@ const Trips = () => {
     fetchFiltersData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Note: Socket notifications are now handled globally by GlobalChatNotifications component
+  // This page only manages unread counts locally
 
   // Sync scroll between top and bottom scrollbars
   useEffect(() => {
@@ -1053,6 +1202,7 @@ const Trips = () => {
             key={notification.id}
             notification={notification}
             onClose={removeNotification}
+            onChatClick={handleChatNotificationClick}
           />
         ))}
       </div>

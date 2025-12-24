@@ -38,6 +38,7 @@ export const useExpiringDocuments = () => {
                 if (!loginTimestamp) {
                     // If no login timestamp, don't show alerts (wait for next login)
                     console.log('⏳ No login timestamp found - waiting for user login...');
+                    return false;
                 }
                 
                 const loginTime = parseInt(loginTimestamp, 10);
