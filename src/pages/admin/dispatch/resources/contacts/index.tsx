@@ -1132,13 +1132,13 @@ const Index = () => {
                             <p className="text-sm text-gray-500 mb-2">Customer Details</p>
                             <div className="bg-white p-4 rounded border border-gray-200 space-y-2">
                               {(selectedItem as Customer).customerDetails?.address && (
-                                <p className="text-sm"><span className="font-medium">Address:</span> {(selectedItem as Customer).customerDetails.address}</p>
+                                <p className="text-sm"><span className="font-medium">Address:</span> {(selectedItem as Customer).customerDetails?.address}</p>
                               )}
                               {(selectedItem as Customer).customerDetails?.taxId && (
-                                <p className="text-sm"><span className="font-medium">Tax ID:</span> {(selectedItem as Customer).customerDetails.taxId}</p>
+                                <p className="text-sm"><span className="font-medium">Tax ID:</span> {(selectedItem as Customer).customerDetails?.taxId}</p>
                               )}
                               {(selectedItem as Customer).customerDetails?.creditLimit && (
-                                <p className="text-sm"><span className="font-medium">Credit Limit:</span> {(selectedItem as Customer).customerDetails.creditLimit}</p>
+                                <p className="text-sm"><span className="font-medium">Credit Limit:</span> {(selectedItem as Customer).customerDetails?.creditLimit}</p>
                               )}
                             </div>
                           </div>

@@ -53,6 +53,14 @@ export interface FleetUnitDto {
   lastService?: FleetUnitServiceInfo | null;
   upcomingService?: FleetUnitServiceInfo | null;
   serviceHistory?: FleetUnitServiceInfo[];
+  documents?: Array<{
+    _id: string;
+    documentType: string;
+    documentNumber?: string;
+    expiryDate?: string;
+    issuedAt?: string;
+    status?: string;
+  }>;
 }
 
 export interface FleetUnitServiceInfo {

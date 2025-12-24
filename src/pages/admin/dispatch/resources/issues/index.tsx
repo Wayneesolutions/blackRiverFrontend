@@ -13,7 +13,6 @@ import {
   MdSearch,
   MdEdit,
   MdDelete,
-  MdVisibility,
   MdWarning,
   MdError,
   MdInfo,
@@ -55,7 +54,7 @@ const Issues: React.FC = () => {
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [loadingView, setLoadingView] = useState(false);
+  const [] = useState(false);
   const [showIssueDetails, setShowIssueDetails] = useState(false);
   const [pagination, setPagination] = useState({
     current: 1,
@@ -155,43 +154,6 @@ const Issues: React.FC = () => {
   };
 
   // View issue details
-  const handleView = async (id: string) => {
-    if (!id) {
-      console.error('No issue ID provided');
-      return;
-    }
-
-    setLoadingView(true);
-    try {
-      const response = await getIssueById(id);
-      console.log('View issue response:', response);
-
-      if (response?.success) {
-        // Handle different response structures
-        const issueData = response.issue || response.data || response;
-        if (issueData && issueData._id) {
-          setSelectedIssue(issueData);
-          setShowViewModal(true);
-        } else {
-          console.error('No issue data in response:', response);
-          alert('Failed to load issue details. Please try again.');
-        }
-      } else {
-        console.error('API returned success: false', response);
-        // Handle both old format { message: "..." } and new format { success: false, message: "..." }
-        const errorMsg = response?.message || 'Failed to load issue details. Please try again.';
-        alert(errorMsg);
-      }
-    } catch (error: any) {
-      console.error('Error fetching issue:', error);
-      // Handle error response structure
-      const errorResponse = error?.response?.data;
-      const errorMsg = errorResponse?.message || error?.message || 'Failed to load issue details. Please try again.';
-      alert(errorMsg);
-    } finally {
-      setLoadingView(false);
-    }
-  };
 
   // Get priority color
   const getPriorityColor = (priority: string) => {

@@ -20,9 +20,7 @@ import {
     FileText,
     Image as ImageIcon,
     Truck,
-    Route,
-    CheckCircle,
-    Briefcase,
+    Route
 } from 'lucide-react';
 import apiClient from '../../../../axios/apiClient';
 import { listTrip } from '../../../../axios/api/distapcher';

@@ -3,26 +3,17 @@ import {
   FaExclamationTriangle,
   FaTachometerAlt,
   FaCarCrash,
-  FaIdCard,
-  FaTruck,
   FaFilter,
   FaSync,
   FaPlus,
-  FaEdit,
   FaTrash,
-  FaEye,
-  FaDownload,
-  FaCheckCircle,
-  FaTimesCircle
-} from 'react-icons/fa';
+  FaEye} from 'react-icons/fa';
 import { message, Modal, Spin } from 'antd';
 import {
   getDriverViolations,
   getViolationStats,
   syncGeotabViolations,
-  deleteViolation,
-  updateViolation,
-  createViolation
+  deleteViolation
 } from '../../../../axios/api/violations';
 import type { DriverViolation } from '../../../../axios/api/violations';
 import { getAllEmployees } from '../../../../axios/api/employee';

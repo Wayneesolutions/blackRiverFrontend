@@ -3,6 +3,7 @@ import { io, Socket } from "socket.io-client";
 class SocketService {
   private socket: Socket | null = null;
   private isAuthenticated: boolean = false;
+  token: string | null | undefined;
 
   // Get socket instance
   getSocket(): Socket | null {
