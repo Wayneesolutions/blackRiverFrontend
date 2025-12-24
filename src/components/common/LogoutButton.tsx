@@ -16,7 +16,7 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({
 
   return (
     <button
-      onClick={logout}
+      onClick={() => logout(false)}
       className={`flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-md ${className}`}
     >
       {showIcon && <FaSignOutAlt className="text-red-500" />}

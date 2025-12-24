@@ -1,13 +1,7 @@
 import type { AxiosResponse } from "axios";
 import apiClient from "../apiClient";
 
-interface Error {
-  response?: {
-    data?: {
-      message: string;
-    };
-  };
-}
+
 
 export interface ChatMessage {
   _id: string;

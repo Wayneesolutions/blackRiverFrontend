@@ -93,7 +93,7 @@ export default function AccountsSetup() {
   const [taxCodes, setTaxCodes] = useState<AccountTaxCode[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [smsBilling, setSmsBilling] = useState<SmsBilling[]>([]);
-  const [smsStats, setSmsStats] = useState({
+  const [, setSmsStats] = useState({
     totalCost: 0,
     totalMessages: 0,
     avgCostPerSms: 0

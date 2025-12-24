@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   deleteIssue,
   listIssues,
-  searchIssues,
-  getIssueById
+  searchIssues
 } from '../../../../../axios/api/distapcher';
 import NewIssueSidebar from './NewIssueSidebar';
 import ViewIssueModal from './ViewIssueModal';

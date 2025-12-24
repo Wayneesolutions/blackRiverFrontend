@@ -163,7 +163,7 @@ const MonthlyReport: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [deleteMessage, setDeleteMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [violationStats, setViolationStats] = useState<any>(null);
-  const [realViolationsData, setRealViolationsData] = useState<any>(null);
+  const [, setRealViolationsData] = useState<any>(null);
 
   // Calculate 2-year performance data statically from monthlyData
   const calculateTwoYearData = (): TwoYearData | null => {

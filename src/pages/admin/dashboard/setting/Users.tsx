@@ -215,7 +215,7 @@ const EmployeesPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<string>('');
+ 
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -235,7 +235,7 @@ const EmployeesPage = () => {
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [totalContacts, setTotalContacts] = useState(0);
   const [totalCustomers, setTotalCustomers] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(10); // Show 10 users per page
+  const [itemsPerPage, ] = useState(10); // Show 10 users per page
 
   // Two-step flow state
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);

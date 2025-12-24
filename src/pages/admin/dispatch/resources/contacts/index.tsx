@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent } from "react";
-import { Search, Edit2, Trash2, X, UserPlus, Users, MapPin, CheckCircle, AlertCircle, Briefcase } from "lucide-react";
+import { Search, Edit2, Trash2, X, UserPlus, Users, MapPin, Briefcase } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import NewContactSidebar from "./NewContactSidebar";
 import NewCustomerSidebar from "./NewCustomerSidebar";

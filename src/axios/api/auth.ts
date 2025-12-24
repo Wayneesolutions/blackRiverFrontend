@@ -68,7 +68,7 @@ export const updateCurrentUserProfile = async (data: any) => {
 /**
  * Change Password API
  */
-export const changePassword = async (data: { currentPassword: string; newPassword: string }) => {
+export const changePassword = async (data: { newPassword: string }) => {
   try {
     const res = await apiClient.put('/auth/change-password', data);
     return res.data;
