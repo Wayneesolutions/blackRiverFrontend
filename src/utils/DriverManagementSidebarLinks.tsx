@@ -8,7 +8,6 @@ import { FaUserTie } from "react-icons/fa";      // Employees
 import { FaTruck } from "react-icons/fa";        // Drivers
 import { FaIdCard } from "react-icons/fa";       // Driver Portfolio
 import { FaFolderOpen } from "react-icons/fa";   // Company Documents
-import { FaClipboardList } from "react-icons/fa"; // Employee Documents
 
 
 type DriverSidebarLink = {

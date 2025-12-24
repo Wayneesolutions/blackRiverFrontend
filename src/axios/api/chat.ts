@@ -62,9 +62,9 @@ export const getTripChatMessages = async (
     return res.data;
   } catch (error) {
     console.error("Get chat messages error:", error);
-    return (error as Error).response?.data || {
+    return {
       success: false,
-      message: "Failed to fetch chat messages",
+      message: (error as any).response?.data?.message || "Failed to fetch chat messages",
       data: { messages: [], pagination: { current: 1, pages: 0, total: 0, limit: 50 } },
     };
   }
@@ -95,9 +95,9 @@ export const sendChatMessage = async (
     return res.data;
   } catch (error) {
     console.error("Send chat message error:", error);
-    return (error as Error).response?.data || {
+    return {
       success: false,
-      message: "Failed to send message",
+      message: (error as any).response?.data?.message || "Failed to send message",
     };
   }
 };
@@ -113,9 +113,9 @@ export const markMessagesAsRead = async (
     return res.data;
   } catch (error) {
     console.error("Mark messages as read error:", error);
-    return (error as Error).response?.data || {
+    return {
       success: false,
-      message: "Failed to mark messages as read",
+      message: (error as any).response?.data?.message || "Failed to mark messages as read",
     };
   }
 };
@@ -131,7 +131,7 @@ export const getUnreadMessageCount = async (
     return res.data;
   } catch (error) {
     console.error("Get unread count error:", error);
-    return (error as Error).response?.data || {
+    return {
       success: false,
       data: { unreadCount: 0 },
     };
@@ -151,7 +151,7 @@ export const getChatMessageFileSignedUrl = async (
     return res.data;
   } catch (error) {
     console.error("Get chat message file signed URL error:", error);
-    return (error as Error).response?.data || {
+    return {
       success: false,
       url: '',
       expiresIn: 0,

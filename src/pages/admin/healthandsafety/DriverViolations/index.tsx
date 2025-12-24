@@ -22,11 +22,11 @@ import {
   syncGeotabViolations,
   deleteViolation,
   updateViolation,
-  createViolation,
-  DriverViolation
+  createViolation
 } from '../../../../axios/api/violations';
-import { getAllEmployees } from '../../../../axios/api/hr';
-import { listAllFleetUnits } from '../../../../axios/api/fleetUnit';
+import type { DriverViolation } from '../../../../axios/api/violations';
+import { getAllEmployees } from '../../../../axios/api/employee';
+import { listFleetUnits } from '../../../../axios/api/fleet.units';
 
 interface FilterState {
   driver?: string;
@@ -49,9 +49,9 @@ const DriverViolationsPage: React.FC = () => {
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 0 });
   const [selectedViolation, setSelectedViolation] = useState<DriverViolation | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [drivers, setDrivers] = useState<any[]>([]);
-  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [, setShowAddModal] = useState(false);
+  const [, setDrivers] = useState<any[]>([]);
+  const [, setVehicles] = useState<any[]>([]);
 
   // Fetch violations
   const fetchViolations = async (page: number = 1) => {
@@ -98,7 +98,7 @@ const DriverViolationsPage: React.FC = () => {
     try {
       const [driversRes, vehiclesRes] = await Promise.all([
         getAllEmployees(),
-        listAllFleetUnits()
+        listFleetUnits()
       ]);
 
       if (driversRes.success) {

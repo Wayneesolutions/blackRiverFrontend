@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   FaChartBar,
   FaFilePdf,
-  FaFileExcel,
   FaCalendarAlt,
   FaFilter,
   FaChartLine,

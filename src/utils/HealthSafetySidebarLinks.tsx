@@ -12,8 +12,7 @@ import {
     FaTruck, // For Trucking Operations
 
     FaAmbulance, // For Emergency Procedures
-    FaFolder, // For Document Library
-    FaBalanceScale,
+    FaFolder
 } from "react-icons/fa";
 
 type HealthSafetySidebarLink = {
