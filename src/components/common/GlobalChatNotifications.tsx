@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import { FaTruck } from 'react-icons/fa';
 import { socketService } from '../../services/socketService';
-import { getUnreadMessageCount } from '../../axios/api/chat';
 import { useNavigate } from 'react-router-dom';
 
 interface ChatNotification {
@@ -17,6 +16,7 @@ interface ChatNotification {
 const GlobalChatNotifications = () => {
   const [notifications, setNotifications] = useState<ChatNotification[]>([]);
   const [allTrips, setAllTrips] = useState<any[]>([]);
+  const [isSocketReady, setIsSocketReady] = useState(false);
   const allTripsRef = useRef<any[]>([]);
   const isInitialized = useRef(false);
   const navigate = useNavigate();
@@ -59,6 +59,7 @@ const GlobalChatNotifications = () => {
       .connect(token)
       .then(() => {
         console.log('✅ Global socket connected for chat notifications');
+        setIsSocketReady(true);
 
         // Global message handler
         const handleNewMessage = (message: any) => {
@@ -66,6 +67,15 @@ const GlobalChatNotifications = () => {
 
           // Only show if message is NOT from current user
           if (message.senderId?._id !== currentUserId) {
+            // Let any page (e.g. Trips list) update unread counts in real time
+            try {
+              window.dispatchEvent(
+                new CustomEvent('chat:newMessage', { detail: { tripId: message.tripId } })
+              );
+            } catch (e) {
+              // no-op (older browsers / non-DOM contexts)
+            }
+
             // Use ref to get latest trips
             const trip = allTripsRef.current.find(t => t._id === message.tripId);
             const driverName = message.senderId?.name || 'Driver';
@@ -104,32 +114,78 @@ const GlobalChatNotifications = () => {
       })
       .catch(error => {
         console.error('❌ Global socket connection error:', error);
+        setIsSocketReady(false);
       });
 
     return () => {
       console.log('🌍 Cleaning up global chat notifications');
       socketService.offNewMessage();
       isInitialized.current = false;
+      setIsSocketReady(false);
     };
   }, []); // No dependencies - runs once!
 
-  // Join all trip rooms when trips are loaded
+  // Join all trip rooms when trips are loaded and socket is connected
   useEffect(() => {
-    if (allTrips.length === 0 || !socketService.isConnected()) return;
+    if (allTrips.length === 0) {
+      console.log('⏳ Waiting for trips to load...');
+      return;
+    }
 
-    console.log(`🌍 Joining ${allTrips.length} trip rooms globally...`);
-    
-    allTrips.forEach(trip => {
-      socketService.joinTripChat(trip._id)
-        .catch(error => {
-          console.error(`Failed to join trip ${trip.tripNumber}:`, error);
-        });
-    });
-  }, [allTrips]);
+    if (!isSocketReady) {
+      console.log('⏳ Waiting for socket authentication...');
+      return;
+    }
+
+    // Check if socket is connected, if not, wait and retry
+    const joinRooms = async () => {
+      let retries = 0;
+      const maxRetries = 10;
+      
+      while ((!socketService.isConnected() || !socketService.getIsAuthenticated()) && retries < maxRetries) {
+        console.log(
+          `⏳ Waiting for socket readiness... (connected=${socketService.isConnected()} authed=${socketService.getIsAuthenticated()}) (${retries + 1}/${maxRetries})`
+        );
+        await new Promise(resolve => setTimeout(resolve, 500));
+        retries++;
+      }
+
+      if (!socketService.isConnected() || !socketService.getIsAuthenticated()) {
+        console.error('❌ Socket not ready after retries, cannot join rooms');
+        return;
+      }
+
+      console.log(`🌍 Joining ${allTrips.length} trip rooms globally...`);
+      
+      // Join rooms with delay to avoid overwhelming the server
+      for (const trip of allTrips) {
+        try {
+          await socketService.joinTripChat(trip._id);
+          console.log(`✅ Joined room: ${trip.tripNumber}`);
+        } catch (error) {
+          console.error(`❌ Failed to join trip ${trip.tripNumber}:`, error);
+        }
+        // Small delay between joins
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      
+      console.log(`✅ Successfully joined ${allTrips.length} trip rooms`);
+    };
+
+    joinRooms();
+  }, [allTrips, isSocketReady]);
 
   const handleNotificationClick = (notification: ChatNotification) => {
+    // Determine correct route based on current path (admin vs dispatcher)
+    const currentPath = window.location.pathname;
+    const isAdmin = currentPath.startsWith('/admin');
+    const tripsPath = isAdmin ? '/admin/dispatch/trips' : '/dispatch/trips';
+    
+    console.log(`🔗 Navigating to ${tripsPath} for trip ${notification.tripNumber}`);
+    
     // Navigate to trips page with the trip selected
-    navigate(`/dispatch/trips`, { state: { openTripChat: notification.tripId } });
+    navigate(tripsPath, { state: { openTripChat: notification.tripId } });
+    
     // Remove notification
     removeNotification(notification.id);
   };

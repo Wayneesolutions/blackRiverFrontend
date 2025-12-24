@@ -7,6 +7,7 @@ import ConfirmationModal from "../../../../../components/common/ConfirmationModa
 import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
 import TripChat from "../../../../../components/chat/TripChat";
 import { getUnreadMessageCount } from "../../../../../axios/api/chat";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface Trip {
   _id: string;
@@ -250,6 +251,32 @@ const Trips = () => {
   const [startConfirm, setStartConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [completeConfirm, setCompleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pendingOpenChatTripIdRef = useRef<string | null>(null);
+
+  // Real-time unread count updates from global socket notifications
+  useEffect(() => {
+    const onChatNewMessage = async (event: Event) => {
+      const detail = (event as CustomEvent<{ tripId?: string }>).detail;
+      const tripId = detail?.tripId;
+      if (!tripId) return;
+
+      try {
+        const response = await getUnreadMessageCount(tripId);
+        if (response?.success && response?.data) {
+          setUnreadCounts(prev => ({ ...prev, [tripId]: response.data.unreadCount }));
+        }
+      } catch (error) {
+        // keep quiet to avoid noisy console; the next fetchTrips will resync
+      }
+    };
+
+    window.addEventListener('chat:newMessage', onChatNewMessage as EventListener);
+    return () => {
+      window.removeEventListener('chat:newMessage', onChatNewMessage as EventListener);
+    };
+  }, []);
 
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
@@ -296,7 +323,7 @@ const Trips = () => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
 
-  const handleChatNotificationClick = useCallback((tripId: string, tripNumber: string) => {
+  const handleChatNotificationClick = useCallback((tripId: string) => {
     // Find the trip
     const trip = trips.find(t => t._id === tripId);
     if (trip) {
@@ -309,6 +336,28 @@ const Trips = () => {
       }));
     }
   }, [trips]);
+
+  // When navigated here with state { openTripChat: tripId }, open the chat automatically
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.openTripChat) {
+      pendingOpenChatTripIdRef.current = state.openTripChat as string;
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    const tripId = pendingOpenChatTripIdRef.current;
+    if (!tripId) return;
+
+    const tripExists = trips.some(t => t._id === tripId);
+    if (!tripExists) return; // wait until trips load
+
+    handleChatNotificationClick(tripId);
+    pendingOpenChatTripIdRef.current = null;
+
+    // Clear state so it doesn't re-trigger
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [trips, handleChatNotificationClick, navigate, location.pathname]);
 
   // Clear unread count when chat is opened
   useEffect(() => {

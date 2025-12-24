@@ -1,9 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import OrderList from "./order-list";
 import TripsComponent from "./trips";
 
 const TripsOrder = () => {
     const [activeTab, setActiveTab] = useState<"orders" | "trips">("orders");
+    const location = useLocation();
+
+    // If we navigated here from a notification, force the Trips tab open
+    useEffect(() => {
+        const state = location.state as any;
+        if (state?.openTripChat) {
+            setActiveTab("trips");
+        }
+    }, [location.state]);
 
     return (
         <div className="min-h-screen bg-[#EDF8FF]">
