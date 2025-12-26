@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { listCompanyDocuments, uploadCompanyDocument, deleteCompanyDocument, getSignedDocumentUrl } from '../../../../axios/api/companyDocuments';
+import React, { useState, useEffect, useMemo } from 'react';
+import { listCompanyDocuments, uploadCompanyDocument, deleteCompanyDocument, getSignedDocumentUrl, listCompanyDocumentCategories, createCompanyDocumentCategory, updateCompanyDocumentCategory, deleteCompanyDocumentCategory, type CompanyDocumentCategoryDto } from '../../../../axios/api/companyDocuments';
 import { message, notification } from 'antd';
 import {
   FolderOpen,
@@ -9,6 +9,7 @@ import {
   Filter,
   Download,
   Eye,
+  Edit,
   Trash2,
   File,
   Image,
@@ -42,11 +43,20 @@ const DocumentManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [uploadDialog, setUploadDialog] = useState(false);
+  const [categories, setCategories] = useState<CompanyDocumentCategoryDto[]>([]);
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [editCategory, setEditCategory] = useState<{ id: string; name: string } | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState('');
+  const [savingCategory, setSavingCategory] = useState(false);
+  const [confirmDeleteCategory, setConfirmDeleteCategory] = useState<{ id: string; name: string } | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState({
     name: '',
-    category: 'hr',
+    category: '',
     description: ''
   });
   const [showViewModal, setShowViewModal] = useState(false);
@@ -119,16 +129,26 @@ const DocumentManagement: React.FC = () => {
     return `https://docs.google.com/gview?url=${encoded}&embedded=true`;
   };
 
-  // Sample categories
-  const categories = [
-    { id: 'all', name: 'All Documents', icon: FolderOpen, count: 0 },
-    { id: 'hr', name: 'HR Policies', icon: FileText, count: 0 },
-    { id: 'offer', name: 'Offer Letters', icon: File, count: 0 },
-    { id: 'safety', name: 'Safety Compliance', icon: AlertCircle, count: 0 },
-    { id: 'hiring', name: 'Hiring Paperwork', icon: User, count: 0 },
-    { id: 'legal', name: 'Legal Documents', icon: FileText, count: 0 },
-    { id: 'other', name: 'Other', icon: Folder, count: 0 }
-  ];
+  const categoryIconMap = useMemo(() => ({
+    all: FolderOpen,
+    hr: FileText,
+    offer: File,
+    safety: AlertCircle,
+    hiring: User,
+    legal: FileText,
+    other: Folder,
+  }), []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await listCompanyDocumentCategories();
+      if (res?.success && Array.isArray(res.data)) {
+        setCategories(res.data);
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   const fetchDocuments = async () => {
     setLoading(true);
@@ -168,9 +188,101 @@ const DocumentManagement: React.FC = () => {
   };
 
   useEffect(() => {
+    fetchCategories();
     fetchDocuments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
+
+  // Ensure upload form category is valid if categories change
+  useEffect(() => {
+    if (categories.length === 0) return;
+    const selectable = categories.filter(c => c.key !== 'all');
+    if (selectable.length === 0) return;
+    const valid = selectable.some(c => c.key === uploadForm.category);
+    if (!valid) {
+      const first = selectable[0].key;
+      setUploadForm(prev => ({ ...prev, category: first }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories]);
+
+  const handleCreateCategory = async () => {
+    const name = newCategoryName.trim();
+    if (!name) {
+      message.error('Category name is required');
+      return;
+    }
+    setCreatingCategory(true);
+    try {
+      const res = await createCompanyDocumentCategory(name);
+      if (res?.success) {
+        message.success('Category created');
+        const createdKey = res?.data?.key;
+        setNewCategoryName('');
+        setShowCreateCategory(false);
+        await fetchCategories();
+        if (createdKey) {
+          setSelectedCategory(createdKey);
+          setUploadForm(prev => ({ ...prev, category: createdKey }));
+        }
+      } else {
+        message.error(res?.message || 'Failed to create category');
+      }
+    } finally {
+      setCreatingCategory(false);
+    }
+  };
+
+  const openEditCategory = (c: CompanyDocumentCategoryDto) => {
+    if (!c.id || c.key === 'all') return;
+    setEditCategory({ id: c.id, name: c.name });
+    setEditCategoryName(c.name);
+  };
+
+  const handleSaveCategory = async () => {
+    if (!editCategory) return;
+    const name = editCategoryName.trim();
+    if (!name) {
+      message.error('Category name is required');
+      return;
+    }
+    setSavingCategory(true);
+    try {
+      const res = await updateCompanyDocumentCategory(editCategory.id, name);
+      if (res?.success) {
+        message.success('Category updated');
+        setEditCategory(null);
+        setEditCategoryName('');
+        await fetchCategories();
+      } else {
+        message.error(res?.message || 'Failed to update category');
+      }
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!confirmDeleteCategory) return;
+    setDeletingCategory(true);
+    try {
+      const res = await deleteCompanyDocumentCategory(confirmDeleteCategory.id);
+      if (res?.success) {
+        message.success('Category deleted');
+        // If current filter is deleted category, reset to all
+        if (selectedCategory === confirmDeleteCategory.id) {
+          setSelectedCategory('all');
+        }
+        setConfirmDeleteCategory(null);
+        await fetchCategories();
+        await fetchDocuments();
+      } else {
+        message.error(res?.message || 'Failed to delete category');
+      }
+    } finally {
+      setDeletingCategory(false);
+    }
+  };
 
   const handleView = async (doc: Document) => {
     const isS3Url = doc.url && (doc.url.includes('s3.amazonaws.com') || doc.url.includes('.s3.'));
@@ -279,6 +391,12 @@ const DocumentManagement: React.FC = () => {
       return;
     }
 
+    if (!uploadForm.category) {
+      setUploadModalError('Please select or create a category first');
+      message.warning('Please select or create a category first');
+      return;
+    }
+
     // Clear any previous errors
     setUploadModalError(null);
     setUploading(true);
@@ -295,9 +413,10 @@ const DocumentManagement: React.FC = () => {
         setUploadModalError(null); // Clear error on success
         message.success(res?.message || 'Document uploaded successfully');
         await fetchDocuments();
+        await fetchCategories();
         setUploadDialog(false);
         setSelectedFile(null);
-        setUploadForm({ name: '', category: 'hr', description: '' });
+        setUploadForm({ name: '', category: '', description: '' });
       } else {
         // Handle error response
         const errorMsg = res?.message || 'Failed to upload document';
@@ -346,6 +465,7 @@ const DocumentManagement: React.FC = () => {
         message.success(res?.message || 'Document deleted successfully');
         setConfirmDelete({ open: false, id: null });
         await fetchDocuments();
+        await fetchCategories();
       } else {
         const errorMsg = res?.message || 'Failed to delete document';
         notification.error({
@@ -370,6 +490,150 @@ const DocumentManagement: React.FC = () => {
     <div
       className="min-h-screen bg-[#EDF8FF]  p-5 space-y-5 overflow-hidden"
     >
+      {/* Create Category Modal */}
+      {showCreateCategory && (
+        <div className="fixed inset-0 z-[10002] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-base font-bold text-gray-800">Create Category</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCreateCategory(false);
+                  setNewCategoryName('');
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-5 space-y-3">
+              <label className="block text-sm font-semibold text-gray-700">Category name</label>
+              <input
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="e.g. Insurance, Maintenance, Training"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateCategory(false);
+                    setNewCategoryName('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateCategory}
+                  disabled={creatingCategory}
+                  className="flex-1 px-4 py-2 rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={primaryButtonStyle}
+                >
+                  {creatingCategory ? 'Creating...' : 'Create'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Category Modal */}
+      {editCategory && (
+        <div className="fixed inset-0 z-[10002] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-base font-bold text-gray-800">Edit Category</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditCategory(null);
+                  setEditCategoryName('');
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-5 space-y-3">
+              <label className="block text-sm font-semibold text-gray-700">Category name</label>
+              <input
+                value={editCategoryName}
+                onChange={(e) => setEditCategoryName(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditCategory(null);
+                    setEditCategoryName('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveCategory}
+                  disabled={savingCategory}
+                  className="flex-1 px-4 py-2 rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={primaryButtonStyle}
+                >
+                  {savingCategory ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Category Modal */}
+      {confirmDeleteCategory && (
+        <div className="fixed inset-0 z-[10002] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-base font-bold text-gray-800">Delete Category</h3>
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteCategory(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-5 space-y-3">
+              <p className="text-sm text-gray-700">
+                Are you sure you want to delete <span className="font-semibold">{confirmDeleteCategory.name}</span>?
+              </p>
+              <p className="text-xs text-gray-500">
+                Note: You can only delete a category if it has no documents.
+              </p>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeleteCategory(null)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteCategory}
+                  disabled={deletingCategory}
+                  className="flex-1 px-4 py-2 rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 bg-red-600 hover:bg-red-700 !text-white rounded-lg"
+                >
+                  {deletingCategory ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="w-full mx-auto">
         {/* Header */}
         <div
@@ -436,42 +700,71 @@ const DocumentManagement: React.FC = () => {
               style={{ borderColor: FLEET_COLORS.focusRing }}
             >
               <div className="p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-sm" style={{ color: FLEET_COLORS.dark }}>Categories</h3>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-semibold text-sm" style={{ color: FLEET_COLORS.dark }}>Categories</h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateCategory(true)}
+                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold border hover:bg-gray-50"
+                    style={{ borderColor: FLEET_COLORS.focusRing, color: FLEET_COLORS.dark }}
+                    title="Create category"
+                  >
+                    <Plus size={14} />
+                    Create
+                  </button>
+                </div>
               </div>
               <div className="p-3 space-y-1.5">
                 {categories.map((category) => {
-                  const Icon = category.icon;
-                  const count = documents.filter(d => d.category === category.id || category.id === 'all').length;
-
+                  const Icon = (categoryIconMap as any)[category.key] || Folder;
+                  const isActive = selectedCategory === category.key;
                   return (
                     <button
-                      key={category.id}
-                      onClick={() => setSelectedCategory(category.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium ${selectedCategory === category.id
+                      key={category.key}
+                      onClick={() => setSelectedCategory(category.key)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium ${isActive
                         ? 'bg-blue-50 border border-blue-200'
                         : 'hover:bg-gray-50'
                         }`}
-                      style={
-                        selectedCategory === category.id
-                          ? {
-                            color: FLEET_COLORS.dark,
-                          }
-                          : {
-                            color: FLEET_COLORS.dark,
-                          }
-                      }
+                      style={{ color: FLEET_COLORS.dark }}
                     >
                       <Icon size={17} />
                       <span className="flex-1 text-left">{category.name}</span>
                       <span
                         className="px-2 py-0.5 rounded-full text-xs"
                         style={{
-                          background: selectedCategory === category.id ? "rgba(59, 130, 246, 0.2)" : "rgba(6,63,111,0.1)",
-                          color: selectedCategory === category.id ? FLEET_COLORS.primary : FLEET_COLORS.primary,
+                          background: isActive ? "rgba(59, 130, 246, 0.2)" : "rgba(6,63,111,0.1)",
+                          color: FLEET_COLORS.primary,
                         }}
                       >
-                        {count}
+                        {category.count}
                       </span>
+                      {category.key !== "all" && category.id && (
+                        <span className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditCategory(category);
+                            }}
+                            className="p-1 rounded hover:bg-gray-100"
+                            title="Edit category"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmDeleteCategory({ id: category.id!, name: category.name });
+                            }}
+                            className="p-1 rounded hover:bg-red-50 text-red-600"
+                            title="Delete category"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -741,13 +1034,30 @@ const DocumentManagement: React.FC = () => {
                   onChange={(e) => setUploadForm({ ...uploadForm, category: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="hr">HR Policies</option>
-                  <option value="offer">Offer Letters</option>
-                  <option value="safety">Safety Compliance</option>
-                  <option value="hiring">Hiring Paperwork</option>
-                  <option value="legal">Legal Documents</option>
-                  <option value="other">Other</option>
+                  {categories.filter((c) => c.key !== "all").length === 0 ? (
+                    <option value="" disabled>
+                      Create a category first
+                    </option>
+                  ) : (
+                    <>
+                      <option value="" disabled>
+                        Select category
+                      </option>
+                      {categories
+                        .filter((c) => c.key !== "all")
+                        .map((c) => (
+                          <option key={c.key} value={c.key}>
+                            {c.name}
+                          </option>
+                        ))}
+                    </>
+                  )}
                 </select>
+                {categories.filter((c) => c.key !== "all").length === 0 && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    No categories yet. Click <span className="font-semibold">Create</span> in the sidebar to add one.
+                  </p>
+                )}
               </div>
 
               {/* Description */}

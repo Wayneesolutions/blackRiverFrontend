@@ -18,6 +18,12 @@ interface Trip {
     email?: string;
     phone?: string;
   };
+  coDriver?: {
+    _id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+  };
   truck?: {
     _id: string;
     licensePlate?: string;
@@ -844,12 +850,25 @@ const Trips = () => {
                   {trips.map((trip) => (
                     <tr key={trip._id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="font-medium" style={{ color: FLEET_COLORS.primary }}>{trip.tripNumber}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleViewTrip(trip)}
+                          className="font-medium hover:underline"
+                          style={{ color: FLEET_COLORS.primary }}
+                          title="View Trip Details"
+                        >
+                          {trip.tripNumber}
+                        </button>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <FaUser className="text-gray-400" size={14} />
-                          <span>{trip.driver?.name || '-'}</span>
+                        <div className="flex items-start gap-2">
+                          <FaUser className="text-gray-400 mt-0.5" size={14} />
+                          <div className="leading-tight">
+                            <div>{trip.driver?.name || '-'}</div>
+                            {trip.coDriver?.name && (
+                              <div className="text-xs text-gray-500">Co-driver: {trip.coDriver.name}</div>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -1067,6 +1086,10 @@ const Trips = () => {
                 <div>
                   <label className="text-sm font-medium text-gray-600">Driver</label>
                   <p className="text-lg font-semibold">{viewingTrip.driver?.name || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Co-driver</label>
+                  <p className="text-lg font-semibold">{viewingTrip.coDriver?.name || '-'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Truck</label>
