@@ -19,6 +19,12 @@ const Fleets = lazy(() => import("../../pages/admin/dispatch/resources/fleet/ind
 const Contacts = lazy(() => import("../../pages/admin/dispatch/resources/contacts/index"))
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"))
 
+const Utilization = lazy(() => import("../../pages/admin/dispatch/operations/utilization/index"))
+const RevenuePerMile = lazy(() => import("../../pages/admin/dispatch/operations/revenue-per-mile/index"))
+const Deliveries = lazy(() => import("../../pages/admin/dispatch/operations/deliveries/index"))
+const Pickups = lazy(() => import("../../pages/admin/dispatch/operations/pickups/index"))
+const DriversOnLeave = lazy(() => import("../../pages/admin/dispatch/operations/drivers-on-leave/index"))
+
 
 function DispatchRoutes() {
   return (
@@ -42,6 +48,12 @@ function DispatchRoutes() {
           <Route path="/drivers" element={<DriversPage />} />
           <Route path="/fleets" element={<Fleets />} />
           <Route path="/contacts" element={<Contacts />} />
+          
+          <Route path="/utilization" element={<Utilization />} />
+          <Route path="/revenue-per-mile" element={<RevenuePerMile />} />
+          <Route path="/deliveries" element={<Deliveries />} />
+          <Route path="/pickups" element={<Pickups />} />
+          <Route path="/drivers-on-leave" element={<DriversOnLeave />} />
        
 
 

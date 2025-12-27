@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Search, User, X, CheckCircle, AlertCircle, MapPin, Briefcase } from 'lucide-react';
 import { listDriver, listOrder } from '../../../../../axios/api/distapcher';
 
@@ -45,7 +45,16 @@ const DriversTable = () => {
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     // Filter state: 'total' | 'assigned' | 'unassigned'
-    const [filterType, setFilterType] = useState<'total' | 'assigned' | 'unassigned'>('total');
+    // Initialize from URL parameter if present (using location.search to avoid initialization order issue)
+    const getInitialFilterType = (): 'total' | 'assigned' | 'unassigned' => {
+        const params = new URLSearchParams(window.location.search);
+        const filterParam = params.get('filter');
+        if (filterParam === 'unassigned' || filterParam === 'assigned') {
+            return filterParam;
+        }
+        return 'total';
+    };
+    const [filterType, setFilterType] = useState<'total' | 'assigned' | 'unassigned'>(getInitialFilterType());
     // Counts from backend
     const [counts, setCounts] = useState({ total: 0, assigned: 0, unassigned: 0 });
 
@@ -64,7 +73,8 @@ const DriversTable = () => {
         }
     });
     const location = useLocation();
-    
+    const [searchParams, setSearchParams] = useSearchParams();
+
     // Refs for scrollbar synchronization
     const topScrollRef = useRef<HTMLDivElement>(null);
     const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -180,6 +190,16 @@ const DriversTable = () => {
         return () => window.removeEventListener('storage', handleStorage);
     }, []);
 
+    // Update filter type when URL parameter changes
+    useEffect(() => {
+        const filterParam = searchParams.get('filter');
+        if (filterParam === 'unassigned' || filterParam === 'assigned') {
+            setFilterType(filterParam);
+        } else if (filterParam === null || filterParam === 'total') {
+            setFilterType('total');
+        }
+    }, [searchParams]);
+
     useEffect(() => {
         fetchDrivers();
     }, [fetchDrivers, location.pathname]);
@@ -237,8 +257,8 @@ const DriversTable = () => {
 
         const bottomTable = bottomScroll.querySelector('table');
         if (bottomTable) {
-            tableObserver.observe(bottomTable, { 
-                childList: true, 
+            tableObserver.observe(bottomTable, {
+                childList: true,
                 subtree: true,
                 attributes: true,
                 attributeFilter: ['style', 'class']
@@ -309,6 +329,15 @@ const DriversTable = () => {
             </div>
         );
     }
+    const StatRow = ({ label, value, color }) => (
+        <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+                <span className={`w-2.5 h-2.5 rounded-full ${color}`} />
+                <span className="text-sm text-gray-600">{label}</span>
+            </div>
+            <span className="text-sm font-semibold text-gray-900">{value}</span>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-[#EDF8FF]">
@@ -335,64 +364,100 @@ const DriversTable = () => {
                 </div>
 
 
-                <section className="px-4 pt-3 grid grid-cols-1 gap-2 md:grid-cols-3">
-                    {/* Total Drivers – Pastel Orange */}
+                <section className="px-4 pt-4 grid grid-cols-1 md:grid-cols-5 gap-4">
+
+
                     <div
-                        onClick={() => setFilterType('total')}
-                        className={`rounded-lg p-3 shadow-sm cursor-pointer transition-all ${filterType === 'total'
-                                ? 'bg-orange-100 ring-2 ring-orange-400'
-                                : 'bg-orange-50 hover:bg-orange-100'
-                            }`}
+                        onClick={() => {
+                            setFilterType('total');
+                            setSearchParams({});
+                        }}
+                        className={`md:col-span-3 rounded-xl bg-white p-4 cursor-pointer
+    transition shadow-sm hover:shadow-md border
+    ${filterType === 'total' ? 'border-orange-400' : 'border-gray-200'}
+  `}
                     >
-                        <p className="text-[10px] uppercase tracking-wide text-orange-600">
-                            Total Drivers
-                        </p>
-                        <p className="text-xl font-semibold mt-0.5 text-orange-700">
-                            {counts.total}
-                        </p>
-                        <p className="text-[11px] mt-0.5 text-orange-500">
-                            Across dispatch + maintenance
-                        </p>
+                        <div className="md:col-span-2 flex flex-col gap-3">
+
+                            <div>
+                                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                    Total Drivers
+                                </p>
+                                <p className="text-3xl font-bold text-gray-900 mt-0.5">
+                                    {counts.total}
+                                </p>
+                            </div>
+
+                            <div className="p-1.5 rounded-md bg-orange-50 text-orange-600">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                        d="M17 20h5v-1a4 4 0 00-5-4m-4 5H2v-1a4 4 0 015-4m6-6a4 4 0 11-8 0 4 4 0 018 0" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <StatRow label="Assigned" value={counts.assigned} color="bg-green-500" />
+                            <StatRow label="Unassigned" value={counts.unassigned} color="bg-purple-500" />
+                            <StatRow label="Active" value={counts.active || 0} color="bg-blue-500" />
+                        </div>
+
+                        <div className="mt-3 pt-2 border-t text-[11px] text-gray-500">
+                            Across dispatch & maintenance
+                        </div>
                     </div>
 
-                    {/* Assigned – Pastel Green */}
-                    <div
-                        onClick={() => setFilterType('assigned')}
-                        className={`rounded-lg p-3 shadow-sm cursor-pointer transition-all ${filterType === 'assigned'
-                                ? 'bg-green-100 ring-2 ring-green-400'
-                                : 'bg-green-50 hover:bg-green-100'
-                            }`}
-                    >
-                        <p className="text-[10px] uppercase tracking-wide text-green-600">
-                            Assigned
-                        </p>
-                        <p className="text-xl font-semibold mt-0.5 text-green-700">
-                            {counts.assigned}
-                        </p>
-                        <p className="text-[11px] mt-0.5 text-green-500">
-                            Currently tied to an active load
-                        </p>
+
+
+                    <div className="md:col-span-2 flex flex-col gap-4">
+                        <div
+                            onClick={() => {
+                                setFilterType('assigned');
+                                setSearchParams({ filter: 'assigned' });
+                            }}
+                            className={`rounded-xl bg-white p-3 cursor-pointer transition
+    shadow-sm hover:shadow-md border-l-4
+    ${filterType === 'assigned' ? 'border-green-500' : 'border-transparent'}
+  `}
+                        >
+                            <p className="text-[11px] font-semibold text-gray-500 uppercase">
+                                Assigned
+                            </p>
+                            <p className="text-2xl font-bold text-gray-900 mt-0.5">
+                                {counts.assigned}
+                            </p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">
+                                Tied to active loads
+                            </p>
+                        </div>
+
+
+                        <div
+                            onClick={() => {
+                                setFilterType('unassigned');
+                                setSearchParams({ filter: 'unassigned' });
+                            }}
+                            className={`rounded-xl bg-white p-3 cursor-pointer transition
+    shadow-sm hover:shadow-md border-l-4
+    ${filterType === 'unassigned' ? 'border-purple-500' : 'border-transparent'}
+  `}
+                        >
+                            <p className="text-[11px] font-semibold text-gray-500 uppercase">
+                                Unassigned
+                            </p>
+                            <p className="text-2xl font-bold text-gray-900 mt-0.5">
+                                {counts.unassigned}
+                            </p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">
+                                Available for dispatch
+                            </p>
+                        </div>
+
+
                     </div>
 
-                    {/* Unassigned – Pastel Purple */}
-                    <div
-                        onClick={() => setFilterType('unassigned')}
-                        className={`rounded-lg p-3 shadow-sm cursor-pointer transition-all ${filterType === 'unassigned'
-                                ? 'bg-purple-100 ring-2 ring-purple-400'
-                                : 'bg-purple-50 hover:bg-purple-100'
-                            }`}
-                    >
-                        <p className="text-[10px] uppercase tracking-wide text-purple-600">
-                            Unassigned
-                        </p>
-                        <p className="text-xl font-semibold mt-0.5 text-purple-700">
-                            {counts.unassigned}
-                        </p>
-                        <p className="text-[11px] mt-0.5 text-purple-500">
-                            Drivers available for dispatch
-                        </p>
-                    </div>
                 </section>
+
 
                 {insightsLoading && (
                     <p className="px-6 text-xs text-gray-500">Refreshing insights…</p>
@@ -430,10 +495,10 @@ const DriversTable = () => {
                                 display: none; /* Chrome, Safari, Opera */
                             }
                         `}</style>
-                        <div 
+                        <div
                             ref={topScrollRef}
                             className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-                            style={{ 
+                            style={{
                                 maxHeight: '20px',
                                 marginBottom: '2px',
                                 scrollbarWidth: 'thin',
@@ -443,7 +508,7 @@ const DriversTable = () => {
                             <div className="top-scroll-content" style={{ height: '1px' }}></div>
                         </div>
                         {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-                        <div 
+                        <div
                             ref={bottomScrollRef}
                             className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                         >
@@ -485,8 +550,8 @@ const DriversTable = () => {
                                 <tbody className="divide-y divide-gray-200">
                                     {filteredDrivers.length > 0 ? (
                                         filteredDrivers.map((driver) => (
-                                            <tr 
-                                                key={driver._id} 
+                                            <tr
+                                                key={driver._id}
                                                 className="hover:bg-gray-50 transition-colors cursor-pointer"
                                                 onClick={() => {
                                                     setSelectedDriver(driver);

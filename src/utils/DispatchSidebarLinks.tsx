@@ -8,6 +8,11 @@ import {
   FaUserTie,
   FaLayerGroup,
   FaRoute,
+  FaWarehouse,
+  FaDollarSign,
+  FaShippingFast,
+  FaBoxOpen,
+  FaUserClock,
 } from "react-icons/fa";
 
 type DispatchSidebarLinks = {
@@ -55,6 +60,33 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
     key: "/admin/dispatch/contacts",
     icon: <MdContacts />,
     label: "Customer",
+  },
+
+  // Utilization & Analytics
+  {
+    key: "/admin/dispatch/utilization",
+    icon: <FaWarehouse />,
+    label: "Truck & Trailer Utilization",
+  },
+  {
+    key: "/admin/dispatch/revenue-per-mile",
+    icon: <FaDollarSign />,
+    label: "Revenue Per Mile",
+  },
+  {
+    key: "/admin/dispatch/deliveries",
+    icon: <FaShippingFast />,
+    label: "Deliveries",
+  },
+  {
+    key: "/admin/dispatch/pickups",
+    icon: <FaBoxOpen />,
+    label: "Pickups",
+  },
+  {
+    key: "/admin/dispatch/drivers-on-leave",
+    icon: <FaUserClock />,
+    label: "Drivers on Leave",
   },
 
 ];

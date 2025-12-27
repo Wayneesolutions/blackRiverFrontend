@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   FaFileInvoice, 
   FaPlus, 
@@ -119,6 +120,7 @@ const InvoicesPage = () => {
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
+
   const [submitting, setSubmitting] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
@@ -882,11 +884,12 @@ const InvoicesPage = () => {
       )}
 
       {/* Invoice Details Sidebar */}
-      {showInvoiceDetails && selectedInvoice && (
+      {showInvoiceDetails && selectedInvoice ? createPortal(
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity"
+            style={{ zIndex: 99999 }}
             onClick={() => {
               setShowInvoiceDetails(false);
               setTimeout(() => setSelectedInvoice(null), 300);
@@ -895,7 +898,8 @@ const InvoicesPage = () => {
 
           {/* Sidebar Panel */}
           <div
-            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl overflow-y-auto transform transition-transform duration-300 translate-x-0"
+            style={{ zIndex: 100000, top: '0px' }}
           >
             <div className="p-6">
               {/* Header */}
@@ -1055,8 +1059,9 @@ const InvoicesPage = () => {
               </div>
             </div>
           </div>
-        </>
-      )}
+        </>,
+        document.body
+      ) : null}
 
       {/* Create Invoice Modal */}
       {showCreateModal && (

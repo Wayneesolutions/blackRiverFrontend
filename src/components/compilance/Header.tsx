@@ -136,7 +136,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     return (
         <>
             <header
-                className="flex items-center justify-between px-6 py-3 shadow-sm relative z-20"
+                className="flex items-center justify-between px-6 py-3 shadow-sm relative z-20 invoice-header"
                 style={{
                     background: "linear-gradient(135deg, #42aeec 0%, #31a2d4 100%)"
                 }}

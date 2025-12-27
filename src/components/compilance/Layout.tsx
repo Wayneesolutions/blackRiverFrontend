@@ -24,7 +24,7 @@ const Layout = () => {
             {/* Main content area with independent scroll */}
             <div className="flex flex-col flex-1 h-full overflow-hidden">
                 {/* Header - fixed at top */}
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 compliance-header-container">
                     <CompilanceHeader onToggleSidebar={toggleSidebar} />
                 </div>
 

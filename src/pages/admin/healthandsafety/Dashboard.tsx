@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  LineChart,
+  Line,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+} from "recharts";
 import { COLORS, hexToRgba, getStatusColor } from '../../../theme/colors';
 import {
   FaShieldAlt,
@@ -17,6 +29,7 @@ import {
   getRecentActivity,
   getUpcomingTasks,
 } from '../../../axios/api/healthSafety';
+import { getGpsVehicleDashboardStats } from '../../../axios/api/distapcher';
 
 /* ===========================
    STAT CARD (HR DASHBOARD STYLE)
@@ -116,6 +129,7 @@ const Dashboard: React.FC = () => {
 
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [upcomingTasks, setUpcomingTasks] = useState<any[]>([]);
+  const [gpsDashboardData, setGpsDashboardData] = useState<any>(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -124,18 +138,117 @@ const Dashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [statsRes, activityRes, tasksRes] = await Promise.all([
+      const [statsRes, activityRes, tasksRes, gpsRes] = await Promise.all([
         getDashboardStats(),
         getRecentActivity(10),
         getUpcomingTasks(),
+        getGpsVehicleDashboardStats(),
       ]);
 
       if (statsRes?.success) setStats(statsRes.data || {});
       if (activityRes?.success) setRecentActivity(activityRes.data || []);
       if (tasksRes?.success) setUpcomingTasks(tasksRes.data || []);
+      if (gpsRes?.success) setGpsDashboardData(gpsRes.data || null);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Check if GPS data has values
+  const hasWatchingData = gpsDashboardData?.watchingReport && 
+    Array.isArray(gpsDashboardData.watchingReport) && 
+    gpsDashboardData.watchingReport.some((item: any) => item.value > 0);
+
+  const hasUtilizationData = gpsDashboardData?.driverUtilizationData && 
+    Array.isArray(gpsDashboardData.driverUtilizationData) && 
+    gpsDashboardData.driverUtilizationData.some((item: any) => item.value > 0);
+
+  const hasSpeedingData = gpsDashboardData?.speedingData && 
+    Array.isArray(gpsDashboardData.speedingData) && 
+    gpsDashboardData.speedingData.some((item: any) => item.speeding > 0 || item.events > 0);
+
+  // Use real data if available, otherwise use placeholder data
+  const watchingReportData = gpsDashboardData?.watchingReport || Array.from({ length: 24 }, (_, i) => ({
+    name: String(i).padStart(2, '0'),
+    value: 0
+  }));
+
+  const driverUtilizationData = gpsDashboardData?.driverUtilizationData || [
+    { day: "Mon", value: 0 },
+    { day: "Tue", value: 0 },
+    { day: "Wed", value: 0 },
+    { day: "Thu", value: 0 },
+    { day: "Fri", value: 0 },
+    { day: "Sat", value: 0 },
+    { day: "Sun", value: 0 },
+  ];
+
+  const speedingData = gpsDashboardData?.speedingData || [
+    { month: "SEP", speeding: 0, events: 0 },
+    { month: "OCT", speeding: 0, events: 0 },
+    { month: "NOV", speeding: 0, events: 0 },
+    { month: "DEC", speeding: 0, events: 0 },
+    { month: "JAN", speeding: 0, events: 0 },
+    { month: "FEB", speeding: 0, events: 0 },
+  ];
+
+  const safetyScore = gpsDashboardData?.safetyScore || 0;
+
+  // Custom Circular Progress Component
+  const CircularProgress = ({ percentage }: { percentage: number }) => {
+    const radius = 85;
+    const strokeWidth = 12;
+    const normalizedRadius = radius - strokeWidth * 2;
+    const circumference = normalizedRadius * 2 * Math.PI;
+    const strokeDasharray = `${circumference} ${circumference}`;
+    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+    // Use lighter colors if no data
+    const hasData = percentage > 0;
+
+    return (
+      <div className="relative flex items-center justify-center">
+        <svg
+          height={radius * 2}
+          width={radius * 2}
+          className="transform -rotate-90"
+        >
+          <circle
+            stroke="#E5E7EB"
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          <circle
+            stroke={hasData ? "url(#gradient)" : "#E0F2FE"}
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            strokeDasharray={strokeDasharray}
+            style={{ strokeDashoffset }}
+            strokeLinecap="round"
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#42aeec" />
+              <stop offset="100%" stopColor="#1db5f5" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className={`text-base mb-2 ${hasData ? 'text-gray-500' : 'text-gray-400'}`}>
+            Safety Score
+          </span>
+          <span className={`text-2xl font-bold ${hasData ? 'text-gray-800' : 'text-gray-400'}`}>
+            {percentage}%
+          </span>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -227,6 +340,162 @@ const Dashboard: React.FC = () => {
               icon={<FaUserInjured size={21} />}
               color={COLORS.modules.committee}
             />
+          </div>
+
+          {/* Charts Section - Moved from GPS Dashboard */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+            {/* Watching Report */}
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <h3 className="text-sm font-bold text-gray-900 mb-3">Watching Report</h3>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={watchingReportData} barCategoryGap="20%">
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                    />
+                    <YAxis hide />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1F2937', 
+                        border: 'none', 
+                        borderRadius: '8px',
+                        color: 'white'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="value" 
+                      fill={hasWatchingData ? "url(#barGradient)" : "#E0F2FE"}
+                      radius={[4, 4, 4, 4]}
+                    />
+                    <defs>
+                      <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#42aeec" />
+                        <stop offset="100%" stopColor="#1db5f5" />
+                      </linearGradient>
+                    </defs>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Driver Utilization */}
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <h3 className="text-sm font-bold text-gray-900 mb-3">Driver Utilization</h3>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={driverUtilizationData}>
+                    <XAxis 
+                      dataKey="day" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                    />
+                    <YAxis hide />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1F2937', 
+                        border: 'none', 
+                        borderRadius: '8px',
+                        color: 'white'
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke={hasUtilizationData ? "#42aeec" : "#BAE6FD"}
+                      strokeWidth={3}
+                      dot={{ fill: hasUtilizationData ? '#42aeec' : '#BAE6FD', strokeWidth: 0, r: 4 }}
+                      activeDot={{ r: 6, fill: hasUtilizationData ? '#42aeec' : '#BAE6FD' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Driver Safety Scorecard */}
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <h3 className="text-sm font-bold text-gray-900 mb-3">Driver Safety Scorecard</h3>
+              <div className="flex justify-center items-center h-48">
+                <CircularProgress percentage={safetyScore} />
+              </div>
+            </div>
+          </div>
+
+          {/* Speeding Violations */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <h3 className="text-sm font-bold text-gray-900 mb-3">Speeding Violations</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={speedingData}>
+                    <XAxis 
+                      dataKey="month" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                    />
+                    <YAxis hide />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1F2937', 
+                        border: 'none', 
+                        borderRadius: '8px',
+                        color: 'white'
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="speeding"
+                      stackId="1"
+                      stroke={hasSpeedingData ? "#42aeec" : "#E0F2FE"}
+                      fill={hasSpeedingData ? "url(#speedingGradient)" : "#F0F9FF"}
+                      strokeWidth={2}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="events"
+                      stackId="2"
+                      stroke={hasSpeedingData ? "#1db5f5" : "#BAE6FD"}
+                      fill={hasSpeedingData ? "url(#eventsGradient)" : "#E0F2FE"}
+                      strokeWidth={2}
+                    />
+                    <defs>
+                      <linearGradient id="speedingGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#42aeec" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#42aeec" stopOpacity={0.1} />
+                      </linearGradient>
+                      <linearGradient id="eventsGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#1db5f5" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#1db5f5" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex items-center justify-center space-x-6 mt-4">
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: hasSpeedingData ? '#42aeec' : '#E0F2FE' }}
+                  ></div>
+                  <span className={`text-sm ${hasSpeedingData ? 'text-gray-600' : 'text-gray-400'}`}>
+                    Speeding %
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: hasSpeedingData ? '#1db5f5' : '#BAE6FD' }}
+                  ></div>
+                  <span className={`text-sm ${hasSpeedingData ? 'text-gray-600' : 'text-gray-400'}`}>
+                    Speeding Events
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Bottom Section */}

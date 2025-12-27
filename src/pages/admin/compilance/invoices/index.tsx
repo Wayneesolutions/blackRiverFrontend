@@ -61,7 +61,7 @@ const ComplianceInvoices = () => {
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
 
- 
+
 
   // Fetch invoices from API
   useEffect(() => {
@@ -583,18 +583,19 @@ const ComplianceInvoices = () => {
           {showInvoiceDetails && selectedInvoice && (
             <>
               <div
-                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity"
-                style={{ zIndex: 99999 }}
+                className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[1001]"
                 onClick={() => {
                   setShowInvoiceDetails(false);
                   setTimeout(() => setSelectedInvoice(null), 300);
                 }}
-              ></div>
+              />
 
               {/* Sidebar Panel */}
               <div
-                className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl overflow-y-auto transform transition-transform duration-300 translate-x-0"
-                style={{ zIndex: 100000 }}
+                className="fixed inset-y-0 right-0 w-full md:w-2/3 lg:w-1/2
+    bg-white shadow-2xl overflow-y-auto
+    z-[1001]
+    transform transition-transform duration-300 translate-x-0"
               >
                 <div className="p-6">
                   {/* Header */}
