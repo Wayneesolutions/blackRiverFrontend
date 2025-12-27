@@ -63,6 +63,12 @@ export const AccountSidebarlinks: AccountSidebarlinks[] = [
     },
 
     {
+        key: "/admin/accounts/paystubs",
+        icon: <FaFileInvoiceDollar />,
+        label: "Paystubs",
+    },
+
+    {
         key: "/admin/accounts/fleet-maintenance",
         icon: <FaTools />,
         label: "Fleet & Maint. Finance",

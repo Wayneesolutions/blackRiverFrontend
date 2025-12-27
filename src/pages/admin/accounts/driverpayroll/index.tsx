@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Truck } from 'lucide-react';
-import { createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips, generateAIDriverPayroll, bulkAnalyzeAIDriverPayrolls, bulkCreateDriverPayrolls } from '../../../../axios/api/account.payroll';
+import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Truck, FileText, Download } from 'lucide-react';
+import { createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips, generateAIDriverPayroll, bulkAnalyzeAIDriverPayrolls, bulkCreateDriverPayrolls, getPaystubByPayrollId } from '../../../../axios/api/account.payroll';
 import * as driverApi from '../../../../axios/api/driver';
+import jsPDF from 'jspdf';
 
 // Type definitions
 interface Driver {
@@ -164,6 +165,123 @@ interface Notification {
   message: string;
 }
 
+interface Paystub {
+  _id: string;
+  payrollId: string;
+  userId: {
+    _id: string;
+    name: string;
+    email?: string;
+    role?: string;
+    internalId?: string;
+  };
+  employeeName: string;
+  employeeId?: string;
+  employeeEmail?: string;
+  employeeRole?: string;
+  employeeDepartment?: string;
+  employeeAddress?: string;
+  workType?: 'Employee' | 'Driver' | 'Owner-Operator';
+  payPeriod: {
+    startDate: string;
+    endDate: string;
+    payDate: string;
+  };
+  paystubId?: string;
+  earnings: {
+    baseSalary: number;
+    bonus: number;
+    overtime: number;
+    overtimeHours?: number;
+    overtimeRate?: number;
+    mileageEarnings: number;
+    tripPay?: number;
+    allowance?: number;
+    incentives?: number;
+    regularHours?: number;
+    hourlyRate?: number;
+    totalEarnings: number;
+    earningsBreakdown?: Array<{
+      type: string;
+      units: string;
+      rate: number;
+      amount: number;
+    }>;
+  };
+  deductions: {
+    totalDeductions: number;
+    otherDeductions: number;
+    advanceRecovery?: number;
+    loanEMI?: number;
+    insurance?: number;
+    payrollPenalty?: number;
+    deductionsBreakdown?: Array<{
+      type: string;
+      amount: number;
+    }>;
+  };
+  taxesCA: {
+    federalIncomeTax: number;
+    provincialIncomeTax: number;
+    cpp: number;
+    ei: number;
+    provincialHealthTax: number;
+    totalTaxes: number;
+  };
+  taxesUS: {
+    federalIncomeTax: number;
+    stateIncomeTax: number;
+    socialSecurityTax: number;
+    medicareTax: number;
+    stateDisabilityInsurance: number;
+    localTax: number;
+    totalTaxes: number;
+  };
+  summary: {
+    grossPay: number;
+    totalDeductions: number;
+    totalTaxes: number;
+    netPay: number;
+  };
+  country: 'USA' | 'Canada';
+  driverInfo?: {
+    totalMiles: number;
+    ratePerMile: number;
+    tripsCount: number;
+    loadsCount: number;
+  };
+  companyDetails?: {
+    companyName?: string;
+    companyAddress?: string;
+    companyPhone?: string;
+    companyEmail?: string;
+    companyLogo?: string;
+  };
+  employerContributions?: {
+    companyInsurance?: number;
+    pensionPF?: number;
+    benefitContributions?: number;
+    total?: number;
+  };
+  ytd?: {
+    earnings: number;
+    deductions: number;
+    netPay: number;
+  };
+  payment?: {
+    mode?: 'Bank Transfer' | 'Cheque' | 'Cash' | 'Other';
+    bankLast4Digits?: string;
+    bankName?: string;
+    accountNumber?: string;
+  };
+  notes?: string;
+  hrSignature?: string;
+  hrName?: string;
+  status: 'draft' | 'issued' | 'void';
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface FormData {
   userId: string;
   bonus: string;
@@ -197,7 +315,10 @@ const DriverPayrollManagement = () => {
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [showViewModal, setShowViewModal] = useState<boolean>(false);
+  const [showPaystubModal, setShowPaystubModal] = useState<boolean>(false);
   const [selectedPayroll, setSelectedPayroll] = useState<DriverPayroll | null>(null);
+  const [selectedPaystub, setSelectedPaystub] = useState<Paystub | null>(null);
+  const [loadingPaystub, setLoadingPaystub] = useState<boolean>(false);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [payrollData, setPayrollData] = useState<DriverPayroll[]>([]);
   const [driverTrips, setDriverTrips] = useState<Trip[]>([]);
@@ -344,9 +465,29 @@ const DriverPayrollManagement = () => {
 
       if (response?.success) {
         // Filter to show only driver payrolls
-        const driverPayrolls = (response.data || []).filter((payroll: DriverPayroll) =>
-          payroll.userId && payroll.userId.role?.toLowerCase() === 'driver'
-        );
+        const driverPayrolls = (response.data || []).filter((payroll: DriverPayroll) => {
+          // Check if userId exists and has role
+          if (!payroll.userId) return false;
+          
+          // Handle both populated object and ObjectId string cases
+          const userId = typeof payroll.userId === 'object' ? payroll.userId : null;
+          if (!userId) return false;
+          
+          // Check role (case-insensitive)
+          const role = userId.role || (userId as any).role;
+          return role && role.toLowerCase() === 'driver';
+        });
+        
+        console.log('📊 Driver Payrolls Filtered:', {
+          total: response.data?.length || 0,
+          driverPayrolls: driverPayrolls.length,
+          sample: driverPayrolls[0] ? {
+            id: driverPayrolls[0]._id,
+            userId: driverPayrolls[0].userId,
+            role: typeof driverPayrolls[0].userId === 'object' ? driverPayrolls[0].userId.role : 'N/A'
+          } : null
+        });
+        
         setPayrollData(driverPayrolls);
       } else {
         const message = response?.message || 'Failed to fetch driver payrolls';
@@ -980,6 +1121,370 @@ const DriverPayrollManagement = () => {
     setShowDeleteModal(true);
   };
 
+  const openPaystubModal = async (payroll: DriverPayroll) => {
+    setLoadingPaystub(true);
+    setSelectedPayroll(payroll);
+    try {
+      const response = await getPaystubByPayrollId(payroll._id);
+      if (response?.success && response.data) {
+        setSelectedPaystub(response.data);
+        setShowPaystubModal(true);
+      } else {
+        showNotification('error', response?.message || 'Paystub not found for this payroll. It will be created automatically when payroll is generated.');
+      }
+    } catch (error: any) {
+      console.error('Error fetching paystub:', error);
+      showNotification('error', error?.response?.data?.message || 'Error fetching paystub');
+    } finally {
+      setLoadingPaystub(false);
+    }
+  };
+
+  const handleDownloadPaystubPDF = (paystub: Paystub) => {
+    try {
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentWidth = pageWidth - (margin * 2);
+      
+      // Helper function to check if we need a new page
+      const checkPageBreak = (requiredSpace: number) => {
+        if (yPos + requiredSpace > pageHeight - margin) {
+          doc.addPage();
+          yPos = margin;
+          return true;
+        }
+        return false;
+      };
+
+      // Color scheme
+      const primaryR = 37, primaryG = 99, primaryB = 235; // Blue-600
+      const textR = 31, textG = 41, textB = 55; // Gray-800
+      const lightGrayR = 243, lightGrayG = 244, lightGrayB = 246; // Gray-100
+      const greenR = 34, greenG = 197, greenB = 94; // Green-500
+      const redR = 239, redG = 68, redB = 68; // Red-500
+
+      let yPos = margin;
+
+      // Header with colored background
+      doc.setFillColor(primaryR, primaryG, primaryB);
+      doc.rect(0, 0, pageWidth, 45, 'F');
+
+      // Company Details (Left side) - White text on blue background
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      const companyName = paystub.companyDetails?.companyName || 'Company Name';
+      doc.text(companyName, margin, 18);
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      let companyY = 25;
+      if (paystub.companyDetails?.companyAddress) {
+        const addressLines = doc.splitTextToSize(paystub.companyDetails.companyAddress, 70);
+        doc.text(addressLines, margin, companyY);
+        companyY += addressLines.length * 4.5;
+      }
+      if (paystub.companyDetails?.companyPhone) {
+        doc.text(`Phone: ${paystub.companyDetails.companyPhone}`, margin, companyY);
+        companyY += 4.5;
+      }
+      if (paystub.companyDetails?.companyEmail) {
+        doc.text(`Email: ${paystub.companyDetails.companyEmail}`, margin, companyY);
+      }
+
+      // Pay Stub Title (Right side) - White text on blue background
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.text('PAY STUB', pageWidth - margin, 18, { align: 'right' });
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('EARNINGS STATEMENT', pageWidth - margin, 25, { align: 'right' });
+      if (paystub.paystubId) {
+        doc.setFontSize(7);
+        doc.text(`ID: ${paystub.paystubId}`, pageWidth - margin, 32, { align: 'right' });
+      }
+
+      // Reset text color and move to content area
+      doc.setTextColor(textR, textG, textB);
+      yPos = 55;
+
+      // Pay Period Box
+      const boxWidth = 75;
+      const boxHeight = 25;
+      doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
+      doc.roundedRect(pageWidth - margin - boxWidth, yPos, boxWidth, boxHeight, 2, 2, 'F');
+      
+      doc.setFontSize(7);
+      doc.setTextColor(107, 114, 128);
+      doc.text('Pay Period Start', pageWidth - margin - boxWidth + 3, yPos + 6);
+      doc.text('Pay Period End', pageWidth - margin - boxWidth + 3, yPos + 12);
+      doc.text('Pay Date', pageWidth - margin - boxWidth + 3, yPos + 18);
+      
+      doc.setFontSize(8);
+      doc.setTextColor(textR, textG, textB);
+      doc.setFont('helvetica', 'bold');
+      const startDate = new Date(paystub.payPeriod.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const endDate = new Date(paystub.payPeriod.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const payDate = new Date(paystub.payPeriod.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      doc.text(startDate, pageWidth - margin - 3, yPos + 6, { align: 'right' });
+      doc.text(endDate, pageWidth - margin - 3, yPos + 12, { align: 'right' });
+      doc.text(payDate, pageWidth - margin - 3, yPos + 18, { align: 'right' });
+
+      yPos += boxHeight + 8;
+
+      // Employee Information Section
+      checkPageBreak(25);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Employee Information', margin, yPos);
+      yPos += 7;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 6;
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Name: ${paystub.employeeName}`, margin, yPos);
+      yPos += 6;
+      if (paystub.employeeId) {
+        doc.text(`Employee ID: ${paystub.employeeId}`, margin, yPos);
+        yPos += 6;
+      }
+      doc.text(`Role: ${paystub.employeeRole || 'N/A'}`, margin, yPos);
+      yPos += 6;
+      doc.text(`Work Type: ${paystub.workType || 'Employee'}`, margin, yPos);
+      yPos += 6;
+      if (paystub.employeeAddress) {
+        const addrLines = doc.splitTextToSize(`Address: ${paystub.employeeAddress}`, contentWidth);
+        doc.text(addrLines, margin, yPos);
+        yPos += addrLines.length * 5;
+      }
+      yPos += 8;
+
+      // Earnings Section
+      checkPageBreak(40);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Earnings', margin, yPos);
+      yPos += 7;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 5;
+
+      // Earnings Table Header
+      doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
+      doc.rect(margin, yPos - 2, contentWidth, 7, 'F');
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Earning Type', margin + 2, yPos + 4);
+      doc.text('Units', margin + 70, yPos + 4);
+      doc.text('Rate', margin + 100, yPos + 4);
+      doc.text('Amount', pageWidth - margin - 2, yPos + 4, { align: 'right' });
+      yPos += 9;
+
+      // Earnings Rows
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      if (paystub.earnings.earningsBreakdown && paystub.earnings.earningsBreakdown.length > 0) {
+        paystub.earnings.earningsBreakdown.forEach((earning: any) => {
+          checkPageBreak(6);
+          const typeText = doc.splitTextToSize(earning.type || 'N/A', 60);
+          doc.text(typeText, margin + 2, yPos + 4);
+          doc.text(earning.units || '-', margin + 70, yPos + 4);
+          doc.text(earning.rate > 0 ? `$${earning.rate.toFixed(2)}` : '-', margin + 100, yPos + 4);
+          doc.text(`$${earning.amount.toFixed(2)}`, pageWidth - margin - 2, yPos + 4, { align: 'right' });
+          yPos += Math.max(6, typeText.length * 5);
+        });
+      } else {
+        // Fallback if no breakdown
+        checkPageBreak(6);
+        doc.text('Basic Pay', margin + 2, yPos + 4);
+        doc.text(`$${paystub.earnings.baseSalary.toFixed(2)}`, pageWidth - margin - 2, yPos + 4, { align: 'right' });
+        yPos += 6;
+        if (paystub.earnings.bonus > 0) {
+          checkPageBreak(6);
+          doc.text('Bonus', margin + 2, yPos + 4);
+          doc.text(`$${paystub.earnings.bonus.toFixed(2)}`, pageWidth - margin - 2, yPos + 4, { align: 'right' });
+          yPos += 6;
+        }
+        if (paystub.earnings.mileageEarnings > 0) {
+          checkPageBreak(6);
+          doc.text('Trip Pay / Mileage', margin + 2, yPos + 4);
+          doc.text(`$${paystub.earnings.mileageEarnings.toFixed(2)}`, pageWidth - margin - 2, yPos + 4, { align: 'right' });
+          yPos += 6;
+        }
+      }
+
+      // Total Earnings
+      yPos += 3;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 6;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('Total Earnings', margin + 2, yPos + 4);
+      doc.setTextColor(greenR, greenG, greenB);
+      doc.text(`$${paystub.earnings.totalEarnings.toFixed(2)}`, pageWidth - margin - 2, yPos + 4, { align: 'right' });
+      doc.setTextColor(textR, textG, textB);
+      yPos += 10;
+
+      // Deductions Section
+      checkPageBreak(40);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Deductions', margin, yPos);
+      yPos += 7;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 5;
+
+      // Deductions Table Header
+      doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
+      doc.rect(margin, yPos - 2, contentWidth, 7, 'F');
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Deduction Type', margin + 2, yPos + 4);
+      doc.text('Amount', pageWidth - margin - 2, yPos + 4, { align: 'right' });
+      yPos += 9;
+
+      // Deductions Rows
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      if (paystub.deductions.deductionsBreakdown && paystub.deductions.deductionsBreakdown.length > 0) {
+        paystub.deductions.deductionsBreakdown.forEach((deduction: any) => {
+          checkPageBreak(6);
+          const typeText = doc.splitTextToSize(deduction.type || 'N/A', 120);
+          doc.text(typeText, margin + 2, yPos + 4);
+          doc.setTextColor(redR, redG, redB);
+          doc.text(`$${deduction.amount.toFixed(2)}`, pageWidth - margin - 2, yPos + 4, { align: 'right' });
+          doc.setTextColor(textR, textG, textB);
+          yPos += Math.max(6, typeText.length * 5);
+        });
+      } else {
+        // Fallback
+        if (paystub.deductions.otherDeductions > 0) {
+          checkPageBreak(6);
+          doc.text('Other Deductions', margin + 2, yPos + 4);
+          doc.setTextColor(redR, redG, redB);
+          doc.text(`$${paystub.deductions.otherDeductions.toFixed(2)}`, pageWidth - margin - 2, yPos + 4, { align: 'right' });
+          doc.setTextColor(textR, textG, textB);
+          yPos += 6;
+        }
+        checkPageBreak(6);
+        doc.text('Taxes', margin + 2, yPos + 4);
+        doc.setTextColor(redR, redG, redB);
+        doc.text(`$${paystub.summary.totalTaxes.toFixed(2)}`, pageWidth - margin - 2, yPos + 4, { align: 'right' });
+        doc.setTextColor(textR, textG, textB);
+        yPos += 6;
+      }
+
+      // Total Deductions
+      yPos += 3;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 6;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('Total Deductions', margin + 2, yPos + 4);
+      doc.setTextColor(redR, redG, redB);
+      doc.text(`$${paystub.deductions.totalDeductions.toFixed(2)}`, pageWidth - margin - 2, yPos + 4, { align: 'right' });
+      doc.setTextColor(textR, textG, textB);
+      yPos += 12;
+
+      // Summary Section (Highlighted)
+      checkPageBreak(40);
+      doc.setFillColor(primaryR, primaryG, primaryB);
+      doc.roundedRect(margin, yPos, contentWidth, 32, 2, 2, 'F');
+      yPos += 8;
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Pay Summary', margin + 3, yPos);
+      yPos += 9;
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Gross Earnings:', margin + 3, yPos);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`$${paystub.summary.grossPay.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
+      yPos += 7;
+
+      doc.setFont('helvetica', 'normal');
+      doc.text('Total Deductions:', margin + 3, yPos);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`$${paystub.summary.totalDeductions.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
+      yPos += 6;
+
+      doc.setDrawColor(255, 255, 255);
+      doc.line(margin + 3, yPos, pageWidth - margin - 3, yPos);
+      yPos += 6;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Net Pay', margin + 3, yPos);
+      doc.setFontSize(13);
+      doc.text(`$${paystub.summary.netPay.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
+      doc.setTextColor(textR, textG, textB);
+      yPos += 15;
+
+      // YTD Summary (if available)
+      if (paystub.ytd) {
+        checkPageBreak(25);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Year-to-Date (YTD) Summary', margin, yPos);
+        yPos += 7;
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 7;
+
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text('YTD Earnings:', margin, yPos);
+        doc.text(`$${paystub.ytd.earnings.toFixed(2)}`, margin + 70, yPos);
+        yPos += 6;
+        doc.text('YTD Deductions:', margin, yPos);
+        doc.text(`$${paystub.ytd.deductions.toFixed(2)}`, margin + 70, yPos);
+        yPos += 6;
+        doc.text('YTD Net Pay:', margin, yPos);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`$${paystub.ytd.netPay.toFixed(2)}`, margin + 70, yPos);
+        yPos += 10;
+      }
+
+      // Footer
+      const footerY = pageHeight - 20;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, footerY, pageWidth - margin, footerY);
+      
+      doc.setFontSize(7);
+      doc.setTextColor(107, 114, 128);
+      let footerTextY = footerY + 5;
+      
+      if (paystub.notes) {
+        const notesLines = doc.splitTextToSize(`Notes: ${paystub.notes}`, contentWidth);
+        doc.text(notesLines, margin, footerTextY);
+        footerTextY += notesLines.length * 4;
+      }
+      if (paystub.hrName) {
+        doc.text(`HR Signature: ${paystub.hrName}`, margin, footerTextY);
+        footerTextY += 4;
+      }
+      doc.text(`Status: ${paystub.status.charAt(0).toUpperCase() + paystub.status.slice(1)}`, margin, footerTextY);
+      doc.text(`Generated: ${new Date(paystub.createdAt).toLocaleString()}`, pageWidth - margin, footerTextY, { align: 'right' });
+
+      // Generate filename
+      const fileName = `Paystub_${paystub.employeeName.replace(/\s+/g, '_')}_${paystub.paystubId || paystub._id.slice(-8)}.pdf`;
+      
+      // Save PDF
+      doc.save(fileName);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       userId: '',
@@ -1264,18 +1769,33 @@ const DriverPayrollManagement = () => {
                           <button
                             onClick={() => openViewModal(payroll)}
                             className="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded-lg"
+                            title="View Details"
                           >
                             <Eye size={18} />
                           </button>
                           <button
+                            onClick={() => openPaystubModal(payroll)}
+                            className="text-purple-600 hover:text-purple-900 p-2 hover:bg-purple-50 rounded-lg disabled:opacity-50"
+                            title="View Paystub"
+                            disabled={loadingPaystub}
+                          >
+                            {loadingPaystub && payroll._id === selectedPayroll?._id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                            ) : (
+                              <FileText size={18} />
+                            )}
+                          </button>
+                          <button
                             onClick={() => openEditModal(payroll)}
                             className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg"
+                            title="Edit"
                           >
                             <Edit2 size={18} />
                           </button>
                           <button
                             onClick={() => openDeleteModal(payroll)}
                             className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg"
+                            title="Delete"
                           >
                             <Trash2 size={18} />
                           </button>
@@ -2497,6 +3017,421 @@ const DriverPayrollManagement = () => {
                 >
                   {loading ? 'Deleting...' : 'Delete'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Professional Paystub Modal */}
+        {showPaystubModal && selectedPaystub && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[95vh] overflow-y-auto">
+              {/* Header */}
+              <div className="p-6 border-b-2 border-gray-300 sticky top-0 bg-white z-10">
+                <div className="flex justify-between items-start mb-4">
+                  <button
+                    onClick={() => {
+                      setShowPaystubModal(false);
+                      setSelectedPaystub(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+                
+                {/* Company Header Section */}
+                <div className="border-b-2 border-gray-300 pb-4 mb-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      {selectedPaystub.companyDetails?.companyLogo && (
+                        <img 
+                          src={selectedPaystub.companyDetails.companyLogo} 
+                          alt="Company Logo" 
+                          className="h-12 mb-3"
+                        />
+                      )}
+                      <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                        {selectedPaystub.companyDetails?.companyName || 'Company Name'}
+                      </h2>
+                      {selectedPaystub.companyDetails?.companyAddress && (
+                        <p className="text-sm text-gray-600 mb-1">
+                          {selectedPaystub.companyDetails.companyAddress}
+                        </p>
+                      )}
+                      <div className="flex gap-4 text-sm text-gray-600">
+                        {selectedPaystub.companyDetails?.companyPhone && (
+                          <span>Phone: {selectedPaystub.companyDetails.companyPhone}</span>
+                        )}
+                        {selectedPaystub.companyDetails?.companyEmail && (
+                          <span>Email: {selectedPaystub.companyDetails.companyEmail}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <h1 className="text-3xl font-bold text-gray-900 mb-2">PAY STUB</h1>
+                      <p className="text-sm text-gray-600">EARNINGS STATEMENT</p>
+                      {selectedPaystub.paystubId && (
+                        <p className="text-xs text-gray-500 mt-2">ID: {selectedPaystub.paystubId}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pay Period Header */}
+                <div className="grid grid-cols-3 gap-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 uppercase">Pay Period Start</label>
+                    <div className="text-sm font-bold text-gray-900 mt-1">
+                      {new Date(selectedPaystub.payPeriod.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 uppercase">Pay Period End</label>
+                    <div className="text-sm font-bold text-gray-900 mt-1">
+                      {new Date(selectedPaystub.payPeriod.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 uppercase">Pay Date</label>
+                    <div className="text-sm font-bold text-gray-900 mt-1">
+                      {new Date(selectedPaystub.payPeriod.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Employee Information Section */}
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-300 pb-2">Employee Information</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-600 uppercase">Employee / Driver Name</label>
+                      <div className="mt-1 text-base font-semibold text-gray-900">
+                        {selectedPaystub.employeeName || 'Unknown'}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-600 uppercase">Employee ID / Driver ID</label>
+                      <div className="mt-1 text-base font-semibold text-gray-900">
+                        {selectedPaystub.employeeId || 'N/A'}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-600 uppercase">Role / Position</label>
+                      <div className="mt-1">
+                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">
+                          {selectedPaystub.employeeRole || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-600 uppercase">Work Type</label>
+                      <div className="mt-1 text-base font-semibold text-gray-900">
+                        {selectedPaystub.workType || 'Employee'}
+                      </div>
+                    </div>
+                    {selectedPaystub.employeeDepartment && (
+                      <div>
+                        <label className="text-xs font-semibold text-gray-600 uppercase">Department</label>
+                        <div className="mt-1 text-base text-gray-900">
+                          {selectedPaystub.employeeDepartment}
+                        </div>
+                      </div>
+                    )}
+                    {selectedPaystub.employeeAddress && (
+                      <div>
+                        <label className="text-xs font-semibold text-gray-600 uppercase">Address</label>
+                        <div className="mt-1 text-sm text-gray-700">
+                          {selectedPaystub.employeeAddress}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Earnings Section */}
+                <div className="bg-green-50 p-5 rounded-lg border border-green-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-green-300 pb-2">Earnings</h3>
+                  {selectedPaystub.earnings.earningsBreakdown && selectedPaystub.earnings.earningsBreakdown.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-green-300">
+                            <th className="text-left py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Earning Type</th>
+                            <th className="text-center py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Units</th>
+                            <th className="text-right py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Rate</th>
+                            <th className="text-right py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedPaystub.earnings.earningsBreakdown.map((earning: any, index: number) => (
+                            <tr key={index} className="border-b border-green-200">
+                              <td className="py-2 px-3 text-sm text-gray-900">{earning.type}</td>
+                              <td className="py-2 px-3 text-sm text-center text-gray-600">{earning.units || '-'}</td>
+                              <td className="py-2 px-3 text-sm text-right text-gray-600">
+                                {earning.rate > 0 ? `$${earning.rate.toFixed(2)}` : '-'}
+                              </td>
+                              <td className="py-2 px-3 text-sm text-right font-semibold text-gray-900">
+                                ${earning.amount.toFixed(2)}
+                              </td>
+                            </tr>
+                          ))}
+                          <tr className="bg-green-100 font-bold">
+                            <td colSpan={3} className="py-3 px-3 text-sm text-gray-900">Total Earnings</td>
+                            <td className="py-3 px-3 text-sm text-right text-green-700">
+                              ${selectedPaystub.earnings.totalEarnings.toFixed(2)}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center py-2 border-b border-green-200">
+                        <span className="text-sm text-gray-700">Basic Pay</span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          ${selectedPaystub.earnings.baseSalary.toFixed(2)}
+                        </span>
+                      </div>
+                      {selectedPaystub.earnings.bonus > 0 && (
+                        <div className="flex justify-between items-center py-2 border-b border-green-200">
+                          <span className="text-sm text-gray-700">Bonus</span>
+                          <span className="text-sm font-semibold text-green-600">
+                            ${selectedPaystub.earnings.bonus.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      {selectedPaystub.earnings.mileageEarnings > 0 && (
+                        <div className="flex justify-between items-center py-2 border-b border-green-200">
+                          <span className="text-sm text-gray-700">Trip Pay / Mileage</span>
+                          <span className="text-sm font-semibold text-green-600">
+                            ${selectedPaystub.earnings.mileageEarnings.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center py-3 bg-green-100 rounded mt-2 px-3 font-bold">
+                        <span className="text-base text-gray-900">Total Earnings</span>
+                        <span className="text-base text-green-700">
+                          ${selectedPaystub.earnings.totalEarnings.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Deductions Section */}
+                <div className="bg-red-50 p-5 rounded-lg border border-red-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-red-300 pb-2">Deductions</h3>
+                  {selectedPaystub.deductions.deductionsBreakdown && selectedPaystub.deductions.deductionsBreakdown.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-red-300">
+                            <th className="text-left py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Deduction Type</th>
+                            <th className="text-right py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedPaystub.deductions.deductionsBreakdown.map((deduction: any, index: number) => (
+                            <tr key={index} className="border-b border-red-200">
+                              <td className="py-2 px-3 text-sm text-gray-900">{deduction.type}</td>
+                              <td className="py-2 px-3 text-sm text-right font-semibold text-red-600">
+                                ${deduction.amount.toFixed(2)}
+                              </td>
+                            </tr>
+                          ))}
+                          <tr className="bg-red-100 font-bold">
+                            <td className="py-3 px-3 text-sm text-gray-900">Total Deductions</td>
+                            <td className="py-3 px-3 text-sm text-right text-red-700">
+                              ${selectedPaystub.deductions.totalDeductions.toFixed(2)}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {selectedPaystub.deductions.otherDeductions > 0 && (
+                        <div className="flex justify-between items-center py-2 border-b border-red-200">
+                          <span className="text-sm text-gray-700">Other Deductions</span>
+                          <span className="text-sm font-semibold text-red-600">
+                            ${selectedPaystub.deductions.otherDeductions.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center py-2 border-b border-red-200">
+                        <span className="text-sm text-gray-700">Taxes</span>
+                        <span className="text-sm font-semibold text-red-600">
+                          ${selectedPaystub.summary.totalTaxes.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 bg-red-100 rounded mt-2 px-3 font-bold">
+                        <span className="text-base text-gray-900">Total Deductions</span>
+                        <span className="text-base text-red-700">
+                          ${selectedPaystub.deductions.totalDeductions.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Employer Contributions (if applicable) */}
+                {selectedPaystub.employerContributions && selectedPaystub.employerContributions.total > 0 && (
+                  <div className="bg-purple-50 p-5 rounded-lg border border-purple-200">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-purple-300 pb-2">Employer Contributions</h3>
+                    <div className="space-y-2">
+                      {selectedPaystub.employerContributions.companyInsurance > 0 && (
+                        <div className="flex justify-between items-center py-2 border-b border-purple-200">
+                          <span className="text-sm text-gray-700">Company Insurance</span>
+                          <span className="text-sm font-semibold text-purple-600">
+                            ${selectedPaystub.employerContributions.companyInsurance.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      {selectedPaystub.employerContributions.pensionPF > 0 && (
+                        <div className="flex justify-between items-center py-2 border-b border-purple-200">
+                          <span className="text-sm text-gray-700">Pension / PF</span>
+                          <span className="text-sm font-semibold text-purple-600">
+                            ${selectedPaystub.employerContributions.pensionPF.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      {selectedPaystub.employerContributions.benefitContributions > 0 && (
+                        <div className="flex justify-between items-center py-2 border-b border-purple-200">
+                          <span className="text-sm text-gray-700">Benefit Contributions</span>
+                          <span className="text-sm font-semibold text-purple-600">
+                            ${selectedPaystub.employerContributions.benefitContributions.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center py-3 bg-purple-100 rounded mt-2 px-3 font-bold">
+                        <span className="text-base text-gray-900">Total Employer Contributions</span>
+                        <span className="text-base text-purple-700">
+                          ${selectedPaystub.employerContributions.total.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Summary Section */}
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-lg text-white shadow-lg">
+                  <h3 className="text-xl font-bold mb-4 border-b border-blue-400 pb-2">Pay Summary</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold opacity-90 uppercase">Gross Earnings</label>
+                      <div className="mt-1 text-2xl font-bold">
+                        ${selectedPaystub.summary.grossPay.toFixed(2)}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold opacity-90 uppercase">Total Deductions</label>
+                      <div className="mt-1 text-2xl font-bold">
+                        ${selectedPaystub.summary.totalDeductions.toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="col-span-2 border-t border-blue-400 pt-4 mt-2">
+                      <div className="flex justify-between items-center">
+                        <div className="text-3xl font-bold">
+                          ${selectedPaystub.summary.netPay.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* YTD Summary */}
+                {selectedPaystub.ytd && (
+                  <div className="bg-indigo-50 p-5 rounded-lg border border-indigo-200">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-indigo-300 pb-2">Year-to-Date (YTD) Summary</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-xs font-semibold text-gray-600 uppercase">YTD Earnings</label>
+                        <div className="mt-1 text-base font-bold text-indigo-700">
+                          ${selectedPaystub.ytd.earnings.toFixed(2)}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-600 uppercase">YTD Deductions</label>
+                        <div className="mt-1 text-base font-bold text-red-600">
+                          ${selectedPaystub.ytd.deductions.toFixed(2)}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-600 uppercase">YTD Net Pay</label>
+                        <div className="mt-1 text-base font-bold text-green-700">
+                          ${selectedPaystub.ytd.netPay.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer Section */}
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                  {selectedPaystub.notes && (
+                    <div className="mb-4">
+                      <label className="text-xs font-semibold text-gray-600 uppercase">Notes / Remarks</label>
+                      <div className="mt-1 text-sm text-gray-700">
+                        {selectedPaystub.notes}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t border-gray-300 flex justify-between items-end">
+                    <div>
+                      {selectedPaystub.hrName && (
+                        <div>
+                          <label className="text-xs font-semibold text-gray-600 uppercase">HR Signature</label>
+                          <div className="mt-1 text-sm font-semibold text-gray-900">
+                            {selectedPaystub.hrName}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-500">
+                        Status: <span className={`font-semibold ${
+                          selectedPaystub.status === 'issued' 
+                            ? 'text-green-600' 
+                            : selectedPaystub.status === 'void'
+                            ? 'text-red-600'
+                            : 'text-gray-600'
+                        }`}>
+                          {selectedPaystub.status.charAt(0).toUpperCase() + selectedPaystub.status.slice(1)}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Generated: {new Date(selectedPaystub.createdAt).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer with Download PDF and Close Button */}
+              <div className="p-6 border-t-2 border-gray-300 bg-gray-50">
+                <div className="flex justify-between items-center">
+                  <button
+                    onClick={() => handleDownloadPaystubPDF(selectedPaystub)}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                  >
+                    <Download size={18} />
+                    Download PDF
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowPaystubModal(false);
+                      setSelectedPaystub(null);
+                    }}
+                    className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  >
+                    <X size={18} />
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>

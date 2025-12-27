@@ -29,6 +29,7 @@ interface Driver {
   lastModified?: string;
   role?: string;
   joinDate?: string;
+  dob?: string | Date;
   documents?: EmployeeDocument[];
 }
 
@@ -40,6 +41,7 @@ interface DriverFormData {
   employmentDetails: string;
   internalId: string;
   joinDate: string;
+  dob: string;
   phone: string;
   mobile: string;
   licenseNumber: string;
@@ -103,6 +105,7 @@ const DriverManagement = () => {
     employmentDetails: '',
     internalId: '',
     joinDate: '',
+    dob: '',
     phone: '',
     mobile: '',
     licenseNumber: '',
@@ -124,6 +127,21 @@ const DriverManagement = () => {
     salaryPerMileHighTemp: '',
     highTempThreshold: '35'
   });
+
+  // Citizenship options for dropdown
+  const citizenshipOptions = [
+    'United States',
+    'Canada',
+    'Mexico',
+    'United Kingdom',
+    'Australia',
+    'Germany',
+    'France',
+    'India',
+    'China',
+    'Brazil',
+    'Other'
+  ];
 
   useEffect(() => {
     fetchDrivers();
@@ -398,6 +416,7 @@ const DriverManagement = () => {
       formDataToSend.append('policies', formData.policies || '');
       if (formData.internalId) formDataToSend.append('internalId', formData.internalId);
       if (formData.joinDate) formDataToSend.append('joinDate', formData.joinDate);
+      if (formData.dob) formDataToSend.append('dob', formData.dob);
       if (formData.gender) formDataToSend.append('gender', formData.gender);
       if (formData.employmentDetails) formDataToSend.append('employmentDetails', formData.employmentDetails);
       if (formData.mobile) formDataToSend.append('mobile', formData.mobile);
@@ -492,6 +511,7 @@ const DriverManagement = () => {
           employmentDetails: driverData.employmentDetails || driverData.details?.remark || '',
           internalId: driverData.internalId || '',
           joinDate: driverData.joinDate ? new Date(driverData.joinDate).toISOString().split('T')[0] : '',
+          dob: driverData.dob ? new Date(driverData.dob).toISOString().split('T')[0] : (driverData.details?.dateOfBirth ? new Date(driverData.details.dateOfBirth).toISOString().split('T')[0] : ''),
           phone: driverData.phone || '',
           mobile: driverData.mobile || driverData.details?.cell1 || '',
           licenseNumber: driverData.licenseNumber || driverData.details?.licenseNumber || '',
@@ -551,6 +571,8 @@ const DriverManagement = () => {
           employmentDetails: driver.employmentDetails || '',
           internalId: driver.internalId || '',
           joinDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
+        dob: driver.dob ? new Date(driver.dob).toISOString().split('T')[0] : (driver.details?.dateOfBirth ? new Date(driver.details.dateOfBirth).toISOString().split('T')[0] : ''),
+          dob: driver.dob ? new Date(driver.dob).toISOString().split('T')[0] : (driver.details?.dateOfBirth ? new Date(driver.details.dateOfBirth).toISOString().split('T')[0] : ''),
           phone: driver.phone || '',
           mobile: driver.mobile || '',
           licenseNumber: driver.licenseNumber || '',
@@ -599,6 +621,7 @@ const DriverManagement = () => {
         employmentDetails: driver.employmentDetails || '',
         internalId: driver.internalId || '',
         joinDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
+        dob: driver.dob ? new Date(driver.dob).toISOString().split('T')[0] : (driver.details?.dateOfBirth ? new Date(driver.details.dateOfBirth).toISOString().split('T')[0] : ''),
         phone: driver.phone || '',
         mobile: driver.mobile || '',
         licenseNumber: driver.licenseNumber || '',
@@ -663,6 +686,7 @@ const DriverManagement = () => {
       formDataToSend.append('policies', formData.policies || '');
       if (formData.internalId) formDataToSend.append('internalId', formData.internalId);
       if (formData.joinDate) formDataToSend.append('joinDate', formData.joinDate);
+      if (formData.dob) formDataToSend.append('dob', formData.dob);
       if (formData.gender) formDataToSend.append('gender', formData.gender);
       if (formData.employmentDetails) formDataToSend.append('employmentDetails', formData.employmentDetails);
       if (formData.mobile) formDataToSend.append('mobile', formData.mobile);
@@ -1510,6 +1534,26 @@ const DriverManagement = () => {
                     </div>
 
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                      <input
+                        type="date"
+                        name="dob"
+                        value={formData.dob}
+                        onChange={handleInputChange}
+                        style={{ borderColor: '#d1d5db' }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = FLEET_COLORS.primary;
+                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.boxShadow = '';
+                        }}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Employment Details</label>
                       <textarea
                         name="employmentDetails"
@@ -1689,12 +1733,10 @@ const DriverManagement = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Citizenship</label>
-                      <input
-                        type="text"
+                      <select
                         name="citizenship"
                         value={formData.citizenship}
                         onChange={handleInputChange}
-                        placeholder="e.g., Canadian"
                         style={{ borderColor: '#d1d5db' }}
                         onFocus={(e) => {
                           e.target.style.borderColor = FLEET_COLORS.primary;
@@ -1705,7 +1747,14 @@ const DriverManagement = () => {
                           e.target.style.boxShadow = '';
                         }}
                         className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
+                      >
+                        <option value="">Select Citizenship</option>
+                        {citizenshipOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>

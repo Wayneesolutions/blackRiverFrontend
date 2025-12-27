@@ -609,6 +609,36 @@ export const getDispatcherDashboard = async () => {
   }
 }
 
+export const getUtilization = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/utilization`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ getUtilization API error:', error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const getTodayDeliveries = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/deliveries`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ getTodayDeliveries API error:', error);
+    return (error as Error).response?.data;
+  }
+}
+
+export const getDriversOnLeave = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/drivers-on-leave`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ getDriversOnLeave API error:', error);
+    return (error as Error).response?.data;
+  }
+}
+
 export const getRouteAnalysis = async () => {
   try {
     const res: AxiosResponse = await apiClient.get(`dispatcher/routes`);

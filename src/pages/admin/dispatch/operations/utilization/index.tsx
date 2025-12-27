@@ -1,102 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Truck, Package, MapPin, CheckCircle, XCircle, AlertCircle, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getUserRole } from "../../../../../utils/auth";
+import { getUtilization } from "../../../../../axios/api/distapcher";
 
-// Static data for trucks and trailers
-const staticTrucks = [
-  {
-    id: "TRK001",
-    plateNumber: "ABC-123",
-    make: "Freightliner",
-    model: "Cascadia",
-    currentLocation: "Winnipeg, MB",
-    serviceStatus: "in service",
-  },
-  {
-    id: "TRK002",
-    plateNumber: "DEF-456",
-    make: "Peterbilt",
-    model: "579",
-    currentLocation: "Calgary, AB",
-    serviceStatus: "in service",
-  },
-  {
-    id: "TRK003",
-    plateNumber: "GHI-789",
-    make: "Kenworth",
-    model: "T680",
-    currentLocation: "Toronto, ON",
-    serviceStatus: "out of service",
-  },
-  {
-    id: "TRK004",
-    plateNumber: "JKL-012",
-    make: "Volvo",
-    model: "VNL",
-    currentLocation: "Edmonton, AB",
-    serviceStatus: "in service",
-  },
-  {
-    id: "TRK005",
-    plateNumber: "MNO-345",
-    make: "Mack",
-    model: "Anthem",
-    currentLocation: "Vancouver, BC",
-    serviceStatus: "in service",
-  },
-];
+interface Truck {
+  id: string;
+  plateNumber: string;
+  make: string;
+  model: string;
+  currentLocation: string;
+  serviceStatus: string;
+}
 
-const staticTrailers = [
-  {
-    id: "TRL001",
-    plateNumber: "TRL-001",
-    trailerNumber: "TRL001",
-    currentLocation: "Winnipeg, MB",
-    trailerStatus: "loaded",
-    serviceStatus: "in service",
-  },
-  {
-    id: "TRL002",
-    plateNumber: "TRL-002",
-    trailerNumber: "TRL002",
-    currentLocation: "Calgary, AB",
-    trailerStatus: "empty",
-    serviceStatus: "in service",
-  },
-  {
-    id: "TRL003",
-    plateNumber: "TRL-003",
-    trailerNumber: "TRL003",
-    currentLocation: "Toronto, ON",
-    trailerStatus: "loaded",
-    serviceStatus: "in service",
-  },
-  {
-    id: "TRL004",
-    plateNumber: "TRL-004",
-    trailerNumber: "TRL004",
-    currentLocation: "Edmonton, AB",
-    trailerStatus: "empty",
-    serviceStatus: "out of service",
-  },
-  {
-    id: "TRL005",
-    plateNumber: "TRL-005",
-    trailerNumber: "TRL005",
-    currentLocation: "Vancouver, BC",
-    trailerStatus: "loaded",
-    serviceStatus: "in service",
-  },
-  {
-    id: "TRL006",
-    plateNumber: "TRL-006",
-    trailerNumber: "TRL006",
-    currentLocation: "Montreal, QC",
-    trailerStatus: "empty",
-    serviceStatus: "in service",
-  },
-];
+interface Trailer {
+  id: string;
+  plateNumber: string;
+  trailerNumber: string;
+  currentLocation: string;
+  trailerStatus: string;
+  serviceStatus: string;
+}
 
 const UtilizationPage = () => {
   const navigate = useNavigate();
@@ -106,8 +30,30 @@ const UtilizationPage = () => {
 
   const [activeTab, setActiveTab] = useState<"trucks" | "trailers">("trucks");
   const [searchTerm, setSearchTerm] = useState("");
+  const [trucks, setTrucks] = useState<Truck[]>([]);
+  const [trailers, setTrailers] = useState<Trailer[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredTrucks = staticTrucks.filter(
+  useEffect(() => {
+    fetchUtilizationData();
+  }, []);
+
+  const fetchUtilizationData = async () => {
+    try {
+      setLoading(true);
+      const response = await getUtilization();
+      if (response.success && response.data) {
+        setTrucks(response.data.trucks || []);
+        setTrailers(response.data.trailers || []);
+      }
+    } catch (error) {
+      console.error("Error fetching utilization data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredTrucks = trucks.filter(
     (truck) =>
       truck.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       truck.currentLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,7 +61,7 @@ const UtilizationPage = () => {
       truck.model.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredTrailers = staticTrailers.filter(
+  const filteredTrailers = trailers.filter(
     (trailer) =>
       trailer.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       trailer.trailerNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -185,7 +131,7 @@ const UtilizationPage = () => {
                 >
                   <div className="flex items-center gap-2">
                     <Truck className="w-4 h-4" />
-                    Trucks ({staticTrucks.length})
+                    Trucks ({trucks.length})
                   </div>
                 </button>
                 <button
@@ -198,7 +144,7 @@ const UtilizationPage = () => {
                 >
                   <div className="flex items-center gap-2">
                     <Package className="w-4 h-4" />
-                    Trailers ({staticTrailers.length})
+                    Trailers ({trailers.length})
                   </div>
                 </button>
               </nav>
@@ -260,7 +206,13 @@ const UtilizationPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {activeTab === "trucks" ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={activeTab === "trucks" ? 4 : 5} className="px-6 py-8 text-center text-gray-500">
+                        Loading...
+                      </td>
+                    </tr>
+                  ) : activeTab === "trucks" ? (
                     filteredTrucks.length === 0 ? (
                       <tr>
                         <td colSpan={4} className="px-6 py-8 text-center text-gray-500">

@@ -209,3 +209,65 @@ export const bulkAIGenerateAllPayrolls = async (data: {
         return err.response?.data;
     }
 };
+
+// ==================== PAYSTUB API FUNCTIONS ====================
+
+// Get all paystubs
+export const getPaystubs = async (params?: {
+    userId?: string;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+}) => {
+    try {
+        let url = `hr/paystubs`;
+        const queryParams = new URLSearchParams();
+        if (params?.userId) queryParams.append('userId', params.userId);
+        if (params?.startDate) queryParams.append('startDate', params.startDate);
+        if (params?.endDate) queryParams.append('endDate', params.endDate);
+        if (params?.search) queryParams.append('search', params.search);
+        
+        if (queryParams.toString()) {
+            url += `?${queryParams.toString()}`;
+        }
+        
+        const res: AxiosResponse = await apiClient.get(url);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Get paystub by ID
+export const getPaystubById = async (id: string) => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`hr/paystubs/${id}`);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Get paystubs by user ID
+export const getPaystubsByUserId = async (userId: string) => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`hr/paystubs/user/${userId}`);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Get paystub by payroll ID
+export const getPaystubByPayrollId = async (payrollId: string) => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`hr/paystubs/payroll/${payrollId}`);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};

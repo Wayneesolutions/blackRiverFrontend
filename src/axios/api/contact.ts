@@ -4,7 +4,7 @@ import type { AxiosResponse } from 'axios';
 // Contact Management APIs
 
 // Get all contacts with filters and pagination
-export const getAllContacts = async (page: number = 1, limit: number = 10, search?: string, status?: string) => {
+export const getAllContacts = async (page: number = 1, limit: number = 10, search?: string, status?: string, sortBy?: string, sortOrder?: string) => {
   try {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -13,6 +13,8 @@ export const getAllContacts = async (page: number = 1, limit: number = 10, searc
     
     if (search) params.append('search', search);
     if (status) params.append('status', status);
+    if (sortBy) params.append('sortBy', sortBy);
+    if (sortOrder) params.append('sortOrder', sortOrder);
     params.append('role', 'contact');
     
     const res: AxiosResponse = await apiClient.get(`employee?${params.toString()}`);

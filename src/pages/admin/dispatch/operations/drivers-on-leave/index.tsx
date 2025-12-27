@@ -1,71 +1,22 @@
-import { useState } from "react";
-import { User, Calendar, Phone, Mail, Search, ArrowLeft, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, Calendar, Phone, Mail, Search, ArrowLeft, Clock, Loader2, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getUserRole } from "../../../../../utils/auth";
+import { getDriversOnLeave } from "../../../../../axios/api/distapcher";
 
-// Static data for drivers on leave
-const staticDriversOnLeave = [
-  {
-    id: "DRV001",
-    name: "John Doe",
-    employeeCode: "EMP001",
-    email: "john.doe@example.com",
-    phone: "+1 (204) 555-0101",
-    leaveStartDate: "2024-01-10",
-    leaveEndDate: "2024-01-20",
-    leaveType: "Vacation",
-    status: "On Leave",
-    daysRemaining: 5,
-  },
-  {
-    id: "DRV002",
-    name: "Jane Smith",
-    employeeCode: "EMP002",
-    email: "jane.smith@example.com",
-    phone: "+1 (403) 555-0102",
-    leaveStartDate: "2024-01-12",
-    leaveEndDate: "2024-01-18",
-    leaveType: "Sick Leave",
-    status: "On Leave",
-    daysRemaining: 3,
-  },
-  {
-    id: "DRV003",
-    name: "Bob Johnson",
-    employeeCode: "EMP003",
-    email: "bob.johnson@example.com",
-    phone: "+1 (416) 555-0103",
-    leaveStartDate: "2024-01-15",
-    leaveEndDate: "2024-01-25",
-    leaveType: "Personal Leave",
-    status: "On Leave",
-    daysRemaining: 10,
-  },
-  {
-    id: "DRV004",
-    name: "Alice Williams",
-    employeeCode: "EMP004",
-    email: "alice.williams@example.com",
-    phone: "+1 (780) 555-0104",
-    leaveStartDate: "2024-01-14",
-    leaveEndDate: "2024-01-21",
-    leaveType: "Vacation",
-    status: "On Leave",
-    daysRemaining: 7,
-  },
-  {
-    id: "DRV005",
-    name: "Mike Brown",
-    employeeCode: "EMP005",
-    email: "mike.brown@example.com",
-    phone: "+1 (604) 555-0105",
-    leaveStartDate: "2024-01-16",
-    leaveEndDate: "2024-01-22",
-    leaveType: "Emergency Leave",
-    status: "On Leave",
-    daysRemaining: 6,
-  },
-];
+interface DriverOnLeave {
+  id: string;
+  name: string;
+  employeeCode: string;
+  email: string;
+  phone: string;
+  leaveStartDate: string;
+  leaveEndDate: string;
+  leaveType: string;
+  status: string;
+  daysRemaining: number;
+  notes: string;
+}
 
 const DriversOnLeavePage = () => {
   const navigate = useNavigate();
@@ -74,49 +25,36 @@ const DriversOnLeavePage = () => {
   const basePath = isDispatcher ? '/dispatch' : '/admin/dispatch';
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>("all");
+  const [drivers, setDrivers] = useState<DriverOnLeave[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredDrivers = staticDriversOnLeave.filter((driver) => {
+  useEffect(() => {
+    fetchDriversOnLeave();
+  }, []);
+
+  const fetchDriversOnLeave = async () => {
+    try {
+      setLoading(true);
+      const response = await getDriversOnLeave();
+      if (response.success && response.data) {
+        setDrivers(response.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching drivers on leave:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredDrivers = drivers.filter((driver) => {
     const matchesSearch =
       driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       driver.employeeCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       driver.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       driver.phone.includes(searchTerm);
 
-    const matchesLeaveType = leaveTypeFilter === "all" || driver.leaveType === leaveTypeFilter;
-
-    return matchesSearch && matchesLeaveType;
+    return matchesSearch;
   });
-
-  const getLeaveTypeBadge = (leaveType: string) => {
-    const typeLower = leaveType.toLowerCase();
-    if (typeLower.includes("vacation")) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {leaveType}
-        </span>
-      );
-    }
-    if (typeLower.includes("sick")) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-          {leaveType}
-        </span>
-      );
-    }
-    if (typeLower.includes("emergency")) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-          {leaveType}
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-        {leaveType}
-      </span>
-    );
-  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -146,12 +84,12 @@ const DriversOnLeavePage = () => {
                 <h1 className="text-xl font-bold text-black">Drivers on Leave</h1>
               </div>
               <div className="text-black/90 text-sm">
-                Total: {staticDriversOnLeave.length} drivers
+                Total: {drivers.length} drivers
               </div>
             </div>
           </div>
 
-          {/* Filters and Search */}
+          {/* Search */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-4 p-4">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
@@ -163,19 +101,6 @@ const DriversOnLeavePage = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                 />
-              </div>
-              <div className="md:w-48">
-                <select
-                  value={leaveTypeFilter}
-                  onChange={(e) => setLeaveTypeFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                >
-                  <option value="all">All Leave Types</option>
-                  <option value="Vacation">Vacation</option>
-                  <option value="Sick Leave">Sick Leave</option>
-                  <option value="Personal Leave">Personal Leave</option>
-                  <option value="Emergency Leave">Emergency Leave</option>
-                </select>
               </div>
             </div>
           </div>
@@ -199,10 +124,10 @@ const DriversOnLeavePage = () => {
                       Leave Period
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Leave Type
+                      Days Remaining
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Days Remaining
+                      Notes
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Status
@@ -210,7 +135,16 @@ const DriversOnLeavePage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredDrivers.length === 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-8 text-center">
+                        <div className="flex items-center justify-center">
+                          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                          <span className="ml-2 text-gray-500">Loading drivers on leave...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filteredDrivers.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                         No drivers on leave found
@@ -255,12 +189,21 @@ const DriversOnLeavePage = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {getLeaveTypeBadge(driver.leaveType)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center text-sm font-medium text-orange-600">
                             <Clock className="w-4 h-4 mr-1" />
                             {calculateDaysRemaining(driver.leaveEndDate)} days
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900 max-w-xs">
+                            {driver.notes ? (
+                              <div className="flex items-start">
+                                <FileText className="w-4 h-4 mr-1 text-gray-400 mt-0.5 flex-shrink-0" />
+                                <span className="break-words">{driver.notes}</span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 italic">No notes</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

@@ -306,6 +306,16 @@ const Dashboard = () => {
       path: `${routePrefix}/driverpayroll`
     },
     {
+      id: 'paystubs',
+      title: 'Paystubs',
+      subtitle: 'View all paystubs',
+      value: '—',
+      icon: FileText,
+      bgColor: 'bg-indigo-100',
+      iconColor: 'text-indigo-700',
+      path: `${routePrefix}/paystubs`
+    },
+    {
       id: 'config',
       title: 'Accounting Config',
       subtitle: 'Chart of accounts',

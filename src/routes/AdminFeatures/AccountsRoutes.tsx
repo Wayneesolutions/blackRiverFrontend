@@ -10,6 +10,7 @@ const Expenses = lazy(() => import("../../pages/admin/accounts/expenses/index"))
 const Payroll = lazy(() => import("../../pages/admin/accounts/payroll/index"));
 const MonthlySalaryReport = lazy(() => import("../../pages/admin/accounts/payroll/MonthlySalaryReport"));
 const DriverPayroll = lazy(() => import("../../pages/admin/accounts/driverpayroll/index"));
+const Paystubs = lazy(() => import("../../pages/admin/accounts/paystubs/index"));
 
 // New Pages
 const AccountingConfig = lazy(() => import("../../pages/admin/accounts/config/index"));
@@ -36,6 +37,7 @@ function AccountsRoutes() {
                     <Route path="/payroll" element={<Payroll />} />
                     <Route path="/payroll/monthly-report" element={<MonthlySalaryReport />} />
                     <Route path="/driverpayroll" element={<DriverPayroll />} />
+                    <Route path="/paystubs" element={<Paystubs />} />
 
                     {/* New Routes */}
                     <Route path="/config" element={<AccountingConfig />} />

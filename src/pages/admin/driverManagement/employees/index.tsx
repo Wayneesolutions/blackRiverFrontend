@@ -19,7 +19,10 @@ import {
   ChevronRight,
   Save,
   Download,
-  RefreshCw
+  RefreshCw,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import {
   getAllEmployees,
@@ -69,6 +72,7 @@ interface Employee {
   role: string;
   status: 'active' | 'inactive';
   joinDate: string;
+  dob?: string | Date;
   internalId: string;
   location: {
     address: string;
@@ -214,9 +218,9 @@ const EmployeesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<string>('');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; employeeId: string | null }>({
@@ -258,6 +262,7 @@ const EmployeesPage = () => {
     city: '',
     address: '',
     joinDate: '',
+    dob: '',
     internalId: '',
     policies: '',
     password: ''
@@ -318,7 +323,7 @@ const EmployeesPage = () => {
   // Reset to page 1 when search or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedStatus, activeTab]);
+  }, [searchQuery, selectedStatus, sortBy, sortOrder, activeTab]);
 
   // Fetch data based on active tab
   useEffect(() => {
@@ -332,7 +337,7 @@ const EmployeesPage = () => {
     if (editingEmployee) {
       fetchEmployeeDocuments();
     }
-  }, [currentPage, searchQuery, selectedStatus, activeTab]); // Removed selectedRole from dependencies
+  }, [currentPage, searchQuery, selectedStatus, sortBy, sortOrder, activeTab]); // Removed selectedRole from dependencies
 
   useEffect(() => {
     if (editingEmployee) {
@@ -426,7 +431,7 @@ const EmployeesPage = () => {
       setLoading(true);
       // No role filtering - show all users
       // Don't pass role filter to backend - we want all users
-      const response = await getAllEmployees(currentPage, itemsPerPage, searchQuery, undefined, selectedStatus || undefined);
+      const response = await getAllEmployees(currentPage, itemsPerPage, searchQuery, undefined, selectedStatus || undefined, sortBy || undefined, sortOrder || undefined);
       if (response.success) {
         // Backend already filters out admin, superadmin, driver, contact, and customer
         const employeeData = response.data || [];
@@ -478,7 +483,7 @@ const EmployeesPage = () => {
   const fetchContacts = async () => {
     try {
       setLoading(true);
-      const response = await getAllContacts(currentPage, itemsPerPage, searchQuery, selectedStatus || undefined);
+      const response = await getAllContacts(currentPage, itemsPerPage, searchQuery, selectedStatus || undefined, sortBy || undefined, sortOrder || undefined);
       if (response.success) {
         // Update pagination state
         if (response.pagination) {
@@ -516,7 +521,7 @@ const EmployeesPage = () => {
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const response = await getAllCustomers(currentPage, itemsPerPage, searchQuery, selectedStatus || undefined);
+      const response = await getAllCustomers(currentPage, itemsPerPage, searchQuery, selectedStatus || undefined, sortBy || undefined, sortOrder || undefined);
       if (response.success) {
         // Update pagination state
         if (response.pagination) {
@@ -601,6 +606,7 @@ const EmployeesPage = () => {
       city: '',
       address: '',
       joinDate: '',
+      dob: '',
       internalId: '',
       policies: '',
       password: ''
@@ -922,6 +928,14 @@ const EmployeesPage = () => {
 
   const handleEdit = (employee: Employee) => {
     setEditingEmployee(employee);
+    // Format dob for date input (YYYY-MM-DD)
+    const formatDateForInput = (date: string | Date | undefined) => {
+      if (!date) return '';
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return '';
+      return d.toISOString().split('T')[0];
+    };
+
     setFormData({
       name: employee.name,
       email: employee.email,
@@ -931,7 +945,8 @@ const EmployeesPage = () => {
       state: employee.state,
       city: employee.city,
       address: employee.location?.address || '',
-      joinDate: employee.joinDate,
+      joinDate: formatDateForInput(employee.joinDate),
+      dob: formatDateForInput(employee.dob || employee.details?.dateOfBirth),
       internalId: employee.internalId,
       policies: employee.policies,
       password: ''
@@ -1056,11 +1071,12 @@ const EmployeesPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#EDF8FF]">
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${showAddModal ? 'mr-[800px]' : ''}`}>
-        <div className="flex-1 flex flex-col p-4" style={ACCENT_VARS}>
-          {/* Notifications Container */}
-          <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
+    <>
+      <div className="flex min-h-screen bg-[#EDF8FF]">
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${showAddModal ? 'mr-[800px]' : ''}`}>
+          <div className="flex-1 flex flex-col p-4" style={ACCENT_VARS}>
+            {/* Notifications Container */}
+            <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
             {notifications.map(notification => (
               <Notification
                 key={notification.id}
@@ -1184,91 +1200,50 @@ const EmployeesPage = () => {
                   style={focusRingStyle}
                 />
               </div>
-              <div className="relative">
-                <button
-                  onClick={() => setShowFilterPanel(!showFilterPanel)}
-                  className="px-5 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 flex items-center space-x-2 bg-white transition-all"
-                  style={
-                    showFilterPanel
-                      ? { backgroundColor: "rgba(66, 174, 236, 0.1)", borderColor: ACCENT_PRIMARY, boxShadow: `0 0 0 3px rgba(66, 174, 236, 0.1)` }
-                      : undefined
-                  }
-                >
-                  <Filter className="w-5 h-5" />
-                  <span className="font-medium">Filter</span>
-                  {selectedStatus && (
-                    <span
-                      className="ml-1 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-semibold"
-                      style={{ backgroundColor: ACCENT_PRIMARY }}
-                    >
-                      1
-                    </span>
-                  )}
-                </button>
+              <div className="flex items-center space-x-2">
+                {/* Status Dropdown */}
+                <div className="relative">
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => {
+                      setSelectedStatus(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 bg-white transition-all focus:outline-none focus:ring-2 focus:border-transparent appearance-none pr-10 cursor-pointer"
+                    style={focusRingStyle}
+                  >
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+                </div>
 
-                {showFilterPanel && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40 bg-gray-900/20 backdrop-blur-sm"
-                      onClick={() => setShowFilterPanel(false)}
-                    ></div>
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-gray-800">
-                          {activeTab === 'employees' && 'Filter Employees'}
-                          {activeTab === 'contacts' && 'Filter Contacts'}
-                          {activeTab === 'customers' && 'Filter Customers'}
-                        </h3>
-                        <button
-                          onClick={() => setShowFilterPanel(false)}
-                          className="text-gray-400 hover:text-gray-600"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div className="space-y-4">
-                        {/* Role filter removed - showing all users in employees tab */}
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Status
-                          </label>
-                          <select
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm"
-                            style={focusRingStyle}
-                          >
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                          </select>
-                        </div>
-
-                        <div className="flex items-center space-x-2 pt-2 border-t border-gray-200">
-                          <button
-                            onClick={() => {
-                              setSelectedStatus('');
-                              setShowFilterPanel(false);
-                              setCurrentPage(1); // Reset to first page when clearing filters
-                            }}
-                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
-                          >
-                            Clear Status Filter
-                          </button>
-                          <button
-                            onClick={() => setShowFilterPanel(false)}
-                            className="flex-1 px-3 py-2 text-sm text-white rounded-lg hover:opacity-90"
-                            style={{ backgroundImage: ACCENT_GRADIENT }}
-                          >
-                            Apply
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
+                {/* Sort Dropdown */}
+                <div className="relative">
+                  <select
+                    value={sortBy && sortOrder ? `${sortBy}-${sortOrder}` : ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        setSortBy('');
+                        setSortOrder('');
+                      } else {
+                        const [field, order] = value.split('-');
+                        setSortBy(field);
+                        setSortOrder(order);
+                      }
+                      setCurrentPage(1);
+                    }}
+                    className="px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 bg-white transition-all focus:outline-none focus:ring-2 focus:border-transparent appearance-none pr-10 cursor-pointer"
+                    style={focusRingStyle}
+                  >
+                    <option value="">Sort by Name</option>
+                    <option value="name-asc">Name: A-Z</option>
+                    <option value="name-desc">Name: Z-A</option>
+                  </select>
+                  <ArrowUpDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+                </div>
               </div>
             </div>
           </div>
@@ -1572,6 +1547,7 @@ const EmployeesPage = () => {
               </div>
               );
             })()}
+          </div>
           </div>
         </div>
       </div>
@@ -1926,6 +1902,19 @@ const EmployeesPage = () => {
                           type="date"
                           name="joinDate"
                           value={formData.joinDate}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Date of Birth
+                        </label>
+                        <input
+                          type="date"
+                          name="dob"
+                          value={formData.dob}
                           onChange={handleInputChange}
                           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
@@ -2437,9 +2426,7 @@ const EmployeesPage = () => {
           animation: slide-in 0.3s ease-out;
         }
       `}</style>
-    </div>
+    </>
   );
 };
-
 export default EmployeesPage;
-

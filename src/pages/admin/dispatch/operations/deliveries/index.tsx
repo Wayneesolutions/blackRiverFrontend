@@ -1,83 +1,21 @@
-import { useState } from "react";
-import { Package, Calendar, MapPin, Search, ArrowLeft, Truck, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Package, Calendar, MapPin, Search, ArrowLeft, Truck, User, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getUserRole } from "../../../../../utils/auth";
+import { getTodayDeliveries } from "../../../../../axios/api/distapcher";
 
-// Static data for deliveries
-const staticDeliveries = [
-  {
-    id: "DEL001",
-    orderNumber: "ORD-001",
-    customerName: "ABC Logistics",
-    deliveryLocation: "Winnipeg, MB",
-    deliveryDate: "2024-01-15",
-    deliveryTime: "10:00 AM",
-    status: "completed",
-    driverName: "John Doe",
-    truckPlate: "ABC-123",
-    items: 12,
-  },
-  {
-    id: "DEL002",
-    orderNumber: "ORD-002",
-    customerName: "XYZ Transport",
-    deliveryLocation: "Calgary, AB",
-    deliveryDate: "2024-01-15",
-    deliveryTime: "2:00 PM",
-    status: "in transit",
-    driverName: "Jane Smith",
-    truckPlate: "DEF-456",
-    items: 8,
-  },
-  {
-    id: "DEL003",
-    orderNumber: "ORD-003",
-    customerName: "Global Shipping",
-    deliveryLocation: "Toronto, ON",
-    deliveryDate: "2024-01-16",
-    deliveryTime: "9:00 AM",
-    status: "scheduled",
-    driverName: "Bob Johnson",
-    truckPlate: "GHI-789",
-    items: 15,
-  },
-  {
-    id: "DEL004",
-    orderNumber: "ORD-004",
-    customerName: "Fast Delivery Co",
-    deliveryLocation: "Edmonton, AB",
-    deliveryDate: "2024-01-16",
-    deliveryTime: "1:30 PM",
-    status: "scheduled",
-    driverName: "Alice Williams",
-    truckPlate: "JKL-012",
-    items: 6,
-  },
-  {
-    id: "DEL005",
-    orderNumber: "ORD-005",
-    customerName: "Premium Logistics",
-    deliveryLocation: "Vancouver, BC",
-    deliveryDate: "2024-01-17",
-    deliveryTime: "11:00 AM",
-    status: "scheduled",
-    driverName: "Mike Brown",
-    truckPlate: "MNO-345",
-    items: 20,
-  },
-  {
-    id: "DEL006",
-    orderNumber: "ORD-006",
-    customerName: "Express Transport",
-    deliveryLocation: "Montreal, QC",
-    deliveryDate: "2024-01-17",
-    deliveryTime: "3:00 PM",
-    status: "scheduled",
-    driverName: "Sarah Davis",
-    truckPlate: "PQR-678",
-    items: 10,
-  },
-];
+interface Delivery {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  deliveryLocation: string;
+  deliveryDate: string;
+  deliveryTime: string;
+  status: string;
+  driverName: string;
+  truckPlate: string;
+  items: number;
+}
 
 const DeliveriesPage = () => {
   const navigate = useNavigate();
@@ -87,8 +25,28 @@ const DeliveriesPage = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredDeliveries = staticDeliveries.filter((delivery) => {
+  useEffect(() => {
+    fetchDeliveries();
+  }, []);
+
+  const fetchDeliveries = async () => {
+    try {
+      setLoading(true);
+      const response = await getTodayDeliveries();
+      if (response.success && response.data) {
+        setDeliveries(response.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching deliveries:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredDeliveries = deliveries.filter((delivery) => {
     const matchesSearch =
       delivery.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       delivery.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -143,7 +101,7 @@ const DeliveriesPage = () => {
                 <h1 className="text-xl font-bold text-black">Deliveries</h1>
               </div>
               <div className="text-black/90 text-sm">
-                Total: {staticDeliveries.length} deliveries
+                Total: {deliveries.length} deliveries
               </div>
             </div>
           </div>
@@ -209,10 +167,19 @@ const DeliveriesPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredDeliveries.length === 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-8 text-center">
+                        <div className="flex items-center justify-center">
+                          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                          <span className="ml-2 text-gray-500">Loading deliveries...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filteredDeliveries.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
-                        No deliveries found
+                        No deliveries found for today
                       </td>
                     </tr>
                   ) : (
