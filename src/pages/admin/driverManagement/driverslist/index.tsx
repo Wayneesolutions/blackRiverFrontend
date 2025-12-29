@@ -1,2652 +1,2666 @@
-import { useState, useEffect, useRef } from 'react';
-import { Edit, Trash2, Plus, X, RefreshCw, AlertCircle, User, Search, Eye, CheckCircle, FileText, Briefcase, Phone, Globe, MapPin, CreditCard, Heart, Building2, DollarSign, Snowflake, Thermometer, Upload, ChevronLeft, ChevronRight, Save } from 'lucide-react';
-import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
-import * as driverApi from '../../../../axios/api/driver';
-import { getDocumentsByEmployee, createEmployeeDocument, getSignedEmployeeDocumentUrl } from '../../../../axios/api/employeeDocument';
-import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
+import { useState } from 'react';
+import { Search, FileText, Mail, Wrench, Filter, Users, ChevronUp, ChevronDown, Plus, X, Upload, User, MapPin, Calendar, Award, AlertTriangle, FileText as FileTextIcon, DollarSign, PlusCircle, Check } from 'lucide-react';
 
-// Type definitions
+// Static driver data matching the image
 interface Driver {
-  _id: string;
-  internalId: string;
-  name: string;
-  email: string;
-  phone: string;
-  mobile?: string;
-  licenseNumber?: string;
-  company?: string;
-  gender?: string;
-  csa?: string;
+  driverId: string;
+  firstName: string;
+  lastName: string;
+  driversLicence: string;
+  passport: string;
+  dateOfBirth: string;
+  notes: string;
+  ticketYTD: number;
   status: string;
-  address?: string;
-  citizenship?: string;
-  country?: string;
-  employmentDetails?: string;
-  wsib?: string;
-  fastCard?: string;
-  medicalTracking?: string;
-  profileImageUrl?: string | null;
-  lastModified?: string;
-  role?: string;
-  joinDate?: string;
-  dob?: string | Date;
-  documents?: EmployeeDocument[];
+  compliance: 'COMPLIANT' | 'EXPIRING SOON' | 'NON-COMPLIANT';
 }
 
-interface DriverFormData {
-  name: string;
-  email: string;
-  gender: string;
-  company: string;
-  employmentDetails: string;
-  internalId: string;
-  joinDate: string;
-  dob: string;
-  phone: string;
-  mobile: string;
-  licenseNumber: string;
-  citizenship: string;
-  country: string;
-  address: string;
-  wsib: string;
-  fastCard: string;
-  medicalTracking: string;
-  csa: string;
-  file: File | null;
-  password: string;
-  role: string;
-  status: string;
-  policies?: string;
-  // Salary per mile fields
-  salaryPerMile?: string;
-  salaryPerMileSnow?: string;
-  salaryPerMileHighTemp?: string;
-  highTempThreshold?: string;
-}
-
-interface DriverDocumentForm {
-  documentType: string;
-  documentNumber: string;
-  issueDate: string;
-  expiryDate: string;
-  description: string;
-  status: string;
-  file: File | null;
-  _id?: string; // For existing documents
-}
-
+const staticDrivers: Driver[] = [
+  {
+    driverId: 'BRBS75',
+    firstName: 'BALJINDER',
+    lastName: 'SINGH',
+    driversLicence: 'SI-NG-HB-*S23B8',
+    passport: 'Y2051470',
+    dateOfBirth: '01/28/1998',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'COMPLIANT'
+  },
+  {
+    driverId: 'BRJS49',
+    firstName: 'JASKIRAT',
+    lastName: 'SINGH',
+    driversLicence: 'SI-NG-HJ-*999R2',
+    passport: 'V1705202',
+    dateOfBirth: '12/22/2001',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'COMPLIANT'
+  },
+  {
+    driverId: 'BRMC50',
+    firstName: 'MANPREET',
+    lastName: 'SINGH CHAUDHARY',
+    driversLicence: 'SI-NG-HM-*020LW',
+    passport: 'P9519579',
+    dateOfBirth: '06/16/1998',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'COMPLIANT'
+  },
+  {
+    driverId: 'BRGM52',
+    firstName: 'GURMAN',
+    lastName: 'MANGAT',
+    driversLicence: 'MA-NG-AG-S988WB',
+    passport: 'T0092005',
+    dateOfBirth: '09/02/2002',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'EXPIRING SOON'
+  },
+  {
+    driverId: 'BRKS53',
+    firstName: 'KARAN',
+    lastName: 'SINGH',
+    driversLicence: 'SI-NG-HK-*123AB',
+    passport: 'T1234567',
+    dateOfBirth: '03/15/1995',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'COMPLIANT'
+  },
+  {
+    driverId: 'BRHS54',
+    firstName: 'HARJINDER',
+    lastName: 'SINGH',
+    driversLicence: 'SI-NG-HH-*456CD',
+    passport: 'T2345678',
+    dateOfBirth: '07/20/1999',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'COMPLIANT'
+  },
+  {
+    driverId: 'BRPS55',
+    firstName: 'PARAMJIT',
+    lastName: 'SINGH',
+    driversLicence: 'SI-NG-HP-*789EF',
+    passport: 'T3456789',
+    dateOfBirth: '11/10/1997',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'COMPLIANT'
+  },
+  {
+    driverId: 'BRSS56',
+    firstName: 'SUKHJINDER',
+    lastName: 'SINGH',
+    driversLicence: 'SI-NG-HS-*012GH',
+    passport: 'T4567890',
+    dateOfBirth: '05/25/2000',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'COMPLIANT'
+  },
+  {
+    driverId: 'BRMS57',
+    firstName: 'MANDEEP',
+    lastName: 'SINGH',
+    driversLicence: 'SI-NG-HM-*345IJ',
+    passport: 'T5678901',
+    dateOfBirth: '08/30/1996',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'COMPLIANT'
+  },
+  {
+    driverId: 'BRGS58',
+    firstName: 'GURPREET',
+    lastName: 'SINGH',
+    driversLicence: 'SI-NG-HG-*678KL',
+    passport: 'T6789012',
+    dateOfBirth: '02/14/1998',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'COMPLIANT'
+  },
+  {
+    driverId: 'BRAS59',
+    firstName: 'AMANDEEP',
+    lastName: 'SINGH',
+    driversLicence: 'SI-NG-HA-*901MN',
+    passport: 'T7890123',
+    dateOfBirth: '10/05/2001',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'COMPLIANT'
+  },
+  {
+    driverId: 'BRRS60',
+    firstName: 'RAVINDER',
+    lastName: 'SINGH',
+    driversLicence: 'SI-NG-HR-*234OP',
+    passport: 'T8901234',
+    dateOfBirth: '04/18/1999',
+    notes: '',
+    ticketYTD: 0,
+    status: 'ACTIVE',
+    compliance: 'COMPLIANT'
+  }
+];
 
 const DriverManagement = () => {
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'external' | 'unassigned'>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; driverId: string | null }>({ show: false, driverId: null });
-  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  const [driverDocuments, setDriverDocuments] = useState<DriverDocumentForm[]>([]);
-
-  const [showDocumentsModal, setShowDocumentsModal] = useState<{ show: boolean; driver: Driver | null }>({ show: false, driver: null });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
-  const [showDriverDetails, setShowDriverDetails] = useState(false);
+  const [filterBy, setFilterBy] = useState('Active');
+  const [category, setCategory] = useState('');
+  const [complianceStatus, setComplianceStatus] = useState('All');
+  const [sortBy, setSortBy] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Driver | null; direction: 'asc' | 'desc' }>({
+    key: null,
+    direction: 'asc'
+  });
+  const [showNewDriverModal, setShowNewDriverModal] = useState(false);
+  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'travel' | 'documents' | 'certifications' | 'violations' | 'notes' | 'deductions' | 'additions'>('basic');
   
-  // Refs for scrollbar synchronization
-  const topScrollRef = useRef<HTMLDivElement>(null);
-  const bottomScrollRef = useRef<HTMLDivElement>(null);
-
-  const [formData, setFormData] = useState<DriverFormData>({
-    name: '',
-    email: '',
-    gender: '',
-    company: '', // Keep in interface but not used in form
-    employmentDetails: '',
-    internalId: '',
-    joinDate: '',
-    dob: '',
-    phone: '',
-    mobile: '',
-    licenseNumber: '',
-    citizenship: '',
-    country: '',
+  // Form state for Basic Information
+  const [formData, setFormData] = useState({
+    driverId: '',
+    firstName: '',
+    middle: '',
+    lastName: '',
+    emailAddress: '',
+    dateOfBirth: '',
+    mobileApp: false,
+    pin: '',
+    primaryPhone: '+1',
+    secondaryPhone: '+1',
+    searchAddress: '',
     address: '',
-    wsib: '',
-    fastCard: '',
-    medicalTracking: '',
-    csa: '',
-    file: null,
-    password: '',
-    role: 'driver',
-    status: 'active',
-    policies: '', // Added missing policies field
-    // Salary per mile fields
-    salaryPerMile: '',
-    salaryPerMileSnow: '',
-    salaryPerMileHighTemp: '',
-    highTempThreshold: '35'
+    unit: '',
+    city: '',
+    postalCode: '',
+    country: '',
+    stateProvince: '',
+    profileImage: null as File | null
   });
 
-  // Citizenship options for dropdown
-  const citizenshipOptions = [
-    'United States',
-    'Canada',
-    'Mexico',
-    'United Kingdom',
-    'Australia',
-    'Germany',
-    'France',
-    'India',
-    'China',
-    'Brazil',
-    'Other'
-  ];
+  // Form state for Personal Information
+  const [personalData, setPersonalData] = useState({
+    socialInsuranceNumber: '',
+    hireDate: '',
+    terminationDate: '',
+    status: 'Active',
+    vacationPercent: '',
+    // Pay Information
+    paySearchAddress: '',
+    corporationName: '',
+    driverName: '',
+    paymentAddress: '',
+    gstNo: '',
+    // Pay Type
+    driverType: 'COMPANY DRIVER' as 'COMPANY DRIVER' | 'OWNER OPERATOR',
+    paymentMethod: 'PAID PER MILE' as 'PAID PER MILE' | 'PAID PERCENT' | 'PAID BY TRIP' | 'PAID PER HOUR' | 'PAID PER DAY',
+    // $/Mile Details
+    alone: '0',
+    empty: '0',
+    bonusDrop: '0',
+    team: '0',
+    emptyTeam: '0',
+    bonusPick: '0',
+    bonusLayover: '0',
+    // Percent Rate (for PAID PERCENT)
+    percentRate: '0',
+    // Driver Type
+    driverTypeSolo: true, // true = SOLO, false = TEAM
+    // Exemptions
+    cppExempt: false,
+    payrollTaxExempt: false,
+    // Custom HST
+    customHst: ''
+  });
 
-  useEffect(() => {
-    fetchDrivers();
-  }, []);
+  // Form state for Travel Information
+  const [travelData, setTravelData] = useState({
+    // Travel Information
+    driversLicenseNumber: '',
+    driversLicenseExpiry: '',
+    licenseStateProvince: '',
+    passportNumber: '',
+    passportCountry: '',
+    passportExpiry: '',
+    fastCardNumber: '',
+    fastCardExpiry: '',
+    fastCardValid: false,
+    // Canadian Worker Status
+    canadianWorkerStatus: 'PERMANENT RESIDENT' as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
+    // Permanent Residence Expiry
+    permanentResidenceExpiry: '',
+    // Work Permit Expiry
+    workPermitExpiry: '',
+    // WCB Number
+    wcbNumber: ''
+  });
 
-  // Sync scroll between top and bottom scrollbars
-  useEffect(() => {
-    const topScroll = topScrollRef.current;
-    const bottomScroll = bottomScrollRef.current;
+  // Form state for Documents
+  const [documentsTab, setDocumentsTab] = useState<'general' | 'driving-violations' | 'other-violations' | 'other' | 'warning-letters'>('general');
+  const [documents, setDocuments] = useState<Array<{
+    id: string;
+    expiryDate: string;
+    description: string;
+    ignoreExpiration: boolean;
+    file?: File | null;
+  }>>([]);
+  const [newDocument, setNewDocument] = useState({
+    expiryDate: '',
+    description: '',
+    ignoreExpiration: false,
+    file: null as File | null
+  });
 
-    if (!topScroll || !bottomScroll) return;
+  // Form state for Safety Certifications
+  const [certifications, setCertifications] = useState<Array<{
+    id: string;
+    expiryDate: string;
+    title: string;
+    subCategory: string;
+    result: string;
+    ignoreExpiration: boolean;
+  }>>([]);
+  const [newCertification, setNewCertification] = useState({
+    expiryDate: '',
+    title: '',
+    subCategory: '',
+    result: '',
+    ignoreExpiration: false
+  });
+  const [selectedCertificate, setSelectedCertificate] = useState<{
+    id: string;
+    expiryDate: string;
+    title: string;
+    subCategory: string;
+    result: string;
+    ignoreExpiration: boolean;
+  } | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<Record<string, { name: string; size: number }>>({});
+  const [documentFile, setDocumentFile] = useState<{ name: string; size: number } | null>(null);
 
-    let isScrolling = false;
+  // Form state for Violations
+  const [violations, setViolations] = useState<Array<{
+    id: string;
+    paymentDueDate: string;
+    ticket: string;
+    file?: { name: string; size: number } | null;
+  }>>([]);
+  const [newViolation, setNewViolation] = useState({
+    paymentDueDate: '',
+    ticket: '',
+    file: null as { name: string; size: number } | null
+  });
+  const [violationFile, setViolationFile] = useState<{ name: string; size: number } | null>(null);
 
-    const handleTopScroll = () => {
-      if (isScrolling) return;
-      isScrolling = true;
-      bottomScroll.scrollLeft = topScroll.scrollLeft;
-      requestAnimationFrame(() => {
-        isScrolling = false;
-      });
-    };
+  // Form state for Notes
+  const [notes, setNotes] = useState<Array<{
+    id: string;
+    note: string;
+    category: string;
+  }>>([]);
+  const [newNote, setNewNote] = useState({
+    note: '',
+    category: ''
+  });
 
-    const handleBottomScroll = () => {
-      if (isScrolling) return;
-      isScrolling = true;
-      topScroll.scrollLeft = bottomScroll.scrollLeft;
-      requestAnimationFrame(() => {
-        isScrolling = false;
-      });
-    };
+  // Form state for Deductions
+  const [deductions, setDeductions] = useState<Array<{
+    id: string;
+    startDate: string;
+    description: string;
+    amount: string;
+    interval: string;
+    currency: string;
+  }>>([]);
+  const [newDeduction, setNewDeduction] = useState({
+    startDate: '',
+    description: '',
+    amount: '0',
+    interval: '',
+    currency: 'CAD'
+  });
 
-    // Sync scroll widths
-    const syncScrollWidths = () => {
-      const bottomScrollWidth = bottomScroll.scrollWidth;
-      const topInner = topScroll.querySelector('.top-scroll-content') as HTMLElement;
-      if (topInner && bottomScrollWidth > 0) {
-        topInner.style.width = `${bottomScrollWidth}px`;
-        topScroll.scrollLeft = bottomScroll.scrollLeft;
+  // Form state for Additions
+  const [additions, setAdditions] = useState<Array<{
+    id: string;
+    startDate: string;
+    description: string;
+    amount: string;
+    interval: string;
+    currency: string;
+  }>>([]);
+  const [newAddition, setNewAddition] = useState({
+    startDate: '',
+    description: '',
+    amount: '0',
+    interval: '',
+    currency: 'CAD'
+  });
+
+  // Filter drivers based on active tab
+  const getFilteredDrivers = () => {
+    let filtered = staticDrivers;
+
+    // Apply tab filter
+    if (activeTab === 'external') {
+      // For external, show all except unassigned (mock logic)
+      filtered = staticDrivers.filter((_, index) => index < 46);
+    } else if (activeTab === 'unassigned') {
+      // For unassigned, show last 3 (mock logic)
+      filtered = staticDrivers.slice(-3);
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        driver =>
+          driver.driverId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          driver.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          driver.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          driver.driversLicence.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          driver.passport.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply compliance status filter
+    if (complianceStatus !== 'All') {
+      const complianceMap: Record<string, Driver['compliance']> = {
+        'Compliant': 'COMPLIANT',
+        'Expiring Soon': 'EXPIRING SOON',
+        'Non-Compliant': 'NON-COMPLIANT'
+      };
+      const mappedStatus = complianceMap[complianceStatus];
+      if (mappedStatus) {
+        filtered = filtered.filter(driver => driver.compliance === mappedStatus);
       }
-    };
-
-    // Initial sync - wait for table to render
-    const timeoutId = setTimeout(syncScrollWidths, 100);
-    const timeoutId2 = setTimeout(syncScrollWidths, 300);
-    const timeoutId3 = setTimeout(syncScrollWidths, 500);
-
-    // Observe table changes
-    const tableObserver = new MutationObserver(() => {
-      syncScrollWidths();
-    });
-
-    const bottomTable = bottomScroll.querySelector('table');
-    if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['style', 'class']
-      });
     }
 
-    topScroll.addEventListener('scroll', handleTopScroll, { passive: true });
-    bottomScroll.addEventListener('scroll', handleBottomScroll, { passive: true });
-    window.addEventListener('resize', syncScrollWidths);
-
-    return () => {
-      clearTimeout(timeoutId);
-      clearTimeout(timeoutId2);
-      clearTimeout(timeoutId3);
-      tableObserver.disconnect();
-      topScroll.removeEventListener('scroll', handleTopScroll);
-      bottomScroll.removeEventListener('scroll', handleBottomScroll);
-      window.removeEventListener('resize', syncScrollWidths);
-    };
-  }, [drivers, loading]);
-
-  const fetchDrivers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await driverApi.getAllDrivers(1, 100, searchTerm);
-      if (response.success && Array.isArray(response.data)) {
-        // Transform backend response to match frontend Driver interface
-        const transformedDrivers = await Promise.all(
-          response.data.map(async (driver: any) => {
-            // Ensure profileImageUrl is properly preserved and decoded if needed
-            const profileImageUrl = driver.profileImageUrl
-              ? (typeof driver.profileImageUrl === 'string' ? driver.profileImageUrl.trim() : null)
-              : null;
-
-            // Fetch documents for each driver
-            let documents: EmployeeDocument[] = [];
-            try {
-              const docsResponse = await getDocumentsByEmployee(driver._id);
-              if (docsResponse.success && Array.isArray(docsResponse.data)) {
-                documents = docsResponse.data;
-              }
-            } catch (err) {
-              console.error(`Error fetching documents for driver ${driver._id}:`, err);
-            }
-
-            // Transform driver data to ensure all fields are properly mapped
-            // Backend should already provide transformed data, but we ensure all fields exist
-            return {
-              _id: driver._id,
-              internalId: driver.internalId || '',
-              name: driver.name || '',
-              email: driver.email || '',
-              phone: driver.phone || '',
-              mobile: driver.mobile || driver.details?.cell1 || '',
-              licenseNumber: driver.licenseNumber || driver.details?.licenseNumber || '',
-              company: driver.company || (typeof driver.company === 'object' ? driver.company?.companyName : '') || '-',
-              gender: driver.gender || driver.details?.gender || '',
-              csa: driver.csa || (driver.details?.csa ? 'Yes' : (driver.details?.csa === false ? 'No' : '')) || 'N/A',
-              status: driver.status || 'active',
-              address: driver.address || driver.location?.address || '',
-              citizenship: driver.citizenship || driver.details?.citizenship || '',
-              country: driver.country || '',
-              employmentDetails: driver.employmentDetails || driver.details?.remark || '',
-              wsib: driver.wsib || (driver.details?.wsib ? 'Yes' : (driver.details?.wsib === false ? 'No' : '')),
-              fastCard: driver.fastCard || driver.details?.fastCardNo || '',
-              medicalTracking: driver.medicalTracking || (driver.details?.medicalRequired ? 'Yes' : (driver.details?.medicalRequired === false ? 'No' : '')),
-              profileImageUrl: profileImageUrl || null,
-              role: driver.role || 'driver',
-              joinDate: driver.joinDate || '',
-              policies: driver.policies || '',
-              lastModified: driver.updatedAt ? new Date(driver.updatedAt).toLocaleDateString() : undefined,
-              createdAt: driver.createdAt,
-              updatedAt: driver.updatedAt,
-              documents
-            };
-          })
-        );
-        setDrivers(transformedDrivers);
-      } else {
-        setError(response.message || 'Failed to fetch drivers');
-      }
-    } catch (error) {
-      console.error('Error fetching drivers:', error);
-      setError('Failed to fetch drivers');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      email: '',
-      gender: '',
-      company: '', // Keep in interface but not used in form
-      employmentDetails: '',
-      internalId: '',
-      joinDate: '',
-      phone: '',
-      mobile: '',
-      licenseNumber: '',
-      citizenship: '',
-      country: '',
-      address: '',
-      wsib: '',
-      fastCard: '',
-      medicalTracking: '',
-      csa: '',
-      file: null,
-      password: '',
-      role: 'driver',
-      status: 'active',
-      policies: '',
-      // Salary per mile fields
-      salaryPerMile: '',
-      salaryPerMileSnow: '',
-      salaryPerMileHighTemp: '',
-      highTempThreshold: '35'
-    });
-    setDriverDocuments([]);
-    setCurrentStep(1);
-    setIsSubmitting(false);
-  };
-
-  // Static driver document types
-  const DRIVER_DOCUMENT_TYPES = [
-    'Commercial Driver\'s License (CDL)',
-    'Medical Certificate (DOT Physical)',
-    'Drug Test Results',
-    'Alcohol Test Results',
-    'Background Check',
-    'Driving Record (MVR)',
-    'Insurance Certificate',
-    'DOT Physical Card',
-    'CDL Training Certificate',
-    'Defensive Driving Certificate',
-    'Hazmat Endorsement',
-    'Tanker Endorsement',
-    'Doubles/Triples Endorsement',
-    'Passenger Endorsement',
-    'School Bus Endorsement',
-    'Vehicle Inspection Certification',
-    'Safety Training Certificate',
-    'Hours of Service (HOS) Records',
-    'Employment Contract',
-    'Emergency Contact Form',
-    'Road Test Certificate',
-    'TSA Security Clearance',
-    'Other'
-  ];
-
-  const addDocument = () => {
-    setDriverDocuments([...driverDocuments, {
-      documentType: '',
-      documentNumber: '',
-      issueDate: '',
-      expiryDate: '',
-      description: '',
-      status: 'valid',
-      file: null
-    }]);
-  };
-
-  const removeDocument = (index: number) => {
-    setDriverDocuments(driverDocuments.filter((_, i) => i !== index));
-  };
-
-  const updateDocument = (index: number, field: keyof DriverDocumentForm, value: any) => {
-    const updated = [...driverDocuments];
-    updated[index] = { ...updated[index], [field]: value };
-    setDriverDocuments(updated);
-  };
-
-  const handleDocumentFileChange = (index: number, file: File | null) => {
-    updateDocument(index, 'file', file);
-  };
-
-  const handleCreate = async () => {
-    if (currentStep === 1) {
-      // Validate step 1
-      if (!formData.name || !formData.email || !formData.phone) {
-        alert('Please fill in all required fields (Name, Email, Phone)');
-        return;
-      }
-      // Move to step 2
-      setCurrentStep(2);
-      return;
-    }
-
-    // Step 2 - Create driver
-    if (!formData.password) {
-      alert('Password is required for new drivers');
-      return;
-    }
-
-    // Prevent double submission
-    if (isSubmitting) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const formDataToSend = new FormData();
-
-      // Append all form fields
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('email', formData.email);
-      formDataToSend.append('phone', formData.phone);
-      formDataToSend.append('password', formData.password);
-      formDataToSend.append('role', formData.role || 'driver');
-      formDataToSend.append('status', formData.status || 'active');
-
-      if (formData.country) formDataToSend.append('country', formData.country);
-      // Always send policies (required field, can be empty string)
-      formDataToSend.append('policies', formData.policies || '');
-      if (formData.internalId) formDataToSend.append('internalId', formData.internalId);
-      if (formData.joinDate) formDataToSend.append('joinDate', formData.joinDate);
-      if (formData.dob) formDataToSend.append('dob', formData.dob);
-      if (formData.gender) formDataToSend.append('gender', formData.gender);
-      if (formData.employmentDetails) formDataToSend.append('employmentDetails', formData.employmentDetails);
-      if (formData.mobile) formDataToSend.append('mobile', formData.mobile);
-      if (formData.licenseNumber) formDataToSend.append('licenseNumber', formData.licenseNumber);
-      if (formData.citizenship) formDataToSend.append('citizenship', formData.citizenship);
-      if (formData.address) formDataToSend.append('address', formData.address);
-      if (formData.wsib) formDataToSend.append('wsib', formData.wsib);
-      if (formData.fastCard) formDataToSend.append('fastCard', formData.fastCard);
-      if (formData.medicalTracking) formDataToSend.append('medicalTracking', formData.medicalTracking);
-      if (formData.csa) formDataToSend.append('csa', formData.csa);
-
-      // Append salary per mile fields
-      if (formData.salaryPerMile) formDataToSend.append('salaryPerMile', formData.salaryPerMile);
-      if (formData.salaryPerMileSnow) formDataToSend.append('salaryPerMileSnow', formData.salaryPerMileSnow);
-      if (formData.salaryPerMileHighTemp) formDataToSend.append('salaryPerMileHighTemp', formData.salaryPerMileHighTemp);
-      if (formData.highTempThreshold) formDataToSend.append('highTempThreshold', formData.highTempThreshold);
-
-      // Append file if exists
-      if (formData.file) {
-        formDataToSend.append('file', formData.file);
-      }
-
-      console.log('📤 Sending driver data:', {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        hasPassword: !!formData.password,
-        policies: formData.policies || '(empty)'
-      });
-
-      const response = await driverApi.createDriver(formDataToSend);
-      console.log('📥 Driver creation response:', response);
-      
-      if (response.success) {
-        const driverId = response.data?._id || response.data?.id;
-
-        // Upload documents if any
-        if (driverId && driverDocuments.length > 0) {
-          try {
-            for (const doc of driverDocuments) {
-              if (doc.file && doc.documentType) {
-                const docFormData = new FormData();
-                docFormData.append('employee', driverId);
-                docFormData.append('documentType', doc.documentType);
-                docFormData.append('status', doc.status || 'valid');
-                if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
-                if (doc.issueDate) docFormData.append('issueDate', doc.issueDate);
-                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
-                if (doc.description) docFormData.append('description', doc.description);
-                docFormData.append('documentFile', doc.file);
-
-                await createEmployeeDocument(docFormData);
-              }
-            }
-          } catch (docError) {
-            console.error('Error uploading documents:', docError);
-            alert('Driver created but some documents failed to upload. Please add them manually.');
-          }
+    // Apply sorting
+    if (sortConfig.key) {
+      filtered = [...filtered].sort((a, b) => {
+        const aValue = a[sortConfig.key!];
+        const bValue = b[sortConfig.key!];
+        
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
         }
-
-        await fetchDrivers();
-        resetForm();
-        setShowSidebar(false);
-        alert('Driver created successfully!');
-      } else {
-        alert(response.message || 'Failed to create driver');
-      }
-    } catch (error: any) {
-      console.error('Error creating driver:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to create driver';
-      alert(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleEdit = async (driver: Driver) => {
-    try {
-      setLoading(true);
-      // Fetch full driver details from API
-      const response = await driverApi.getDriverById(driver._id);
-      if (response.success && response.data) {
-        const driverData = response.data;
-        setEditingId(driver._id);
-
-        // Properly map fields from backend response (which may have details/location nested objects)
-        setFormData({
-          name: driverData.name || '',
-          email: driverData.email || '',
-          gender: driverData.gender || driverData.details?.gender || '',
-          company: '', // Not used in form, auto-assigned by backend
-          employmentDetails: driverData.employmentDetails || driverData.details?.remark || '',
-          internalId: driverData.internalId || '',
-          joinDate: driverData.joinDate ? new Date(driverData.joinDate).toISOString().split('T')[0] : '',
-          dob: driverData.dob ? new Date(driverData.dob).toISOString().split('T')[0] : (driverData.details?.dateOfBirth ? new Date(driverData.details.dateOfBirth).toISOString().split('T')[0] : ''),
-          phone: driverData.phone || '',
-          mobile: driverData.mobile || driverData.details?.cell1 || '',
-          licenseNumber: driverData.licenseNumber || driverData.details?.licenseNumber || '',
-          citizenship: driverData.citizenship || driverData.details?.citizenship || '',
-          country: driverData.country || '',
-          address: driverData.address || driverData.location?.address || '',
-          wsib: driverData.wsib || (driverData.details?.wsib === true ? 'Yes' : (driverData.details?.wsib === false ? 'No' : '')),
-          fastCard: driverData.fastCard || driverData.details?.fastCardNo || '',
-          medicalTracking: driverData.medicalTracking || (driverData.details?.medicalRequired === true ? 'Yes' : (driverData.details?.medicalRequired === false ? 'No' : '')),
-          csa: driverData.csa || (driverData.details?.csa === true ? 'Yes' : (driverData.details?.csa === false ? 'No' : '')),
-          file: null,
-          password: '', // Don't pre-fill password
-          role: driverData.role || 'driver',
-          status: driverData.status || 'active',
-          policies: driverData.policies || '',
-          // Salary per mile fields
-          salaryPerMile: driverData.details?.salaryPerMile?.toString() || driverData.salaryPerMile?.toString() || '',
-          salaryPerMileSnow: driverData.details?.salaryPerMileSnow?.toString() || driverData.salaryPerMileSnow?.toString() || '',
-          salaryPerMileHighTemp: driverData.details?.salaryPerMileHighTemp?.toString() || driverData.salaryPerMileHighTemp?.toString() || '',
-          highTempThreshold: driverData.details?.highTempThreshold?.toString() || driverData.highTempThreshold?.toString() || '35'
-        });
-
-        // Fetch existing documents
-        try {
-          const docsResponse = await getDocumentsByEmployee(driver._id);
-          if (docsResponse.success && Array.isArray(docsResponse.data)) {
-
-            // Convert existing documents to form format for editing
-            const formDocs = docsResponse.data.map((doc: EmployeeDocument) => ({
-              documentType: doc.documentType,
-              documentNumber: doc.documentNumber || '',
-              issueDate: doc.issueDate ? new Date(doc.issueDate).toISOString().split('T')[0] : '',
-              expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
-              description: doc.description || '',
-              status: doc.status,
-              file: null,
-              _id: doc._id // Keep track of existing document ID
-            }));
-            setDriverDocuments(formDocs);
-          }
-        } catch (docError) {
-          console.error('Error fetching documents:', docError);
-
-          setDriverDocuments([]);
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
         }
-
-        setCurrentStep(1);
-        setShowSidebar(true);
-      } else {
-        // Fallback to using driver object directly if API fails
-        setEditingId(driver._id);
-        setFormData({
-          name: driver.name || '',
-          email: driver.email || '',
-          gender: driver.gender || '',
-          company: '',
-          employmentDetails: driver.employmentDetails || '',
-          internalId: driver.internalId || '',
-          joinDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
-        dob: driver.dob ? new Date(driver.dob).toISOString().split('T')[0] : (driver.details?.dateOfBirth ? new Date(driver.details.dateOfBirth).toISOString().split('T')[0] : ''),
-          dob: driver.dob ? new Date(driver.dob).toISOString().split('T')[0] : (driver.details?.dateOfBirth ? new Date(driver.details.dateOfBirth).toISOString().split('T')[0] : ''),
-          phone: driver.phone || '',
-          mobile: driver.mobile || '',
-          licenseNumber: driver.licenseNumber || '',
-          citizenship: driver.citizenship || '',
-          country: driver.country || '',
-          address: driver.address || '',
-          wsib: driver.wsib || '',
-          fastCard: driver.fastCard || '',
-          medicalTracking: driver.medicalTracking || '',
-          csa: driver.csa || '',
-          file: null,
-          password: '',
-          role: driver.role || 'driver',
-          status: driver.status || 'active',
-          policies: ''
-        });
-
-        // Use documents from driver object if available
-        if (driver.documents && Array.isArray(driver.documents)) {
-
-          const formDocs = driver.documents.map((doc: EmployeeDocument) => ({
-            documentType: doc.documentType,
-            documentNumber: doc.documentNumber || '',
-            issueDate: doc.issueDate ? new Date(doc.issueDate).toISOString().split('T')[0] : '',
-            expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
-            description: doc.description || '',
-            status: doc.status,
-            file: null,
-            _id: doc._id
-          }));
-          setDriverDocuments(formDocs);
-        }
-
-        setCurrentStep(1);
-        setShowSidebar(true);
-      }
-    } catch (error) {
-      console.error('Error fetching driver details:', error);
-      // Fallback to using driver object directly
-      setEditingId(driver._id);
-      setFormData({
-        name: driver.name || '',
-        email: driver.email || '',
-        gender: driver.gender || '',
-        company: '',
-        employmentDetails: driver.employmentDetails || '',
-        internalId: driver.internalId || '',
-        joinDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
-        dob: driver.dob ? new Date(driver.dob).toISOString().split('T')[0] : (driver.details?.dateOfBirth ? new Date(driver.details.dateOfBirth).toISOString().split('T')[0] : ''),
-        phone: driver.phone || '',
-        mobile: driver.mobile || '',
-        licenseNumber: driver.licenseNumber || '',
-        citizenship: driver.citizenship || '',
-        country: driver.country || '',
-        address: driver.address || '',
-        wsib: driver.wsib || '',
-        fastCard: driver.fastCard || '',
-        medicalTracking: driver.medicalTracking || '',
-        csa: driver.csa || '',
-        file: null,
-        password: '',
-        role: driver.role || 'driver',
-        status: driver.status || 'active',
-        policies: ''
+        return 0;
       });
+    }
 
-      if (driver.documents && Array.isArray(driver.documents)) {
+    return filtered;
+  };
 
-        const formDocs = driver.documents.map((doc: EmployeeDocument) => ({
-          documentType: doc.documentType,
-          documentNumber: doc.documentNumber || '',
-          issueDate: doc.issueDate ? new Date(doc.issueDate).toISOString().split('T')[0] : '',
-          expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
-          description: doc.description || '',
-          status: doc.status,
-          file: null,
-          _id: doc._id
-        }));
-        setDriverDocuments(formDocs);
-      }
+  const filteredDrivers = getFilteredDrivers();
 
-      setCurrentStep(1);
-      setShowSidebar(true);
-    } finally {
-      setLoading(false);
+  const handleSort = (key: keyof Driver) => {
+    setSortConfig(current => ({
+      key,
+      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const getSortIcon = (key: keyof Driver) => {
+    if (sortConfig.key !== key) {
+      return (
+        <div className="flex flex-col">
+          <ChevronUp className="w-3 h-3 text-gray-400" />
+          <ChevronDown className="w-3 h-3 text-gray-400 -mt-1" />
+        </div>
+      );
+    }
+    return sortConfig.direction === 'asc' ? (
+      <ChevronUp className="w-3 h-3 text-gray-700" />
+    ) : (
+      <ChevronDown className="w-3 h-3 text-gray-700" />
+    );
+  };
+
+  const getComplianceButtonClass = (compliance: Driver['compliance']) => {
+    switch (compliance) {
+      case 'COMPLIANT':
+        return 'bg-[#10b981] text-white';
+      case 'EXPIRING SOON':
+        return 'bg-[#f59e0b] text-white';
+      case 'NON-COMPLIANT':
+        return 'bg-[#ef4444] text-white';
+      default:
+        return 'bg-gray-500 text-white';
     }
   };
 
-  const handleUpdate = async () => {
-    if (!editingId) return;
-
-    if (currentStep === 1) {
-      // Move to step 2
-      setCurrentStep(2);
-      return;
-    }
-
-    try {
-      const formDataToSend = new FormData();
-
-      // Append all form fields (password is optional for update)
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('email', formData.email);
-      formDataToSend.append('phone', formData.phone);
-      formDataToSend.append('role', formData.role || 'driver');
-      formDataToSend.append('status', formData.status || 'active');
-
-      if (formData.password) formDataToSend.append('password', formData.password);
-      if (formData.country) formDataToSend.append('country', formData.country);
-      // Always send policies (required field, can be empty string)
-      formDataToSend.append('policies', formData.policies || '');
-      if (formData.internalId) formDataToSend.append('internalId', formData.internalId);
-      if (formData.joinDate) formDataToSend.append('joinDate', formData.joinDate);
-      if (formData.dob) formDataToSend.append('dob', formData.dob);
-      if (formData.gender) formDataToSend.append('gender', formData.gender);
-      if (formData.employmentDetails) formDataToSend.append('employmentDetails', formData.employmentDetails);
-      if (formData.mobile) formDataToSend.append('mobile', formData.mobile);
-      if (formData.licenseNumber) formDataToSend.append('licenseNumber', formData.licenseNumber);
-      if (formData.citizenship) formDataToSend.append('citizenship', formData.citizenship);
-      if (formData.address) formDataToSend.append('address', formData.address);
-      if (formData.wsib) formDataToSend.append('wsib', formData.wsib);
-      if (formData.fastCard) formDataToSend.append('fastCard', formData.fastCard);
-      if (formData.medicalTracking) formDataToSend.append('medicalTracking', formData.medicalTracking);
-      if (formData.csa) formDataToSend.append('csa', formData.csa);
-
-      // Append salary per mile fields
-      if (formData.salaryPerMile !== undefined) formDataToSend.append('salaryPerMile', formData.salaryPerMile);
-      if (formData.salaryPerMileSnow !== undefined) formDataToSend.append('salaryPerMileSnow', formData.salaryPerMileSnow);
-      if (formData.salaryPerMileHighTemp !== undefined) formDataToSend.append('salaryPerMileHighTemp', formData.salaryPerMileHighTemp);
-      if (formData.highTempThreshold !== undefined) formDataToSend.append('highTempThreshold', formData.highTempThreshold);
-
-      // Append file if exists
-      if (formData.file) {
-        formDataToSend.append('file', formData.file);
-      }
-
-      const response = await driverApi.updateDriver(editingId, formDataToSend);
-      if (response.success) {
-        // Handle documents - update existing or create new
-        if (driverDocuments.length > 0) {
-          try {
-            for (const doc of driverDocuments) {
-              if (doc.file && doc.documentType) {
-                const docFormData = new FormData();
-                docFormData.append('employee', editingId);
-                docFormData.append('documentType', doc.documentType);
-                docFormData.append('status', doc.status || 'valid');
-                if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
-                if (doc.issueDate) docFormData.append('issueDate', doc.issueDate);
-                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
-                if (doc.description) docFormData.append('description', doc.description);
-                docFormData.append('documentFile', doc.file);
-
-                // If it's an existing document, update it; otherwise create new
-                if (doc._id) {
-                  // Update existing document
-                  const { updateEmployeeDocument } = await import('../../../../axios/api/employeeDocument');
-                  await updateEmployeeDocument(doc._id, docFormData);
-                } else {
-                  // Create new document
-                  await createEmployeeDocument(docFormData);
-                }
-              } else if (doc._id && doc.documentType) {
-                // Update existing document without file change
-                const { updateEmployeeDocument } = await import('../../../../axios/api/employeeDocument');
-                const docFormData = new FormData();
-                docFormData.append('employee', editingId);
-                docFormData.append('documentType', doc.documentType);
-                docFormData.append('status', doc.status || 'valid');
-                if (doc.documentNumber) docFormData.append('documentNumber', doc.documentNumber);
-                if (doc.issueDate) docFormData.append('issueDate', doc.issueDate);
-                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
-                if (doc.description) docFormData.append('description', doc.description);
-                await updateEmployeeDocument(doc._id, docFormData);
-              }
-            }
-          } catch (docError) {
-            console.error('Error updating documents:', docError);
-            alert('Driver updated but some documents failed to update. Please check them manually.');
-          }
-        }
-
-        await fetchDrivers();
-        setEditingId(null);
-        resetForm();
-        setShowSidebar(false);
-        alert('Driver updated successfully!');
-      } else {
-        alert(response.message || 'Failed to update driver');
-      }
-    } catch (error: any) {
-      console.error('Error updating driver:', error);
-      alert(error.response?.data?.message || error.message || 'Failed to update driver');
+  const getTabCount = (tab: 'all' | 'external' | 'unassigned') => {
+    switch (tab) {
+      case 'all':
+        return 49;
+      case 'external':
+        return 46;
+      case 'unassigned':
+        return 3;
+      default:
+        return 0;
     }
   };
-
-  const handleDelete = async (id: string) => {
-    setDeleteConfirm({ show: true, driverId: id });
-  };
-
-  const confirmDeleteDriver = async () => {
-    if (!deleteConfirm.driverId) return;
-
-    try {
-      const response = await driverApi.deleteDriver(deleteConfirm.driverId);
-      if (response.success) {
-        await fetchDrivers();
-        alert('Driver deleted successfully!');
-      } else {
-        alert(response.message || 'Failed to delete driver');
-      }
-    } catch (error: any) {
-      console.error('Error deleting driver:', error);
-      alert(error.response?.data?.message || error.message || 'Failed to delete driver');
-    } finally {
-      setDeleteConfirm({ show: false, driverId: null });
-    }
-  };
-
-  const toggleStatus = async (id: string, currentStatus: string) => {
-    try {
-      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-      const response = await driverApi.updateDriverStatus(id, newStatus);
-      if (response.success) {
-        await fetchDrivers();
-      } else {
-        alert(response.message || 'Failed to update driver status');
-      }
-    } catch (error: any) {
-      console.error('Error updating driver status:', error);
-      alert(error.response?.data?.message || error.message || 'Failed to update driver status');
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => {
-      const updated = { ...prev, [name]: value };
-      // Ensure policies is always a string, not undefined
-      if (name === 'policies' && !updated.policies) {
-        updated.policies = '';
-      }
-      return updated;
-    });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setFormData(prev => ({ ...prev, file }));
-  };
-
-  // Filter drivers locally (backend also does server-side filtering)
-  const filteredDrivers = drivers.filter(driver =>
-    driver.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    driver.internalId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    driver.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
-    <div className="flex h-screen bg-[#EDF8FF] overflow-hidden">
-      {/* Main Content */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidebar ? 'mr-96' : ''} overflow-hidden`}>
-        {/* Header */}
-        <div className="px-6 py-4 flex-shrink-0">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Driver Management</h1>
-              <p className="text-sm text-gray-500 mt-1">Manage your drivers and their information</p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={fetchDrivers}
-                disabled={loading}
-                className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+    <div className="min-h-screen bg-[#EDF8FF] p-6">
+      <div className="max-w-full mx-auto">
+        {/* Header Section */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold text-gray-900">Drivers</h1>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-gray-700">({getTabCount(activeTab)})</span>
+              <button 
+                onClick={() => setShowNewDriverModal(true)}
+                className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
               >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
-              <button
-                onClick={() => {
-                  resetForm();
-                  setEditingId(null);
-                  setCurrentStep(1);
-                  setShowSidebar(true);
-                }}
-                style={{ backgroundColor: FLEET_COLORS.primary }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
-                className="!text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
-              >
-                <Plus size={20} />
-                Add Driver
+                <Plus className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="mt-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Search by name, ID, or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  borderColor: '#d1d5db'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = FLEET_COLORS.primary;
-                  e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#d1d5db';
-                  e.target.style.boxShadow = '';
-                }}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none"
-              />
+          {/* Navigation Tabs */}
+          <div className="flex gap-6 border-b-2 border-gray-200">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`pb-3 px-1 font-medium transition-colors ${
+                activeTab === 'all'
+                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              All ({getTabCount('all')})
+            </button>
+            <button
+              onClick={() => setActiveTab('external')}
+              className={`pb-3 px-1 font-medium transition-colors ${
+                activeTab === 'external'
+                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              External ({getTabCount('external')})
+            </button>
+            <button
+              onClick={() => setActiveTab('unassigned')}
+              className={`pb-3 px-1 font-medium transition-colors ${
+                activeTab === 'unassigned'
+                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Unassigned ({getTabCount('unassigned')})
+            </button>
+          </div>
+        </div>
+
+        {/* Search and Filter Bar */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Search Input */}
+            <div className="flex-1 min-w-[250px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Drivers Licence #, Passport #, Or Name"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                />
+              </div>
             </div>
+
+       
+
+            {/* Filter By */}
+            <div className="flex flex-col">
+              <label className="text-xs text-gray-600 mb-1">Filter By</label>
+              <select
+                value={filterBy}
+                onChange={(e) => setFilterBy(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+              >
+                <option>Active</option>
+                <option>Inactive</option>
+                <option>All</option>
+              </select>
+            </div>
+
+            {/* Category */}
+            <div className="flex flex-col">
+              <label className="text-xs text-gray-600 mb-1">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm min-w-[120px]"
+              >
+                <option value="">Select...</option>
+                <option>StandBy</option>
+
+              </select>
+            </div>
+
+            {/* Compliance Status */}
+            <div className="flex flex-col">
+              <label className="text-xs text-gray-600 mb-1">Compliance Status</label>
+              <select
+                value={complianceStatus}
+                onChange={(e) => setComplianceStatus(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm min-w-[120px]"
+              >
+                <option>All</option>
+                <option>Compliant</option>
+                <option>Expiring Soon</option>
+                <option>Non-Compliant</option>
+              </select>
+            </div>
+
+            {/* Sort By */}
+            <div className="flex flex-col">
+              <label className="text-xs text-gray-600 mb-1">Sort By</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm min-w-[120px]"
+              >
+                <option value="">Select...</option>
+                <option>Driver ID</option>
+                <option>First Name</option>
+                <option>Last Name</option>
+                <option>Status</option>
+              </select>
+            </div>
+
+         
           </div>
         </div>
 
         {/* Table */}
-        <div className="flex-1 p-6">
-          <div className="bg-white rounded-lg shadow">
-            {/* Top Scrollbar - Only visible horizontal scrollbar */}
-            <style>{`
-              .top-scrollbar-container::-webkit-scrollbar {
-                height: 8px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-track {
-                background: #f7fafc;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb {
-                background: #cbd5e0;
-                border-radius: 4px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                background: #a0aec0;
-              }
-              .table-container-hidden-scrollbar {
-                scrollbar-width: none; /* Firefox */
-                -ms-overflow-style: none; /* IE and Edge */
-              }
-              .table-container-hidden-scrollbar::-webkit-scrollbar {
-                display: none; /* Chrome, Safari, Opera */
-              }
-            `}</style>
-            <div 
-              ref={topScrollRef}
-              className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
-                maxHeight: '20px',
-                marginBottom: '2px',
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
-              }}
-            >
-              <div className="top-scroll-content" style={{ height: '1px' }}></div>
-            </div>
-            {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
-              ref={bottomScrollRef}
-              className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
-            >
-              <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '1000px' }}>
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CSA</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License Number</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile/Phone</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Modified</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={11} className="px-6 py-12 text-center">
-                        <div className="flex items-center justify-center text-gray-500">
-                          <RefreshCw className="animate-spin h-5 w-5 mr-2" />
-                          Loading drivers...
-                        </div>
-                      </td>
-                    </tr>
-                  ) : error ? (
-                    <tr>
-                      <td colSpan={11} className="px-6 py-12 text-center text-red-500">
-                        <div className="flex items-center justify-center">
-                          <AlertCircle className="h-5 w-5 mr-2" />
-                          {error}
-                        </div>
-                      </td>
-                    </tr>
-                  ) : filteredDrivers.length === 0 ? (
-                    <tr>
-                      <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
-                        No drivers found
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredDrivers.map((driver) => (
-                      <tr 
-                        key={driver._id} 
-                        className="hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => {
-                          setSelectedDriver(driver);
-                          setShowDriverDetails(true);
-                        }}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1200px]">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  {/* Driver ID */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSort('driverId')}
+                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className="font-mono text-sm px-2 py-1 rounded"
-                            style={{
-                              backgroundColor: `${FLEET_COLORS.primary}15`,
-                              color: FLEET_COLORS.dark
-                            }}
-                          >
-                            {driver.internalId}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="h-10 w-10 flex-shrink-0">
-                              {driver.profileImageUrl && !imageErrors.has(driver._id) ? (
-                                <img
-                                  className="h-10 w-10 rounded-full object-cover"
-                                  src={driver.profileImageUrl}
-                                  alt={driver.name || 'Driver'}
-                                  onError={() => {
-                                    // Mark this image as failed to load
-                                    setImageErrors(prev => new Set(prev).add(driver._id));
-                                  }}
-                                />
-                              ) : (
-                                <div
-                                  className="h-10 w-10 rounded-full flex items-center justify-center text-white font-semibold"
-                                  style={{ background: FLEET_COLORS.gradientVertical }}
-                                >
-                                  {driver.name?.charAt(0) || '?'}
-                                </div>
-                              )}
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{driver.name}</div>
-                              <div className="text-sm text-gray-500">{driver.email}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.company || '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.gender || '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${driver.csa === 'Yes' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                            }`}>
-                            {driver.csa || 'N/A'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleStatus(driver._id, driver.status);
-                            }}
-                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full transition-colors ${driver.status === 'active'
-                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                              : 'bg-red-100 text-red-800 hover:bg-red-200'
-                              }`}
-                          >
-                            {driver.status}
-                          </button>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{driver.address || '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.licenseNumber || '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <div>{driver.mobile || '-'}</div>
-                          <div className="text-xs text-gray-500">{driver.phone || ''}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-900">
-                              {driver.documents?.length || 0}
-                            </span>
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                // Refresh documents when opening modal to ensure we have latest data
-                                try {
-                                  const docsResponse = await getDocumentsByEmployee(driver._id);
-                                  if (docsResponse.success && Array.isArray(docsResponse.data)) {
-                                    const driverWithUpdatedDocs = {
-                                      ...driver,
-                                      documents: docsResponse.data
-                                    };
-                                    setShowDocumentsModal({ show: true, driver: driverWithUpdatedDocs });
-                                  } else {
-                                    setShowDocumentsModal({ show: true, driver });
-                                  }
-                                } catch (err) {
-                                  console.error(`Error fetching documents for driver ${driver._id}:`, err);
-                                  setShowDocumentsModal({ show: true, driver });
-                                }
-                              }}
-                              className="text-blue-600 hover:text-blue-800 transition-colors disabled:text-gray-400 disabled:cursor-not-allowed"
-                              title="View Documents"
-                              disabled={!driver.documents || driver.documents.length === 0}
-                            >
-                              <Eye size={16} />
-                            </button>
-                          </div>
-                          {driver.documents && driver.documents.length > 0 && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {driver.documents.filter(d => d.status === 'valid').length} valid
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.lastModified || '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex items-center gap-3">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit(driver);
-                              }}
-                              style={{ color: FLEET_COLORS.primary }}
-                              onMouseEnter={(e) => e.currentTarget.style.color = FLEET_COLORS.dark}
-                              onMouseLeave={(e) => e.currentTarget.style.color = FLEET_COLORS.primary}
-                              className="transition-colors"
-                              title="Edit Driver"
-                            >
-                              <Edit size={18} />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(driver._id);
-                              }}
-                              className="text-red-600 hover:text-red-900 transition-colors"
-                              title="Delete Driver"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                        Driver ID
+                        {getSortIcon('driverId')}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                    />
+                  </th>
+
+                  {/* First Name */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSort('firstName')}
+                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                      >
+                        First Name
+                        {getSortIcon('firstName')}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                    />
+                  </th>
+
+                  {/* Last Name */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSort('lastName')}
+                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                      >
+                        Last Name
+                        {getSortIcon('lastName')}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                    />
+                  </th>
+
+                  {/* Drivers Licence */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSort('driversLicence')}
+                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                      >
+                        Drivers Licence
+                        {getSortIcon('driversLicence')}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                    />
+                  </th>
+
+                  {/* Passport */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSort('passport')}
+                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                      >
+                        Passport
+                        {getSortIcon('passport')}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                    />
+                  </th>
+
+                  {/* Date Of Birth */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSort('dateOfBirth')}
+                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                      >
+                        Date Of Birth
+                        {getSortIcon('dateOfBirth')}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                    />
+                  </th>
+
+                  {/* Notes */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-xs text-gray-700 uppercase">Notes</span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                    />
+                  </th>
+
+                  {/* Ticket (YTD) */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSort('ticketYTD')}
+                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                      >
+                        Ticket (YTD)
+                        {getSortIcon('ticketYTD')}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                    />
+                  </th>
+
+                  {/* Status */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSort('status')}
+                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                      >
+                        Status
+                        {getSortIcon('status')}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                    />
+                  </th>
+
+                  {/* Compliance */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-xs text-gray-700 uppercase">Compliance</span>
+                    </div>
+                    <select
+                      value={complianceStatus}
+                      onChange={(e) => setComplianceStatus(e.target.value)}
+                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                    >
+                      <option>All</option>
+                      <option>Compliant</option>
+                      <option>Expiring Soon</option>
+                      <option>Non-Compliant</option>
+                    </select>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredDrivers.map((driver, index) => (
+                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-sm text-gray-900">{driver.driverId}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{driver.firstName}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{driver.lastName}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{driver.driversLicence}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{driver.passport}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{driver.dateOfBirth}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{driver.notes || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{driver.ticketYTD}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{driver.status}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        className={`px-3 py-1 rounded text-xs font-medium ${getComplianceButtonClass(driver.compliance)}`}
+                      >
+                        {driver.compliance}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      {/* Sidebar Form */}
-      {showSidebar && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+      {/* New Driver Modal */}
+      {showNewDriverModal && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={(e) => {
-            // Only close if clicking directly on the backdrop, not on sidebar content
             if (e.target === e.currentTarget) {
-              setShowSidebar(false);
-              setEditingId(null);
-              resetForm();
+              setShowNewDriverModal(false);
             }
           }}
         >
-          <div
-            className="fixed right-0 top-0 h-full  w-156 bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200"
+          <div 
+            className="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] flex overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Sidebar Header */}
-            <div
-              className="px-6 py-4 flex justify-between items-center"
-              style={{ background: FLEET_COLORS.gradient }}
-            >
-              <h2 className="text-xl font-bold text-white">
-                {editingId ? 'Edit Driver' : 'Create New Driver'}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowSidebar(false);
-                  setEditingId(null);
-                  resetForm();
-                }}
-                className="!text-white hover:opacity-80 p-1 rounded transition-opacity"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {/* Step Indicator */}
-            {!editingId ? (
-              <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 flex-1">
-                    <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-blue-600' : '!text-white'}`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 1
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-300 bg-white'
-                        }`}>
-                        {currentStep > 1 ? <CheckCircle size={16} className="text-blue-600" /> : '1'}
-                      </div>
-                      <span className="text-sm font-medium">Information</span>
-                    </div>
-                    <div className="flex-1 h-0.5 bg-gray-200 mx-2">
-                      <div
-                        className={`h-full transition-all ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}
-                        style={{ width: currentStep >= 2 ? '100%' : '0%' }}
-                      />
-                    </div>
-                    <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 2
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-300 bg-white'
-                        }`}>
-                        2
-                      </div>
-                      <span className="text-sm font-medium">Documents</span>
-                    </div>
-                  </div>
+            {/* Left Sidebar */}
+            <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
+              {/* Image Upload Area */}
+              <div className="p-4 border-b border-gray-200">
+                <div className="border-2 border-dashed border-gray-300  p-8 text-center mb-3">
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">Select Image</p>
                 </div>
-              </div>
-            ) : (
-              <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentStep(1)}
-                    style={
-                      currentStep === 1
-                        ? {
-                          background:
-                            'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
-                        }
-                        : undefined
-                    }
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 1
-                      ? '!text-white shadow-sm'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                      }`}
-                  >
-                    Information
-                  </button>
-
-                  <button
-                    onClick={() => setCurrentStep(2)}
-                    style={
-                      currentStep === 2
-                        ? {
-                          background:
-                            'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
-                        }
-                        : undefined
-                    }
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 2
-                      ? '!text-white shadow-sm'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                      }`}
-                  >
-                    Documents ({driverDocuments.length})
-                  </button>
-                </div>
-
-              </div>
-            )}
-
-            {/* Sidebar Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-5">
-              {(currentStep === 2) ? (
-                /* Step 2: Documents Upload */
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2 font-semibold" style={{ color: FLEET_COLORS.primary }}>
-                      <FileText size={18} />
-                      <span>Driver Documents</span>
-                    </div>
-                    <button
-                      onClick={addDocument}
-                      className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
-                    >
-                      <Plus size={16} />
-                      Add Document
-                    </button>
-                  </div>
-
-                  {driverDocuments.length === 0 ? (
-                    <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                      <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-600 mb-2">No documents added yet</p>
-                      <p className="text-sm text-gray-500 mb-4">Click "Add Document" to upload driver documents</p>
-                      <button
-                        onClick={addDocument}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                      >
-                        Add First Document
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {driverDocuments.map((doc, index) => (
-                        <div key={doc._id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-semibold text-gray-700">Document {index + 1}</h4>
-                              {doc._id && (
-                                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">Existing</span>
-                              )}
-                            </div>
-                            <button
-                              onClick={() => removeDocument(index)}
-                              className="text-red-600 hover:text-red-800 transition-colors"
-                            >
-                              <X size={18} />
-                            </button>
-                          </div>
-
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Document Type <span className="text-red-500">*</span>
-                              </label>
-                              <select
-                                value={doc.documentType}
-                                onChange={(e) => updateDocument(index, 'documentType', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                style={{ borderColor: '#d1d5db' }}
-                              >
-                                <option value="">Select Document Type</option>
-                                {DRIVER_DOCUMENT_TYPES.map((type) => (
-                                  <option key={type} value={type}>{type}</option>
-                                ))}
-                              </select>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Document Number</label>
-                                <input
-                                  type="text"
-                                  value={doc.documentNumber}
-                                  onChange={(e) => updateDocument(index, 'documentNumber', e.target.value)}
-                                  placeholder="e.g., CDL-123456"
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  style={{ borderColor: '#d1d5db' }}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <select
-                                  value={doc.status}
-                                  onChange={(e) => updateDocument(index, 'status', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  style={{ borderColor: '#d1d5db' }}
-                                >
-                                  <option value="valid">Valid</option>
-                                  <option value="pending">Pending</option>
-                                  <option value="expired">Expired</option>
-                                  <option value="rejected">Rejected</option>
-                                </select>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
-                                <input
-                                  type="date"
-                                  value={doc.issueDate}
-                                  onChange={(e) => updateDocument(index, 'issueDate', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  style={{ borderColor: '#d1d5db' }}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                                <input
-                                  type="date"
-                                  value={doc.expiryDate}
-                                  onChange={(e) => updateDocument(index, 'expiryDate', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  style={{ borderColor: '#d1d5db' }}
-                                />
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                              <textarea
-                                value={doc.description}
-                                onChange={(e) => updateDocument(index, 'description', e.target.value)}
-                                rows={2}
-                                placeholder="Enter document description or notes..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                style={{ borderColor: '#d1d5db' }}
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Document File {!doc._id && <span className="text-red-500">*</span>}
-                              </label>
-                              <input
-                                type="file"
-                                onChange={(e) => handleDocumentFileChange(index, e.target.files?.[0] || null)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
-                                style={{ borderColor: '#d1d5db' }}
-                              />
-                              {doc.file && (
-                                <p className="text-xs mt-1 text-green-600 flex items-center gap-1">
-                                  <CheckCircle size={12} />
-                                  Selected: {doc.file.name}
-                                </p>
-                              )}
-                              {doc._id && !doc.file && (
-                                <p className="text-xs mt-1 text-gray-500">
-                                  Leave empty to keep existing file
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Step 1: Driver Information */
-                <>
-                  {/* Personal Info Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                      <User size={18} />
-                      <span>Personal Info</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Full Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="Enter driver name"
-                        required
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">License Number</label>
-                      <input
-                        type="text"
-                        name="licenseNumber"
-                        value={formData.licenseNumber}
-                        onChange={handleInputChange}
-                        placeholder="Enter license number"
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                      <select
-                        name="gender"
-                        value={formData.gender}
-                        onChange={handleInputChange}
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Employment Details Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                      <Briefcase size={18} />
-                      <span>Employment Details</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Internal ID</label>
-                      <input
-                        type="text"
-                        name="internalId"
-                        value={formData.internalId}
-                        onChange={handleInputChange}
-                        placeholder="e.g., DRV-001 (auto-generated if empty)"
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
-                      <input
-                        type="date"
-                        name="joinDate"
-                        value={formData.joinDate}
-                        onChange={handleInputChange}
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                      <input
-                        type="date"
-                        name="dob"
-                        value={formData.dob}
-                        onChange={handleInputChange}
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Employment Details</label>
-                      <textarea
-                        name="employmentDetails"
-                        value={formData.employmentDetails}
-                        onChange={handleInputChange}
-                        rows={3}
-                        placeholder="Employment history, position, etc."
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Policies</label>
-                      <textarea
-                        name="policies"
-                        value={formData.policies || ''}
-                        onChange={handleInputChange}
-                        rows={3}
-                        placeholder="Company policies, terms, etc."
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Contact Information Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                      <Phone size={18} />
-                      <span>Contact Information</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder="driver@example.com"
-                        required
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        placeholder="+1-555-0123"
-                        required
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
-                      <input
-                        type="tel"
-                        name="mobile"
-                        value={formData.mobile}
-                        onChange={handleInputChange}
-                        placeholder="+1-555-0124"
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                    </div>
-
-                    {!editingId && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Password <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="password"
-                          name="password"
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          placeholder="Enter password"
-                          required={!editingId}
-                          style={{ borderColor: '#d1d5db' }}
-                          onFocus={(e) => {
-                            e.target.style.borderColor = FLEET_COLORS.primary;
-                            e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = '#d1d5db';
-                            e.target.style.boxShadow = '';
-                          }}
-                          className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                        />
-                      </div>
-                    )}
-
-                    {editingId && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          New Password <span className="text-gray-400 text-xs">(leave blank to keep current)</span>
-                        </label>
-                        <input
-                          type="password"
-                          name="password"
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          placeholder="Enter new password (optional)"
-                          style={{ borderColor: '#d1d5db' }}
-                          onFocus={(e) => {
-                            e.target.style.borderColor = FLEET_COLORS.primary;
-                            e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = '#d1d5db';
-                            e.target.style.boxShadow = '';
-                          }}
-                          className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Citizenship Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                      <Globe size={18} />
-                      <span>Citizenship</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Citizenship</label>
-                      <select
-                        name="citizenship"
-                        value={formData.citizenship}
-                        onChange={handleInputChange}
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      >
-                        <option value="">Select Citizenship</option>
-                        {citizenshipOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                      <input
-                        type="text"
-                        name="country"
-                        value={formData.country}
-                        onChange={handleInputChange}
-                        placeholder="e.g., Canada"
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Address Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                      <MapPin size={18} />
-                      <span>Address</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                      <textarea
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        rows={3}
-                        placeholder="Street address, city, province, postal code"
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* WSIB Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                      <FileText size={18} />
-                      <span>WSIB</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">WSIB Number</label>
-                      <input
-                        type="text"
-                        name="wsib"
-                        value={formData.wsib}
-                        onChange={handleInputChange}
-                        placeholder="WSIB-12345"
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* FAST Card Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                      <CreditCard size={18} />
-                      <span>FAST Card</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">FAST Card Number</label>
-                      <input
-                        type="text"
-                        name="fastCard"
-                        value={formData.fastCard}
-                        onChange={handleInputChange}
-                        placeholder="FAST-67890"
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Medical Tracking Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                      <Heart size={18} />
-                      <span>Medical Tracking</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Medical Information</label>
-                      <textarea
-                        name="medicalTracking"
-                        value={formData.medicalTracking}
-                        onChange={handleInputChange}
-                        rows={3}
-                        placeholder="Medical certification dates, expiry, restrictions, etc."
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none resize-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* CSA Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                      <Building2 size={18} />
-                      <span>CSA</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">CSA Status</label>
-                      <select
-                        name="csa"
-                        value={formData.csa}
-                        onChange={handleInputChange}
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      >
-                        <option value="">Select CSA Status</option>
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Salary Per Mile Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                      <DollarSign size={18} />
-                      <span>Salary Per Mile</span>
-                    </div>
-
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                      <p className="text-xs text-blue-700">
-                        <strong>Note:</strong> These rates are used to calculate driver salary based on miles driven and weather conditions during trips.
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Base Salary Per Mile ($)
-                      </label>
-                      <input
-                        type="number"
-                        name="salaryPerMile"
-                        value={formData.salaryPerMile}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 0.50"
-                        step="0.01"
-                        min="0"
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Base rate per mile for all trips</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                        <Snowflake size={16} className="text-blue-500" />
-                        Snow Condition Premium Per Mile ($)
-                      </label>
-                      <input
-                        type="number"
-                        name="salaryPerMileSnow"
-                        value={formData.salaryPerMileSnow}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 0.25"
-                        step="0.01"
-                        min="0"
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Additional premium per mile for trips in snow conditions</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                        <Thermometer size={16} className="text-red-500" />
-                        High Temperature Premium Per Mile ($)
-                      </label>
-                      <input
-                        type="number"
-                        name="salaryPerMileHighTemp"
-                        value={formData.salaryPerMileHighTemp}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 0.30"
-                        step="0.01"
-                        min="0"
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Additional premium per mile for trips in high temperature conditions</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        High Temperature Threshold (°C)
-                      </label>
-                      <input
-                        type="number"
-                        name="highTempThreshold"
-                        value={formData.highTempThreshold}
-                        onChange={handleInputChange}
-                        placeholder="35"
-                        step="1"
-                        min="0"
-                        style={{ borderColor: '#d1d5db' }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = FLEET_COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
-                          e.target.style.boxShadow = '';
-                        }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Temperature threshold in Celsius (default: 35°C) above which high temperature premium applies</p>
-                    </div>
-                  </div>
-
-                  {/* Driver Profile Upload Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-semibold pb-2 border-b border-gray-200" style={{ color: FLEET_COLORS.primary }}>
-                      <Upload size={18} />
-                      <span>Driver Profile Upload</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
-                      <div className="mt-1">
-                        <label className="block cursor-pointer">
-                          <input
-                            type="file"
-                            onChange={handleFileChange}
-                            accept="image/*"
-                            className="hidden"
-                            id="profile-upload"
-                          />
-                          <div
-                            className="px-4 py-2 border rounded-lg text-sm font-semibold text-center transition-colors"
-                            style={{
-                              borderColor: FLEET_COLORS.primary,
-                              color: FLEET_COLORS.primary,
-                              backgroundColor: `${FLEET_COLORS.primary}08`
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`;
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}08`;
-                            }}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              document.getElementById('profile-upload')?.click();
-                            }}
-                          >
-                            {formData.file ? formData.file.name : 'Choose File'}
-                          </div>
-                        </label>
-                      </div>
-                      {formData.file && (
-                        <p className="text-xs mt-2 flex items-center gap-1" style={{ color: '#10b981' }}>
-                          <span>✓</span> File selected: {formData.file.name}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Sidebar Footer */}
-            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
-              <div className="flex gap-3">
-                {!editingId && currentStep === 2 ? (
-                  <>
-                    <button
-                      onClick={() => setCurrentStep(1)}
-                      className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
-                    >
-                      <ChevronLeft size={18} />
-                      Back
-                    </button>
-                    <button
-                      onClick={handleCreate}
-                      disabled={isSubmitting}
-                      style={{ backgroundColor: isSubmitting ? '#9CA3AF' : FLEET_COLORS.primary }}
-                      onMouseEnter={(e) => {
-                        if (!isSubmitting) {
-                          e.currentTarget.style.backgroundColor = FLEET_COLORS.dark;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSubmitting) {
-                          e.currentTarget.style.backgroundColor = FLEET_COLORS.primary;
-                        }
-                      }}
-                      className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      <Save size={18} />
-                      {isSubmitting ? 'Creating...' : 'Create Driver'}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        setShowSidebar(false);
-                        setEditingId(null);
-                        resetForm();
-                      }}
-                      className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium"
-                    >
-                      Cancel
-                    </button>
-                    {!editingId ? (
-                      <button
-                        onClick={handleCreate}
-                        disabled={isSubmitting}
-                        style={{ backgroundColor: isSubmitting ? '#9CA3AF' : FLEET_COLORS.primary }}
-                        onMouseEnter={(e) => {
-                          if (!isSubmitting) {
-                            e.currentTarget.style.backgroundColor = FLEET_COLORS.dark;
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isSubmitting) {
-                            e.currentTarget.style.backgroundColor = FLEET_COLORS.primary;
-                          }
-                        }}
-                        className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
-                      >
-                        Next
-                        <ChevronRight size={18} />
-                      </button>
-                    ) : (
-                      <>
-                        {currentStep === 1 ? (
-                          <button
-                            onClick={() => setCurrentStep(2)}
-                            style={{ backgroundColor: FLEET_COLORS.primary }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
-                            className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
-                          >
-                            Next
-                            <ChevronRight size={18} />
-                          </button>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => setCurrentStep(1)}
-                              className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
-                            >
-                              <ChevronLeft size={18} />
-                              Back
-                            </button>
-                            <button
-                              onClick={handleUpdate}
-                              style={{ backgroundColor: FLEET_COLORS.primary }}
-                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.dark}
-                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = FLEET_COLORS.primary}
-                              className="flex-1 !text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
-                            >
-                              <Save size={18} />
-                              Update Driver
-                            </button>
-                          </>
-                        )}
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Documents View Modal */}
-      {showDocumentsModal.show && showDocumentsModal.driver && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Driver Documents</h2>
-                <p className="text-sm text-gray-500 mt-1">{showDocumentsModal.driver.name} - {showDocumentsModal.driver.internalId}</p>
-              </div>
-              <button
-                onClick={() => setShowDocumentsModal({ show: false, driver: null })}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="p-6">
-              {showDocumentsModal.driver.documents && showDocumentsModal.driver.documents.length > 0 ? (
-                <div className="space-y-4">
-                  {showDocumentsModal.driver.documents.map((doc: EmployeeDocument) => {
-                    // Ensure document has required fields
-                    if (!doc || !doc._id) return null;
-                    return (
-                      <div key={doc._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <FileText className="w-5 h-5 text-blue-500" />
-                              <h3 className="font-semibold text-gray-900">{doc.documentType}</h3>
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${doc.status === 'valid' ? 'bg-green-100 text-green-700' :
-                                doc.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                  doc.status === 'expired' ? 'bg-red-100 text-red-700' :
-                                    'bg-gray-100 text-gray-700'
-                                }`}>
-                                {doc.status}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
-                              {doc.documentNumber && (
-                                <div>
-                                  <span className="text-gray-500">Number:</span>
-                                  <span className="ml-2 font-medium text-gray-900">{doc.documentNumber}</span>
-                                </div>
-                              )}
-                              {doc.issueDate && (
-                                <div>
-                                  <span className="text-gray-500">Issue Date:</span>
-                                  <span className="ml-2 font-medium text-gray-900">
-                                    {new Date(doc.issueDate).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              )}
-                              {doc.expiryDate && (
-                                <div>
-                                  <span className="text-gray-500">Expiry Date:</span>
-                                  <span className="ml-2 font-medium text-gray-900">
-                                    {new Date(doc.expiryDate).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              )}
-                              {doc.fileSize && (
-                                <div>
-                                  <span className="text-gray-500">File Size:</span>
-                                  <span className="ml-2 font-medium text-gray-900">
-                                    {(doc.fileSize / 1024).toFixed(2)} KB
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                            {doc.description && (
-                              <div className="mt-3 text-sm">
-                                <span className="text-gray-500">Description:</span>
-                                <p className="mt-1 text-gray-900">{doc.description}</p>
-                              </div>
-                            )}
-                          </div>
-                          {doc.fileUrl && (
-                            <button
-                              onClick={async () => {
-                                try {
-                                  // Get signed URL for S3 files
-                                  const signedUrlResponse = await getSignedEmployeeDocumentUrl(doc._id, 'inline');
-                                  if (signedUrlResponse.success && signedUrlResponse.url) {
-                                    window.open(signedUrlResponse.url, '_blank');
-                                  } else {
-                                    // Fallback to direct URL if signed URL fails
-                                    window.open(doc.fileUrl, '_blank');
-                                  }
-                                } catch (error) {
-                                  console.error('Error getting signed URL:', error);
-                                  // Fallback to direct URL on error
-                                  window.open(doc.fileUrl, '_blank');
-                                }
-                              }}
-                              className="ml-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="View Document"
-                            >
-                              <Eye size={20} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 font-medium">No documents found</p>
-                  <p className="text-sm text-gray-500 mt-2">This driver has no documents uploaded yet.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {deleteConfirm.show && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <div className="flex items-center gap-3 text-red-600 mb-4">
-              <AlertCircle size={24} />
-              <h3 className="text-lg font-semibold text-gray-900">Confirm Delete</h3>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this driver? This action cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteConfirm({ show: false, driverId: null })}
-                className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDeleteDriver}
-                className="flex-1 bg-red-600 hover:bg-red-700 !text-white px-4 py-2 rounded-lg transition-colors font-medium"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Driver Details Sidebar */}
-      {showDriverDetails && selectedDriver && (
-        <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
-            onClick={() => {
-              setShowDriverDetails(false);
-              setTimeout(() => setSelectedDriver(null), 300);
-            }}
-          ></div>
-
-          {/* Sidebar Panel */}
-          <div
-            className={`fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0 ${showDocumentsModal.show ? 'backdrop-blur-sm opacity-50' : ''}`}
-          >
-            <div className="p-6">
-              {/* Header */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Driver Details</h2>
-                <button
-                  onClick={() => {
-                    setShowDriverDetails(false);
-                    setTimeout(() => setSelectedDriver(null), 300);
-                  }}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
-                >
-                  <X size={24} />
+                <button className="w-full bg-black !text-white py-2  font-medium hover:bg-gray-800 transition-colors">
+                  UPLOAD
                 </button>
               </div>
 
-              <div className="space-y-6">
-                {/* Driver Header */}
-                <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="h-20 w-20 flex-shrink-0">
-                      {selectedDriver.profileImageUrl && !imageErrors.has(selectedDriver._id) ? (
-                        <img
-                          className="h-20 w-20 rounded-full object-cover border-4 border-white"
-                          src={selectedDriver.profileImageUrl}
-                          alt={selectedDriver.name || 'Driver'}
-                          onError={() => {
-                            setImageErrors(prev => new Set(prev).add(selectedDriver._id));
-                          }}
+              {/* Navigation Tabs */}
+              <div className="flex-1 overflow-y-auto p-4">
+  <nav className="flex flex-col gap-2">
+    {[
+      { id: 'basic', label: 'Basic', icon: User },
+      { id: 'personal', label: 'Personal', icon: User },
+      { id: 'travel', label: 'Travel', icon: MapPin },
+      { id: 'documents', label: 'Documents', icon: FileTextIcon },
+      { id: 'certifications', label: 'Certifications', icon: Award },
+      { id: 'violations', label: 'Violations', icon: AlertTriangle },
+      { id: 'notes', label: 'Notes', icon: FileTextIcon },
+      { id: 'deductions', label: 'Deductions', icon: DollarSign },
+      { id: 'additions', label: 'Additions', icon: PlusCircle }
+    ].map((tab) => {
+      const Icon = tab.icon;
+      const isActive = activeFormTab === tab.id;
+
+      return (
+        <button
+          key={tab.id}
+          onClick={() => setActiveFormTab(tab.id as any)}
+          className={`w-full flex items-center gap-2 px-3 py-2 transition-colors text-left ${
+            isActive
+              ? 'bg-[#0ea3d8] !text-white shadow-md'
+              : 'bg-gray-700 !text-white hover:bg-gray-600'
+          }`}
+        >
+          <Icon className="w-4 h-4" />
+          <span className="font-medium text-center">{tab.label}</span>
+        </button>
+      );
+    })}
+  </nav>
+</div>
+
+            </div>
+
+            {/* Right Content Area */}
+            <div className={`flex-1 flex flex-col overflow-hidden transition-all ${selectedCertificate ? 'mr-96' : ''}`}>
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
+                <h2 className="text-2xl font-bold text-gray-900">New Driver</h2>
+                <div className="flex items-center gap-3">
+                  <button className="px-6 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">
+                    SAVE
+                  </button>
+                  <button
+                    onClick={() => setShowNewDriverModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Form Content */}
+              <div className="flex-1 overflow-y-auto p-6 bg-white">
+                {activeFormTab === 'basic' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Basic Information</h3>
+                    
+                    {/* First Row */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Driver ID</label>
+                        <input
+                          type="text"
+                          placeholder="Driver ID"
+                          value={formData.driverId}
+                          onChange={(e) => setFormData({ ...formData, driverId: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
-                      ) : (
-                        <div
-                          className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white"
-                          style={{ background: FLEET_COLORS.gradientVertical }}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          First Name<span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="First Name"
+                          value={formData.firstName}
+                          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Middle</label>
+                        <input
+                          type="text"
+                          placeholder="Middle"
+                          value={formData.middle}
+                          onChange={(e) => setFormData({ ...formData, middle: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Last Name<span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Last Name"
+                          value={formData.lastName}
+                          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Second Row */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <input
+                          type="email"
+                          placeholder="Email Address"
+                          value={formData.emailAddress}
+                          onChange={(e) => setFormData({ ...formData, emailAddress: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Date Of Birth<span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={formData.dateOfBirth}
+                          onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         >
-                          {selectedDriver.name?.charAt(0) || '?'}
+                          <option value="">Select</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Mobile App</label>
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, mobileApp: !formData.mobileApp })}
+                            className={`relative w-12 h-6 rounded-full transition-colors ${
+                              formData.mobileApp ? 'bg-[#42aeec]' : 'bg-gray-300'
+                            }`}
+                          >
+                            <span
+                              className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                                formData.mobileApp ? 'translate-x-6' : 'translate-x-0'
+                              }`}
+                            />
+                          </button>
                         </div>
-                      )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">PIN</label>
+                        <input
+                          type="text"
+                          placeholder="Pin"
+                          value={formData.pin}
+                          onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-bold mb-1">{selectedDriver.name}</h3>
-                      <p className="text-blue-100 text-sm flex items-center gap-2">
-                        <User size={16} />
-                        Driver ID: <span className="font-semibold">{selectedDriver.internalId}</span>
-                      </p>
-                      <span
-                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mt-2 ${selectedDriver.status === "active"
-                          ? "bg-emerald-500 text-white"
-                          : "bg-red-500 text-white"
-                          }`}
-                      >
-                        {selectedDriver.status === "active" ? (
-                          <>
-                            <CheckCircle size={16} />
-                            Active
-                          </>
-                        ) : (
-                          <>
-                            <AlertCircle size={16} />
-                            Inactive
-                          </>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Personal Information */}
-                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                  <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                    <User size={20} className="text-blue-600" />
-                    Personal Information
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Full Name</p>
-                      <p className="font-medium text-gray-900">{selectedDriver.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Email</p>
-                      <p className="font-medium text-gray-900">{selectedDriver.email || "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Gender</p>
-                      <p className="font-medium text-gray-900">{selectedDriver.gender || "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Phone</p>
-                      <p className="font-medium text-gray-900">{selectedDriver.phone || "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Mobile</p>
-                      <p className="font-medium text-gray-900">{selectedDriver.mobile || "—"}</p>
-                    </div>
-                    {selectedDriver.address && (
-                      <div className="md:col-span-2">
-                        <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
-                          <MapPin size={14} className="text-blue-600" />
-                          Address
-                        </p>
-                        <p className="font-medium text-gray-900">{selectedDriver.address}</p>
-                      </div>
-                    )}
-                    {selectedDriver.citizenship && (
+                    {/* Third Row */}
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Citizenship</p>
-                        <p className="font-medium text-gray-900">{selectedDriver.citizenship}</p>
-                      </div>
-                    )}
-                    {selectedDriver.country && (
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">Country</p>
-                        <p className="font-medium text-gray-900">{selectedDriver.country}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Professional Information */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                  <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                    <Briefcase size={20} className="text-blue-600" />
-                    Professional Information
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedDriver.company && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Company</p>
-                        <p className="font-medium text-gray-900">{selectedDriver.company}</p>
-                      </div>
-                    )}
-                    {selectedDriver.licenseNumber && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">License Number</p>
-                        <p className="font-medium text-gray-900">{selectedDriver.licenseNumber}</p>
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">CSA Status</p>
-                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${selectedDriver.csa === 'Yes' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
-                        {selectedDriver.csa || 'N/A'}
-                      </span>
-                    </div>
-                    {selectedDriver.joinDate && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Join Date</p>
-                        <p className="font-medium text-gray-900">
-                          {new Date(selectedDriver.joinDate).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
-                      </div>
-                    )}
-                    {selectedDriver.employmentDetails && (
-                      <div className="md:col-span-2">
-                        <p className="text-sm text-gray-600 mb-1">Employment Details</p>
-                        <p className="font-medium text-gray-900">{selectedDriver.employmentDetails}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Additional Information */}
-                {(selectedDriver.wsib || selectedDriver.fastCard || selectedDriver.medicalTracking) && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg">Additional Information</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {selectedDriver.wsib && (
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">WSIB</p>
-                          <p className="font-medium text-gray-900">{selectedDriver.wsib}</p>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Primary Phone #<span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                            <span className="text-sm">🇺🇸</span>
+                            <span className="text-sm text-gray-600">+1</span>
+                          </div>
+                          <input
+                            type="tel"
+                            placeholder=""
+                            value={formData.primaryPhone}
+                            onChange={(e) => setFormData({ ...formData, primaryPhone: e.target.value })}
+                            className="w-full pl-16 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
                         </div>
-                      )}
-                      {selectedDriver.fastCard && (
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Fast Card</p>
-                          <p className="font-medium text-gray-900">{selectedDriver.fastCard}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Phone #</label>
+                        <div className="relative">
+                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                            <span className="text-sm">🇺🇸</span>
+                            <span className="text-sm text-gray-600">+1</span>
+                          </div>
+                          <input
+                            type="tel"
+                            placeholder=""
+                            value={formData.secondaryPhone}
+                            onChange={(e) => setFormData({ ...formData, secondaryPhone: e.target.value })}
+                            className="w-full pl-16 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
                         </div>
-                      )}
-                      {selectedDriver.medicalTracking && (
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Medical Tracking</p>
-                          <p className="font-medium text-gray-900">{selectedDriver.medicalTracking}</p>
-                        </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                )}
 
-                {/* Documents Summary */}
-                {selectedDriver.documents && selectedDriver.documents.length > 0 && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                      <FileText size={20} className="text-blue-600" />
-                      Documents ({selectedDriver.documents.length})
-                    </h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Valid Documents</span>
-                        <span className="font-semibold text-green-700">
-                          {selectedDriver.documents.filter(d => d.status === 'valid').length}
-                        </span>
+                    {/* Fourth Row */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Search Address</label>
+                      <input
+                        type="text"
+                        placeholder="Search For An Address..."
+                        value={formData.searchAddress}
+                        onChange={(e) => setFormData({ ...formData, searchAddress: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                      />
+                    </div>
+
+                    {/* Fifth Row */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                        <input
+                          type="text"
+                          placeholder="Address"
+                          value={formData.address}
+                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Pending Documents</span>
-                        <span className="font-semibold text-yellow-700">
-                          {selectedDriver.documents.filter(d => d.status === 'pending').length}
-                        </span>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                        <input
+                          type="text"
+                          placeholder="Unit"
+                          value={formData.unit}
+                          onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Expired Documents</span>
-                        <span className="font-semibold text-red-700">
-                          {selectedDriver.documents.filter(d => d.status === 'expired').length}
-                        </span>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                        <input
+                          type="text"
+                          placeholder="City"
+                          value={formData.city}
+                          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                        <input
+                          type="text"
+                          placeholder="Postal Code"
+                          value={formData.postalCode}
+                          onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Sixth Row */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                        <select
+                          value={formData.country}
+                          onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Country</option>
+                          <option value="US">United States</option>
+                          <option value="CA">Canada</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
+                        <select
+                          value={formData.stateProvince}
+                          onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Select State/</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <div></div>
                       <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try {
-                            const docsResponse = await getDocumentsByEmployee(selectedDriver._id);
-                            if (docsResponse.success && Array.isArray(docsResponse.data)) {
-                              const driverWithUpdatedDocs = {
-                                ...selectedDriver,
-                                documents: docsResponse.data
-                              };
-                              setShowDocumentsModal({ show: true, driver: driverWithUpdatedDocs });
-                            } else {
-                              setShowDocumentsModal({ show: true, driver: selectedDriver });
-                            }
-                          } catch (err) {
-                            console.error(`Error fetching documents:`, err);
-                            setShowDocumentsModal({ show: true, driver: selectedDriver });
-                          }
-                        }}
-                        className="mt-4 w-full px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                        onClick={() => setActiveFormTab('personal')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
                       >
-                        <Eye size={18} />
-                        View All Documents
+                        Personal <span>→</span>
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* Last Modified */}
-                {selectedDriver.lastModified && (
-                  <div className="text-sm text-gray-500 text-center pt-4 border-t border-gray-200">
-                    Last Modified: {selectedDriver.lastModified}
+                {activeFormTab === 'personal' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h3>
+                    
+                    {/* Personal Information Section */}
+                    <div className="grid grid-cols-5 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Social Insurance Number</label>
+                        <input
+                          type="text"
+                          placeholder="Social Insurance Nu"
+                          value={personalData.socialInsuranceNumber}
+                          onChange={(e) => setPersonalData({ ...personalData, socialInsuranceNumber: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hire Date</label>
+                        <input
+                          type="text"
+                          placeholder="Select"
+                          value={personalData.hireDate}
+                          onChange={(e) => setPersonalData({ ...personalData, hireDate: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Termination Date</label>
+                        <input
+                          type="text"
+                          placeholder="Select"
+                          value={personalData.terminationDate}
+                          onChange={(e) => setPersonalData({ ...personalData, terminationDate: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Status<span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={personalData.status}
+                          onChange={(e) => setPersonalData({ ...personalData, status: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
+                          <option value="Terminated">Terminated</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Vacation %</label>
+                        <input
+                          type="text"
+                          placeholder="0"
+                          value={personalData.vacationPercent}
+                          onChange={(e) => setPersonalData({ ...personalData, vacationPercent: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Pay Information Section */}
+                    <div className="mt-6">
+                      <h4 className="text-md font-bold text-gray-900 mb-4">Pay Information</h4>
+                      <div className="grid grid-cols-5 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Search Address</label>
+                          <input
+                            type="text"
+                            placeholder="Search For An Address..."
+                            value={personalData.paySearchAddress}
+                            onChange={(e) => setPersonalData({ ...personalData, paySearchAddress: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Corporation Name</label>
+                          <input
+                            type="text"
+                            placeholder="Corporation Name"
+                            value={personalData.corporationName}
+                            onChange={(e) => setPersonalData({ ...personalData, corporationName: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name</label>
+                          <input
+                            type="text"
+                            placeholder="Driver Name"
+                            value={personalData.driverName}
+                            onChange={(e) => setPersonalData({ ...personalData, driverName: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Address</label>
+                          <input
+                            type="text"
+                            placeholder="Payment Address"
+                            value={personalData.paymentAddress}
+                            onChange={(e) => setPersonalData({ ...personalData, paymentAddress: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">GST No.</label>
+                          <input
+                            type="text"
+                            placeholder="GST No."
+                            value={personalData.gstNo}
+                            onChange={(e) => setPersonalData({ ...personalData, gstNo: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pay Type Section */}
+                    <div className="mt-6">
+                      <h4 className="text-md font-bold text-gray-900 mb-4">Pay Type</h4>
+                      
+                      {/* Driver Type Toggle */}
+                      <div className="mb-4">
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setPersonalData({ ...personalData, driverType: 'COMPANY DRIVER' })}
+                            className={`px-6 py-2 rounded-sm font-medium transition-colors ${
+                              personalData.driverType === 'COMPANY DRIVER'
+                                ? 'bg-gray-700 !text-white'
+                                : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                            }`}
+                          >
+                            COMPANY DRIVER
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPersonalData({ ...personalData, driverType: 'OWNER OPERATOR' })}
+                            className={`px-6 py-2 rounded-sm font-medium transition-colors ${
+                              personalData.driverType === 'OWNER OPERATOR'
+                                ? 'bg-gray-700 !text-white'
+                                : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                            }`}
+                          >
+                            OWNER OPERATOR
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Payment Method Tabs */}
+                      <div className="mb-4">
+                        <div className="flex gap-2 flex-wrap">
+                          {[
+                            'PAID PER MILE',
+                            'PAID PERCENT',
+                            'PAID BY TRIP',
+                            'PAID PER HOUR',
+                            'PAID PER DAY'
+                          ].map((method) => (
+                            <button
+                              key={method}
+                              type="button"
+                              onClick={() => setPersonalData({ ...personalData, paymentMethod: method as any })}
+                              className={`px-4 py-2 rounded-sm font-medium text-sm transition-colors ${
+                                personalData.paymentMethod === method
+                                  ? 'bg-gray-700 !text-white'
+                                  : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                              }`}
+                            >
+                              {method}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* $/Mile Details (shown when PAID PER MILE is selected) */}
+                      {personalData.paymentMethod === 'PAID PER MILE' && (
+                        <div className="grid grid-cols-4 gap-4 mt-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              ALONE<span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={personalData.alone}
+                              onChange={(e) => setPersonalData({ ...personalData, alone: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              EMPTY<span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={personalData.empty}
+                              onChange={(e) => setPersonalData({ ...personalData, empty: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">BONUS/DROP</label>
+                            <input
+                              type="text"
+                              value={personalData.bonusDrop}
+                              onChange={(e) => setPersonalData({ ...personalData, bonusDrop: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              TEAM<span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={personalData.team}
+                              onChange={(e) => setPersonalData({ ...personalData, team: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              EMPTY-TEAM<span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={personalData.emptyTeam}
+                              onChange={(e) => setPersonalData({ ...personalData, emptyTeam: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">BONUS/PICK</label>
+                            <input
+                              type="text"
+                              value={personalData.bonusPick}
+                              onChange={(e) => setPersonalData({ ...personalData, bonusPick: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">BONUS/LAYOVER</label>
+                            <input
+                              type="text"
+                              value={personalData.bonusLayover}
+                              onChange={(e) => setPersonalData({ ...personalData, bonusLayover: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Percent Rate (shown when PAID PERCENT is selected) */}
+                      {personalData.paymentMethod === 'PAID PERCENT' && (
+                        <div className="mt-4">
+                          <h4 className="text-md font-bold text-gray-900 mb-4">Percent Rate</h4>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              %<span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={personalData.percentRate}
+                              onChange={(e) => setPersonalData({ ...personalData, percentRate: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Driver Type Section */}
+                    <div className="mt-6">
+                      <h4 className="text-md font-bold text-gray-900 mb-4">Driver Type</h4>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPersonalData({ ...personalData, driverTypeSolo: true })}
+                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${
+                            personalData.driverTypeSolo
+                              ? 'bg-gray-700 !text-white'
+                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                          }`}
+                        >
+                          SOLO
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPersonalData({ ...personalData, driverTypeSolo: false })}
+                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${
+                            !personalData.driverTypeSolo
+                              ? 'bg-gray-700 text-white'
+                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                          }`}
+                        >
+                          TEAM
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Exemption Checkboxes */}
+                    <div className="mt-6">
+                      <h4 className="text-md font-bold text-gray-900 mb-4">Exemptions</h4>
+                      <div className="flex gap-6">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={personalData.cppExempt}
+                            onChange={(e) => setPersonalData({ ...personalData, cppExempt: e.target.checked })}
+                            className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                          />
+                          <span className="text-sm font-medium text-gray-700">CPP Exempt</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={personalData.payrollTaxExempt}
+                            onChange={(e) => setPersonalData({ ...personalData, payrollTaxExempt: e.target.checked })}
+                            className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                          />
+                          <span className="text-sm font-medium text-gray-700">Payroll Tax Exempt</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Custom HST % */}
+                    <div className="mt-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Custom HST %</label>
+                      <input
+                        type="text"
+                        placeholder="Leave Empty To Use Compar"
+                        value={personalData.customHst}
+                        onChange={(e) => setPersonalData({ ...personalData, customHst: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                      />
+                    </div>
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setActiveFormTab('basic')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        <span>←</span> Basic
+                      </button>
+                      <button
+                        onClick={() => setActiveFormTab('travel')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        Travel <span>→</span>
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
-                  <button
-                    onClick={() => {
-                      setShowDriverDetails(false);
-                      setTimeout(() => setSelectedDriver(null), 300);
-                    }}
-                    className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(selectedDriver);
-                      setShowDriverDetails(false);
-                    }}
-                    className="px-6 py-2.5 bg-gradient-to-r from-[#4A90E2] to-[#357ABD] !text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
-                  >
-                    <Edit size={18} />
-                    Edit Driver
-                  </button>
-                </div>
+                {activeFormTab === 'travel' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Travel Information</h3>
+                    
+                    {/* Travel Information Section */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Drivers License #<span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Drivers License #"
+                          value={travelData.driversLicenseNumber}
+                          onChange={(e) => setTravelData({ ...travelData, driversLicenseNumber: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Date Of Expiry<span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={travelData.driversLicenseExpiry}
+                          onChange={(e) => setTravelData({ ...travelData, driversLicenseExpiry: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Select</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">License State/Province</label>
+                        <select
+                          value={travelData.licenseStateProvince}
+                          onChange={(e) => setTravelData({ ...travelData, licenseStateProvince: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Select</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Passport #<span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Passport #"
+                          value={travelData.passportNumber}
+                          onChange={(e) => setTravelData({ ...travelData, passportNumber: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Passport Country</label>
+                        <select
+                          value={travelData.passportCountry}
+                          onChange={(e) => setTravelData({ ...travelData, passportCountry: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Select</option>
+                          <option value="US">United States</option>
+                          <option value="CA">Canada</option>
+                          <option value="IN">India</option>
+                          <option value="UK">United Kingdom</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Date Of Expiry<span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={travelData.passportExpiry}
+                          onChange={(e) => setTravelData({ ...travelData, passportExpiry: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Select</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Fast Card #</label>
+                        <input
+                          type="text"
+                          placeholder="Fast Card #"
+                          value={travelData.fastCardNumber}
+                          onChange={(e) => setTravelData({ ...travelData, fastCardNumber: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date Of Expiry</label>
+                        <select
+                          value={travelData.fastCardExpiry}
+                          onChange={(e) => setTravelData({ ...travelData, fastCardExpiry: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Select</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Fast Card Valid Checkbox */}
+                    <div className="mt-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={travelData.fastCardValid}
+                          onChange={(e) => setTravelData({ ...travelData, fastCardValid: e.target.checked })}
+                          className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Fast Card Valid</span>
+                      </label>
+                    </div>
+
+                    {/* Canadian Worker Status Section */}
+                    <div className="mt-6">
+                      <h4 className="text-md font-bold text-gray-900 mb-4">Canadian Worker Status</h4>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'CANADIAN CITIZEN' })}
+                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${
+                            travelData.canadianWorkerStatus === 'CANADIAN CITIZEN'
+                              ? 'bg-gray-700 !text-white'
+                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                          }`}
+                        >
+                          CANADIAN CITIZEN
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'PERMANENT RESIDENT' })}
+                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${
+                            travelData.canadianWorkerStatus === 'PERMANENT RESIDENT'
+                              ? 'bg-gray-700 !text-white'
+                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                          }`}
+                        >
+                          PERMANENT RESIDENT
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'WORK PERMIT' })}
+                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${
+                            travelData.canadianWorkerStatus === 'WORK PERMIT'
+                              ? 'bg-gray-700 !text-white'
+                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                          }`}
+                        >
+                          WORK PERMIT
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Permanent Residence Expiry */}
+                    {travelData.canadianWorkerStatus === 'PERMANENT RESIDENT' && (
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Permanent Residence Expiry</label>
+                        <select
+                          value={travelData.permanentResidenceExpiry}
+                          onChange={(e) => setTravelData({ ...travelData, permanentResidenceExpiry: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md"
+                        >
+                          <option value="">Select</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Work Permit Expiry */}
+                    {travelData.canadianWorkerStatus === 'WORK PERMIT' && (
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Work Permit Expiry</label>
+                        <input
+                          type="date"
+                          value={travelData.workPermitExpiry}
+                          onChange={(e) => setTravelData({ ...travelData, workPermitExpiry: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md"
+                        />
+                      </div>
+                    )}
+
+                    {/* WCB Number */}
+                    <div className="mt-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">WCB (Workers' Compensation Board) Number</label>
+                      <input
+                        type="text"
+                        placeholder="WCB (Workers' Compensation Board) Number"
+                        value={travelData.wcbNumber}
+                        onChange={(e) => setTravelData({ ...travelData, wcbNumber: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md"
+                      />
+                    </div>
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setActiveFormTab('personal')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        <span>←</span> Personal
+                      </button>
+                      <button
+                        onClick={() => setActiveFormTab('documents')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        Documents <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeFormTab === 'documents' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Documents</h3>
+                    
+                    {/* Documents Sub-tabs */}
+                    <div className="flex gap-2 border-b border-gray-200">
+                      {[
+                        { id: 'general', label: 'General' },
+                        { id: 'driving-violations', label: 'Driving Violations' },
+                        { id: 'other-violations', label: 'Other Violations' },
+                        { id: 'other', label: 'Other' },
+                        { id: 'warning-letters', label: 'Warning Letters' }
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setDocumentsTab(tab.id as any)}
+                          className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 -mb-[1px] ${
+                            documentsTab === tab.id
+                              ? 'border-gray-900 text-gray-900 bg-white'
+                              : 'border-transparent text-gray-600 hover:text-gray-900'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Documents Table with Headers */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white">
+                          {/* Input Row */}
+                          <tr className="bg-gray-50">
+                            <td className="px-4 py-3">
+                              <input
+                                type="date"
+                                value={newDocument.expiryDate}
+                                onChange={(e) => setNewDocument({ ...newDocument, expiryDate: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Description"
+                                  value={newDocument.description}
+                                  onChange={(e) => setNewDocument({ ...newDocument, description: e.target.value })}
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                />
+                                {documentFile ? (
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                                    <FileText className="w-4 h-4 text-gray-600" />
+                                    <span className="text-sm text-gray-700 truncate max-w-[100px]">{documentFile.name}</span>
+                                    <button
+                                      onClick={() => {
+                                        setDocumentFile(null);
+                                        setNewDocument({ ...newDocument, file: null });
+                                      }}
+                                      className="text-gray-400 hover:text-gray-600"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
+                                    <Upload className="w-4 h-4 text-gray-600" />
+                                    <span className="text-sm text-gray-700">Select File</span>
+                                    <input
+                                      type="file"
+                                      className="hidden"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          setDocumentFile({ name: file.name, size: file.size });
+                                          setNewDocument({ ...newDocument, file });
+                                        }
+                                      }}
+                                    />
+                                  </label>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={newDocument.ignoreExpiration}
+                                    onChange={(e) => setNewDocument({ ...newDocument, ignoreExpiration: e.target.checked })}
+                                    className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                                  />
+                                  <span className="text-sm text-gray-700">Ignore Expiration</span>
+                                </label>
+                                <button
+                                  onClick={() => {
+                                    if (newDocument.expiryDate || newDocument.description) {
+                                      const docId = Date.now().toString();
+                                      setDocuments([...documents, {
+                                        id: docId,
+                                        expiryDate: newDocument.expiryDate,
+                                        description: newDocument.description,
+                                        ignoreExpiration: newDocument.ignoreExpiration,
+                                        file: newDocument.file
+                                      }]);
+                                      if (newDocument.file && documentFile) {
+                                        setUploadedFiles({ ...uploadedFiles, [docId]: documentFile });
+                                      }
+                                      setNewDocument({
+                                        expiryDate: '',
+                                        description: '',
+                                        ignoreExpiration: false,
+                                        file: null
+                                      });
+                                      setDocumentFile(null);
+                                    }
+                                  }}
+                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                >
+                                  <Plus className="w-5 h-5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Documents Data Table */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {documents.length === 0 ? (
+                            <tr>
+                              <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
+                                No Data
+                              </td>
+                            </tr>
+                          ) : (
+                            documents.map((doc) => (
+                              <tr key={doc.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
+                                // Could add document details view here if needed
+                              }}>
+                                <td className="px-4 py-3 text-sm text-gray-900">{doc.expiryDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    {doc.description || '-'}
+                                    {uploadedFiles[doc.id] && (
+                                      <span title={uploadedFiles[doc.id].name}>
+                                        <FileText className="w-4 h-4 text-blue-500" />
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {doc.ignoreExpiration ? (
+                                    <Check className="w-5 h-5 text-green-500" />
+                                  ) : (
+                                    <span className="text-gray-400">-</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setActiveFormTab('travel')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        <span>←</span> Travel
+                      </button>
+                      <button
+                        onClick={() => setActiveFormTab('certifications')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        Certifications <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeFormTab === 'certifications' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Safety Certifications</h3>
+                    
+                    {/* Certifications Table with Input Row */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">SUBCATEGORY</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white">
+                          {/* Input Row */}
+                          <tr className="bg-gray-50">
+                            <td className="px-4 py-3">
+                              <div className="relative">
+                                <input
+                                  type="date"
+                                  value={newCertification.expiryDate}
+                                  onChange={(e) => setNewCertification({ ...newCertification, expiryDate: e.target.value })}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                  placeholder="mm/dd/yyyy"
+                                />
+                                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <input
+                                type="text"
+                                placeholder="Title"
+                                value={newCertification.title}
+                                onChange={(e) => setNewCertification({ ...newCertification, title: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <select
+                                value={newCertification.subCategory}
+                                onChange={(e) => setNewCertification({ ...newCertification, subCategory: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              >
+                                <option value="">Sub Category</option>
+                                <option value="category1">Category 1</option>
+                                <option value="category2">Category 2</option>
+                              </select>
+                            </td>
+                            <td className="px-4 py-3">
+                              <select
+                                value={newCertification.result}
+                                onChange={(e) => setNewCertification({ ...newCertification, result: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              >
+                                <option value="">Result</option>
+                                <option value="pass">Pass</option>
+                                <option value="fail">Fail</option>
+                                <option value="pending">Pending</option>
+                              </select>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={newCertification.ignoreExpiration}
+                                    onChange={(e) => setNewCertification({ ...newCertification, ignoreExpiration: e.target.checked })}
+                                    className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                                  />
+                                  <span className="text-sm text-gray-700">Ignore Expiration</span>
+                                </label>
+                                <button
+                                  onClick={() => {
+                                    if (newCertification.expiryDate || newCertification.title) {
+                                      setCertifications([...certifications, {
+                                        id: Date.now().toString(),
+                                        expiryDate: newCertification.expiryDate,
+                                        title: newCertification.title,
+                                        subCategory: newCertification.subCategory,
+                                        result: newCertification.result,
+                                        ignoreExpiration: newCertification.ignoreExpiration
+                                      }]);
+                                      setNewCertification({
+                                        expiryDate: '',
+                                        title: '',
+                                        subCategory: '',
+                                        result: '',
+                                        ignoreExpiration: false
+                                      });
+                                    }
+                                  }}
+                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                >
+                                  <Plus className="w-5 h-5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Certifications Data Table */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">SUBCATEGORY</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {certifications.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                                No Data
+                              </td>
+                            </tr>
+                          ) : (
+                            certifications.map((cert) => (
+                              <tr 
+                                key={cert.id} 
+                                className={`hover:bg-gray-50 cursor-pointer ${selectedCertificate?.id === cert.id ? 'bg-blue-50' : ''}`}
+                                onClick={() => setSelectedCertificate(cert)}
+                              >
+                                <td className="px-4 py-3 text-sm text-gray-900">{cert.expiryDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{cert.title || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{cert.subCategory || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{cert.result || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {cert.ignoreExpiration ? (
+                                    <Check className="w-5 h-5 text-green-500" />
+                                  ) : (
+                                    <span className="text-gray-400">-</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Safety Certificate Details Side Panel */}
+                    {selectedCertificate && (
+                      <div className="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 border-l border-gray-200 overflow-y-auto" style={{ top: 0, right: 0 }}>
+                        <div className="p-6">
+                          <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold text-gray-900">Safety Certificate Details</h3>
+                            <button
+                              onClick={() => setSelectedCertificate(null)}
+                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                              <X className="w-6 h-6" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                                {selectedCertificate.title || '-'}
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                                {selectedCertificate.expiryDate || '-'}
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Sub Category</label>
+                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                                {selectedCertificate.subCategory || '-'}
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Result</label>
+                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                                {selectedCertificate.result || '-'}
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Ignore Expiration</label>
+                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                                {selectedCertificate.ignoreExpiration ? (
+                                  <div className="flex items-center gap-2">
+                                    <Check className="w-5 h-5 text-green-500" />
+                                    <span className="text-gray-900">Yes</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-500">No</span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-gray-200">
+                              <button
+                                onClick={() => {
+                                  setCertifications(certifications.filter(c => c.id !== selectedCertificate.id));
+                                  setSelectedCertificate(null);
+                                }}
+                                className="w-full px-4 py-2 bg-red-500 !text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                              >
+                                Delete Certificate
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setActiveFormTab('documents')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        <span>←</span> Documents
+                      </button>
+                      <button
+                        onClick={() => setActiveFormTab('violations')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        Violations <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeFormTab === 'violations' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Tickets / Violations</h3>
+                    
+                    {/* Violations Input Row */}
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Payment Due Date</label>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="date"
+                            value={newViolation.paymentDueDate}
+                            onChange={(e) => setNewViolation({ ...newViolation, paymentDueDate: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Ticket</label>
+                        <input
+                          type="text"
+                          placeholder="Ticket"
+                          value={newViolation.ticket}
+                          onChange={(e) => setNewViolation({ ...newViolation, ticket: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        {violationFile ? (
+                          <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                            <FileText className="w-4 h-4 text-gray-600" />
+                            <span className="text-sm text-gray-700 truncate max-w-[100px]">{violationFile.name}</span>
+                            <button
+                              onClick={() => {
+                                setViolationFile(null);
+                                setNewViolation({ ...newViolation, file: null });
+                              }}
+                              className="text-gray-400 hover:text-gray-600"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
+                            <Upload className="w-4 h-4 text-gray-600" />
+                            <span className="text-sm text-gray-700">Select File</span>
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  setViolationFile({ name: file.name, size: file.size });
+                                  setNewViolation({ ...newViolation, file: { name: file.name, size: file.size } });
+                                }
+                              }}
+                            />
+                          </label>
+                        )}
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => {
+                            if (newViolation.paymentDueDate || newViolation.ticket) {
+                              const violationId = Date.now().toString();
+                              setViolations([...violations, {
+                                id: violationId,
+                                paymentDueDate: newViolation.paymentDueDate,
+                                ticket: newViolation.ticket,
+                                file: newViolation.file
+                              }]);
+                              setNewViolation({
+                                paymentDueDate: '',
+                                ticket: '',
+                                file: null
+                              });
+                              setViolationFile(null);
+                            }
+                          }}
+                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Violations Table */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Payment Due Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Ticket</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {violations.length === 0 ? (
+                            <tr>
+                              <td colSpan={2} className="px-4 py-8 text-center text-gray-500">
+                                No Data
+                              </td>
+                            </tr>
+                          ) : (
+                            violations.map((violation) => (
+                              <tr key={violation.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm text-gray-900">{violation.paymentDueDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    {violation.ticket || '-'}
+                                    {violation.file && (
+                                      <span title={violation.file.name}>
+                                        <FileText className="w-4 h-4 text-blue-500" />
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setActiveFormTab('certifications')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        <span>←</span> Certifications
+                      </button>
+                      <button
+                        onClick={() => setActiveFormTab('notes')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        Notes <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeFormTab === 'notes' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Notes</h3>
+                    
+                    {/* Notes Input Row */}
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          placeholder="Note"
+                          value={newNote.note}
+                          onChange={(e) => setNewNote({ ...newNote, note: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <select
+                          value={newNote.category}
+                          onChange={(e) => setNewNote({ ...newNote, category: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Category</option>
+                          <option value="Standby">Standby</option>
+                        </select>
+                      </div>
+                      <div>
+                        <button
+                          onClick={() => {
+                            if (newNote.note) {
+                              setNotes([...notes, {
+                                id: Date.now().toString(),
+                                note: newNote.note,
+                                category: newNote.category
+                              }]);
+                              setNewNote({
+                                note: '',
+                                category: ''
+                              });
+                            }
+                          }}
+                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Notes Display */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      {notes.length === 0 ? (
+                        <div className="px-4 py-8 text-center text-gray-500">
+                          No Data
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-gray-200">
+                          {notes.map((note) => (
+                            <div key={note.id} className="px-4 py-3 hover:bg-gray-50">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm text-gray-900">{note.note}</p>
+                                  {note.category && (
+                                    <p className="text-xs text-gray-500 mt-1">Category: {note.category}</p>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => setNotes(notes.filter(n => n.id !== note.id))}
+                                  className="text-gray-400 hover:text-red-500"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setActiveFormTab('violations')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        <span>←</span> Violations
+                      </button>
+                      <button
+                        onClick={() => setActiveFormTab('deductions')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        Deductions <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeFormTab === 'deductions' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Deductions</h3>
+                    
+                    {/* Deductions Input Row */}
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="date"
+                            value={newDeduction.startDate}
+                            onChange={(e) => setNewDeduction({ ...newDeduction, startDate: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <input
+                          type="text"
+                          placeholder="Description"
+                          value={newDeduction.description}
+                          onChange={(e) => setNewDeduction({ ...newDeduction, description: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <input
+                          type="text"
+                          placeholder="0"
+                          value={newDeduction.amount}
+                          onChange={(e) => setNewDeduction({ ...newDeduction, amount: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                        <select
+                          value={newDeduction.interval}
+                          onChange={(e) => setNewDeduction({ ...newDeduction, interval: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Interval</option>
+                          <option value="Weekly">Weekly</option>
+                          <option value="Bi-Weekly">Bi-Weekly</option>
+                          <option value="Monthly">Monthly</option>
+                          <option value="Yearly">Yearly</option>
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <select
+                          value={newDeduction.currency}
+                          onChange={(e) => setNewDeduction({ ...newDeduction, currency: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="CAD">CAD</option>
+                          <option value="USD">USD</option>
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => {
+                            if (newDeduction.startDate || newDeduction.description) {
+                              setDeductions([...deductions, {
+                                id: Date.now().toString(),
+                                startDate: newDeduction.startDate,
+                                description: newDeduction.description,
+                                amount: newDeduction.amount,
+                                interval: newDeduction.interval,
+                                currency: newDeduction.currency
+                              }]);
+                              setNewDeduction({
+                                startDate: '',
+                                description: '',
+                                amount: '0',
+                                interval: '',
+                                currency: 'CAD'
+                              });
+                            }
+                          }}
+                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Deductions Table */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {deductions.length === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                                No Data
+                              </td>
+                            </tr>
+                          ) : (
+                            deductions.map((deduction) => (
+                              <tr key={deduction.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.startDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.amount || '0'} {deduction.currency}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.interval || '-'}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setActiveFormTab('notes')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        <span>←</span> Notes
+                      </button>
+                      <button
+                        onClick={() => setActiveFormTab('additions')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        Additions <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeFormTab === 'additions' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Additions</h3>
+                    
+                    {/* Additions Input Row */}
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="date"
+                            value={newAddition.startDate}
+                            onChange={(e) => setNewAddition({ ...newAddition, startDate: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <input
+                          type="text"
+                          placeholder="Description"
+                          value={newAddition.description}
+                          onChange={(e) => setNewAddition({ ...newAddition, description: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <input
+                          type="text"
+                          placeholder="0"
+                          value={newAddition.amount}
+                          onChange={(e) => setNewAddition({ ...newAddition, amount: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                        <select
+                          value={newAddition.interval}
+                          onChange={(e) => setNewAddition({ ...newAddition, interval: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Interval</option>
+                          <option value="Weekly">Weekly</option>
+                          <option value="Bi-Weekly">Bi-Weekly</option>
+                          <option value="Monthly">Monthly</option>
+                          <option value="Yearly">Yearly</option>
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <select
+                          value={newAddition.currency}
+                          onChange={(e) => setNewAddition({ ...newAddition, currency: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="CAD">CAD</option>
+                          <option value="USD">USD</option>
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => {
+                            if (newAddition.startDate || newAddition.description) {
+                              setAdditions([...additions, {
+                                id: Date.now().toString(),
+                                startDate: newAddition.startDate,
+                                description: newAddition.description,
+                                amount: newAddition.amount,
+                                interval: newAddition.interval,
+                                currency: newAddition.currency
+                              }]);
+                              setNewAddition({
+                                startDate: '',
+                                description: '',
+                                amount: '0',
+                                interval: '',
+                                currency: 'CAD'
+                              });
+                            }
+                          }}
+                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Additions Table */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {additions.length === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                                No Data
+                              </td>
+                            </tr>
+                          ) : (
+                            additions.map((addition) => (
+                              <tr key={addition.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm text-gray-900">{addition.startDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{addition.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{addition.amount || '0'} {addition.currency}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{addition.interval || '-'}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setActiveFormTab('deductions')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        <span>←</span> Deductions
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeFormTab !== 'basic' && activeFormTab !== 'personal' && activeFormTab !== 'travel' && activeFormTab !== 'documents' && activeFormTab !== 'certifications' && activeFormTab !== 'violations' && activeFormTab !== 'notes' && activeFormTab !== 'deductions' && activeFormTab !== 'additions' && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 text-lg">
+                      Section coming soon
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
