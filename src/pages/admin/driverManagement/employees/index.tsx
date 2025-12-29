@@ -30,17 +30,13 @@ const staticEmployees: Employee[] = [
 
 // Current roles from the system
 const roleBadges = [
-  'ADMIN',
-  'ADMIN / HUMAN RESOURCES',
   'DISPATCH',
   'HR',
   'FLEET MAINTENANCE MANAGER',
   'COMPLIANCE MANAGER',
   'SAFETY OFFICER',
   'REPORTER',
-  'MAINTENANCE CREW (MECHANICS)',
-  'Custom Permissions',
-  'CUSTOMS'
+  'MAINTENANCE CREW (MECHANICS)'
 ];
 
 const EmployeesPage = () => {
@@ -127,8 +123,7 @@ const EmployeesPage = () => {
     'Compliance Manager',
     'Maintenance Crew (Mechanics)',
     'safety officer',
-    'admin',
-    'Admin / Human Resources'
+
   ];
 
   // Filter employees based on search and filter
@@ -198,9 +193,6 @@ const EmployeesPage = () => {
   const getRoleDisplayName = (role: string) => {
     // Map current roles to display names
     const roleMap: { [key: string]: string } = {
-      'Admin_hr': 'Admin / Human Resources',
-      'Admin': 'Admin',
-      'Custom': 'Custom',
       'Dispatcher': 'Dispatch',
       'HR': 'HR',
       'Fleet Maintenance Manager': 'Fleet Maintenance Manager',
@@ -300,9 +292,7 @@ const EmployeesPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
             />
-            <button className="px-6 py-2 bg-[#42aeec] text-white rounded-lg hover:bg-[#1db5f5] transition-colors font-medium">
-              Go
-            </button>
+          
           </div>
 
           <div className="flex items-center gap-4">
