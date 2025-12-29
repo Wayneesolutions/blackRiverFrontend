@@ -7,6 +7,7 @@ import Loading from "../../components/common/Loading";
 const Dashboard = lazy(() => import("../../pages/admin/driverManagement/index"));
 const Driver = lazy(() => import("../../pages/admin/driverManagement/driverslist/index"))
 const EmployeeList = lazy(() => import("../../pages/admin/driverManagement/employees/index"))
+const Customers = lazy(() => import("../../pages/admin/driverManagement/customers/index"))
 const Documents = lazy(() => import("../../pages/admin/driverManagement/document/index"))
 const Attendence = lazy(() => import("../../pages/admin/driverManagement/Attendance/index"))
 const Issues = lazy(() => import("../../pages/admin/dispatch/resources/issues/index"))
@@ -27,6 +28,7 @@ function DriverManagementRoutes() {
 
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/employeelist" element={<EmployeeList />} />
+                    <Route path="/customers" element={<Customers />} />
                     <Route path="/documents" element={<Documents />} />
                     <Route path="/company-documents" element={<CompanyDocuments />} />
                     <Route path="/vehicle-documents" element={<VehicleDocuments />} />

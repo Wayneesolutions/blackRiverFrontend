@@ -8,6 +8,7 @@ import { FaUserTie } from "react-icons/fa";      // Employees
 import { FaTruck } from "react-icons/fa";        // Drivers
 import { FaIdCard } from "react-icons/fa";       // Driver Portfolio
 import { FaFolderOpen } from "react-icons/fa";   // Company Documents
+import { FaUsers } from "react-icons/fa";        // Customers
 
 
 type DriverSidebarLink = {
@@ -32,6 +33,11 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/employeelist",
     icon: <FaUserTie />,
     label: "Employees",
+  },
+  {
+    key: "/admin/Management/customers",
+    icon: <FaUsers />,
+    label: "Customers",
   },
   {
     key: "/admin/Management/company-documents",
