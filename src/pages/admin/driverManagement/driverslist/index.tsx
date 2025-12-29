@@ -471,6 +471,7 @@ const DriverManagement = () => {
   };
 
   const getTabCount = (tab: 'all' | 'external' | 'unassigned') => {
+    
     switch (tab) {
       case 'all':
         return 49;
@@ -541,6 +542,7 @@ const DriverManagement = () => {
       <div className="max-w-full mx-auto">
         {/* Header Section */}
         <div className="mb-6">
+
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-gray-900">Drivers</h1>
             <div className="flex items-center gap-2">
@@ -552,6 +554,7 @@ const DriverManagement = () => {
                 <Plus className="w-5 h-5" />
               </button>
             </div>
+
           </div>
 
           {/* Navigation Tabs */}
