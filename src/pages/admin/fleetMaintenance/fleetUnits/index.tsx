@@ -75,6 +75,11 @@ interface FleetUnitFormData {
   reason: string;
   serviceIntervalDays: string;
   serviceIntervalMileage: string;
+  safetyExpiryDate: string;
+  safetyDecalNumber: string;
+  safetyPaperNumber: string;
+  lastInspectionShop: string;
+  lastInspectionInvoice: string;
 }
 
 interface FleetDocumentForm {
@@ -147,7 +152,12 @@ const FleetUnits: React.FC = () => {
     lastDate: '',
     reason: '',
     serviceIntervalDays: '',
-    serviceIntervalMileage: ''
+    serviceIntervalMileage: '',
+    safetyExpiryDate: '',
+    safetyDecalNumber: '',
+    safetyPaperNumber: '',
+    lastInspectionShop: '',
+    lastInspectionInvoice: ''
   });
 
   const resetForm = () => {
@@ -170,7 +180,12 @@ const FleetUnits: React.FC = () => {
       lastDate: '',
       reason: '',
       serviceIntervalDays: '',
-      serviceIntervalMileage: ''
+      serviceIntervalMileage: '',
+      safetyExpiryDate: '',
+      safetyDecalNumber: '',
+      safetyPaperNumber: '',
+      lastInspectionShop: '',
+      lastInspectionInvoice: ''
     });
     setFleetDocuments([]);
     setCurrentStep(1);
@@ -613,7 +628,12 @@ const FleetUnits: React.FC = () => {
       lastDate: unit.lastDate ? unit.lastDate.slice(0, 10) : '',
       reason: unit.reason || '',
       serviceIntervalDays: (unit as any).serviceIntervalDays?.toString() || '',
-      serviceIntervalMileage: (unit as any).serviceIntervalMileage?.toString() || ''
+      serviceIntervalMileage: (unit as any).serviceIntervalMileage?.toString() || '',
+      safetyExpiryDate: unit.safetyExpiryDate ? unit.safetyExpiryDate.slice(0, 10) : '',
+      safetyDecalNumber: unit.safetyDecalNumber || '',
+      safetyPaperNumber: unit.safetyPaperNumber || '',
+      lastInspectionShop: unit.lastInspectionShop || '',
+      lastInspectionInvoice: unit.lastInspectionInvoice || ''
     });
     setFormError(null);
     setCurrentStep(1);
@@ -682,7 +702,12 @@ const FleetUnits: React.FC = () => {
         lastDate: formData.status === 'Inactive' ? formData.lastDate || undefined : undefined,
         reason: formData.status === 'Inactive' ? formData.reason || undefined : undefined,
         serviceIntervalDays: formData.serviceIntervalDays ? Number(formData.serviceIntervalDays) : undefined,
-        serviceIntervalMileage: formData.serviceIntervalMileage ? Number(formData.serviceIntervalMileage) : undefined
+        serviceIntervalMileage: formData.serviceIntervalMileage ? Number(formData.serviceIntervalMileage) : undefined,
+        safetyExpiryDate: formData.safetyExpiryDate || undefined,
+        safetyDecalNumber: formData.safetyDecalNumber.trim() || undefined,
+        safetyPaperNumber: formData.safetyPaperNumber.trim() || undefined,
+        lastInspectionShop: formData.lastInspectionShop.trim() || undefined,
+        lastInspectionInvoice: formData.lastInspectionInvoice.trim() || undefined
       };
 
       let fleetUnitId: string | null = null;
@@ -1733,6 +1758,73 @@ const FleetUnits: React.FC = () => {
                       min="0"
                     />
                     <p className="text-xs text-gray-500 mt-1">Service due after X kilometers</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Safety Information</h3>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Safety Expiry Date</label>
+                    <input
+                      type="date"
+                      value={formData.safetyExpiryDate}
+                      onChange={(e) => setFormData({ ...formData, safetyExpiryDate: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Safety Decal Number</label>
+                    <input
+                      type="text"
+                      value={formData.safetyDecalNumber}
+                      onChange={(e) => setFormData({ ...formData, safetyDecalNumber: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      placeholder="e.g., DEC-123456"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Safety Paper Number</label>
+                    <input
+                      type="text"
+                      value={formData.safetyPaperNumber}
+                      onChange={(e) => setFormData({ ...formData, safetyPaperNumber: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      placeholder="e.g., PAP-789012"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Inspection Shop</label>
+                    <input
+                      type="text"
+                      value={formData.lastInspectionShop}
+                      onChange={(e) => setFormData({ ...formData, lastInspectionShop: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      placeholder="e.g., ABC Auto Shop"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Inspection Invoice</label>
+                    <input
+                      type="text"
+                      value={formData.lastInspectionInvoice}
+                      onChange={(e) => setFormData({ ...formData, lastInspectionInvoice: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      placeholder="e.g., INV-456789"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Edit, Trash2, Plus, X, RefreshCw, AlertCircle, User, Search, Eye, CheckCircle, FileText, Briefcase, Phone, Globe, MapPin, CreditCard, Heart, Building2, DollarSign, Snowflake, Thermometer, Upload, ChevronLeft, ChevronRight, Save } from 'lucide-react';
+import { Edit, Trash2, Plus, X, RefreshCw, AlertCircle, User, Search, Eye, CheckCircle, FileText, Briefcase, Phone, Globe, MapPin, CreditCard, Heart, Building2, DollarSign, Snowflake, Thermometer, Upload, ChevronLeft, ChevronRight, Save, Filter, ArrowUpDown } from 'lucide-react';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import * as driverApi from '../../../../axios/api/driver';
 import { getDocumentsByEmployee, createEmployeeDocument, getSignedEmployeeDocumentUrl } from '../../../../axios/api/employeeDocument';
@@ -81,6 +81,9 @@ const DriverManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<string>('');
   const [showSidebar, setShowSidebar] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; driverId: string | null }>({ show: false, driverId: null });
@@ -824,12 +827,48 @@ const DriverManagement = () => {
     setFormData(prev => ({ ...prev, file }));
   };
 
-  // Filter drivers locally (backend also does server-side filtering)
-  const filteredDrivers = drivers.filter(driver =>
-    driver.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    driver.internalId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    driver.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter and sort drivers locally
+  const getFilteredAndSortedDrivers = () => {
+    let filtered = [...drivers];
+    
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      filtered = filtered.filter(driver =>
+        driver.name?.toLowerCase().includes(query) ||
+        driver.internalId?.toLowerCase().includes(query) ||
+        driver.email?.toLowerCase().includes(query)
+      );
+    }
+    
+    // Apply status filter
+    if (selectedStatus) {
+      filtered = filtered.filter(driver => driver.status === selectedStatus);
+    }
+    
+    // Apply sorting
+    if (sortBy && sortOrder) {
+      filtered.sort((a, b) => {
+        let aVal: any = '';
+        let bVal: any = '';
+        
+        if (sortBy === 'name') {
+          aVal = (a.name || '').toLowerCase();
+          bVal = (b.name || '').toLowerCase();
+        }
+        
+        if (sortOrder === 'asc') {
+          return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+        } else {
+          return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+        }
+      });
+    }
+    
+    return filtered;
+  };
+  
+  const filteredDrivers = getFilteredAndSortedDrivers();
 
   return (
     <div className="flex h-screen bg-[#EDF8FF] overflow-hidden">
@@ -869,28 +908,90 @@ const DriverManagement = () => {
             </div>
           </div>
 
-          {/* Search Bar */}
+          {/* Search and Filters */}
           <div className="mt-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Search by name, ID, or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  borderColor: '#d1d5db'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = FLEET_COLORS.primary;
-                  e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#d1d5db';
-                  e.target.style.boxShadow = '';
-                }}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none"
-              />
+            <div className="flex items-center gap-3">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <input
+                  type="text"
+                  placeholder="Search by name, ID, or email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    borderColor: '#d1d5db'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = FLEET_COLORS.primary;
+                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = '';
+                  }}
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none"
+                />
+              </div>
+              
+              {/* Status Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  style={{
+                    borderColor: '#d1d5db'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = FLEET_COLORS.primary;
+                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = '';
+                  }}
+                  className="px-4 py-2 border rounded-lg focus:outline-none appearance-none pr-10 cursor-pointer bg-white"
+                >
+                  <option value="">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              </div>
+              
+              {/* Sort Dropdown */}
+              <div className="relative">
+                <select
+                  value={sortBy && sortOrder ? `${sortBy}-${sortOrder}` : ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      setSortBy('');
+                      setSortOrder('');
+                    } else {
+                      const [field, order] = value.split('-');
+                      setSortBy(field);
+                      setSortOrder(order);
+                    }
+                  }}
+                  style={{
+                    borderColor: '#d1d5db'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = FLEET_COLORS.primary;
+                    e.target.style.boxShadow = `0 0 0 2px ${FLEET_COLORS.focusRing}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = '';
+                  }}
+                  className="px-4 py-2 border rounded-lg focus:outline-none appearance-none pr-10 cursor-pointer bg-white"
+                >
+                  <option value="">Sort by Name</option>
+                  <option value="name-asc">Name: A-Z</option>
+                  <option value="name-desc">Name: Z-A</option>
+                </select>
+                <ArrowUpDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              </div>
             </div>
           </div>
         </div>
