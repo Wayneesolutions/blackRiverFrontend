@@ -4,7 +4,7 @@ import type { AxiosResponse } from 'axios';
 // Employee Management APIs
 
 // Get all employees with filters and pagination
-export const getAllEmployees = async (page: number = 1, limit: number = 10, search?: string, role?: string, status?: string, sortBy?: string, sortOrder?: string) => {
+export const getAllEmployees = async (page: number = 1, limit: number = 10, search?: string, role?: string, status?: string, sortBy?: string, sortOrder?: string, hasRole?: string) => {
   try {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -16,6 +16,7 @@ export const getAllEmployees = async (page: number = 1, limit: number = 10, sear
     if (status) params.append('status', status);
     if (sortBy) params.append('sortBy', sortBy);
     if (sortOrder) params.append('sortOrder', sortOrder);
+    if (hasRole) params.append('hasRole', hasRole);
     
     const res: AxiosResponse = await apiClient.get(`employee?${params.toString()}`);
     return res.data;
