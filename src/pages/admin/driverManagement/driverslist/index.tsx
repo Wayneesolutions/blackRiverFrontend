@@ -5,8 +5,80 @@ import * as driverApi from '../../../../axios/api/driver';
 import { getDocumentsByEmployee, createEmployeeDocument, getSignedEmployeeDocumentUrl } from '../../../../axios/api/employeeDocument';
 import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
 
-// Static driver data matching the image
+// US States
+const US_STATES = [
+  { value: 'AL', label: 'Alabama' },
+  { value: 'AK', label: 'Alaska' },
+  { value: 'AZ', label: 'Arizona' },
+  { value: 'AR', label: 'Arkansas' },
+  { value: 'CA', label: 'California' },
+  { value: 'CO', label: 'Colorado' },
+  { value: 'CT', label: 'Connecticut' },
+  { value: 'DE', label: 'Delaware' },
+  { value: 'FL', label: 'Florida' },
+  { value: 'GA', label: 'Georgia' },
+  { value: 'HI', label: 'Hawaii' },
+  { value: 'ID', label: 'Idaho' },
+  { value: 'IL', label: 'Illinois' },
+  { value: 'IN', label: 'Indiana' },
+  { value: 'IA', label: 'Iowa' },
+  { value: 'KS', label: 'Kansas' },
+  { value: 'KY', label: 'Kentucky' },
+  { value: 'LA', label: 'Louisiana' },
+  { value: 'ME', label: 'Maine' },
+  { value: 'MD', label: 'Maryland' },
+  { value: 'MA', label: 'Massachusetts' },
+  { value: 'MI', label: 'Michigan' },
+  { value: 'MN', label: 'Minnesota' },
+  { value: 'MS', label: 'Mississippi' },
+  { value: 'MO', label: 'Missouri' },
+  { value: 'MT', label: 'Montana' },
+  { value: 'NE', label: 'Nebraska' },
+  { value: 'NV', label: 'Nevada' },
+  { value: 'NH', label: 'New Hampshire' },
+  { value: 'NJ', label: 'New Jersey' },
+  { value: 'NM', label: 'New Mexico' },
+  { value: 'NY', label: 'New York' },
+  { value: 'NC', label: 'North Carolina' },
+  { value: 'ND', label: 'North Dakota' },
+  { value: 'OH', label: 'Ohio' },
+  { value: 'OK', label: 'Oklahoma' },
+  { value: 'OR', label: 'Oregon' },
+  { value: 'PA', label: 'Pennsylvania' },
+  { value: 'RI', label: 'Rhode Island' },
+  { value: 'SC', label: 'South Carolina' },
+  { value: 'SD', label: 'South Dakota' },
+  { value: 'TN', label: 'Tennessee' },
+  { value: 'TX', label: 'Texas' },
+  { value: 'UT', label: 'Utah' },
+  { value: 'VT', label: 'Vermont' },
+  { value: 'VA', label: 'Virginia' },
+  { value: 'WA', label: 'Washington' },
+  { value: 'WV', label: 'West Virginia' },
+  { value: 'WI', label: 'Wisconsin' },
+  { value: 'WY', label: 'Wyoming' }
+];
+
+// Canadian Provinces
+const CANADIAN_PROVINCES = [
+  { value: 'AB', label: 'Alberta' },
+  { value: 'BC', label: 'British Columbia' },
+  { value: 'MB', label: 'Manitoba' },
+  { value: 'NB', label: 'New Brunswick' },
+  { value: 'NL', label: 'Newfoundland and Labrador' },
+  { value: 'NS', label: 'Nova Scotia' },
+  { value: 'NT', label: 'Northwest Territories' },
+  { value: 'NU', label: 'Nunavut' },
+  { value: 'ON', label: 'Ontario' },
+  { value: 'PE', label: 'Prince Edward Island' },
+  { value: 'QC', label: 'Quebec' },
+  { value: 'SK', label: 'Saskatchewan' },
+  { value: 'YT', label: 'Yukon' }
+];
+
+// Driver interface matching backend response
 interface Driver {
+  _id?: string;
   driverId: string;
   firstName: string;
   lastName: string;
@@ -17,8 +89,15 @@ interface Driver {
   ticketYTD: number;
   status: string;
   compliance: 'COMPLIANT' | 'EXPIRING SOON' | 'NON-COMPLIANT';
+  complianceDetails?: any;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  company?: string;
+  [key: string]: any; // Allow additional fields from backend
 }
 
+// Static driver data for fallback/initial state
 const staticDrivers: Driver[] = [
   {
     driverId: 'BRBS75',
@@ -166,77 +245,6 @@ const staticDrivers: Driver[] = [
   }
 ];
 
-// US States
-const US_STATES = [
-  { value: 'AL', label: 'Alabama' },
-  { value: 'AK', label: 'Alaska' },
-  { value: 'AZ', label: 'Arizona' },
-  { value: 'AR', label: 'Arkansas' },
-  { value: 'CA', label: 'California' },
-  { value: 'CO', label: 'Colorado' },
-  { value: 'CT', label: 'Connecticut' },
-  { value: 'DE', label: 'Delaware' },
-  { value: 'FL', label: 'Florida' },
-  { value: 'GA', label: 'Georgia' },
-  { value: 'HI', label: 'Hawaii' },
-  { value: 'ID', label: 'Idaho' },
-  { value: 'IL', label: 'Illinois' },
-  { value: 'IN', label: 'Indiana' },
-  { value: 'IA', label: 'Iowa' },
-  { value: 'KS', label: 'Kansas' },
-  { value: 'KY', label: 'Kentucky' },
-  { value: 'LA', label: 'Louisiana' },
-  { value: 'ME', label: 'Maine' },
-  { value: 'MD', label: 'Maryland' },
-  { value: 'MA', label: 'Massachusetts' },
-  { value: 'MI', label: 'Michigan' },
-  { value: 'MN', label: 'Minnesota' },
-  { value: 'MS', label: 'Mississippi' },
-  { value: 'MO', label: 'Missouri' },
-  { value: 'MT', label: 'Montana' },
-  { value: 'NE', label: 'Nebraska' },
-  { value: 'NV', label: 'Nevada' },
-  { value: 'NH', label: 'New Hampshire' },
-  { value: 'NJ', label: 'New Jersey' },
-  { value: 'NM', label: 'New Mexico' },
-  { value: 'NY', label: 'New York' },
-  { value: 'NC', label: 'North Carolina' },
-  { value: 'ND', label: 'North Dakota' },
-  { value: 'OH', label: 'Ohio' },
-  { value: 'OK', label: 'Oklahoma' },
-  { value: 'OR', label: 'Oregon' },
-  { value: 'PA', label: 'Pennsylvania' },
-  { value: 'RI', label: 'Rhode Island' },
-  { value: 'SC', label: 'South Carolina' },
-  { value: 'SD', label: 'South Dakota' },
-  { value: 'TN', label: 'Tennessee' },
-  { value: 'TX', label: 'Texas' },
-  { value: 'UT', label: 'Utah' },
-  { value: 'VT', label: 'Vermont' },
-  { value: 'VA', label: 'Virginia' },
-  { value: 'WA', label: 'Washington' },
-  { value: 'WV', label: 'West Virginia' },
-  { value: 'WI', label: 'Wisconsin' },
-  { value: 'WY', label: 'Wyoming' }
-];
-
-// Canadian Provinces
-const CANADIAN_PROVINCES = [
-  { value: 'AB', label: 'Alberta' },
-  { value: 'BC', label: 'British Columbia' },
-  { value: 'MB', label: 'Manitoba' },
-  { value: 'NB', label: 'New Brunswick' },
-  { value: 'NL', label: 'Newfoundland and Labrador' },
-  { value: 'NS', label: 'Nova Scotia' },
-  { value: 'NT', label: 'Northwest Territories' },
-  { value: 'NU', label: 'Nunavut' },
-  { value: 'ON', label: 'Ontario' },
-  { value: 'PE', label: 'Prince Edward Island' },
-  { value: 'QC', label: 'Quebec' },
-  { value: 'SK', label: 'Saskatchewan' },
-  { value: 'YT', label: 'Yukon' }
-];
-
 const DriverManagement = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'external' | 'unassigned'>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -248,6 +256,10 @@ const DriverManagement = () => {
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [driverDocuments, setDriverDocuments] = useState<any[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [showDocumentsModal, setShowDocumentsModal] = useState<{ show: boolean; driver: Driver | null }>({ show: false, driver: null });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -329,7 +341,10 @@ const DriverManagement = () => {
     cppExempt: false,
     payrollTaxExempt: false,
     // Custom HST
-    customHst: ''
+    customHst: '',
+    // Additional fields
+    gender: '',
+    citizenship: ''
   });
 
   // Form state for Travel Information
@@ -456,18 +471,172 @@ const DriverManagement = () => {
     currency: 'CAD'
   });
 
+  // Fetch drivers from API
+  const fetchDrivers = async () => {
+    try {
+      setLoading(true);
+      const response = await driverApi.getAllDrivers(1, 1000); // Fetch all drivers
+      
+      if (response?.success && response.data) {
+        // Transform backend data to match Driver interface
+        const transformedDrivers: Driver[] = response.data.map((driver: any) => ({
+          _id: driver._id,
+          driverId: driver.driverId || driver.internalId || driver._id?.slice(-6).toUpperCase() || 'N/A',
+          firstName: driver.firstName || (driver.name ? driver.name.split(' ')[0] : ''),
+          lastName: driver.lastName || (driver.name ? driver.name.split(' ').slice(1).join(' ') : ''),
+          driversLicence: driver.driversLicence || '',
+          passport: driver.passport || '',
+          dateOfBirth: driver.dateOfBirth || '',
+          notes: driver.notes || '',
+          ticketYTD: driver.ticketYTD || 0,
+          status: driver.status || 'ACTIVE',
+          compliance: driver.compliance || 'NON-COMPLIANT',
+          complianceDetails: driver.complianceDetails,
+          email: driver.email,
+          phone: driver.phone,
+          mobile: driver.mobile,
+          company: driver.company
+        }));
+        
+        setDrivers(transformedDrivers);
+      } else {
+        console.error('Failed to fetch drivers:', response);
+        setDrivers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching drivers:', error);
+      setDrivers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch drivers on component mount
+  useEffect(() => {
+    fetchDrivers();
+  }, []);
+
+  // Load driver data when editing
+  useEffect(() => {
+    const loadDriverForEdit = async () => {
+      if (editingId) {
+        try {
+          const response = await driverApi.getDriverById(editingId);
+          if (response?.success && response.data) {
+            const driver = response.data;
+            // Parse name into parts
+            const nameParts = (driver.name || '').split(' ');
+            const firstName = nameParts[0] || '';
+            const middle = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
+            const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+
+            // Format date of birth
+            let dateOfBirthFormatted = '';
+            if (driver.details?.dateOfBirth) {
+              const dob = new Date(driver.details.dateOfBirth);
+              dateOfBirthFormatted = dob.toISOString().split('T')[0];
+            } else if (driver.dob) {
+              const dob = new Date(driver.dob);
+              dateOfBirthFormatted = dob.toISOString().split('T')[0];
+            }
+
+            setFormData({
+              driverId: driver.internalId || '',
+              firstName: firstName,
+              middle: middle,
+              lastName: lastName,
+              emailAddress: driver.email || '',
+              dateOfBirth: dateOfBirthFormatted,
+              mobileApp: false,
+              pin: '',
+              primaryPhone: driver.phone || '+1',
+              secondaryPhone: driver.details?.cell2 || '+1',
+              searchAddress: '',
+              address: driver.location?.address || '',
+              unit: '',
+              city: driver.city || '',
+              postalCode: driver.details?.postalCode || '',
+              country: driver.country || '',
+              stateProvince: driver.state || '',
+              profileImage: null
+            });
+
+            // Set profile image preview if exists
+            if (driver.profileImageUrl) {
+              setProfileImagePreview(driver.profileImageUrl);
+            }
+
+             // Set personal data
+             setPersonalData({
+               socialInsuranceNumber: driver.details?.sinNo || '',
+               hireDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
+               terminationDate: driver.details?.termDate ? new Date(driver.details.termDate).toISOString().split('T')[0] : '',
+               status: driver.status === 'active' ? 'Active' : 'Inactive',
+               vacationPercent: '',
+               paySearchAddress: '',
+               corporationName: '',
+               driverName: '',
+               paymentAddress: '',
+               gstNo: driver.details?.gstNo || '',
+               driverType: 'COMPANY DRIVER',
+               paymentMethod: 'PAID PER MILE',
+               alone: '0',
+               empty: '0',
+               bonusDrop: '0',
+               team: '0',
+               emptyTeam: '0',
+               bonusPick: '0',
+               bonusLayover: '0',
+               percentRate: '0',
+               perTripAmount: '0',
+               hourlyRate: '0',
+               dailyRate: '0',
+               driverTypeSolo: true,
+               cppExempt: false,
+               payrollTaxExempt: false,
+               customHst: '',
+               gender: driver.details?.gender || '',
+               citizenship: driver.details?.citizenship || ''
+             });
+
+            // Set travel data
+            setTravelData({
+              driversLicenseNumber: driver.details?.licenceNumber || driver.details?.driversLicence || '',
+              driversLicenseExpiry: '',
+              licenseStateProvince: '',
+              passportNumber: driver.details?.passport || driver.details?.passportNumber || '',
+              passportCountry: driver.details?.passportCountry || '',
+              passportExpiry: driver.details?.passportExpiry ? new Date(driver.details.passportExpiry).toISOString().split('T')[0] : '',
+              fastCardNumber: driver.details?.fastCardNo || '',
+              fastCardExpiry: driver.details?.fastCardExpiry ? new Date(driver.details.fastCardExpiry).toISOString().split('T')[0] : '',
+              fastCardValid: false,
+              canadianWorkerStatus: 'PERMANENT RESIDENT',
+              permanentResidenceExpiry: '',
+              workPermitExpiry: '',
+              wcbNumber: driver.details?.wsibAccountNo || ''
+            });
+
+            setShowNewDriverModal(true);
+          }
+        } catch (error) {
+          console.error('Error loading driver for edit:', error);
+        }
+      }
+    };
+
+    loadDriverForEdit();
+  }, [editingId]);
+
   // Filter drivers based on active tab
   const getFilteredDrivers = () => {
-    let filtered = staticDrivers;
+    // Use real drivers if available, otherwise fallback to static
+    const driversToFilter = drivers.length > 0 ? drivers : staticDrivers;
+    let filtered = driversToFilter;
 
     // Apply tab filter
-    if (activeTab === 'external') {
-      // For external, show all except unassigned (mock logic)
-      filtered = staticDrivers.filter((_, index) => index < 46);
-    } else if (activeTab === 'unassigned') {
-      // For unassigned, show last 3 (mock logic)
-      filtered = staticDrivers.slice(-3);
-    }
+    // Note: Tab filtering logic would need to be implemented based on actual assignment data
+    // For now, we'll show all drivers for all tabs
+    // TODO: Implement proper assignment filtering when assignment data is available
 
     // Apply search filter
     if (searchTerm) {
@@ -570,14 +739,18 @@ const DriverManagement = () => {
   };
 
   const getTabCount = (tab: 'all' | 'external' | 'unassigned') => {
-
+    // Use real driver count if available
+    const totalCount = drivers.length > 0 ? drivers.length : staticDrivers.length;
+    
     switch (tab) {
       case 'all':
-        return 49;
+        return totalCount;
       case 'external':
-        return 46;
+        // TODO: Implement proper external driver count when assignment data is available
+        return Math.floor(totalCount * 0.94); // Mock: ~94% are external
       case 'unassigned':
-        return 3;
+        // TODO: Implement proper unassigned driver count when assignment data is available
+        return Math.max(0, Math.floor(totalCount * 0.06)); // Mock: ~6% are unassigned
       default:
         return 0;
     }
@@ -593,8 +766,7 @@ const DriverManagement = () => {
     try {
       const response = await driverApi.deleteDriver(deleteConfirm.driverId);
       if (response.success) {
-        // TODO: Implement fetchDrivers function
-        // await fetchDrivers();
+        await fetchDrivers();
         alert('Driver deleted successfully!');
       } else {
         alert(response.message || 'Failed to delete driver');
@@ -609,11 +781,10 @@ const DriverManagement = () => {
 
   const toggleStatus = async (id: string, currentStatus: string) => {
     try {
-      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+      const newStatus = currentStatus === 'active' || currentStatus === 'ACTIVE' ? 'inactive' : 'active';
       const response = await driverApi.updateDriverStatus(id, newStatus);
       if (response.success) {
-        // TODO: Implement fetchDrivers function
-        // await fetchDrivers();
+        await fetchDrivers();
       } else {
         alert(response.message || 'Failed to update driver status');
       }
@@ -635,6 +806,195 @@ const DriverManagement = () => {
     const file = e.target.files?.[0] || null;
     setFormData(prev => ({ ...prev, file }));
   };
+
+  const handleSaveDriver = async () => {
+    try {
+      // Validate required fields
+      if (!formData.firstName || !formData.lastName) {
+        alert('Please fill in all required fields (First Name, Last Name)');
+        return;
+      }
+
+      // Create FormData
+      const driverFormData = new FormData();
+      
+      // Basic Information
+      driverFormData.append('name', `${formData.firstName} ${formData.middle ? formData.middle + ' ' : ''}${formData.lastName}`.trim());
+      driverFormData.append('email', formData.emailAddress);
+      driverFormData.append('phone', formData.primaryPhone);
+      driverFormData.append('country', formData.country);
+      driverFormData.append('internalId', formData.driverId);
+      driverFormData.append('password', formData.pin || 'TempPassword123!'); // Default password if not provided
+      driverFormData.append('role', 'driver');
+      driverFormData.append('status', 'active');
+      
+      // Date of Birth
+      if (formData.dateOfBirth) {
+        driverFormData.append('dob', formData.dateOfBirth);
+      }
+      
+      // Address Information
+      if (formData.address) driverFormData.append('address', formData.address);
+      if (formData.city) driverFormData.append('city', formData.city);
+      if (formData.stateProvince) driverFormData.append('state', formData.stateProvince);
+      if (formData.postalCode) driverFormData.append('postalCode', formData.postalCode);
+      
+      // Personal Information
+      if (personalData.socialInsuranceNumber) driverFormData.append('sinNo', personalData.socialInsuranceNumber);
+      if (personalData.hireDate) driverFormData.append('joinDate', personalData.hireDate);
+      if (personalData.gender) driverFormData.append('gender', personalData.gender);
+      if (personalData.citizenship) driverFormData.append('citizenship', personalData.citizenship);
+      
+      // Travel Information
+      if (travelData.driversLicenseNumber) driverFormData.append('licenceNumber', travelData.driversLicenseNumber);
+      if (travelData.passportNumber) driverFormData.append('passport', travelData.passportNumber);
+      if (travelData.passportCountry) driverFormData.append('passportCountry', travelData.passportCountry);
+      
+      // Profile Image - backend expects 'file' field name
+      if (formData.profileImage) {
+        driverFormData.append('file', formData.profileImage);
+      }
+
+      const response = await driverApi.createDriver(driverFormData);
+      
+      if (response?.success) {
+        alert('Driver created successfully!');
+        // Reset form
+        setFormData({
+          driverId: '',
+          firstName: '',
+          middle: '',
+          lastName: '',
+          emailAddress: '',
+          dateOfBirth: '',
+          mobileApp: false,
+          pin: '',
+          primaryPhone: '+1',
+          secondaryPhone: '+1',
+          searchAddress: '',
+          address: '',
+          unit: '',
+          city: '',
+          postalCode: '',
+          country: '',
+          stateProvince: '',
+          profileImage: null
+        });
+        setProfileImagePreview(null);
+        setShowNewDriverModal(false);
+        // Refresh drivers list
+        await fetchDrivers();
+      } else {
+        alert(response?.message || 'Failed to create driver');
+      }
+    } catch (error: any) {
+      console.error('Error creating driver:', error);
+      alert(error.response?.data?.message || error.message || 'Failed to create driver');
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowNewDriverModal(false);
+    setEditingId(null);
+    // Reset form when closing
+    setFormData({
+      driverId: '',
+      firstName: '',
+      middle: '',
+      lastName: '',
+      emailAddress: '',
+      dateOfBirth: '',
+      mobileApp: false,
+      pin: '',
+      primaryPhone: '+1',
+      secondaryPhone: '+1',
+      searchAddress: '',
+      address: '',
+      unit: '',
+      city: '',
+      postalCode: '',
+      country: '',
+      stateProvince: '',
+      profileImage: null
+    });
+    setProfileImagePreview(null);
+    setActiveFormTab('basic');
+  };
+
+  const handleUpdateDriver = async () => {
+    if (!editingId) return;
+    
+    try {
+      // Validate required fields
+      if (!formData.firstName || !formData.lastName) {
+        alert('Please fill in all required fields (First Name, Last Name)');
+        return;
+      }
+
+      // Create FormData
+      const driverFormData = new FormData();
+      
+      // Basic Information
+      driverFormData.append('name', `${formData.firstName} ${formData.middle ? formData.middle + ' ' : ''}${formData.lastName}`.trim());
+      driverFormData.append('email', formData.emailAddress);
+      driverFormData.append('phone', formData.primaryPhone);
+      driverFormData.append('country', formData.country);
+      driverFormData.append('internalId', formData.driverId);
+      if (formData.pin) driverFormData.append('password', formData.pin);
+      
+      // Date of Birth
+      if (formData.dateOfBirth) {
+        driverFormData.append('dob', formData.dateOfBirth);
+      }
+      
+      // Address Information
+      if (formData.address) driverFormData.append('address', formData.address);
+      if (formData.city) driverFormData.append('city', formData.city);
+      if (formData.stateProvince) driverFormData.append('state', formData.stateProvince);
+      if (formData.postalCode) driverFormData.append('postalCode', formData.postalCode);
+      
+      // Personal Information
+      if (personalData.socialInsuranceNumber) driverFormData.append('sinNo', personalData.socialInsuranceNumber);
+      if (personalData.hireDate) driverFormData.append('joinDate', personalData.hireDate);
+      if (personalData.gender) driverFormData.append('gender', personalData.gender);
+      if (personalData.citizenship) driverFormData.append('citizenship', personalData.citizenship);
+      
+      // Travel Information
+      if (travelData.driversLicenseNumber) driverFormData.append('licenceNumber', travelData.driversLicenseNumber);
+      if (travelData.passportNumber) driverFormData.append('passport', travelData.passportNumber);
+      if (travelData.passportCountry) driverFormData.append('passportCountry', travelData.passportCountry);
+      
+      // Profile Image - backend expects 'file' field name
+      if (formData.profileImage) {
+        driverFormData.append('file', formData.profileImage);
+      }
+
+      const response = await driverApi.updateDriver(editingId, driverFormData);
+      
+      if (response?.success) {
+        alert('Driver updated successfully!');
+        handleCloseModal();
+        // Refresh drivers list
+        await fetchDrivers();
+      } else {
+        alert(response?.message || 'Failed to update driver');
+      }
+    } catch (error: any) {
+      console.error('Error updating driver:', error);
+      alert(error.response?.data?.message || error.message || 'Failed to update driver');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#EDF8FF] p-6 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading drivers...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#EDF8FF] p-6">
@@ -1020,16 +1380,58 @@ const DriverManagement = () => {
                       </button>
                     </td>
                     <td className="px-4 py-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(driver.driverId);
-                        }}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title="Delete Driver"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (driver._id) {
+                              setEditingId(driver._id);
+                            } else {
+                              setEditingDriver(driver);
+                              setFormData({
+                                driverId: driver.driverId,
+                                firstName: driver.firstName,
+                                middle: '',
+                                lastName: driver.lastName,
+                                emailAddress: '',
+                                dateOfBirth: driver.dateOfBirth,
+                                mobileApp: false,
+                                pin: '',
+                                primaryPhone: '+1',
+                                secondaryPhone: '+1',
+                                searchAddress: '',
+                                address: '',
+                                unit: '',
+                                city: '',
+                                postalCode: '',
+                                country: '',
+                                stateProvince: '',
+                                profileImage: null
+                              });
+                              setActiveFormTab('basic');
+                              setShowNewDriverModal(true);
+                            }
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="Edit Driver"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (driver._id) {
+                              handleDelete(driver._id);
+                            } else {
+                              handleDelete(driver.driverId);
+                            }
+                          }}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title="Delete Driver"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1057,12 +1459,60 @@ const DriverManagement = () => {
             <div className="w-48 bg-gray-50 border-r border-gray-200 flex flex-col">
               {/* Image Upload Area */}
               <div className="p-3 border-b border-gray-200">
-                <div className="border-2 border-dashed border-gray-300 p-4 text-center mb-2">
-                  <Upload className="w-6 h-6 text-gray-400 mx-auto mb-1" />
-                  <p className="text-xs text-gray-600">Select Image</p>
+                <div 
+                  className="border-2 border-dashed border-gray-300 p-4 text-center mb-2 cursor-pointer hover:border-[#42aeec] transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {profileImagePreview ? (
+                    <img
+                      src={profileImagePreview}
+                      alt="Profile preview"
+                      className="w-full h-24 object-cover rounded-lg"
+                    />
+                  ) : (
+                    <>
+                      <Upload className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+                      <p className="text-xs text-gray-600">Select Image</p>
+                    </>
+                  )}
                 </div>
-                <button className="w-full bg-black !text-white py-1.5 text-xs font-medium hover:bg-gray-800 transition-colors">
-                  UPLOAD
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 20 * 1024 * 1024) {
+                        alert('File size must be less than 20MB');
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = '';
+                        }
+                        return;
+                      }
+                      if (!file.type.startsWith('image/')) {
+                        alert('Please select an image file');
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = '';
+                        }
+                        return;
+                      }
+                      setFormData({ ...formData, profileImage: file });
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setProfileImagePreview(reader.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="hidden"
+                />
+                <button 
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full bg-black !text-white py-1.5 text-xs font-medium hover:bg-gray-800 transition-colors"
+                >
+                  {formData.profileImage ? 'CHANGE IMAGE' : 'UPLOAD'}
                 </button>
               </div>
 
@@ -1106,38 +1556,16 @@ const DriverManagement = () => {
             <div className={`flex-1 flex flex-col overflow-hidden transition-all ${selectedCertificate ? 'mr-96' : ''}`}>
               {/* Header */}
               <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white">
-                <h2 className="text-lg font-bold text-gray-900">{editingDriver ? 'Edit Driver' : 'New Driver'}</h2>
+                <h2 className="text-lg font-bold text-gray-900">{(editingId || editingDriver) ? 'Edit Driver' : 'New Driver'}</h2>
                 <div className="flex items-center gap-2">
-                  <button className="px-3 py-1 text-xs bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">
-                    SAVE
+                  <button 
+                    onClick={editingId ? handleUpdateDriver : handleSaveDriver}
+                    className="px-3 py-1 text-xs bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                  >
+                    {editingId ? 'UPDATE' : 'SAVE'}
                   </button>
                   <button
-                    onClick={() => {
-                      setShowNewDriverModal(false);
-                      setEditingDriver(null);
-                      // Reset form data
-                      setFormData({
-                        driverId: '',
-                        firstName: '',
-                        middle: '',
-                        lastName: '',
-                        emailAddress: '',
-                        dateOfBirth: '',
-                        mobileApp: false,
-                        pin: '',
-                        primaryPhone: '+1',
-                        secondaryPhone: '+1',
-                        searchAddress: '',
-                        address: '',
-                        unit: '',
-                        city: '',
-                        postalCode: '',
-                        country: '',
-                        stateProvince: '',
-                        profileImage: null
-                      });
-                      setActiveFormTab('basic');
-                    }}
+                    onClick={handleCloseModal}
                     className="text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     <X className="w-4 h-4" />
@@ -1223,6 +1651,7 @@ const DriverManagement = () => {
                             onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                             className="w-full pl-7 pr-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                             placeholder="Select"
+                            max={new Date().toISOString().split('T')[0]}
                           />
                         </div>
                       </div>
@@ -1348,6 +1777,91 @@ const DriverManagement = () => {
                       </div>
                     </div>
 
+                    {/* Profile Image Row */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0">
+                          {profileImagePreview ? (
+                            <img
+                              src={profileImagePreview}
+                              alt="Profile preview"
+                              className="w-24 h-24 rounded-lg object-cover border-2 border-gray-300"
+                              onError={() => {
+                                // If image fails to load, show placeholder
+                                setProfileImagePreview(null);
+                              }}
+                            />
+                          ) : (
+                            <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                              <User className="w-8 h-8 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                // Validate file size (20MB max)
+                                if (file.size > 20 * 1024 * 1024) {
+                                  alert('File size must be less than 20MB');
+                                  if (fileInputRef.current) {
+                                    fileInputRef.current.value = '';
+                                  }
+                                  return;
+                                }
+                                // Validate file type
+                                if (!file.type.startsWith('image/')) {
+                                  alert('Please select an image file');
+                                  if (fileInputRef.current) {
+                                    fileInputRef.current.value = '';
+                                  }
+                                  return;
+                                }
+                                setFormData({ ...formData, profileImage: file });
+                                // Create preview
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setProfileImagePreview(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              fileInputRef.current?.click();
+                            }}
+                            className="inline-block px-4 py-2 bg-[#42aeec] text-white rounded-lg cursor-pointer hover:bg-[#0ea3d8] transition-colors"
+                          >
+                            {formData.profileImage ? 'Change Image' : 'Select Image'}
+                          </button>
+                          {formData.profileImage && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({ ...formData, profileImage: null });
+                                setProfileImagePreview(null);
+                                if (fileInputRef.current) {
+                                  fileInputRef.current.value = '';
+                                }
+                              }}
+                              className="ml-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                              Remove
+                            </button>
+                          )}
+                          <p className="text-xs text-gray-500 mt-2">JPG, PNG or GIF (Max 20MB)</p>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Sixth Row */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
@@ -1366,7 +1880,7 @@ const DriverManagement = () => {
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                          State/Province<span className="text-red-500">*</span>
+                          {formData.country === 'CA' ? 'Province' : formData.country === 'US' ? 'State' : 'State/Province'}<span className="text-red-500">*</span>
                         </label>
                         <select
                           value={formData.stateProvince}
@@ -1375,14 +1889,14 @@ const DriverManagement = () => {
                           className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         >
                           <option value="">Select {formData.country === 'CA' ? 'Province' : formData.country === 'US' ? 'State' : 'State/Province'}</option>
-                          {formData.country === 'CA' && CANADIAN_PROVINCES.map((province) => (
-                            <option key={province.value} value={province.value}>
-                              {province.label}
-                            </option>
-                          ))}
                           {formData.country === 'US' && US_STATES.map((state) => (
                             <option key={state.value} value={state.value}>
                               {state.label}
+                            </option>
+                          ))}
+                          {formData.country === 'CA' && CANADIAN_PROVINCES.map((province) => (
+                            <option key={province.value} value={province.value}>
+                              {province.label}
                             </option>
                           ))}
                         </select>
